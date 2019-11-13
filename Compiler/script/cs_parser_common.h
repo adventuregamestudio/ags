@@ -15,7 +15,7 @@ typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository
 typedef int32_t GlobalLoc; // An offset into the global space
 typedef char FixupType; // the type of a fixup
-} // namespace AGS
+
 
 constexpr char const *NEW_SCRIPT_TOKEN_PREFIX = "\"__NEWSCRIPTSTART_";
 constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
@@ -111,8 +111,9 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_Static = 1 << 11, // static member func/var
     kSFLG_StrBuffer = 1 << 12, // was allocated a string buffer
     kSFLG_StructMember = 1 << 13, // set for member vars & funcs
-    kSFLG_StructVartype = 1 << 14, // is a struct type (type will be kSYM_Vartype)
+    kSFLG_StructVartype = 1 << 14, // is a struct vartype (type will be kSYM_Vartype)
     kSFLG_WriteProtected = 1 << 15,  // only the this pointer can write the var
 };
 
+} // namespace AGS
 #endif // __CS_PARSER_COMMON_H

@@ -193,7 +193,7 @@ private:
     CallMap _funcCallpointMap;
 
 public:
-    FuncCallpointMgr(::ccCompiledScript &scrip);
+    FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip);
     void Reset();
 
     // Enter a code location where a function is called that hasn't been defined yet.
@@ -297,8 +297,7 @@ public:
     // When reading, we need the value itself (but see below for arrays and structs)
     // - It can be in AX (kVL_ax_is_value)
     // - or in m(MAR) (kVL_mar_pointsto_value).
-    // When writing, we can't use a value itself. Instead, we need a pointer
-    // to the adress that has to be modified.
+    // When writing, we need a pointer to the adress that has to be modified.
     // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
     // - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
     // - attributes must be modified by calling their setter function (kVL_attribute)
@@ -309,8 +308,8 @@ public:
         kVL_attribute            // The value must be modified by calling an attribute setter
     };
 
-    // [fw] This ought to replace the #defines in script_common.h
-    //      but we can't touch them since the engine uses them, too
+    // This ought to replace the #defines in script_common.h
+    // but we can't touch them since the engine uses them, too
     enum FxFixupType : AGS::FixupType // see script_common.h
     {
         kFx_NoFixup = 0,
@@ -320,7 +319,6 @@ public:
         kFx_Import = FIXUP_IMPORT,         // code[fixup] = &imported_thing[code[fixup]]
         kFx_Stack = FIXUP_STACK,           // code[fixup] += &stack[0]
         kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
-
     };
 
     enum Globalness
@@ -368,10 +366,6 @@ private:
     // Main symbol table
     SymbolTable &_sym;
 
-    // Auxiliary symbol table that is used in the first phase.
-    typedef std::map<AGS::Symbol, SymbolTableEntry> TSym1Table;
-    TSym1Table _sym1;
-
     // List of symbols from the tokenizer
     ::ccInternalList &_targ;
 
@@ -381,10 +375,10 @@ private:
     // Manage a map of all the functions that have bodies (in the current source).
     FuncCallpointMgr _fcm;
 
-    // Manage a map of all imported functions where the import comes after the function
+    // Manage a map of all imported functions where the import decl comes after the function
+    // The "Callpoint" of such a function is the index in the import table.
     FuncCallpointMgr _fim; // i for import
 
-private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
     // Augment the message with a "See ..." indication
@@ -403,20 +397,11 @@ private:
     inline int MathPrio(Symbol op) const { return 100 - _sym[op].ssize; };
 
     bool IsIdentifier(Symbol symb);
-
-    bool IsPrimitiveVartype(Symbol symbl) const { return (symbl > 0 && symbl <= _sym.getVoidSym()); };
-
-    bool Parser::IsAnyTypeOfString(Vartype symtype);
-
-    bool IsOldstring(Vartype vartype);
-
-    static bool Parser::IsManagedVartype(Vartype vartype);
-
     inline static Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
 
     size_t Vartype2Size(Vartype vartype);
 
-    void SetManagedInVartype(Vartype &vartype);
+    void SetDynpointerInManagedVartype(Vartype &vartype);
 
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
@@ -430,12 +415,6 @@ private:
     // Like SkipTo, but for symbol scripts
     int SkipToScript(const Symbol stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
 
-    // Reference to the symbol table that works irrespective of the phase we are in
-    inline SymbolTableEntry &GetSymbolTableEntryAnyPhase(Symbol symb) { return (kPP_Main == _pp) ? _sym[symb] : _sym1[symb]; }
-
-    // Get the type of symb; this will work irrespective of the phase we are in
-    inline SymbolType GetSymbolTypeAnyPhase(Symbol symb) { return (symb < 0) ? kSYM_NoType : GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype; };
-
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].flags, kSFLG_Accessed, true); };
 
@@ -445,28 +424,28 @@ private:
 
     // Does vartype v contain releasable pointers?
     // Also determines whether vartype contains standard (non-dynamic) arrays.
-    bool ContainsReleasablePointers(Vartype v);
+    bool ContainsReleasableDynpointers(Vartype v);
 
     // We're at the end of a block and releasing a standard array of pointers.
     // MAR points to the array start. Release each array element (pointer).
-    int FreePointersOfStdArrayOfPointer(size_t arrsize, bool &clobbers_ax);
+    int FreeDynpointersOfStdArrayOfDynpointer(size_t arrsize, bool &clobbers_ax);
 
     // We're at the end of a block and releasing all the pointers in a struct.
     // MAR already points to the start of the struct.
-    void FreePointersOfStruct(Symbol struct_vtype, bool &clobbers_ax);
+    void FreeDynpointersOfStruct(Symbol struct_vtype, bool &clobbers_ax);
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreePointersOfStdArrayOfStruct(Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreeDynpointersOfStdArrayOfStruct(Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
-    void FreePointersOfStdArray(SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreeDynpointersOfStdArray(SymbolTableEntry &entry, bool &clobbers_ax);
 
-    void FreePointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar);
+    void FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar);
 
     // Free the pointers of any locals in level from_level or higher
-    int FreePointersOfLocals(int from_level, Symbol name_of_current_func = 0, bool ax_irrelevant = false);
+    int FreeDynpointersOfLocals(int from_level, Symbol name_of_current_func = 0, bool ax_irrelevant = false);
 
     int RemoveLocalsFromSymtable(int from_level);
 
@@ -511,12 +490,12 @@ private:
 
     int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows, int &numparams);
 
-    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams);
+    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams);
 
-    int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
+    int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const &this_entry, bool body_follows, SymbolTableEntry const &known_info);
 
     // there was a forward declaration -- check that the real declaration matches it
-    int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
+    int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, bool body_follows, SymbolTableEntry const &known_info);
 
     // Enter the function in the imports[] or functions[] array; get its index   
     int ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, CodeLoc &function_soffs, int &function_idx);
@@ -526,7 +505,7 @@ private:
     int ParseFuncdecl_GetSymbolAfterParmlist(Symbol &symbol);
 
     // We're in a func decl. Check whether it is valid here.
-    int ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, SymbolTableEntry &entry, Vartype return_vartype, bool body_follows);
+    int ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, Vartype return_vartype, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
@@ -792,7 +771,7 @@ private:
     // We're waiting for the name of the member.
     int ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
-    int EatPointerSymbolIfPresent(Vartype vartype);
+    int EatDynpointerSymbolIfPresent(Vartype vartype);
 
     int ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
 
@@ -879,13 +858,22 @@ private:
 
     void Parse_StartNewSection(Symbol mangled_section_name);
 
+    // Analyse the decls and collect info about locally defined functions
+    // This is a pre phase that only does simplified analysis
+    int Parse_PreAnalyzePhase();
+
+    // Generate code
+    int Parse_MainPhase();
+
     int ParseInput();
 
-    // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
-    int Parse_FuncHeaders2Sym();
+    // Only certain info should be carried over from the pre phase into the main phase.
+    // Discard all the rest so that the main phase can start with a clean slate.
+    int Parse_ReinitSymTable(const ::SymbolTable &tokenize_res);
 
     // Blank out all imports that haven't been referenced
     int Parse_BlankOutUnusedImports();
+
 
 public:
     // interpret the float as if it were an int (without converting it really);
@@ -893,20 +881,27 @@ public:
     // [fw] This should be moved somewhere. It isn't Parser functionality
     static int InterpretFloatAsInt(float floatval);
 
-    Parser(::SymbolTable &sym_t, ::ccInternalList &targ, ::ccCompiledScript &scrip);
+    Parser(::SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScript &scrip);
 
     int Parse();
 
 }; // class Parser
 } // namespace AGS
 
-
+// Only use that for googletests. Scan and tokenize the input.
 extern int cc_tokenize(
     const char *inpl,           // preprocessed text to be tokenized
     ccInternalList *targ,       // store for the tokenized text
     ccCompiledScript *scrip,    // repository for the strings in the text
-    SymbolTable &symt);         // symbol table
+    SymbolTable &symt);         // symbol table 
 
+// Only use that for googletests. Parse the input
+extern int cc_parse(
+    ccInternalList *targ,
+    ccCompiledScript *scrip,
+    SymbolTable &symt);
+
+// Compile the input.
 extern int cc_compile(
     const char *inpl,           // preprocessed text to be compiled
     ccCompiledScript *scrip);   // store for the compiled text

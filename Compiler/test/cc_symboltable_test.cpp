@@ -10,16 +10,16 @@ TEST(SymbolTable, GetNameNonExistent) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(200));
 
     // check edge conditions. index immediately after 'c' should be null
-    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
-    int b_sym = testSym.add_ex("b", kSYM_NoType, 0);
-    int c_sym = testSym.add_ex("c", kSYM_NoType, 0);
+    int a_sym = testSym.add_ex("a", AGS::kSYM_NoType, 0);
+    int b_sym = testSym.add_ex("b", AGS::kSYM_NoType, 0);
+    int c_sym = testSym.add_ex("c", AGS::kSYM_NoType, 0);
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(c_sym + 1));
 }
 
 TEST(SymbolTable, GetNameNormal) {
     AGS::SymbolTable testSym;
 
-    int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
+    int foo_sym = testSym.add_ex("foo", AGS::kSYM_NoType, 0);
 
     EXPECT_STREQ("foo", testSym.get_name(foo_sym));
 }
@@ -27,8 +27,8 @@ TEST(SymbolTable, GetNameNormal) {
 TEST(SymbolTable, GetNameConverted) {
     AGS::SymbolTable testSym;
 
-    AGS::Vartype const foo_vartype = testSym.add_ex("foo", kSYM_NoType, 0);
-    testSym[foo_vartype].stype = kSYM_Vartype;
+    AGS::Vartype const foo_vartype = testSym.add_ex("foo", AGS::kSYM_NoType, 0);
+    testSym[foo_vartype].stype = AGS::kSYM_Vartype;
     testSym[foo_vartype].vartype_type = AGS::kVTT_Atomic;
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
@@ -49,22 +49,22 @@ TEST(SymbolTable, GetNameConverted) {
 TEST(SymbolTable, AddExAlreadyExists) {
     AGS::SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
-    ASSERT_TRUE(testSym.add_ex("a", kSYM_NoType, 0) == -1);
+    int a_sym = testSym.add_ex("a", AGS::kSYM_NoType, 0);
+    ASSERT_TRUE(testSym.add_ex("a", AGS::kSYM_NoType, 0) == -1);
 }
 
 TEST(SymbolTable, AddExUnique) {
     AGS::SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
-    int b_sym = testSym.add_ex("b", kSYM_NoType, 0);
+    int a_sym = testSym.add_ex("a", AGS::kSYM_NoType, 0);
+    int b_sym = testSym.add_ex("b", AGS::kSYM_NoType, 0);
     ASSERT_TRUE(a_sym != b_sym);
 }
 
 TEST(SymbolTable, AddExDefaultValues) {
     AGS::SymbolTable testSym;
 
-    SymbolType stype = kSYM_Assign;
+    AGS::SymbolType stype = AGS::kSYM_Assign;
     int ssize = 2;
     int a_sym = testSym.add_ex("a", stype, ssize);
 
@@ -83,7 +83,7 @@ TEST(SymbolTable, AddExDefaultValues) {
 TEST(SymbolTable, AddExAvailableAfterwards) {
     AGS::SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
+    int a_sym = testSym.add_ex("x", AGS::kSYM_NoType, 0);
 
     // no test is available.. but we can try to get name.
     const char *name = testSym.get_name(a_sym);
@@ -94,7 +94,7 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
     AGS::SymbolTable testSym;
 
     // ensure reading and writing to entries actually works!
-    int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
+    int a_sym = testSym.add_ex("x", AGS::kSYM_NoType, 0);
     testSym.entries.at(a_sym).flags = 10;
     ASSERT_TRUE(testSym.entries.at(a_sym).flags == 10);
 }

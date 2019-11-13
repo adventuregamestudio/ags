@@ -589,23 +589,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
         if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_Parameter))
             continue;
 
-        if (_sym.IsDynarray(entries_idx))
-        {
-            totalsub += SIZE_OF_DYNPOINTER;
-            continue;
-        }
-
-        // Calculate the size of one var of the given type
-        size_t ssize = _sym[entries_idx].ssize;
-        if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_StrBuffer))
-            ssize += STRINGBUFFER_LENGTH;
-
-        // Calculate the number of vars
-        size_t number = 1;
-        if (_sym.IsArray(entries_idx))
-            number = _sym[entries_idx].arrsize;
-
-        totalsub += ssize * number;
+        totalsub += _sym.GetSize(entries_idx);
     }
     return totalsub;
 }
@@ -614,12 +598,16 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool AGS::Parser::ContainsReleasableDynpointers(AGS::Vartype vartype)
 {
-    if (_sym.IsDynpointer(vartype))
+    if (_sym.IsDyn(vartype))
         return true;
 
     AGS::Vartype const coretype = Vartype2Symbol(vartype);
     if (!_sym.IsStruct(coretype))
         return false; // primitive types can't have pointers
+    Symbol const parent = _sym[coretype].extends;
+    if (_sym.IsInBounds(parent) && ContainsReleasableDynpointers(parent))
+        return true;
+
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
         SymbolTableEntry &entry = _sym[entries_idx];
@@ -776,9 +764,8 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
 
         clobbers_mar = true;
         int const sp_offset = _scrip.cur_sp - entry.soffs;
-        if (_sym.IsManaged(entry.vartype))
+        if (_sym.IsDyn(entry.vartype))
         {
-            // Simply release the pointer
             _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
             _scrip.write_cmd0(SCMD_MEMZEROPTR);
             continue;
@@ -808,7 +795,7 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
     AGS::Vartype const func_return_type = _sym[name_of_current_func].funcparamtypes.at(0);
     bool const function_returns_void = _sym.getVoidSym() == func_return_type;
 
-    if (_sym.IsDynpointer(func_return_type) && !ax_irrelevant)
+    if (_sym.IsDyn(func_return_type) && !ax_irrelevant)
     {
         // The return value AX might point to a local dynamic object. So if we
         // now free the dynamic references and we don't take precautions,
@@ -3434,7 +3421,7 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
         vloc = kVL_mar_pointsto_value;
         retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
-        return AccessData_ProcessAnyArrayIndex(vloc, _sym[component].arrsize, symlist, symlist_len, vloc, mloc, vartype);
+        return AccessData_ProcessAnyArrayIndex(vloc, _sym.NumArrayElements(component), symlist, symlist_len, vloc, mloc, vartype);
     }
 
     return 0; // Can't reach
@@ -3540,7 +3527,7 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         }
 
         // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
-        if (_sym.IsManaged(vartype))
+        if (_sym.IsDynpointer(vartype))
         {
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;

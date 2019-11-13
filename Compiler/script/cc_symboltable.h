@@ -24,8 +24,8 @@ enum VartypeType
     kVTT_Atomic = 0,
     kVTT_Array = 2 << 0,
     kVTT_Const = 2 << 1,
-    kVTT_Dynpointer = 2 << 2,
-    kVTT_Dynarray = 2 << 3,
+    kVTT_Dynarray = 2 << 2,
+    kVTT_Dynpointer = 2 << 3,
 };
 
 struct SymbolTable;
@@ -49,7 +49,7 @@ public:
     AGS::Vartype vartype; // may contain typeflags
 
     // Variables, structs, struct members, and vartypes only
-    int ssize;      // Size in bytes
+    size_t ssize;      // Size in bytes
 
     // Variables and functions only
     int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
@@ -58,16 +58,18 @@ public:
     VartypeType vartype_type;
     int arrsize; // number of elements of static arrays
     std::vector<size_t> dims; // number of elements in each dimension of static array
-    size_t get_num_elements();
-
+    
     // Vars or vartypes
+    size_t GetSize(SymbolTable const &symt) const;
     // Array or Dynarray
+    size_t NumArrayElements(SymbolTable const &symt) const;
     inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
     inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
     inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
     inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); };
     inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); };
     inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); };
+    inline bool IsDyn(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); };
     inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_Managed, symt); };
     inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); };
 
@@ -155,11 +157,16 @@ public:
 
     inline bool IsInBounds(Symbol s) const { return s > 0 && static_cast<size_t>(s) < entries.size(); }
 
-    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Array, *this) : false; };
-    inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Atomic, *this) : false; };
-    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Const, *this) : false; };
-    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Dynarray, *this) : false; };
-    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Dynpointer, *this) : false; };
+    inline size_t GetSize(Symbol s) const { return IsInBounds(s) ? entries[s].GetSize(*this) : 0; };
+
+    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; };
+    inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; };
+    inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; };
+    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsConst(*this) : false; };
+    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarray(*this) : false; };
+    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointer(*this) : false; };
+    // Dynpointer or Dynarray
+    inline bool IsDyn(Symbol s) const { return IsInBounds(s) ? entries[s].IsDyn(*this) : false; };
     inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_Managed, *this) : false; };
     inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_StructVartype, *this) : false; };
     // A predefined atomic vartype such as int and float.

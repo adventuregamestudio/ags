@@ -94,34 +94,57 @@ int AGS::SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
 
 bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype == stype)
-    {
-        // "Constant" always is the outermost vartype qualifier,
-        // so if this is constant and we're checking for something else,
-        // then go one level down.
-        // If this isn't the constant qualifier,
-        // then check here what we're looking for.
-        if (kVTT_Const == vartype_type)
-            return (kVTT_Const == vtt) ? true: symt.IsVTT(vartype, vtt);
-        return vtt == vartype_type;
-    }
+    if (kSYM_Vartype != stype)
+        return symt.IsVTT(vartype, vtt);
 
-    // This isn't a vartype so look at the info in the vartype of this
-    return symt.IsVTT(vartype, vtt); 
+    // "Constant" always is the outermost vartype qualifier,
+    // so if this is constant and we're checking for something else,
+    // then look for the info one level down.
+    if (kVTT_Const == vartype_type)
+        return (kVTT_Const == vtt) ? true: symt.IsVTT(vartype, vtt);
+    return vtt == vartype_type;
+}
+
+size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
+{
+    if (kSYM_Vartype != stype)
+        return symt.GetSize(vartype);
+
+    switch (vartype_type)
+    {
+    default:            return 0;
+    case kVTT_Atomic:   return ssize;
+    case kVTT_Array:    return NumArrayElements(symt) * symt.GetSize(vartype);
+    case kVTT_Const:    return symt.GetSize(vartype);
+    case kVTT_Dynarray: return SIZE_OF_DYNPOINTER;
+    case kVTT_Dynpointer:   return SIZE_OF_DYNPOINTER;
+    }
+    return size_t();
+}
+
+size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
+{
+    if (kSYM_Vartype != stype)
+        return symt.NumArrayElements(vartype);
+
+    if (0 == dims.size())
+        return 0;
+
+    size_t num = 1;
+    for (size_t dims_idx = 0; dims_idx < dims.size(); ++dims_idx)
+        num *= dims[dims_idx];
+    return num;
 }
 
 bool AGS::SymbolTableEntry::IsVTF(Flags f, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype == stype)
-    {
-        // Recursively get to the innermost symbol; read that symbol's flags
-        if (kVTT_Atomic == vartype_type)
-            return FlagIsSet(flags, f);
+    if (kSYM_Vartype != stype)
         return symt.IsVTF(vartype, f);
-    }
 
-    // This isn't a vartype so look at the info in the vartype of this
-    return symt.IsVTF(vartype, f); // look into the vartype of that variable
+    // Recursively get to the innermost symbol; read that symbol's flags
+    if (kVTT_Atomic == vartype_type)
+        return FlagIsSet(flags, f);
+    return symt.IsVTF(vartype, f);
 }
 
 AGS::SymbolTable::SymbolTable()
@@ -156,11 +179,11 @@ void AGS::SymbolTable::reset()
     _floatSym =
         add_ex("float", kSYM_Vartype, 4);
     _intSym =
-        add_ex("int", kSYM_Vartype, 4);
-    add_ex("long", kSYM_Vartype, 4);
+        add_ex("int", kSYM_Vartype, SIZE_OF_INT);
+    add_ex("long", kSYM_Vartype, SIZE_OF_INT);
     add_ex("short", kSYM_Vartype, 2);
     _stringSym =
-        add_ex("string", kSYM_Vartype, 4);
+        add_ex("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
     _voidSym =
         add_ex("void", kSYM_Vartype, 0);
 
@@ -282,11 +305,12 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += std::to_string(dims[dims_idx]);
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
-    vartype = find_or_add(conv_name.c_str());
-    entries[vartype].stype = kSYM_Vartype;
-    entries[vartype].vartype_type = kVTT_Dynarray;
-    entries[vartype].dims = dims;
-    return vartype;
+    Vartype const array_vartype = find_or_add(conv_name.c_str());
+    entries[array_vartype].stype = kSYM_Vartype;
+    entries[array_vartype].vartype_type = kVTT_Array;
+    entries[array_vartype].vartype = vartype;
+    entries[array_vartype].dims = dims;
+    return array_vartype;
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype)

@@ -78,7 +78,7 @@ public:
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
-    inline int get_num_args() const { return sscope % 100; }
+    inline size_t get_num_args() const { return sscope % 100; }
     inline bool is_varargs() const { return (sscope >= 100); }
 
     SymbolTableEntry();

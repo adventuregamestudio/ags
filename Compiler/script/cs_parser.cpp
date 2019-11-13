@@ -4229,9 +4229,9 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
     if (retval < 0) return retval;
 
     Vartype const vartype = _sym.get_vartype(var_name);
-    bool const is_managed = _sym.IsManaged(vartype);
+    bool const is_dyn = _sym.IsDynarray(vartype) || _sym.IsDynpointer(vartype);
     
-    if (SIZE_OF_INT == size_of_defn && !is_managed)
+    if (SIZE_OF_INT == size_of_defn && !is_dyn)
     {
         // This PUSH moves the result of the initializing expression into the
         // new variable and reserves space for this variable on the stack.
@@ -4242,7 +4242,7 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
     ConvertAXStringToStringObject(vartype);
     _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
     _scrip.write_cmd1(
-        is_managed? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
+        is_dyn ? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
         SREG_AX);
     _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
     _scrip.cur_sp += size_of_defn;

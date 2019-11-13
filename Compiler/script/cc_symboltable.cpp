@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_symboltable.h"
-#include "script/script_common.h"      // macro definitions
+#include "script/script_common.h"       // macro definitions
+#include "script/cc_error.h"            // error processing
 
-int SymbolTable::SectionMap::section2id(std::string const &sec)
+int AGS::SymbolTable::SectionMap::section2id(std::string const &sec)
 {
     if (sec == _cacheSec)
         return _cacheId;
@@ -18,74 +19,112 @@ int SymbolTable::SectionMap::section2id(std::string const &sec)
     return ((_cacheId = section_size));
 }
 
-std::string const SymbolTable::SectionMap::id2section(int id) const
+std::string const AGS::SymbolTable::SectionMap::id2section(int id) const
 {
     return
         (id >= 0 && static_cast<size_t>(id) < _section.size()) ?
         _section[id] : "";
 }
 
-void SymbolTable::SectionMap::init()
+void AGS::SymbolTable::SectionMap::init()
 {
     _cacheSec = "";
     _cacheId = -1;
     _section.clear();
 }
 
-SymbolTableEntry::SymbolTableEntry()
+AGS::SymbolTableEntry::SymbolTableEntry()
     : sname("")
     , stype(kSYM_NoType)
-    , flags(0)
-    , vartype(0)
-    , soffs(0)
-    , ssize(0)
-    , sscope(0)
-    , arrsize(0)
-    , extends(0)
     , decl_secid(0)
     , decl_line(0)
+    , flags(0)
+    , soffs(0)
+    , vartype(0)
+    , ssize(0)
+    , sscope(0)
+    , vartype_type(kVTT_Atomic)
+    , arrsize(0)
+    , dims({})
+    , extends(0)
     , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char sizee)
+AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char sizee)
     : sname(std::string(name))
     , stype(stype)
-    , flags(0)
-    , vartype(0)
-    , soffs(0)
-    , ssize(sizee)
-    , sscope(0)
-    , arrsize(0)
-    , extends(0)
     , decl_secid(0)
     , decl_line(0)
+    , flags(0)
+    , soffs(0)
+    , vartype(0)
+    , ssize(sizee)
+    , sscope(0)
+    , vartype_type(kVTT_Atomic)
+    , arrsize(0)
+    , dims({})
+    , extends(0)
     , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
+int AGS::SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
 {
     dest.sname = this->sname;
     dest.stype = this->stype;
-    dest.flags = this->flags;
-    dest.vartype = this->vartype;
-    dest.soffs = this->soffs;
-    dest.ssize = this->ssize;
-    dest.sscope = this->sscope;
-    dest.arrsize = this->arrsize;
-    dest.extends = this->extends;
     dest.decl_secid = this->decl_secid;
     dest.decl_line = this->decl_line;
+    dest.flags = this->flags;
+    dest.soffs = this->soffs;
+    dest.vartype = this->vartype;
+    dest.ssize = this->ssize;
+    dest.sscope = this->sscope;
+    dest.vartype_type = this->vartype_type;
+    dest.arrsize = this->arrsize;
+    dest.dims = this->dims;
+    dest.extends = this->extends;
     dest.funcparamtypes = this->funcparamtypes;
     dest.funcParamDefaultValues = this->funcParamDefaultValues;
     dest.funcParamHasDefaultValues = this->funcParamHasDefaultValues;
     return 0;
 }
 
-SymbolTable::SymbolTable()
+bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) const
+{
+    if (kSYM_Vartype == stype)
+    {
+        // "Constant" always is the outermost vartype qualifier,
+        // so if this is constant and we're checking for something else,
+        // then go one level down.
+        // If this isn't the constant qualifier,
+        // then check here what we're looking for.
+        if (kVTT_Const == vartype_type)
+            return (kVTT_Const == vtt) ? true: symt.IsVTT(vartype, vtt);
+        return vtt == vartype_type;
+    }
+
+    // This isn't a vartype so look at the info in the vartype of this
+    return symt.IsVTT(vartype, vtt); 
+}
+
+bool AGS::SymbolTableEntry::IsVTF(Flags f, SymbolTable const &symt) const
+{
+    if (kSYM_Vartype == stype)
+    {
+        // Recursively get to the innermost symbol; read that symbol's flags
+        if (kVTT_Atomic == vartype_type)
+            return FlagIsSet(flags, f);
+        return symt.IsVTF(vartype, f);
+    }
+
+    // This isn't a vartype so look at the info in the vartype of this
+    return symt.IsVTF(vartype, f); // look into the vartype of that variable
+}
+
+AGS::SymbolTable::SymbolTable()
     : _charSym(0)
     , _floatSym(0)
     , _intSym(0)
@@ -97,22 +136,13 @@ SymbolTable::SymbolTable()
     , _voidSym(0)
     , _lastPredefSym(0)
 {
-    _findCache.clear();
+    reset();
 }
 
-SymbolType SymbolTable::get_type(AGS::Symbol symbol)  const
-{
-    symbol &= kVTY_FlagMask;
-
-    if ((symbol < 0) || (symbol >=  static_cast<AGS::Symbol>(entries.size())))
-        return kSYM_NoType;
-
-    return entries.at(symbol).stype;
-}
-
-void SymbolTable::reset()
+void AGS::SymbolTable::reset()
 {
     _findCache.clear();
+    _vartypesCache.clear();
 
     entries.clear();
 
@@ -217,49 +247,136 @@ void SymbolTable::reset()
         add_ex("writeprotected", kSYM_WriteProtected, 0); 
 }
 
-std::string const SymbolTable::get_name_string(AGS::Symbol symbl) const
+std::string const AGS::SymbolTable::get_name_string(AGS::Symbol symbl) const
 {
-    int const core_symbl = (symbl & kVTY_FlagMask);
-    if (core_symbl < 0)
+    if (symbl < 0)
         return std::string("(end of input)");
-    if (core_symbl >= static_cast<int>(entries.size()))
+    if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    
-    std::string result = entries.at(core_symbl).sname;
-
-    if (symbl & kVTY_Managed)
-        result += "*";
-    if (symbl & (kVTY_Array|kVTY_DynArray))
-        result += "[]";
-    if (symbl & kVTY_Const)
-        result = "const " + result;
-
-    return result;
+    return entries.at(symbl).sname;
 }
 
-std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const
+std::string const AGS::SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const
 {
-    AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
+    if (!IsInBounds(vartype))
+        return "(invalid vartype)";
+    return entries.at(vartype).sname;
+    }
 
-    std::string result = (core_type >= 0 && core_type < static_cast<int>(entries.size())) ? entries.at(core_type).sname : "UNKNOWNTYPE";
-    if ((vartype & kVTY_Managed) &&
-        !(vartype & kVTY_DynArray))
-        result += " *";
-    if (vartype & (kVTY_Array|kVTY_DynArray))
-        result += "[]";
-    if (vartype & kVTY_Const)
-        result = "const " + result;
-
-    return result;
-}
-
-void SymbolTable::set_declared(int idx, std::string const &section, int line)
+void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
 {
     (*this)[idx].decl_secid = _sectionMap.section2id(section);
     (*this)[idx].decl_line = line;
 }
 
-AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)
+AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
+{
+    // Can't have classic arrays of classic arrays
+    if (IsVTT(vartype, kVTT_Array))
+        return vartype;
+
+    std::string conv_name = entries[vartype].sname + "[";
+    size_t const last_idx = dims.size() - 1;
+    for (size_t dims_idx = 0; dims_idx <= last_idx; ++dims_idx)
+    {
+        conv_name += std::to_string(dims[dims_idx]);
+        conv_name += (dims_idx == last_idx) ? "]" : ", ";
+    }
+    vartype = find_or_add(conv_name.c_str());
+    entries[vartype].stype = kSYM_Vartype;
+    entries[vartype].vartype_type = kVTT_Dynarray;
+    entries[vartype].dims = dims;
+    return vartype;
+}
+
+AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype)
+{
+    // Return cached result if existent 
+    std::pair<Vartype, VartypeType> const arg = { vartype, vtt };
+    Vartype &valref(_vartypesCache[arg]);
+    if (valref) 
+        return valref;
+
+    if (IsVTT(vartype, vtt))     
+        return (valref = vartype); // Nothing to be done
+
+    std::string pre = "";
+    std::string post = "";
+    switch (vtt)
+    {
+    default: pre = "QUAL" + std::to_string(vtt) + " "; break;
+    case kVTT_Const: pre = "const "; break;
+    case kVTT_Dynpointer: post = " *"; break;
+    case kVTT_Dynarray: post = "[]"; break;
+    }
+    std::string const conv_name = (pre + entries[vartype].sname) + post;
+    valref = find_or_add(conv_name.c_str());
+    entries[valref].stype = kSYM_Vartype;
+    entries[valref].vartype_type = vtt;
+    entries[valref].vartype = vartype;
+    return valref;
+}
+
+AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) const
+{
+    while (
+        IsInBounds(vartype) &&
+        kSYM_Vartype == entries[vartype].stype &&
+        FlagIsSet (entries[vartype].vartype_type, vtt))
+        vartype = entries[vartype].vartype;
+    return vartype;
+}
+
+bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
+{
+    if (!IsInBounds(s))
+        return false;
+
+    // Convert a var to its vartype
+    if (kSYM_LocalVar == entries[s].stype || kSYM_GlobalVar == entries[s].stype)
+    {
+        s = entries[s].vartype;
+        if (!IsInBounds(s))
+            return false;
+    }
+
+    // Must be vartype at this point
+    if (kSYM_Vartype != entries[s].stype)
+        return false;
+
+    // Oldstrings and String * are strings
+    Vartype const s_without_const = VartypeWithout(kVTT_Const, s);
+
+    return
+        getOldStringSym() == s_without_const ||
+        getStringStructSym() == VartypeWithout(kVTT_Dynpointer, s_without_const);
+}
+
+bool AGS::SymbolTable::IsOldstring(Symbol s) const
+{
+    if (!IsInBounds(s))
+        return false;
+
+    // Convert a var to its vartype
+    if (kSYM_LocalVar == entries[s].stype || kSYM_GlobalVar == entries[s].stype)
+    {
+        s = entries[s].vartype;
+        if (!IsInBounds(s) || kSYM_Vartype != entries[s].stype)
+            return false;
+    }
+
+    Vartype const s_without_const =
+        VartypeWithout(kVTT_Const, s);
+    // string and const string are oldstrings
+    if (getOldStringSym() == s_without_const)
+        return true;
+    
+    // const char[..] and char[..] are considered oldstrings, too
+    return (IsArray(s) && getCharSym() == VartypeWithout(kVTT_Array, s_without_const));
+}
+
+
+AGS::Symbol AGS::SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)
 {
     if (0 != _findCache.count(name))
         return -1;
@@ -271,12 +388,10 @@ AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)
     return idx_of_new_entry;
 }
 
-int SymbolTable::add_operator(const char *opname, int priority, int vcpucmd)
+int AGS::SymbolTable::add_operator(const char *opname, int priority, int vcpucmd)
 {
     AGS::Symbol symbol_idx = add_ex(opname, kSYM_Operator, priority);
     if (symbol_idx >= 0)
         entries.at(symbol_idx).vartype = vcpucmd;
     return symbol_idx;
 }
-
-SymbolTable sym;

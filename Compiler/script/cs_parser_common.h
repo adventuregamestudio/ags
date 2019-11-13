@@ -22,6 +22,11 @@ constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
 constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 constexpr size_t VARARGS_INDICATOR = 100;
+constexpr size_t SIZE_OF_DYNPOINTER = 4;
+constexpr size_t SIZE_OF_INT = 4;
+
+inline static bool FlagIsSet(AGS::Flags fl_set, long flag) { return 0 != (fl_set & flag); }
+inline static void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
 
 enum SymbolType : AGS::SType
 {
@@ -106,15 +111,8 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_Static = 1 << 11, // static member func/var
     kSFLG_StrBuffer = 1 << 12, // was allocated a string buffer
     kSFLG_StructMember = 1 << 13, // set for member vars & funcs
-    kSFLG_StructType = 1 << 14, // is a struct type (type will be kSYM_Vartype)
+    kSFLG_StructVartype = 1 << 14, // is a struct type (type will be kSYM_Vartype)
     kSFLG_WriteProtected = 1 << 15,  // only the this pointer can write the var
 };
-
-constexpr size_t SIZE_OF_DYNPOINTER = 4;
-constexpr size_t SIZE_OF_INT = 4;
-
-extern int is_whitespace(char cht);
-extern int is_digit(int chrac);
-extern int is_alphanum(int chrac);
 
 #endif // __CS_PARSER_COMMON_H

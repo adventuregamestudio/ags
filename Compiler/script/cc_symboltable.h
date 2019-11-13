@@ -1,46 +1,80 @@
 #ifndef __CC_SYMBOLTABLE_H
 #define __CC_SYMBOLTABLE_H
 
-#include "cs_parser_common.h"   // macro definitions
+#include "cs_parser_common.h"   // macro definitions          
 
 #include <unordered_map>
 #include <string>
 #include <vector>
 
+namespace AGS
+{
+
 enum VartypeFlag : AGS::Vartype
 {
     kVTY_Array = (0x10000000 << 0),
     kVTY_Const = (0x10000000 << 1),
-    kVTY_DynArray = (0x10000000 << 2),
+    kVTY_Dynarray = (0x10000000 << 2),
     kVTY_Managed = (0x10000000 << 3),
     kVTY_FlagMask = (0x0FFFFFFF),
 };
 
-namespace AGS
+enum VartypeType
 {
+    kVTT_Atomic = 0,
+    kVTT_Array = 2 << 0,
+    kVTT_Const = 2 << 1,
+    kVTT_Dynpointer = 2 << 2,
+    kVTT_Dynarray = 2 << 3,
+};
 
-} // namespace AGS
-
+struct SymbolTable;
 
 struct SymbolTableEntry {
+    friend SymbolTable;
+protected:
+    // Is (or has)  a vartype that can be recognized by a flag
+    bool IsVTF(Flags f, SymbolTable const &symt) const;
+    // Is (or has)  a vartype that can be recognized by a vartype type
+    bool IsVTT(VartypeType vtt, SymbolTable const &symt) const;
+
+public:
     std::string sname;
     SymbolType stype; // e.g., kSYM_GlobalVar
     int decl_secid, decl_line; // where this was declared
     AGS::Flags flags;
-    AGS::Vartype vartype; // may contain typeflags
     AGS::CodeLoc soffs; // multiple use
 
     // Variables only
+    AGS::Vartype vartype; // may contain typeflags
+
+    // Variables, structs, struct members, and vartypes only
     int ssize;      // Size in bytes
+
+    // Variables and functions only
     int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
 
-    // static arrays only
-    int arrsize; // num of elements per dimension
+    // Vartypes only
+    VartypeType vartype_type;
+    int arrsize; // number of elements of static arrays
+    std::vector<size_t> dims; // number of elements in each dimension of static array
+    size_t get_num_elements();
 
-    // structs only
+    // Vars or vartypes
+    // Array or Dynarray
+    inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
+    inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
+    inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
+    inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); };
+    inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); };
+    inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); };
+    inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_Managed, symt); };
+    inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); };
+
+    // Structs and struct members only
     AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
 
-    // functions only
+    // Functions only
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
@@ -56,8 +90,9 @@ struct SymbolTableEntry {
 };
 
 struct SymbolTable {
+    friend SymbolTableEntry;
 private:
-    // maps sections to IDs to save space;
+    // maps sections to IDs to save space
     class SectionMap
     {
     private:
@@ -71,6 +106,13 @@ private:
         SectionMap() { init(); };
     } _sectionMap;
 
+    // hashes pair<Vartype, VartypeType> for _vartypesCache
+    struct VVTTHash
+    {
+        std::hash<Vartype> hash;
+        size_t operator() (std::pair<Vartype, VartypeType> pair) const { return hash(pair.first ^ (1021 * pair.second)); };
+    };
+
     // index for predefined symbols
     AGS::Symbol _charSym;      // the symbol that corresponds to "char"
     AGS::Symbol _floatSym;     // the symbol that corresponds to "float"
@@ -82,13 +124,21 @@ private:
     AGS::Symbol _thisSym;      // the symbol that corresponds to "this"
     AGS::Symbol _voidSym;      // the symbol that corresponds to "void"
     AGS::Symbol _lastPredefSym;      // last predefined symbol
-    std::unordered_map<std::string, int> _findCache;
+
+    AGS::Vartype _stringStructPtrVartype;
+
+    mutable std::unordered_map<std::string, int> _findCache;
+    mutable std::unordered_map<std::pair<Vartype, VartypeType>, Vartype, VVTTHash> _vartypesCache;
+
+    inline bool IsVTT(Symbol s, VartypeType vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
+    inline bool IsVTF(Symbol s, Flags f) const { return IsInBounds(s) ? entries[s].IsVTF(f, *this) : false; }
 
 public:
     std::vector<SymbolTableEntry> entries;
     inline SymbolTableEntry &operator[](AGS::Symbol sym) { return entries.at(sym); };
 
     SymbolTable();
+    inline void ResetCaches() const { _vartypesCache.clear(); };
     void reset();
 
     inline AGS::Symbol getCharSym() const { return _charSym; }
@@ -102,6 +152,21 @@ public:
     inline AGS::Symbol getStringStructSym() const { return _stringStructSym; }
     inline void setStringStructSym(AGS::Symbol s) { _stringStructSym = s; }
     inline AGS::Symbol getLastPredefSym() const { return _lastPredefSym; }
+
+    inline bool IsInBounds(Symbol s) const { return s > 0 && static_cast<size_t>(s) < entries.size(); }
+
+    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Array, *this) : false; };
+    inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Atomic, *this) : false; };
+    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Const, *this) : false; };
+    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Dynarray, *this) : false; };
+    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTT(kVTT_Dynpointer, *this) : false; };
+    inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_Managed, *this) : false; };
+    inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_StructVartype, *this) : false; };
+    // A predefined atomic vartype such as int and float.
+    inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= getVoidSym()); };
+
+    bool IsAnyTypeOfString(Symbol s) const;
+    bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize
     AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize);
@@ -125,7 +190,7 @@ public:
     std::string const SymbolTable::get_name_string(AGS::Symbol sym) const;
 
     // The symbol type, as given by the kSYM_... constants
-    SymbolType SymbolTable::get_type(AGS::Symbol symb) const;
+    inline SymbolType get_type(AGS::Symbol symb) const { return IsInBounds(symb) ? entries[symb].stype : kSYM_NoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
@@ -142,12 +207,16 @@ public:
     inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
     inline std::string const get_declared_section(int idx) const { return _sectionMap.id2section(entries.at(idx).decl_secid); };
 
+    // The "Array[...] of vartype" vartype
+    Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
+    // The "Dynarray / Dynpointer/ Const ... of vartype" vartype
+    Vartype VartypeWith(VartypeType vtt, Vartype vartype);
+    // The vartype without the qualifiers given in vtt
+    Vartype VartypeWithout(long vtt, Vartype vartype) const;
+
     // Unfortunately, a bit of a kludge. Expose the section to id mapping
     inline int section2id(std::string const &section) { return _sectionMap.section2id(section); };
     inline std::string const id2section(int id) const { return _sectionMap.id2section(id); };
 };
-
-
-extern SymbolTable sym;
-
+} // namespace AGS
 #endif //__CC_SYMBOLTABLE_H

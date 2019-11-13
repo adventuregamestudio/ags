@@ -48,39 +48,11 @@ void ccSetSoftwareVersion(const char *versionNumber)
     ccSoftwareVersion = versionNumber;
 }
 
-void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
-{
-    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
-    {
-        int stype = sym.get_type(entries_idx);
-        // blank out the name for imports that are not used, to save space
-        // in the output file
-        // Don't mind attributes - they are short cuts for the respective getter
-        // and setter funcs. If _those_ are unused, then they will be caught
-        // in the same that way normal functions are.
-        if (((sym.entries.at(entries_idx).flags & kSFLG_Imported) != 0) && ((sym.entries.at(entries_idx).flags & kSFLG_Accessed) == 0))
-            if ((stype == kSYM_Function) || (stype == kSYM_GlobalVar))
-                compiled_script->imports[sym.entries.at(entries_idx).soffs][0] = '\0';
-
-        if ((sym.get_type(entries_idx) != kSYM_GlobalVar) &&
-            (sym.get_type(entries_idx) != kSYM_LocalVar))
-            continue;
-
-        if (sym.entries.at(entries_idx).flags & kSFLG_Imported)
-            continue;
-        if (ccGetOption(SCOPT_SHOWWARNINGS) == 0)
-            ;
-        else if ((sym.entries.at(entries_idx).flags & kSFLG_Accessed) == 0)
-            printf("warning: variable '%s' is never used\n", sym.get_name_string(entries_idx).c_str());
-    }
-}
 
 ccScript *ccCompileText(const char *texo, const char *scriptName)
 {
     ccCompiledScript *compiled_script = new ccCompiledScript();
     compiled_script->init();
-
-    sym.reset();
 
     if (scriptName == NULL)
         scriptName = "Main script";
@@ -112,8 +84,6 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
         delete compiled_script;
         return NULL;
     }
-
-    ccCompileText_KillUnusedImports(compiled_script);
 
     // Sanity check for IMPORT fixups
     for (int fixup_idx = 0; fixup_idx < compiled_script->numfixups; fixup_idx++)

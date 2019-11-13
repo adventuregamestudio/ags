@@ -18,6 +18,7 @@ extern ccCompiledScript *newScriptFixture(); // cs_parser_test.cpp
 
 TEST(Tokenize, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
+    SymbolTable sym;
 
     // This incorrect code would crash the tokenizer.
     char *inpl = "struct MyStruct \
@@ -34,7 +35,7 @@ TEST(Tokenize, UnknownKeywordAfterReadonly) {
 
 TEST(Tokenize, SectionChange)
 {
-    sym.reset();
+    SymbolTable sym;
 
     // Basic function of the Tokenizer
     std::string Input = "\
@@ -74,15 +75,12 @@ TEST(Tokenize, SectionChange)
     token_str = sym.get_name_string(token);
     ASSERT_EQ(0, token_str.compare("="));
 
-
     // ((Section change))
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     ASSERT_EQ(0, scanner.GetLineno());
 }
-
-
 
 TEST(Tokenize, MatchBraceParen1)
 {
@@ -96,9 +94,9 @@ TEST(Tokenize, MatchBraceParen1)
     ];                  \r\n\
 ";
 
+    SymbolTable sym;
     struct ccInternalList TokenList;
     struct ccCompiledScript StringCollect;
-    sym.reset();
     AGS::Scanner scanner(Input, 1, &TokenList);
     AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
 
@@ -125,10 +123,10 @@ TEST(Tokenize, MatchBraceParen2)
 
     struct ccInternalList TokenList;
     struct ccCompiledScript StringCollect;
+    SymbolTable sym;
 
     // This closing ')' does not match the '[' on this line
     std::string Input = "f(a[bb.ccc * (d + e - ( f - g)))";
-    sym.reset();
     AGS::Scanner scanner(Input, 1, &TokenList);
     AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
     bool eof_encountered;
@@ -158,9 +156,9 @@ TEST(Tokenize, MatchBraceParen3)
     };                  \r\n\
 ";
 
+    SymbolTable sym;
     struct ccInternalList TokenList;
     struct ccCompiledScript StringCollect;
-    sym.reset();
     AGS::Scanner scanner(Input, 1, &TokenList);
     AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
 

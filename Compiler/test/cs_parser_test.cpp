@@ -10,8 +10,8 @@
 
 typedef AGS::Common::String AGSString;
 
-extern int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip);
 extern int currentline; // in script/script_common
+extern int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, SymbolTable &symt);
 
 std::string last_cc_error_buf;
 void clear_error()
@@ -40,11 +40,9 @@ AGSString cc_error_without_line(const char *error_msg)
 }
 
 ccCompiledScript *newScriptFixture() {
-    // TODO: investigate proper google test fixtures.
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, 0);
     ccCompiledScript *scrip = new ccCompiledScript();
     scrip->init();
-    sym.reset();  // <-- global
     return scrip;
 }
 
@@ -118,7 +116,7 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_GE(0, compileResult);
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite[]' to 'int[]'", last_seen_cc_error());
+    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
 TEST(Compile, StructMemberQualifierOrder) {
@@ -236,6 +234,8 @@ TEST(Compile, ParsingNegIntOverflow) {
 
 TEST(Compile, EnumNegative) {
     ccCompiledScript *scrip = newScriptFixture();
+    ccInternalList targ;
+    SymbolTable sym;
 
     char *inpl = "\
         enum TestMyEnums {\
@@ -255,7 +255,8 @@ TEST(Compile, EnumNegative) {
         ";
 
     clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
+    int compileResult = cc_parse(&targ, scrip, sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
@@ -281,6 +282,8 @@ TEST(Compile, EnumNegative) {
 
 TEST(Compile, DefaultParametersLargeInts) {
     ccCompiledScript *scrip = newScriptFixture();
+    ccInternalList targ;
+    SymbolTable sym;
 
     char *inpl = "\
         import int importedfunc(\
@@ -297,7 +300,8 @@ TEST(Compile, DefaultParametersLargeInts) {
         ";
 
     clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
+    int compileResult = cc_parse(&targ, scrip, sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -335,16 +339,19 @@ TEST(Compile, DefaultParametersLargeInts) {
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {
     ccCompiledScript *scrip = newScriptFixture();
+    ccInternalList targ;
+    SymbolTable sym;
 
     char *inpl = "\
-        struct A\
-        {\
-            import static int[] MyFunc();\
-        };\
+        struct A                            \n\
+        {                                   \n\
+            import static int[] MyFunc();   \n\
+        };                                  \n\
         ";
 
     clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
+    int compileResult = cc_parse(&targ, scrip, sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -352,7 +359,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_EQ(kVTY_DynArray, sym.entries.at(funcidx).funcparamtypes[0] & kVTY_DynArray);
+    EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).funcparamtypes[0]));
 }
 
 TEST(Compile, DoubleNegatedConstant) {
@@ -374,10 +381,10 @@ TEST(Compile, SubtractionWithoutSpaces) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        int MyFunction()\n\
-        {\n\
-            int data0 = 2-4;\n\
-        }\n\
+        int MyFunction()        \n\
+        {                       \n\
+            int data0 = 2-4;    \n\
+        }                       \n\
         ";
 
     clear_error();
@@ -1312,14 +1319,20 @@ TEST(Compile, StaticFuncCall)
 TEST(Compile, Import2GlobalAllocation)
 {
     ccCompiledScript *scrip = newScriptFixture();
+    ccInternalList targ;
+    SymbolTable sym;
+
     // Imported var I becomes a global var; must be allocated only once.
     // This means that J ought to be allocated at 4.
+
     char *inpl = "\
         import int I;   \n\
         int I;          \n\
         int J;          \n\
     ";
-    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
+    int compileResult = cc_parse(&targ, scrip, sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     int idx = sym.find("J");
     ASSERT_LE(0, idx);
@@ -1607,7 +1620,7 @@ TEST(Compile, StructPointerAttribute) {
             import void Stop();                     \n\
         };                                          \n\
         builtin managed struct ViewFrame {          \n\
-            import attribute AudioClip* LinkedAudio;    \n\
+            import attribute AudioClip *LinkedAudio;    \n\
         };                                          \n\
     ";
 
@@ -1747,7 +1760,7 @@ TEST(Compile, DynamicArrayCompare)
     // May compare DynArrays for equality.
     // The pointers, not the array components are compared.
     // May have a '*' after a struct defn.
-        
+
     char *inpl = "\
         managed struct Struct               \n\
         {                                   \n\

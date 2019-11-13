@@ -3,12 +3,11 @@
 
 
 TEST(SymbolTable, GetNameNonExistent) {
-    SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     // symbol must be >= 0. Max symbols 0x10000000 due to type flags
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(0));
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(1));
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(2));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(100));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(200));
 
     // check edge conditions. index immediately after 'c' should be null
     int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
@@ -18,86 +17,44 @@ TEST(SymbolTable, GetNameNonExistent) {
 }
 
 TEST(SymbolTable, GetNameNormal) {
-    SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
 
     EXPECT_STREQ("foo", testSym.get_name(foo_sym));
 }
 
-TEST(SymbolTable, GetNameFlags) {
-    SymbolTable testSym;
+TEST(SymbolTable, GetNameConverted) {
+    AGS::SymbolTable testSym;
 
-    int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
+    AGS::Vartype const foo_vartype = testSym.add_ex("foo", kSYM_NoType, 0);
+    testSym[foo_vartype].stype = kSYM_Vartype;
+    testSym[foo_vartype].vartype_type = AGS::kVTT_Atomic;
+    AGS::Vartype foo_conv_vartype = foo_vartype;
+    EXPECT_STREQ(
+        "foo[]",
+        testSym.get_name_string(testSym.VartypeWith(AGS::kVTT_Dynarray, foo_vartype)).c_str());
 
-    // const
-    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | kVTY_Const));
-
-    // dynarray
-    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | kVTY_DynArray));
-
-   // pointer
-    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTY_Managed));
-
-
-    int bar_sym = testSym.add_ex("bar", kSYM_NoType, 0);
-
-    // const dynarray
-    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray));
-
-    // const pointer
-    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTY_Const | kVTY_Managed));
-
-    // const dynarray/pointer
-    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray | kVTY_Managed));
-}
+    EXPECT_STREQ(
+        "foo *",
+        testSym.get_name_string(testSym.VartypeWith(AGS::kVTT_Dynpointer, foo_vartype)).c_str());
 
 
-TEST(SymbolTable, GetNameNonExistentFlags) {
-    SymbolTable testSym;
-
-    int no_exist_sym = 5000;
-
-    // on their own
-    // -------------------
-
-    // normal
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym));
-
-    // const
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const));
-
-    // dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray));
-
-    // dynarray + pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray | kVTY_Managed));
-
-    // pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Managed));
-
-    // combinations
-    // -------------------
-
-    // const dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray));
-
-    // const pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_Managed));
-
-    // const dynarray/pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray | kVTY_Managed));
+    std::vector<size_t> const dims = { 3, 5, 7 };
+    EXPECT_STREQ(
+        "foo[3, 5, 7]",
+        testSym.get_name_string(testSym.VartypeWithArray(dims, foo_vartype)).c_str());
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
     ASSERT_TRUE(testSym.add_ex("a", kSYM_NoType, 0) == -1);
 }
 
 TEST(SymbolTable, AddExUnique) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
     int b_sym = testSym.add_ex("b", kSYM_NoType, 0);
@@ -105,7 +62,7 @@ TEST(SymbolTable, AddExUnique) {
 }
 
 TEST(SymbolTable, AddExDefaultValues) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     SymbolType stype = kSYM_Assign;
     int ssize = 2;
@@ -124,7 +81,7 @@ TEST(SymbolTable, AddExDefaultValues) {
 }
 
 TEST(SymbolTable, AddExAvailableAfterwards) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
 
@@ -134,7 +91,7 @@ TEST(SymbolTable, AddExAvailableAfterwards) {
 }
 
 TEST(SymbolTable, EntriesEnsureModifiable) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 
     // ensure reading and writing to entries actually works!
     int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
@@ -143,7 +100,7 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 }
 
 TEST(SymbolTable, GetNumArgs) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 	int sym_01 = testSym.add("yellow");
 
     testSym.entries.at(sym_01).sscope = 0;
@@ -162,7 +119,7 @@ TEST(SymbolTable, GetNumArgs) {
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {
-	SymbolTable testSym;
+    AGS::SymbolTable testSym;
 	int sym_01 = testSym.add("grassgreen");
 
     testSym.entries.at(sym_01).vartype = 0;

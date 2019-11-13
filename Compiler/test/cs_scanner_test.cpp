@@ -10,15 +10,15 @@
 
 extern ccCompiledScript *newScriptFixture(); // cs_parser_test.cpp
 
-TEST(Scanner, ShortInputBackslash)
+TEST(Scan, ShortInputBackslash1)
 {
+    SymbolTable sym;
     bool eofe;
     bool errore;
     std::string estr;
 
     std::string Input1 = "Test\\";
     struct ccInternalList TokenList1;
-    sym.reset();
 
     AGS::Scanner scanner1(Input1, 3, &TokenList1);
     std::string symstring;
@@ -31,10 +31,18 @@ TEST(Scanner, ShortInputBackslash)
     // Backslash
     scanner1.GetNextSymstring(symstring, sct, eofe, errore);
     ASSERT_TRUE(errore);
+}
 
+TEST(Scan, ShortInputBackslash2)
+{
+    SymbolTable sym;
+    bool eofe;
+    bool errore;
+    std::string symstring;
+    AGS::Scanner::ScanType sct;
     std::string Input2 = "int i = '\\";
     struct ccInternalList TokenList2;
-    sym.reset();
+
     AGS::Scanner scanner2(Input2, 3, &TokenList2);
     for (size_t loop = 0; loop < 3; loop++)
     {
@@ -45,11 +53,18 @@ TEST(Scanner, ShortInputBackslash)
     scanner2.GetNextSymstring(symstring, sct, eofe, errore);
     ASSERT_TRUE(errore);
     ASSERT_TRUE(eofe);
+}
 
+TEST(Scan, ShortInputBackslash3)
+{
+    SymbolTable sym;
+    bool eofe;
+    bool errore;
+    std::string symstring;
+    AGS::Scanner::ScanType sct;
 
     std::string Input3 = "String s = \"a\\";
     struct ccInternalList TokenList3;
-    sym.reset();
     AGS::Scanner scanner3(Input3, 3, &TokenList3);
     for (size_t loop = 0; loop < 3; loop++)
     {
@@ -62,15 +77,15 @@ TEST(Scanner, ShortInputBackslash)
     ASSERT_TRUE(eofe);
 }
 
-TEST(Scanner, ShortInputSimple)
+TEST(Scan, ShortInputSimple1)
 {
+    SymbolTable sym;
     bool eofe;
     bool errore;
     std::string estr;
 
     std::string Input2 = "int i = ' ";
     struct ccInternalList TokenList2;
-    sym.reset();
     AGS::Scanner::ScanType sct;
     std::string symstring;
     AGS::Scanner scanner2(Input2, 3, &TokenList2);
@@ -83,11 +98,19 @@ TEST(Scanner, ShortInputSimple)
     scanner2.GetNextSymstring(symstring, sct, eofe, errore);
     ASSERT_TRUE(errore);
     ASSERT_TRUE(eofe);
+}
 
+TEST(Scan, ShortInputSimple2)
+{
+    SymbolTable sym;
+    bool eofe;
+    bool errore;
+    std::string estr;
+    std::string symstring;
+    AGS::Scanner::ScanType sct;
 
     std::string Input3 = "String s = \"a";
     struct ccInternalList TokenList3;
-    sym.reset();
     AGS::Scanner scanner3(Input3, 3, &TokenList3);
     for (size_t loop = 0; loop < 3; loop++)
     {
@@ -101,17 +124,15 @@ TEST(Scanner, ShortInputSimple)
 }
 
 
-TEST(Scanner, TwoByteSymbols)
+TEST(Scan, TwoByteSymbols)
 {
-    
-
+    SymbolTable sym;
     bool eofe;
     bool errore;
     std::string estr;
 
     std::string input = "i++<=j"; // Should be i ++ <= j
     struct ccInternalList TokenList;
-    sym.reset();
     AGS::Scanner::ScanType sct;
     std::string symstring;
     AGS::Scanner scanner(input, 3, &TokenList);
@@ -127,10 +148,9 @@ TEST(Scanner, TwoByteSymbols)
 
 }
 
-
-TEST(Scanner, IdentifiersElementary)
+TEST(Scan, IdentifiersElementary)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "\nIdentifier\r\nIden2tifier\r\r iden_ti_9f9_ier3";
     struct ccInternalList TokenList;
 
@@ -163,9 +183,9 @@ TEST(Scanner, IdentifiersElementary)
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 }
 
-TEST(Scanner, IdentifiersNumbers)
+TEST(Scan, IdentifiersNumbers)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "Ident 4ify5er; _4 6.5 6996";
     struct ccInternalList TokenList;
 
@@ -213,12 +233,11 @@ TEST(Scanner, IdentifiersNumbers)
     estr = "6996";
     EXPECT_EQ(estr, symstring);
     EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
-
 }
 
-TEST(Scanner, Strings)
+TEST(Scan, Strings)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input =
         "\"ABC\"\n'G' \
          \"\nH\" flurp";
@@ -261,9 +280,9 @@ TEST(Scanner, Strings)
     errorstring = scanner.GetLastError();
 }
 
-TEST(Scanner, CharLit1)
+TEST(Scan, CharLit1)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "foo \'";
     struct ccInternalList TokenList;
 
@@ -286,9 +305,9 @@ TEST(Scanner, CharLit1)
 
 }
 
-TEST(Scanner, CharLit2)
+TEST(Scan, CharLit2)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "foo '\\";
     struct ccInternalList TokenList;
 
@@ -311,9 +330,9 @@ TEST(Scanner, CharLit2)
 
 }
 
-TEST(Scanner, CharLit3)
+TEST(Scan, CharLit3)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "foo \'A$";
     struct ccInternalList TokenList;
 
@@ -334,9 +353,9 @@ TEST(Scanner, CharLit3)
     EXPECT_NE(std::string::npos, estr.find("$"));
 }
 
-TEST(Scanner, CharLit4)
+TEST(Scan, CharLit4)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "foo '\\A$";
     struct ccInternalList TokenList;
 
@@ -357,9 +376,9 @@ TEST(Scanner, CharLit4)
     EXPECT_NE(std::string::npos, estr.find("nknown"));
 }
 
-TEST(Scanner, CharLit5)
+TEST(Scan, CharLit5)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "'\\n'";
     struct ccInternalList TokenList;
 
@@ -375,9 +394,9 @@ TEST(Scanner, CharLit5)
     EXPECT_STREQ("10", symstring.c_str());
 }
 
-TEST(Scanner, String1)
+TEST(Scan, String1)
 {
-    sym.reset();
+    SymbolTable sym;
     std::string Input = "\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"";
     struct ccInternalList TokenList;
 

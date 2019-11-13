@@ -349,9 +349,6 @@ public:
 
     typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
 
-    inline static bool FlagIsSet(AGS::Flags fl_set, long flag) { return 0 != (fl_set & flag); }
-    inline static void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
-
 private:
     // Measurements show that the checks whether imports already exist take up
     // considerable time. The Import Manager speeds this up by caching the lookups.
@@ -887,6 +884,8 @@ private:
     // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
     int Parse_FuncHeaders2Sym();
 
+    // Blank out all imports that haven't been referenced
+    int Parse_BlankOutUnusedImports();
 
 public:
     // interpret the float as if it were an int (without converting it really);
@@ -906,7 +905,7 @@ extern int cc_tokenize(
     const char *inpl,           // preprocessed text to be tokenized
     ccInternalList *targ,       // store for the tokenized text
     ccCompiledScript *scrip,    // repository for the strings in the text
-    SymbolTable &symt);         // symbol table 
+    SymbolTable &symt);         // symbol table
 
 extern int cc_compile(
     const char *inpl,           // preprocessed text to be compiled

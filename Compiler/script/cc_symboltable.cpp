@@ -126,7 +126,7 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
 
 bool AGS::SymbolTableEntry::IsVTF(Flags f, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != stype)
+    if (kSYM_Vartype != stype && kSYM_UndefinedStruct != stype)
         return symt.IsVTF(vartype, f);
 
     // Recursively get to the innermost symbol; read that symbol's flags

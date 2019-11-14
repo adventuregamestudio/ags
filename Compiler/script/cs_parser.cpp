@@ -579,7 +579,8 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
         if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_Parameter))
             continue;
 
-        totalsub += _sym.GetSize(entries_idx);
+        totalsub +=
+            (_sym.getThisSym() == entries_idx)? SIZE_OF_DYNPOINTER : _sym.GetSize(entries_idx);
     }
     return totalsub;
 }
@@ -4335,7 +4336,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
-        // Don't declare this as managed to prevent it from being dereferenced twice
+        // Don't declare this as dynpointer to prevent it from being dereferenced twice.
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;

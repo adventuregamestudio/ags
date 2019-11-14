@@ -60,9 +60,10 @@ public:
     std::vector<size_t> dims; // number of elements in each dimension of static array
     
     // Vars or vartypes
-    size_t GetSize(SymbolTable const &symt) const;
+    
     // Array or Dynarray
     size_t NumArrayElements(SymbolTable const &symt) const;
+    size_t GetSize(SymbolTable const &symt) const;
     inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
     inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
     inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
@@ -89,6 +90,8 @@ public:
     inline int operatorToVCPUCmd() const { return this->vartype; }
 
     int CopyTo(SymbolTableEntry &dest);
+
+    inline int GetCPUOp() const { return ssize; };
 };
 
 struct SymbolTable {

@@ -557,16 +557,6 @@ AGS::Parser::Parser(::SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScr
     _givm.clear();
 }
 
-size_t AGS::Parser::Vartype2Size(AGS::Vartype vartype)
-{
-    if (_sym.getOldStringSym() == vartype)
-        return STRINGBUFFER_LENGTH;
-    if (_sym.IsManaged(vartype))
-        return SIZE_OF_DYNPOINTER;
-    // TODO: This won't work with static arrays yet
-    return(_sym[Vartype2Symbol(vartype)].ssize);
-}
-
 void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
 {
     if (_sym.IsManaged(vartype))
@@ -710,7 +700,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
     _scrip.pop_reg(SREG_AX);
     _scrip.pop_reg(SREG_MAR);
-    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, entry.ssize);
+    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, entry.GetSize(_sym));
     _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
     _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return;
@@ -1134,13 +1124,7 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
         return 0; // there is no info yet
 
     known_info = entry;
-    // If the return type is unset, deduce it
-    if (0 == known_info.ssize && known_info.funcparamtypes.size() > 1)
-    {
-        AGS::Symbol const rettype = _sym.VartypeWithout(kVTT_Dynpointer | kVTT_Dynarray, known_info.funcparamtypes.at(0));
-        known_info.ssize = _sym[rettype].ssize;
-    }
-
+    
     // Kill the defaults so we can check whether this defn replicates them exactly.
     size_t const num_of_args = entry.get_num_args();
     entry.funcParamHasDefaultValues.assign(num_of_args + 1, false);
@@ -1276,7 +1260,6 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     param_entry.arrsize = 1;
     param_entry.vartype = param_type;
     size_t const param_size = 4; // We can only deal with parameters of size 4
-    param_entry.ssize = param_size;
     param_entry.sscope = 1;
     SetFlag(param_entry.flags, kSFLG_Parameter, true);
     if (param_is_const)
@@ -1413,7 +1396,6 @@ void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype ret
 {
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.stype = kSYM_Function;
-    entry.ssize = Vartype2Size(return_vartype);
     entry.sscope = numparams - 1;
 
     entry.funcparamtypes[0] = return_vartype;
@@ -1433,7 +1415,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
         // If none of the parameters have a default,
         // we'll let this through for backward compatibility.
         bool has_default = false;
-        for (int param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
+        for (size_t param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
             if (this_entry.funcParamHasDefaultValues[param_idx])
             {
                 has_default = true;
@@ -1444,7 +1426,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
     }
 
     // this is 1 .. get_num_args(), INCLUSIVE, because param 0 is the return type
-    for (int param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
+    for (size_t param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
     {
         if ((this_entry.funcParamHasDefaultValues[param_idx] ==
             known_info.funcParamHasDefaultValues[param_idx]) &&
@@ -2104,7 +2086,7 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
         _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
     else
         _scrip.write_cmd1(
-            GetReadCommandForSize(_sym[Vartype2Symbol(vartype)].ssize),
+            GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
     return 0;
 }
@@ -2156,7 +2138,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
     if (symlist_len <= 3) // "new VARTYPE", nothing following
     {
         vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-        const size_t size = _sym[new_vartype].ssize;
+        const size_t size = _sym.GetSize(new_vartype);
         _scrip.write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
         _scrip.ax_vartype = vartype;
@@ -2168,7 +2150,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
     if (kSYM_OpenBracket == _sym.get_type(symlist[2]) && kSYM_CloseBracket == _sym.get_type(symlist[symlist_len - 1]))
     {
         bool const is_managed = !_sym.IsPrimitive(new_vartype);
-        int const element_size = Vartype2Size(new_vartype);
+        int const element_size = _sym.GetSize(new_vartype);
         
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
@@ -3047,7 +3029,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
 
     AGS::Vartype element_vartype = _sym[vartype].vartype;
     
-    size_t const element_size = Vartype2Size(element_vartype);
+    size_t const element_size = _sym.GetSize(element_vartype);
     vartype = element_vartype;
 
     if (is_dynarray)
@@ -3693,7 +3675,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
         _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
         _scrip.write_cmd1(
-            GetWriteCommandForSize(_sym[Vartype2Symbol(lhsvartype)].ssize),
+            GetWriteCommandForSize(_sym.GetSize(lhsvartype)),
             SREG_AX);
     return 0;
 }
@@ -3819,7 +3801,7 @@ int AGS::Parser::ParseAssignment_ReadLHSForModification(ccInternalList const *lh
         _scrip.ax_vartype = lhstype;
         _scrip.ax_val_scope = scope;
         _scrip.write_cmd1(
-            GetReadCommandForSize(_sym[lhstype].ssize),
+            GetReadCommandForSize(_sym.GetSize(lhstype)),
             SREG_AX);
     }
     return 0;
@@ -3849,7 +3831,7 @@ int AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList 
     if (retval < 0) return retval;
 
     // Use the operator on LHS and RHS
-    int cpuOp = _sym[ass_symbol].ssize;
+    int cpuOp = _sym[ass_symbol].GetCPUOp();
     retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
     if (retval < 0) return retval;
     _scrip.pop_reg(SREG_BX);
@@ -3858,7 +3840,7 @@ int AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList 
     if (kVL_mar_pointsto_value == vloc)
     {
         // write AX back to memory
-        AGS::Symbol memwrite = GetWriteCommandForSize(_sym[lhsvartype].ssize);
+        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
         _scrip.write_cmd1(memwrite, SREG_AX);
         return 0;
     }
@@ -3874,7 +3856,7 @@ int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList 
     if (retval < 0) return retval;
 
     // increment or decrement AX, using the correct bytecode
-    int cpuOp = _sym[ass_symbol].ssize;
+    int cpuOp = _sym[ass_symbol].GetCPUOp();
     retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
     if (retval < 0) return retval;
     _scrip.write_cmd2(cpuOp, SREG_AX, 1);
@@ -3882,7 +3864,7 @@ int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList 
     if (kVL_mar_pointsto_value == vloc)
     {
         // write AX back to memory
-        AGS::Symbol memwrite = GetWriteCommandForSize(_sym[lhsvartype].ssize);
+        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
         _scrip.write_cmd1(memwrite, SREG_AX);
         return 0;
     }
@@ -4028,8 +4010,6 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartyp
     SymbolTableEntry &entry = _sym[var_name];
     entry.extends = 0;
     entry.stype = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
-    entry.ssize = size_of_defn;
-    entry.arrsize = arrsize;
     entry.vartype = vartype;
     _sym.set_declared(var_name, ccCurScriptName, currentline);
 }
@@ -4144,7 +4124,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
         return -1;
     }
 
-    if (known_info->ssize != this_entry->ssize)
+    if (known_info->GetSize(_sym) != this_entry->GetSize(_sym))
     {
         std::string msg = ReferenceMsg(
             "Size of this variable is %d here, %d declared elsewhere",
@@ -4152,7 +4132,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
             known_info->decl_line);
         cc_error(
             msg.c_str(),
-            this_entry->ssize, known_info->ssize);
+            this_entry->GetSize(_sym), known_info->GetSize(_sym));
         return -1;
     }
 
@@ -4238,7 +4218,7 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
 
 int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
 {
-    size_t size_of_defn = Vartype2Size(vartype);
+    size_t size_of_defn = _sym.GetSize(vartype);
     size_t arrsize = 0;
 
     if (kSYM_OpenBracket == next_type)
@@ -4355,7 +4335,6 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
-        this_entry.ssize = SIZE_OF_DYNPOINTER;
         // Don't declare this as managed to prevent it from being dereferenced twice
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
@@ -4574,7 +4553,7 @@ int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &pare
         cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", _sym.get_name_string(parent).c_str());
         return -1;
     }
-    size_so_far = static_cast<size_t>(extends_entry.ssize);
+    size_so_far = _sym.GetSize(parent);
     struct_entry.extends = parent;
 
     return ParseStruct_Extends_CopyParentComponents(parent, stname);
@@ -4747,7 +4726,6 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
 
     AGS::Vartype const retvartype = entry.funcparamtypes[0] = entry.vartype = 
         is_setter ? _sym.getVoidSym() : vartype;
-    entry.ssize = _sym[Vartype2Symbol(retvartype)].ssize;
     entry.sscope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
 
     entry.funcparamtypes.resize(entry.sscope + 1);
@@ -4841,7 +4819,6 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
         _targ.getnext(); // Eat ']'
         return 0;
     }
-    SymbolTableEntry &vname_entry = _sym[vname];
 
     AGS::Symbol const nextt = _targ.getnext();
     if (_sym.get_type(nextt) == kSYM_CloseBracket)
@@ -4852,7 +4829,7 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
             return -1;
         }
         SetFlag(_sym[stname].flags, kSFLG_HasDynArray, true);
-        vname_entry.vartype = _sym.VartypeWith(kVTT_Dynarray, vname_entry.vartype);
+        _sym[vname].vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].vartype);
         size_so_far += SIZE_OF_DYNPOINTER;
         return 0;
     }
@@ -4868,10 +4845,10 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
 
     std::vector<size_t> dims;
     dims.push_back(array_size);
-    vname_entry.vartype = _sym.VartypeWithArray(dims, vname_entry.vartype);
-    Vartype entry_vartype = vname_entry.vartype;
-    SetDynpointerInManagedVartype(entry_vartype);
-    size_so_far += array_size * Vartype2Size(entry_vartype);
+    Vartype core_vartype = _sym[vname].vartype;
+    SetDynpointerInManagedVartype(core_vartype);
+    _sym[vname].vartype = _sym.VartypeWithArray(dims, core_vartype);
+    size_so_far += _sym.GetSize(_sym[vname].vartype);
 
     if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
     {
@@ -4889,7 +4866,6 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
         SymbolTableEntry &entry = _sym[vname];
         entry.stype = kSYM_StructComponent;
         entry.extends = stname;  // save which struct it belongs to
-        entry.ssize = Vartype2Size(vartype);
         entry.soffs = size_so_far;
         entry.vartype = vartype;
         if (FlagIsSet(tqs, kTQ_Readonly))
@@ -4917,7 +4893,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
     if (_sym.get_type(_targ.peeknext()) == kSYM_OpenBracket)
         return ParseStruct_Array(stname, vname, size_so_far);
 
-    size_so_far += _sym[vname].ssize;
+    size_so_far += _sym.GetSize(vname);
     return 0;
 }
 
@@ -5160,8 +5136,6 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     SymbolTableEntry &entry = _sym[item_name];
 
     entry.stype = kSYM_Constant;
-    entry.ssize = SIZE_OF_INT;
-    entry.arrsize = 0;
     entry.vartype = enum_name;
     entry.sscope = 0;
     entry.flags = kSFLG_Readonly;

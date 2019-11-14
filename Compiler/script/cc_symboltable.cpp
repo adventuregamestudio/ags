@@ -107,19 +107,7 @@ bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) cons
 
 size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
 {
-    if (kSYM_Vartype != stype)
-        return symt.GetSize(vartype);
-
-    switch (vartype_type)
-    {
-    default:            return 0;
-    case kVTT_Atomic:   return ssize;
-    case kVTT_Array:    return NumArrayElements(symt) * symt.GetSize(vartype);
-    case kVTT_Const:    return symt.GetSize(vartype);
-    case kVTT_Dynarray: return SIZE_OF_DYNPOINTER;
-    case kVTT_Dynpointer:   return SIZE_OF_DYNPOINTER;
-    }
-    return size_t();
+    return (kSYM_Vartype == stype) ? ssize : symt.GetSize(vartype);
 }
 
 size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
@@ -300,8 +288,10 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
 
     std::string conv_name = entries[vartype].sname + "[";
     size_t const last_idx = dims.size() - 1;
+    size_t num_elements = 1;
     for (size_t dims_idx = 0; dims_idx <= last_idx; ++dims_idx)
     {
+        num_elements *= dims[dims_idx];
         conv_name += std::to_string(dims[dims_idx]);
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
@@ -309,6 +299,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     entries[array_vartype].stype = kSYM_Vartype;
     entries[array_vartype].vartype_type = kVTT_Array;
     entries[array_vartype].vartype = vartype;
+    entries[array_vartype].ssize = num_elements * GetSize(vartype);
     entries[array_vartype].dims = dims;
     return array_vartype;
 }
@@ -335,9 +326,11 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype
     }
     std::string const conv_name = (pre + entries[vartype].sname) + post;
     valref = find_or_add(conv_name.c_str());
-    entries[valref].stype = kSYM_Vartype;
-    entries[valref].vartype_type = vtt;
-    entries[valref].vartype = vartype;
+    SymbolTableEntry &entry = entries[valref];
+    entry.stype = kSYM_Vartype;
+    entry.vartype_type = vtt;
+    entry.vartype = vartype;
+    entry.ssize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
     return valref;
 }
 

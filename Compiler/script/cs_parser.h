@@ -399,8 +399,6 @@ private:
     bool IsIdentifier(Symbol symb);
     inline static Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
 
-    size_t Vartype2Size(Vartype vartype);
-
     void SetDynpointerInManagedVartype(Vartype &vartype);
 
     // Combine the arguments to stname::component, get the symbol for that

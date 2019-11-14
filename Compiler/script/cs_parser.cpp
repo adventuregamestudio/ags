@@ -187,7 +187,7 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbo
 //   A symbol is encountered whose type is in stoplist[]
 //   A closing symbol is encountered that hasn't been opened.
 // Don't consume the symbol that stops the scan.
-int AGS::Parser::SkipTo(const AGS::Symbol stoplist[], size_t stoplist_len)
+int AGS::Parser::SkipTo(const AGS::SymbolType stoplist[], size_t stoplist_len)
 {
     int delimeter_nesting_depth = 0;
     while (!_targ.reached_eof())
@@ -218,7 +218,7 @@ int AGS::Parser::SkipTo(const AGS::Symbol stoplist[], size_t stoplist_len)
     return -1;
 }
 
-int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::Symbol stoplist[], size_t stoplist_len, AGS::Symbol *&act_sym_ptr)
+int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::SymbolType stoplist[], size_t stoplist_len, AGS::Symbol *&act_sym_ptr)
 {
     int delimeter_nesting_depth = 0;
 
@@ -250,7 +250,7 @@ int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::Symbol stopl
 }
 
 // Like SkipTo, but for symbol scripts
-int AGS::Parser::SkipToScript(const AGS::Symbol stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len)
+int AGS::Parser::SkipToScript(const AGS::SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len)
 {
     SymbolScript const end_ptr = symlist + symlist_len;
     int retval = SkipToScript0(end_ptr, stoplist, stoplist_len, symlist);
@@ -1609,7 +1609,7 @@ int AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
 {
     int pos = _targ.pos;
 
-    AGS::Symbol const stoplist[] = { 0 };
+    SymbolType const stoplist[] = { kSYM_NoType };
     SkipTo(stoplist, 0); // Skim to matching ')'
 
     if (kSYM_CloseParenthesis != _sym.get_type(_targ.getnext()))
@@ -3026,9 +3026,9 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
         return 0;
 
     // Find the location of the close bracket
-    AGS::Symbol *close_brac_loc = symlist + 1;
+    Symbol *close_brac_loc = symlist + 1;
     size_t len_starting_with_close_brac = symlist_len - 1;
-    AGS::Symbol stoplist[] = { 0 };
+    SymbolType stoplist[] = { kSYM_NoType, };
     SkipToScript(stoplist, 0, close_brac_loc, len_starting_with_close_brac);
     if (len_starting_with_close_brac == 0)
     {
@@ -3457,7 +3457,7 @@ AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbo
 // Check whether we have passed the last dot
 int AGS::Parser::AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool &is_last)
 {
-    AGS::Symbol const stoplist[] = { kSYM_Dot };
+    SymbolType const stoplist[] = { kSYM_Dot };
     SkipToScript(stoplist, 1, symlist, symlist_len);
     is_last = (0 == symlist_len || kSYM_Dot != _sym.get_type(symlist[0]));
     return 0;
@@ -4836,7 +4836,7 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
     if (kPP_PreAnalyze == _pp)
     {
         // Skip the [...]
-        const AGS::Symbol stoplist[] = { 0 };
+        const SymbolType stoplist[] = { kSYM_NoType, };
         SkipTo(stoplist, 0);
         _targ.getnext(); // Eat ']'
         return 0;
@@ -5287,7 +5287,7 @@ int AGS::Parser::ParseExport()
 {
     if (kPP_PreAnalyze == _pp)
     {
-        const AGS::Symbol stoplist[] = { kSYM_Semicolon };
+        const SymbolType stoplist[] = { kSYM_Semicolon };
         SkipTo(stoplist, 1);
         _targ.getnext(); // Eat ';'
         return 0;
@@ -5500,7 +5500,7 @@ int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalnes
     _givm[var_name] = (kGl_GlobalNoImport == globalness);
 
     // Apart from this, we aren't interested in var defns at this stage, so skip this defn
-    AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
+    SymbolType const stoplist[] = { kSYM_Comma, kSYM_Semicolon, };
     SkipTo(stoplist, 2);
     another_var_follows = false;
     if (kSYM_Comma == _sym.get_type(_targ.peeknext()))
@@ -6435,7 +6435,7 @@ int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::Nes
 void AGS::Parser::Parse_SkipToEndingBrace()
 {
     // Skip to matching '}'
-    AGS::Symbol const stoplist[] = { 0 };
+    SymbolType const stoplist[] = { kSYM_NoType, };
     SkipTo(stoplist, 0); // pass empty list
     _targ.getnext(); // Eat '}'
 }

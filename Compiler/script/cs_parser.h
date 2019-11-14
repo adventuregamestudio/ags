@@ -406,14 +406,14 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
-    // Eat symbols until either reaching an unopened close symbol or a symbol in the stop list.
+    // Eat symbols until either reaching an unopened close symbol or a symbol whose type is in the stop list.
     // Don't eat the symbol that stopped the scan.
-    int Parser::SkipTo(const Symbol stoplist[], size_t stoplist_len);
+    int SkipTo(const SymbolType stoplist[], size_t stoplist_len);
 
-    int SkipToScript0(Symbol *end_sym_ptr, const Symbol stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
+    int SkipToScript0(Symbol *end_sym_ptr, const SymbolType stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
 
     // Like SkipTo, but for symbol scripts
-    int SkipToScript(const Symbol stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
+    int SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].flags, kSFLG_Accessed, true); };

@@ -68,6 +68,8 @@ Editor:
  - Build autocomplete table a little faster.
  - Disabled sending crash reports and anonymous statistics, because of the AGS server issues.
  - Corrected .NET version query for the anonymous statistics report.
+ - Fixed "Script Compatibility Level" was not correctly set when importing projects made
+   in AGS 3.4.* versions.
  - Fixed crash and corruption of project data when writing to full disk.
  - Fixed saving sprite file to not cancel completely if only an optional step has failed
    (such as copying a backup file).
@@ -84,6 +86,7 @@ Editor:
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
  - Fixed autocomplete not showing up correctly if user has multiple monitors.
+ - Fixed autocomplete crashing with empty /// comments.
  - Fixed script compiler could leave extra padding inside the compiled scripts filled with
    random garbage if script strings contained escaped sequences like "\n" (this was not good
    for source control).
@@ -128,6 +131,7 @@ Script API:
  - Added Game.SimulateKeyPress().
  - Added optional "frame" parameter to Character.Animate and Object.Animate, letting you begin
    animation from any frame in the loop.
+ - Deprecated "system" object (not System struct!).
  - Deprecated Character.IgnoreWalkbehinds and Object.IgnoreWalkbehinds.
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
@@ -169,6 +173,7 @@ Engine:
    for a certain barely related reason.
  - Fixed BlackBox-in transition done by software renderer could have wrong aspect ratio.
  - Fixed Direct3D and OpenGL displayed pink (255, 0, 255) fade as transparent.
+ - Fixed Direct3D was slightly distorting game image in pixel perfect mode.
  - Fixed Direct3D was not clearing black borders in fullscreen, which could cause graphical
    artifacts remaining after the Steam overlay, for example.
  - Fixed potential crash that could happen when switching between fullscreen and windowed mode,

@@ -7474,17 +7474,11 @@ TEST(Bytecode, Attributes07) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const int numimports = 23;
+    const int numimports = 2;
     std::string imports[] = {
-    "String::Format^101",         "String::IsNullOrEmpty^1",    "String::Append^1",           // 2
-    "String::AppendChar^1",       "String::CompareTo^2",        "String::Contains^1",         // 5
-    "String::Copy^0",             "String::EndsWith^2",         "String::IndexOf^1",          // 8
-    "String::LowerCase^0",        "String::Replace^3",          "String::ReplaceCharAt^2",    // 11
-    "String::StartsWith^2",       "String::Substring^2",        "String::Truncate^1",         // 14
-    "String::UpperCase^0",        "String::get_AsFloat^0",      "String::get_AsInt^0",        // 17
-    "String::geti_Chars^1",       "String::get_Length^0",       "Label::get_Text^0",          // 20
     "Label::set_Text^1",          "lbl",          "[[SENTINEL]]"
     };
+
 
     int idx2 = -1;
     for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)

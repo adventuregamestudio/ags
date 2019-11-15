@@ -224,6 +224,10 @@ public:
     // The vartype without the qualifiers given in vtt
     Vartype VartypeWithout(long vtt, Vartype vartype) const;
 
+    // Fills compo_list with the indexes of all the strct components
+    // Includes the ancesters' components
+    int GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
+
     // Unfortunately, a bit of a kludge. Expose the section to id mapping
     inline int section2id(std::string const &section) { return _sectionMap.section2id(section); };
     inline std::string const id2section(int id) const { return _sectionMap.id2section(id); };

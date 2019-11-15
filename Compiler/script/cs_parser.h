@@ -426,7 +426,7 @@ private:
 
     // We're at the end of a block and releasing a standard array of pointers.
     // MAR points to the array start. Release each array element (pointer).
-    int FreeDynpointersOfStdArrayOfDynpointer(size_t arrsize, bool &clobbers_ax);
+    int FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax);
 
     // We're at the end of a block and releasing all the pointers in a struct.
     // MAR already points to the start of the struct.
@@ -438,7 +438,7 @@ private:
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
-    void FreeDynpointersOfStdArray(SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax);
 
     void FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar);
 
@@ -601,11 +601,11 @@ private:
     // Location contains a pointer to another address. Get that address.
     int AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
 
-    int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, int array_size, size_t element_size, MemoryLocation &mloc);
+    int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
     // We're processing some struct component or global or local variable.
     // If an array index follows, parse it and shorten symlist accordingly
-    int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
+    int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
     int AccessData_GlobalOrLocalVar(bool is_global, bool writing, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
 
@@ -704,10 +704,10 @@ private:
     int ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness globalness, size_t size_of_defn, size_t arrsize);
+    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness globalness);
 
     // we have accepted something like "int a" and we're expecting "["
-    int ParseVardecl_Array(Symbol var_name, Vartype &vartype, size_t &size_of_defn, size_t &arrsize);
+    int ParseVardecl_Array(Symbol var_name, Vartype &vartype);
 
     int ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
 
@@ -716,9 +716,9 @@ private:
 
     int ParseVardecl_GlobalImport(Symbol var_name, bool has_initial_assignment);
 
-    int ParseVardecl_GlobalNoImport(Symbol var_name, const Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *&initial_val_ptr);
+    int ParseVardecl_GlobalNoImport(Symbol var_name, Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr);
 
-    int ParseVardecl_Local(Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
+    int ParseVardecl_Local(Symbol var_name, Vartype vartype, bool has_initial_assignment);
 
     int ParseVardecl0(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
@@ -731,10 +731,6 @@ private:
     int ParseClosebrace(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
-
-    // We're processing the extends clause of a struct. Copy over all the parent elements
-    // except for functions and attributes into the current struct.
-    int ParseStruct_Extends_CopyParentComponents(Symbol parent, Symbol stname);
 
     // We have accepted something like "struct foo" and are waiting for "extends"
     int ParseStruct_ExtendsClause(Symbol stname, Symbol &parent, size_t &size_so_far);

@@ -344,6 +344,25 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
     return vartype;
 }
 
+int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& compo_list) const
+{
+    compo_list.clear();
+    while(true)
+    {
+        for (size_t compo = 1; compo < entries.size(); compo++)
+        {
+            SymbolTableEntry const &entry = entries[compo];
+            if (entry.extends != strct || !FlagIsSet(entry.flags, kSFLG_StructMember))
+                continue;
+
+            compo_list.push_back(compo);
+        }
+        if (entries[strct].extends <= 0)
+            return 0;
+        strct = entries[strct].extends;
+    }
+}
+
 bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
 {
     if (!IsInBounds(s))

@@ -591,38 +591,31 @@ bool AGS::Parser::ContainsReleasableDynpointers(AGS::Vartype vartype)
 {
     if (_sym.IsDyn(vartype))
         return true;
+    if (_sym.IsArray(vartype))
+        return ContainsReleasableDynpointers(_sym.get_vartype(vartype));
+    if (!_sym.IsStruct(vartype))
+        return false; // Atomic non-structs can't have pointers
 
-    AGS::Vartype const coretype = Vartype2Symbol(vartype);
-    if (!_sym.IsStruct(coretype))
-        return false; // primitive types can't have pointers
-    Symbol const parent = _sym[coretype].extends;
-    if (_sym.IsInBounds(parent) && ContainsReleasableDynpointers(parent))
-        return true;
-
-    for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
-    {
-        SymbolTableEntry &entry = _sym[entries_idx];
-        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
-            continue;
-        if (coretype != entry.extends)
-            continue;
-        if (ContainsReleasableDynpointers(entry.vartype))
+    std::vector<Symbol> compo_list;
+    _sym.GetComponentsOfStruct(vartype, compo_list);
+    for (size_t cl_idx = 0; cl_idx < compo_list.size(); cl_idx++)
+        if (ContainsReleasableDynpointers(_sym.get_vartype(compo_list[cl_idx])))
             return true;
-    }
+
     return false;
 }
 
 // We're at the end of a block and releasing a standard array of pointers.
 // MAR points to the array start. Release each array element (pointer).
-int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t arrsize, bool &clobbers_ax)
+int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax)
 {
-    if (arrsize == 0)
+    if (num_of_elements == 0)
         return 0;
 
-    if (arrsize < 4)
+    if (num_of_elements < 4)
     {
         _scrip.write_cmd0(SCMD_MEMZEROPTR);
-        for (size_t loop = 1; loop < arrsize; ++loop)
+        for (size_t loop = 1; loop < num_of_elements; ++loop)
         {
             _scrip.write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
             _scrip.write_cmd0(SCMD_MEMZEROPTR);
@@ -631,7 +624,7 @@ int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t arrsize, bool &clo
     }
 
     clobbers_ax = true;
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, arrsize);
+    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, num_of_elements);
 
     AGS::CodeLoc const loop_start = _scrip.codesize;
     _scrip.write_cmd0(SCMD_MEMZEROPTR);
@@ -645,17 +638,16 @@ int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t arrsize, bool &clo
 // MAR already points to the start of the struct.
 void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_ax)
 {
-    std::vector <size_t> compo_list;
-    for (size_t compo = 0; compo < _sym.entries.size(); compo++)
+    std::vector<Symbol> compo_list;
+    _sym.GetComponentsOfStruct(struct_vtype, compo_list);
+    for (int cl_idx = 0; cl_idx < compo_list.size(); cl_idx++) // note "int"!
     {
-        SymbolTableEntry &entry = _sym[compo];
-        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
+        if (ContainsReleasableDynpointers(_sym.get_vartype(compo_list[cl_idx])))
             continue;
-        if (entry.extends != struct_vtype)
-            continue;
-        if (!ContainsReleasableDynpointers(entry.vartype))
-            continue;
-        compo_list.push_back(compo);
+        // Get rid of this component
+        compo_list[cl_idx] = compo_list.back();
+        compo_list.pop_back();
+        cl_idx--; // this might make the var negative so it needs to be int
     }
 
     size_t offset_so_far = 0;
@@ -669,7 +661,7 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
             _scrip.write_cmd2(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.soffs;
 
-        if (_sym.IsManaged(entry.vartype))
+        if (_sym.IsDyn(entry.vartype))
         {
             _scrip.write_cmd0(SCMD_MEMZEROPTR);
             continue;
@@ -678,9 +670,9 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
         if (compo_list.back() != *compo_it)
             _scrip.push_reg(SREG_MAR);
         if (entry.IsArray(_sym))
-            FreeDynpointersOfStdArray(entry, clobbers_ax);
+            FreeDynpointersOfStdArray(*compo_it, clobbers_ax);
         else if (entry.IsStruct(_sym))
-            FreeDynpointersOfStruct(Vartype2Symbol(entry.vartype), clobbers_ax);
+            FreeDynpointersOfStruct(entry.vartype, clobbers_ax);
         if (compo_list.back() != *compo_it)
             _scrip.pop_reg(SREG_MAR);
     }
@@ -693,7 +685,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     clobbers_ax = true;
 
     // AX will be the index of the current element
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, entry.arrsize);
+    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, entry.NumArrayElements(_sym));
 
     AGS::CodeLoc loop_start = _scrip.codesize;
     _scrip.push_reg(SREG_MAR);
@@ -701,7 +693,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
     _scrip.pop_reg(SREG_AX);
     _scrip.pop_reg(SREG_MAR);
-    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, entry.GetSize(_sym));
+    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, _sym.GetSize(struct_vtype));
     _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
     _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return;
@@ -709,25 +701,24 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
 
 // We're at the end of a block and releasing a standard array. MAR points to the start.
 // Release the pointers that the array contains.
-void AGS::Parser::FreeDynpointersOfStdArray(SymbolTableEntry &entry, bool &clobbers_ax)
+void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
 {
-    if (entry.arrsize < 1)
+    int const num_of_elements = _sym.NumArrayElements(the_array);
+    if (num_of_elements < 1)
         return;
-
-    if (_sym.IsDynpointer(entry.vartype))
+    Vartype const element_vartype =
+        _sym.get_vartype(_sym.get_vartype(the_array));
+    if (_sym.IsDynpointer(element_vartype))
     {
-        FreeDynpointersOfStdArrayOfDynpointer(entry.arrsize, clobbers_ax);
+        FreeDynpointersOfStdArrayOfDynpointer(num_of_elements, clobbers_ax);
         return;
     }
 
-    AGS::Symbol const coretype = Vartype2Symbol(entry.vartype);
-    if (!_sym.IsStruct(coretype))
-        return; // nothing to do
-
-    FreeDynpointersOfStdArrayOfStruct(coretype, entry, clobbers_ax);
+    if (_sym.IsStruct(element_vartype))
+        FreeDynpointersOfStdArrayOfStruct(element_vartype, _sym[the_array], clobbers_ax);
+        
     return;
 }
-
 
 // Note: Currently, the structs/arrays that are pointed to cannot contain
 // pointers in their turn.
@@ -766,9 +757,9 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
         _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
 
         if (entry.IsArray(_sym))
-            FreeDynpointersOfStdArray(entry, clobbers_ax);
+            FreeDynpointersOfStdArray(entries_idx, clobbers_ax);
         else if (entry.IsStruct(_sym))
-            FreeDynpointersOfStruct(Vartype2Symbol(entry.vartype), clobbers_ax);
+            FreeDynpointersOfStruct(entry.vartype, clobbers_ax);
     }
 }
 
@@ -1258,7 +1249,6 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     SymbolTableEntry &param_entry = _sym[param_name];
     param_entry.stype = kSYM_LocalVar;
     param_entry.extends = false;
-    param_entry.arrsize = 1;
     param_entry.vartype = param_type;
     size_t const param_size = 4; // We can only deal with parameters of size 4
     param_entry.sscope = 1;
@@ -2979,17 +2969,17 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
     return 0;
 }
 
-int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, int array_size, size_t element_size, AGS::MemoryLocation &mloc)
+int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::MemoryLocation &mloc)
 {
     int array_index = -1;
     int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
     if (retval < 0) return retval;
-    if (array_size > 0 && array_index >= array_size)
+    if (num_array_elements > 0 && array_index >= num_array_elements)
     {
         cc_error(
             "Array index %d out of bounds (maximum is %d)",
             array_index,
-            array_size - 1);
+            static_cast<int>(num_array_elements - 1));
         return -1;
     }
     if (array_index < 0)
@@ -3003,7 +2993,7 @@ int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, 
 
 // We're processing some struct component or global or local variable.
 // If an array index follows, parse it and shorten symlist accordingly
-int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
+int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     if (0 == symlist_len || kSYM_OpenBracket != _sym.get_type(symlist[0]))
         return 0;
@@ -3041,7 +3031,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
     if (3 == bracketed_expr_length &&
         (kSYM_LiteralInt == _sym.get_type(symlist[1]) || kSYM_Const == _sym.get_type(symlist[1])))
     {
-        int retval = AccessData_ProcessArrayIndexConstant(symlist[1], array_size, element_size, mloc);
+        int retval = AccessData_ProcessArrayIndexConstant(symlist[1], num_array_elements, element_size, mloc);
         if (retval < 0) return retval;
         symlist = close_brac_loc + 1;
         symlist_len = len_starting_with_close_brac - 1;
@@ -3076,8 +3066,8 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
         _scrip.write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
     if (is_dynarray)
         _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
-    else if (array_size > 0)
-        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, array_size * element_size);
+    else if (num_array_elements > 0)
+        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, num_array_elements * element_size);
     _scrip.write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX); // Add offset
 
     symlist = close_brac_loc + 1;
@@ -3108,7 +3098,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
 
     // Process an array index if it follows
     ValueLocation vl_dummy = kVL_mar_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(kVL_mar_pointsto_value, _sym[varname].arrsize, symlist, symlist_len, vl_dummy, mloc, vartype);
+    return AccessData_ProcessAnyArrayIndex(kVL_mar_pointsto_value, _sym.NumArrayElements(varname), symlist, symlist_len, vl_dummy, mloc, vartype);
 }
 
 int AGS::Parser::AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
@@ -4006,34 +3996,32 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
 }
 
 // Move variable information into the symbol table
-void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness globalness, size_t size_of_defn, size_t arrsize)
+void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness globalness)
 {
     SymbolTableEntry &entry = _sym[var_name];
-    entry.extends = 0;
     entry.stype = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
     entry.vartype = vartype;
     _sym.set_declared(var_name, ccCurScriptName, currentline);
 }
 
 // we have accepted something like "int a" and we're expecting "["
-int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype, size_t &size_of_defn, size_t &arrsize)
+int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype)
 {
-
     _targ.getnext();  // skip the [
 
     if (_sym.get_type(_targ.peeknext()) == kSYM_CloseBracket)
     {
+        // Dynamic array
         if (vartype == _sym.getOldStringSym())
         {
             cc_error("Dynamic arrays of old-style strings are not supported");
             return -1;
         }
         vartype = _sym.VartypeWith(kVTT_Dynarray,vartype);
-        size_of_defn = SIZE_OF_DYNPOINTER;
-        arrsize = 0;
     }
     else
     {
+        // Static array
         AGS::Symbol nextt = _targ.getnext();
 
         int arrsize_as_int;
@@ -4042,7 +4030,7 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype,
 
         if (arrsize_as_int < 1)
         {
-            cc_error("Array size must be >= 1");
+            cc_error("Array size must be at least 1");
             return -1;
         }
 
@@ -4051,9 +4039,12 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype,
         vartype = _sym.VartypeWithArray(dims, vartype);
     }
 
-    if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
+    Symbol const nextsym = _targ.getnext();
+    if (_sym.get_type(nextsym) != kSYM_CloseBracket)
     {
-        cc_error("Expected ']'");
+        cc_error(
+            "Expected ']', found %s instead",
+            _sym.get_name_string(nextsym).c_str());
         return -1;
     }
 
@@ -4151,43 +4142,48 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
     if (_givm[var_name])
         return 0; // Skip this since the global non-import decl will come later
 
-    _sym[var_name].soffs = _scrip.add_new_import(_sym.get_name_string(var_name).c_str());
     SetFlag(_sym[var_name].flags, kSFLG_Imported, true);
+    _sym[var_name].soffs = _scrip.add_new_import(_sym.get_name_string(var_name).c_str());
     if (_sym[var_name].soffs == -1)
     {
         cc_error("Internal error: Import table overflow");
         return -1;
     }
+
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t total_size, bool has_initial_assignment, void *&initial_val_ptr)
+int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr)
 {
     if (has_initial_assignment)
     {
         int retval = ParseVardecl_InitialValAssignment(var_name, initial_val_ptr);
         if (retval < 0) return retval;
     }
-    _sym[var_name].soffs =
-        _scrip.add_global(
-        (_sym.getOldStringSym() == vartype) ? STRINGBUFFER_LENGTH : total_size,
-            initial_val_ptr);
-    if (_sym[var_name].soffs < 0)
+    SymbolTableEntry &entry = _sym[var_name];
+    entry.vartype = vartype;
+    size_t const var_size = _sym.GetSize(vartype);
+    entry.soffs = _scrip.add_global(var_size, initial_val_ptr);
+    if (entry.soffs < 0)
+    {
+        cc_error("Internal error: Cannot allocate global variable");
         return -1;
+    }
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, bool has_initial_assignment)
+int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment)
 {
+    size_t const var_size = _sym.GetSize(vartype);
     _sym[var_name].soffs = _scrip.cur_sp;
 
     if (!has_initial_assignment)
     {
         // Initialize the variable with binary zeroes.
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
-        _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
-        _scrip.cur_sp += size_of_defn;
+        _scrip.write_cmd1(SCMD_ZEROMEMORY, var_size);
+        _scrip.write_cmd2(SCMD_ADD, SREG_SP, var_size);
+        _scrip.cur_sp += var_size;
         return 0;
     }
 
@@ -4196,10 +4192,9 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
     int retval = ParseExpression(); 
     if (retval < 0) return retval;
 
-    Vartype const vartype = _sym.get_vartype(var_name);
-    bool const is_dyn = _sym.IsDynarray(vartype) || _sym.IsDynpointer(vartype);
+    bool const is_dyn = _sym.IsDyn(vartype);
     
-    if (SIZE_OF_INT == size_of_defn && !is_dyn)
+    if (SIZE_OF_INT == var_size && !is_dyn)
     {
         // This PUSH moves the result of the initializing expression into the
         // new variable and reserves space for this variable on the stack.
@@ -4210,50 +4205,46 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
     ConvertAXStringToStringObject(vartype);
     _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
     _scrip.write_cmd1(
-        is_dyn ? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
+        is_dyn ? SCMD_MEMINITPTR : GetWriteCommandForSize(var_size),
         SREG_AX);
-    _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
-    _scrip.cur_sp += size_of_defn;
+    _scrip.write_cmd2(SCMD_ADD, SREG_SP, var_size);
+    _scrip.cur_sp += var_size;
     return 0;
 }
 
 int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
 {
-    size_t size_of_defn = _sym.GetSize(vartype);
-    size_t arrsize = 0;
-
     if (kSYM_OpenBracket == next_type)
     {
-        int retval = ParseVardecl_Array(var_name, vartype, size_of_defn, arrsize);
+        int retval = ParseVardecl_Array(var_name, vartype);
         if (retval < 0) return retval;
         next_type = _sym.get_type(_targ.peeknext());
     }
 
     // Enter the variable into the symbol table
-    ParseVardecl_Var2SymTable(var_name, vartype, globalness, size_of_defn, arrsize);
-
-    size_t const totalsize = (arrsize > 0) ? size_of_defn * arrsize : size_of_defn;
+    ParseVardecl_Var2SymTable(var_name, vartype, globalness);
 
     bool const has_initial_assignment = (kSYM_Assign == next_type);
 
     switch (globalness)
     {
+    default:
+        cc_error("Internal error: Wrong value of globalness");
+        return -99;
+
     case kGl_GlobalImport:
         return ParseVardecl_GlobalImport(var_name, has_initial_assignment);
 
     case kGl_GlobalNoImport:
     {
         void *initial_val_ptr = nullptr;
-        int retval = ParseVardecl_GlobalNoImport(var_name, vartype, totalsize, has_initial_assignment, initial_val_ptr);
+        int retval = ParseVardecl_GlobalNoImport(var_name, vartype, has_initial_assignment, initial_val_ptr);
         if (initial_val_ptr) free(initial_val_ptr);
         return retval;
     }
     case kGl_Local:
-        return ParseVardecl_Local(var_name, totalsize, has_initial_assignment);
+        return ParseVardecl_Local(var_name, vartype, has_initial_assignment);
     }
-
-    cc_error("Internal error: Wrong value of globalness");
-    return -99;
 }
 
 // wrapper around ParseVardecl0() 
@@ -4486,37 +4477,6 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
         _sym.set_declared(stname, ccCurScriptName, currentline);
 }
 
-
-// We're processing the extends clause of a struct. Copy over all the parent elements
-// except for functions and attributes into the current struct.
-int AGS::Parser::ParseStruct_Extends_CopyParentComponents(AGS::Symbol parent, AGS::Symbol stname)
-{
-    for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
-    {
-        SymbolTableEntry &entry = _sym[entries_idx];
-        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
-            continue;
-        if (entry.extends != parent)
-            continue;
-        if (kSYM_Function == entry.stype || kSYM_Attribute == entry.stype)
-            continue;
-        int const compo_start = entry.sname.rfind(':');
-        if (std::string::npos == compo_start)
-        {
-            cc_error("Internal error: Component '%s' of '%s' does not have a struct prefix",
-                entry.sname.c_str(), _sym.get_name_string(parent).c_str());
-            return -1;
-        }
-        std::string const compo_name_str = entry.sname.substr(compo_start + 1);
-        AGS::Symbol const compocorename = _sym.find_or_add(compo_name_str.c_str());
-        AGS::Symbol const compo = MangleStructAndComponent(stname, compocorename);
-        std::string const sname = _sym[compo].sname;
-        entry.CopyTo(_sym[compo]);
-        _sym[compo].sname = sname;
-    }
-    return 0;
-}
-
 // We have accepted something like "struct foo" and are waiting for "extends"
 int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &parent, size_t &size_so_far)
 {
@@ -4557,7 +4517,7 @@ int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &pare
     size_so_far = _sym.GetSize(parent);
     struct_entry.extends = parent;
 
-    return ParseStruct_Extends_CopyParentComponents(parent, stname);
+    return 0;
 }
 
 

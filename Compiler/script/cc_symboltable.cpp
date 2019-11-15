@@ -52,7 +52,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char sizee)
+AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
     : sname(std::string(name))
     , stype(stype)
     , decl_secid(0)

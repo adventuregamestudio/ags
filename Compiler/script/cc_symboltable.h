@@ -85,7 +85,7 @@ public:
     inline bool is_varargs() const { return (sscope >= 100); }
 
     SymbolTableEntry();
-    SymbolTableEntry(const char *name, SymbolType stype, char ssize);
+    SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);
 
     inline int operatorToVCPUCmd() const { return this->vartype; }
 

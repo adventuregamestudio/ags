@@ -2061,23 +2061,11 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
     _scrip.ax_vartype = vartype;
     _scrip.ax_val_scope = scope;
 
-    // Get the result into AX
     if (_sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype))
-    {
-        // AX must point to the first character
         _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-        return 0;
-    }
-
-    // Read the value from memory
-    // Note:  Moving from m[mar] to AX doesn't mean dereferencing: The type 
-    // remains the same. But whenever an address is marked as dynpointer
-    // or dynarray, its values must be retrieved with SCMD_MEMREADPTR.
-    if (_sym.IsDyn(vartype))
-        _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
     else
         _scrip.write_cmd1(
-            GetReadCommandForSize(_sym.GetSize(vartype)),
+            _sym.IsDyn(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
     return 0;
 }

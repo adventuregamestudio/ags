@@ -3491,8 +3491,6 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
-        AGS::Flags const outer_vartype_flags = _sym.get_flags(outer_vartype);
-
         if (!_sym.IsStruct(outer_vartype))
         {
             cc_error("Expected a struct before '.' but did not find it");
@@ -3530,7 +3528,9 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         // Caller will do the assignment
         // For this to work, the caller must know the type of the struct
         // in which the attribute resides
-        vartype = outer_vartype;
+        vartype = _sym.VartypeWithout(
+                kVTT_Const|kVTT_Dynarray|kVTT_Dynpointer,
+                outer_vartype);
         return 0;
     }
 

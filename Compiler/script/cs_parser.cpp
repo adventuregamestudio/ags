@@ -3662,7 +3662,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
         return -1;
     }
 
-    if (_sym.IsDyn(rhsvartype))
+    if (_sym.IsDyn(lhsvartype))
         _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
         _scrip.write_cmd1(

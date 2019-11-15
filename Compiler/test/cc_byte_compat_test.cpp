@@ -2697,7 +2697,7 @@ TEST(Bytecode, Struct01) {
 			float Float;                    \n\
 			import int[] Func(int i);       \n\
 		};                                  \n\
-											\n\
+                                            \n\
 		int[] Struct::Func(int i)           \n\
 		{                                   \n\
 			int Ret[];                      \n\
@@ -2706,7 +2706,7 @@ TEST(Bytecode, Struct01) {
 			Ret[3] = 77;                    \n\
 			return Ret;                     \n\
 		}                                   \n\
-											\n\
+                                            \n\
 		void main()                         \n\
 		{                                   \n\
 			Struct S;                       \n\

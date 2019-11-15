@@ -2071,9 +2071,9 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
 
     // Read the value from memory
     // Note:  Moving from m[mar] to AX doesn't mean dereferencing: The type 
-    // remains the same. But whenever an address is marked as managed,
-    // its values must be retrieved with SCMD_MEMREADPTR.
-    if (_sym.IsManaged(vartype))
+    // remains the same. But whenever an address is marked as dynpointer
+    // or dynarray, its values must be retrieved with SCMD_MEMREADPTR.
+    if (_sym.IsDyn(vartype))
         _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
     else
         _scrip.write_cmd1(
@@ -3662,7 +3662,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
         return -1;
     }
 
-    if (_sym.IsManaged(rhsvartype))
+    if (_sym.IsDyn(rhsvartype))
         _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
         _scrip.write_cmd1(

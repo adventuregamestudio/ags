@@ -2495,7 +2495,7 @@ TEST(Bytecode, StringOldstyle01) {
 
     // WriteOutput("StringOldstyle01", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 33;
+    const size_t codesize = 34;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -6264,7 +6264,7 @@ TEST(Bytecode, StringOldstyle03) {
 
     // WriteOutput("StringOldstyle03", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 66;
+    const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -6274,9 +6274,9 @@ TEST(Bytecode, StringOldstyle03) {
        8,    3,   28,   16,            1,    4,    1,    1,    // 31
        5,    1,    2,    7,            1,    3,    7,    3,    // 39
       28,    2,   31,  -28,            5,   38,   45,    6,    // 47
-       2,    4,    7,    3,           29,    3,    6,    3,    // 55
-       0,   23,    3,    2,            1,    4,    6,    3,    // 63
-       0,    5,  -999
+       2,    4,    3,    2,            3,   29,    3,    6,    // 55
+       3,    0,   23,    3,            2,    1,    4,    6,    // 63
+       3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6293,7 +6293,7 @@ TEST(Bytecode, StringOldstyle03) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   49,   56,  -999
+       4,   49,   57,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6350,7 +6350,7 @@ TEST(Bytecode, StringOldstyle03) {
     'r',    0,  '\0'
     };
 
-    for (size_t idx = 0; idx < stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)
     {
         if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";

@@ -75,7 +75,6 @@ TEST(SymbolTable, AddExDefaultValues) {
     ASSERT_TRUE(testSym.entries.at(a_sym).soffs == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).ssize == ssize);
     ASSERT_TRUE(testSym.entries.at(a_sym).sscope == 0);
-    ASSERT_TRUE(testSym.entries.at(a_sym).arrsize == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).extends == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).get_num_args() == 0);
 }

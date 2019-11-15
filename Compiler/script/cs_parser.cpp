@@ -640,7 +640,7 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
 {
     std::vector<Symbol> compo_list;
     _sym.GetComponentsOfStruct(struct_vtype, compo_list);
-    for (int cl_idx = 0; cl_idx < compo_list.size(); cl_idx++) // note "int"!
+    for (int cl_idx = 0; cl_idx < static_cast<int>(compo_list.size()); cl_idx++) // note "int"!
     {
         if (ContainsReleasableDynpointers(_sym.get_vartype(compo_list[cl_idx])))
             continue;
@@ -2962,7 +2962,12 @@ int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, 
     int array_index = -1;
     int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
     if (retval < 0) return retval;
-    if (num_array_elements > 0 && array_index >= num_array_elements)
+    if (array_index < 0)
+    {
+        cc_error("Array index %d out of bounds (minimum is 0)", array_index);
+        return -1;
+    }
+    if (num_array_elements > 0 && static_cast<size_t>(array_index) >= num_array_elements)
     {
         cc_error(
             "Array index %d out of bounds (maximum is %d)",
@@ -2970,11 +2975,7 @@ int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, 
             static_cast<int>(num_array_elements - 1));
         return -1;
     }
-    if (array_index < 0)
-    {
-        cc_error("Array index %d out of bounds (minimum is 0)", array_index);
-        return -1;
-    }
+    
     mloc.AddComponentOffset(array_index * element_size);
     return 0;
 }
@@ -4069,19 +4070,6 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
     if (0 == known_info->stype)
         return 0; // We don't have any known info
 
-    if (known_info->stype != this_entry->stype)
-    {
-        std::string msg = ReferenceMsg(
-            "Type of this variable is declared as %s here, as %s elsewhere",
-            _sym.id2section(known_info->decl_secid),
-            known_info->decl_line);
-        cc_error(
-            msg.c_str(),
-            _sym.get_name_string(this_entry->stype).c_str(),
-            _sym.get_name_string(known_info->stype).c_str());
-        return -1;
-    }
-
     if ((known_info->flags & ~kSFLG_Imported) != (this_entry->flags & ~kSFLG_Imported))
     {
         std::string msg = ReferenceMsg(
@@ -4092,15 +4080,17 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
         return -1;
     }
 
-    if (_sym.IsArray(this_entry->vartype) && (known_info->arrsize != this_entry->arrsize))
+    if (known_info->vartype != this_entry->vartype)
     {
+        // This will check the array lengths, too
         std::string msg = ReferenceMsg(
-            "Variable is declared as an array of size %d here, of size %d elsewhere",
+            "This variable is declared as %s here, as %s elsewhere",
             _sym.id2section(known_info->decl_secid),
             known_info->decl_line);
         cc_error(
             msg.c_str(),
-            this_entry->arrsize, known_info->arrsize);
+            _sym.get_name_string(this_entry->vartype).c_str(),
+            _sym.get_name_string(known_info->vartype).c_str());
         return -1;
     }
 

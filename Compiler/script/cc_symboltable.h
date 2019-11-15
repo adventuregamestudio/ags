@@ -56,7 +56,6 @@ public:
 
     // Vartypes only
     VartypeType vartype_type;
-    int arrsize; // number of elements of static arrays
     std::vector<size_t> dims; // number of elements in each dimension of static array
     
     // Vars or vartypes
@@ -88,8 +87,6 @@ public:
     SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);
 
     inline int operatorToVCPUCmd() const { return this->vartype; }
-
-    int CopyTo(SymbolTableEntry &dest);
 
     inline int GetCPUOp() const { return ssize; };
 };

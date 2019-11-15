@@ -44,7 +44,6 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , ssize(0)
     , sscope(0)
     , vartype_type(kVTT_Atomic)
-    , arrsize(0)
     , dims({})
     , extends(0)
     , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
@@ -63,34 +62,12 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , ssize(sizee)
     , sscope(0)
     , vartype_type(kVTT_Atomic)
-    , arrsize(0)
     , dims({})
     , extends(0)
     , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
-
-int AGS::SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
-{
-    dest.sname = this->sname;
-    dest.stype = this->stype;
-    dest.decl_secid = this->decl_secid;
-    dest.decl_line = this->decl_line;
-    dest.flags = this->flags;
-    dest.soffs = this->soffs;
-    dest.vartype = this->vartype;
-    dest.ssize = this->ssize;
-    dest.sscope = this->sscope;
-    dest.vartype_type = this->vartype_type;
-    dest.arrsize = this->arrsize;
-    dest.dims = this->dims;
-    dest.extends = this->extends;
-    dest.funcparamtypes = this->funcparamtypes;
-    dest.funcParamDefaultValues = this->funcParamDefaultValues;
-    dest.funcParamHasDefaultValues = this->funcParamHasDefaultValues;
-    return 0;
-}
 
 bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) const
 {

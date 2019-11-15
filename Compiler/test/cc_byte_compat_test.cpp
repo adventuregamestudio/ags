@@ -6384,16 +6384,16 @@ TEST(Bytecode, StringOldstyle04) {
 
     // WriteOutput("StringOldstyle04", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 43;
+    const size_t codesize = 45;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    2,            4,    7,    3,   29,    // 7
-       3,    6,    3,   31,           23,    3,    2,    1,    // 15
-       4,   51,    0,    8,            3,    1,    1,  200,    // 23
-       2,    1,  200,    6,            3,    0,    5,   38,    // 31
-      31,   51,    8,    7,            3,   31,    3,    6,    // 39
-       3,    0,    5,  -999
+      38,    0,    6,    2,            4,    3,    2,    3,    // 7
+      29,    3,    6,    3,           32,   23,    3,    2,    // 15
+       1,    4,   51,    0,            8,    3,    1,    1,    // 23
+     200,    2,    1,  200,            6,    3,    0,    5,    // 31
+      38,   32,   51,    8,            3,    2,    3,   31,    // 39
+       3,    6,    3,    0,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6410,7 +6410,7 @@ TEST(Bytecode, StringOldstyle04) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   11,  -999
+       4,   12,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6645,25 +6645,25 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     // WriteOutput("StringStandardOldstyle", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 113;
+    const size_t codesize = 114;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    2,            0,    7,    3,   64,    // 7
-       3,   31,    3,    6,            3,    0,    5,   38,    // 15
-      15,   51,    8,    7,            3,   50,    3,   51,    // 23
-       8,   48,    3,   29,            3,   51,    4,   50,    // 31
-       3,   51,   12,   49,           51,    4,   48,    3,    // 39
-      69,   30,    4,   31,            6,   51,    8,   49,    // 47
-       6,    3,    0,    5,           38,   52,    6,    3,    // 55
-       6,   64,    3,   29,            3,    6,    3,   15,    // 63
-      23,    3,    2,    1,            4,    6,    3,    0,    // 71
-       5,   38,   73,    6,            3,    6,   64,    3,    // 79
-      51,    0,   50,    3,            1,    1,    4,   51,    // 87
-       4,   48,    3,   67,            3,   29,    3,    6,    // 95
-       3,   52,   23,    3,            2,    1,    4,   51,    // 103
-       4,   49,    2,    1,            4,    6,    3,    0,    // 111
-       5,  -999
+      38,    0,    6,    2,            0,    3,    2,    3,    // 7
+      64,    3,   31,    3,            6,    3,    0,    5,    // 15
+      38,   16,   51,    8,            7,    3,   50,    3,    // 23
+      51,    8,   48,    3,           29,    3,   51,    4,    // 31
+      50,    3,   51,   12,           49,   51,    4,   48,    // 39
+       3,   69,   30,    4,           31,    6,   51,    8,    // 47
+      49,    6,    3,    0,            5,   38,   53,    6,    // 55
+       3,    6,   64,    3,           29,    3,    6,    3,    // 63
+      16,   23,    3,    2,            1,    4,    6,    3,    // 71
+       0,    5,   38,   74,            6,    3,    6,   64,    // 79
+       3,   51,    0,   50,            3,    1,    1,    4,    // 87
+      51,    4,   48,    3,           67,    3,   29,    3,    // 95
+       6,    3,   53,   23,            3,    2,    1,    4,    // 103
+      51,    4,   49,    2,            1,    4,    6,    3,    // 111
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6680,7 +6680,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   56,   63,   77,         97,  -999
+       4,   57,   64,   78,         98,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6707,15 +6707,9 @@ TEST(Bytecode, StringStandardOldstyle) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const int numimports = 20;
+    const int numimports = 0;
     std::string imports[] = {
-    "String::Format^101",         "String::IsNullOrEmpty^1",    "String::Append^1",           // 2
-    "String::AppendChar^1",       "String::CompareTo^2",        "String::Contains^1",         // 5
-    "String::Copy^0",             "String::EndsWith^2",         "String::IndexOf^1",          // 8
-    "String::LowerCase^0",        "String::Replace^3",          "String::ReplaceCharAt^2",    // 11
-    "String::StartsWith^2",       "String::Substring^2",        "String::Truncate^1",         // 14
-    "String::UpperCase^0",        "String::get_AsFloat^0",      "String::get_AsInt^0",        // 17
-    "String::geti_Chars^1",       "String::get_Length^0",        "[[SENTINEL]]"
+     "[[SENTINEL]]"
     };
 
     int idx2 = -1;

@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "cs_compiler.h"
-#include "cc_macrotable.h"
 #include "cc_compiledscript.h"
 #include "cc_symboltable.h"
 
@@ -11,7 +10,6 @@
 #include "script/cc_options.h"
 #include "script/script_common.h"
 
-#include "cs_prepro.h"
 #include "cs_parser.h"
 
 const char *ccSoftwareVersion = "1.0";
@@ -23,8 +21,6 @@ struct ScriptHeader
 };
 
 std::vector<ScriptHeader> defaultHeaders;
-
-MacroTable predefinedMacros;
 
 int ccAddDefaultHeader(char *hd_content, char *hd_name)
 {

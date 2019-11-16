@@ -29,9 +29,6 @@
     <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cc_macrotable.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Compiler\script\cc_symboltable.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -42,9 +39,6 @@
       <Filter>Source Files\script</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cs_prepro.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_error.cpp">
@@ -85,9 +79,6 @@
     <ClInclude Include="..\..\Compiler\script\cc_internallist.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script\cc_macrotable.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cc_symboltable.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
@@ -101,9 +92,6 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cs_parser_common.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Compiler\script\cs_prepro.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\string.h">

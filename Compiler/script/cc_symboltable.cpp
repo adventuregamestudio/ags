@@ -46,9 +46,9 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
-    , funcParamDefaultValues(std::vector<int>(1))
-    , funcParamHasDefaultValues(std::vector<bool>(1))
+    , FuncParamTypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamDefaultValues(std::vector<int>(1))
+    , FuncParamHasDefaultValues(std::vector<bool>(1))
 { }
 
 AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
@@ -64,9 +64,9 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
-    , funcParamDefaultValues(std::vector<int>(1))
-    , funcParamHasDefaultValues(std::vector<bool>(1))
+    , FuncParamTypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamDefaultValues(std::vector<int>(1))
+    , FuncParamHasDefaultValues(std::vector<bool>(1))
 { }
 
 bool AGS::SymbolTableEntry::IsVTT(VartypeTypeT vtt, SymbolTable const &symt) const

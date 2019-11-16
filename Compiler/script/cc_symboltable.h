@@ -68,9 +68,9 @@ public:
     AGS::Vartype Extends; // parent struct (for structs) / owning struct (for members)
 
     // Functions only
-    std::vector<AGS::Vartype> funcparamtypes;
-    std::vector<int> funcParamDefaultValues;
-    std::vector<bool> funcParamHasDefaultValues;
+    std::vector<AGS::Vartype> FuncParamTypes;
+    std::vector<int> FuncParamDefaultValues;
+    std::vector<bool> FuncParamHasDefaultValues;
     inline size_t get_num_args() const { return SScope % 100; }
     inline bool is_varargs() const { return (SScope >= 100); }
 

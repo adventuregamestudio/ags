@@ -307,34 +307,34 @@ TEST(Compile, DefaultParametersLargeInts) {
     int funcidx;
     funcidx = sym.find("importedfunc");
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[1]);
-    EXPECT_EQ(0, sym.entries.at(funcidx).funcParamDefaultValues[1]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[1]);
+    EXPECT_EQ(0, sym.entries.at(funcidx).FuncParamDefaultValues[1]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[2]);
-    EXPECT_EQ(1, sym.entries.at(funcidx).funcParamDefaultValues[2]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[2]);
+    EXPECT_EQ(1, sym.entries.at(funcidx).FuncParamDefaultValues[2]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[3]);
-    EXPECT_EQ(2, sym.entries.at(funcidx).funcParamDefaultValues[3]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[3]);
+    EXPECT_EQ(2, sym.entries.at(funcidx).FuncParamDefaultValues[3]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[4]);
-    EXPECT_EQ(-32000, sym.entries.at(funcidx).funcParamDefaultValues[4]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[4]);
+    EXPECT_EQ(-32000, sym.entries.at(funcidx).FuncParamDefaultValues[4]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[5]);
-    EXPECT_EQ(32001, sym.entries.at(funcidx).funcParamDefaultValues[5]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[5]);
+    EXPECT_EQ(32001, sym.entries.at(funcidx).FuncParamDefaultValues[5]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[6]);
-    EXPECT_EQ((2147483647), sym.entries.at(funcidx).funcParamDefaultValues[6]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[6]);
+    EXPECT_EQ((2147483647), sym.entries.at(funcidx).FuncParamDefaultValues[6]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[7]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[7]);
     // NOTE: It's not possible to write the lowest possible signed integer as
     // -2147483648
-    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).funcParamDefaultValues[7]);
+    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).FuncParamDefaultValues[7]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[8]);
-    EXPECT_EQ(-1, sym.entries.at(funcidx).funcParamDefaultValues[8]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[8]);
+    EXPECT_EQ(-1, sym.entries.at(funcidx).FuncParamDefaultValues[8]);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[9]);
-    EXPECT_EQ(-2, sym.entries.at(funcidx).funcParamDefaultValues[9]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[9]);
+    EXPECT_EQ(-2, sym.entries.at(funcidx).FuncParamDefaultValues[9]);
 }
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {
@@ -359,7 +359,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).funcparamtypes[0]));
+    EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).FuncParamTypes[0]));
 }
 
 TEST(Compile, DoubleNegatedConstant) {

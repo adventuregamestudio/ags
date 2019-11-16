@@ -580,7 +580,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
             continue;
 
         totalsub +=
-            (_sym.getThisSym() == entries_idx)? SIZE_OF_DYNPOINTER : _sym.GetSize(entries_idx);
+            (_sym.GetThisSym() == entries_idx)? SIZE_OF_DYNPOINTER : _sym.GetSize(entries_idx);
     }
     return totalsub;
 }
@@ -739,7 +739,7 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
             continue;
         if (kSYM_LocalVar != entry.SType)
             continue;
-        if (_sym.getThisSym() == entries_idx)
+        if (_sym.GetThisSym() == entries_idx)
             continue; // don't touch the this pointer
         if (!ContainsReleasableDynpointers(entry.vartype))
             continue;
@@ -1171,7 +1171,7 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
     if ((_sym.GetSymbolType(_targ.peeknext()) != kSYM_Comma) &&
         (_sym.GetSymbolType(_targ.peeknext()) != kSYM_CloseParenthesis))
     {
-        if (_targ.getnext() == _sym.getPointerSym())
+        if (_targ.getnext() == _sym.GetDynpointerSym())
             cc_error("Must not use '*' for defining static extender function");
         else
             cc_error("Parameter name cannot be defined for extender type");
@@ -1641,7 +1641,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     }
 
     bool const func_is_static_extender = (kSYM_Static == _sym.GetSymbolType(_targ.peeknext()));
-    bool const func_is_extender = (func_is_static_extender) || (_sym.getThisSym() == _targ.peeknext());
+    bool const func_is_extender = (func_is_static_extender) || (_sym.GetThisSym() == _targ.peeknext());
 
     // Rewrite extender function as if it were a component function of the corresponding struct.
     if (func_is_extender)
@@ -2685,7 +2685,7 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
 
     if (func_uses_this)
     {
-        if (0 != _sym.GetVartype(_sym.getThisSym()))
+        if (0 != _sym.GetVartype(_sym.GetThisSym()))
             _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
 
         // Get address of outer into MAR; that's what the func will use as its "this"
@@ -2725,7 +2725,7 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
     {
         if (0 < num_args)
             _scrip.pop_reg(SREG_MAR);
-        if (0 != _sym.GetVartype(_sym.getThisSym()))
+        if (0 != _sym.GetVartype(_sym.GetThisSym()))
             _scrip.pop_reg(SREG_OP);
     }
 
@@ -3206,9 +3206,9 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
     bool const input_negate = need_to_negate;
     need_to_negate = false;
 
-    if (_sym.getThisSym() == symlist[0])
+    if (_sym.GetThisSym() == symlist[0])
     {
-        vartype = _sym.GetVartype(_sym.getThisSym());
+        vartype = _sym.GetVartype(_sym.GetThisSym());
         if (0 == vartype)
         {
             cc_error("'this' is only legal in non-static struct functions");
@@ -3230,7 +3230,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
     {
         // If this unknown symbol can be interpreted as a component of this,
         // treat it that way.
-        vartype = _sym.GetVartype(_sym.getThisSym());
+        vartype = _sym.GetVartype(_sym.GetThisSym());
         AGS::Symbol const thiscomponent = MangleStructAndComponent(vartype, symlist[0]);
         if (0 != _sym[thiscomponent].SType)
         {
@@ -4299,7 +4299,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
     }
 
-    SymbolTableEntry &this_entry = _sym[_sym.getThisSym()];
+    SymbolTableEntry &this_entry = _sym[_sym.GetThisSym()];
     this_entry.vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static))
     {
@@ -4907,7 +4907,7 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
 
 int AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
 {
-    if (_sym.getPointerSym() != _targ.peeknext())
+    if (_sym.GetDynpointerSym() != _targ.peeknext())
         return 0;
 
     if (kPP_PreAnalyze == _pp || _sym.IsManaged(vartype))
@@ -5453,7 +5453,7 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
 
     SymbolTableEntry &vartype_entry = _sym[Vartype2Symbol(vartype)];
 
-    if (_sym.getPointerSym() == _targ.peeknext())
+    if (_sym.GetDynpointerSym() == _targ.peeknext())
     {
         if (!_sym.IsPrimitive(vartype) && !_sym.IsManaged(vartype))
         {

@@ -117,7 +117,7 @@ AGS::SymbolTable::SymbolTable()
     , _floatSym(0)
     , _intSym(0)
     , _nullSym(0)
-    , _pointerSym(0)
+    , _dynpointerSym(0)
     , _oldStringSym(0)
     , _stringStructSym(0)
     , _thisSym(0)
@@ -161,7 +161,7 @@ void AGS::SymbolTable::reset()
     AddWithTypeAndSize("(", kSYM_OpenParenthesis, 0);
     // the second argument to the operators is their precedence: 1 is highest
     AddOp("!", 1, SCMD_NOTREG);
-    _pointerSym =
+    _dynpointerSym =
         AddOp("*", 2, SCMD_MULREG);
     AddOp("/", 3, SCMD_DIVREG);
     AddOp("%", 4, SCMD_MODREG);

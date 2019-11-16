@@ -116,7 +116,7 @@ private:
     int _structBeingDeclared;
     std::deque<Symbol> _tokenBuffer;
 
-    inline Symbol TokenType(Symbol token) const { return _symbolTable->get_type(token); }
+    inline Symbol TokenType(Symbol token) const { return _symbolTable->GetSymbolType(token); }
     inline const std::string TokenName(Symbol token) const { return _symbolTable->entries.at(token).SName; }
     inline void SetTokenType(Symbol token, SymbolType value) { _symbolTable->entries.at(token).SType = value; }
     inline void SetTokenOffsetInStrings(Symbol token, int value) { _symbolTable->entries.at(token).SOffset = value; }

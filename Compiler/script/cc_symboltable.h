@@ -30,7 +30,7 @@ protected:
     bool IsVTT(VartypeType vtt, SymbolTable const &symt) const;
 
 public:
-    std::string sname;
+    std::string SName;
     SymbolType stype; // e.g., kSYM_GlobalVar
     int decl_secid, decl_line; // where this was declared
     AGS::Flags flags;

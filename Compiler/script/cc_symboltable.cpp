@@ -34,7 +34,7 @@ void AGS::SymbolTable::SectionMap::init()
 }
 
 AGS::SymbolTableEntry::SymbolTableEntry()
-    : sname("")
+    : SName("")
     , stype(kSYM_NoType)
     , decl_secid(0)
     , decl_line(0)
@@ -52,7 +52,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
 { }
 
 AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
-    : sname(std::string(name))
+    : SName(std::string(name))
     , stype(stype)
     , decl_secid(0)
     , decl_line(0)
@@ -241,14 +241,14 @@ std::string const AGS::SymbolTable::get_name_string(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    return entries.at(symbl).sname;
+    return entries.at(symbl).SName;
 }
 
 std::string const AGS::SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const
 {
     if (!IsInBounds(vartype))
         return "(invalid vartype)";
-    return entries.at(vartype).sname;
+    return entries.at(vartype).SName;
     }
 
 void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
@@ -263,7 +263,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     if (IsVTT(vartype, kVTT_Array))
         return vartype;
 
-    std::string conv_name = entries[vartype].sname + "[";
+    std::string conv_name = entries[vartype].SName + "[";
     size_t const last_idx = dims.size() - 1;
     size_t num_elements = 1;
     for (size_t dims_idx = 0; dims_idx <= last_idx; ++dims_idx)
@@ -301,7 +301,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype
     case kVTT_Dynpointer: post = " *"; break;
     case kVTT_Dynarray: post = "[]"; break;
     }
-    std::string const conv_name = (pre + entries[vartype].sname) + post;
+    std::string const conv_name = (pre + entries[vartype].SName) + post;
     valref = find_or_add(conv_name.c_str());
     SymbolTableEntry &entry = entries[valref];
     entry.stype = kSYM_Vartype;

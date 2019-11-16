@@ -68,7 +68,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     int ssize = 2;
     int a_sym = testSym.add_ex("a", stype, ssize);
 
-    ASSERT_TRUE(testSym.entries.at(a_sym).sname == std::string("a"));
+    ASSERT_TRUE(testSym.entries.at(a_sym).SName == std::string("a"));
     ASSERT_TRUE(testSym.entries.at(a_sym).stype == stype);
     ASSERT_TRUE(testSym.entries.at(a_sym).flags == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);

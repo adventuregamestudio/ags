@@ -117,7 +117,7 @@ private:
     std::deque<Symbol> _tokenBuffer;
 
     inline Symbol TokenType(Symbol token) const { return _symbolTable->get_type(token); }
-    inline const std::string TokenName(Symbol token) const { return _symbolTable->entries.at(token).sname; }
+    inline const std::string TokenName(Symbol token) const { return _symbolTable->entries.at(token).SName; }
     inline void SetTokenType(Symbol token, SymbolType value) { _symbolTable->entries.at(token).stype = value; }
     inline void SetTokenOffsetInStrings(Symbol token, int value) { _symbolTable->entries.at(token).soffs = value; }
     inline void SetTokenVartype(Symbol token, Symbol value) { _symbolTable->entries.at(token).vartype = value; }

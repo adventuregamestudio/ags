@@ -4613,7 +4613,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     {
         cc_error(
             "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
-            entry.sname.c_str(), sscope_wanted, entry.sscope);
+            entry.SName.c_str(), sscope_wanted, entry.sscope);
         return -1;
     }
     AGS::Vartype const ret_vartype = is_setter ? _sym.getVoidSym() : vartype;
@@ -4621,7 +4621,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     {
         cc_error(
             "The attribute function '%s' must return type '%s' but returns '%s' instead",
-            entry.sname.c_str(),
+            entry.SName.c_str(),
             _sym.get_name_string(ret_vartype).c_str(),
             _sym.get_vartype_name_string(entry.funcparamtypes[0]).c_str());
         return -1;
@@ -4633,7 +4633,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
         {
             cc_error(
                 "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
-                p_idx, entry.sname.c_str());
+                p_idx, entry.SName.c_str());
             return -1;
         }
         p_idx++;
@@ -4642,7 +4642,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     {
         cc_error(
             "Parameter #d of attribute function '%s' must have type '%s'",
-            p_idx, entry.sname.c_str(), _sym.get_name_string(vartype).c_str());
+            p_idx, entry.SName.c_str(), _sym.get_name_string(vartype).c_str());
         return -1;
     }
 
@@ -4655,7 +4655,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
     SetFlag(entry.flags, kSFLG_Imported, true);
     if (is_static)
         SetFlag(entry.flags, kSFLG_Static, true);
-    entry.soffs = _importMgr.FindOrAdd(entry.sname);
+    entry.soffs = _importMgr.FindOrAdd(entry.SName);
     char  *num_param_suffix;
     if (is_setter)
         num_param_suffix = (is_indexed ? "^2" : "^1");
@@ -4689,7 +4689,7 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
         std::string msg = ReferenceMsgSym(
             "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
             func);
-        cc_error(msg.c_str(), entry.sname.c_str());
+        cc_error(msg.c_str(), entry.SName.c_str());
         return -1;
     }
 
@@ -6570,10 +6570,10 @@ int AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &tokenize_res)
             s_entry.soffs = 0;
             continue;
         }
-        std::string const sname = s_entry.sname;
+        std::string const sname = s_entry.SName;
         s_entry =
             (sym_idx < tokenize_res_size) ? tokenize_res.entries[sym_idx] : empty;
-        s_entry.sname = sname;
+        s_entry.SName = sname;
     }
 
     // This has invalidated the symbol table caches, so kill them

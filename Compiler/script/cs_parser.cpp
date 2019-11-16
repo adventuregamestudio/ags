@@ -1118,7 +1118,7 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
     known_info = entry;
     
     // Kill the defaults so we can check whether this defn replicates them exactly.
-    size_t const num_of_args = entry.get_num_args();
+    size_t const num_of_args = entry.GetNumOfFuncArgs();
     entry.FuncParamHasDefaultValues.assign(num_of_args + 1, false);
     // -77 is an arbitrary value that is easy to spot in the debugger; 
     // don't use for anything in code
@@ -1406,7 +1406,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
         // If none of the parameters have a default,
         // we'll let this through for backward compatibility.
         bool has_default = false;
-        for (size_t param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
+        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); ++param_idx)
             if (this_entry.FuncParamHasDefaultValues[param_idx])
             {
                 has_default = true;
@@ -1416,8 +1416,8 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
             return 0;
     }
 
-    // this is 1 .. get_num_args(), INCLUSIVE, because param 0 is the return type
-    for (size_t param_idx = 1; param_idx <= this_entry.get_num_args(); ++param_idx)
+    // this is 1 .. GetNumOfFuncArgs(), INCLUSIVE, because param 0 is the return type
+    for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); ++param_idx)
     {
         if ((this_entry.FuncParamHasDefaultValues[param_idx] ==
             known_info.FuncParamHasDefaultValues[param_idx]) &&
@@ -1477,23 +1477,23 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         return -1;
     }
 
-    if (known_info.get_num_args() != this_entry.get_num_args())
+    if (known_info.GetNumOfFuncArgs() != this_entry.GetNumOfFuncArgs())
     {
         std::string msg = ReferenceMsg(
             "Function is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
             _sym.Id2Section(known_info.DeclSectionId),
             known_info.DeclLine);
-        cc_error(msg.c_str(), this_entry.get_num_args(), known_info.get_num_args());
+        cc_error(msg.c_str(), this_entry.GetNumOfFuncArgs(), known_info.GetNumOfFuncArgs());
         return -1;
     }
-    if (known_info.is_varargs() != this_entry.is_varargs())
+    if (known_info.IsVarargsFunc() != this_entry.IsVarargsFunc())
     {
         std::string te =
-            known_info.is_varargs() ?
+            known_info.IsVarargsFunc() ?
             "is declared to accept additional arguments here" :
             "is declared to not accept additional arguments here";
         std::string ki =
-            known_info.is_varargs() ?
+            known_info.IsVarargsFunc() ?
             "to accepts additional arguments elsewhere" :
             "to not accept additional arguments elsewhere";
         std::string const msg =
@@ -1519,7 +1519,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         return -1;
     }
 
-        for (size_t param_idx = 1; param_idx <= this_entry.get_num_args(); param_idx++)
+        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); param_idx++)
     {
         if (known_info.FuncParamTypes.at(param_idx) != this_entry.FuncParamTypes.at(param_idx))
         {
@@ -2632,8 +2632,8 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args)
 {
     // Expected number of arguments, or expected minimal number of arguments
-    size_t const num_func_args = _sym[name_of_func].get_num_args();
-    bool const func_is_varargs = _sym[name_of_func].is_varargs();
+    size_t const num_func_args = _sym[name_of_func].GetNumOfFuncArgs();
+    bool const func_is_varargs = _sym[name_of_func].IsVarargsFunc();
 
     size_t num_supplied_args = 0;
     size_t indexOfClosedParen;
@@ -4283,7 +4283,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
 
     // loop through all parameters
     // the first entry is the return address, so skip that
-    size_t const num_args = _sym[name_of_func].get_num_args();
+    size_t const num_args = _sym[name_of_func].GetNumOfFuncArgs();
     for (size_t pa = 1; pa <= num_args; pa++)
     {
         AGS::Vartype const param_vartype = _sym[name_of_func].FuncParamTypes[pa];

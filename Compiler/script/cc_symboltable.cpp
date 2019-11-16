@@ -69,7 +69,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , FuncParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-bool AGS::SymbolTableEntry::IsVTT(VartypeTypeT vtt, SymbolTable const &symt) const
+bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt) const
 {
     if (kSYM_Vartype != SType)
         return symt.IsVTT(vartype, vtt);
@@ -274,10 +274,10 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeTypeT vtt, AGS::Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, AGS::Vartype vartype)
 {
     // Return cached result if existent 
-    std::pair<Vartype, VartypeTypeT> const arg = { vartype, vtt };
+    std::pair<Vartype, enum VartypeType> const arg = { vartype, vtt };
     Vartype &valref(_vartypesCache[arg]);
     if (valref) 
         return valref;

@@ -113,7 +113,7 @@ private:
     Symbol _intSym;       // the symbol that corresponds to "int"
     Symbol _nullSym;      // the symbol that corresponds to "null"
     Symbol _pointerSym;   // the symbol that corresponds to "*"
-    Symbol _stringSym;    // the symbol that corresponds to "string"
+    Symbol _oldStringSym;    // the symbol that corresponds to "string"
     Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
     Symbol _thisSym;      // the symbol that corresponds to "this"
     Symbol _voidSym;      // the symbol that corresponds to "void"
@@ -138,8 +138,8 @@ public:
     inline Symbol GetCharSym() const { return _charSym; }
     inline Symbol GetFloatSym() const { return _floatSym; }
     inline Symbol GetIntSym() const { return _intSym; }
-    inline Symbol getNullSym() const { return _nullSym; }
-    inline Symbol getOldStringSym() const { return _stringSym; }
+    inline Symbol GetNullSym() const { return _nullSym; }
+    inline Symbol GetOldStringSym() const { return _oldStringSym; }
     inline Symbol getPointerSym() const { return _pointerSym; }
     inline Symbol getThisSym() const { return _thisSym; }
     inline Symbol getVoidSym() const { return _voidSym; }

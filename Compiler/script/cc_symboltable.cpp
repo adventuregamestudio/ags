@@ -118,7 +118,7 @@ AGS::SymbolTable::SymbolTable()
     , _intSym(0)
     , _nullSym(0)
     , _pointerSym(0)
-    , _stringSym(0)
+    , _oldStringSym(0)
     , _stringStructSym(0)
     , _thisSym(0)
     , _voidSym(0)
@@ -147,7 +147,7 @@ void AGS::SymbolTable::reset()
         AddWithTypeAndSize("int", kSYM_Vartype, SIZE_OF_INT);
     AddWithTypeAndSize("long", kSYM_Vartype, SIZE_OF_INT);
     AddWithTypeAndSize("short", kSYM_Vartype, 2);
-    _stringSym =
+    _oldStringSym =
         AddWithTypeAndSize("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
     _voidSym =
         AddWithTypeAndSize("void", kSYM_Vartype, 0);
@@ -354,7 +354,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
     Vartype const s_without_const = VartypeWithout(kVTT_Const, s);
 
     return
-        getOldStringSym() == s_without_const ||
+        GetOldStringSym() == s_without_const ||
         getStringStructSym() == VartypeWithout(kVTT_Dynpointer, s_without_const);
 }
 
@@ -374,7 +374,7 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
     Vartype const s_without_const =
         VartypeWithout(kVTT_Const, s);
     // string and const string are oldstrings
-    if (getOldStringSym() == s_without_const)
+    if (GetOldStringSym() == s_without_const)
         return true;
     
     // const char[..] and char[..] are considered oldstrings, too

@@ -1831,7 +1831,7 @@ int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Vartype 
 
     if (iatos1 || iatos2)
     {
-        if (_sym.getNullSym() == vartype1 || _sym.getNullSym() ==vartype2)
+        if (_sym.GetNullSym() == vartype1 || _sym.GetNullSym() ==vartype2)
             return 0;
 
         if (iatos1 != iatos2)
@@ -1849,10 +1849,10 @@ int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Vartype 
         }
     }
 
-    if (((_sym.IsDynpointer(vartype1) || vartype1 == _sym.getNullSym()) &&
-        (_sym.IsDynpointer(vartype2) || vartype2 == _sym.getNullSym())) ||
-        ((_sym.IsDynarray(vartype1) || vartype1 == _sym.getNullSym()) &&
-        (_sym.IsDynarray(vartype2) || vartype2 == _sym.getNullSym())))
+    if (((_sym.IsDynpointer(vartype1) || vartype1 == _sym.GetNullSym()) &&
+        (_sym.IsDynpointer(vartype2) || vartype2 == _sym.GetNullSym())) ||
+        ((_sym.IsDynarray(vartype1) || vartype1 == _sym.GetNullSym()) &&
+        (_sym.IsDynarray(vartype2) || vartype2 == _sym.GetNullSym())))
     {
         switch (vcpuOp)
         {
@@ -1890,14 +1890,14 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return true;
 
     // Can convert null to dynpointer or dynarray
-    if (_sym.getNullSym() == vartype_is)
+    if (_sym.GetNullSym() == vartype_is)
         return
             !_sym.IsDynpointer(vartype_wants_to_be) &&
             !_sym.IsDynarray(vartype_wants_to_be);
 
     // can convert String* to const string
     if (_sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
-        _sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
+        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
     {
         return false;
     }
@@ -1998,7 +1998,7 @@ bool AGS::Parser::IsBooleanVCPUOperator(int scmdtype)
 // then convert AX into a String object and set its type accordingly
 void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
 {
-    if (_sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
+    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
         _sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
     {
         _scrip.write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
@@ -2061,7 +2061,7 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
     _scrip.ax_vartype = vartype;
     _scrip.ax_val_scope = scope;
 
-    if (_sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype))
+    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype))
         _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     else
         _scrip.write_cmd1(
@@ -2407,7 +2407,7 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
     if (_sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
-        _sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo) )
+        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo) )
         _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
 }
 
@@ -3150,7 +3150,7 @@ int AGS::Parser::AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t
     }
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    _scrip.ax_vartype = vartype = _sym.getNullSym();
+    _scrip.ax_vartype = vartype = _sym.GetNullSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3168,7 +3168,7 @@ int AGS::Parser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
     _scrip.fixup_previous(kFx_String);
-    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.getOldStringSym())
+    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.GetOldStringSym())
         ;
     symlist++;
     symlist_len--;
@@ -3633,7 +3633,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
 
     // MAR points to the value
 
-    if (_sym.getOldStringSym() == lhsvartype && _sym.getOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype))
+    if (_sym.GetOldStringSym() == lhsvartype && _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype))
     {
         // copy the string contents over.
         AccessData_StrCpy();
@@ -3967,7 +3967,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
         return -1;
     }
 
-    if (_sym.getOldStringSym() == _sym.GetVartype(varname))
+    if (_sym.GetOldStringSym() == _sym.GetVartype(varname))
         return ParseVardecl_InitialValAssignment_OldString(initial_val_ptr);
 
     // accept leading '-' if present
@@ -4001,7 +4001,7 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype)
     if (_sym.GetSymbolType(_targ.peeknext()) == kSYM_CloseBracket)
     {
         // Dynamic array
-        if (vartype == _sym.getOldStringSym())
+        if (vartype == _sym.GetOldStringSym())
         {
             cc_error("Dynamic arrays of old-style strings are not supported");
             return -1;
@@ -4042,13 +4042,13 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype)
 
 int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalness globalness)
 {
-    if (vartype == _sym.getOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
+    if (vartype == _sym.GetOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
         cc_error("Type 'string' is no longer supported; use String instead");
         return -1;
     }
 
-    if (vartype == _sym.getOldStringSym() && kGl_GlobalImport == globalness)
+    if (vartype == _sym.GetOldStringSym() && kGl_GlobalImport == globalness)
     {
         // cannot import, because string is really char *, and the pointer won't resolve properly
         cc_error("Cannot import string; use char[] instead");
@@ -4549,7 +4549,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vart
         return -1;
     }
 
-    if (vartype == _sym.getOldStringSym()) // [fw] Where's the problem?
+    if (vartype == _sym.GetOldStringSym()) // [fw] Where's the problem?
     {
         cc_error("'string' not allowed inside a struct");
         return -1;
@@ -5226,7 +5226,7 @@ int AGS::Parser::ParseExport()
             cc_error("Cannot export an import");
             return -1;
         }
-        if (_sym.GetVartype(cursym) == _sym.getOldStringSym())
+        if (_sym.GetVartype(cursym) == _sym.GetOldStringSym())
         {
             cc_error("Cannot export string; use char[200] instead");
             return -1;

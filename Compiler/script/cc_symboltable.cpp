@@ -36,8 +36,8 @@ void AGS::SymbolTable::SectionMap::init()
 AGS::SymbolTableEntry::SymbolTableEntry()
     : SName("")
     , SType(kSYM_NoType)
-    , decl_secid(0)
-    , decl_line(0)
+    , DeclSectionId(0)
+    , DeclLine(0)
     , flags(0)
     , soffs(0)
     , vartype(0)
@@ -54,8 +54,8 @@ AGS::SymbolTableEntry::SymbolTableEntry()
 AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
     : SName(std::string(name))
     , SType(stype)
-    , decl_secid(0)
-    , decl_line(0)
+    , DeclSectionId(0)
+    , DeclLine(0)
     , flags(0)
     , soffs(0)
     , vartype(0)
@@ -253,8 +253,8 @@ std::string const AGS::SymbolTable::get_vartype_name_string(AGS::Vartype vartype
 
 void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
 {
-    (*this)[idx].decl_secid = _sectionMap.Section2Id(section);
-    (*this)[idx].decl_line = line;
+    (*this)[idx].DeclSectionId = _sectionMap.Section2Id(section);
+    (*this)[idx].DeclLine = line;
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)

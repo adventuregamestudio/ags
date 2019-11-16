@@ -32,7 +32,7 @@ protected:
 public:
     std::string SName;
     SymbolType SType; // e.g., kSYM_GlobalVar
-    int decl_secid, decl_line; // where this was declared
+    int DeclSectionId, DeclLine; // where this was declared
     AGS::Flags flags;
     AGS::CodeLoc soffs; // multiple use
 
@@ -202,8 +202,8 @@ public:
 
     // Set/get section and line where the item is declared
     void set_declared(int idx, std::string const &section, int line);
-    inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
-    inline std::string const get_declared_section(int idx) const { return _sectionMap.Id2Section(entries.at(idx).decl_secid); };
+    inline int get_declared_line(int idx) { return (*this)[idx].DeclLine; };
+    inline std::string const get_declared_section(int idx) const { return _sectionMap.Id2Section(entries.at(idx).DeclSectionId); };
 
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);

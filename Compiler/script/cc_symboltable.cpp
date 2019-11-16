@@ -134,7 +134,7 @@ void AGS::SymbolTable::reset()
 
     entries.clear();
 
-    setStringStructSym(0);
+    SetStringStructSym(0);
 
     AddWithTypeAndSize("___dummy__sym0", static_cast<SymbolType>(999), 0);
 
@@ -355,7 +355,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
 
     return
         GetOldStringSym() == s_without_const ||
-        getStringStructSym() == VartypeWithout(kVTT_Dynpointer, s_without_const);
+        GetStringStructSym() == VartypeWithout(kVTT_Dynpointer, s_without_const);
 }
 
 bool AGS::SymbolTable::IsOldstring(Symbol s) const

@@ -142,10 +142,10 @@ public:
     inline Symbol GetOldStringSym() const { return _oldStringSym; }
     inline Symbol GetDynpointerSym() const { return _dynpointerSym; }
     inline Symbol GetThisSym() const { return _thisSym; }
-    inline Symbol getVoidSym() const { return _voidSym; }
-    inline Symbol getStringStructSym() const { return _stringStructSym; }
-    inline void setStringStructSym(Symbol s) { _stringStructSym = s; }
-    inline Symbol getLastPredefSym() const { return _lastPredefSym; }
+    inline Symbol GetVoidSym() const { return _voidSym; }
+    inline Symbol GetStringStructSym() const { return _stringStructSym; }
+    inline void SetStringStructSym(Symbol s) { _stringStructSym = s; }
+    inline Symbol GetLastPredefSym() const { return _lastPredefSym; }
 
     inline bool IsInBounds(Symbol s) const { return s > 0 && static_cast<size_t>(s) < entries.size(); }
 
@@ -162,7 +162,7 @@ public:
     inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_Managed, *this) : false; };
     inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_StructVartype, *this) : false; };
     // A predefined atomic vartype such as int and float.
-    inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= getVoidSym()); };
+    inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= GetVoidSym()); };
 
     bool IsAnyTypeOfString(Symbol s) const;
     bool IsOldstring(Symbol s) const;

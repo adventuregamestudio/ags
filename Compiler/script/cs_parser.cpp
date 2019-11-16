@@ -127,7 +127,7 @@ char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris 
 
 bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= _sym.getLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
+    if (symb <= _sym.GetLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
         return false;
     std::string name = _sym.GetName(symb);
     if (name.size() == 0)
@@ -775,7 +775,7 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
 
     // We're ending the current function; AX is containing the result of the func call.
     AGS::Vartype const func_return_type = _sym[name_of_current_func].FuncParamTypes.at(0);
-    bool const function_returns_void = _sym.getVoidSym() == func_return_type;
+    bool const function_returns_void = _sym.GetVoidSym() == func_return_type;
 
     if (_sym.IsDyn(func_return_type) && !ax_irrelevant)
     {
@@ -1187,7 +1187,7 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
 
 int AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
 {
-    if (_sym.getVoidSym() == vartype)
+    if (_sym.GetVoidSym() == vartype)
     {
         cc_error("A function parameter must not have the type 'void'");
         return -1;
@@ -1878,7 +1878,7 @@ int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Vartype 
 bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be)
 {
     // cannot convert 'void' to anything
-    if (_sym.getVoidSym() == vartype_is)
+    if (_sym.GetVoidSym() == vartype_is)
         return true;
 
     // Don't convert if no conversion is called for
@@ -1896,7 +1896,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
             !_sym.IsDynarray(vartype_wants_to_be);
 
     // can convert String* to const string
-    if (_sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
+    if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
         _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
     {
         return false;
@@ -1999,10 +1999,10 @@ bool AGS::Parser::IsBooleanVCPUOperator(int scmdtype)
 void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
 {
     if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
-        _sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
+        _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
     {
         _scrip.write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
-        _scrip.ax_vartype = _sym.VartypeWith(kVTT_Dynpointer, _sym.getStringStructSym());
+        _scrip.ax_vartype = _sym.VartypeWith(kVTT_Dynpointer, _sym.GetStringStructSym());
     }
 }
 
@@ -2406,7 +2406,7 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
-    if (_sym.getStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
+    if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
         _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo) )
         _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
 }
@@ -4055,7 +4055,7 @@ int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalnes
         return -1;
     }
 
-    if (vartype == _sym.getVoidSym())
+    if (vartype == _sym.GetVoidSym())
     {
         cc_error("'void' not a valid variable type");
         return -1;
@@ -4367,7 +4367,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
     if (nesting_level == 1)
     {
         // Emit code that returns 0
-        if (_sym.getVoidSym() != _sym[name_of_current_func].FuncParamTypes.at(0))
+        if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamTypes.at(0))
             _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
         _fcm.SetFuncExitJumppoint(name_of_current_func, _scrip.codesize);
@@ -4616,7 +4616,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
             entry.SName.c_str(), sscope_wanted, entry.SScope);
         return -1;
     }
-    AGS::Vartype const ret_vartype = is_setter ? _sym.getVoidSym() : vartype;
+    AGS::Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
     if (entry.FuncParamTypes[0] != ret_vartype)
     {
         cc_error(
@@ -4664,7 +4664,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
     strcat(_scrip.imports[entry.SOffset], num_param_suffix);
 
     AGS::Vartype const retvartype = entry.FuncParamTypes[0] = entry.vartype = 
-        is_setter ? _sym.getVoidSym() : vartype;
+        is_setter ? _sym.GetVoidSym() : vartype;
     entry.SScope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
 
     entry.FuncParamTypes.resize(entry.SScope + 1);
@@ -4986,12 +4986,12 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
     // Declare the struct type that implements new strings
     if (FlagIsSet(tqs, kTQ_Stringstruct))
     {
-        if (_sym.getStringStructSym() > 0 && stname != _sym.getStringStructSym())
+        if (_sym.GetStringStructSym() > 0 && stname != _sym.GetStringStructSym())
         {
-            cc_error("The stringstruct type is already defined to be %s", _sym.GetName(_sym.getStringStructSym()).c_str());
+            cc_error("The stringstruct type is already defined to be %s", _sym.GetName(_sym.GetStringStructSym()).c_str());
             return -1;
         }
-        _sym.setStringStructSym(stname);
+        _sym.SetStringStructSym(stname);
     }
 
     size_t size_so_far = 0; // Will sum up the size of the struct
@@ -5574,7 +5574,7 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
 
     if (_sym.GetSymbolType(_targ.peeknext()) != kSYM_Semicolon)
     {
-        if (functionReturnType == _sym.getVoidSym())
+        if (functionReturnType == _sym.GetVoidSym())
         {
             cc_error("Cannot return value from void function");
             return -1;
@@ -5602,7 +5602,7 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     {
         _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
-    else if (_sym.getVoidSym() != functionReturnType)
+    else if (_sym.GetVoidSym() != functionReturnType)
     {
         cc_error("Must return a '%s' value from function", _sym.GetName(functionReturnType).c_str());
         return -1;

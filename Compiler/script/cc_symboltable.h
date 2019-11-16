@@ -168,19 +168,19 @@ public:
     bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize
-    AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize);
+    AGS::Symbol SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize);
 
     // add the name to the symbol table, empty type and size
-    inline AGS::Symbol add(char const *name) { return add_ex(name, kSYM_NoType, 0); };
+    inline AGS::Symbol Add(char const *name) { return AddWithTypeAndSize(name, kSYM_NoType, 0); };
 
     // add the operator to the symbol table
-    int add_operator(const char *opname , int priority, int vcpucmd);
+    int AddOp(const char *opname , int priority, int vcpucmd);
 
     // Return the symbol to the name, or -1 if not found
     inline AGS::Symbol find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
 
     // Add to the symbol table if not in there already; in any case return the symbol
-    inline AGS::Symbol find_or_add(char const *name) { AGS::Symbol ret = find(name); return (ret >= 0) ? ret : add(name); }
+    inline AGS::Symbol find_or_add(char const *name) { AGS::Symbol ret = find(name); return (ret >= 0) ? ret : Add(name); }
 
     // return name as char *, statically allocated
     inline char const *SymbolTable::get_name(AGS::Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }

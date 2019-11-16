@@ -397,7 +397,7 @@ private:
     inline int MathPrio(Symbol op) const { return 100 - _sym[op].ssize; };
 
     bool IsIdentifier(Symbol symb);
-    inline static Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
+    inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
 
     void SetDynpointerInManagedVartype(Vartype &vartype);
 

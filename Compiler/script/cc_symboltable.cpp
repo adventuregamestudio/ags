@@ -272,7 +272,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += std::to_string(dims[dims_idx]);
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
-    Vartype const array_vartype = find_or_add(conv_name.c_str());
+    Vartype const array_vartype = FindOrAdd(conv_name.c_str());
     entries[array_vartype].SType = kSYM_Vartype;
     entries[array_vartype].VartypeType = kVTT_Array;
     entries[array_vartype].vartype = vartype;
@@ -302,7 +302,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeTypeT vtt, AGS::Vartype vartyp
     case kVTT_Dynarray: post = "[]"; break;
     }
     std::string const conv_name = (pre + entries[vartype].SName) + post;
-    valref = find_or_add(conv_name.c_str());
+    valref = FindOrAdd(conv_name.c_str());
     SymbolTableEntry &entry = entries[valref];
     entry.SType = kSYM_Vartype;
     entry.VartypeType = vtt;

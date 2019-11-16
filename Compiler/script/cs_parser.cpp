@@ -179,7 +179,7 @@ int AGS::Parser::String2Int(std::string str, int &val, bool send_error)
 AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbol component)
 {
     std::string fullname_str = _sym.get_name_string(stname) + "::" + _sym.get_name_string(component);
-    return _sym.find_or_add(fullname_str.c_str());
+    return _sym.FindOrAdd(fullname_str.c_str());
 }
 
 // Skim through the input, ignoring delimited content completely.
@@ -1080,7 +1080,7 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(bool &has_default_int, int &d
 
     bool default_is_negative = false;
     AGS::Symbol default_value_symbol = _targ.getnext(); // may be '-', too
-    if (default_value_symbol == _sym.find("-"))
+    if (default_value_symbol == _sym.Find("-"))
     {
         default_is_negative = true;
         default_value_symbol = _targ.getnext();
@@ -1162,7 +1162,7 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
         SetFlag(entry.Flags, kSFLG_Static, true);
 
     _targ.getnext();
-    if (!is_static_extender && _targ.getnext() != _sym.find("*"))
+    if (!is_static_extender && _targ.getnext() != _sym.Find("*"))
     {
         cc_error("Instance extender function must be pointer");
         return -1;
@@ -2842,7 +2842,7 @@ int AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing,
     char const *stem_str = writing ? "set" : "get";
     char const *indx_str = indexed ? "i_" : "_";
     std::string func_str = stem_str + (indx_str + member_str);
-    func = _sym.find_or_add(func_str.c_str());
+    func = _sym.FindOrAdd(func_str.c_str());
     return 0;
 }
 
@@ -3972,7 +3972,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
 
     // accept leading '-' if present
     bool is_neg = false;
-    if (_targ.peeknext() == _sym.find("-"))
+    if (_targ.peeknext() == _sym.Find("-"))
     {
         is_neg = true;
         _targ.getnext();
@@ -5061,7 +5061,7 @@ int AGS::Parser::ParseEnum_AssignedValue(int &currentValue)
     // Get the value of the item
     AGS::Symbol item_value = _targ.getnext(); // may be '-', too
     bool is_neg = false;
-    if (item_value == _sym.find("-"))
+    if (item_value == _sym.Find("-"))
     {
         is_neg = true;
         item_value = _targ.getnext();

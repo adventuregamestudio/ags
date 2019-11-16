@@ -174,13 +174,13 @@ public:
     inline Symbol Add(char const *name) { return AddWithTypeAndSize(name, kSYM_NoType, 0); };
 
     // add the operator to the symbol table
-    int AddOp(const char *opname , int priority, int vcpucmd);
+    int AddOp(const char *opname, int priority, int vcpucmd);
 
     // Return the symbol to the name, or -1 if not found
-    inline Symbol find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
+    inline Symbol Find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
 
     // Add to the symbol table if not in there already; in any case return the symbol
-    inline Symbol find_or_add(char const *name) { Symbol ret = find(name); return (ret >= 0) ? ret : Add(name); }
+    inline Symbol FindOrAdd(char const *name) { Symbol ret = Find(name); return (ret >= 0) ? ret : Add(name); }
 
     // return name as char *, statically allocated
     inline char const *SymbolTable::get_name(Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }

@@ -66,7 +66,7 @@ protected:
     // Collect parentheses, brackets, braces as they come up; check whether they match
     void CheckMatcherNesting(Symbol token, bool &error_encountered);
 
-    inline int ConvertSymstringToTokenIndex(std::string symstring) { return _symbolTable->find_or_add(symstring.c_str()); }
+    inline int ConvertSymstringToTokenIndex(std::string symstring) { return _symbolTable->FindOrAdd(symstring.c_str()); }
 
 private:
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching

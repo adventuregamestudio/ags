@@ -260,23 +260,23 @@ TEST(Compile, EnumNegative) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
-    EXPECT_EQ(1, sym.entries.at(sym.find("cat")).SOffset);
-    EXPECT_EQ(2, sym.entries.at(sym.find("dog")).SOffset);
-    EXPECT_EQ(3, sym.entries.at(sym.find("fish")).SOffset);
+    EXPECT_EQ(1, sym.entries.at(sym.Find("cat")).SOffset);
+    EXPECT_EQ(2, sym.entries.at(sym.Find("dog")).SOffset);
+    EXPECT_EQ(3, sym.entries.at(sym.Find("fish")).SOffset);
 
-    EXPECT_EQ(100, sym.entries.at(sym.find("money")).SOffset);
-    EXPECT_EQ(101, sym.entries.at(sym.find("death")).SOffset);
-    EXPECT_EQ(102, sym.entries.at(sym.find("taxes")).SOffset);
+    EXPECT_EQ(100, sym.entries.at(sym.Find("money")).SOffset);
+    EXPECT_EQ(101, sym.entries.at(sym.Find("death")).SOffset);
+    EXPECT_EQ(102, sym.entries.at(sym.Find("taxes")).SOffset);
 
-    EXPECT_EQ(-3, sym.entries.at(sym.find("popularity")).SOffset);
-    EXPECT_EQ(-2, sym.entries.at(sym.find("x")).SOffset);
-    EXPECT_EQ(-1, sym.entries.at(sym.find("y")).SOffset);
-    EXPECT_EQ(0, sym.entries.at(sym.find("z")).SOffset);
+    EXPECT_EQ(-3, sym.entries.at(sym.Find("popularity")).SOffset);
+    EXPECT_EQ(-2, sym.entries.at(sym.Find("x")).SOffset);
+    EXPECT_EQ(-1, sym.entries.at(sym.Find("y")).SOffset);
+    EXPECT_EQ(0, sym.entries.at(sym.Find("z")).SOffset);
 
     // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
     // so it can't be used. Microsoft recomments using INT_MIN instead.
-    EXPECT_EQ((INT_MIN), sym.entries.at(sym.find("intmin")).SOffset);
-    EXPECT_EQ((2147483647), sym.entries.at(sym.find("intmax")).SOffset);
+    EXPECT_EQ((INT_MIN), sym.entries.at(sym.Find("intmin")).SOffset);
+    EXPECT_EQ((2147483647), sym.entries.at(sym.Find("intmax")).SOffset);
 }
 
 
@@ -305,7 +305,7 @@ TEST(Compile, DefaultParametersLargeInts) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
-    funcidx = sym.find("importedfunc");
+    funcidx = sym.Find("importedfunc");
 
     EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[1]);
     EXPECT_EQ(0, sym.entries.at(funcidx).FuncParamDefaultValues[1]);
@@ -355,7 +355,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
-    funcidx = sym.find("A::MyFunc");
+    funcidx = sym.Find("A::MyFunc");
 
     ASSERT_TRUE(funcidx != -1);
 
@@ -1334,7 +1334,7 @@ TEST(Compile, Import2GlobalAllocation)
     ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
     int compileResult = cc_parse(&targ, scrip, sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    int idx = sym.find("J");
+    int idx = sym.Find("J");
     ASSERT_LE(0, idx);
     SymbolTableEntry &entry = sym.entries.at(idx);
     ASSERT_EQ(4, entry.SOffset);

@@ -1798,7 +1798,7 @@ int AGS::Parser::IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t sl
 // Also check whether the operator can handle the types at all
 int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Vartype vartype2, AGS::CodeCell &vcpuOp)
 {
-    if (_sym.getFloatSym() == vartype1 || _sym.getFloatSym() == vartype2)
+    if (_sym.GetFloatSym() == vartype1 || _sym.GetFloatSym() == vartype2)
     {
         if (vartype1 != vartype2)
         {
@@ -1911,7 +1911,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     vartype_wants_to_be = _sym.VartypeWithout(kVTT_Const | kVTT_Dynarray, vartype_wants_to_be);
 
     // floats cannot mingle with other types
-    if ((vartype_is == _sym.getFloatSym()) != (vartype_wants_to_be == _sym.getFloatSym()))
+    if ((vartype_is == _sym.GetFloatSym()) != (vartype_wants_to_be == _sym.GetFloatSym()))
         return true;
 
     // Checks to do if at least one is dynarray
@@ -2167,7 +2167,7 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &syml
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.getIntSym(), cpuOp);
+    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.GetIntSym(), cpuOp);
     if (retval < 0) return retval;
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
@@ -2320,7 +2320,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanVCPUOperator(vcpuOperator))
-        _scrip.ax_vartype = vartype = _sym.getIntSym();
+        _scrip.ax_vartype = vartype = _sym.GetIntSym();
     return 0;
 }
 
@@ -2800,7 +2800,7 @@ int AGS::Parser::AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlis
     retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
 
-    return IsVartypeMismatch(vartype, _sym.getIntSym(), true);
+    return IsVartypeMismatch(vartype, _sym.GetIntSym(), true);
 }
 
 // We access a variable or a component of a struct in order to read or write it.
@@ -3119,7 +3119,7 @@ int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, si
     int const i = InterpretFloatAsInt(f);
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, i);
-    _scrip.ax_vartype = vartype = _sym.getFloatSym();
+    _scrip.ax_vartype = vartype = _sym.GetFloatSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3135,7 +3135,7 @@ int AGS::Parser::AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &sy
     symlist_len--;
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, varSymValue);
-    _scrip.ax_vartype = vartype = _sym.getIntSym();
+    _scrip.ax_vartype = vartype = _sym.GetIntSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
 
     return 0;
@@ -3979,7 +3979,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
     }
 
     // Do actual assignment
-    if (_sym.GetVartype(varname) == _sym.getFloatSym())
+    if (_sym.GetVartype(varname) == _sym.GetFloatSym())
         return ParseVardecl_InitialValAssignment_Float(is_neg, initial_val_ptr);
     return ParseVardecl_InitialValAssignment_Inttype(is_neg, initial_val_ptr);
 }
@@ -4629,7 +4629,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     size_t p_idx = 1;
     if (is_indexed)
     {
-        if (entry.FuncParamTypes[p_idx] != _sym.getIntSym())
+        if (entry.FuncParamTypes[p_idx] != _sym.GetIntSym())
         {
             cc_error(
                 "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
@@ -4671,7 +4671,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
 
     size_t p_idx = 1;
     if (is_indexed)
-        entry.FuncParamTypes[p_idx++] = _sym.getIntSym();
+        entry.FuncParamTypes[p_idx++] = _sym.GetIntSym();
     if (is_setter)
         entry.FuncParamTypes[p_idx] = vartype;
     entry.FuncParamHasDefaultValues.assign(entry.FuncParamTypes.size(), false);
@@ -5100,7 +5100,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     entry.SType = kSYM_Vartype;
     entry.SSize = SIZE_OF_INT;
-    entry.vartype = _sym.getIntSym();
+    entry.vartype = _sym.GetIntSym();
 
     return 0;
 }
@@ -5598,7 +5598,7 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
             return -1;
         }
     }
-    else if (_sym.getIntSym() == functionReturnType)
+    else if (_sym.GetIntSym() == functionReturnType)
     {
         _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }

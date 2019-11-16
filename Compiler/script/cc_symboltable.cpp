@@ -378,7 +378,7 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
         return true;
     
     // const char[..] and char[..] are considered oldstrings, too
-    return (IsArray(s) && getCharSym() == VartypeWithout(kVTT_Array, s_without_const));
+    return (IsArray(s) && GetCharSym() == VartypeWithout(kVTT_Array, s_without_const));
 }
 
 

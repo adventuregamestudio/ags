@@ -135,9 +135,9 @@ public:
     inline void ResetCaches() const { _vartypesCache.clear(); };
     void reset();
 
-    inline Symbol getCharSym() const { return _charSym; }
-    inline Symbol getFloatSym() const { return _floatSym; }
-    inline Symbol getIntSym() const { return _intSym; }
+    inline Symbol GetCharSym() const { return _charSym; }
+    inline Symbol GetFloatSym() const { return _floatSym; }
+    inline Symbol GetIntSym() const { return _intSym; }
     inline Symbol getNullSym() const { return _nullSym; }
     inline Symbol getOldStringSym() const { return _stringSym; }
     inline Symbol getPointerSym() const { return _pointerSym; }

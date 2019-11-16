@@ -6,7 +6,7 @@
 #include "script/script_common.h"       // macro definitions
 #include "script/cc_error.h"            // error processing
 
-int AGS::SymbolTable::SectionMap::section2id(std::string const &sec)
+int AGS::SymbolTable::SectionMap::Section2Id(std::string const &sec)
 {
     if (sec == _cacheSec)
         return _cacheId;
@@ -19,7 +19,7 @@ int AGS::SymbolTable::SectionMap::section2id(std::string const &sec)
     return ((_cacheId = section_size));
 }
 
-std::string const AGS::SymbolTable::SectionMap::id2section(int id) const
+std::string const AGS::SymbolTable::SectionMap::Id2Section(int id) const
 {
     return
         (id >= 0 && static_cast<size_t>(id) < _section.size()) ?
@@ -253,7 +253,7 @@ std::string const AGS::SymbolTable::get_vartype_name_string(AGS::Vartype vartype
 
 void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
 {
-    (*this)[idx].decl_secid = _sectionMap.section2id(section);
+    (*this)[idx].decl_secid = _sectionMap.Section2Id(section);
     (*this)[idx].decl_line = line;
 }
 

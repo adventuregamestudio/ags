@@ -102,8 +102,8 @@ private:
         int _cacheId;
         std::vector <std::string> _section;
     public:
-        int section2id(std::string const &sec);
-        std::string const id2section(int id) const;
+        int Section2Id(std::string const &sec);
+        std::string const Id2Section(int id) const;
         void init();
         SectionMap() { init(); };
     } _sectionMap;
@@ -212,7 +212,7 @@ public:
     // Set/get section and line where the item is declared
     void set_declared(int idx, std::string const &section, int line);
     inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
-    inline std::string const get_declared_section(int idx) const { return _sectionMap.id2section(entries.at(idx).decl_secid); };
+    inline std::string const get_declared_section(int idx) const { return _sectionMap.Id2Section(entries.at(idx).decl_secid); };
 
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
@@ -226,8 +226,8 @@ public:
     int GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
 
     // Unfortunately, a bit of a kludge. Expose the section to id mapping
-    inline int section2id(std::string const &section) { return _sectionMap.section2id(section); };
-    inline std::string const id2section(int id) const { return _sectionMap.id2section(id); };
+    inline int Section2Id(std::string const &section) { return _sectionMap.Section2Id(section); };
+    inline std::string const Id2Section(int id) const { return _sectionMap.Id2Section(id); };
 };
 } // namespace AGS
 #endif //__CC_SYMBOLTABLE_H

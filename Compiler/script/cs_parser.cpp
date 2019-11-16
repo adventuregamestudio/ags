@@ -1443,7 +1443,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
         errstr1 += errstr2;
         errstr1 = ReferenceMsg(
             errstr1,
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(errstr1.c_str());
         return -1;
@@ -1461,7 +1461,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
     {
         std::string msg = ReferenceMsg(
             "This is declared as a function here but differently elsewhere",
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(msg.c_str());
         return -1;
@@ -1471,7 +1471,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
     {
         std::string msg = ReferenceMsg(
             "The qualifiers of this function are different here than elsewhere",
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(msg.c_str());
         return -1;
@@ -1481,7 +1481,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
     {
         std::string msg = ReferenceMsg(
             "Function is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(msg.c_str(), this_entry.get_num_args(), known_info.get_num_args());
         return -1;
@@ -1499,7 +1499,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         std::string const msg =
             ReferenceMsg(
             "Function %s, %s.",
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(msg.c_str(), te.c_str(), ki.c_str());
         return -1;
@@ -1509,7 +1509,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
     {
         std::string msg = ReferenceMsg(
             "Return type is declared as %s here, as %s elsewhere",
-            _sym.id2section(known_info.decl_secid),
+            _sym.Id2Section(known_info.decl_secid),
             known_info.decl_line);
         cc_error(
             msg.c_str(),
@@ -1525,7 +1525,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         {
             std::string msg = ReferenceMsg(
                 "Type of parameter #%d is %s here, %s in a declaration elsewhere",
-                _sym.id2section(known_info.decl_secid),
+                _sym.Id2Section(known_info.decl_secid),
                 known_info.decl_line);
             cc_error(
                 msg.c_str(),
@@ -1603,7 +1603,7 @@ int AGS::Parser::ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, AGS::Var
     {
         std::string msg = ReferenceMsg(
             "'%s' is already defined",
-            _sym.id2section(_sym[name_of_func].decl_secid),
+            _sym.Id2Section(_sym[name_of_func].decl_secid),
             _sym[name_of_func].decl_line);
         cc_error(msg.c_str(), _sym.get_name_string(name_of_func).c_str());
         return -1;
@@ -4074,7 +4074,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
     {
         std::string msg = ReferenceMsg(
             "Qualifiers of this variable do not match prototype",
-            _sym.id2section(known_info->decl_secid),
+            _sym.Id2Section(known_info->decl_secid),
             known_info->decl_line);
         cc_error(msg.c_str());
         return -1;
@@ -4085,7 +4085,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
         // This will check the array lengths, too
         std::string msg = ReferenceMsg(
             "This variable is declared as %s here, as %s elsewhere",
-            _sym.id2section(known_info->decl_secid),
+            _sym.Id2Section(known_info->decl_secid),
             known_info->decl_line);
         cc_error(
             msg.c_str(),
@@ -4098,7 +4098,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
     {
         std::string msg = ReferenceMsg(
             "Size of this variable is %d here, %d declared elsewhere",
-            _sym.id2section(known_info->decl_secid),
+            _sym.Id2Section(known_info->decl_secid),
             known_info->decl_line);
         cc_error(
             msg.c_str(),
@@ -5092,7 +5092,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
     {
         std::string msg = ReferenceMsg(
             "'%s' is already defined",
-            _sym.id2section(entry.decl_secid),
+            _sym.Id2Section(entry.decl_secid),
             entry.decl_line);
         cc_error(msg.c_str(), _sym.get_name_string(enumName).c_str());
         return -1;

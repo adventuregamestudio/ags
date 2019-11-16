@@ -25,7 +25,7 @@ struct SymbolTableEntry {
     friend SymbolTable;
 protected:
     // Is (or has)  a vartype that can be recognized by a flag
-    bool IsVTF(Flags f, SymbolTable const &symt) const;
+    bool IsVTF(AGS::Flags f, SymbolTable const &symt) const;
     // Is (or has)  a vartype that can be recognized by a vartype type
     bool IsVTT(VartypeType vtt, SymbolTable const &symt) const;
 
@@ -33,8 +33,8 @@ public:
     std::string SName;
     SymbolType SType; // e.g., kSYM_GlobalVar
     int DeclSectionId, DeclLine; // where this was declared
-    AGS::Flags flags;
-    AGS::CodeLoc SOffset; // multiple use
+    Flags Flags;
+    CodeLoc SOffset; // multiple use
 
     // Variables only
     AGS::Vartype vartype; // may contain typeflags
@@ -195,7 +195,7 @@ public:
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline AGS::Flags SymbolTable::get_flags(AGS::Symbol vt) const { return IsInBounds(vt) ? entries[vt].flags : 0; }
+    inline AGS::Flags SymbolTable::get_flags(AGS::Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;

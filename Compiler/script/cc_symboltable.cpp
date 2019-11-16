@@ -38,7 +38,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , SType(kSYM_NoType)
     , DeclSectionId(0)
     , DeclLine(0)
-    , flags(0)
+    , Flags(0)
     , SOffset(0)
     , vartype(0)
     , ssize(0)
@@ -56,7 +56,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , SType(stype)
     , DeclSectionId(0)
     , DeclLine(0)
-    , flags(0)
+    , Flags(0)
     , SOffset(0)
     , vartype(0)
     , ssize(sizee)
@@ -101,14 +101,14 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
     return num;
 }
 
-bool AGS::SymbolTableEntry::IsVTF(Flags f, SymbolTable const &symt) const
+bool AGS::SymbolTableEntry::IsVTF(AGS::Flags f, SymbolTable const &symt) const
 {
     if (kSYM_Vartype != SType && kSYM_UndefinedStruct != SType)
         return symt.IsVTF(vartype, f);
 
     // Recursively get to the innermost symbol; read that symbol's flags
     if (kVTT_Atomic == vartype_type)
-        return FlagIsSet(flags, f);
+        return FlagIsSet(Flags, f);
     return symt.IsVTF(vartype, f);
 }
 
@@ -329,7 +329,7 @@ int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& c
         for (size_t compo = 1; compo < entries.size(); compo++)
         {
             SymbolTableEntry const &entry = entries[compo];
-            if (entry.extends != strct || !FlagIsSet(entry.flags, kSFLG_StructMember))
+            if (entry.extends != strct || !FlagIsSet(entry.Flags, kSFLG_StructMember))
                 continue;
 
             compo_list.push_back(compo);

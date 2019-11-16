@@ -414,7 +414,7 @@ private:
     int SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
 
     // Mark the symbol as "accessed" in the symbol table
-    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].flags, kSFLG_Accessed, true); };
+    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); };
 
     // Return number of bytes to remove from stack to unallocate local vars
     // of level from_level or higher

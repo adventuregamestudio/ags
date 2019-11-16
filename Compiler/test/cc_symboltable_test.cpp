@@ -70,7 +70,7 @@ TEST(SymbolTable, AddExDefaultValues) {
 
     ASSERT_TRUE(testSym.entries.at(a_sym).SName == std::string("a"));
     ASSERT_TRUE(testSym.entries.at(a_sym).SType == stype);
-    ASSERT_TRUE(testSym.entries.at(a_sym).flags == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).Flags == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).SOffset == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).ssize == ssize);
@@ -94,8 +94,8 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 
     // ensure reading and writing to entries actually works!
     int a_sym = testSym.add_ex("x", AGS::kSYM_NoType, 0);
-    testSym.entries.at(a_sym).flags = 10;
-    ASSERT_TRUE(testSym.entries.at(a_sym).flags == 10);
+    testSym.entries.at(a_sym).Flags = 10;
+    ASSERT_TRUE(testSym.entries.at(a_sym).Flags == 10);
 }
 
 TEST(SymbolTable, GetNumArgs) {

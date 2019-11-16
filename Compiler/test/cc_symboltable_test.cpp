@@ -28,7 +28,7 @@ TEST(SymbolTable, GetNameConverted) {
     AGS::SymbolTable testSym;
 
     AGS::Vartype const foo_vartype = testSym.add_ex("foo", AGS::kSYM_NoType, 0);
-    testSym[foo_vartype].stype = AGS::kSYM_Vartype;
+    testSym[foo_vartype].SType = AGS::kSYM_Vartype;
     testSym[foo_vartype].vartype_type = AGS::kVTT_Atomic;
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
@@ -69,7 +69,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     int a_sym = testSym.add_ex("a", stype, ssize);
 
     ASSERT_TRUE(testSym.entries.at(a_sym).SName == std::string("a"));
-    ASSERT_TRUE(testSym.entries.at(a_sym).stype == stype);
+    ASSERT_TRUE(testSym.entries.at(a_sym).SType == stype);
     ASSERT_TRUE(testSym.entries.at(a_sym).flags == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).soffs == 0);

@@ -35,7 +35,7 @@ void AGS::SymbolTable::SectionMap::init()
 
 AGS::SymbolTableEntry::SymbolTableEntry()
     : SName("")
-    , stype(kSYM_NoType)
+    , SType(kSYM_NoType)
     , decl_secid(0)
     , decl_line(0)
     , flags(0)
@@ -53,7 +53,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
 
 AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
     : SName(std::string(name))
-    , stype(stype)
+    , SType(stype)
     , decl_secid(0)
     , decl_line(0)
     , flags(0)
@@ -71,7 +71,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
 
 bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != stype)
+    if (kSYM_Vartype != SType)
         return symt.IsVTT(vartype, vtt);
 
     // "Constant" always is the outermost vartype qualifier,
@@ -84,12 +84,12 @@ bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) cons
 
 size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
 {
-    return (kSYM_Vartype == stype) ? ssize : symt.GetSize(vartype);
+    return (kSYM_Vartype == SType) ? ssize : symt.GetSize(vartype);
 }
 
 size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != stype)
+    if (kSYM_Vartype != SType)
         return symt.NumArrayElements(vartype);
 
     if (0 == dims.size())
@@ -103,7 +103,7 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
 
 bool AGS::SymbolTableEntry::IsVTF(Flags f, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != stype && kSYM_UndefinedStruct != stype)
+    if (kSYM_Vartype != SType && kSYM_UndefinedStruct != SType)
         return symt.IsVTF(vartype, f);
 
     // Recursively get to the innermost symbol; read that symbol's flags
@@ -273,7 +273,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
     Vartype const array_vartype = find_or_add(conv_name.c_str());
-    entries[array_vartype].stype = kSYM_Vartype;
+    entries[array_vartype].SType = kSYM_Vartype;
     entries[array_vartype].vartype_type = kVTT_Array;
     entries[array_vartype].vartype = vartype;
     entries[array_vartype].ssize = num_elements * GetSize(vartype);
@@ -304,7 +304,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype
     std::string const conv_name = (pre + entries[vartype].SName) + post;
     valref = find_or_add(conv_name.c_str());
     SymbolTableEntry &entry = entries[valref];
-    entry.stype = kSYM_Vartype;
+    entry.SType = kSYM_Vartype;
     entry.vartype_type = vtt;
     entry.vartype = vartype;
     entry.ssize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
@@ -315,7 +315,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
 {
     while (
         IsInBounds(vartype) &&
-        kSYM_Vartype == entries[vartype].stype &&
+        kSYM_Vartype == entries[vartype].SType &&
         FlagIsSet (entries[vartype].vartype_type, vtt))
         vartype = entries[vartype].vartype;
     return vartype;
@@ -346,7 +346,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
         return false;
 
     // Convert a var to its vartype
-    if (kSYM_LocalVar == entries[s].stype || kSYM_GlobalVar == entries[s].stype)
+    if (kSYM_LocalVar == entries[s].SType || kSYM_GlobalVar == entries[s].SType)
     {
         s = entries[s].vartype;
         if (!IsInBounds(s))
@@ -354,7 +354,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
     }
 
     // Must be vartype at this point
-    if (kSYM_Vartype != entries[s].stype)
+    if (kSYM_Vartype != entries[s].SType)
         return false;
 
     // Oldstrings and String * are strings
@@ -371,10 +371,10 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
         return false;
 
     // Convert a var to its vartype
-    if (kSYM_LocalVar == entries[s].stype || kSYM_GlobalVar == entries[s].stype)
+    if (kSYM_LocalVar == entries[s].SType || kSYM_GlobalVar == entries[s].SType)
     {
         s = entries[s].vartype;
-        if (!IsInBounds(s) || kSYM_Vartype != entries[s].stype)
+        if (!IsInBounds(s) || kSYM_Vartype != entries[s].SType)
             return false;
     }
 

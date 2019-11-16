@@ -31,7 +31,7 @@ protected:
 
 public:
     std::string SName;
-    SymbolType stype; // e.g., kSYM_GlobalVar
+    SymbolType SType; // e.g., kSYM_GlobalVar
     int decl_secid, decl_line; // where this was declared
     AGS::Flags flags;
     AGS::CodeLoc soffs; // multiple use
@@ -188,7 +188,7 @@ public:
     std::string const SymbolTable::get_name_string(AGS::Symbol sym) const;
 
     // The symbol type, as given by the kSYM_... constants
-    inline SymbolType get_type(AGS::Symbol symb) const { return IsInBounds(symb) ? entries[symb].stype : kSYM_NoType; };
+    inline SymbolType get_type(AGS::Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }

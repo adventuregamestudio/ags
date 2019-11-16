@@ -572,7 +572,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
     {
         if (_sym[entries_idx].sscope <= static_cast<int>(from_level))
             continue;
-        if (_sym[entries_idx].stype != kSYM_LocalVar)
+        if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
 
         // caller will sort out stack, so ignore parameters
@@ -737,7 +737,7 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
         SymbolTableEntry &entry = _sym[entries_idx];
         if (entry.sscope <= from_level)
             continue;
-        if (kSYM_LocalVar != entry.stype)
+        if (kSYM_LocalVar != entry.SType)
             continue;
         if (_sym.getThisSym() == entries_idx)
             continue; // don't touch the this pointer
@@ -833,10 +833,10 @@ int AGS::Parser::RemoveLocalsFromSymtable(int from_level)
     {
         if (_sym[entries_idx].sscope < from_level)
             continue;
-        if (_sym[entries_idx].stype != kSYM_LocalVar)
+        if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
 
-        _sym[entries_idx].stype = kSYM_NoType;
+        _sym[entries_idx].SType = kSYM_NoType;
         _sym[entries_idx].sscope = 0;
         _sym[entries_idx].flags = 0;
     }
@@ -1039,7 +1039,7 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bo
     if (fromSym >= 0)
     {
         SymbolTableEntry &from_entry = _sym[fromSym];
-        if (from_entry.stype == kSYM_Constant)
+        if (from_entry.SType == kSYM_Constant)
         {
             theValue = from_entry.soffs;
             if (isNegative)
@@ -1111,8 +1111,8 @@ int AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
 // Copy so that the forward decl can be compared afterwards to the real one     
 int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
 {
-    known_info.stype = kSYM_NoType;
-    if (kSYM_NoType == entry.stype)
+    known_info.SType = kSYM_NoType;
+    if (kSYM_NoType == entry.SType)
         return 0; // there is no info yet
 
     known_info = entry;
@@ -1247,7 +1247,7 @@ int AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param
 void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_const, int param_idx)
 {
     SymbolTableEntry &param_entry = _sym[param_name];
-    param_entry.stype = kSYM_LocalVar;
+    param_entry.SType = kSYM_LocalVar;
     param_entry.extends = false;
     param_entry.vartype = param_type;
     size_t const param_size = 4; // We can only deal with parameters of size 4
@@ -1386,7 +1386,7 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
 void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams)
 {
     SymbolTableEntry &entry = _sym[name_of_function];
-    entry.stype = kSYM_Function;
+    entry.SType = kSYM_Function;
     entry.sscope = numparams - 1;
 
     entry.funcparamtypes[0] = return_vartype;
@@ -1454,10 +1454,10 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
 // there was a forward declaration -- check that the real declaration matches it
 int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, bool body_follows, SymbolTableEntry const &known_info)
 {
-    if (kSYM_NoType == known_info.stype)
+    if (kSYM_NoType == known_info.SType)
         return 0; // We don't have any known info
 
-    if (known_info.stype != this_entry.stype)
+    if (known_info.SType != this_entry.SType)
     {
         std::string msg = ReferenceMsg(
             "This is declared as a function here but differently elsewhere",
@@ -1598,7 +1598,7 @@ int AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
 
 int AGS::Parser::ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, AGS::Vartype return_vartype, bool body_follows)
 {
-    SymbolType const stype = _sym[name_of_func].stype;
+    SymbolType const stype = _sym[name_of_func].SType;
     if (kSYM_Function != stype && kSYM_NoType != stype)
     {
         std::string msg = ReferenceMsg(
@@ -1684,7 +1684,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     if (retval < 0) return retval;
 
     // copy the default values from the function prototype
-    if (known_info.stype != kSYM_NoType)
+    if (known_info.SType != kSYM_NoType)
     {
         _sym[name_of_func].funcParamHasDefaultValues.assign(
             known_info.funcParamHasDefaultValues.begin(),
@@ -3232,7 +3232,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
         // treat it that way.
         vartype = _sym.get_vartype(_sym.getThisSym());
         AGS::Symbol const thiscomponent = MangleStructAndComponent(vartype, symlist[0]);
-        if (0 != _sym[thiscomponent].stype)
+        if (0 != _sym[thiscomponent].SType)
         {
             vloc = kVL_mar_pointsto_value;
             _scrip.write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
@@ -3988,7 +3988,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
 void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness globalness)
 {
     SymbolTableEntry &entry = _sym[var_name];
-    entry.stype = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
+    entry.SType = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
     entry.vartype = vartype;
     _sym.set_declared(var_name, ccCurScriptName, currentline);
 }
@@ -4067,7 +4067,7 @@ int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalnes
 // there was a forward declaration -- check that the real declaration matches it
 int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info)
 {
-    if (0 == known_info->stype)
+    if (0 == known_info->SType)
         return 0; // We don't have any known info
 
     if ((known_info->flags & ~kSFLG_Imported) != (this_entry->flags & ~kSFLG_Imported))
@@ -4231,7 +4231,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     int retval = ParseVardecl_CheckIllegalCombis(vartype, globalness);
     if (retval < 0) return retval;
 
-    if (kGl_Local == globalness && _sym[var_name].stype != 0)
+    if (kGl_Local == globalness && _sym[var_name].SType != 0)
     {
         std::string msg = ReferenceMsgSym(
             "Variable %s has already been declared", var_name);
@@ -4304,7 +4304,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     if (struct_of_func > 0 && !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Static))
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
-        this_entry.stype = kSYM_LocalVar;
+        this_entry.SType = kSYM_LocalVar;
         // Don't declare this as dynpointer to prevent it from being dereferenced twice.
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
@@ -4439,7 +4439,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
     SymbolTableEntry &entry = _sym[stname];
 
     entry.extends = 0;
-    entry.stype = kSYM_Vartype;
+    entry.SType = kSYM_Vartype;
     SetFlag(entry.flags, kSFLG_StructVartype, true);
     entry.ssize = 0;
 
@@ -4651,7 +4651,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
 
 int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype, SymbolTableEntry &entry)
 {
-    entry.stype = kSYM_Function;
+    entry.SType = kSYM_Function;
     SetFlag(entry.flags, kSFLG_Imported, true);
     if (is_static)
         SetFlag(entry.flags, kSFLG_Static, true);
@@ -4684,7 +4684,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
 int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype)
 {
     SymbolTableEntry &entry = _sym[func];
-    if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
+    if (kSYM_Function != entry.SType && kSYM_NoType != entry.SType)
     {
         std::string msg = ReferenceMsgSym(
             "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
@@ -4693,7 +4693,7 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
         return -1;
     }
 
-    if (kSYM_Function == entry.stype) // func has already been declared
+    if (kSYM_Function == entry.SType) // func has already been declared
         return ParseStruct_CheckAttributeFunc(entry, is_setter, is_indexed, vartype);
 
     int retval = ParseStruct_EnterAttributeFunc(is_setter, is_indexed, is_static, vartype, entry);
@@ -4723,7 +4723,7 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
 
     Vartype const coretype = _sym[vname].vartype;
 
-    _sym[vname].stype = kSYM_Attribute;
+    _sym[vname].SType = kSYM_Attribute;
     if (attrib_is_indexed)
         _sym[vname].vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].vartype);
 
@@ -4803,7 +4803,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
     if (kPP_Main == _pp)
     {
         SymbolTableEntry &entry = _sym[vname];
-        entry.stype = kSYM_StructComponent;
+        entry.SType = kSYM_StructComponent;
         entry.extends = stname;  // save which struct it belongs to
         entry.soffs = size_so_far;
         entry.vartype = vartype;
@@ -5012,7 +5012,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
         }
         _targ.getnext(); // Eat ';'
         SymbolTableEntry &entry = _sym[stname];
-        entry.stype = kSYM_UndefinedStruct;
+        entry.SType = kSYM_UndefinedStruct;
         SetFlag(entry.flags, kSFLG_Managed, true);
         entry.ssize = 0;
         return 0;
@@ -5074,7 +5074,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
 {
     SymbolTableEntry &entry = _sym[item_name];
 
-    entry.stype = kSYM_Constant;
+    entry.SType = kSYM_Constant;
     entry.vartype = enum_name;
     entry.sscope = 0;
     entry.flags = kSFLG_Readonly;
@@ -5088,7 +5088,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 {
     SymbolTableEntry &entry = _sym[enumName];
 
-    if (0 != entry.stype)
+    if (0 != entry.SType)
     {
         std::string msg = ReferenceMsg(
             "'%s' is already defined",
@@ -5098,7 +5098,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
         return -1;
     }
 
-    entry.stype = kSYM_Vartype;
+    entry.SType = kSYM_Vartype;
     entry.ssize = SIZE_OF_INT;
     entry.vartype = _sym.getIntSym();
 
@@ -6559,12 +6559,12 @@ int AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &tokenize_res)
 {
     size_t const tokenize_res_size = tokenize_res.entries.size();
     SymbolTableEntry empty;
-    empty.stype = kSYM_NoType;
+    empty.SType = kSYM_NoType;
 
     for (size_t sym_idx = 0; sym_idx < _sym.entries.size(); sym_idx++)
     {
         SymbolTableEntry &s_entry = _sym[sym_idx];
-        if (s_entry.stype == kSYM_Function)
+        if (s_entry.SType == kSYM_Function)
         {
             SetFlag(s_entry.flags, kSFLG_Imported, (kFT_Import == s_entry.soffs));
             s_entry.soffs = 0;

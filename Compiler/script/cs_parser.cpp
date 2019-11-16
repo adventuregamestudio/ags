@@ -570,7 +570,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
     int totalsub = 0;
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
-        if (_sym[entries_idx].sscope <= static_cast<int>(from_level))
+        if (_sym[entries_idx].SScope <= static_cast<int>(from_level))
             continue;
         if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
@@ -735,7 +735,7 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
         SymbolTableEntry &entry = _sym[entries_idx];
-        if (entry.sscope <= from_level)
+        if (entry.SScope <= from_level)
             continue;
         if (kSYM_LocalVar != entry.SType)
             continue;
@@ -831,13 +831,13 @@ int AGS::Parser::RemoveLocalsFromSymtable(int from_level)
 
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
-        if (_sym[entries_idx].sscope < from_level)
+        if (_sym[entries_idx].SScope < from_level)
             continue;
         if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
 
         _sym[entries_idx].SType = kSYM_NoType;
-        _sym[entries_idx].sscope = 0;
+        _sym[entries_idx].SScope = 0;
         _sym[entries_idx].Flags = 0;
     }
     return 0;
@@ -1251,7 +1251,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     param_entry.extends = false;
     param_entry.vartype = param_type;
     size_t const param_size = 4; // We can only deal with parameters of size 4
-    param_entry.sscope = 1;
+    param_entry.SScope = 1;
     SetFlag(param_entry.Flags, kSFLG_Parameter, true);
     if (param_is_const)
     {
@@ -1387,7 +1387,7 @@ void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype ret
 {
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.SType = kSYM_Function;
-    entry.sscope = numparams - 1;
+    entry.SScope = numparams - 1;
 
     entry.funcparamtypes[0] = return_vartype;
     if (func_is_static)
@@ -1724,7 +1724,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     if (struct_of_func > 0)
     {
         char appendage[10];
-        sprintf(appendage, "^%d", _sym[name_of_func].sscope); // num of parameters + (is_variadic)? 100 : 0
+        sprintf(appendage, "^%d", _sym[name_of_func].SScope); // num of parameters + (is_variadic)? 100 : 0
         strcat(_scrip.imports[_sym[name_of_func].SOffset], appendage);
     }
 
@@ -4307,7 +4307,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         this_entry.SType = kSYM_LocalVar;
         // Don't declare this as dynpointer to prevent it from being dereferenced twice.
         this_entry.vartype = struct_of_func;
-        this_entry.sscope = nesting_stack->Depth() - 1;
+        this_entry.SScope = nesting_stack->Depth() - 1;
         this_entry.Flags = kSFLG_Readonly | kSFLG_Accessed;
         // Allocate unused space on stack for the "this" pointer
         this_entry.SOffset = _scrip.cur_sp;
@@ -4609,11 +4609,11 @@ int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype va
 int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype)
 {
     size_t const sscope_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
-    if (entry.sscope != sscope_wanted)
+    if (entry.SScope != sscope_wanted)
     {
         cc_error(
             "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
-            entry.SName.c_str(), sscope_wanted, entry.sscope);
+            entry.SName.c_str(), sscope_wanted, entry.SScope);
         return -1;
     }
     AGS::Vartype const ret_vartype = is_setter ? _sym.getVoidSym() : vartype;
@@ -4665,9 +4665,9 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
 
     AGS::Vartype const retvartype = entry.funcparamtypes[0] = entry.vartype = 
         is_setter ? _sym.getVoidSym() : vartype;
-    entry.sscope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
+    entry.SScope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
 
-    entry.funcparamtypes.resize(entry.sscope + 1);
+    entry.funcparamtypes.resize(entry.SScope + 1);
 
     size_t p_idx = 1;
     if (is_indexed)
@@ -5076,7 +5076,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
 
     entry.SType = kSYM_Constant;
     entry.vartype = enum_name;
-    entry.sscope = 0;
+    entry.SScope = 0;
     entry.Flags = kSFLG_Readonly;
     // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = currentValue;
@@ -5238,7 +5238,7 @@ int AGS::Parser::ParseExport()
         }
         else if (_scrip.add_new_export(_sym.get_name_string(cursym).c_str(),
             (curtype == kSYM_GlobalVar) ? EXPORT_DATA : EXPORT_FUNCTION,
-            _sym[cursym].SOffset, _sym[cursym].sscope) == -1)
+            _sym[cursym].SOffset, _sym[cursym].SScope) == -1)
         {
             return -1;
         }
@@ -5430,7 +5430,7 @@ int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness globalne
         return ParseVartype_VarDecl_PreAnalyze(var_name, globalness, another_var_follows);
 
     if (kGl_Local == globalness)
-        _sym[var_name].sscope = nested_level;
+        _sym[var_name].SScope = nested_level;
     if (is_readonly)
         SetFlag(_sym[var_name].Flags, kSFLG_Readonly, true);
 
@@ -5796,7 +5796,7 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
             return -1;
         }
 
-        _sym[varname].sscope = static_cast<short>(nested_level);
+        _sym[varname].SScope = static_cast<short>(nested_level);
         retval = ParseVardecl(varname, vartype, next_type, kGl_Local, another_var_follows);
         if (retval < 0) return retval;
     }

@@ -37,13 +37,13 @@ public:
     CodeLoc SOffset; // multiple use
 
     // Variables only
-    AGS::Vartype vartype; // may contain typeflags
+    Vartype vartype; // may contain typeflags
 
     // Variables, structs, struct members, and vartypes only
     size_t SSize;      // Size in bytes
 
     // Variables and functions only
-    int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
+    int SScope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
 
     // Vartypes only
     VartypeTypeT VartypeType;
@@ -71,8 +71,8 @@ public:
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
-    inline size_t get_num_args() const { return sscope % 100; }
-    inline bool is_varargs() const { return (sscope >= 100); }
+    inline size_t get_num_args() const { return SScope % 100; }
+    inline bool is_varargs() const { return (SScope >= 100); }
 
     SymbolTableEntry();
     SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);

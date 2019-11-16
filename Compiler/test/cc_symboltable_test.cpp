@@ -74,7 +74,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).SOffset == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).SSize == ssize);
-    ASSERT_TRUE(testSym.entries.at(a_sym).sscope == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).SScope == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).extends == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).get_num_args() == 0);
 }
@@ -102,18 +102,18 @@ TEST(SymbolTable, GetNumArgs) {
     AGS::SymbolTable testSym;
 	int sym_01 = testSym.add("yellow");
 
-    testSym.entries.at(sym_01).sscope = 0;
+    testSym.entries.at(sym_01).SScope = 0;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 0);
-    testSym.entries.at(sym_01).sscope = 1;
+    testSym.entries.at(sym_01).SScope = 1;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 1);
-    testSym.entries.at(sym_01).sscope = 2;
+    testSym.entries.at(sym_01).SScope = 2;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 2);
 
-    testSym.entries.at(sym_01).sscope = 100;
+    testSym.entries.at(sym_01).SScope = 100;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 0);
-    testSym.entries.at(sym_01).sscope = 101;
+    testSym.entries.at(sym_01).SScope = 101;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 1);
-    testSym.entries.at(sym_01).sscope = 102;
+    testSym.entries.at(sym_01).SScope = 102;
     ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 2);
 }
 

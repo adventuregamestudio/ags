@@ -260,23 +260,23 @@ TEST(Compile, EnumNegative) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
-    EXPECT_EQ(1, sym.entries.at(sym.find("cat")).soffs);
-    EXPECT_EQ(2, sym.entries.at(sym.find("dog")).soffs);
-    EXPECT_EQ(3, sym.entries.at(sym.find("fish")).soffs);
+    EXPECT_EQ(1, sym.entries.at(sym.find("cat")).SOffset);
+    EXPECT_EQ(2, sym.entries.at(sym.find("dog")).SOffset);
+    EXPECT_EQ(3, sym.entries.at(sym.find("fish")).SOffset);
 
-    EXPECT_EQ(100, sym.entries.at(sym.find("money")).soffs);
-    EXPECT_EQ(101, sym.entries.at(sym.find("death")).soffs);
-    EXPECT_EQ(102, sym.entries.at(sym.find("taxes")).soffs);
+    EXPECT_EQ(100, sym.entries.at(sym.find("money")).SOffset);
+    EXPECT_EQ(101, sym.entries.at(sym.find("death")).SOffset);
+    EXPECT_EQ(102, sym.entries.at(sym.find("taxes")).SOffset);
 
-    EXPECT_EQ(-3, sym.entries.at(sym.find("popularity")).soffs);
-    EXPECT_EQ(-2, sym.entries.at(sym.find("x")).soffs);
-    EXPECT_EQ(-1, sym.entries.at(sym.find("y")).soffs);
-    EXPECT_EQ(0, sym.entries.at(sym.find("z")).soffs);
+    EXPECT_EQ(-3, sym.entries.at(sym.find("popularity")).SOffset);
+    EXPECT_EQ(-2, sym.entries.at(sym.find("x")).SOffset);
+    EXPECT_EQ(-1, sym.entries.at(sym.find("y")).SOffset);
+    EXPECT_EQ(0, sym.entries.at(sym.find("z")).SOffset);
 
     // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
     // so it can't be used. Microsoft recomments using INT_MIN instead.
-    EXPECT_EQ((INT_MIN), sym.entries.at(sym.find("intmin")).soffs);
-    EXPECT_EQ((2147483647), sym.entries.at(sym.find("intmax")).soffs);
+    EXPECT_EQ((INT_MIN), sym.entries.at(sym.find("intmin")).SOffset);
+    EXPECT_EQ((2147483647), sym.entries.at(sym.find("intmax")).SOffset);
 }
 
 
@@ -1337,7 +1337,7 @@ TEST(Compile, Import2GlobalAllocation)
     int idx = sym.find("J");
     ASSERT_LE(0, idx);
     SymbolTableEntry &entry = sym.entries.at(idx);
-    ASSERT_EQ(4, entry.soffs);
+    ASSERT_EQ(4, entry.SOffset);
 }
 
 TEST(Compile, LocalImportVar) {

@@ -34,7 +34,7 @@ public:
     SymbolType SType; // e.g., kSYM_GlobalVar
     int DeclSectionId, DeclLine; // where this was declared
     AGS::Flags flags;
-    AGS::CodeLoc soffs; // multiple use
+    AGS::CodeLoc SOffset; // multiple use
 
     // Variables only
     AGS::Vartype vartype; // may contain typeflags

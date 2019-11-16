@@ -656,10 +656,10 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
         SymbolTableEntry &entry = _sym[*compo_it];
 
         // Let MAR point to the component
-        size_t const diff = entry.soffs - offset_so_far;
+        size_t const diff = entry.SOffset - offset_so_far;
         if (diff > 0)
             _scrip.write_cmd2(SCMD_ADD, SREG_MAR, diff);
-        offset_so_far = entry.soffs;
+        offset_so_far = entry.SOffset;
 
         if (_sym.IsDyn(entry.vartype))
         {
@@ -745,7 +745,7 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
             continue;
 
         clobbers_mar = true;
-        int const sp_offset = _scrip.cur_sp - entry.soffs;
+        int const sp_offset = _scrip.cur_sp - entry.SOffset;
         if (_sym.IsDyn(entry.vartype))
         {
             _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
@@ -1041,7 +1041,7 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bo
         SymbolTableEntry &from_entry = _sym[fromSym];
         if (from_entry.SType == kSYM_Constant)
         {
-            theValue = from_entry.soffs;
+            theValue = from_entry.SOffset;
             if (isNegative)
                 theValue = -theValue;
             return 0;
@@ -1261,7 +1261,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The +1 is because the
     // call will push the return address onto the stack as well
-    param_entry.soffs = _scrip.cur_sp - (param_idx + 1) * 4;
+    param_entry.SOffset = _scrip.cur_sp - (param_idx + 1) * 4;
     _sym.set_declared(param_name, ccCurScriptName, currentline);
 }
 
@@ -1703,7 +1703,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
         int func_startoffs;
         retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, FlagIsSet(tqs, kTQ_Import), func_startoffs, function_idx);
         if (retval < 0) return retval;
-        _sym[name_of_func].soffs = func_startoffs;
+        _sym[name_of_func].SOffset = func_startoffs;
         if (function_idx >= 0)
             _scrip.functions[function_idx].NumOfParams = (numparams - 1);
     }
@@ -1717,7 +1717,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
 
     if (kPP_PreAnalyze == _pp)
     {
-        _sym[name_of_func].soffs = kFT_Import;
+        _sym[name_of_func].SOffset = kFT_Import;
         return 0;
     }
 
@@ -1725,10 +1725,10 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     {
         char appendage[10];
         sprintf(appendage, "^%d", _sym[name_of_func].sscope); // num of parameters + (is_variadic)? 100 : 0
-        strcat(_scrip.imports[_sym[name_of_func].soffs], appendage);
+        strcat(_scrip.imports[_sym[name_of_func].SOffset], appendage);
     }
 
-    _fim.SetFuncCallpoint(name_of_func, _sym[name_of_func].soffs);
+    _fim.SetFuncCallpoint(name_of_func, _sym[name_of_func].SOffset);
     return 0;
 }
 
@@ -2596,7 +2596,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
     }
 
     // Call the function: Get address into AX
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].soffs);
+    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
 
     if (func_is_import)
     {
@@ -2824,7 +2824,7 @@ int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bo
         return -1;
     }
 
-    mloc.AddComponentOffset(entry.soffs);
+    mloc.AddComponentOffset(entry.SOffset);
     vartype = _sym.get_vartype(component);
     symlist++;
     symlist_len--;
@@ -3068,7 +3068,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
 {
     AGS::Symbol const varname = symlist[0];
     SymbolTableEntry &entry = _sym[varname];
-    AGS::CodeCell const soffs = entry.soffs;
+    AGS::CodeCell const soffs = entry.SOffset;
     symlist++;
     symlist_len--;
 
@@ -3166,7 +3166,7 @@ int AGS::Parser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size
         return -1;
     }
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].soffs);
+    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
     _scrip.fixup_previous(kFx_String);
     _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.getOldStringSym())
         ;
@@ -4121,8 +4121,8 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
         return 0; // Skip this since the global non-import decl will come later
 
     SetFlag(_sym[var_name].flags, kSFLG_Imported, true);
-    _sym[var_name].soffs = _scrip.add_new_import(_sym.get_name_string(var_name).c_str());
-    if (_sym[var_name].soffs == -1)
+    _sym[var_name].SOffset = _scrip.add_new_import(_sym.get_name_string(var_name).c_str());
+    if (_sym[var_name].SOffset == -1)
     {
         cc_error("Internal error: Import table overflow");
         return -1;
@@ -4141,8 +4141,8 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Vartype 
     SymbolTableEntry &entry = _sym[var_name];
     entry.vartype = vartype;
     size_t const var_size = _sym.GetSize(vartype);
-    entry.soffs = _scrip.add_global(var_size, initial_val_ptr);
-    if (entry.soffs < 0)
+    entry.SOffset = _scrip.add_global(var_size, initial_val_ptr);
+    if (entry.SOffset < 0)
     {
         cc_error("Internal error: Cannot allocate global variable");
         return -1;
@@ -4153,7 +4153,7 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Vartype 
 int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment)
 {
     size_t const var_size = _sym.GetSize(vartype);
-    _sym[var_name].soffs = _scrip.cur_sp;
+    _sym[var_name].SOffset = _scrip.cur_sp;
 
     if (!has_initial_assignment)
     {
@@ -4310,7 +4310,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
         // Allocate unused space on stack for the "this" pointer
-        this_entry.soffs = _scrip.cur_sp;
+        this_entry.SOffset = _scrip.cur_sp;
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
         _scrip.write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);
         _scrip.cur_sp += SIZE_OF_DYNPOINTER;
@@ -4655,13 +4655,13 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
     SetFlag(entry.flags, kSFLG_Imported, true);
     if (is_static)
         SetFlag(entry.flags, kSFLG_Static, true);
-    entry.soffs = _importMgr.FindOrAdd(entry.SName);
+    entry.SOffset = _importMgr.FindOrAdd(entry.SName);
     char  *num_param_suffix;
     if (is_setter)
         num_param_suffix = (is_indexed ? "^2" : "^1");
     else // getter
         num_param_suffix = (is_indexed ? "^1" : "^0");
-    strcat(_scrip.imports[entry.soffs], num_param_suffix);
+    strcat(_scrip.imports[entry.SOffset], num_param_suffix);
 
     AGS::Vartype const retvartype = entry.funcparamtypes[0] = entry.vartype = 
         is_setter ? _sym.getVoidSym() : vartype;
@@ -4698,7 +4698,7 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
 
     int retval = ParseStruct_EnterAttributeFunc(is_setter, is_indexed, is_static, vartype, entry);
     if (retval < 0) return retval;
-    return _fim.SetFuncCallpoint(func, entry.soffs);
+    return _fim.SetFuncCallpoint(func, entry.SOffset);
 }
 
 // We're in a struct declaration, parsing a struct attribute
@@ -4805,7 +4805,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
         SymbolTableEntry &entry = _sym[vname];
         entry.SType = kSYM_StructComponent;
         entry.extends = stname;  // save which struct it belongs to
-        entry.soffs = size_so_far;
+        entry.SOffset = size_so_far;
         entry.vartype = vartype;
         if (FlagIsSet(tqs, kTQ_Readonly))
             SetFlag(entry.flags, kSFLG_Readonly, true);
@@ -5079,7 +5079,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.sscope = 0;
     entry.flags = kSFLG_Readonly;
     // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
-    entry.soffs = currentValue;
+    entry.SOffset = currentValue;
     if (kPP_Main == _pp)
         _sym.set_declared(item_name, ccCurScriptName, currentline);
 }
@@ -5238,7 +5238,7 @@ int AGS::Parser::ParseExport()
         }
         else if (_scrip.add_new_export(_sym.get_name_string(cursym).c_str(),
             (curtype == kSYM_GlobalVar) ? EXPORT_DATA : EXPORT_FUNCTION,
-            _sym[cursym].soffs, _sym[cursym].sscope) == -1)
+            _sym[cursym].SOffset, _sym[cursym].sscope) == -1)
         {
             return -1;
         }
@@ -5356,20 +5356,20 @@ int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype varty
 
     if (kPP_PreAnalyze == _pp)
     {
-        if (body_follows && kFT_LocalBody == entry.soffs)
+        if (body_follows && kFT_LocalBody == entry.SOffset)
         {
             cc_error("This function has already been defined with a body");
             return -1;
         }
 
-        // Encode in entry.soffs the type of function declaration
+        // Encode in entry.SOffset the type of function declaration
         FunctionType ft = kFT_PureForward;
         if (FlagIsSet(tqs, kTQ_Import))
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
-        if (entry.soffs < ft)
-            entry.soffs = ft;
+        if (entry.SOffset < ft)
+            entry.SOffset = ft;
     }
 
     if (!body_follows)
@@ -6566,8 +6566,8 @@ int AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &tokenize_res)
         SymbolTableEntry &s_entry = _sym[sym_idx];
         if (s_entry.SType == kSYM_Function)
         {
-            SetFlag(s_entry.flags, kSFLG_Imported, (kFT_Import == s_entry.soffs));
-            s_entry.soffs = 0;
+            SetFlag(s_entry.flags, kSFLG_Imported, (kFT_Import == s_entry.SOffset));
+            s_entry.SOffset = 0;
             continue;
         }
         std::string const sname = s_entry.SName;
@@ -6597,7 +6597,7 @@ int AGS::Parser::Parse_BlankOutUnusedImports()
  
         if (FlagIsSet(_sym[entries_idx].flags, kSFLG_Imported) &&
             !FlagIsSet(_sym[entries_idx].flags, kSFLG_Accessed))
-                _scrip.imports[_sym[entries_idx].soffs][0] = '\0';
+                _scrip.imports[_sym[entries_idx].SOffset][0] = '\0';
         }
 
     return 0;

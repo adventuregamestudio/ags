@@ -6,14 +6,14 @@ TEST(SymbolTable, GetNameNonExistent) {
     AGS::SymbolTable testSym;
 
     // symbol must be >= 0. Max symbols 0x10000000 due to type flags
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(100));
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(200));
+    EXPECT_STREQ("(invalid symbol)", testSym.GetName(100).c_str());
+    EXPECT_STREQ("(invalid symbol)", testSym.GetName(200).c_str());
 
     // check edge conditions. index immediately after 'c' should be null
     int a_sym = testSym.AddWithTypeAndSize("a", AGS::kSYM_NoType, 0);
     int b_sym = testSym.AddWithTypeAndSize("b", AGS::kSYM_NoType, 0);
     int c_sym = testSym.AddWithTypeAndSize("c", AGS::kSYM_NoType, 0);
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(c_sym + 1));
+    EXPECT_STREQ("(invalid symbol)", testSym.GetName(c_sym + 1).c_str());
 }
 
 TEST(SymbolTable, GetNameNormal) {
@@ -21,7 +21,7 @@ TEST(SymbolTable, GetNameNormal) {
 
     int foo_sym = testSym.AddWithTypeAndSize("foo", AGS::kSYM_NoType, 0);
 
-    EXPECT_STREQ("foo", testSym.get_name(foo_sym));
+    EXPECT_STREQ("foo", testSym.GetName(foo_sym).c_str());
 }
 
 TEST(SymbolTable, GetNameConverted) {
@@ -33,17 +33,17 @@ TEST(SymbolTable, GetNameConverted) {
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
         "foo[]",
-        testSym.get_name_string(testSym.VartypeWith(AGS::kVTT_Dynarray, foo_vartype)).c_str());
+        testSym.GetName(testSym.VartypeWith(AGS::kVTT_Dynarray, foo_vartype)).c_str());
 
     EXPECT_STREQ(
         "foo *",
-        testSym.get_name_string(testSym.VartypeWith(AGS::kVTT_Dynpointer, foo_vartype)).c_str());
+        testSym.GetName(testSym.VartypeWith(AGS::kVTT_Dynpointer, foo_vartype)).c_str());
 
 
     std::vector<size_t> const dims = { 3, 5, 7 };
     EXPECT_STREQ(
         "foo[3, 5, 7]",
-        testSym.get_name_string(testSym.VartypeWithArray(dims, foo_vartype)).c_str());
+        testSym.GetName(testSym.VartypeWithArray(dims, foo_vartype)).c_str());
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {
@@ -77,16 +77,6 @@ TEST(SymbolTable, AddExDefaultValues) {
     ASSERT_TRUE(testSym.entries.at(a_sym).SScope == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).Extends == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).GetNumOfFuncArgs() == 0);
-}
-
-TEST(SymbolTable, AddExAvailableAfterwards) {
-    AGS::SymbolTable testSym;
-
-    int a_sym = testSym.AddWithTypeAndSize("x", AGS::kSYM_NoType, 0);
-
-    // no test is available.. but we can try to get name.
-    const char *name = testSym.get_name(a_sym);
-    ASSERT_TRUE(name != 0);
 }
 
 TEST(SymbolTable, EntriesEnsureModifiable) {

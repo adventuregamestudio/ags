@@ -182,11 +182,8 @@ public:
     // Add to the symbol table if not in there already; in any case return the symbol
     inline Symbol FindOrAdd(char const *name) { Symbol ret = Find(name); return (ret >= 0) ? ret : Add(name); }
 
-    // return name as char *, statically allocated
-    inline char const *SymbolTable::get_name(Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }
-
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
-    std::string const SymbolTable::get_name_string(Symbol sym) const;
+    std::string const SymbolTable::GetName(Symbol sym) const;
 
     // The symbol type, as given by the kSYM_... constants
     inline SymbolType get_type(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
@@ -197,9 +194,6 @@ public:
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
     inline Flags SymbolTable::get_flags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
-
-    // return the printable name of the vartype
-    std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
 
     // Set/get section and line where the item is declared
     void set_declared(int idx, std::string const &section, int line);

@@ -235,21 +235,14 @@ void AGS::SymbolTable::reset()
         AddWithTypeAndSize("writeprotected", kSYM_WriteProtected, 0); 
 }
 
-std::string const AGS::SymbolTable::get_name_string(AGS::Symbol symbl) const
+std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 {
     if (symbl < 0)
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    return entries.at(symbl).SName;
+    return entries[symbl].SName;
 }
-
-std::string const AGS::SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const
-{
-    if (!IsInBounds(vartype))
-        return "(invalid vartype)";
-    return entries.at(vartype).SName;
-    }
 
 void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
 {

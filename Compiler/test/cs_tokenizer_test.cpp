@@ -58,21 +58,21 @@ TEST(Tokenize, SectionChange)
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
-    token_str = sym.get_name_string(token);
+    token_str = sym.GetName(token);
     ASSERT_EQ(0, token_str.compare("String"));
 
     // A
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
-    token_str = sym.get_name_string(token);
+    token_str = sym.GetName(token);
     ASSERT_EQ(0, token_str.compare("A"));
 
     // =
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
-    token_str = sym.get_name_string(token);
+    token_str = sym.GetName(token);
     ASSERT_EQ(0, token_str.compare("="));
 
     // ((Section change))

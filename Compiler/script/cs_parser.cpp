@@ -129,7 +129,7 @@ bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
     if (symb <= _sym.getLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
         return false;
-    std::string name = _sym.get_name_string(symb);
+    std::string name = _sym.GetName(symb);
     if (name.size() == 0)
         return false;
     if ('0' <= name[0] && name[0] <= '9')
@@ -178,7 +178,7 @@ int AGS::Parser::String2Int(std::string str, int &val, bool send_error)
 
 AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbol component)
 {
-    std::string fullname_str = _sym.get_name_string(stname) + "::" + _sym.get_name_string(component);
+    std::string fullname_str = _sym.GetName(stname) + "::" + _sym.GetName(component);
     return _sym.FindOrAdd(fullname_str.c_str());
 }
 
@@ -466,7 +466,7 @@ int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
             if (pl[pl_idx].ChunkId != CodeBaseId)
                 continue;
 
-            cc_error("Function '%s()' has been called but not defined with body nor imported", _sym.get_name_string(fcm_it->first).c_str());
+            cc_error("Function '%s()' has been called but not defined with body nor imported", _sym.GetName(fcm_it->first).c_str());
             return -1;
         }
     }
@@ -1049,7 +1049,7 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bo
 
         if (_sym.get_type(fromSym) == kSYM_LiteralInt)
         {
-            std::string literalStrValue = _sym.get_name_string(fromSym);
+            std::string literalStrValue = _sym.GetName(fromSym);
             if (isNegative)
                 literalStrValue = '-' + literalStrValue;
 
@@ -1143,11 +1143,11 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
     SymbolTableEntry &struct_entry = _sym[struct_of_func];
     if (!struct_entry.IsStruct(_sym))
     {
-        cc_error("Expected a struct type instead of '%s'", _sym.get_name_string(struct_of_func).c_str());
+        cc_error("Expected a struct type instead of '%s'", _sym.GetName(struct_of_func).c_str());
         return -1;
     }
 
-    if (std::string::npos != _sym.get_name_string(name_of_func).find_first_of(':'))
+    if (std::string::npos != _sym.GetName(name_of_func).find_first_of(':'))
     {   // [fw] Can't be reached IMO. 
         cc_error("Extender functions cannot be part of a struct");
         return -1;
@@ -1227,14 +1227,14 @@ int AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param
         // This is a definition -- so the parameter name must not be a global variable
         std::string msg =
             ReferenceMsgSym("The name '%s' is already used for a global variable", nextsym);
-        cc_error(msg.c_str(), _sym.get_name_string(_targ.peeknext()).c_str());
+        cc_error(msg.c_str(), _sym.GetName(_targ.peeknext()).c_str());
         return -1;
     }
 
     if (_sym.get_type(_targ.peeknext()) != 0)
     {
         // We need to have a real parameter name here
-        cc_error("Expected a parameter name here, found '%s' instead", _sym.get_name_string(_targ.peeknext()).c_str());
+        cc_error("Expected a parameter name here, found '%s' instead", _sym.GetName(_targ.peeknext()).c_str());
         return -1;
     }
 
@@ -1330,7 +1330,7 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
         switch (_sym.get_type(cursym))
         {
         default:
-            cc_error("Unexpected %s in parameter list", _sym.get_name_string(cursym).c_str());
+            cc_error("Unexpected %s in parameter list", _sym.GetName(cursym).c_str());
             return -1;
 
         case kSYM_CloseParenthesis:
@@ -1513,8 +1513,8 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
             known_info.DeclLine);
         cc_error(
             msg.c_str(),
-            _sym.get_vartype_name_string(this_entry.FuncParamTypes.at(0)).c_str(),
-            _sym.get_vartype_name_string(known_info.FuncParamTypes.at(0)).c_str());
+            _sym.GetName(this_entry.FuncParamTypes.at(0)).c_str(),
+            _sym.GetName(known_info.FuncParamTypes.at(0)).c_str());
 
         return -1;
     }
@@ -1530,8 +1530,8 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
             cc_error(
                 msg.c_str(),
                 param_idx,
-                _sym.get_name_string(this_entry.FuncParamTypes.at(param_idx)).c_str(),
-                _sym.get_name_string(known_info.FuncParamTypes.at(param_idx)).c_str());
+                _sym.GetName(this_entry.FuncParamTypes.at(param_idx)).c_str(),
+                _sym.GetName(known_info.FuncParamTypes.at(param_idx)).c_str());
             return -1;
         }
     }
@@ -1554,7 +1554,7 @@ int AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(AGS::Symbol name_of_func, boo
             return -1;
         }
         // Index of the function in the ccCompiledScript::functions[] array
-        function_soffs = _scrip.add_new_function(_sym.get_name_string(name_of_func), &function_idx);
+        function_soffs = _scrip.add_new_function(_sym.GetName(name_of_func), &function_idx);
         if (function_soffs < 0)
         {
             cc_error("Max. number of functions exceeded");
@@ -1571,7 +1571,7 @@ int AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(AGS::Symbol name_of_func, boo
     }
 
     // Index of the function in the ccScript::imports[] array
-    function_soffs = _importMgr.FindOrAdd(_sym.get_name_string(name_of_func));
+    function_soffs = _importMgr.FindOrAdd(_sym.GetName(name_of_func));
     return 0;
 }
 
@@ -1605,7 +1605,7 @@ int AGS::Parser::ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, AGS::Var
             "'%s' is already defined",
             _sym.Id2Section(_sym[name_of_func].DeclSectionId),
             _sym[name_of_func].DeclLine);
-        cc_error(msg.c_str(), _sym.get_name_string(name_of_func).c_str());
+        cc_error(msg.c_str(), _sym.GetName(name_of_func).c_str());
         return -1;
     }
 
@@ -1966,8 +1966,8 @@ int AGS::Parser::IsVartypeMismatch(AGS::Vartype vartype_is, AGS::Vartype vartype
 
     cc_error(
         "Type mismatch: cannot convert '%s' to '%s'",
-        _sym.get_vartype_name_string(vartype_is).c_str(),
-        _sym.get_vartype_name_string(vartype_wants_to_be).c_str());
+        _sym.GetName(vartype_is).c_str(),
+        _sym.GetName(vartype_wants_to_be).c_str());
     return -1;
 }
 
@@ -2082,7 +2082,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
         {
             cc_error(
                 "The struct %s hasn't been completely defined yet",
-                _sym.get_name_string(new_vartype).c_str());
+                _sym.GetName(new_vartype).c_str());
             return -1;
         }
 
@@ -2096,7 +2096,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
         {
             cc_error(
                 "Built-in type '%s' cannot be instantiated directly",
-                _sym.get_name_string(new_vartype).c_str());
+                _sym.GetName(new_vartype).c_str());
             return -1;
         }
 
@@ -2147,7 +2147,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         return 0;
     }
 
-    cc_error("Unexpected characters following 'new %s'", _sym.get_name_string(symlist[1]).c_str());
+    cc_error("Unexpected characters following 'new %s'", _sym.GetName(symlist[1]).c_str());
     return -1;
 }
 
@@ -2228,7 +2228,7 @@ int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, siz
     }
 
     // All the other operators need a non-empty left hand side
-    cc_error("Unexpected operator '%s' without a preceding expression", _sym.get_name_string(symlist[0]).c_str());
+    cc_error("Unexpected operator '%s' without a preceding expression", _sym.GetName(symlist[0]).c_str());
     return -1;
 }
 
@@ -2266,7 +2266,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     if (op_idx + 1 >= symlist_len)
     {
         // there is no right hand side for the expression
-        cc_error("Parse error: invalid use of operator '%s'", _sym.get_name_string(symlist[op_idx]).c_str());
+        cc_error("Parse error: invalid use of operator '%s'", _sym.GetName(symlist[op_idx]).c_str());
         return -1;
     }
 
@@ -2578,7 +2578,7 @@ int AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(const AGS::SymbolScri
 
     if (paren_nesting_depth > 0)
     {
-        cc_error("Internal error: Parser confused near '%s'", _sym.get_name_string(funcSymbol).c_str());
+        cc_error("Internal error: Parser confused near '%s'", _sym.GetName(funcSymbol).c_str());
         return -1;
     }
 
@@ -2600,7 +2600,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 
     if (func_is_import)
     {
-        if (!_importMgr.IsDeclaredImport(_sym.get_name_string(name_of_func)))
+        if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
         _scrip.fixup_previous(kFx_Import);
         _scrip.write_cmd1(SCMD_CALLEXT, SREG_AX); // do the call
@@ -2680,7 +2680,7 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
     bool func_uses_this = false;
-    if (std::string::npos != _sym.get_name_string(name_of_func).find("::"))
+    if (std::string::npos != _sym.GetName(name_of_func).find("::"))
         func_uses_this = !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Static);
 
     if (func_uses_this)
@@ -2748,7 +2748,7 @@ int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist
         SymbolScript symlist1 = symlist + 1;
         return AccessData(false, true, symlist1, len_minus_1, vloc, scope, vartype);
     }
-    cc_error("Parse error: Unexpected '%s'", _sym.get_name_string(symlist[0]).c_str());
+    cc_error("Parse error: Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
     return -1;
 }
 
@@ -2813,14 +2813,14 @@ int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bo
     {
         cc_error(
             "Writeprotected component '%s' must not be modified from outside",
-            _sym.get_name_string(component).c_str());
+            _sym.GetName(component).c_str());
         return -1;
     }
     if (FlagIsSet(entry.Flags, kSFLG_Protected) && !access_via_this)
     {
         cc_error(
             "Protected component '%s' must not be accessed from outside",
-            _sym.get_name_string(component).c_str());
+            _sym.GetName(component).c_str());
         return -1;
     }
 
@@ -2834,7 +2834,7 @@ int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bo
 // Get the symbol for the get or set function corresponding to the attribute given.
 int AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func)
 {
-    std::string member_str = _sym.get_name_string(attribsym);
+    std::string member_str = _sym.GetName(attribsym);
     // If "::" in the name, take the part after the last "::"
     size_t const m_access_position = member_str.rfind("::");
     if (std::string::npos != m_access_position)
@@ -2858,8 +2858,8 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     {
         cc_error(
             "Struct '%s' does not have an attribute named '%s'",
-            _sym.get_name_string(Vartype2Symbol(vartype)).c_str(),
-            _sym.get_name_string(component).c_str());
+            _sym.GetName(Vartype2Symbol(vartype)).c_str(),
+            _sym.GetName(component).c_str());
         return -1;
     }
     AGS::Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
@@ -3074,7 +3074,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
 
     if (writing && FlagIsSet(entry.Flags, kSFLG_Readonly))
     {
-        cc_error("Cannot write to readonly '%s'", _sym.get_name_string(varname).c_str());
+        cc_error("Cannot write to readonly '%s'", _sym.GetName(varname).c_str());
         return -1;
     }
 
@@ -3102,10 +3102,10 @@ int AGS::Parser::AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_l
 int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
 {
     char *endptr;
-    std::string float_as_string = _sym.get_name_string(symlist[0]);
+    std::string float_as_string = _sym.GetName(symlist[0]);
     char const *instring = float_as_string.c_str();
     double const d = strtod(instring, &endptr);
-    if (endptr != instring + _sym.get_name_string(symlist[0]).length())
+    if (endptr != instring + _sym.GetName(symlist[0]).length())
     {
         cc_error("Illegal floating point literal '%s'", instring);
         return -1;
@@ -3248,7 +3248,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
             return 0;
         }
 
-        cc_error("Unexpected '%s'", _sym.get_name_string(symlist[0]).c_str());
+        cc_error("Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
         return -1;
     }
 
@@ -3323,7 +3323,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
         return AccessData_Static(symlist, symlist_len, mloc, vartype);
     }
 
-    cc_error("Cannot assign a value to '%s'", _sym.get_name_string(symlist[0]).c_str());
+    cc_error("Cannot assign a value to '%s'", _sym.GetName(symlist[0]).c_str());
     return -1;
 }
 
@@ -3347,8 +3347,8 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
     default:
         cc_error(
             "Expected a component of '%s', found '%s' instead",
-            _sym.get_vartype_name_string(vartype).c_str(),
-            _sym.get_name_string(symlist[0]).c_str());
+            _sym.GetName(vartype).c_str(),
+            _sym.GetName(symlist[0]).c_str());
         return -1;
 
     case kSYM_Attribute:
@@ -3646,8 +3646,8 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
     {
         cc_error(
             "Cannot assign a type '%s' value to a type '%s' variable",
-            _sym.get_vartype_name_string(rhsvartype).c_str(),
-            _sym.get_vartype_name_string(lhsvartype).c_str());
+            _sym.GetName(rhsvartype).c_str(),
+            _sym.GetName(lhsvartype).c_str());
         return -1;
     }
 
@@ -3882,7 +3882,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment_Float(bool is_neg, void *& in
         return -1;
     }
 
-    float float_init_val = static_cast<float>(atof(_sym.get_name_string(_targ.getnext()).c_str()));
+    float float_init_val = static_cast<float>(atof(_sym.GetName(_targ.getnext()).c_str()));
     if (is_neg)
         float_init_val = -float_init_val;
 
@@ -3908,7 +3908,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val_
         cc_error("Expected a literal string");
         return -1;
     }
-    std::string literal = _sym.get_name_string(literal_sym);
+    std::string literal = _sym.GetName(literal_sym);
     if (literal.length() >= STRINGBUFFER_LENGTH)
     {
         cc_error(
@@ -4033,7 +4033,7 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype)
     {
         cc_error(
             "Expected ']', found %s instead",
-            _sym.get_name_string(nextsym).c_str());
+            _sym.GetName(nextsym).c_str());
         return -1;
     }
 
@@ -4089,8 +4089,8 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
             known_info->DeclLine);
         cc_error(
             msg.c_str(),
-            _sym.get_name_string(this_entry->vartype).c_str(),
-            _sym.get_name_string(known_info->vartype).c_str());
+            _sym.GetName(this_entry->vartype).c_str(),
+            _sym.GetName(known_info->vartype).c_str());
         return -1;
     }
 
@@ -4121,7 +4121,7 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
         return 0; // Skip this since the global non-import decl will come later
 
     SetFlag(_sym[var_name].Flags, kSFLG_Imported, true);
-    _sym[var_name].SOffset = _scrip.add_new_import(_sym.get_name_string(var_name).c_str());
+    _sym[var_name].SOffset = _scrip.add_new_import(_sym.GetName(var_name).c_str());
     if (_sym[var_name].SOffset == -1)
     {
         cc_error("Internal error: Import table overflow");
@@ -4235,7 +4235,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     {
         std::string msg = ReferenceMsgSym(
             "Variable %s has already been declared", var_name);
-        cc_error(msg.c_str(), _sym.get_name_string(var_name).c_str());
+        cc_error(msg.c_str(), _sym.GetName(var_name).c_str());
         return -1;
     }
 
@@ -4266,7 +4266,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     if (next_type == kSYM_Semicolon)
         return 0;
 
-    cc_error("Expected ',' or ';' or '=' instead of '%s'", _sym.get_name_string(_targ.peeknext()).c_str());
+    cc_error("Expected ',' or ';' or '=' instead of '%s'", _sym.GetName(_targ.peeknext()).c_str());
     return -1;
 }
 
@@ -4479,17 +4479,17 @@ int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &pare
     }
     if (!FlagIsSet(extends_entry.Flags, kSFLG_Managed) && FlagIsSet(struct_entry.Flags, kSFLG_Managed))
     {
-        cc_error("Managed struct cannot extend the unmanaged struct '%s'", _sym.get_name_string(parent).c_str());
+        cc_error("Managed struct cannot extend the unmanaged struct '%s'", _sym.GetName(parent).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.Flags, kSFLG_Managed) && !FlagIsSet(struct_entry.Flags, kSFLG_Managed))
     {
-        cc_error("Unmanaged struct cannot extend the managed struct '%s'", _sym.get_name_string(parent).c_str());
+        cc_error("Unmanaged struct cannot extend the managed struct '%s'", _sym.GetName(parent).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.Flags, kSFLG_Builtin) && !FlagIsSet(struct_entry.Flags, kSFLG_Builtin))
     {
-        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", _sym.get_name_string(parent).c_str());
+        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", _sym.GetName(parent).c_str());
         return -1;
     }
     size_so_far = _sym.GetSize(parent);
@@ -4526,7 +4526,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vart
     if (Vartype2Symbol(vartype) == stname && !_sym.IsManaged(vartype))
     {
         // cannot do "struct A { A a; }", this struct would be infinitely large
-        cc_error("Struct '%s' can't be a member of itself", _sym.get_name_string(vartype).c_str());
+        cc_error("Struct '%s' can't be a member of itself", _sym.GetName(vartype).c_str());
         return -1;
     }
 
@@ -4535,7 +4535,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vart
     {
         cc_error(
             "Type '%s' is undefined",
-            _sym.get_vartype_name_string(vartype).c_str());
+            _sym.GetName(vartype).c_str());
         return -1;
     }
     if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
@@ -4545,7 +4545,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vart
             Vartype2Symbol(vartype));
         cc_error(
             msg.c_str(),
-            _sym.get_vartype_name_string(vartype).c_str());
+            _sym.GetName(vartype).c_str());
         return -1;
     }
 
@@ -4570,9 +4570,9 @@ int AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symb
             member);
         cc_error(
             msg.c_str(),
-            _sym.get_name_string(orig).c_str(),
-            _sym.get_name_string(act_struct).c_str(),
-            _sym.get_name_string(member).c_str());
+            _sym.GetName(orig).c_str(),
+            _sym.GetName(act_struct).c_str(),
+            _sym.GetName(member).c_str());
         return -1;
     }
 
@@ -4622,8 +4622,8 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
         cc_error(
             "The attribute function '%s' must return type '%s' but returns '%s' instead",
             entry.SName.c_str(),
-            _sym.get_name_string(ret_vartype).c_str(),
-            _sym.get_vartype_name_string(entry.FuncParamTypes[0]).c_str());
+            _sym.GetName(ret_vartype).c_str(),
+            _sym.GetName(entry.FuncParamTypes[0]).c_str());
         return -1;
     }
     size_t p_idx = 1;
@@ -4642,7 +4642,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     {
         cc_error(
             "Parameter #d of attribute function '%s' must have type '%s'",
-            p_idx, entry.SName.c_str(), _sym.get_name_string(vartype).c_str());
+            p_idx, entry.SName.c_str(), _sym.GetName(vartype).c_str());
         return -1;
     }
 
@@ -4875,7 +4875,7 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
                 "'%s' is already defined", mangled_name);
             cc_error(
                 msg.c_str(),
-                _sym.get_name_string(mangled_name).c_str());
+                _sym.GetName(mangled_name).c_str());
             return -1;
         }
 
@@ -4977,7 +4977,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
     if ((_sym.get_type(stname) != 0) &&
         (_sym.get_type(stname) != kSYM_UndefinedStruct))
     {
-        cc_error("'%s' is already defined", _sym.get_name_string(stname).c_str());
+        cc_error("'%s' is already defined", _sym.GetName(stname).c_str());
         return -1;
     }
 
@@ -4988,7 +4988,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
     {
         if (_sym.getStringStructSym() > 0 && stname != _sym.getStringStructSym())
         {
-            cc_error("The stringstruct type is already defined to be %s", _sym.get_name_string(_sym.getStringStructSym()).c_str());
+            cc_error("The stringstruct type is already defined to be %s", _sym.GetName(_sym.getStringStructSym()).c_str());
             return -1;
         }
         _sym.setStringStructSym(stname);
@@ -5094,7 +5094,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
             "'%s' is already defined",
             _sym.Id2Section(entry.DeclSectionId),
             entry.DeclLine);
-        cc_error(msg.c_str(), _sym.get_name_string(enumName).c_str());
+        cc_error(msg.c_str(), _sym.GetName(enumName).c_str());
         return -1;
     }
 
@@ -5133,12 +5133,12 @@ int AGS::Parser::ParseEnum0()
             {
                 std::string msg =
                     ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name);
-                cc_error(msg.c_str(), _sym.get_name_string(item_name).c_str());
+                cc_error(msg.c_str(), _sym.GetName(item_name).c_str());
                 return -1;
             }
             if (_sym.get_type(item_name) != 0) 
             {
-                cc_error("Expected '}' or an unused identifier, found '%s' instead", _sym.get_name_string(item_name).c_str());
+                cc_error("Expected '}' or an unused identifier, found '%s' instead", _sym.GetName(item_name).c_str());
                 return -1;
             }
         }
@@ -5213,12 +5213,12 @@ int AGS::Parser::ParseExport()
         SymbolType const curtype = _sym.get_type(cursym);
         if (curtype == 0)
         {
-            cc_error("Can only export global variables and functions, not '%s'", _sym.get_name_string(cursym).c_str());
+            cc_error("Can only export global variables and functions, not '%s'", _sym.GetName(cursym).c_str());
             return -1;
         }
         if ((curtype != kSYM_GlobalVar) && (curtype != kSYM_Function))
         {
-            cc_error("Invalid export symbol '%s'", _sym.get_name_string(cursym).c_str());
+            cc_error("Invalid export symbol '%s'", _sym.GetName(cursym).c_str());
             return -1;
         }
         if (FlagIsSet(_sym.get_flags(cursym), kSFLG_Imported))
@@ -5236,7 +5236,7 @@ int AGS::Parser::ParseExport()
         if ((ccGetOption(SCOPT_EXPORTALL) != 0) && (curtype == kSYM_Function))
         {
         }
-        else if (_scrip.add_new_export(_sym.get_name_string(cursym).c_str(),
+        else if (_scrip.add_new_export(_sym.GetName(cursym).c_str(),
             (curtype == kSYM_GlobalVar) ? EXPORT_DATA : EXPORT_FUNCTION,
             _sym[cursym].SOffset, _sym[cursym].SScope) == -1)
         {
@@ -5252,7 +5252,7 @@ int AGS::Parser::ParseExport()
             break;
         if (_sym.get_type(cursym) != kSYM_Comma)
         {
-            cc_error("Expected ',' instead of '%s'", _sym.get_name_string(cursym).c_str());
+            cc_error("Expected ',' instead of '%s'", _sym.GetName(cursym).c_str());
             return -1;
         }
         cursym = _targ.getnext();
@@ -5273,7 +5273,7 @@ int AGS::Parser::ParseVartype_GetVarName(AGS::Symbol &varname, AGS::Symbol &stru
         kSYM_GlobalVar != vartype &&
         kSYM_LocalVar != vartype)
     {
-        cc_error("Unexpected '%s'", _sym.get_name_string(varname).c_str());
+        cc_error("Unexpected '%s'", _sym.GetName(varname).c_str());
         return -1;
     }
 
@@ -5290,8 +5290,8 @@ int AGS::Parser::ParseVartype_GetVarName(AGS::Symbol &varname, AGS::Symbol &stru
     if (varname < 0)
     {
         cc_error("'%s' does not contain a function '%s'",
-            _sym.get_name_string(struct_of_member_fct).c_str(),
-            _sym.get_name_string(member_of_member_function).c_str());
+            _sym.GetName(struct_of_member_fct).c_str(),
+            _sym.GetName(member_of_member_function).c_str());
         return -1;
     }
 
@@ -5401,12 +5401,12 @@ int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalnes
     {
         if (_givm[var_name])
         {
-            cc_error("'%s' is already defined as a global non-import variable", _sym.get_name_string(var_name).c_str());
+            cc_error("'%s' is already defined as a global non-import variable", _sym.GetName(var_name).c_str());
             return -1;
         }
         else if (kGl_GlobalNoImport == globalness && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
-            cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.get_name_string(var_name).c_str());
+            cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.GetName(var_name).c_str());
             return -1;
         }
     }
@@ -5498,7 +5498,7 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
         {
             std::string msg =
                 ReferenceMsgSym("'%s' is already in use as a type name", var_or_func_name);
-            cc_error(msg.c_str(), _sym.get_name_string(var_or_func_name).c_str());
+            cc_error(msg.c_str(), _sym.GetName(var_or_func_name).c_str());
             return -1;
         }
 
@@ -5604,14 +5604,14 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     }
     else if (_sym.getVoidSym() != functionReturnType)
     {
-        cc_error("Must return a '%s' value from function", _sym.get_name_string(functionReturnType).c_str());
+        cc_error("Must return a '%s' value from function", _sym.GetName(functionReturnType).c_str());
         return -1;
     }
 
     AGS::Symbol const cursym = _targ.getnext();
     if (kSYM_Semicolon != _sym.get_type(cursym))
     {
-        cc_error("Expected ';' instead of '%s'", _sym.get_name_string(cursym).c_str());
+        cc_error("Expected ';' instead of '%s'", _sym.GetName(cursym).c_str());
         return -1;
     }
 
@@ -5759,7 +5759,7 @@ int AGS::Parser::ParseAssignmentOrFunccall(AGS::Symbol cursym)
         if (retval < 0) return retval;
         return ResultToAX(vloc, scope, vartype);
     }
-    cc_error("Unexpected symbol '%s'", _sym.get_name_string(nextsym).c_str());
+    cc_error("Unexpected symbol '%s'", _sym.GetName(nextsym).c_str());
     return -1;
 }
 
@@ -5785,7 +5785,7 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
         {
             std::string msg =
                 ReferenceMsgSym("Variable '%s' is already defined", varname);
-            cc_error(msg.c_str(), _sym.get_name_string(varname).c_str());
+            cc_error(msg.c_str(), _sym.GetName(varname).c_str());
             return -1;
         }
 
@@ -5983,7 +5983,7 @@ int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
     }
     if (_sym.get_type(_targ.peeknext()) != kSYM_Case && _sym.get_type(_targ.peeknext()) != kSYM_Default && _sym.get_type(_targ.peeknext()) != kSYM_CloseBrace)
     {
-        cc_error("Invalid keyword '%s' in switch statement block", _sym.get_name_string(_targ.peeknext()).c_str());
+        cc_error("Invalid keyword '%s' in switch statement block", _sym.GetName(_targ.peeknext()).c_str());
         return -1;
     }
     return 0;
@@ -6358,7 +6358,7 @@ std::string _ScriptNameBuffer;
 
 void AGS::Parser::Parse_StartNewSection(AGS::Symbol mangled_section_name)
 {
-    _ScriptNameBuffer = _sym.get_name_string(mangled_section_name).substr(18);
+    _ScriptNameBuffer = _sym.GetName(mangled_section_name).substr(18);
     _ScriptNameBuffer.pop_back(); // strip closing speech mark
     ccCurScriptName = _ScriptNameBuffer.c_str();
     currentline = 0;
@@ -6387,7 +6387,7 @@ int AGS::Parser::ParseInput()
     {
         AGS::Symbol cursym = _targ.getnext();
 
-        if (0 == _sym.get_name_string(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
+        if (0 == _sym.GetName(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
         {
             Parse_StartNewSection(cursym);
             continue;
@@ -6410,7 +6410,7 @@ int AGS::Parser::ParseInput()
                 if (kSYM_NoType != _sym.get_type(combined))
                     break;
             }
-            cc_error("Unexpected token '%s'", _sym.get_name_string(cursym).c_str());
+            cc_error("Unexpected token '%s'", _sym.GetName(cursym).c_str());
             return -1;
 
         case kSYM_AutoPtr:
@@ -6453,7 +6453,7 @@ int AGS::Parser::ParseInput()
 
         case kSYM_Import:
         {
-            if (std::string::npos != _sym.get_name_string(cursym).find("_tryimport"))
+            if (std::string::npos != _sym.GetName(cursym).find("_tryimport"))
                 SetFlag(tqs, kTQ_ImportTry, true);
             else
                 SetFlag(tqs, kTQ_ImportStd, true);
@@ -6542,7 +6542,7 @@ int AGS::Parser::ParseInput()
         // Commands are only allowed within a function
         if (name_of_current_func <= 0)
         {
-            cc_error("'%s' is illegal outside a function", _sym.get_name_string(cursym).c_str());
+            cc_error("'%s' is illegal outside a function", _sym.GetName(cursym).c_str());
             return -1;
         }
 

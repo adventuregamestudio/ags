@@ -1248,7 +1248,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
 {
     SymbolTableEntry &param_entry = _sym[param_name];
     param_entry.SType = kSYM_LocalVar;
-    param_entry.extends = false;
+    param_entry.Extends = false;
     param_entry.vartype = param_type;
     size_t const param_size = 4; // We can only deal with parameters of size 4
     param_entry.SScope = 1;
@@ -1941,7 +1941,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         Symbol act_core_vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype_is);
         while (act_core_vartype != target_core_vartype)
         {
-            act_core_vartype = _sym[act_core_vartype].extends;
+            act_core_vartype = _sym[act_core_vartype].Extends;
             if (act_core_vartype == 0)
                 return true;
         }
@@ -3396,7 +3396,7 @@ AGS::Symbol AGS::Parser::AccessData_FindStructOfComponent(AGS::Vartype strct, AG
         AGS::Symbol symb = MangleStructAndComponent(strct, component);
         if (kSYM_NoType != _sym.get_type(symb))
             return strct;
-        strct = _sym[strct].extends;
+        strct = _sym[strct].Extends;
     }
     while (strct > 0);
     return 0;
@@ -3409,7 +3409,7 @@ AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbo
         AGS::Symbol ret = MangleStructAndComponent(strct, component);
         if (kSYM_NoType != _sym.get_type(ret))
             return ret;
-        strct = _sym[strct].extends;
+        strct = _sym[strct].Extends;
     }
     while (strct > 0);
     return 0;
@@ -4438,7 +4438,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
 {
     SymbolTableEntry &entry = _sym[stname];
 
-    entry.extends = 0;
+    entry.Extends = 0;
     entry.SType = kSYM_Vartype;
     SetFlag(entry.Flags, kSFLG_StructVartype, true);
     entry.SSize = 0;
@@ -4493,7 +4493,7 @@ int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &pare
         return -1;
     }
     size_so_far = _sym.GetSize(parent);
-    struct_entry.extends = parent;
+    struct_entry.Extends = parent;
 
     return 0;
 }
@@ -4576,7 +4576,7 @@ int AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symb
         return -1;
     }
 
-    return ParseStruct_CheckForCompoInAncester(orig, compo, _sym[act_struct].extends);
+    return ParseStruct_CheckForCompoInAncester(orig, compo, _sym[act_struct].Extends);
 }
 
 int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype vartype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func)
@@ -4804,7 +4804,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
     {
         SymbolTableEntry &entry = _sym[vname];
         entry.SType = kSYM_StructComponent;
-        entry.extends = stname;  // save which struct it belongs to
+        entry.Extends = stname;  // save which struct it belongs to
         entry.SOffset = size_so_far;
         entry.vartype = vartype;
         if (FlagIsSet(tqs, kTQ_Readonly))

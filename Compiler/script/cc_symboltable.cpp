@@ -44,8 +44,8 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , SSize(0)
     , SScope(0)
     , VartypeType(kVTT_Atomic)
-    , dims({})
-    , extends(0)
+    , Dims({})
+    , Extends(0)
     , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
@@ -62,8 +62,8 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , SSize(sizee)
     , SScope(0)
     , VartypeType(kVTT_Atomic)
-    , dims({})
-    , extends(0)
+    , Dims({})
+    , Extends(0)
     , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
@@ -92,12 +92,12 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
     if (kSYM_Vartype != SType)
         return symt.NumArrayElements(vartype);
 
-    if (0 == dims.size())
+    if (0 == Dims.size())
         return 0;
 
     size_t num = 1;
-    for (size_t dims_idx = 0; dims_idx < dims.size(); ++dims_idx)
-        num *= dims[dims_idx];
+    for (size_t dims_idx = 0; dims_idx < Dims.size(); ++dims_idx)
+        num *= Dims[dims_idx];
     return num;
 }
 
@@ -277,7 +277,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     entries[array_vartype].VartypeType = kVTT_Array;
     entries[array_vartype].vartype = vartype;
     entries[array_vartype].SSize = num_elements * GetSize(vartype);
-    entries[array_vartype].dims = dims;
+    entries[array_vartype].Dims = dims;
     return array_vartype;
 }
 
@@ -329,14 +329,14 @@ int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& c
         for (size_t compo = 1; compo < entries.size(); compo++)
         {
             SymbolTableEntry const &entry = entries[compo];
-            if (entry.extends != strct || !FlagIsSet(entry.Flags, kSFLG_StructMember))
+            if (entry.Extends != strct || !FlagIsSet(entry.Flags, kSFLG_StructMember))
                 continue;
 
             compo_list.push_back(compo);
         }
-        if (entries[strct].extends <= 0)
+        if (entries[strct].Extends <= 0)
             return 0;
-        strct = entries[strct].extends;
+        strct = entries[strct].Extends;
     }
 }
 

@@ -47,7 +47,7 @@ public:
 
     // Vartypes only
     VartypeTypeT VartypeType;
-    std::vector<size_t> dims; // number of elements in each dimension of static array
+    std::vector<size_t> Dims; // number of elements in each dimension of static array
     
     // Vars or vartypes
     
@@ -65,7 +65,7 @@ public:
     inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); };
 
     // Structs and struct members only
-    AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
+    AGS::Vartype Extends; // parent struct (for structs) / owning struct (for members)
 
     // Functions only
     std::vector<AGS::Vartype> funcparamtypes;

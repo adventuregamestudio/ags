@@ -25,7 +25,7 @@ struct SymbolTableEntry {
     friend SymbolTable;
 protected:
     // Is (or has)  a vartype that can be recognized by a flag
-    bool IsVTF(AGS::Flags f, SymbolTable const &symt) const;
+    bool IsVTF(Flags f, SymbolTable const &symt) const;
     // Is (or has)  a vartype that can be recognized by a vartype type
     bool IsVTT(VartypeTypeT vtt, SymbolTable const &symt) const;
 
@@ -108,16 +108,16 @@ private:
     };
 
     // index for predefined symbols
-    AGS::Symbol _charSym;      // the symbol that corresponds to "char"
-    AGS::Symbol _floatSym;     // the symbol that corresponds to "float"
-    AGS::Symbol _intSym;       // the symbol that corresponds to "int"
-    AGS::Symbol _nullSym;      // the symbol that corresponds to "null"
-    AGS::Symbol _pointerSym;   // the symbol that corresponds to "*"
-    AGS::Symbol _stringSym;    // the symbol that corresponds to "string"
-    AGS::Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
-    AGS::Symbol _thisSym;      // the symbol that corresponds to "this"
-    AGS::Symbol _voidSym;      // the symbol that corresponds to "void"
-    AGS::Symbol _lastPredefSym;      // last predefined symbol
+    Symbol _charSym;      // the symbol that corresponds to "char"
+    Symbol _floatSym;     // the symbol that corresponds to "float"
+    Symbol _intSym;       // the symbol that corresponds to "int"
+    Symbol _nullSym;      // the symbol that corresponds to "null"
+    Symbol _pointerSym;   // the symbol that corresponds to "*"
+    Symbol _stringSym;    // the symbol that corresponds to "string"
+    Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
+    Symbol _thisSym;      // the symbol that corresponds to "this"
+    Symbol _voidSym;      // the symbol that corresponds to "void"
+    Symbol _lastPredefSym;      // last predefined symbol
 
     AGS::Vartype _stringStructPtrVartype;
 
@@ -129,23 +129,23 @@ private:
 
 public:
     std::vector<SymbolTableEntry> entries;
-    inline SymbolTableEntry &operator[](AGS::Symbol sym) { return entries.at(sym); };
+    inline SymbolTableEntry &operator[](Symbol sym) { return entries.at(sym); };
 
     SymbolTable();
     inline void ResetCaches() const { _vartypesCache.clear(); };
     void reset();
 
-    inline AGS::Symbol getCharSym() const { return _charSym; }
-    inline AGS::Symbol getFloatSym() const { return _floatSym; }
-    inline AGS::Symbol getIntSym() const { return _intSym; }
-    inline AGS::Symbol getNullSym() const { return _nullSym; }
-    inline AGS::Symbol getOldStringSym() const { return _stringSym; }
-    inline AGS::Symbol getPointerSym() const { return _pointerSym; }
-    inline AGS::Symbol getThisSym() const { return _thisSym; }
-    inline AGS::Symbol getVoidSym() const { return _voidSym; }
-    inline AGS::Symbol getStringStructSym() const { return _stringStructSym; }
-    inline void setStringStructSym(AGS::Symbol s) { _stringStructSym = s; }
-    inline AGS::Symbol getLastPredefSym() const { return _lastPredefSym; }
+    inline Symbol getCharSym() const { return _charSym; }
+    inline Symbol getFloatSym() const { return _floatSym; }
+    inline Symbol getIntSym() const { return _intSym; }
+    inline Symbol getNullSym() const { return _nullSym; }
+    inline Symbol getOldStringSym() const { return _stringSym; }
+    inline Symbol getPointerSym() const { return _pointerSym; }
+    inline Symbol getThisSym() const { return _thisSym; }
+    inline Symbol getVoidSym() const { return _voidSym; }
+    inline Symbol getStringStructSym() const { return _stringStructSym; }
+    inline void setStringStructSym(Symbol s) { _stringStructSym = s; }
+    inline Symbol getLastPredefSym() const { return _lastPredefSym; }
 
     inline bool IsInBounds(Symbol s) const { return s > 0 && static_cast<size_t>(s) < entries.size(); }
 
@@ -168,35 +168,35 @@ public:
     bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize
-    AGS::Symbol SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize);
+    Symbol SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize);
 
     // add the name to the symbol table, empty type and size
-    inline AGS::Symbol Add(char const *name) { return AddWithTypeAndSize(name, kSYM_NoType, 0); };
+    inline Symbol Add(char const *name) { return AddWithTypeAndSize(name, kSYM_NoType, 0); };
 
     // add the operator to the symbol table
     int AddOp(const char *opname , int priority, int vcpucmd);
 
     // Return the symbol to the name, or -1 if not found
-    inline AGS::Symbol find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
+    inline Symbol find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
 
     // Add to the symbol table if not in there already; in any case return the symbol
-    inline AGS::Symbol find_or_add(char const *name) { AGS::Symbol ret = find(name); return (ret >= 0) ? ret : Add(name); }
+    inline Symbol find_or_add(char const *name) { Symbol ret = find(name); return (ret >= 0) ? ret : Add(name); }
 
     // return name as char *, statically allocated
-    inline char const *SymbolTable::get_name(AGS::Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }
+    inline char const *SymbolTable::get_name(Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }
 
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
-    std::string const SymbolTable::get_name_string(AGS::Symbol sym) const;
+    std::string const SymbolTable::get_name_string(Symbol sym) const;
 
     // The symbol type, as given by the kSYM_... constants
-    inline SymbolType get_type(AGS::Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
+    inline SymbolType get_type(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
+    inline AGS::Vartype SymbolTable::get_vartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline AGS::Flags SymbolTable::get_flags(AGS::Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
+    inline Flags SymbolTable::get_flags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;

@@ -2214,7 +2214,7 @@ int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, siz
         return ParseExpression_NewIsFirst(symlist, symlist_len, vloc, scope, vartype);
     }
 
-    int const cmd = _sym[symlist[0]].operatorToVCPUCmd();
+    int const cmd = _sym[symlist[0]].OpToVCPUCmd();
     if (cmd == SCMD_SUBREG)
     {
         // we're parsing something like "- foo"
@@ -2235,7 +2235,7 @@ int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, siz
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
 int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
-    int vcpuOperator = _sym[symlist[op_idx]].operatorToVCPUCmd();
+    int vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
 
     if (vcpuOperator == SCMD_NOTREG)
     {
@@ -2251,7 +2251,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
         // We aren't looking at a subtraction; instead, the '-' is the unary minus of a negative value
         // Thus, the "real" operator must be further to the right, find it.
         op_idx = IndexOfLowestBondingOperator(symlist, op_idx);
-        vcpuOperator = _sym[symlist[op_idx]].operatorToVCPUCmd();
+        vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
     }
 
     // process the left hand side
@@ -2742,7 +2742,7 @@ int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist
         return AccessData(false, false, symlist, symlist_len, vloc, scope, vartype);
 
     // The operator at the beginning must be a unary minus
-    if (SCMD_SUBREG == _sym[symlist[0]].operatorToVCPUCmd())
+    if (SCMD_SUBREG == _sym[symlist[0]].OpToVCPUCmd())
     {
         size_t len_minus_1 = symlist_len - 1;
         SymbolScript symlist1 = symlist + 1;
@@ -2771,7 +2771,7 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
     // then it has been misinterpreted so far: it's really a unary minus
     if ((lowest_op_idx == 0) &&
         (symlist_len > 1) &&
-        (_sym[symlist[0]].operatorToVCPUCmd() == SCMD_SUBREG))
+        (_sym[symlist[0]].OpToVCPUCmd() == SCMD_SUBREG))
     {
         lowest_op_idx = IndexOfLowestBondingOperator(&symlist[1], symlist_len - 1);
         if (lowest_op_idx >= 0)

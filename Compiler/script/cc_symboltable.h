@@ -77,7 +77,7 @@ public:
     SymbolTableEntry();
     SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);
 
-    inline int operatorToVCPUCmd() const { return this->vartype; }
+    inline int OpToVCPUCmd() const { return this->vartype; }
 
     inline int GetCPUOp() const { return SSize; };
 };
@@ -92,6 +92,7 @@ private:
         std::string _cacheSec;
         int _cacheId;
         std::vector <std::string> _section;
+
     public:
         int Section2Id(std::string const &sec);
         std::string const Id2Section(int id) const;

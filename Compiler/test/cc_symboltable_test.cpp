@@ -122,11 +122,11 @@ TEST(SymbolTable, OperatorToVCPUCmd) {
 	int sym_01 = testSym.add("grassgreen");
 
     testSym.entries.at(sym_01).vartype = 0;
-    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 0);
+    ASSERT_TRUE(testSym.entries.at(sym_01).OpToVCPUCmd() == 0);
     testSym.entries.at(sym_01).vartype = 1;
-    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 1);
+    ASSERT_TRUE(testSym.entries.at(sym_01).OpToVCPUCmd() == 1);
     testSym.entries.at(sym_01).vartype = 10;
-    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 10);
+    ASSERT_TRUE(testSym.entries.at(sym_01).OpToVCPUCmd() == 10);
     testSym.entries.at(sym_01).vartype = 100;
-    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 100);
+    ASSERT_TRUE(testSym.entries.at(sym_01).OpToVCPUCmd() == 100);
 }

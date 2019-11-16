@@ -73,7 +73,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     ASSERT_TRUE(testSym.entries.at(a_sym).Flags == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).SOffset == 0);
-    ASSERT_TRUE(testSym.entries.at(a_sym).ssize == ssize);
+    ASSERT_TRUE(testSym.entries.at(a_sym).SSize == ssize);
     ASSERT_TRUE(testSym.entries.at(a_sym).sscope == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).extends == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).get_num_args() == 0);

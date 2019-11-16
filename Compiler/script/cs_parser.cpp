@@ -4441,7 +4441,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
     entry.extends = 0;
     entry.SType = kSYM_Vartype;
     SetFlag(entry.Flags, kSFLG_StructVartype, true);
-    entry.ssize = 0;
+    entry.SSize = 0;
 
     if (FlagIsSet(tqs, kTQ_Managed))
         SetFlag(entry.Flags, kSFLG_Managed, true);
@@ -5014,7 +5014,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
         SymbolTableEntry &entry = _sym[stname];
         entry.SType = kSYM_UndefinedStruct;
         SetFlag(entry.Flags, kSFLG_Managed, true);
-        entry.ssize = 0;
+        entry.SSize = 0;
         return 0;
     }
 
@@ -5036,7 +5036,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
         // align struct on 4-byte boundary in keeping with compiler
         if ((size_so_far % 4) != 0)
             size_so_far += 4 - (size_so_far % 4);
-        _sym[stname].ssize = size_so_far;
+        _sym[stname].SSize = size_so_far;
     }
 
     _targ.getnext(); // Eat '}'
@@ -5099,7 +5099,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
     }
 
     entry.SType = kSYM_Vartype;
-    entry.ssize = SIZE_OF_INT;
+    entry.SSize = SIZE_OF_INT;
     entry.vartype = _sym.getIntSym();
 
     return 0;

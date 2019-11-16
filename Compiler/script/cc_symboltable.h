@@ -40,7 +40,7 @@ public:
     AGS::Vartype vartype; // may contain typeflags
 
     // Variables, structs, struct members, and vartypes only
-    size_t ssize;      // Size in bytes
+    size_t SSize;      // Size in bytes
 
     // Variables and functions only
     int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
@@ -79,7 +79,7 @@ public:
 
     inline int operatorToVCPUCmd() const { return this->vartype; }
 
-    inline int GetCPUOp() const { return ssize; };
+    inline int GetCPUOp() const { return SSize; };
 };
 
 struct SymbolTable {

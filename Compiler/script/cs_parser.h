@@ -391,10 +391,10 @@ private:
     // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
     // For example, "*" has a higher mathematical priority than "-".
     // In contrast to this, "size" gives the priority in the INVERSE way: 
-    // The higher _sym[op].ssize is, the LESS binding is the operator op.
+    // The higher _sym[op].SSize is, the LESS binding is the operator op.
     // To convert, we must subtract this value from some suitable value 
     // (any will do that doesn't cause underflow of the subtraction).
-    inline int MathPrio(Symbol op) const { return 100 - _sym[op].ssize; };
+    inline int MathPrio(Symbol op) const { return 100 - _sym[op].SSize; };
 
     bool IsIdentifier(Symbol symb);
     inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };

@@ -41,7 +41,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , Flags(0)
     , SOffset(0)
     , vartype(0)
-    , ssize(0)
+    , SSize(0)
     , sscope(0)
     , vartype_type(kVTT_Atomic)
     , dims({})
@@ -59,7 +59,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , Flags(0)
     , SOffset(0)
     , vartype(0)
-    , ssize(sizee)
+    , SSize(sizee)
     , sscope(0)
     , vartype_type(kVTT_Atomic)
     , dims({})
@@ -84,7 +84,7 @@ bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) cons
 
 size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
 {
-    return (kSYM_Vartype == SType) ? ssize : symt.GetSize(vartype);
+    return (kSYM_Vartype == SType) ? SSize : symt.GetSize(vartype);
 }
 
 size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
@@ -276,7 +276,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     entries[array_vartype].SType = kSYM_Vartype;
     entries[array_vartype].vartype_type = kVTT_Array;
     entries[array_vartype].vartype = vartype;
-    entries[array_vartype].ssize = num_elements * GetSize(vartype);
+    entries[array_vartype].SSize = num_elements * GetSize(vartype);
     entries[array_vartype].dims = dims;
     return array_vartype;
 }
@@ -307,7 +307,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype
     entry.SType = kSYM_Vartype;
     entry.vartype_type = vtt;
     entry.vartype = vartype;
-    entry.ssize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
+    entry.SSize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
     return valref;
 }
 

@@ -29,7 +29,7 @@ TEST(SymbolTable, GetNameConverted) {
 
     AGS::Vartype const foo_vartype = testSym.add_ex("foo", AGS::kSYM_NoType, 0);
     testSym[foo_vartype].SType = AGS::kSYM_Vartype;
-    testSym[foo_vartype].vartype_type = AGS::kVTT_Atomic;
+    testSym[foo_vartype].VartypeType = AGS::kVTT_Atomic;
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
         "foo[]",

@@ -43,7 +43,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , vartype(0)
     , SSize(0)
     , sscope(0)
-    , vartype_type(kVTT_Atomic)
+    , VartypeType(kVTT_Atomic)
     , dims({})
     , extends(0)
     , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
@@ -61,7 +61,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , vartype(0)
     , SSize(sizee)
     , sscope(0)
-    , vartype_type(kVTT_Atomic)
+    , VartypeType(kVTT_Atomic)
     , dims({})
     , extends(0)
     , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
@@ -69,7 +69,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) const
+bool AGS::SymbolTableEntry::IsVTT(VartypeTypeT vtt, SymbolTable const &symt) const
 {
     if (kSYM_Vartype != SType)
         return symt.IsVTT(vartype, vtt);
@@ -77,9 +77,9 @@ bool AGS::SymbolTableEntry::IsVTT(VartypeType vtt, SymbolTable const &symt) cons
     // "Constant" always is the outermost vartype qualifier,
     // so if this is constant and we're checking for something else,
     // then look for the info one level down.
-    if (kVTT_Const == vartype_type)
+    if (kVTT_Const == VartypeType)
         return (kVTT_Const == vtt) ? true: symt.IsVTT(vartype, vtt);
-    return vtt == vartype_type;
+    return vtt == VartypeType;
 }
 
 size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
@@ -107,7 +107,7 @@ bool AGS::SymbolTableEntry::IsVTF(AGS::Flags f, SymbolTable const &symt) const
         return symt.IsVTF(vartype, f);
 
     // Recursively get to the innermost symbol; read that symbol's flags
-    if (kVTT_Atomic == vartype_type)
+    if (kVTT_Atomic == VartypeType)
         return FlagIsSet(Flags, f);
     return symt.IsVTF(vartype, f);
 }
@@ -274,17 +274,17 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     }
     Vartype const array_vartype = find_or_add(conv_name.c_str());
     entries[array_vartype].SType = kSYM_Vartype;
-    entries[array_vartype].vartype_type = kVTT_Array;
+    entries[array_vartype].VartypeType = kVTT_Array;
     entries[array_vartype].vartype = vartype;
     entries[array_vartype].SSize = num_elements * GetSize(vartype);
     entries[array_vartype].dims = dims;
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeTypeT vtt, AGS::Vartype vartype)
 {
     // Return cached result if existent 
-    std::pair<Vartype, VartypeType> const arg = { vartype, vtt };
+    std::pair<Vartype, VartypeTypeT> const arg = { vartype, vtt };
     Vartype &valref(_vartypesCache[arg]);
     if (valref) 
         return valref;
@@ -305,7 +305,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype
     valref = find_or_add(conv_name.c_str());
     SymbolTableEntry &entry = entries[valref];
     entry.SType = kSYM_Vartype;
-    entry.vartype_type = vtt;
+    entry.VartypeType = vtt;
     entry.vartype = vartype;
     entry.SSize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
     return valref;
@@ -316,7 +316,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
     while (
         IsInBounds(vartype) &&
         kSYM_Vartype == entries[vartype].SType &&
-        FlagIsSet (entries[vartype].vartype_type, vtt))
+        FlagIsSet (entries[vartype].VartypeType, vtt))
         vartype = entries[vartype].vartype;
     return vartype;
 }

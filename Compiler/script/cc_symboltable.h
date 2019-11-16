@@ -10,7 +10,7 @@
 namespace AGS
 {
 
-enum VartypeType
+enum VartypeTypeT
 {
     kVTT_Atomic = 0,
     kVTT_Array = 2 << 0,
@@ -27,7 +27,7 @@ protected:
     // Is (or has)  a vartype that can be recognized by a flag
     bool IsVTF(AGS::Flags f, SymbolTable const &symt) const;
     // Is (or has)  a vartype that can be recognized by a vartype type
-    bool IsVTT(VartypeType vtt, SymbolTable const &symt) const;
+    bool IsVTT(VartypeTypeT vtt, SymbolTable const &symt) const;
 
 public:
     std::string SName;
@@ -46,7 +46,7 @@ public:
     int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
 
     // Vartypes only
-    VartypeType vartype_type;
+    VartypeTypeT VartypeType;
     std::vector<size_t> dims; // number of elements in each dimension of static array
     
     // Vars or vartypes
@@ -103,7 +103,7 @@ private:
     struct VVTTHash
     {
         std::hash<Vartype> hash;
-        size_t operator() (std::pair<Vartype, VartypeType> pair) const { return hash(pair.first ^ (1021 * pair.second)); };
+        size_t operator() (std::pair<Vartype, VartypeTypeT> pair) const { return hash(pair.first ^ (1021 * pair.second)); };
     };
 
     // index for predefined symbols
@@ -121,9 +121,9 @@ private:
     AGS::Vartype _stringStructPtrVartype;
 
     mutable std::unordered_map<std::string, int> _findCache;
-    mutable std::unordered_map<std::pair<Vartype, VartypeType>, Vartype, VVTTHash> _vartypesCache;
+    mutable std::unordered_map<std::pair<Vartype, VartypeTypeT>, Vartype, VVTTHash> _vartypesCache;
 
-    inline bool IsVTT(Symbol s, VartypeType vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
+    inline bool IsVTT(Symbol s, VartypeTypeT vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
     inline bool IsVTF(Symbol s, Flags f) const { return IsInBounds(s) ? entries[s].IsVTF(f, *this) : false; }
 
 public:
@@ -208,7 +208,7 @@ public:
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
     // The "Dynarray / Dynpointer/ Const ... of vartype" vartype
-    Vartype VartypeWith(VartypeType vtt, Vartype vartype);
+    Vartype VartypeWith(VartypeTypeT vtt, Vartype vartype);
     // The vartype without the qualifiers given in vtt
     Vartype VartypeWithout(long vtt, Vartype vartype) const;
 

@@ -576,7 +576,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
             continue;
 
         // caller will sort out stack, so ignore parameters
-        if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_Parameter))
+        if (FlagIsSet(_sym.GetFlags(entries_idx), kSFLG_Parameter))
             continue;
 
         totalsub +=
@@ -1262,7 +1262,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     // stack has the first parameter. The +1 is because the
     // call will push the return address onto the stack as well
     param_entry.SOffset = _scrip.cur_sp - (param_idx + 1) * 4;
-    _sym.set_declared(param_name, ccCurScriptName, currentline);
+    _sym.SetDeclared(param_name, ccCurScriptName, currentline);
 }
 
 void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_const, bool param_has_int_default, int param_int_default)
@@ -1656,7 +1656,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
-    if (FlagIsSet(tqs, kTQ_Import) && kSYM_Function == _sym.GetSymbolType(name_of_func) && !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Imported))
+    if (FlagIsSet(tqs, kTQ_Import) && kSYM_Function == _sym.GetSymbolType(name_of_func) && !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported))
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
@@ -1694,7 +1694,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
             known_info.FuncParamDefaultValues.end());
     }
 
-    _sym.set_declared(name_of_func, ccCurScriptName, currentline);
+    _sym.SetDeclared(name_of_func, ccCurScriptName, currentline);
 
     if (kPP_Main == _pp)
     {
@@ -2092,7 +2092,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
             return -1;
         }
 
-        if (FlagIsSet(_sym.get_flags(new_vartype), kSFLG_Builtin))
+        if (FlagIsSet(_sym.GetFlags(new_vartype), kSFLG_Builtin))
         {
             cc_error(
                 "Built-in type '%s' cannot be instantiated directly",
@@ -2429,8 +2429,8 @@ std::string AGS::Parser::ReferenceMsgSym(std::string const &msg, AGS::Symbol sym
 {
     return ReferenceMsg(
         msg,
-        _sym.get_declared_section(symb),
-        _sym.get_declared_line(symb));
+        _sym.GetDeclaredSection(symb),
+        _sym.GetDeclaredLine(symb));
 }
 
 int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
@@ -2676,12 +2676,12 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
     AGS::SymbolScript paramList = symlist + 1;
     size_t paramListLen = symlist_len - 1;
 
-    bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Imported);
+    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
     bool func_uses_this = false;
     if (std::string::npos != _sym.GetName(name_of_func).find("::"))
-        func_uses_this = !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Static);
+        func_uses_this = !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static);
 
     if (func_uses_this)
     {
@@ -2865,7 +2865,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     AGS::Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
 
     bool const attrib_uses_this =
-        !FlagIsSet(_sym.get_flags(name_of_attribute), kSFLG_Static);
+        !FlagIsSet(_sym.GetFlags(name_of_attribute), kSFLG_Static);
     bool const call_is_indexed =
         (symlist_len > 0 && kSYM_OpenBracket == _sym.GetSymbolType(symlist[0]));
     bool const attrib_is_indexed =
@@ -2884,7 +2884,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
     if (name_of_func < 0) return retval;
 
-    bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSYM_Import);
+    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSYM_Import);
 
     if (attrib_uses_this)
         _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
@@ -3078,7 +3078,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
         return -1;
     }
 
-    if (FlagIsSet(_sym.get_flags(varname), kSFLG_Imported))
+    if (FlagIsSet(_sym.GetFlags(varname), kSFLG_Imported))
         mloc.SetStart(kSYM_Import, soffs);
     else
         mloc.SetStart(is_global ? kSYM_GlobalVar : kSYM_LocalVar, soffs);
@@ -3302,7 +3302,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
     case kSYM_LocalVar:
     {
         scope =
-            (FlagIsSet(_sym.get_flags(symlist[0]), kSFLG_Parameter)) ?
+            (FlagIsSet(_sym.GetFlags(symlist[0]), kSFLG_Parameter)) ?
             kSYM_GlobalVar : kSYM_LocalVar;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = false;
@@ -3335,7 +3335,7 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
     AGS::Symbol const component = AccessData_FindComponent(Vartype2Symbol(vartype), symlist[0]);
     SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : kSYM_NoType;
 
-    if (static_access && !FlagIsSet(_sym.get_flags(component), kSFLG_Static))
+    if (static_access && !FlagIsSet(_sym.GetFlags(component), kSFLG_Static))
     {
         cc_error("Must specify a specific struct for this non-static component");
         return -1;
@@ -3990,7 +3990,7 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartyp
     SymbolTableEntry &entry = _sym[var_name];
     entry.SType = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
     entry.vartype = vartype;
-    _sym.set_declared(var_name, ccCurScriptName, currentline);
+    _sym.SetDeclared(var_name, ccCurScriptName, currentline);
 }
 
 // we have accepted something like "int a" and we're expecting "["
@@ -4301,7 +4301,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
 
     SymbolTableEntry &this_entry = _sym[_sym.getThisSym()];
     this_entry.vartype = 0;
-    if (struct_of_func > 0 && !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Static))
+    if (struct_of_func > 0 && !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static))
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.SType = kSYM_LocalVar;
@@ -4452,7 +4452,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
     if (FlagIsSet(tqs, kTQ_Autoptr))
         SetFlag(entry.Flags, kSFLG_Autoptr, true);
     if (kPP_Main == _pp)
-        _sym.set_declared(stname, ccCurScriptName, currentline);
+        _sym.SetDeclared(stname, ccCurScriptName, currentline);
 }
 
 // We have accepted something like "struct foo" and are waiting for "extends"
@@ -4762,7 +4762,7 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
     AGS::Symbol const nextt = _targ.getnext();
     if (_sym.GetSymbolType(nextt) == kSYM_CloseBracket)
     {
-        if (FlagIsSet(_sym.get_flags(stname), kSFLG_Managed))
+        if (FlagIsSet(_sym.GetFlags(stname), kSFLG_Managed))
         {
             cc_error("Member variable of managed struct cannot be dynamic array");
             return -1;
@@ -4859,7 +4859,7 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
     }
 
     if (_sym.IsManaged(vartype) &&
-        FlagIsSet(_sym.get_flags(stname), kSFLG_Managed) &&
+        FlagIsSet(_sym.GetFlags(stname), kSFLG_Managed) &&
         !FlagIsSet(tqs, kTQ_Attribute) &&
         !is_function)
     {
@@ -4889,7 +4889,7 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
     {
         // All struct members get this flag, even functions
         SetFlag(_sym[mangled_name].Flags, kSFLG_StructMember, true);
-        _sym.set_declared(mangled_name, ccCurScriptName, currentline);
+        _sym.SetDeclared(mangled_name, ccCurScriptName, currentline);
     }
 
     if (is_function)
@@ -5081,7 +5081,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = currentValue;
     if (kPP_Main == _pp)
-        _sym.set_declared(item_name, ccCurScriptName, currentline);
+        _sym.SetDeclared(item_name, ccCurScriptName, currentline);
 }
 
 int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
@@ -5221,7 +5221,7 @@ int AGS::Parser::ParseExport()
             cc_error("Invalid export symbol '%s'", _sym.GetName(cursym).c_str());
             return -1;
         }
-        if (FlagIsSet(_sym.get_flags(cursym), kSFLG_Imported))
+        if (FlagIsSet(_sym.GetFlags(cursym), kSFLG_Imported))
         {
             cc_error("Cannot export an import");
             return -1;

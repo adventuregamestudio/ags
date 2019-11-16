@@ -193,12 +193,12 @@ public:
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline Flags SymbolTable::get_flags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
+    inline Flags SymbolTable::GetFlags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // Set/get section and line where the item is declared
-    void set_declared(int idx, std::string const &section, int line);
-    inline int get_declared_line(int idx) { return (*this)[idx].DeclLine; };
-    inline std::string const get_declared_section(int idx) const { return _sectionMap.Id2Section(entries.at(idx).DeclSectionId); };
+    void SetDeclared(int idx, std::string const &section, int line);
+    inline int GetDeclaredLine(int idx) { return (*this)[idx].DeclLine; };
+    inline std::string const GetDeclaredSection(int idx) const { return _sectionMap.Id2Section(entries.at(idx).DeclSectionId); };
 
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);

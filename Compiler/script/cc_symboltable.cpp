@@ -244,7 +244,7 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
     return entries[symbl].SName;
 }
 
-void AGS::SymbolTable::set_declared(int idx, std::string const &section, int line)
+void AGS::SymbolTable::SetDeclared(int idx, std::string const &section, int line)
 {
     (*this)[idx].DeclSectionId = _sectionMap.Section2Id(section);
     (*this)[idx].DeclLine = line;

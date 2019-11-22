@@ -791,7 +791,16 @@ namespace AGS.Editor
 
                 try
                 {
-                    SpriteSheet spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.ImportWidth, spr.ImportHeight));
+                    SpriteSheet spritesheet;
+
+                    if (spr.ImportAsTile)
+                    {
+                        spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.ImportWidth, spr.ImportHeight));
+                    }
+                    else
+                    {
+                        spritesheet = null;
+                    }
 
                     // take the alpha channel preference from the specified import option
                     // (instead of using whether the old sprite has an alpha channel)

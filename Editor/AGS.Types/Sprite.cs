@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Resolution")]
-    public class Sprite : IComparable<Sprite>
+    public class Sprite : ICustomTypeDescriptor, IComparable<Sprite>
     {
         public const string PROPERTY_SPRITE_NUMBER = "Number";
         public const string PROPERTY_RESOLUTION = "Resolution";
@@ -179,6 +179,7 @@ namespace AGS.Types
 
         [Description("Import as a spritesheet tile using the specified size and offsets")]
         [Category("Import")]
+        [RefreshProperties(RefreshProperties.All)]
         public bool ImportAsTile
         {
             get { return _importAsTile; }
@@ -316,6 +317,92 @@ namespace AGS.Types
 
             writer.WriteEndElement();
         }
+
+        #region ICustomTypeDescriptor Members
+
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
+
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
+
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
+
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
+
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
+
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
+
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
+
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
+
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            // if a re-import wouldn't be a spritesheet tile selected from the source
+            // file, don't return the properties that specify the tile size and offsets
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
+
+            foreach (PropertyDescriptor property in properties)
+            {
+                switch(property.Name)
+                {
+                    case "ImportHeight":
+                    case "ImportWidth":
+                    case "OffsetX":
+                    case "OffsetY":
+                        if (!_importAsTile) break;
+                        goto default;
+                    default:
+                        wantProperties.Add(property);
+                        break;
+                }
+            }
+
+            return new PropertyDescriptorCollection(wantProperties.ToArray());
+        }
+
+        public PropertyDescriptorCollection GetProperties()
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
+            return properties;
+        }
+
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+
+        #endregion
 
 		#region IComparable<Sprite> Members
 

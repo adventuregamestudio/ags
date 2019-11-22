@@ -29,6 +29,7 @@ namespace AGS.Types
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
         private bool _importAlphaChannel;
+        private bool _importAsTile;
 
         public Sprite(int number, int width, int height, int colorDepth, SpriteImportResolution importRes, bool alphaChannel)
         {
@@ -176,6 +177,14 @@ namespace AGS.Types
             set { _importHeight = value; }
         }
 
+        [Description("Import as a spritesheet tile using the specified size and offsets")]
+        [Category("Import")]
+        public bool ImportAsTile
+        {
+            get { return _importAsTile; }
+            set { _importAsTile = value; }
+        }
+
         [Description("The frame number of a multi-frame image within the source file")]
         [Category("Import")]
         public int Frame
@@ -258,6 +267,15 @@ namespace AGS.Types
 
                 try
                 {
+                    _importAsTile = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAsTile"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importAsTile = false;
+                }
+
+                try
+                {
                     _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
                 }
                 catch (InvalidDataException)
@@ -288,6 +306,7 @@ namespace AGS.Types
             writer.WriteElementString("OffsetY", _offsetY.ToString());
             writer.WriteElementString("ImportHeight", _importHeight.ToString());
             writer.WriteElementString("ImportWidth", _importWidth.ToString());
+            writer.WriteElementString("ImportAsTile", _importAsTile.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());

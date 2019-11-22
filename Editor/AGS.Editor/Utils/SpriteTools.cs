@@ -226,6 +226,7 @@ namespace AGS.Editor.Utils
             sprite.ImportWidth = selection.Width;
             sprite.ImportHeight = selection.Height;
             sprite.ImportAlphaChannel = alpha;
+            sprite.ImportAsTile = tile;
         }
 
         public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
@@ -292,6 +293,7 @@ namespace AGS.Editor.Utils
             sprite.ImportWidth = selection.Width;
             sprite.ImportHeight = selection.Height;
             sprite.ImportAlphaChannel = alpha;
+            sprite.ImportAsTile = tile;
 
             folder.Sprites.Add(sprite);
         }

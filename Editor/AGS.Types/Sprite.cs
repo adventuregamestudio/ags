@@ -243,6 +243,8 @@ namespace AGS.Types
                 try
                 {
                     _sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
+
+                    // added in XML version 17
                     _offsetX = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetX"));
                     _offsetY = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetY"));
                     _frame = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "Frame"));
@@ -255,6 +257,17 @@ namespace AGS.Types
                     // pass
                 }
 
+                // added with fixup task in XML version 20
+                try
+                {
+                    _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importAlphaChannel = true;
+                }
+
+                // added with fixup task in XML Version 23
                 try
                 {
                     _importWidth = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "ImportWidth"));
@@ -266,6 +279,7 @@ namespace AGS.Types
                     _importHeight = _height;
                 }
 
+                // added with fixup task in XML Version 24
                 try
                 {
                     _importAsTile = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAsTile"));
@@ -273,15 +287,6 @@ namespace AGS.Types
                 catch (InvalidDataException)
                 {
                     _importAsTile = false;
-                }
-
-                try
-                {
-                    _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
-                }
-                catch (InvalidDataException)
-                {
-                    _importAlphaChannel = true;
                 }
             }
         }

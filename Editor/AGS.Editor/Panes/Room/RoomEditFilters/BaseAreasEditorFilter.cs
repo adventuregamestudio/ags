@@ -54,7 +54,8 @@ namespace AGS.Editor
         private static List<MenuCommand> _toolbarIcons = null;
         private static bool _registeredIcons = false;
         private static Cursor _selectCursor;
-		private static bool _greyedOutMasks = true;
+        private static Cursor _lockCursor;
+        private static bool _greyedOutMasks = true;
 
         public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
         {
@@ -70,6 +71,7 @@ namespace AGS.Editor
                 Factory.GUIController.RegisterIcon("CopyWalkableAreaMaskIcon", Resources.ResourceManager.GetIcon("copymask.ico"));
 				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));                
 				_selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
+                _lockCursor = Resources.ResourceManager.GetCursor("lock_cur.cur");
                 _registeredIcons = true;
             }
 
@@ -586,7 +588,9 @@ namespace AGS.Editor
         {
             if (_drawMode == AreaDrawMode.Select)
                 return _selectCursor;
-            return Cursors.Cross;
+            if (!IsLocked(_selectedArea))
+                return Cursors.Cross;
+            return _lockCursor;
         }
 
         public bool AllowClicksInterception()

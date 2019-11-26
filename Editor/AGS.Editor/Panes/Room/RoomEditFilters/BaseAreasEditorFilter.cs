@@ -280,11 +280,8 @@ namespace AGS.Editor
                 int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
                 if (area != 0)
                 {
-                    if (!IsLocked(area))
-                    {
-                        SelectedArea = area;
-                        SelectedAreaChanged(_selectedArea);
-                    }
+                    SelectedArea = area;
+                    SelectedAreaChanged(_selectedArea);
                 }
                 else
                 {

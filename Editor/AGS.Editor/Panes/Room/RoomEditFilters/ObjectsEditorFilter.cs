@@ -222,7 +222,7 @@ namespace AGS.Editor
             {
                 RoomObject obj = _objectBaselines[i];
                 DesignTimeProperties p = DesignItems[GetItemID(obj)];
-                if (!p.Visible || p.Locked) continue;
+                if (!p.Visible) continue;
                 if (HitTest(obj, x, y)) return obj;
             }
             return null;

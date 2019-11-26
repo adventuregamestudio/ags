@@ -69,19 +69,22 @@ namespace AGS.Editor
         }
 
         private void SelectCharacter(Character character, int xClick, int yClick, RoomEditorState state)
-        {            
-            if (!state.DragFromCenter) 
-            {
-                _mouseOffsetX = xClick - character.StartX;
-                _mouseOffsetY = yClick - character.StartY;
-            }
-            else
-            {
-                _mouseOffsetX = 0;
-                _mouseOffsetY = 0;
-            }
+        {
             SetSelectedCharacter(character);
-            _movingCharacterWithMouse = true;
+            if (!DesignItems[GetItemID(character)].Locked)
+            {
+                if (!state.DragFromCenter)
+                {
+                    _mouseOffsetX = xClick - character.StartX;
+                    _mouseOffsetY = yClick - character.StartY;
+                }
+                else
+                {
+                    _mouseOffsetX = 0;
+                    _mouseOffsetY = 0;
+                }
+                _movingCharacterWithMouse = true;
+            }
         }
 
         private Character GetCharacter(int x, int y, RoomEditorState state)
@@ -91,7 +94,7 @@ namespace AGS.Editor
                 DesignTimeProperties p;
                 if (!DesignItems.TryGetValue(GetItemID(character), out p))
                     continue; // character is not in the room
-                if (!p.Visible || p.Locked) continue;
+                if (!p.Visible) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
 
@@ -384,7 +387,11 @@ namespace AGS.Editor
 
         public bool KeyPressed(Keys key)
         {
-            if (_selectedCharacter == null) return false;
+            if (_selectedCharacter == null)
+                return false;
+            if (DesignItems[GetItemID(_selectedCharacter)].Locked)
+                return false;
+
             switch (key)
             {
                 case Keys.Right:

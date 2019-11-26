@@ -405,7 +405,7 @@ namespace AGS.Editor
             try
             {
                 SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                    UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
             }
             catch (AGSEditorException ex)
             {
@@ -435,7 +435,7 @@ namespace AGS.Editor
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
                     SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                        UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
                 }
                 else
                 {

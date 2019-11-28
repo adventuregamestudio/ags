@@ -167,6 +167,7 @@ Engine:
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
  - Fixed engine crashing with "division by zero" error if user set InventoryWindow's ItemWidth or
    ItemHeight to 0.
+ - Fixed engine crashing if Object.SetView is called with a view that does not have any loops.
  - Fixed old walk-behind cut-outs could be displayed on first update in a room if the room's
    background was modified using raw drawing commands before fade-in. This happened only when
    running Direct3D or OpenGL renderer. Note that this bug was probably never noticed by players

@@ -49,16 +49,28 @@ Locations of two latter files differ between running platforms:
   * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
   * vsync = \[0; 1\] - enable or disable vertical sync.
 * **\[sound\]** - sound options
-  * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'.
-  * midiid = \[string; 0; -1\] - MIDI driver id, '0' or 'none', '-1' or 'auto'.
+  * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
+    * For Linux:
+	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA.
+	* For Windows:
+	  * DXA - pure DirectSound driver;
+	  * AXA - Allegro mixer to DirectSound;
+	  * WOA - Allegro mixer to WaveOut;
+  * midiid = \[string; 0; -1\] - MIDI driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
+    * For Linux:
+	  * AMID (Alsa MIDI), OSSM (OSS MIDI).
+    * For Windows:
+	  * W32M - MIDI mapper;
+	  * W32A - MIDI driver.
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
   * threaded = \[0; 1\] - when enabled, engine runs audio on a separate thread.
 * **\[mouse\]** - mouse options
   * auto_lock = \[0; 1\] - enables mouse autolock in window: mouse cursor locks inside the window whenever it receives input focus.
-  * control = \[string\] - determines when the mouse cursor speed control is enabled, acceptable values are:
+  * control_when = \[string\] - determines when the mouse cursor speed control is allowed, acceptable values are:
     * never - self-explanatory;
     * fullscreen - only when the game is run in fullscreen (this is default);
     * always - both in fullscreen and windowed mode.
+  * control_enabled = \[0; 1\] - enables or disables mouse control. Note that this setting may be overriden by control_when.
   * speed_def = \[string\] - determines how the cursor speed value is interpreted, possible modes are:
     * absolute - use precisely the speed value provided by config;
     * current_display - keep cursor's speed by screen size relation by increasing actual cursor speed when running game in low resolution and decreasing when running in higher than the current user's dekstop resolution (this is default).
@@ -72,7 +84,6 @@ Locations of two latter files differ between running platforms:
   * user_data_dir = \[string\] - custom path to savedgames location.
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
-  * notruecolor = \[0; 1\] - run 32-bit games in 16-bit mode. This option may only be useful on old low-end machines.
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
 * **\[override\]** - special options, overriding game behavior.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
@@ -103,10 +114,15 @@ Following OPTIONS are supported when running from command line:
 * --fullscreen - run in fullscreen mode.
 * --gfxdriver \<name\> - use specified graphics driver (see list above).
 * --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
-* --hicolor - force hicolor (16-bit) mode when running 32-bit games. This option may only be useful on old low-end machines.
 * --log - write debug messages to log file.
 * --no-log - prevent from writing to log file.
-* --setup - run setup dialog. Currently only supported by Windows version.
+* --setup - run integrated setup dialog. Currently only supported by Windows version.
+* --tell - print various information concerning engine and the game, and quits. Output is done in JSON format.
+  * --tell-config - print contents of merged game config.
+  * --tell-configpath - print paths to available config files.
+  * --tell-data - print information on game data and its location.
+  * --tell-engine - print engine name and version.
+  * --tell-graphicdriver - print list of supported graphic drivers.
 * --windowed - run in windowed mode.
 
 

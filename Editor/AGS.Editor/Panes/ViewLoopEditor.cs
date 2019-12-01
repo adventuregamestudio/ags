@@ -127,9 +127,24 @@ namespace AGS.Editor
 
         private void ViewLoopEditor_Paint(object sender, PaintEventArgs e)
         {
-            IntPtr hdc = e.Graphics.GetHdc();
-            Factory.NativeProxy.DrawViewLoop(hdc, _loop, 0, _loopDisplayY, FRAME_DISPLAY_SIZE, _selectedFrame);
-            e.Graphics.ReleaseHdc();
+            for (int i = 0; i < _loop.Frames.Count; i++)
+            {
+                ViewFrame frame = _loop.Frames[i];
+                Sprite sprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(frame.Image, true);
+
+                using (Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, FRAME_DISPLAY_SIZE, FRAME_DISPLAY_SIZE, false, false))
+                {
+                    if (frame.Flipped)
+                    {
+                        bmp.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    }
+
+                    Rectangle display = new Rectangle(i * FRAME_DISPLAY_SIZE, _loopDisplayY, FRAME_DISPLAY_SIZE, FRAME_DISPLAY_SIZE);
+                    e.Graphics.DrawImage(bmp, display);
+                    Pen pen = new Pen(i == _selectedFrame ? Color.HotPink : Color.SlateGray);
+                    e.Graphics.DrawRectangle(pen, display);
+                }
+            }
 
 			for (int i = 0; i < _loop.Frames.Count; i++)
 			{

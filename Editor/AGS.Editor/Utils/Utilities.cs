@@ -261,7 +261,7 @@ namespace AGS.Editor
             }
         }
 
-        public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
+        public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline)
         {
             float targetWidthHeightRatio = (float)width / (float)height;
             float spriteWidthHeightRatio = (float)sprite.Width / (float)sprite.Height;
@@ -287,26 +287,42 @@ namespace AGS.Editor
             if (newWidth < 1) newWidth = 1;
             if (newHeight < 1) newHeight = 1;
 
-            Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-            Graphics g = Graphics.FromImage(newBmp);
-            g.Clear(backgroundColour);
-            Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight);
+            Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
-            int x = 0, y = 0;
-            if (centreInNewCanvas)
+            using (Graphics g = Graphics.FromImage(newBmp))
             {
-                x = width / 2 - bitmapToDraw.Width / 2;
-                y = height - bitmapToDraw.Height;
+                if (sprite.AlphaChannel)
+                {
+                    g.Clear(Color.Transparent);
+                }
+                else
+                {
+                    g.Clear(Color.Magenta);
+                }
+
+                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight))
+                {
+                    int x = 0, y = 0;
+                    if (centreInNewCanvas)
+                    {
+                        x = width / 2 - bitmapToDraw.Width / 2;
+                        y = height - bitmapToDraw.Height;
+                    }
+
+                    g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
+
+                    if (drawOutline)
+                    {
+                        g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
+                    }
+                }
             }
 
-            g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
-
-            if (drawOutline)
+            if (!(sprite.AlphaChannel))
             {
-                g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
+                newBmp.MakeTransparent(Color.Magenta);
             }
 
-            g.Dispose();
             return newBmp;
         }
 

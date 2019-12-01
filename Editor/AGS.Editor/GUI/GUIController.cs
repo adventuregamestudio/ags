@@ -1666,18 +1666,9 @@ namespace AGS.Editor
         }
 
         void IGUIController.DrawSprite(Graphics g, int spriteNumber, int x, int y, int width, int height, bool centreHorizontally)
-		{
-            SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteNumber);
-
-            int spriteWidth = info.Width;
-			int spriteHeight = info.Height;
-            // Draw low-res sprites larger (TODO: find out why, perhaps just for the better looks?)
-            if (info.Resolution == SpriteImportResolution.LowRes)
-            {
-                spriteWidth *= 2;
-                spriteHeight *= 2;
-            }
-			Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNumber, spriteWidth, spriteHeight), width, height, centreHorizontally, false, SystemColors.Control);
+        {
+            Sprite sprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(spriteNumber, true);
+            Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, width, height, centreHorizontally, false);
 			g.DrawImage(bmp, x, y);
 			bmp.Dispose();
 		}

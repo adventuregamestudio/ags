@@ -103,32 +103,25 @@ namespace AGS.Editor
                 (udFrame.Value < _view.Loops[(int)udLoop.Value].Frames.Count))
             {
                 ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
-                int spriteNum = thisFrame.Image;
-                SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteNum);
-                int spriteWidth = info.Width;
-                int spriteHeight = info.Height;
-                // Draw low-res sprites larger (TODO: find out why, perhaps just for the better looks?)
-                if (info.Resolution == SpriteImportResolution.LowRes)
-                {
-                    spriteWidth *= 2;
-                    spriteHeight *= 2;
-                }
-                int x = 0, y;
-                y = previewPanel.ClientSize.Height - spriteHeight;
+                Sprite sprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(thisFrame.Image, true);
+                int x = 0;
+                int y = previewPanel.ClientSize.Height - sprite.Height;
+
                 if (chkCentrePivot.Checked)
                 {
-                    x = previewPanel.ClientSize.Width / 2 - spriteWidth / 2;
+                    x = previewPanel.ClientSize.Width / 2 - sprite.Width / 2;
                 }
-				if ((spriteWidth <= previewPanel.ClientSize.Width) &&
-					(spriteHeight <= previewPanel.ClientSize.Height))
+
+                if ((sprite.Width <= previewPanel.ClientSize.Width) &&
+                    (sprite.Height <= previewPanel.ClientSize.Height))
 				{
 					IntPtr hdc = e.Graphics.GetHdc();
-					Factory.NativeProxy.DrawSprite(hdc, x, y, spriteNum, thisFrame.Flipped);
+                    Factory.NativeProxy.DrawSprite(hdc, x, y, sprite.Number, thisFrame.Flipped);
 					e.Graphics.ReleaseHdc();
 				}
 				else
 				{
-					Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteWidth, spriteHeight), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
+                    Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false);
 
                     if (thisFrame.Flipped)
                     {

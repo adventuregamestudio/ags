@@ -52,11 +52,15 @@ namespace AGS.Editor
                 IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
 
                 if (_item.Image > 0)
-				{
-					IntPtr hdc = e.Graphics.GetHdc();
-					Factory.NativeProxy.DrawSprite(hdc, 0, 0, _item.Image);
-					e.Graphics.ReleaseHdc();
-				}
+                {
+                    Sprite sprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(_item.Image, true);
+
+                    using (Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, sprite.Width * IMAGE_SCALE_FACTOR, sprite.Height * IMAGE_SCALE_FACTOR, false, false))
+                    {
+                        e.Graphics.DrawImage(bmp, 0, 0);
+                    }
+                }
+
                 if ((_item.HotspotX >= 0) && (_item.HotspotY >= 0))
                 {
                     e.Graphics.DrawLine(Pens.LightGreen, (_item.HotspotX - 2) * IMAGE_SCALE_FACTOR, _item.HotspotY * IMAGE_SCALE_FACTOR, (_item.HotspotX + 2) * IMAGE_SCALE_FACTOR, _item.HotspotY * IMAGE_SCALE_FACTOR);

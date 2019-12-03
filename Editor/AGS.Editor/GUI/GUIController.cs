@@ -1024,6 +1024,7 @@ namespace AGS.Editor
                     _agsEditor.CurrentGame.Settings.GameName = newGameName;
                     _agsEditor.CurrentGame.Settings.SaveGameFolderName = newGameName;
                     _agsEditor.CurrentGame.Settings.GenerateNewGameID();
+                    _agsEditor.CurrentGame.DefaultSetup.TitleText = _agsEditor.CurrentGame.Settings.GameName + " Setup";
                     Factory.GUIController.GameNameUpdated();
                     _agsEditor.CurrentGame.WorkspaceState.LastBuildConfiguration = _agsEditor.CurrentGame.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
                     if (_agsEditor.SaveGameFiles())

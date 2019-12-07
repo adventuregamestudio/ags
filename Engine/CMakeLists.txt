@@ -19,8 +19,6 @@ target_sources(engine
     ac/audioclip.h
     ac/button.cpp
     ac/button.h
-    ac/cdaudio.cpp
-    ac/cdaudio.h
     ac/character.cpp
     ac/character.h
     ac/charactercache.h

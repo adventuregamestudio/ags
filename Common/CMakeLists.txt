@@ -35,7 +35,6 @@ target_sources(common
     ac/inventoryiteminfo.h
     ac/mousecursor.cpp
     ac/mousecursor.h
-    ac/oldgamesetupstruct.h
     ac/spritecache.cpp
     ac/spritecache.h
     ac/view.cpp

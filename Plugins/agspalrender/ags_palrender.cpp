@@ -29,6 +29,7 @@
 
 
 #include "plugin/agsplugin.h"
+#include "script/executingscript.h"
 #include "palrender.h"
 #include "raycast.h"
 
@@ -1621,27 +1622,42 @@ int DrawReflections (int id, int charobj=0)
 	{
 	currchar = engine->GetCharacter (id);
 	int view=0;
-	if (Reflection.Characters[id].replaceview == 0) view = currchar->view+1;
+    int char_view = engine->CallGameScriptFunction("Character::get_View", kScInstGame, 1, (long) currchar);
+    int char_frame = engine->CallGameScriptFunction("Character::get_Frame", kScInstGame,1, (long) currchar);
+    int char_loop = engine->CallGameScriptFunction("Character::get_Loop", kScInstGame, 1, (long) currchar);
+    int char_x = engine->CallGameScriptFunction("Character::get_x", kScInstGame, 1, (long)  currchar);
+    int char_y = engine->CallGameScriptFunction("Character::get_y", kScInstGame, 1, (long) currchar);
+    int char_z = engine->CallGameScriptFunction("Character::get_z", kScInstGame, 1, (long) currchar);
+    int char_scaling = engine->CallGameScriptFunction("Character::get_Scaling", kScInstGame, 1, (long) currchar);
+
+	if (Reflection.Characters[id].replaceview == 0) view = char_view+1;
 	else view = Reflection.Characters[id].replaceview;
-	AGSViewFrame *vf = engine->GetViewFrame (currchar->view+1,currchar->loop,currchar->frame);
-	charsprite = engine->GetSpriteGraphic (vf->pic);
-	long scaling = currchar->flags & CHF_NOSCALING;
-	if (!scaling)scale = engine->GetAreaScaling (currchar->x,currchar->y);
+	AGSViewFrame *vf = engine->GetViewFrame (char_view+1,char_loop,char_frame);
+    int char_graphic = engine->CallGameScriptFunction("ViewFrame::get_Graphic", kScInstGame, 1, (long) vf);
+	charsprite = engine->GetSpriteGraphic (char_graphic);
+	long scaling = char_scaling;
+	if (!scaling)scale = engine->GetAreaScaling (char_x,char_y);
 	else scale = 100;
-	cox = currchar->x;
-	coy = currchar->y;
-	coz = currchar->z;
+	cox = char_x;
+	coy = char_y;
+	coz = char_z;
 	}
 	else if (charobj == 1)
 	{
 		currobj = engine->GetObject (id);
 		
-		charsprite = engine->GetSpriteGraphic (currobj->num);
+		charsprite = engine->GetSpriteGraphic (engine->CallGameScriptFunction("Object::get_Graphic", kScInstGame, 1, (long) currobj));
+        int obj_x = engine->CallGameScriptFunction("Object::get_X", kScInstGame, 1, (long) currobj);
+        int obj_y = engine->CallGameScriptFunction("Object::get_Y", kScInstGame, 1, (long) currobj);
+        int obj_baseline = engine->CallGameScriptFunction("Object::get_Baseline", kScInstGame, 1, (long) currobj);
+
 		if (Reflection.Objects[id].ignorescaling) scale = 100;
-		else scale = engine->GetAreaScaling (currobj->x,currobj->y);
-		cox = currobj->x;
-		if (currobj->baseline < 0) coy = currobj->y;
-		else coy = currobj->baseline;
+		else scale = engine->GetAreaScaling (
+                obj_x,
+                obj_y);
+		cox = obj_x;
+		if (obj_baseline < 0) coy = obj_y;
+		else coy = obj_baseline;
 		coz = 0;
 	}
 	bool scaled;
@@ -1703,7 +1719,11 @@ int DrawReflections (int id, int charobj=0)
 	{
 	int (*sfGetGameParameter)(int,int,int,int);
 	sfGetGameParameter = ((int(*)(int,int,int,int)) engine->GetScriptFunctionAddress("GetGameParameter"));
-	flipped = sfGetGameParameter(13,currchar->view+1,currchar->loop,currchar->frame);
+    int currchar_view = engine->CallGameScriptFunction("Character::get_View", kScInstGame, 1, (long) currchar);
+    int currchar_frame = engine->CallGameScriptFunction("Character::get_Frame", kScInstGame, 1, (long) currchar);
+    int currchar_loop = engine->CallGameScriptFunction("Character::get_Loop", kScInstGame, 1, (long) currchar);
+
+	flipped = sfGetGameParameter(13,currchar_view+1,currchar_loop,currchar_frame);
 	}
 	else flipped = 0;
 	obst = new int [w];
@@ -2121,13 +2141,22 @@ int AGS_EngineOnEvent (int event, int data) {
 			{
 				if (Reflection.Characters[i].reflect == 0) continue;
 				AGSCharacter *tempchar = engine->GetCharacter (i);
-				if (tempchar->room != engine->GetCurrentRoom ()) continue; //if character isn't even in the room, go to next iteration.
-				int32 vx = tempchar->x;
-				int32 vy = tempchar->y;
+                int char_view = engine->CallGameScriptFunction("Character::get_View", kScInstGame, 1, (long) tempchar);
+                int char_frame = engine->CallGameScriptFunction("Character::get_Frame", kScInstGame, 1, (long) tempchar);
+                int char_loop = engine->CallGameScriptFunction("Character::get_Loop", kScInstGame, 1, (long) tempchar);
+                int char_x = engine->CallGameScriptFunction("Character::get_x", kScInstGame, 1, (long) tempchar);
+                int char_y = engine->CallGameScriptFunction("Character::get_y", kScInstGame, 1, (long) tempchar);
+                int char_room = engine->CallGameScriptFunction("Character::get_Room", kScInstGame, 1, (long) tempchar);
+
+
+				if (char_room != engine->GetCurrentRoom ()) continue; //if character isn't even in the room, go to next iteration.
+				int32 vx = char_x;
+				int32 vy = char_y;
 				engine->RoomToViewport (&vx,&vy);
-				AGSViewFrame *vf = engine->GetViewFrame (tempchar->view+1,tempchar->loop,tempchar->frame);
-				int w = engine->GetSpriteWidth (vf->pic);
-				int h = engine->GetSpriteHeight (vf->pic);
+				AGSViewFrame *vf = engine->GetViewFrame (char_view+1,char_loop,char_frame);
+				int char_graphic = engine->CallGameScriptFunction("ViewFrame::get_Graphic", kScInstGame, 1, (long) vf);
+				int w = engine->GetSpriteWidth (char_graphic);
+				int h = engine->GetSpriteHeight (char_graphic);
 				vx = vx-(w/2);
 				int32 vxmax = vx+w;
 				int32 vymax = vy+h;
@@ -2138,12 +2167,12 @@ int AGS_EngineOnEvent (int event, int data) {
 			{
 				if (Reflection.Objects[i].reflect == 0) continue;
 				AGSObject *tempobj = engine->GetObject (i);
-				if (!tempobj->on) continue;
-				int32 vx = tempobj->x;
-				int32 vy = tempobj->baseline - tempobj->y;
+				if (!engine->CallGameScriptFunction("Object::get_Visible", kScInstGame, 1, (long) tempobj)) continue;
+				int32 vx = engine->CallGameScriptFunction("Object::get_X", kScInstGame, 1, (long) tempobj);
+				int32 vy = engine->CallGameScriptFunction("Object::get_Baseline", kScInstGame, 1, (long) tempobj) - engine->CallGameScriptFunction("Object::get_Y", kScInstGame, 1, (long) tempobj);
 				engine->RoomToViewport (&vx,&vy);
-				int32 w = engine->GetSpriteWidth (tempobj->num);
-				int32 h = engine->GetSpriteHeight (tempobj->num);
+				int32 w = engine->GetSpriteWidth(engine->CallGameScriptFunction("Object::get_Graphic", kScInstGame, 1, (long) tempobj));
+				int32 h = engine->GetSpriteHeight(engine->CallGameScriptFunction("Object::get_Graphic", kScInstGame, 1, (long) tempobj));
 				int32 vxmax = vx+w;
 				int32 vymax = vy+h;
 				if (vxmax < 0 || vy > sh || vx > sw || vymax < 0) continue; //if all of the sprite is off screen in any direction, go to next iteration

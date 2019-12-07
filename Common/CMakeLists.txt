@@ -71,7 +71,6 @@ target_sources(common
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
-    game/room_file_deprecated.cpp
     game/room_version.h
     game/roomstruct.cpp
     game/roomstruct.h

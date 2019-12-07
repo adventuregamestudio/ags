@@ -76,11 +76,14 @@ target_sources(engine
     ac/dynobj/scriptaudiochannel.h
     ac/dynobj/scriptcamera.cpp
     ac/dynobj/scriptcamera.h
+    ac/dynobj/scriptcontainers.h
     ac/dynobj/scriptdatetime.cpp
     ac/dynobj/scriptdatetime.h
     ac/dynobj/scriptdialog.h
     ac/dynobj/scriptdialogoptionsrendering.cpp
     ac/dynobj/scriptdialogoptionsrendering.h
+    ac/dynobj/scriptdict.cpp
+    ac/dynobj/scriptdict.h
     ac/dynobj/scriptdrawingsurface.cpp
     ac/dynobj/scriptdrawingsurface.h
     ac/dynobj/scriptdynamicsprite.cpp
@@ -90,13 +93,17 @@ target_sources(engine
     ac/dynobj/scriptgui.h
     ac/dynobj/scripthotspot.h
     ac/dynobj/scriptinvitem.h
+    ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptmouse.h
     ac/dynobj/scriptobject.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
     ac/dynobj/scriptregion.h
+    ac/dynobj/scriptset.cpp
+    ac/dynobj/scriptset.h
     ac/dynobj/scriptstring.cpp
     ac/dynobj/scriptstring.h
+    ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptsystem.h
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
@@ -257,6 +264,8 @@ target_sources(engine
     ac/statobj/agsstaticobject.h
     ac/statobj/staticarray.cpp
     ac/statobj/staticarray.h
+    ac/statobj/staticgame.cpp
+    ac/statobj/staticgame.h
     ac/statobj/staticobject.h
     ac/string.cpp
     ac/string.h

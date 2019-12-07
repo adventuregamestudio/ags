@@ -1660,9 +1660,9 @@ int DrawReflections (int id, int charobj=0)
     int char_z = Character_GetZ(currchar);
     int char_scaling = Character_GetScaling(currchar);
 
-	if (Reflection.Characters[id].replaceview == 0) view = char_view+1;
+	if (Reflection.Characters[id].replaceview == 0) view = char_view;
 	else view = Reflection.Characters[id].replaceview;
-	AGSViewFrame *vf = engine->GetViewFrame (char_view+1,char_loop,char_frame);
+	AGSViewFrame *vf = engine->GetViewFrame (char_view,char_loop,char_frame);
     int char_graphic = ViewFrame_GetGraphic(vf);
 	charsprite = engine->GetSpriteGraphic (char_graphic);
 	long scaling = char_scaling;
@@ -1753,7 +1753,7 @@ int DrawReflections (int id, int charobj=0)
     int currchar_frame = Character_GetFrame(currchar);
     int currchar_loop = Character_GetLoop(currchar);
 
-	flipped = sfGetGameParameter(13,currchar_view+1,currchar_loop,currchar_frame);
+	flipped = sfGetGameParameter(13,currchar_view,currchar_loop,currchar_frame);
 	}
 	else flipped = 0;
 	obst = new int [w];
@@ -2199,7 +2199,7 @@ int AGS_EngineOnEvent (int event, int data) {
 				int32 vx = char_x;
 				int32 vy = char_y;
 				engine->RoomToViewport (&vx,&vy);
-				AGSViewFrame *vf = engine->GetViewFrame (char_view+1,char_loop,char_frame);
+				AGSViewFrame *vf = engine->GetViewFrame (char_view,char_loop,char_frame);
 				int char_graphic = ViewFrame_GetGraphic(vf);
 				int w = engine->GetSpriteWidth (char_graphic);
 				int h = engine->GetSpriteHeight (char_graphic);

@@ -1090,39 +1090,31 @@ namespace AGS.Types
             }
             else
             {
-                // We adjust compatibility setting in two situations:
-                // 1) project is older than the compatibility setting itself
-                // 2) compatibility setting was not explicitly defined
-                if (projectVersion < firstCompatibleVersion ||
-                    _settings.ScriptCompatLevel == ScriptAPIVersion.Highest)
+                // We adjust compatibility setting in following situations:
+                // *) project is older than the compatibility setting itself
+                if (projectVersion < firstCompatibleVersion)
                 {
-                    // Devise the API version from enum values Description attribute
-                    // and find the first version equal or higher than project's one.
-                    Type t = typeof(ScriptAPIVersion);
-                    string[] names = Enum.GetNames(t);
-                    string last_name = names[0];
-                    foreach (string n in names)
+                    // TODO: Description attribute of ScriptAPIVersion enum is not reliable
+                    // source of the corresponding project version. Find some other way to
+                    // automate this, like a custom attribute (otherwise it may be difficult
+                    // to maintain in long term).
+                    string[] versions = new string[] { "3.2.1", "3.3.0", "3.3.4", "3.3.5", "3.4.0" };
+                    // Find the first version equal or higher than project's one.
+                    int last_value = (int)ScriptAPIVersion.Highest;
+                    for (int i = 0; i < versions.Length; ++i)
                     {
-                        FieldInfo fi = t.GetField(n);
-                        DescriptionAttribute[] attributes =
-                          (DescriptionAttribute[])fi.GetCustomAttributes(
-                          typeof(DescriptionAttribute), false);
-                        if (attributes.Length == 0)
-                            continue;
-                        // TODO: find another way to parse enum constant, don't rely on human-targeted description (another attribute?)
-                        string desc = attributes[0].Description.Split(' ')[0];
-                        System.Version v = new System.Version(desc);
+                        System.Version v = new System.Version(versions[i]);
                         if (projectVersion < v)
                             break;
-                        last_name = n;
+                        last_value = i;
                         if (projectVersion == v)
                             break;
                     }
-                    _settings.ScriptCompatLevel = (ScriptAPIVersion)Enum.Parse(t, last_name);
+                    _settings.ScriptCompatLevel = (ScriptAPIVersion)last_value;
                 }
+                // Convert API 3.4.0 into Highest constant if the game was made in AGS 3.4.0
                 if (projectVersion < firstVersionWithHighestConst && _settings.ScriptAPIVersion == ScriptAPIVersion.v340)
                 {
-                    // Convert API 3.4.0 into Highest constant if the game was made in AGS 3.4.0
                     _settings.ScriptAPIVersion = ScriptAPIVersion.Highest;
                 }
             }

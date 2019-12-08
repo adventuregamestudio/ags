@@ -488,7 +488,7 @@ private:
 
     int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows, int &numparams);
 
-    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams);
+    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected);
 
     int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const &this_entry, bool body_follows, SymbolTableEntry const &known_info);
 

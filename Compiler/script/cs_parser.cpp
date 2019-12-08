@@ -1320,9 +1320,11 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     return 0;
 }
 
-int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows, int &numparams)
+int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows, bool &is_varargs)
 {
+    is_varargs = false;
     bool param_is_const = false;
+    size_t param_idx;
     while (!_targ.reached_eof())
     {
         AGS::Symbol const cursym = _targ.getnext();
@@ -1350,7 +1352,7 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
 
         case kSYM_Varargs:
         {
-            numparams += VARARGS_INDICATOR;
+            is_varargs = true;
             if (_sym.GetSymbolType(_targ.getnext()) != kSYM_CloseParenthesis)
             {
                 cc_error("Expected ')' after '...'");
@@ -1361,16 +1363,15 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
 
         case kSYM_Vartype:
         {
-            if ((numparams % VARARGS_INDICATOR) >= MAX_FUNCTION_PARAMETERS)
+            if ((param_idx % VARARGS_INDICATOR) >= MAX_FUNCTION_PARAMETERS)
             {
-                cc_error("Too many parameters defined for function (max. allowed: %d)", MAX_FUNCTION_PARAMETERS - 1);
+                cc_error("Too many parameters defined for function (max. allowed: %d)", static_cast<int>(MAX_FUNCTION_PARAMETERS) - 1);
                 return -1;
             }
 
-            int retval = ParseParamlist_Param(funcsym, body_follows, cursym, param_is_const, numparams);
+            int retval = ParseParamlist_Param(funcsym, body_follows, cursym, param_is_const, param_idx);
             if (retval < 0) return retval;
 
-            ++numparams;
             param_is_const = false; // modifier has been used up
             SymbolType const nexttype = _sym.GetSymbolType(_targ.peeknext());
             if (nexttype == kSYM_Comma)
@@ -1383,11 +1384,10 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
     return -1;
 }
 
-void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams)
+void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected)
 {
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.SType = kSYM_Function;
-    entry.SScope = numparams - 1;
 
     entry.FuncParamTypes[0] = return_vartype;
     if (func_is_static)
@@ -1678,7 +1678,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     retval = ParseFuncdecl_Paramlist(name_of_func, body_follows, numparams);
     if (retval < 0) return retval;
 
-    ParseFuncdecl_SetFunctype(name_of_func, return_vartype, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected), numparams);
+    ParseFuncdecl_SetFunctype(name_of_func, return_vartype, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected));
 
     retval = ParseFuncdecl_CheckThatKnownInfoMatches(_sym[name_of_func], body_follows, known_info);
     if (retval < 0) return retval;

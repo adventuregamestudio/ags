@@ -584,7 +584,7 @@ RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_Mouse_SetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Mouse_EnableControl);
+    API_SCALL_VOID_PBOOL(Mouse_EnableControl);
 }
 
 

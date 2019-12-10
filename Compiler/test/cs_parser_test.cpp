@@ -1069,6 +1069,96 @@ TEST(Compile, ImportOverride1) {
     ASSERT_GE(0, compileResult);
 }
 
+TEST(Compile, DynamicNonManaged1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Dynamic array of non-managed struct not allowed
+
+    char *inpl = "\
+        struct Inner                                        \n\
+        {                                                   \n\
+            short Payload;                                  \n\
+        };                                                  \n\
+        managed struct Struct                               \n\
+        {                                                   \n\
+            Inner In[];                                     \n\
+        };                                                  \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("Inner"));
+}
+
+TEST(Compile, DynamicNonManaged2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Dynamic array of non-managed struct not allowed
+
+    char *inpl = "\
+        struct Inner                                        \n\
+        {                                                   \n\
+            short Payload;                                  \n\
+        };                                                  \n\
+        managed struct Struct                               \n\
+        {                                                   \n\
+            Inner *In;                                      \n\
+        };                                                  \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("Inner"));
+}
+
+TEST(Compile, DynamicNonManaged3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Dynamic array of non-managed struct not allowed
+
+    char *inpl = "\
+        struct Inner                                        \n\
+        {                                                   \n\
+            short Payload;                                  \n\
+        };                                                  \n\
+        Inner *In;                                          \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("Inner"));
+}
+
+TEST(Compile, BuiltinStructMember) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Builtin (non-managed) components not allowed 
+
+    char *inpl = "\
+        builtin struct Inner                                \n\
+        {                                                   \n\
+            short Fluff;                                    \n\
+        };                                                  \n\
+        managed struct Struct                               \n\
+        {                                                   \n\
+            Inner In;                                       \n\
+        };                                                  \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("Inner"));
+}
+
+
 TEST(Compile, ImportOverride2) {
     ccCompiledScript *scrip = newScriptFixture();
 

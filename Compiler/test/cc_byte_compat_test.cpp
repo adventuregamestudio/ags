@@ -2851,11 +2851,11 @@ TEST(Bytecode, Struct02) {
        8,    3,    6,    3,            3,   29,    3,    6,    // 15
        2,   80,   30,    3,            8,    3,    6,    3,    // 23
       42,   29,    3,    6,            2,   80,    7,    3,    // 31
-       6,    2,    0,   32,            3,    4,   46,    3,    // 39
-      68,   11,    2,    3,           30,    3,    8,    3,    // 47
+       6,    2,    0,   46,            3,   17,   32,    3,    // 39
+       4,   11,    2,    3,           30,    3,    8,    3,    // 47
        6,    3,   19,   29,            3,    6,    2,   68,    // 55
-       7,    3,    6,    2,            0,   32,    3,    4,    // 63
-      46,    3,   68,   11,            2,    3,   30,    3,    // 71
+       7,    3,    6,    2,            0,   46,    3,   17,    // 63
+      32,    3,    4,   11,            2,    3,   30,    3,    // 71
        8,    3,   31,    0,            5,  -999
     };
 
@@ -2962,11 +2962,11 @@ TEST(Bytecode, Struct03) {
        8,    3,    6,    3,            3,   29,    3,    6,    // 15
        2,   80,   30,    3,            8,    3,    6,    3,    // 23
       42,   29,    3,    6,            2,   80,    7,    3,    // 31
-       6,    2,    0,   32,            3,    4,   46,    3,    // 39
-      68,   11,    2,    3,           30,    3,    8,    3,    // 47
+       6,    2,    0,   46,            3,   17,   32,    3,    // 39
+       4,   11,    2,    3,           30,    3,    8,    3,    // 47
        6,    3,   19,   29,            3,    6,    2,   68,    // 55
-       7,    3,    6,    2,            0,   32,    3,    4,    // 63
-      46,    3,   68,   11,            2,    3,   30,    3,    // 71
+       7,    3,    6,    2,            0,   46,    3,   17,    // 63
+      32,    3,    4,   11,            2,    3,   30,    3,    // 71
        8,    3,   31,    0,            5,  -999
     };
 
@@ -3233,7 +3233,7 @@ TEST(Bytecode, Struct05) {
 TEST(Bytecode, Struct06) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // S1.Array[3] is null, so S1.Array[3].Payload should dump
+    // NOTE: S1.Array[3] is null, so S1.Array[3].Payload should dump
     // when executed in real.
 
     char *inpl = "\
@@ -4743,8 +4743,8 @@ TEST(Bytecode, ArrayOfPointers1) {
        4,    7,    3,   29,            3,    6,    3,    9,    // 15
       30,    4,   18,    4,            3,    3,    4,    3,    // 23
       28,   36,   73,    3,            8,   29,    3,   51,    // 31
-       8,    7,    3,    6,            2,    0,   32,    3,    // 39
-       4,   46,    3,  200,           11,    2,    3,   30,    // 47
+       8,    7,    3,    6,            2,    0,   46,    3,    // 39
+      50,   32,    3,    4,           11,    2,    3,   30,    // 47
        3,   47,    3,   51,            4,    7,    3,    1,    // 55
        3,    1,    8,    3,           31,  -55,    2,    1,    // 63
        4,    6,    2,   40,           48,    3,   29,    3,    // 71
@@ -4857,8 +4857,8 @@ TEST(Bytecode, ArrayOfPointers2) {
        7,    3,   29,    3,            6,    3,   20,   30,    // 23
        4,   18,    4,    3,            3,    4,    3,   28,    // 31
       35,   73,    3,    8,           29,    3,   51,    8,    // 39
-       7,    3,   51,  208,           32,    3,    4,   46,    // 47
-       3,  200,   11,    2,            3,   30,    3,   47,    // 55
+       7,    3,   51,  208,           46,    3,   50,   32,    // 47
+       3,    4,   11,    2,            3,   30,    3,   47,    // 55
        3,   51,    4,    7,            3,    1,    3,    1,    // 63
        8,    3,   31,  -54,            2,    1,    4,    6,    // 71
        3, 1074580685,   29,    3,            6,    3,    0,   29,    // 79
@@ -4912,7 +4912,7 @@ TEST(Bytecode, ArrayOfPointers2) {
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
-TEST(Bytecode, ArrayInStruct) {
+TEST(Bytecode, ArrayInStruct1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4933,7 +4933,7 @@ TEST(Bytecode, ArrayInStruct) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("ArrayInStruct", scrip);
+    // WriteOutput("ArrayInStruct1", scrip);
     // hand checked Bytecode
     const size_t codesize = 39;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -4983,6 +4983,36 @@ TEST(Bytecode, ArrayInStruct) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, ArrayInStruct2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Static arrays can be multidimensional
+
+    char *inpl = "\
+    managed struct Struct                \n\
+    {                                    \n\
+        int Int1[5, 4];                  \n\
+        int Int2[2][3];                  \n\
+    };                                   \n\
+                                         \n\
+    int main()                           \n\
+    {                                    \n\
+        Struct S = new Struct;           \n\
+        S.Int1[4, 2] = 1;                \n\
+        S.Int2[1][2] = S.Int1[4, 2];     \n\
+    }                                    \n\
+    ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("ArrayInStruct2", scrip);
+    // hand checked Bytecode
+
 }
 
 TEST(Bytecode, Func11) {
@@ -7570,8 +7600,8 @@ TEST(Bytecode, Struct09) {
       38,    0,    6,    3,            6,   72,    3,    4,    // 7
        0,   51,    0,   50,            3,    1,    1,    4,    // 15
        6,    3,    5,   29,            3,   51,    4,    7,    // 23
-       3,    6,    2,    4,           32,    3,    4,   46,    // 31
-       3,   24,   11,    2,            3,   29,    2,    6,    // 39
+       3,    6,    2,    4,           46,    3,    6,   32,    // 31
+       3,    4,   11,    2,            3,   29,    2,    6,    // 39
        3,    0,   34,    3,            6,    3,    0,   34,    // 47
        3,    6,    3,    3,           29,    3,   51,   12,    // 55
        7,    3,   30,    4,           11,    4,    3,    3,    // 63
@@ -7585,7 +7615,7 @@ TEST(Bytecode, Struct09) {
        6,    3,    0,   33,            3,   30,    6,   29,    // 127
        3,   51,   12,    7,            3,   30,    4,   11,    // 135
        4,    3,    3,    4,            3,    6,    2,    1,    // 143
-      32,    3,    0,   46,            3,    0,   11,    2,    // 151
+      46,    3,    7,   32,            3,    0,   11,    2,    // 151
        3,    3,    2,    3,           34,    3,   51,    4,    // 159
       45,    2,   39,    6,            6,    3,    3,   33,    // 167
        3,   35,    6,   30,            2,   51,    8,   49,    // 175
@@ -7739,6 +7769,260 @@ TEST(Bytecode, Struct10) {
     const int numimports = 1;
     std::string imports[] = {
     "ss",           "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Struct11) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Structs may contain variables that are structs themselves.
+    // Since Inner1 is managed, In1 will convert into an Inner1 *.
+
+    char *inpl = "\
+        managed struct Inner1                               \n\
+        {                                                   \n\
+            short Fluff;                                    \n\
+            int Payload;                                    \n\
+        };                                                  \n\
+        struct Inner2                                       \n\
+        {                                                   \n\
+            short Fluff;                                    \n\
+            int Payload;                                    \n\
+        };                                                  \n\
+        import int Foo;                                     \n\
+        import struct Struct                                \n\
+        {                                                   \n\
+            Inner1 In1;                                     \n\
+            Inner2 In2;                                     \n\
+        } SS;                                               \n\
+                                                            \n\
+        int main()                                          \n\
+        {                                                   \n\
+            SS.In1 = new Inner1;                            \n\
+            SS.In1.Payload = 77;                            \n\
+            SS.In2.Payload = 777;                           \n\
+            return SS.In1.Payload + SS.In2.Payload;         \n\
+        }                                                   \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Struct11", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 78;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            8,    6,    2,    1,    // 7
+      47,    3,    6,    3,           77,   29,    3,    6,    // 15
+       2,    1,   48,    2,           52,    1,    2,    2,    // 23
+      30,    3,    8,    3,            6,    3,  777,   29,    // 31
+       3,    6,    2,    1,            1,    2,    6,   30,    // 39
+       3,    8,    3,    6,            2,    1,   48,    2,    // 47
+      52,    1,    2,    2,            7,    3,   29,    3,    // 55
+       6,    2,    1,    1,            2,    6,    7,    3,    // 63
+      30,    4,   11,    4,            3,    3,    4,    3,    // 71
+      31,    3,    6,    3,            0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 5;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       7,   17,   35,   45,         58,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,   4,   4,      4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 1;
+    std::string imports[] = {
+    "SS",           "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Struct12) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Managed structs may contain dynamic arrays.
+
+    char *inpl = "\
+        managed struct Inner                                \n\
+        {                                                   \n\
+            short Fluff;                                    \n\
+            int Payload;                                    \n\
+        };                                                  \n\
+        short Fluff;                                        \n\
+        managed struct Struct                               \n\
+        {                                                   \n\
+            Inner In[];                                     \n\
+        } SS, TT[];                                         \n\
+                                                            \n\
+        int main()                                          \n\
+        {                                                   \n\
+            SS = new Struct;                                \n\
+            SS.In = new Inner[7];                           \n\
+            SS.In[3].Payload = 77;                          \n\
+            TT = new Struct[5];                             \n\
+            TT[2].In = new Inner[11];                       \n\
+            TT[2].In[2].Payload = 777;                      \n\
+            return SS.In[3].Payload + TT[2].In[2].Payload;  \n\
+        }                                                   \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Struct12", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 184;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            4,    6,    2,    2,    // 7
+      47,    3,    6,    3,            7,   72,    3,    8,    // 15
+       1,    6,    2,    2,           48,    2,   52,   47,    // 23
+       3,    6,    3,   77,           29,    3,    6,    2,    // 31
+       2,   48,    2,   52,           48,    2,   52,    1,    // 39
+       2,   12,   48,    2,           52,    1,    2,    2,    // 47
+      30,    3,    8,    3,            6,    3,    5,   72,    // 55
+       3,    4,    1,    6,            2,    6,   47,    3,    // 63
+       6,    3,   11,   72,            3,    8,    1,   29,    // 71
+       3,    6,    2,    6,           48,    2,   52,    1,    // 79
+       2,    8,   48,    2,           52,   30,    3,   47,    // 87
+       3,    6,    3,  777,           29,    3,    6,    2,    // 95
+       6,   48,    2,   52,            1,    2,    8,   48,    // 103
+       2,   52,   48,    2,           52,    1,    2,    8,    // 111
+      48,    2,   52,    1,            2,    2,   30,    3,    // 119
+       8,    3,    6,    2,            2,   48,    2,   52,    // 127
+      48,    2,   52,    1,            2,   12,   48,    2,    // 135
+      52,    1,    2,    2,            7,    3,   29,    3,    // 143
+       6,    2,    6,   48,            2,   52,    1,    2,    // 151
+       8,   48,    2,   52,           48,    2,   52,    1,    // 159
+       2,    8,   48,    2,           52,    1,    2,    2,    // 167
+       7,    3,   30,    4,           11,    4,    3,    3,    // 175
+       4,    3,   31,    3,            6,    3,    0,    5,    // 183
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 8;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       7,   19,   32,   61,         75,   96,  124,  146,    // 7
+     -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      1,   1,   1,   1,      1,   1,   1,   1,    // 7
+     '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
     };
 
     int idx2 = -1;

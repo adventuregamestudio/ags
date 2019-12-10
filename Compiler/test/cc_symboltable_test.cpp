@@ -76,7 +76,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     ASSERT_TRUE(testSym.entries.at(a_sym).SSize == ssize);
     ASSERT_TRUE(testSym.entries.at(a_sym).SScope == 0);
     ASSERT_TRUE(testSym.entries.at(a_sym).Extends == 0);
-    ASSERT_TRUE(testSym.entries.at(a_sym).GetNumOfFuncArgs() == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).GetNumOfFuncParams() == 0);
 }
 
 TEST(SymbolTable, EntriesEnsureModifiable) {
@@ -86,25 +86,6 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
     int a_sym = testSym.AddWithTypeAndSize("x", AGS::kSYM_NoType, 0);
     testSym.entries.at(a_sym).Flags = 10;
     ASSERT_TRUE(testSym.entries.at(a_sym).Flags == 10);
-}
-
-TEST(SymbolTable, GetNumArgs) {
-    AGS::SymbolTable testSym;
-	int sym_01 = testSym.Add("yellow");
-
-    testSym.entries.at(sym_01).SScope = 0;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 0);
-    testSym.entries.at(sym_01).SScope = 1;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 1);
-    testSym.entries.at(sym_01).SScope = 2;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 2);
-
-    testSym.entries.at(sym_01).SScope = 100;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 0);
-    testSym.entries.at(sym_01).SScope = 101;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 1);
-    testSym.entries.at(sym_01).SScope = 102;
-    ASSERT_TRUE(testSym.entries.at(sym_01).GetNumOfFuncArgs() == 2);
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {

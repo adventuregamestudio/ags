@@ -99,20 +99,17 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_Attribute = 1 << 1, // is an attribute variable
     kSFLG_Autoptr = 1 << 2, // automatically convert definition to pointer
     kSFLG_Builtin = 1 << 3, // direct instantiation/extension not allowed
-    // The flag below only exists because the variable path parser cannot yet handle
-    // arrays within arrays (e.g.something[2].something[3].something = 17) 
-    kSFLG_HasDynArray = 1 << 4,
-    kSFLG_Imported = 1 << 5, // this is an import variable
-    kSFLG_NoLoopCheck = 1 << 6, // A function that does not check for long-running loops
-    kSFLG_Managed = 1 << 7, // managed struct (kSYM_Vartype)
-    kSFLG_Parameter = 1 << 8,
-    kSFLG_Protected = 1 << 9, // protected member func/var
-    kSFLG_Readonly = 1 << 10, // user cannot change
-    kSFLG_Static = 1 << 11, // static member func/var
-    kSFLG_StrBuffer = 1 << 12, // was allocated a string buffer
-    kSFLG_StructMember = 1 << 13, // set for member vars & funcs
-    kSFLG_StructVartype = 1 << 14, // is a struct vartype (type will be kSYM_Vartype)
-    kSFLG_WriteProtected = 1 << 15,  // only the this pointer can write the var
+    kSFLG_Imported = 1 << 4, // this is an import variable
+    kSFLG_NoLoopCheck = 1 << 5, // A function that does not check for long-running loops
+    kSFLG_Managed = 1 << 6, // managed struct (kSYM_Vartype)
+    kSFLG_Parameter = 1 << 7,
+    kSFLG_Protected = 1 << 8, // protected member func/var
+    kSFLG_Readonly = 1 << 9, // user cannot change
+    kSFLG_Static = 1 << 10, // static member func/var
+    kSFLG_StrBuffer = 1 << 11, // was allocated a string buffer
+    kSFLG_StructMember = 1 << 12, // set for member vars & funcs
+    kSFLG_StructVartype = 1 << 13, // is a struct vartype (type will be kSYM_Vartype)
+    kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
 };
 
 } // namespace AGS

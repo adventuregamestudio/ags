@@ -43,7 +43,7 @@ public:
     size_t SSize;      // Size in bytes
 
     // Variables and functions only
-    int SScope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
+    int SScope;     // for funcs, whether the func is variadic
 
     // Vartypes only
     enum VartypeType VartypeType;
@@ -57,6 +57,7 @@ public:
     inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
     inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
     inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
+    inline bool IsBuiltin(SymbolTable const &symt) const { return IsVTF(kSFLG_Builtin, symt); };
     inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); };
     inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); };
     inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); };
@@ -71,8 +72,8 @@ public:
     std::vector<AGS::Vartype> FuncParamTypes;
     std::vector<int> FuncParamDefaultValues;
     std::vector<bool> FuncParamHasDefaultValues;
-    inline size_t GetNumOfFuncArgs() const { return FuncParamTypes.size() - 1; }
-    inline bool IsVarargsFunc() const { return (SScope >= 100); }
+    inline size_t GetNumOfFuncParams() const { return FuncParamTypes.size() - 1; }
+    inline bool IsVarargsFunc() const { return (SScope > 0); }
 
     SymbolTableEntry();
     SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);
@@ -154,6 +155,7 @@ public:
     inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; };
     inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; };
     inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; };
+    inline bool IsBuiltin(Symbol s) const { return IsInBounds(s) ? entries[s].IsBuiltin(*this) : false; };
     inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsConst(*this) : false; };
     inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarray(*this) : false; };
     inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointer(*this) : false; };

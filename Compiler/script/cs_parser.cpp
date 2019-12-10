@@ -190,30 +190,33 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbo
 int AGS::Parser::SkipTo(const AGS::SymbolType stoplist[], size_t stoplist_len)
 {
     int delimeter_nesting_depth = 0;
-    while (!_targ.reached_eof())
+    for (; !_targ.reached_eof(); _targ.getnext())
     {
         // Note that the scanner/tokenizer has already verified
         // that all opening symbols get closed and 
         // that we don't have (...] or similar in the input
-        AGS::Symbol const cursym = _targ.peeknext();
-        SymbolType const curtype = _sym.GetSymbolType(cursym);
-        if (curtype == kSYM_OpenBrace ||
-            curtype == kSYM_OpenBracket ||
-            curtype == kSYM_OpenParenthesis)
+        SymbolType const curtype = _sym.GetSymbolType(_targ.peeknext());
+        if (kSYM_OpenBrace == curtype ||
+            kSYM_OpenBracket == curtype ||
+            kSYM_OpenParenthesis == curtype)
         {
             ++delimeter_nesting_depth;
+            continue;
         }
-        if (curtype == kSYM_CloseBrace ||
-            curtype == kSYM_CloseBracket ||
-            curtype == kSYM_CloseParenthesis)
+        if (kSYM_CloseBrace == curtype ||
+            kSYM_CloseBracket == curtype ||
+            kSYM_CloseParenthesis == curtype)
         {
             if (--delimeter_nesting_depth < 0)
                 return 0;
+            continue;
         }
+        if (0 < delimeter_nesting_depth)
+            continue;
+
         for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
             if (curtype == stoplist[stoplist_idx])
                 return 0;
-        _targ.getnext();
     }
     return -1;
 }
@@ -227,13 +230,14 @@ int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::SymbolType s
         // Note that the scanner/tokenizer has already verified
         // that all opening symbols get closed and 
         // that we don't have (...] or similar in the input
-        AGS::Symbol const cursym = *act_sym_ptr;
+        Symbol const cursym = *act_sym_ptr;
         SymbolType const curtype = _sym.GetSymbolType(cursym);
         if (curtype == kSYM_OpenBrace ||
             curtype == kSYM_OpenBracket ||
             curtype == kSYM_OpenParenthesis)
         {
             ++delimeter_nesting_depth;
+            continue;
         }
         if (curtype == kSYM_CloseBrace ||
             curtype == kSYM_CloseBracket ||
@@ -241,7 +245,11 @@ int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::SymbolType s
         {
             if (--delimeter_nesting_depth < 0)
                 return 0;
+            continue;
         }
+        if (0 < delimeter_nesting_depth)
+            continue;
+
         for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
             if (curtype == stoplist[stoplist_idx])
                 return 0;
@@ -550,6 +558,7 @@ AGS::Parser::Parser(::SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScr
     : _fcm(symt, scrip)
     , _fim(symt, scrip)
     , _scrip(scrip)
+    , _pp(kPP_PreAnalyze)
     , _sym(symt)
     , _targ(targ)
 {
@@ -1118,11 +1127,11 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
     known_info = entry;
     
     // Kill the defaults so we can check whether this defn replicates them exactly.
-    size_t const num_of_args = entry.GetNumOfFuncArgs();
-    entry.FuncParamHasDefaultValues.assign(num_of_args + 1, false);
+    size_t const num_of_params = entry.GetNumOfFuncParams();
+    entry.FuncParamHasDefaultValues.assign(num_of_params + 1, false);
     // -77 is an arbitrary value that is easy to spot in the debugger; 
     // don't use for anything in code
-    entry.FuncParamDefaultValues.assign(num_of_args + 1, -77);
+    entry.FuncParamDefaultValues.assign(num_of_params + 1, -77);
     return 0;
 }
 
@@ -1250,7 +1259,6 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     param_entry.SType = kSYM_LocalVar;
     param_entry.Extends = false;
     param_entry.vartype = param_type;
-    size_t const param_size = 4; // We can only deal with parameters of size 4
     param_entry.SScope = 1;
     SetFlag(param_entry.Flags, kSFLG_Parameter, true);
     if (param_is_const)
@@ -1320,11 +1328,11 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     return 0;
 }
 
-int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows, bool &is_varargs)
+int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows)
 {
-    is_varargs = false;
+    _sym[funcsym].SScope = false; 
     bool param_is_const = false;
-    size_t param_idx;
+    size_t param_idx = 0;
     while (!_targ.reached_eof())
     {
         AGS::Symbol const cursym = _targ.getnext();
@@ -1352,7 +1360,7 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
 
         case kSYM_Varargs:
         {
-            is_varargs = true;
+            _sym[funcsym].SScope = true;
             if (_sym.GetSymbolType(_targ.getnext()) != kSYM_CloseParenthesis)
             {
                 cc_error("Expected ')' after '...'");
@@ -1363,7 +1371,7 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
 
         case kSYM_Vartype:
         {
-            if ((param_idx % VARARGS_INDICATOR) >= MAX_FUNCTION_PARAMETERS)
+            if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
             {
                 cc_error("Too many parameters defined for function (max. allowed: %d)", static_cast<int>(MAX_FUNCTION_PARAMETERS) - 1);
                 return -1;
@@ -1406,7 +1414,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
         // If none of the parameters have a default,
         // we'll let this through for backward compatibility.
         bool has_default = false;
-        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); ++param_idx)
+        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); ++param_idx)
             if (this_entry.FuncParamHasDefaultValues[param_idx])
             {
                 has_default = true;
@@ -1417,7 +1425,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
     }
 
     // this is 1 .. GetNumOfFuncArgs(), INCLUSIVE, because param 0 is the return type
-    for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); ++param_idx)
+    for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); ++param_idx)
     {
         if ((this_entry.FuncParamHasDefaultValues[param_idx] ==
             known_info.FuncParamHasDefaultValues[param_idx]) &&
@@ -1477,13 +1485,13 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         return -1;
     }
 
-    if (known_info.GetNumOfFuncArgs() != this_entry.GetNumOfFuncArgs())
+    if (known_info.GetNumOfFuncParams() != this_entry.GetNumOfFuncParams())
     {
         std::string msg = ReferenceMsg(
             "Function is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
             _sym.Id2Section(known_info.DeclSectionId),
             known_info.DeclLine);
-        cc_error(msg.c_str(), this_entry.GetNumOfFuncArgs(), known_info.GetNumOfFuncArgs());
+        cc_error(msg.c_str(), this_entry.GetNumOfFuncParams(), known_info.GetNumOfFuncParams());
         return -1;
     }
     if (known_info.IsVarargsFunc() != this_entry.IsVarargsFunc())
@@ -1519,7 +1527,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_
         return -1;
     }
 
-        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncArgs(); param_idx++)
+        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); param_idx++)
     {
         if (known_info.FuncParamTypes.at(param_idx) != this_entry.FuncParamTypes.at(param_idx))
         {
@@ -1674,8 +1682,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     retval = CopyKnownSymInfo(_sym[name_of_func], known_info);
     if (retval < 0) return retval;
 
-    int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
-    retval = ParseFuncdecl_Paramlist(name_of_func, body_follows, numparams);
+    retval = ParseFuncdecl_Paramlist(name_of_func, body_follows);
     if (retval < 0) return retval;
 
     ParseFuncdecl_SetFunctype(name_of_func, return_vartype, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected));
@@ -1705,7 +1712,8 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
         if (retval < 0) return retval;
         _sym[name_of_func].SOffset = func_startoffs;
         if (function_idx >= 0)
-            _scrip.functions[function_idx].NumOfParams = (numparams - 1);
+            _scrip.functions[function_idx].NumOfParams =
+                _sym[name_of_func].GetNumOfFuncParams();
     }
 
     if (!FlagIsSet(tqs, kTQ_Import))
@@ -1724,7 +1732,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     if (struct_of_func > 0)
     {
         char appendage[10];
-        sprintf(appendage, "^%d", _sym[name_of_func].SScope); // num of parameters + (is_variadic)? 100 : 0
+        sprintf(appendage, "^%d", _sym[name_of_func].GetNumOfFuncParams() + 100 * _sym[name_of_func].SScope);
         strcat(_scrip.imports[_sym[name_of_func].SOffset], appendage);
     }
 
@@ -2092,7 +2100,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
             return -1;
         }
 
-        if (FlagIsSet(_sym.GetFlags(new_vartype), kSFLG_Builtin))
+        if (_sym.IsBuiltin(new_vartype))
         {
             cc_error(
                 "Built-in type '%s' cannot be instantiated directly",
@@ -2133,7 +2141,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
-        retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
+        retval = AccessData_ReadIntExpression(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
         _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
@@ -2632,7 +2640,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args)
 {
     // Expected number of arguments, or expected minimal number of arguments
-    size_t const num_func_args = _sym[name_of_func].GetNumOfFuncArgs();
+    size_t const num_func_args = _sym[name_of_func].GetNumOfFuncParams();
     bool const func_is_varargs = _sym[name_of_func].IsVarargsFunc();
 
     size_t num_supplied_args = 0;
@@ -2761,7 +2769,7 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
     }
     if (kSYM_CloseBracket == _sym.GetSymbolType(symlist[0]))
     {
-        cc_error("Unexpected ')' at start of expression");
+        cc_error("Unexpected ']' at start of expression");
         return -1;
     }
 
@@ -2789,8 +2797,8 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
     return HandleStructOrArrayResult(vartype, vloc);
 }
 
-// symlist starts a bracketed expression; parse it
-int AGS::Parser::AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlist_len)
+// symlist starts a sequence of bracketed expressions; parse it
+int AGS::Parser::AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len)
 {
     ValueLocation vloc;
     int scope;
@@ -2884,7 +2892,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
     if (name_of_func < 0) return retval;
 
-    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSYM_Import);
+    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
 
     if (attrib_uses_this)
         _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
@@ -2904,7 +2912,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
         // The index to be set is in the [...] clause; push it as the first parameter
         if (attrib_uses_this)
             _scrip.push_reg(SREG_MAR); // must not be clobbered
-        retval = AccessData_ArrayIndexIntoAX(&symlist[1], symlist_len - 2);
+        retval = AccessData_ReadIntExpression(&symlist[1], symlist_len - 2);
         if (retval < 0) return retval;
         symlist += symlist_len; // Eat the index
         symlist_len = 0; // Eat the index, ct'd
@@ -2930,7 +2938,6 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     _scrip.ax_val_scope = kSYM_LocalVar;
     _scrip.ax_vartype = vartype = _sym.GetVartype(name_of_func);
 
-    MarkAcessed(name_of_attribute);
     MarkAcessed(name_of_func);
     return 0;
 }
@@ -2980,6 +2987,61 @@ int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, 
     return 0;
 }
 
+int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc)
+{
+    // Find end of current index
+    SymbolScript const this_index = symlist;
+    SymbolType const stoplist[] = { kSYM_Comma, kSYM_CloseBracket, };
+    size_t const stoplist_len = 2;
+    SkipToScript(stoplist, stoplist_len, symlist, symlist_len);
+    size_t const this_index_len = symlist - this_index;
+    if (0 == this_index_len)
+    {
+        cc_error("Empty array index is not supported");
+        return -1;
+    }
+
+    // If the index is a constant, process it at compile time
+    if (1 == this_index_len)
+    {
+        SymbolType const first_index_sym_type = _sym.GetSymbolType(this_index[0]);
+        if (kSYM_LiteralInt == first_index_sym_type || kSYM_Const == first_index_sym_type)
+            return AccessData_ProcessArrayIndexConstant(this_index[0], dim, factor, mloc);
+    }
+
+    // Save MAR from being clobbered if it may contain something important
+    // If nothing has been done, MAR can't have been set yet, so no need to remember it
+    bool mar_pushed = false;
+    if (!mloc.NothingDoneYet())
+    {
+        mloc.MakeMARCurrent(_scrip);
+        _scrip.push_reg(SREG_MAR);
+        mar_pushed = true;
+    }
+
+    int retval = AccessData_ReadIntExpression(this_index, this_index_len);
+    if (retval < 0) return retval;
+
+    if (mar_pushed)
+        _scrip.pop_reg(SREG_MAR);
+    mloc.MakeMARCurrent(_scrip);
+
+    // Note: DYNAMICBOUNDS compares the offset into the memory block;
+    // it mustn't be larger than the size of the allocated memory. 
+    // On the other hand, CHECKBOUNDS checks the index; it mustn't be
+    //  larger than the maximum given. So dynamic bounds must be checked
+    // after the multiplication; static bounds before the multiplication.
+    // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
+    if (!is_dynarray)
+        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, dim);
+    if (factor != 1)
+        _scrip.write_cmd2(SCMD_MUL, SREG_AX, factor);
+    if (is_dynarray)
+        _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
+    _scrip.write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX);
+    return 0;
+}
+
 // We're processing some struct component or global or local variable.
 // If an array index follows, parse it and shorten symlist accordingly
 int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
@@ -2987,17 +3049,8 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, si
     if (0 == symlist_len || kSYM_OpenBracket != _sym.GetSymbolType(symlist[0]))
         return 0;
 
-    // Find the location of the close bracket
-    Symbol *close_brac_loc = symlist + 1;
-    size_t len_starting_with_close_brac = symlist_len - 1;
-    SymbolType stoplist[] = { kSYM_NoType, };
-    SkipToScript(stoplist, 0, close_brac_loc, len_starting_with_close_brac);
-    if (len_starting_with_close_brac == 0)
-    {
-        cc_error("Internal error: '[' has no matching ']");
-        return -99;
-    }
-    size_t bracketed_expr_length = close_brac_loc + 1 - symlist;
+    symlist++; // Eat '['
+    symlist_len--; // Eat '[' cont'd
 
     bool const is_dynarray = _sym.IsDynarray(vartype);
     bool const is_array = _sym.IsArray(vartype);
@@ -3007,60 +3060,61 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, si
         return -1;
     }
 
-    AGS::Vartype element_vartype = _sym[vartype].vartype;
-    
+    AGS::Vartype const element_vartype = _sym[vartype].vartype;
     size_t const element_size = _sym.GetSize(element_vartype);
+    std::vector<size_t> dim_sizes;
+    std::vector<size_t> dynarray_dims = { 0, };
+    std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[vartype].Dims;
     vartype = element_vartype;
 
     if (is_dynarray)
         AccessData_Dereference(vloc, mloc);
 
-    // Ideally, we would calculate compile time constants here. For now, only
-    // process the special case [INT] where INT is a non-negative integer or constant.
-    if (3 == bracketed_expr_length &&
-        (kSYM_LiteralInt == _sym.GetSymbolType(symlist[1]) || kSYM_Const == _sym.GetSymbolType(symlist[1])))
+    // Number of dimensions and the the size of the dimension for each dimension
+    size_t const num_of_dims = dims.size();
+    dim_sizes.resize(num_of_dims);
+    size_t factor = element_size;
+    for (int dim_idx = num_of_dims - 1; dim_idx >= 0; dim_idx--) // yes, "int"
     {
-        int retval = AccessData_ProcessArrayIndexConstant(symlist[1], num_array_elements, element_size, mloc);
+        dim_sizes[dim_idx] = factor;
+        factor *= dims[dim_idx];
+    }
+
+    for (size_t dim_idx = 0; dim_idx < num_of_dims; dim_idx++)
+    {
+        int retval = AccessData_ProcessCurrentArrayIndex(dims[dim_idx], dim_sizes[dim_idx], is_dynarray, symlist, symlist_len, mloc);
         if (retval < 0) return retval;
-        symlist = close_brac_loc + 1;
-        symlist_len = len_starting_with_close_brac - 1;
-        return 0;
+
+        SymbolType divider_sym_type = _sym.GetSymbolType(symlist[0]);
+        if (kSYM_CloseBracket != divider_sym_type && kSYM_Comma != divider_sym_type)
+        {
+            cc_error("Expected ',' or '] after array index");
+            return -1;
+        }
+        if (kSYM_CloseBracket == divider_sym_type)
+        {
+            symlist++; // Eat ']'
+            symlist_len--; // Eat ']' cont'd.
+            if (symlist_len > 0)
+                divider_sym_type = _sym.GetSymbolType(symlist[0]);
+        }
+        if (kSYM_Comma == divider_sym_type || kSYM_OpenBracket == divider_sym_type)
+        {
+            if (num_of_dims == dim_idx + 1)
+            {
+                cc_error("Expected %d indexes, found more", num_of_dims);
+                return -1;
+            }
+            symlist++; // Eat ',' or '['
+            symlist_len--; // Eat ',' or '[' cont'd
+            continue;
+        }
+        if (num_of_dims != dim_idx + 1)
+        {
+            cc_error("Expected %d indexes, but only found %d", num_of_dims, dim_idx + 1);
+            return -1;
+        }
     }
-
-    // Save MAR from being clobbered if it may contain something important
-    bool mar_pushed = false;
-    if (!mloc.NothingDoneYet()) // if nothing is done, it can't have been set yet
-    {
-        mloc.MakeMARCurrent(_scrip);
-        _scrip.push_reg(SREG_MAR);
-        mar_pushed = true;
-    }
-
-    int retval = AccessData_ArrayIndexIntoAX(symlist + 1, bracketed_expr_length - 2);
-    if (retval < 0) return retval;
-
-    if (mar_pushed)
-        _scrip.pop_reg(SREG_MAR);
-    mloc.MakeMARCurrent(_scrip);
-
-    // Note: SCMD_DYNAMICBOUNDS checks that the register is between  0 and
-    // the length of the memory chunk in bytes (NOT the number of elements
-    // in the array!). SCMD_CHECKBOUNDS checks that the register is
-    // between 0 and the number given in the command. So to keep them in
-    // parallel, the check must be done in both cases on the length of
-    // the memory chunk that makes up the array, and the number given in
-    // the CHECKBOUNDS command must be this length of the memory chunk.
-    // If array_size == 0, we don't know the array size and can't check.
-    if (element_size != 1)
-        _scrip.write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
-    if (is_dynarray)
-        _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
-    else if (num_array_elements > 0)
-        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, num_array_elements * element_size);
-    _scrip.write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX); // Add offset
-
-    symlist = close_brac_loc + 1;
-    symlist_len = len_starting_with_close_brac - 1;
     return 0;
 }
 
@@ -3993,53 +4047,6 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartyp
     _sym.SetDeclared(var_name, ccCurScriptName, currentline);
 }
 
-// we have accepted something like "int a" and we're expecting "["
-int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype)
-{
-    _targ.getnext();  // skip the [
-
-    if (_sym.GetSymbolType(_targ.peeknext()) == kSYM_CloseBracket)
-    {
-        // Dynamic array
-        if (vartype == _sym.GetOldStringSym())
-        {
-            cc_error("Dynamic arrays of old-style strings are not supported");
-            return -1;
-        }
-        vartype = _sym.VartypeWith(kVTT_Dynarray,vartype);
-    }
-    else
-    {
-        // Static array
-        AGS::Symbol nextt = _targ.getnext();
-
-        int arrsize_as_int;
-        int retval = ParseLiteralOrConstvalue(nextt, arrsize_as_int, false, "Array size must be constant value");
-        if (retval < 0) return retval;
-
-        if (arrsize_as_int < 1)
-        {
-            cc_error("Array size must be at least 1");
-            return -1;
-        }
-
-        std::vector<size_t> dims;
-        dims.push_back(arrsize_as_int);
-        vartype = _sym.VartypeWithArray(dims, vartype);
-    }
-
-    Symbol const nextsym = _targ.getnext();
-    if (_sym.GetSymbolType(nextsym) != kSYM_CloseBracket)
-    {
-        cc_error(
-            "Expected ']', found %s instead",
-            _sym.GetName(nextsym).c_str());
-        return -1;
-    }
-
-    return 0;
-}
-
 int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalness globalness)
 {
     if (vartype == _sym.GetOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
@@ -4194,7 +4201,7 @@ int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, Symbo
 {
     if (kSYM_OpenBracket == next_type)
     {
-        int retval = ParseVardecl_Array(var_name, vartype);
+        int retval = ParseArray(var_name, vartype);
         if (retval < 0) return retval;
         next_type = _sym.GetSymbolType(_targ.peeknext());
     }
@@ -4283,7 +4290,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
 
     // loop through all parameters
     // the first entry is the return address, so skip that
-    size_t const num_args = _sym[name_of_func].GetNumOfFuncArgs();
+    size_t const num_args = _sym[name_of_func].GetNumOfFuncParams();
     for (size_t pa = 1; pa <= num_args; pa++)
     {
         AGS::Vartype const param_vartype = _sym[name_of_func].FuncParamTypes[pa];
@@ -4469,32 +4476,28 @@ int AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol &pare
         cc_error("Expected a struct type here");
         return -1;
     }
-    SymbolTableEntry &struct_entry = _sym[stname];
-    SymbolTableEntry const &extends_entry = _sym[parent];
-
-    if (!extends_entry.IsStruct(_sym))
+    if (!_sym.IsStruct(parent))
     {
         cc_error("Must extend a struct type");
         return -1;
     }
-    if (!FlagIsSet(extends_entry.Flags, kSFLG_Managed) && FlagIsSet(struct_entry.Flags, kSFLG_Managed))
+    if (!_sym.IsManaged(parent)&& _sym.IsManaged(stname))
     {
         cc_error("Managed struct cannot extend the unmanaged struct '%s'", _sym.GetName(parent).c_str());
         return -1;
     }
-    if (FlagIsSet(extends_entry.Flags, kSFLG_Managed) && !FlagIsSet(struct_entry.Flags, kSFLG_Managed))
+    if (_sym.IsManaged(parent) && !_sym.IsManaged(stname))
     {
         cc_error("Unmanaged struct cannot extend the managed struct '%s'", _sym.GetName(parent).c_str());
         return -1;
     }
-    if (FlagIsSet(extends_entry.Flags, kSFLG_Builtin) && !FlagIsSet(struct_entry.Flags, kSFLG_Builtin))
+    if (_sym.IsBuiltin(parent) && !_sym.IsBuiltin(stname))
     {
         cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", _sym.GetName(parent).c_str());
         return -1;
     }
     size_so_far = _sym.GetSize(parent);
-    struct_entry.Extends = parent;
-
+    _sym[stname].Extends = parent;
     return 0;
 }
 
@@ -4608,12 +4611,12 @@ int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype va
 
 int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype)
 {
-    size_t const sscope_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
-    if (entry.SScope != sscope_wanted)
+    size_t const num_parameters_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
+    if (num_parameters_wanted != entry.GetNumOfFuncParams())
     {
         cc_error(
             "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
-            entry.SName.c_str(), sscope_wanted, entry.SScope);
+            entry.SName.c_str(), num_parameters_wanted, entry.SScope);
         return -1;
     }
     AGS::Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
@@ -4649,8 +4652,9 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     return 0;
 }
 
-int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype, SymbolTableEntry &entry)
+int AGS::Parser::ParseStruct_EnterAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype)
 {
+    SymbolTableEntry &entry = _sym[func];
     entry.SType = kSYM_Function;
     SetFlag(entry.Flags, kSFLG_Imported, true);
     if (is_static)
@@ -4663,11 +4667,12 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
         num_param_suffix = (is_indexed ? "^1" : "^0");
     strcat(_scrip.imports[entry.SOffset], num_param_suffix);
 
-    AGS::Vartype const retvartype = entry.FuncParamTypes[0] = entry.vartype = 
+    entry.FuncParamTypes[0] = entry.vartype = 
         is_setter ? _sym.GetVoidSym() : vartype;
-    entry.SScope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
+    entry.SScope = 0;
+    size_t const num_param = is_indexed + is_setter;
 
-    entry.FuncParamTypes.resize(entry.SScope + 1);
+    entry.FuncParamTypes.resize(num_param + 1);
 
     size_t p_idx = 1;
     if (is_indexed)
@@ -4683,22 +4688,22 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed,
 // This corresponds to a getter func and a setter func, declare one of them
 int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype)
 {
-    SymbolTableEntry &entry = _sym[func];
-    if (kSYM_Function != entry.SType && kSYM_NoType != entry.SType)
+    SymbolType const stype = _sym[func].SType;
+    if (kSYM_Function != stype && kSYM_NoType != stype)
     {
         std::string msg = ReferenceMsgSym(
             "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
             func);
-        cc_error(msg.c_str(), entry.SName.c_str());
+        cc_error(msg.c_str(), _sym[func].SName.c_str());
         return -1;
     }
 
-    if (kSYM_Function == entry.SType) // func has already been declared
-        return ParseStruct_CheckAttributeFunc(entry, is_setter, is_indexed, vartype);
+    if (kSYM_Function == stype) // func has already been declared
+        return ParseStruct_CheckAttributeFunc(_sym[func], is_setter, is_indexed, vartype);
 
-    int retval = ParseStruct_EnterAttributeFunc(is_setter, is_indexed, is_static, vartype, entry);
+    int retval = ParseStruct_EnterAttributeFunc(func, is_setter, is_indexed, is_static, vartype);
     if (retval < 0) return retval;
-    return _fim.SetFuncCallpoint(func, entry.SOffset);
+    return _fim.SetFuncCallpoint(func, _sym[func].SOffset);
 }
 
 // We're in a struct declaration, parsing a struct attribute
@@ -4745,55 +4750,76 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
     return ParseStruct_DeclareAttributeFunc(MangleStructAndComponent(stname, attrib_func), func_is_setter, attrib_is_indexed, attrib_is_static, coretype);
 }
 
-// We're inside a struct decl, parsing an array var.
-int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+// We're parsing an array var.
+int AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
 {
     _targ.getnext(); // Eat '['
 
     if (kPP_PreAnalyze == _pp)
     {
-        // Skip the [...]
-        const SymbolType stoplist[] = { kSYM_NoType, };
-        SkipTo(stoplist, 0);
-        _targ.getnext(); // Eat ']'
-        return 0;
+        // Skip the sequence of [...]
+        while (true)
+        {
+            const SymbolType stoplist[] = { kSYM_NoType, };
+            SkipTo(stoplist, 0);
+            _targ.getnext(); // Eat ']'
+            if (kSYM_OpenBracket != _targ.peeknext())
+                return 0;
+            _targ.getnext(); // Eat '['
+        }
     }
 
-    AGS::Symbol const nextt = _targ.getnext();
-    if (_sym.GetSymbolType(nextt) == kSYM_CloseBracket)
+    if (kSYM_CloseBracket == _sym.GetSymbolType(_targ.peeknext()))
     {
-        if (FlagIsSet(_sym.GetFlags(stname), kSFLG_Managed))
+        // Dynamic array
+        _targ.getnext(); // Eat ']'
+        if (vartype == _sym.GetOldStringSym())
         {
-            cc_error("Member variable of managed struct cannot be dynamic array");
+            cc_error("Dynamic arrays of old-style strings are not supported");
             return -1;
         }
-        SetFlag(_sym[stname].Flags, kSFLG_HasDynArray, true);
-        _sym[vname].vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].vartype);
-        size_so_far += SIZE_OF_DYNPOINTER;
+        if (!_sym.IsPrimitive(vartype) && !_sym.IsManaged(vartype))
+        {
+            cc_error("'%s' is a non-managed struct; dynamic arrays of such types are not supported", _sym.GetName(vartype).c_str());
+            return -1;
+        }
+        vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
         return 0;
-    }
-
-    int array_size = 0;
-    if (ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value") < 0)
-        return -1;
-    if (array_size < 1)
-    {
-        cc_error("Array size cannot be less than 1");
-        return -1;
     }
 
     std::vector<size_t> dims;
-    dims.push_back(array_size);
-    Vartype core_vartype = _sym[vname].vartype;
-    SetDynpointerInManagedVartype(core_vartype);
-    _sym[vname].vartype = _sym.VartypeWithArray(dims, core_vartype);
-    size_so_far += _sym.GetSize(_sym[vname].vartype);
 
-    if (_sym.GetSymbolType(_targ.getnext()) != kSYM_CloseBracket)
+    // Static array
+    while (true)
     {
-        cc_error("Expected ']'");
-        return -1;
+        AGS::Symbol const dim_symbol = _targ.getnext();
+
+        int dimension_as_int;
+        int retval = ParseLiteralOrConstvalue(dim_symbol, dimension_as_int, false, "Array size must be constant value");
+        if (retval < 0) return retval;
+
+        if (dimension_as_int < 1)
+        {
+            cc_error("Array dimension must be at least 1, found %d instead", dimension_as_int);
+            return -1;
+        }
+
+        dims.push_back(dimension_as_int);
+
+        AGS::SymbolType const next_symtype = _sym.GetSymbolType(_targ.getnext());
+        if (kSYM_Comma == next_symtype)
+            continue;
+        if (kSYM_CloseBracket != next_symtype)
+        {
+            cc_error("Expected ']' or ',' after array dimension");
+            return -1;
+        }
+        AGS::SymbolType const peek_symtype = _sym.GetSymbolType(_targ.peeknext());
+        if (kSYM_OpenBracket != peek_symtype)
+            break;
+        _targ.getnext(); // Eat '['
     }
+    vartype = _sym.VartypeWithArray(dims, vartype);
     return 0;
 }
 
@@ -4802,6 +4828,20 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
 {
     if (kPP_Main == _pp)
     {
+        if (_sym.IsBuiltin(vartype) && !_sym.IsDyn(vartype))
+        {
+            cc_error("'%s' is a builtin non-managed struct; struct members of that type are not supported",
+                _sym.GetName(vartype).c_str());
+            return -1;
+        }
+
+        if (FlagIsSet(tqs, kTQ_Import) && !FlagIsSet(tqs, kTQ_Attribute))
+        {
+            // member variable cannot be an import
+            cc_error("Can't import struct component variables; import the whole struct instead");
+            return -1;
+        }
+
         SymbolTableEntry &entry = _sym[vname];
         entry.SType = kSYM_StructComponent;
         entry.Extends = stname;  // save which struct it belongs to
@@ -4822,15 +4862,13 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
     if (FlagIsSet(tqs, kTQ_Attribute))
         return ParseStruct_Attribute(tqs, stname, vname);
 
-    if (FlagIsSet(tqs, kTQ_Import))
-    {
-        // member variable cannot be an import
-        cc_error("Can't import struct component variables; import the whole struct instead");
-        return -1;
-    }
-
     if (_sym.GetSymbolType(_targ.peeknext()) == kSYM_OpenBracket)
-        return ParseStruct_Array(stname, vname, size_so_far);
+    {
+        Vartype vartype = _sym[vname].vartype;
+        int retval = ParseArray(vname, vartype);
+        if (retval < 0) return retval;
+        _sym[vname].vartype = vartype;
+    }
 
     size_so_far += _sym.GetSize(vname);
     return 0;
@@ -4855,15 +4893,6 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
     if (!is_function && _sym.IsDynarray(vartype)) // e.g., int [] Foo;
     {
         cc_error("Expected '('");
-        return -1;
-    }
-
-    if (_sym.IsManaged(vartype) &&
-        FlagIsSet(_sym.GetFlags(stname), kSFLG_Managed) &&
-        !FlagIsSet(tqs, kTQ_Attribute) &&
-        !is_function)
-    {
-        cc_error("Member variable of a managed struct cannot be managed");
         return -1;
     }
 
@@ -4916,7 +4945,9 @@ int AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
         return 0;
     }
 
-    cc_error("Cannot use '*' for a non-managed type");
+    cc_error(
+        "Cannot use '*' on the non-managed type '%s'", 
+        _sym.GetName(vartype).c_str());
     return -1;
 }
 
@@ -5455,9 +5486,11 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
 
     if (_sym.GetDynpointerSym() == _targ.peeknext())
     {
-        if (!_sym.IsPrimitive(vartype) && !_sym.IsManaged(vartype))
+        if (!_sym.IsManaged(vartype))
         {
-            cc_error("Can only use '*' for a managed or primitive type here");
+            cc_error(
+                "Cannot use '*' on the non-managed type '%s'",
+                _sym.GetName(vartype).c_str());
             return -1;
         }
 

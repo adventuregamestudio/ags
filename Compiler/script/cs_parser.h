@@ -486,7 +486,7 @@ private:
     // process a parameter decl in a function parameter list, something like int foo(INT BAR
     int ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, int param_idx);
 
-    int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows, int &numparams);
+    int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
     void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected);
 
@@ -585,8 +585,8 @@ private:
     // Parse an expression; if RETURN_PTR, will return a pointer, else dereference it.
     int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // symlist starts a bracketed expression; parse it
-    int AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlist_len);
+    // Read from the symlist
+    int AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
@@ -603,8 +603,11 @@ private:
 
     int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
+    // Process one index in a sequence of array indexes
+    int AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc);
+
     // We're processing some struct component or global or local variable.
-    // If an array index follows, parse it and shorten symlist accordingly
+    // If a sequence of array indexes follows, parse it and shorten symlist accordingly
     int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
     int AccessData_GlobalOrLocalVar(bool is_global, bool writing, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
@@ -707,8 +710,8 @@ private:
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness globalness);
 
     // we have accepted something like "int a" and we're expecting "["
-    int ParseVardecl_Array(Symbol var_name, Vartype &vartype);
-
+    int ParseArray(Symbol var_name, Vartype &vartype);
+    
     int ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
 
     // there was a forward declaration -- check that the real declaration matches it
@@ -746,7 +749,7 @@ private:
 
     int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
 
-    int ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed, bool is_static, Vartype vartype, SymbolTableEntry &entry);
+    int ParseStruct_EnterAttributeFunc(Symbol func, bool is_setter, bool is_indexed, bool is_static, Vartype vartype);
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
@@ -754,9 +757,6 @@ private:
 
     // We're in a struct declaration, parsing a struct attribute
     int ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname);
-
-    // We're inside a struct decl, parsing an array var.
-    int ParseStruct_Array(Symbol stname, Symbol vname, size_t &size_so_far);
 
     // We're inside a struct decl, processing a member variable
     int ParseStruct_VariableOrAttribute(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);

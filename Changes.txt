@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.5.0 - RC
+VERSION 3.5.0, December 2019
 
 Common features:
  - Now using Allegro v4.4.3 library (previously v4.4.2).

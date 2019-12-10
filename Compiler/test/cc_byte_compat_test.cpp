@@ -417,7 +417,6 @@ TEST(Bytecode, SimpleVoidFunction) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleVoidFunction", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 5;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -479,7 +478,6 @@ TEST(Bytecode, SimpleIntFunction) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleIntFunction", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 11;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -543,7 +541,6 @@ TEST(Bytecode, IntFunctionLocalV) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionLocalV", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 23;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -606,7 +603,6 @@ TEST(Bytecode, IntFunctionParam) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionParam", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 12;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -670,7 +666,6 @@ TEST(Bytecode, IntFunctionGlobalV) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionGlobalV", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 13;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -764,7 +759,6 @@ TEST(Bytecode, FloatExpr1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FloatExpr1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 38;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -864,7 +858,6 @@ TEST(Bytecode, FloatExpr2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FloatExpr2", scrip);
-    // hand-checked Bytecode 
     const size_t codesize = 244;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -988,7 +981,6 @@ TEST(Bytecode, IfThenElse1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 102;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1067,7 +1059,6 @@ TEST(Bytecode, IfThenElse2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse2", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 102;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1148,7 +1139,6 @@ TEST(Bytecode, While) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("While", scrip);
-    // Hand-checked Bytecode
     const size_t codesize = 111;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1266,7 +1256,6 @@ TEST(Bytecode, DoNCall) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DoNCall", scrip);
-    // hand-checked bytecode
     const size_t codesize = 124;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1377,7 +1366,6 @@ TEST(Bytecode, DoUnbracedIf) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DoUnbracedIf", scrip);
-    // hand-checked bytecode 
     const size_t codesize = 77;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1454,7 +1442,6 @@ TEST(Bytecode, For1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 122;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1573,7 +1560,6 @@ TEST(Bytecode, For2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For2", scrip);
-    // Hand-checked Bytecode
     const size_t codesize = 312;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1684,7 +1670,6 @@ TEST(Bytecode, For3) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For3", scrip);
-    // Hand-checked Bytecode
     const size_t codesize = 58;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1783,7 +1768,6 @@ TEST(Bytecode, For4) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For4", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 74;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1870,7 +1854,6 @@ TEST(Bytecode, For5) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For5", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 143;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -1992,7 +1975,6 @@ TEST(Bytecode, For6) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For6", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 143;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2119,7 +2101,6 @@ TEST(Bytecode, For7) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For7", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 123;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2235,7 +2216,6 @@ TEST(Bytecode, IfDoWhile) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfDoWhile", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 183;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2326,7 +2306,6 @@ TEST(Bytecode, Switch01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Switch01", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 173;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2417,7 +2396,6 @@ TEST(Bytecode, FreeLocalPtr) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FreeLocalPtr", scrip);
-    // Hand-checked Bytecode
     const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2494,7 +2472,6 @@ TEST(Bytecode, StringOldstyle01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle01", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 34;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2596,7 +2573,6 @@ TEST(Bytecode, StringOldstyle02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 30;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2720,7 +2696,6 @@ TEST(Bytecode, Struct01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct01", scrip);
-    // Hand-checked Bytecode
     const size_t codesize = 147;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2842,7 +2817,6 @@ TEST(Bytecode, Struct02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 77;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -2953,7 +2927,6 @@ TEST(Bytecode, Struct03) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct03", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 77;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3067,7 +3040,6 @@ TEST(Bytecode, Struct04) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct04", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 108;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3149,7 +3121,6 @@ TEST(Bytecode, Struct05) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct05", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 40;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3262,7 +3233,6 @@ TEST(Bytecode, Struct06) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct06", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 50;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3342,7 +3312,6 @@ TEST(Bytecode, Struct07) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct07", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 72;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3451,7 +3420,6 @@ TEST(Bytecode, Struct08) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct08", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 98;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3541,7 +3509,6 @@ TEST(Bytecode, Func01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func01", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3654,7 +3621,6 @@ TEST(Bytecode, Func02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3772,7 +3738,6 @@ TEST(Bytecode, Func03) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func03", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 101;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3886,7 +3851,6 @@ TEST(Bytecode, Func04) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func04", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 54;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -3990,7 +3954,6 @@ TEST(Bytecode, Func05) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func05", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 52;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4090,7 +4053,6 @@ TEST(Bytecode, Func06) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func06", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 48;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4190,7 +4152,6 @@ TEST(Bytecode, Func07) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func07", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 48;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4291,7 +4252,6 @@ TEST(Bytecode, Func08) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func08", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 48;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4395,7 +4355,6 @@ TEST(Bytecode, Func09) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func09", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 52;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4509,7 +4468,6 @@ TEST(Bytecode, Func10) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func10", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 74;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4625,7 +4583,6 @@ TEST(Bytecode, Export) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Export", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 51;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4734,7 +4691,6 @@ TEST(Bytecode, ArrayOfPointers1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers1", scrip);
-    // hand checked Bytecode
     const size_t codesize = 92;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4847,7 +4803,6 @@ TEST(Bytecode, ArrayOfPointers2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers2", scrip);
-    // hand-checked bytecode
     const size_t codesize = 147;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -4934,7 +4889,6 @@ TEST(Bytecode, ArrayInStruct1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayInStruct1", scrip);
-    // hand checked Bytecode
     const size_t codesize = 39;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5011,8 +4965,57 @@ TEST(Bytecode, ArrayInStruct2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayInStruct2", scrip);
-    // hand checked Bytecode
+    const size_t codesize = 63;
+    EXPECT_EQ(codesize, scrip->codesize);
 
+    intptr_t code[] = {
+      38,    0,   73,    3,          104,   51,    0,   50,    // 7
+       3,    1,    1,    4,            6,    3,    1,   29,    // 15
+       3,   51,    8,   48,            2,   52,    1,    2,    // 23
+      72,   30,    3,    8,            3,   51,    4,   48,    // 31
+       2,   52,    1,    2,           72,    7,    3,   29,    // 39
+       3,   51,    8,   48,            2,   52,    1,    2,    // 47
+     100,   30,    3,    8,            3,   51,    4,   49,    // 55
+       2,    1,    4,    6,            3,    0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
 TEST(Bytecode, Func11) {
@@ -5036,7 +5039,6 @@ TEST(Bytecode, Func11) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func11", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 51;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5119,7 +5121,6 @@ TEST(Bytecode, Writeprotected) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Writeprotected", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 51;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5226,7 +5227,6 @@ TEST(Bytecode, Protected1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Protected1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 35;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5305,7 +5305,6 @@ TEST(Bytecode, Static1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Static1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 120;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5419,7 +5418,6 @@ TEST(Bytecode, Static2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Static2", scrip);
-    // hand-checked Bytecode
 
     const size_t codesize = 52;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -5531,7 +5529,6 @@ TEST(Bytecode, Protected2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Protected2", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 39;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5604,7 +5601,6 @@ TEST(Bytecode, Import) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Import", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 94;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5713,7 +5709,6 @@ TEST(Bytecode, Switch02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Switch02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 55;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5796,7 +5791,6 @@ TEST(Bytecode, Attributes01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes01", scrip);
-    // hand-checked bytecode
     const size_t codesize = 167;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -5933,7 +5927,6 @@ TEST(Bytecode, Attributes02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes02", scrip);
-    // hand-checked bytecode
     const size_t codesize = 164;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6055,7 +6048,6 @@ TEST(Bytecode, Attributes03) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes03", scrip);
-    // hand-checked bytecode
     const size_t codesize = 86;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6163,7 +6155,6 @@ TEST(Bytecode, StringStandard01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringStandard01", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 65;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6293,7 +6284,6 @@ TEST(Bytecode, StringOldstyle03) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle03", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6413,7 +6403,6 @@ TEST(Bytecode, StringOldstyle04) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle04", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 45;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6528,7 +6517,6 @@ TEST(Bytecode, StringStandard02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringStandard02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 112;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6674,7 +6662,6 @@ TEST(Bytecode, StringStandardOldstyle) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringStandardOldstyle", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 114;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6809,7 +6796,6 @@ TEST(Bytecode, AccessStructAsPointer01)
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer01", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 37;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6919,7 +6905,6 @@ TEST(Bytecode, AccessStructAsPointer02)
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer02", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 54;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7031,7 +7016,6 @@ TEST(Bytecode, AccessStructAsPointer03)
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     WriteOutput("AccessStructAsPointer03", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 28;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7131,7 +7115,6 @@ TEST(Bytecode, Attributes04) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes04", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 58;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7246,7 +7229,6 @@ TEST(Bytecode, Attributes05) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes05", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 20;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7346,7 +7328,6 @@ TEST(Bytecode, Attributes06) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes06", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 22;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7592,7 +7573,6 @@ TEST(Bytecode, Struct09) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Struct09", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 183;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7715,7 +7695,6 @@ TEST(Bytecode, Struct10) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct10", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 16;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7829,7 +7808,6 @@ TEST(Bytecode, Struct11) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct11", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 78;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -7946,7 +7924,6 @@ TEST(Bytecode, Struct12) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct12", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 184;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -8065,7 +8042,6 @@ TEST(Bytecode, DynArrayOfPrimitives) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DynArrayOfPrimitives", scrip);
-    // Hand-checked bytecode
     const size_t codesize = 67;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -8140,7 +8116,6 @@ TEST(Bytecode, ManagedDerefZerocheck) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("ManagedDerefZerocheck", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 24;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -8252,7 +8227,6 @@ TEST(Bytecode, MemInitPtr1) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("MemInitPtr1", scrip);
-    // hand-checked Bytecode
     const size_t codesize = 116;
     EXPECT_EQ(codesize, scrip->codesize);
 

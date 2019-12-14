@@ -12,27 +12,12 @@ AGS::Scanner::Scanner()
 {
 }
 
-AGS::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternalList *token_list)
+AGS::Scanner::Scanner(std::string const &input, size_t lineno, ::ccInternalList *token_list)
     : _lineno(lineno)
     , _tokenList(token_list)
     , _lastError("")
 {
     SetInput(input);
-}
-
-void AGS::Scanner::SetInput(const std::string &input)
-{
-    _inputStream.str(input);
-}
-
-void AGS::Scanner::SetLineno(std::size_t lineno)
-{
-    _lineno = lineno;
-}
-
-void AGS::Scanner::SetTokenList(ccInternalList *token_list)
-{
-    _tokenList = token_list;
 }
 
 void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered)
@@ -53,14 +38,14 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
         return;
 
     // Integer or float literal
-    if (isdigit(next_char))
+    if (IsDigit(next_char))
     {
         ReadInNumberLit(symstring, scan_type, eof_encountered, error_encountered);
         return;
     }
 
     // Character literal
-    if (next_char == '\'')
+    if ('\'' == next_char)
     {
         // Note that this converts the literal to an equivalent integer string "'A'" >>-> "65"
         ReadInCharLit(symstring, eof_encountered, error_encountered);
@@ -69,7 +54,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     }
 
     // Identifier or keyword
-    if (isupper(next_char) || islower(next_char) || (next_char == '_'))
+    if (IsUpper(next_char) || IsLower(next_char) || ('_' == next_char))
     {
         ReadInIdentifier(symstring, eof_encountered, error_encountered);
         scan_type = kSct_Identifier;
@@ -77,7 +62,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     }
 
     // String literal
-    if (next_char == '"')
+    if ('"' == next_char)
     {
         ReadInStringLit(symstring, eof_encountered, error_encountered);
         scan_type = kSct_StringLiteral;
@@ -129,7 +114,7 @@ void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered
 {
     while (true)
     {
-        int ch = _inputStream.get();
+        int const ch = _inputStream.get();
         eof_encountered = _inputStream.eof();
         if (eof_encountered)
             return;
@@ -140,17 +125,17 @@ void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered
             return;
         }
 
-        if (!isspace(ch))
+        if (!IsSpace(ch))
         {
             _inputStream.putback(ch);
             return;
         }
 
         // Gobble the CR of a CRLF combination
-        if ((ch == '\r') && (_inputStream.peek() == '\n'))
+        if ('\r' == ch && '\n' == _inputStream.peek())
             continue;
 
-        if (ch == '\n')
+        if ('\n' == ch)
         {
             // Write pseudocode for increased line number
             WriteNewLinenoMeta(++_lineno);
@@ -167,7 +152,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
     while (true)
     {
-        int ch = _inputStream.get();
+        int const ch = _inputStream.get();
         eof_encountered = _inputStream.eof();
         if (eof_encountered)
             return;
@@ -180,7 +165,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
         if (eof_encountered || error_encountered)
             return;
 
-        if (isdigit(ch))
+        if (IsDigit(ch))
         {
             symstring.push_back(ch);
             continue;
@@ -222,7 +207,7 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
         if (error_encountered)
             break; // to error processing
 
-        if (lit_char == '\\')
+        if ('\\' == lit_char)
         {
             // The next char is escaped, whatever it may be.
             lit_char = _inputStream.get();
@@ -248,7 +233,7 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
         }
 
         // Closing '\''
-        int ch = _inputStream.get();
+        int const ch = _inputStream.get();
         eof_encountered = _inputStream.eof();
         if (eof_encountered)
         {
@@ -286,7 +271,7 @@ int AGS::Scanner::OctChar2Char(int first_digit_char)
     int ret = first_digit_char - '0';
     for (size_t count = 0; count < 2; ++count)
     {
-        int digit = _inputStream.peek();
+        int const digit = _inputStream.peek();
         if (digit < '0' || digit > '8')
             return ret;
         int new_value = 8 * ret + (digit - '0');
@@ -320,7 +305,7 @@ int AGS::Scanner::HexChar2Char()
 
 int AGS::Scanner::EscapedChar2Char(int ch, bool &error_encountered)
 {
-    if (isdigit(ch))
+    if (IsDigit(ch))
         return OctChar2Char(ch);
 
     switch (ch)
@@ -416,7 +401,7 @@ void AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encountere
             return;
         }
 
-        if (isupper(ch) || islower(ch) || isdigit(ch) || (ch == '_'))
+        if (IsUpper(ch) || IsLower(ch) || IsDigit(ch) || (ch == '_'))
         {
             symstring.push_back(ch);
             continue;
@@ -490,4 +475,3 @@ void AGS::Scanner::ReadInGTCombi(std::string &symstring, bool &eof_encountered, 
     if ((symstring == ">>") && (_inputStream.peek() == '='))
         symstring.push_back(_inputStream.get());
 }
-

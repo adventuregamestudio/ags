@@ -22,37 +22,37 @@ public:
     enum ScanType
     {
         kSct_Unspecified = 0,
-        kSct_Identifier,      ///< Identifier or keyword --- [A-Za-z][A-Za-z_]*
-        kSct_FloatLiteral,    ///< Numbers containing a "." --- [0-9]+[.][0-9]*
-        kSct_IntLiteral,      ///< Numbers not containing a "." --- [0-9]+
-        kSct_StringLiteral,   ///< Quoted strings --- ["]([\\].[^"]*)*["]
-        kSct_NonChar          ///< i.e., +, ++, /=; this can be one character or two characters
+        kSct_Identifier,      // Identifier or keyword --- [A-Za-z][A-Za-z_]*
+        kSct_FloatLiteral,    // Numbers containing a "." --- [0-9]+[.][0-9]*
+        kSct_IntLiteral,      // Numbers not containing a "." --- [0-9]+
+        kSct_StringLiteral,   // Quoted strings --- ["]([\\].[^"]*)*["]
+        kSct_NonChar          // i.e., +, ++, /=; this can be one character or two characters
     };
 
     // ctors
     Scanner();
-    Scanner(std::string const &input, std::size_t lineno, struct ::ccInternalList *token_list);
+    Scanner(std::string const &input, size_t lineno, ::ccInternalList *token_list);
 
     // setters and getters
-    void SetInput(const std::string &input);
-    void SetLineno(std::size_t lineno);
-    inline size_t GetLineno() const { return _lineno; };
-    void SetTokenList(struct ::ccInternalList *token_list);
+    inline void SetInput(const std::string &input) { _inputStream.str(input); }
+    inline void SetLineno(std::size_t lineno) { _lineno = lineno; }
+    inline size_t GetLineno() const { return _lineno; }
+    void SetTokenList(::ccInternalList *token_list) { _tokenList = token_list; }
 
     // If the input couldn't be scanned, this will explain the problem
-    inline const std::string GetLastError() const { return this->_lastError; };
+    inline const std::string GetLastError() const { return _lastError; };
 
     // Get the next symstring from the input.
     void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
 protected:
     // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
-    inline static bool isdigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool isupper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
-    inline static bool islower(int ch) { return (ch >= 'a' && ch <= 'z'); }
-    inline static bool isspace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
+    inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
+    inline static bool IsUpper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
+    inline static bool IsLower(int ch) { return (ch >= 'a' && ch <= 'z'); }
+    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
-    inline void WriteNewLinenoMeta(int ln) { const Symbol smeta_linenum = (Symbol)1; _tokenList->write_meta(smeta_linenum, ln); }
+    inline void WriteNewLinenoMeta(int ln) { _tokenList->write_meta(SMETA_LINENUM, ln); }
 
 private:
     std::istringstream _inputStream;
@@ -87,7 +87,7 @@ private:
     // Read in a single-char symstring
     void ReadIn1Char(std::string & symstring);
 
-    // \brief Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
+    // Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
     // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
     // Otherwise, a one-char symstring is detected and the second char is left for the next call
     void ReadIn1or2Char(

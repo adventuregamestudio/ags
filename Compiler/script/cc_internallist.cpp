@@ -82,9 +82,9 @@ void ccInternalList::write(AGS::Symbol value) {
 
 // write a meta symbol (ie. non-code thingy)
 void ccInternalList::write_meta(AGS::Symbol type, int param) {
-    write((AGS::Symbol) SCODE_META);
+    write(SCODE_META);
     write(type);
-    write((AGS::Symbol) param);
+    write(param);
 }
 
 void ccInternalList::shutdown() {

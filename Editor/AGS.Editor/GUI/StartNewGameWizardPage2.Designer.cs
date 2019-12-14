@@ -102,7 +102,7 @@ namespace AGS.Editor
             this.label2.Size = new System.Drawing.Size(482, 26);
             this.label2.TabIndex = 2;
             this.label2.Text = "What do you want the game to be called? This name will be displayed in the title " +
-                "bar of the window whilst playing. You can change this later in the Game Settings" +
+                "bar of the window whilst playing. You can change this later in the General Settings" +
                 " editor.";
             // 
             // txtFileName
@@ -122,8 +122,8 @@ namespace AGS.Editor
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(458, 26);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Please enter the file name of the game below. This will be the name of the game f" +
-                "iles that are produced. You can\'t change this later on.";
+            this.label1.Text = "Please enter the filename of the game below. This will be used to name the final " +
+                "build of your game. You can change this later in the General Settings editor.";
             // 
             // btnCreateInBrowse
             // 

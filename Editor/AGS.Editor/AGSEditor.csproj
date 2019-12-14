@@ -805,6 +805,7 @@
     <EmbeddedResource Include="Resources\scripts.ico" />
     <EmbeddedResource Include="Resources\view-item.ico" />
     <EmbeddedResource Include="Resources\findarea.cur" />
+    <EmbeddedResource Include="Resources\lock_cur.cur" />
     <EmbeddedResource Include="Resources\findarea.ico" />
     <EmbeddedResource Include="Resources\copymask.ico" />
     <EmbeddedResource Include="Resources\drawfill.ico" />

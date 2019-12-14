@@ -233,6 +233,16 @@ namespace AGS.Types
             set;
         }
 
+        [DisplayName("Enable threaded audio")]
+        [Description("Plays audio on a separate thread. This results in a much smoother playback, but makes it harder to synchronize game events with music.")]
+        [DefaultValue(false)]
+        [Category("Audio")]
+        public bool ThreadedAudio
+        {
+            get;
+            set;
+        }
+
         [DisplayName("Game language")]
         [Description("Use this translation when running the game.")]
         [Category("Gameplay")]

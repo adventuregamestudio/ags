@@ -94,6 +94,7 @@ struct WinConfig
 
     int    DigiID;
     int    MidiID;
+    bool   ThreadedAudio;
     bool   UseVoicePack;
 
     bool   MouseAutoLock;
@@ -137,6 +138,7 @@ void WinConfig::SetDefaults()
 
     DigiID = -1; // autodetect
     MidiID = -1;
+    ThreadedAudio = false;
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
@@ -175,6 +177,7 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     DigiID = read_driverid(cfg, "sound", "digiid", DigiID);
     MidiID = read_driverid(cfg, "sound", "midiid", MidiID);
+    ThreadedAudio = INIreadint(cfg, "sound", "threaded", ThreadedAudio ? 1 : 0) != 0;
     UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
     MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
@@ -209,6 +212,7 @@ void WinConfig::Save(ConfigTree &cfg)
 
     write_driverid(cfg, "sound", "digiid", DigiID);
     write_driverid(cfg, "sound", "midiid", MidiID);
+    INIwriteint(cfg, "sound", "threaded", ThreadedAudio ? 1 : 0);
     INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
     INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
@@ -512,6 +516,7 @@ private:
     HWND _hRenderAtScreenRes = NULL;
     HWND _hRefresh85Hz = NULL;
     HWND _hAntialiasSprites = NULL;
+    HWND _hThreadedAudio = NULL;
     HWND _hUseVoicePack = NULL;
     HWND _hAdvanced = NULL;
     HWND _hGameResolutionText = NULL;
@@ -574,6 +579,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
     _hRefresh85Hz           = GetDlgItem(_hwnd, IDC_REFRESH_85HZ);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
+    _hThreadedAudio         = GetDlgItem(_hwnd, IDC_THREADEDAUDIO);
     _hUseVoicePack          = GetDlgItem(_hwnd, IDC_VOICEPACK);
     _hAdvanced              = GetDlgItem(_hwnd, IDC_ADVANCED);
     _hGameResolutionText    = GetDlgItem(_hwnd, IDC_RESOLUTION);
@@ -668,18 +674,18 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
-    SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
-
+    SetCheck(_hThreadedAudio, _winCfg.ThreadedAudio);
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
     else
         SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 
+    if (INIreadint(_cfgIn, "disabled", "threaded_audio", 0) != 0)
+        EnableWindow(_hThreadedAudio, FALSE);
     if (INIreadint(_cfgIn, "disabled", "speechvox", 0) != 0)
         EnableWindow(_hUseVoicePack, FALSE);
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
-
     if (INIreadint(_cfgIn, "disabled", "render_at_screenres", 0) != 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
 
@@ -1134,6 +1140,7 @@ void WinSetupDialog::SaveSetup()
     else
         _winCfg.Language = GetText(_hLanguageList);
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
+    _winCfg.ThreadedAudio = GetCheck(_hThreadedAudio);
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
     _winCfg.VSync = GetCheck(_hVSync);
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);

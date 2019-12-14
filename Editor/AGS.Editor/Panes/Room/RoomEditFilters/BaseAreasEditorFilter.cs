@@ -49,13 +49,13 @@ namespace AGS.Editor
         // Mouse hold/release positions in ROOM's coordinates
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
-        private bool _shouldSetDrawModeOnMouseUp = false;
 
         private static AreaDrawMode _drawMode = AreaDrawMode.Select;
         private static List<MenuCommand> _toolbarIcons = null;
         private static bool _registeredIcons = false;
         private static Cursor _selectCursor;
-		private static bool _greyedOutMasks = true;
+        private static Cursor _lockCursor;
+        private static bool _greyedOutMasks = true;
 
         public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
         {
@@ -71,6 +71,7 @@ namespace AGS.Editor
                 Factory.GUIController.RegisterIcon("CopyWalkableAreaMaskIcon", Resources.ResourceManager.GetIcon("copymask.ico"));
 				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));                
 				_selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
+                _lockCursor = Resources.ResourceManager.GetCursor("lock_cur.cur");
                 _registeredIcons = true;
             }
 
@@ -280,11 +281,8 @@ namespace AGS.Editor
                 int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
                 if (area != 0)
                 {
-                    if (!IsLocked(area))
-                    {
-                        SelectedArea = area;
-                        SelectedAreaChanged(_selectedArea);
-                    }
+                    SelectedArea = area;
+                    SelectedAreaChanged(_selectedArea);
                 }
                 else
                 {
@@ -309,12 +307,7 @@ namespace AGS.Editor
 
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
 
-            if (_shouldSetDrawModeOnMouseUp)
-            {
-                _shouldSetDrawModeOnMouseUp = false;
-                SetDrawMode();
-            }
-            else if (drawMode == AreaDrawMode.Line)
+            if (drawMode == AreaDrawMode.Line)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
                 Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
@@ -549,7 +542,6 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             
 			FilterActivated();
-            _shouldSetDrawModeOnMouseUp = true;
             _isOn = true;
         }
 
@@ -596,7 +588,9 @@ namespace AGS.Editor
         {
             if (_drawMode == AreaDrawMode.Select)
                 return _selectCursor;
-            return Cursors.Cross;
+            if (!IsLocked(_selectedArea))
+                return Cursors.Cross;
+            return _lockCursor;
         }
 
         public bool AllowClicksInterception()
@@ -625,19 +619,6 @@ namespace AGS.Editor
         protected string GetValidItemName(int id)
         {
             return id == 0 ? ERASER : GetItemName(id);
-        }
-
-        private void SetDrawMode()
-        {
-            for (int i = 0; i < _toolbarIcons.Count; i++)
-            {
-                MenuCommand menuCommand = _toolbarIcons[i];
-                if (menuCommand.Checked)
-                {
-                    _drawMode = (AreaDrawMode)i;
-                    return;
-                }
-            }
         }
 
         /// <summary>

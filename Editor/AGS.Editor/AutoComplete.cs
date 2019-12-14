@@ -173,7 +173,7 @@ namespace AGS.Editor
 
                     if (scriptAtComment.StartsWith("///"))
                     {
-                        FastString commentText = scriptAtComment.Substring(3, (scriptAtComment.Length - script.Length) - 4);
+                        FastString commentText = scriptAtComment.Substring(3, (scriptAtComment.Length - script.Length) - 3);
                         state.PreviousComment = commentText.ToString().Trim();
                     }
                     continue;

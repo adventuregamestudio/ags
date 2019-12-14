@@ -18,6 +18,11 @@ namespace AGS.Editor
 			txtCreateInFolder.Text = baseDirectory;
         }
 
+        public string FileName
+        {
+            get { return txtFileName.Text; }
+        }
+
         public string NewGameName
         {
             get { return txtFriendlyName.Text; } 

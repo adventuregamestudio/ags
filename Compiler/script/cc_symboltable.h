@@ -169,6 +169,8 @@ public:
     bool IsAnyTypeOfString(Symbol s) const;
     bool IsOldstring(Symbol s) const;
 
+    inline int OperatorPrio(Symbol op) const { return entries[op].SSize; };
+       
     // add the name to the symbol table, give it the type stype and the size ssize
     Symbol SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize);
 

@@ -1750,56 +1750,57 @@ int AGS::Parser::InterpretFloatAsInt(float floatval)
     return *intptr; // return the int that the pointer points to
 }
 
-// return the index of the lowest MATHEMATICAL priority operator in the list,
+// return the index of the operator in the list that binds the least,
 // so that either side of it can be evaluated first.
 // returns -1 if no operator was found
-int AGS::Parser::IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len)
+int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len)
 {
-    size_t bracket_nesting_depth = 0;
-    size_t paren_nesting_depth = 0;
+    size_t nesting_depth = 0;
 
-    int lowest_MathPrio_found = std::numeric_limits<int>::max(); // c++ STL lingo for MAXINT
-    int index_of_lowest_MathPrio = -1;
+    int highest_prio_found = std::numeric_limits<int>::min(); // c++ STL lingo for MAXINT
+    int index_of_highest_prio = -1;
 
     for (size_t slist_idx = 0; slist_idx < slist_len; slist_idx++)
     {
-        SymbolType thisType = _sym.GetSymbolType(slist[slist_idx]);
-        switch (thisType)
+        SymbolType this_type = _sym.GetSymbolType(slist[slist_idx]);
+        switch (this_type)
         {
         default:
             break;
+
+        case kSYM_New:
+        case kSYM_Tern:
+            this_type = kSYM_Operator;
+            break;
+
         case kSYM_OpenBracket:
-            bracket_nesting_depth++;
-            continue;
-        case kSYM_CloseBracket:
-            if (bracket_nesting_depth > 0)
-                bracket_nesting_depth--;
-            continue;
         case kSYM_OpenParenthesis:
-            paren_nesting_depth++;
+            nesting_depth++;
             continue;
+
+        case kSYM_CloseBracket:
         case kSYM_CloseParenthesis:
-            if (paren_nesting_depth > 0)
-                paren_nesting_depth--;
+            if (nesting_depth > 0)
+                nesting_depth--;
             continue;
         }
 
         // Continue if we aren't at zero nesting depth, since ()[] take priority
-        if (paren_nesting_depth > 0 || bracket_nesting_depth > 0)
+        if (nesting_depth > 0)
             continue;
 
-        if (thisType != kSYM_Operator && thisType != kSYM_New)
+        if (this_type != kSYM_Operator)
             continue;
 
-        int this_MathPrio = MathPrio(slist[slist_idx]);
-        if (this_MathPrio > lowest_MathPrio_found)
-            continue; // can't be lowest priority
+        int const this_prio = _sym.OperatorPrio(slist[slist_idx]);
+        if (this_prio < highest_prio_found)
+            continue; // can't be highest priority
 
         // remember this and keep looking
-        lowest_MathPrio_found = this_MathPrio;
-        index_of_lowest_MathPrio = slist_idx;
+        highest_prio_found = this_prio;
+        index_of_highest_prio = slist_idx;
     }
-    return index_of_lowest_MathPrio;
+    return index_of_highest_prio;
 }
 
 // Change the generic operator vcpuOp to the one that is correct for the vartypes
@@ -2075,10 +2076,11 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
         _scrip.write_cmd1(
             _sym.IsDyn(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
+    vloc = kVL_ax_is_value;
     return 0;
 }
 
-int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len)
 {
     if (symlist_len >= 2)
     {
@@ -2115,7 +2117,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
     return -1;
 }
 
-int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_NewIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     int retval = ParseExpression_CheckArgOfNew(symlist, symlist_len);
     if (retval < 0) return retval;
@@ -2160,7 +2162,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
 }
 
 // We're parsing an expression that starts with '-' (unary minus)
-int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_UnaryMinusIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len < 2)
     {
@@ -2186,7 +2188,7 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &syml
 }
 
 // We're parsing an expression that starts with '!' (boolean NOT)
-int AGS::Parser::ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_NotIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len < 2)
     {
@@ -2212,9 +2214,9 @@ int AGS::Parser::ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, s
     return 0;
 }
 
-// The lowest-binding operator is the first thing in the expression
+// The least binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_OpIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kSYM_New == _sym.GetSymbolType(symlist[0]))
     {
@@ -2240,9 +2242,131 @@ int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, siz
     return -1;
 }
 
-// The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+// The least binding operator is '?'
+int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
+    SymbolScript const term1list = symlist;
+    size_t term1list_len = op_idx;
+    SymbolScript const term2list = symlist + op_idx + 1;
+    size_t term2list_len = symlist_len - op_idx - 1;
+
+    // Find beginning of third term
+    SymbolScript  term3list = term2list;
+    size_t term3list_len = term2list_len;
+    SymbolType const stoplist[] = { kSYM_Label, };
+    size_t stoplist_len = 1;
+    SkipToScript(stoplist, stoplist_len, term3list, term3list_len);
+    if (0 == term3list_len || kSYM_Label != _sym.GetSymbolType(*term3list))
+    {
+        cc_error("Didn't find the matching ':' to a '?'");
+        return -1;
+    }
+    term2list_len = term3list - term2list;
+    term3list++; // Eat ':'
+    term3list_len--; // Eat ':' cont'd
+    
+    Vartype term1_vartype, term2_vartype, term3_vartype;
+    int term1_scope, term2_scope, term3_scope;
+
+    // First term of ternary
+    int retval = ParseExpression_Subexpr(term1list, term1list_len, vloc, term1_scope, term1_vartype);
+    if (retval < 0) return retval;
+    ResultToAX(vloc, term1_scope, term1_vartype);
+    // We jump either to the start of the third term or to the end of the ternary
+    // expression. We don't know where this is yet, thus -77. This is just a
+    // random number that's easy to spot in debugging outputs (where it's a clue
+    // that it probably hasn't been replaced by a proper value).
+    
+    _scrip.write_cmd1(
+        (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
+        -77);
+    CodeLoc const test_jumpdest_to_patch = _scrip.codesize - 1;
+
+    // Second term of ternary
+    bool const second_term_exists = (term2list_len > 0);
+    CodeLoc jumpdest_after_term2_to_patch = 0;
+    if (second_term_exists)
+    {
+        ParseExpression_Subexpr(term2list, term2list_len, vloc, scope, term2_vartype);
+        if (retval < 0) return retval;
+        ResultToAX(vloc, term2_scope, term2_vartype);
+        if (_sym.IsAnyTypeOfString(term2_vartype))
+        {
+            ConvertAXStringToStringObject(_sym.GetStringStructSym());
+            term2_vartype = _scrip.ax_vartype;
+        }
+        // Jump to the end of the ternary expression;
+        // We don't know the dest yet, thus the placeholder value -77. Don't
+        // test for this random magic number or use it in code
+        _scrip.write_cmd1(SCMD_JMP, -77);
+        jumpdest_after_term2_to_patch = _scrip.codesize - 1;
+    }
+    else
+    {
+        // Take the first expression as the result of the missing second expression
+        // No code is generated; instead, the conditional jump after the test goes
+        // to the end of the expression if the test does NOT yield zero
+        term2_vartype = term1_vartype;
+        term2_scope = term1_scope;
+        if (_sym.IsAnyTypeOfString(term2_vartype))
+        {
+            ConvertAXStringToStringObject(_sym.GetStringStructSym());
+            term2_vartype = _scrip.ax_vartype;
+        }
+    }
+    
+
+    // Third term of ternary
+    if (0 == term3list_len)
+    {
+        cc_error("The third expression of this ternary is empty");
+        return -1;
+    }
+    if (second_term_exists)
+        _scrip.code[test_jumpdest_to_patch] =
+        ccCompiledScript::RelativeJumpDist(test_jumpdest_to_patch, _scrip.codesize);
+
+    ParseExpression_Subexpr(term3list, term3list_len, vloc, term3_scope, term3_vartype);
+    if (retval < 0) return retval;
+    ResultToAX(vloc, term3_scope, term3_vartype);
+    if (_sym.IsAnyTypeOfString(term3_vartype))
+    {
+        ConvertAXStringToStringObject(_sym.GetStringStructSym());
+        term3_vartype = _scrip.ax_vartype;
+    }
+
+    if (second_term_exists)
+        _scrip.code[jumpdest_after_term2_to_patch] =
+            ccCompiledScript::RelativeJumpDist(jumpdest_after_term2_to_patch, _scrip.codesize);
+    else
+        _scrip.code[test_jumpdest_to_patch] =
+            ccCompiledScript::RelativeJumpDist(test_jumpdest_to_patch, _scrip.codesize);
+
+    scope =
+        (kSYM_LocalVar == term2_scope || kSYM_LocalVar == term3_scope) ?
+        kSYM_LocalVar : kSYM_GlobalVar;
+
+    if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
+    {
+        vartype = _scrip.ax_vartype = term3_vartype;
+        return 0;
+    }
+    if (!IsVartypeMismatch_Oneway(term3_vartype, term2_vartype))
+    {
+        vartype = _scrip.ax_vartype = term2_vartype;
+        return 0;
+    }
+    cc_error("An expression of type '%s' is incompatible with an expression of type '%s'",
+        _sym.GetName(term2_vartype).c_str(), _sym.GetName(term3_vartype).c_str());
+    return -1;
+}
+
+// The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
+int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (kSYM_Tern == _sym.GetSymbolType(symlist[op_idx]))
+        return ParseExpression_TernIsSecondOrLater(op_idx, symlist, symlist_len, vloc, scope, vartype);
+
     int vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
 
     if (vcpuOperator == SCMD_NOTREG)
@@ -2258,7 +2382,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     {
         // We aren't looking at a subtraction; instead, the '-' is the unary minus of a negative value
         // Thus, the "real" operator must be further to the right, find it.
-        op_idx = IndexOfLowestBondingOperator(symlist, op_idx);
+        op_idx = IndexOfLeastBondingOperator(symlist, op_idx);
         vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
     }
 
@@ -2332,7 +2456,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     return 0;
 }
 
-int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     int matching_paren_idx = -1;
     size_t paren_nesting_depth = 1; // we've already read a '('
@@ -2765,32 +2889,35 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
     if (symlist_len == 0)
     {
         cc_error("Internal error: Cannot parse empty subexpression");
-        return -1;
+        return -99;
     }
-    if (kSYM_CloseBracket == _sym.GetSymbolType(symlist[0]))
-    {
-        cc_error("Unexpected ']' at start of expression");
-        return -1;
+    SymbolType const stype = _sym.GetSymbolType(symlist[0]);
+    if (kSYM_CloseParenthesis == stype || kSYM_CloseBracket == stype || kSYM_CloseBrace == stype)
+    {   // Shouldn't happen: the scanner sees to it that nesting symbols match
+        cc_error(
+            "Internal error: Unexpected '%s' at start of expression",
+            _sym.GetName(symlist[0]).c_str());
+        return -99;
     }
 
-    int lowest_op_idx = IndexOfLowestBondingOperator(symlist, symlist_len);  // can be < 0
+    int least_binding_op_idx = IndexOfLeastBondingOperator(symlist, symlist_len);  // can be < 0
 
-    // If the lowest bonding operator is '-' and right in front,
+    // If the least bonding operator is '-' and right in front,
     // then it has been misinterpreted so far: it's really a unary minus
-    if ((lowest_op_idx == 0) &&
+    if ((least_binding_op_idx == 0) &&
         (symlist_len > 1) &&
         (_sym[symlist[0]].OpToVCPUCmd() == SCMD_SUBREG))
     {
-        lowest_op_idx = IndexOfLowestBondingOperator(&symlist[1], symlist_len - 1);
-        if (lowest_op_idx >= 0)
-            lowest_op_idx++;
+        least_binding_op_idx = IndexOfLeastBondingOperator(&symlist[1], symlist_len - 1);
+        if (least_binding_op_idx >= 0)
+            least_binding_op_idx++;
     }
 
     int retval = 0;
-    if (lowest_op_idx == 0)
+    if (least_binding_op_idx == 0)
         retval = ParseExpression_OpIsFirst(symlist, symlist_len, vloc, scope, vartype);
-    else if (lowest_op_idx > 0)
-        retval = ParseExpression_OpIsSecondOrLater(static_cast<size_t>(lowest_op_idx), symlist, symlist_len, vloc, scope, vartype);
+    else if (least_binding_op_idx > 0)
+        retval = ParseExpression_OpIsSecondOrLater(static_cast<size_t>(least_binding_op_idx), symlist, symlist_len, vloc, scope, vartype);
     else
         retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
     if (retval < 0) return retval;
@@ -3721,6 +3848,13 @@ int AGS::Parser::BufferExpression(ccInternalList &expr_script)
 {
     int nesting_depth = 0;
 
+    // The ':' in an "a ? b : c" construct can also be the end of a label, and in AGS,
+    // expressions are allowed for labels. So we must take care that label ends aren't
+    // mistaken for expression parts. For this, tern_depth counts the number of
+    // unmatched '?' on the outer level. If this is non-zero, then any arriving 
+    // ':' will be interpreted as part of a ternary.
+    int tern_depth = 0;
+
     AGS::Symbol peeksym;
     while (0 <= (peeksym = _targ.peeknext())) // note assignment in while condition
     {
@@ -3730,56 +3864,69 @@ int AGS::Parser::BufferExpression(ccInternalList &expr_script)
         SymbolType const peektype = _sym.GetSymbolType(peeksym);
         if (kSYM_OpenParenthesis == peektype || kSYM_OpenBracket == peektype || kSYM_OpenBrace == peektype)
             ++nesting_depth;
-        if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
+        else if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
             if (--nesting_depth < 0)
                 break; // this symbol can't be part of the current expression
-        if (nesting_depth == 0)
+        if (nesting_depth != 0)
         {
-            if (kSYM_Dot == peektype)
+            expr_script.write(_targ.getnext());
+            continue;
+        }
+
+        if (kSYM_Dot == peektype)
+        {
+            expr_script.write(_targ.getnext()); // '.'
+            // Eat and write next symbol, is a component name
+            if (_targ.peeknext() > 0)
+                expr_script.write(_targ.getnext());
+            continue;
+        }
+        else if (kSYM_Label == peektype)
+        {
+            if (--tern_depth >= 0)
             {
-                expr_script.write(_targ.getnext()); // '.'
-                // Eat and write next symbol, is a component name
-                if (_targ.peeknext() > 0)
-                    expr_script.write(_targ.getnext());
+                expr_script.write(_targ.getnext());
+                continue; // ':'
+            }
+        }
+        else if (kSYM_New == peektype)
+        {
+            // This is only allowed if a type follows
+            _targ.getnext(); // Eat 'new'
+            AGS::Symbol const nextnextsym = _targ.getnext();
+            SymbolType const nextnexttype = _sym.GetSymbolType(nextnextsym);
+            if (kSYM_Vartype == nextnexttype || kSYM_UndefinedStruct == nextnexttype)
+            {
+                expr_script.write(peeksym);
+                expr_script.write(nextnextsym);
                 continue;
             }
-
-            if (kSYM_New == peektype)
-            {
-                // This is only allowed if a type follows
-                _targ.getnext(); // Eat 'new'
-                AGS::Symbol nextnextsym = _targ.getnext();
-                SymbolType const nextnexttype = _sym.GetSymbolType(nextnextsym);
-                if (kSYM_Vartype == nextnexttype || kSYM_UndefinedStruct == nextnexttype)
-                {
-                    expr_script.write(peeksym);
-                    expr_script.write(nextnextsym);
-                    continue;
-                }
-                _targ.pos = pos; // Back up so that 'new' is still unread
-                break;
-            }
-
-            if (kSYM_Vartype == peektype)
-            {
-                // This is only allowed if a dot follows
-                _targ.getnext(); // Eat the vartype
-                AGS::Symbol nextsym = _targ.getnext();
-                if (kSYM_Dot == _sym.GetSymbolType(nextsym))
-                {
-                    expr_script.write(peeksym);
-                    expr_script.write(nextsym);
-                    continue;
-                }
-                _targ.pos = pos; // Back up so that the vartype is still unread
-                break;
-            }
-
-            // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
-            // be part of an expression
-            if (peektype >= NOTEXPRESSION)
-                break;
+            _targ.pos = pos; // Back up so that 'new' is still unread
+            break;
         }
+        else if (kSYM_Tern == peektype)
+        {
+            tern_depth++;
+        }
+        else if (kSYM_Vartype == peektype)
+        {
+            // This is only allowed if a dot follows
+            _targ.getnext(); // Eat the vartype
+            AGS::Symbol const nextsym = _targ.getnext();
+            if (kSYM_Dot == _sym.GetSymbolType(nextsym))
+            {
+                expr_script.write(peeksym);
+                expr_script.write(nextsym);
+                continue;
+            }
+            _targ.pos = pos; // Back up so that the vartype is still unread
+            break;
+        }
+
+        // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
+        // be part of an expression
+        if (peektype >= NOTEXPRESSION)
+            break;
 
         expr_script.write(_targ.getnext());
     }
@@ -3787,6 +3934,11 @@ int AGS::Parser::BufferExpression(ccInternalList &expr_script)
     if (expr_script.length <= 0)
     {
         cc_error("Internal error: Empty expression");
+        return -1;
+    }
+    if (nesting_depth > 0)
+    {
+        cc_error("Unexpected '%s' in expression", _sym.GetName(peeksym).c_str());
         return -1;
     }
 
@@ -6418,7 +6570,7 @@ int AGS::Parser::ParseInput()
 
     while (!_targ.reached_eof())
     {
-        AGS::Symbol cursym = _targ.getnext();
+        Symbol const cursym = _targ.getnext();
 
         if (0 == _sym.GetName(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
         {

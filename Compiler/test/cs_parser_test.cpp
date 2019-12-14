@@ -1960,3 +1960,51 @@ TEST(Compile, Readonly01) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Ternary01) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // case labels accept expressions in AGS, so ternary expressions should work, too.
+
+    char *inpl = "\
+        void main()                     \n\
+        {                               \n\
+            int i = 15;                 \n\
+            switch (i)                  \n\
+            {                           \n\
+                case i < 0 ? 1 : 2:     \n\
+                    break;              \n\
+                case i ?: 2:            \n\
+                    return;             \n\
+            }                           \n\
+        }                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, Ternary02) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Values of ternary must have compatible vartypes
+
+    char *inpl = "\
+        int main()                      \n\
+        {                               \n\
+            return 2 < 1 ? 1 : 2.0;     \n\
+                    break;              \n\
+        }                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Error message must name culprits
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("int"));
+    EXPECT_NE(std::string::npos, res.find("float"));
+}

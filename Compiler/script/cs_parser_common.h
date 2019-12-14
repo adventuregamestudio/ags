@@ -48,6 +48,7 @@ enum SymbolType : AGS::SType
     kSYM_OpenParenthesis,
     kSYM_Operator,
     kSYM_StructComponent,
+    kSYM_Tern,              // the '?' in the a? b : c construct
 
     // Types below cannot appear in expressions
     kSYM_Assign,
@@ -72,7 +73,7 @@ enum SymbolType : AGS::SType
     kSYM_If,
     kSYM_Import,
     kSYM_InternalString,    // special string struct
-    kSYM_Label,             // : appearing at the end of a label
+    kSYM_Label,             // : at end of label, also used in ternary
     kSYM_NoLoopCheck,       // disable loop count checking
     kSYM_Managed,           // struct allocated on heap
     kSYM_MemberAccess,      // ::

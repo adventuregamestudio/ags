@@ -388,14 +388,6 @@ private:
 
     static int String2Int(std::string str, int &val, bool send_error);
 
-    // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
-    // For example, "*" has a higher mathematical priority than "-".
-    // In contrast to this, "size" gives the priority in the INVERSE way: 
-    // The higher _sym[op].SSize is, the LESS binding is the operator op.
-    // To convert, we must subtract this value from some suitable value 
-    // (any will do that doesn't cause underflow of the subtraction).
-    inline int MathPrio(Symbol op) const { return 100 - _sym[op].SSize; };
-
     bool IsIdentifier(Symbol symb);
     inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
 
@@ -509,10 +501,10 @@ private:
     // This might or might not be within a struct defn
     int ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
 
-    // return the index of the lowest MATHEMATICAL priority operator in the list,
+    // return the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first.
     // returns -1 if no operator was found
-    int IndexOfLowestBondingOperator(SymbolScript slist, size_t slist_len);
+    int IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len);
 
     // Change the generic operator vcpuOp to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
@@ -542,24 +534,26 @@ private:
     int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // Checks on the type following "new"
-    int ParseExpression_CheckArgOfNew(const AGS::SymbolScript & symlist, size_t symlist_len);
+    int ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len);
 
-    int ParseExpression_NewIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_NewIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '-' (unary minus)
-    int ParseExpression_UnaryMinusIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_UnaryMinusIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '!' (boolean NOT)
-    int ParseExpression_NotIsFirst(const SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_NotIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // The lowest-binding operator is the first thing in the expression
+    // The least binding operator is the first thing in the expression
     // This means that the op must be an unary op.
-    int ParseExpression_OpIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_OpIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-    int ParseExpression_OpIsSecondOrLater(size_t op_idx, const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_TernIsSecondOrLater(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
 
-    int ParseExpression_OpenParenthesis(SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    // The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
+    int ParseExpression_OpIsSecondOrLater(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_OpenParenthesis(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values

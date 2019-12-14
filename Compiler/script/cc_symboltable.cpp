@@ -159,25 +159,26 @@ void AGS::SymbolTable::reset()
     _nullSym = AddWithTypeAndSize("null", kSYM_Null, 0);
     AddWithTypeAndSize("[", kSYM_OpenBracket, 0);
     AddWithTypeAndSize("(", kSYM_OpenParenthesis, 0);
+    AddWithTypeAndSize("?", kSYM_Tern, 20); // note, set operator prio
     // the second argument to the operators is their precedence: 1 is highest
     AddOp("!", 1, SCMD_NOTREG);
     _dynpointerSym =
-        AddOp("*", 2, SCMD_MULREG);
+        AddOp("*", 3, SCMD_MULREG);
     AddOp("/", 3, SCMD_DIVREG);
-    AddOp("%", 4, SCMD_MODREG);
+    AddOp("%", 3, SCMD_MODREG);
     AddOp("+", 5, SCMD_ADDREG);
     AddOp("-", 5, SCMD_SUBREG);
     AddOp("<<", 7, SCMD_SHIFTLEFT);
-    AddOp(">>", 8, SCMD_SHIFTRIGHT);
+    AddOp(">>", 7, SCMD_SHIFTRIGHT);
     AddOp("&", 9, SCMD_BITAND);
     AddOp("|", 10, SCMD_BITOR);
-    AddOp("^", 11, SCMD_XORREG);
+    AddOp("^", 10, SCMD_XORREG);
     AddOp("==", 12, SCMD_ISEQUAL);
-    AddOp("!=", 13, SCMD_NOTEQUAL);
-    AddOp(">", 14, SCMD_GREATER);
-    AddOp("<", 15, SCMD_LESSTHAN);
-    AddOp(">=", 16, SCMD_GTE);
-    AddOp("<=", 17, SCMD_LTE);
+    AddOp("!=", 12, SCMD_NOTEQUAL);
+    AddOp(">", 12, SCMD_GREATER);
+    AddOp("<", 12, SCMD_LESSTHAN);
+    AddOp(">=", 12, SCMD_GTE);
+    AddOp("<=", 12, SCMD_LTE);
     AddOp("&&", 18, SCMD_AND);
     AddOp("||", 19, SCMD_OR);
     _thisSym =
@@ -220,7 +221,7 @@ void AGS::SymbolTable::reset()
     AddWithTypeAndSize("noloopcheck", kSYM_NoLoopCheck, 0);
     AddWithTypeAndSize("managed", kSYM_Managed, 0);
     AddWithTypeAndSize("::", kSYM_MemberAccess, 0);
-    AddWithTypeAndSize("new", kSYM_New, 1);
+    AddWithTypeAndSize("new", kSYM_New, 1); // note, set operator priority
     AddWithTypeAndSize("{", kSYM_OpenBrace, 0);
     AddWithTypeAndSize("protected", kSYM_Protected, 0);
     AddWithTypeAndSize("readonly", kSYM_ReadOnly, 0);

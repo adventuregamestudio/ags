@@ -8314,3 +8314,369 @@ TEST(Bytecode, MemInitPtr1) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
+
+TEST(Bytecode, Ternary1) {
+
+    // Accept a simple ternary expression
+
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Foo(int i)              \n\
+    {                           \n\
+        return i > 0 ? 1 : -1;  \n\
+        return 9;               \n\
+    }                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Ternary1", scrip);
+    const size_t codesize = 40;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    8,            7,    3,   29,    3,    // 7
+       6,    3,    0,   30,            4,   17,    4,    3,    // 15
+       3,    4,    3,   28,            5,    6,    3,    1,    // 23
+      31,    3,    6,    3,           -1,   31,    8,    6,    // 31
+       3,    9,   31,    3,            6,    3,    0,    5,    // 39
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Ternary2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Accept Elvis operator expression
+
+    char *inpl = "\
+    managed struct Struct       \n\
+    {                           \n\
+        int Payload;            \n\
+    } S, T;                     \n\
+                                \n\
+    void main()                 \n\
+    {                           \n\
+        S = null;               \n\
+        T = new Struct;         \n\
+        Struct Res = S ?: T;    \n\
+    }                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Ternary2", scrip);
+    const size_t codesize = 44;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            0,    6,    2,    0,    // 7
+      47,    3,   73,    3,            4,    6,    2,    4,    // 15
+      47,    3,    6,    2,            0,   48,    3,   70,    // 23
+       5,    6,    2,    4,           48,    3,   51,    0,    // 31
+      50,    3,    1,    1,            4,   51,    4,   49,    // 39
+       2,    1,    4,    5,          -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 4;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       7,   15,   20,   27,        -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      1,   1,   1,   1,     '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Ternary3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Accept nested expression
+
+    char *inpl = "\
+    int main()                  \n\
+    {                           \n\
+        int t1 = 15;            \n\
+        int t2 = 16;            \n\
+        return t1 < 0 ? (t1 > 15 ? t2 : t1) : 99;     \n\
+    }                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Ternary3", scrip);
+    const size_t codesize = 77;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,           15,   29,    3,    6,    // 7
+       3,   16,   29,    3,           51,    8,    7,    3,    // 15
+      29,    3,    6,    3,            0,   30,    4,   18,    // 23
+       4,    3,    3,    4,            3,   28,   31,   51,    // 31
+       8,    7,    3,   29,            3,    6,    3,   15,    // 39
+      30,    4,   17,    4,            3,    3,    4,    3,    // 47
+      28,    6,   51,    4,            7,    3,   31,    4,    // 55
+      51,    8,    7,    3,           31,    3,    6,    3,    // 63
+      99,    2,    1,    8,           31,    6,    2,    1,    // 71
+       8,    6,    3,    0,            5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Ternary4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // String / literal string and conversion.
+
+    char inpl[] = "\
+        String main()                       \n\
+        {                                   \n\
+            String test = \"Test\";         \n\
+            return 2 < 1 ? test : \"Foo\";  \n\
+        }                                   \n\
+        ";
+    std::string input = g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
+    clear_error();
+    int compileResult = cc_compile(input.c_str(), scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Ternary4", scrip);
+    const size_t codesize = 74;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            0,   64,    3,   51,    // 7
+       0,   50,    3,    1,            1,    4,    6,    3,    // 15
+       2,   29,    3,    6,            3,    1,   30,    4,    // 23
+      18,    4,    3,    3,            4,    3,   28,    6,    // 31
+      51,    4,   48,    3,           31,    5,    6,    3,    // 39
+       5,   64,    3,   29,            3,   51,    4,   50,    // 47
+       3,   51,    8,   49,           51,    4,   48,    3,    // 55
+      69,   30,    4,    2,            1,    4,   31,    9,    // 63
+      51,    4,   49,    2,            1,    4,    6,    3,    // 71
+       0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       4,   40,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      3,   3,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 9;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+
+    char strings[] = {
+    'T',  'e',  's',  't',            0,  'F',  'o',  'o',     // 7
+      0,  '\0'
+    };
+
+    for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
+        std::string prefix = "strings[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(strings[idx]);
+        std::string test_val = prefix + std::to_string(scrip->strings[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}

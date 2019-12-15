@@ -15,14 +15,14 @@ The processing is done in the following layers:
     Enter all literal strings into a strings table
 These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
 The result is:
-    the symbol table, a parameter sym that is a struct SymbolTable.
-    the sequence of tokens, a parameter targ that is a struct ccInternalList *.
+    the symbol table, a parameter that is a struct SymbolTable.
+    the sequence of tokens, a parameter src that is a struct ccInternalList *.
     the collected string literals that go into a struct ccCompiledScript.
 
 * Parsing
     All the high-level logic.
-The parsing functions get the input in a parameter targ that is a ccInternalList *.
-The parser augments the symbol table sym as it goes along.
+The parsing functions get the input in a parameter src that is a ccInternalList *.
+The parser augments the symbol table _sym as it goes along.
 The result is in a parameter scrip that is a struct ccCompiledScript *
 and has the following key components (amongst many other components):
     functions - all the functions defined (i.e. they have a body) in the current inputstring
@@ -62,8 +62,8 @@ private:
     // A section of compiled code that needs to be moved or copied to a new location
     struct Chunk
     {
-        std::vector<AGS::CodeCell> Code;
-        std::vector<AGS::CodeLoc> Fixups;
+        std::vector<CodeCell> Code;
+        std::vector<CodeLoc> Fixups;
         std::vector<char> FixupTypes;
         int CodeOffset;
         int FixupOffset;
@@ -74,9 +74,9 @@ private:
     struct NestingInfo
     {
         int Type; // Type of the level, see AGS::NestingStack::NestingType
-        AGS::CodeLoc StartLoc; // Index of the first byte generated for the level
-        AGS::CodeLoc Info; // Various uses that differ by nesting type
-        AGS::CodeLoc DefaultLabelLoc; // Location of default label
+        CodeLoc StartLoc; // Index of the first byte generated for the level
+        CodeLoc Info; // Various uses that differ by nesting type
+        CodeLoc DefaultLabelLoc; // Location of default label
         std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
     };
 
@@ -111,26 +111,26 @@ public:
 
     // If the innermost nesting is a loop that has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline AGS::CodeLoc StartLoc() { return _stack.back().StartLoc; };
-    inline void SetStartLoc(AGS::CodeLoc start) { _stack.back().StartLoc = start; };
+    inline CodeLoc StartLoc() { return _stack.back().StartLoc; };
+    inline void SetStartLoc(CodeLoc start) { _stack.back().StartLoc = start; };
     // If the nesting at the given level has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline AGS::CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
+    inline CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
 
     // If the innermost nesting features a jump out instruction, 
     // then this is the location of the bytecode symbol that says where to jump
     inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
     inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
     // If the nesting at the given level features a jump out, then this is the location of it
-    inline AGS::CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
+    inline CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
 
     // If the innermost nesting is a SWITCH, the type of the switch expression
     int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
     inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
 
     // If the innermost nesting is a SWITCH, the location of the "default:" label
-    inline AGS::CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
-    inline void SetDefaultLabelLoc(AGS::CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
+    inline CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
+    inline void SetDefaultLabelLoc(CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
 
     // If the innermost nesting contains code chunks that must be moved around
     // (e.g., in FOR loops), then this is true, else false
@@ -149,7 +149,7 @@ public:
     }
 
     // Push a new nesting level (returns a  value < 0 on error)
-    int Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info);
+    int Push(NestingType type, CodeLoc start, CodeLoc info);
     inline int Push(NestingType type) { return Push(type, 0, 0); };
 
     // Pop a nesting level
@@ -157,7 +157,7 @@ public:
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
     // Returns the unique ID of this code in id
-    void YankChunk(::ccCompiledScript &scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id);
+    void YankChunk(::ccCompiledScript &scrip, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
 
 
     // Write chunk of code back into the codebase that has been stashed in level given, at index
@@ -212,11 +212,11 @@ public:
 
     // Set the callpoint for a function. 
     // Patch all the function calls of the given function to point to dest
-    int SetFuncCallpoint(Symbol func, AGS::CodeLoc dest);
+    int SetFuncCallpoint(Symbol func, CodeLoc dest);
 
     // Set the exit point of a function.
     // Patch this address into all the jumps to exit points.
-    int SetFuncExitJumppoint(Symbol func, AGS::CodeLoc dest);
+    int SetFuncExitJumppoint(Symbol func, CodeLoc dest);
 
     inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
 
@@ -367,7 +367,7 @@ private:
     SymbolTable &_sym;
 
     // List of symbols from the tokenizer
-    ::ccInternalList &_targ;
+    ::ccInternalList &_src;
 
     // Receives the parsing results
     ::ccCompiledScript &_scrip;
@@ -460,8 +460,8 @@ private:
     int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
 
     // Extender function, eg. function GoAway(this Character *someone)
-    // We've just accepted something like "int func(", we expect "this" --OR-- "static" (!)
-    // We'll accept something like "this Character *"
+    // We've just accepted something like "int func(", we expect "this" --OR-- "static"
+    // We'll accept something like "this Character *" --OR-- "static Character"
     int ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &name_of_func, Symbol &struct_of_func);
 
     // In a parameter list, process the vartype of a parameter declaration
@@ -667,12 +667,12 @@ private:
 
     // Read the symbols of an expression and buffer them into expr_script
     // At end of routine, the cursor will be positioned in such a way
-    // that targ->getnext() will get the symbol after the expression
+    // that src->getnext() will get the symbol after the expression
     int BufferExpression(ccInternalList &expr_script);
 
     // evaluate the supplied expression, putting the result into AX
     // returns 0 on success or -1 if compile error
-    // leaves targ pointing to last token in expression, so do getnext() to get the following ; or whatever
+    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
     int ParseExpression();
 
     // We are parsing the left hand side of a += or similar statement.
@@ -869,7 +869,7 @@ public:
     // [fw] This should be moved somewhere. It isn't Parser functionality
     static int InterpretFloatAsInt(float floatval);
 
-    Parser(::SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScript &scrip);
+    Parser(::SymbolTable &symt, ::ccInternalList &src, ::ccCompiledScript &scrip);
 
     int Parse();
 
@@ -879,15 +879,15 @@ public:
 // Only use that for googletests. Scan and tokenize the input.
 extern int cc_tokenize(
     const char *inpl,           // preprocessed text to be tokenized
-    ccInternalList *targ,       // store for the tokenized text
+    ccInternalList *src,        // store for the tokenized text
     ccCompiledScript *scrip,    // repository for the strings in the text
     SymbolTable &symt);         // symbol table 
 
 // Only use that for googletests. Parse the input
 extern int cc_parse(
-    ccInternalList *targ,
-    ccCompiledScript *scrip,
-    SymbolTable &symt);
+    ccInternalList *src,        // tokenized text
+    ccCompiledScript *scrip,    // result of the compilation
+    SymbolTable &symt);         // symbol table
 
 // Compile the input.
 extern int cc_compile(

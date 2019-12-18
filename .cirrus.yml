@@ -118,7 +118,7 @@ build_android_task:
     dockerfile: ci/android/Dockerfile
     docker_arguments:
       FROM_DEBIAN: debian:buster
-      AGS_BRANCH: release-3.5.0
+      AGS_BRANCH: ags4
   git_submodules_script: git submodule update --init --recursive
   symlink_nativelibs_script: ln -s /opt/nativelibs Android/nativelibs
   build_library_script: |

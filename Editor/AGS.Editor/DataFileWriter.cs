@@ -866,7 +866,7 @@ namespace AGS.Editor
                             writer.Write((short)frame.Delay);
                             writer.Write((short)0); // struct alignment padding
                             writer.Write(frame.Flipped ? NativeConstants.VFLG_FLIPSPRITE : 0);
-                            writer.Write(frame.Sound);
+                            writer.Write(game.GetAudioArrayIDFromFixedIndex(frame.Sound));
                             writer.Write(0); // unused reservedForFuture[0]
                             writer.Write(0); // unused reservedForFuture[1]
                         }
@@ -1706,7 +1706,7 @@ namespace AGS.Editor
                 writer.Write(new byte[2]); // struct alignment padding
                 writer.Write(0); // reserved
             }
-            writer.Write(game.Settings.PlaySoundOnScore);
+            writer.Write(game.GetAudioArrayIDFromFixedIndex(game.Settings.PlaySoundOnScore));
             if (game.Settings.DebugMode)
             {
                 writer.Write(game.Rooms.Count);

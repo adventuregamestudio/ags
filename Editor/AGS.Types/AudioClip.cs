@@ -14,7 +14,8 @@ namespace AGS.Types
         private int _id;
         private string _sourceFileName;
         private string _scriptName;
-        private int _index;
+        // FixedID is a clip's UID which never change, even if the list got reordered
+        private int _fixedID;
         private int _typeID;
         private AudioFileBundlingType _bundlingType = AudioFileBundlingType.InGameEXE;
         private AudioClipFileType _fileType;
@@ -26,10 +27,17 @@ namespace AGS.Types
         private AudioClipPriority _actualPriority;
         private bool _actualRepeat;
 
-        public AudioClip(string scriptName, int index)
+        // The value of a "no sound reference"
+        public const int FixedIndexNoValue = 0;
+        // The value of a "first index"
+        public const int FixedIndexBase = 1;
+        // The value of a "no sound" for AudioClip.ID
+        public const int IDNoValue = -1;
+
+        public AudioClip(string scriptName, int fixed_index)
         {
             _scriptName = scriptName;
-            _index = index;
+            _fixedID = fixed_index;
         }
 
         [AGSNoSerialize]
@@ -45,7 +53,7 @@ namespace AGS.Types
         [DisplayName("Cache File Name")]
         public string CacheFileNameWithoutPath
         {
-            get { return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, _index, Path.GetExtension(_sourceFileName)); }
+            get { return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, _fixedID, Path.GetExtension(_sourceFileName)); }
         }
 
         [DisplayName("ID")]
@@ -72,12 +80,13 @@ namespace AGS.Types
             set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
-        // NOTE: this index remains only as a connection to the AudioCache
+        // This is a "Fixed Index" that is used as a stable reference the clip,
+        // regardless of any clip list rearrangements.
         [Browsable(false)]
         public int Index
         {
-            get { return _index; }
-            set { _index = value; }
+            get { return _fixedID; }
+            set { _fixedID = value; }
         }
 
         [Description("Which type of audio does this clip contain")]

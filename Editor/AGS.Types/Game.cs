@@ -60,7 +60,9 @@ namespace AGS.Types
         private LipSync _lipSync;
         private CustomPropertySchema _propertySchema;
         private GlobalVariables _globalVariables;
-		private string _directoryPath;
+        // Maps AudioClip.Index (fixed ID) to AudioClip.ID
+        private Dictionary<int, int> _audioClipIndexMapping;
+        private string _directoryPath;
 		private bool _roomsAddedOrRemoved = false;
 		private Dictionary<int, object> _deletedViewIDs;
 		private string _savedXmlVersion = null;
@@ -1034,6 +1036,31 @@ namespace AGS.Types
                 }
             }
             return scripts;
+        }
+
+        // NOTE: when to update FixedID->ID map is mostly a question of
+        // when and how is it used. As of now it is only called when writing game data, -
+        // that is where we need to know real ordered clip ID. But in universal case
+        // the map will have to be updated whenever a sound is added, deleted
+        // or have its ID changed.
+        public void UpdateAudioClipMap()    
+        {
+            _audioClipIndexMapping = new Dictionary<int, int>();
+            foreach (AudioClip clip in _audioClips)
+            {
+                _audioClipIndexMapping.Add(clip.Index, clip.ID);
+            }
+        }
+
+        public int GetAudioArrayIDFromFixedIndex(int fixedIndex)
+        {
+            int id;
+            if (fixedIndex >= AudioClip.FixedIndexBase &&
+                _audioClipIndexMapping.TryGetValue(fixedIndex, out id))
+            {
+                return id;
+            }
+            return AudioClip.IDNoValue;
         }
 
         public byte[] GetPaletteAsRawPAL()

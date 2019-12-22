@@ -62,7 +62,7 @@ FontInfo::FontInfo()
     , YOffset(0)
     , LineSpacing(0)
     , AutoOutlineStyle(kRounded)
-    , AutoOutlineThickness(0)
+    , AutoOutlineThickness(1)
 {}
 
 

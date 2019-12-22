@@ -19,9 +19,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define AUCL_BUNDLE_EXE 1
-#define AUCL_BUNDLE_VOX 2
-
 #define AUDIO_CLIP_TYPE_SOUND 1
 struct AudioClipType {
     int id;

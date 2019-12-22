@@ -32,18 +32,21 @@ enum AudioFileType {
     eAudioFileMOD = 6
 };
 
+#define AUCL_BUNDLE_EXE 1
+#define AUCL_BUNDLE_VOX 2
+
 #define SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH    30
 #define SCRIPTAUDIOCLIP_FILENAMELENGTH      15
 struct ScriptAudioClip {
-    int id;
+    int id = 0;
     Common::String scriptName;
     Common::String fileName;
-    char bundlingType;
-    char type;
-    char fileType;
-    char defaultRepeat;
-    short defaultPriority;
-    short defaultVolume;
+    char bundlingType = AUCL_BUNDLE_EXE;
+    char type = 0;
+    char fileType = eAudioFileOGG;
+    char defaultRepeat = 0;
+    short defaultPriority = 50;
+    short defaultVolume = 100;
 
     void ReadFromFile(Common::Stream *in);
 };

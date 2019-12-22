@@ -19,7 +19,7 @@ namespace AGS.Types
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
-		private int _autoOutlineThickness = 0;
+        private int _autoOutlineThickness = 1;
 		private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Rounded;
 
         public Font()
@@ -120,17 +120,24 @@ namespace AGS.Types
             set { _outlineStyle = value; }
         }
 
-		[Description("Thickness of the automatic outline (0 = default)")]
-		[Category("Appearance")]
+        [Description("Thickness of the automatic outline")]
+        [Category("Appearance")]
+        [DefaultValue(1)]
 		public int AutoOutlineThickness
 		{
 			get { return _autoOutlineThickness; }
-			set { _autoOutlineThickness = value; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentException("AutoOutlineThickness must be 1 or greater.");
+                _autoOutlineThickness = value;
+            }
 		}
 
 		[Description("Style of the automatic outline")]
 		[Category("Appearance")]
-		public FontAutoOutlineStyle AutoOutlineStyle
+        [DefaultValue(FontAutoOutlineStyle.Rounded)]
+        public FontAutoOutlineStyle AutoOutlineStyle
 		{
 			get { return _autoOutlineStyle; }
 			set { _autoOutlineStyle = value; }

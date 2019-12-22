@@ -92,7 +92,8 @@ namespace AGS.Editor
          * e.g. 3.6.0     is 03,06,00,00 (3060000),
          *      4.12.3.25 is 04,12,03,25 (4120325), and so on
          * --------------------------------------------------------------------
-         * 3.6.0          - Settings.
+         * 3.6.0          - Settings.CustomDataDir;
+         *                - Font.AutoOutlineStyle, AutoOutlineThickness;
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060000;
         /*

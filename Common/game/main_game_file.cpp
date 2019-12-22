@@ -397,49 +397,51 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
 
     for (const String &asset : assets)
     {
-        if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+        if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) != 3)
+            continue;
+
+        ScriptAudioClip clip;
+        if (ags_stricmp(temp_extension, "mp3") == 0)
+            clip.fileType = eAudioFileMP3;
+        else if (ags_stricmp(temp_extension, "wav") == 0)
+            clip.fileType = eAudioFileWAV;
+        else if (ags_stricmp(temp_extension, "voc") == 0)
+            clip.fileType = eAudioFileVOC;
+        else if (ags_stricmp(temp_extension, "mid") == 0)
+            clip.fileType = eAudioFileMIDI;
+        else if ((ags_stricmp(temp_extension, "mod") == 0) || (ags_stricmp(temp_extension, "xm") == 0)
+            || (ags_stricmp(temp_extension, "s3m") == 0) || (ags_stricmp(temp_extension, "it") == 0))
+            clip.fileType = eAudioFileMOD;
+        else if (ags_stricmp(temp_extension, "ogg") == 0)
+            clip.fileType = eAudioFileOGG;
+        else
+            continue;
+
+        if (ags_stricmp(temp_name, "music") == 0)
         {
-            audioclips.push_back(ScriptAudioClip());
-            ScriptAudioClip &clip = audioclips.back();
-            if (ags_stricmp(temp_name, "music") == 0)
-            {
-                clip.scriptName.Format("aMusic%d", temp_number);
-                clip.fileName.Format("music%d.%s", temp_number, temp_extension);
-                clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
-                clip.type = 2;
-                clip.defaultRepeat = 1;
-            }
-            else if (ags_stricmp(temp_name, "sound") == 0)
-            {
-                clip.scriptName.Format("aSound%d", temp_number);
-                clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
-                clip.bundlingType = AUCL_BUNDLE_EXE;
-                clip.type = 3;
-            }
-            else
-            {
-                audioclips.pop_back();
-                continue;
-            }
-
-            clip.defaultVolume = 100;
-            clip.defaultPriority = 50;
-            clip.id = audioclips.size() - 1;
-
-            if (ags_stricmp(temp_extension, "mp3") == 0)
-                clip.fileType = eAudioFileMP3;
-            else if (ags_stricmp(temp_extension, "wav") == 0)
-                clip.fileType = eAudioFileWAV;
-            else if (ags_stricmp(temp_extension, "voc") == 0)
-                clip.fileType = eAudioFileVOC;
-            else if (ags_stricmp(temp_extension, "mid") == 0)
-                clip.fileType = eAudioFileMIDI;
-            else if ((ags_stricmp(temp_extension, "mod") == 0) || (ags_stricmp(temp_extension, "xm") == 0)
-                || (ags_stricmp(temp_extension, "s3m") == 0) || (ags_stricmp(temp_extension, "it") == 0))
-                clip.fileType = eAudioFileMOD;
-            else if (ags_stricmp(temp_extension, "ogg") == 0)
-                clip.fileType = eAudioFileOGG;
+            clip.scriptName.Format("aMusic%d", temp_number);
+            clip.fileName.Format("music%d.%s", temp_number, temp_extension);
+            clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+            clip.type = 2;
+            clip.defaultRepeat = 1;
         }
+        else if (ags_stricmp(temp_name, "sound") == 0)
+        {
+            clip.scriptName.Format("aSound%d", temp_number);
+            clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
+            clip.bundlingType = AUCL_BUNDLE_EXE;
+            clip.type = 3;
+            clip.defaultRepeat = 0;
+        }
+        else
+        {
+            continue;
+        }
+
+        clip.defaultVolume = 100;
+        clip.defaultPriority = 50;
+        clip.id = audioclips.size();
+        audioclips.push_back(clip);
     }
 }
 

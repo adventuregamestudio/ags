@@ -104,40 +104,21 @@ namespace AGS.Editor
             {
                 ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
                 Sprite sprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(thisFrame.Image, true);
-                int x = 0;
-                int y = previewPanel.ClientSize.Height - sprite.Height;
+                int height = Math.Min(previewPanel.ClientSize.Height, sprite.Height);
+                int width = Math.Min(previewPanel.ClientSize.Width, sprite.Width);
 
-                if (chkCentrePivot.Checked)
+                using (Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, width, height, chkCentrePivot.Checked, false))
                 {
-                    x = previewPanel.ClientSize.Width / 2 - sprite.Width / 2;
-                }
-
-                if ((sprite.Width <= previewPanel.ClientSize.Width) &&
-                    (sprite.Height <= previewPanel.ClientSize.Height))
-				{
-					IntPtr hdc = e.Graphics.GetHdc();
-                    Factory.NativeProxy.DrawSprite(hdc, x, y, sprite.Number, thisFrame.Flipped);
-					e.Graphics.ReleaseHdc();
-				}
-				else
-				{
-                    Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false);
+                    int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - bmp.Width / 2 : 0;
+                    int y = previewPanel.ClientSize.Height - bmp.Height;
 
                     if (thisFrame.Flipped)
                     {
-                        Point urCorner = new Point(0, 0);
-                        Point ulCorner = new Point(bmp.Width, 0);
-                        Point llCorner = new Point(bmp.Width, bmp.Height);
-                        Point[] destPara = { ulCorner, urCorner, llCorner };
-                        e.Graphics.DrawImage(bmp, destPara);
-                    }
-                    else
-                    {
-                        e.Graphics.DrawImage(bmp, 1, 1);
+                        bmp.RotateFlip(RotateFlipType.RotateNoneFlipX);
                     }
 
-					bmp.Dispose();
-				}
+                    e.Graphics.DrawImage(bmp, x, y);
+                }
             }
         }
 

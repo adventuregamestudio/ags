@@ -389,16 +389,15 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
 // Create the missing audioClips data structure for 3.1.x games.
 // This is done by going through the data files and adding all music*.*
 // and sound*.* files to it.
-void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &audioclips)
+void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAudioClip> &audioclips)
 {
     char temp_name[30];
     int temp_number;
     char temp_extension[10];
 
-    size_t number_of_files = lib.AssetInfos.size();
-    for (size_t i = 0; i < number_of_files; ++i)
+    for (const String &asset : assets)
     {
-        if (sscanf(lib.AssetInfos[i].FileName, "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+        if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
         {
             audioclips.push_back(ScriptAudioClip());
             ScriptAudioClip &clip = audioclips.back();
@@ -523,12 +522,43 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     // "music.vox"; there might be better ways to handle this.
     // possibly making AssetManager download several libraries at once will
     // resolve this (as well as make it unnecessary to switch between them)
+    std::vector<String> assets;
+    // Append contents of "music.vox"
     AssetLibInfo music_lib;
     if (AssetManager::ReadDataFileTOC("music.vox", music_lib) == kAssetNoError)
-        BuildAudioClipArray(music_lib, audioclips);
+    {
+        for (const AssetInfo &info : music_lib.AssetInfos)
+        {
+            if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)
+                assets.push_back(info.FileName);
+        }
+    }
+    // Append contents of the main game file
     const AssetLibInfo *game_lib = AssetManager::GetLibraryTOC();
     if (game_lib)
-        BuildAudioClipArray(*game_lib, audioclips);
+    {
+        for (const AssetInfo &info : game_lib->AssetInfos)
+        {
+            if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)
+                assets.push_back(info.FileName);
+        }
+    }
+    // Append contents of the game directory
+    // TODO: use explicit path instead of cwd? keep this consistent with AssetManager!
+    {
+        al_ffblk ff;
+        if (al_findfirst("*.*", &ff, FA_ALL & ~(FA_DIREC)) == 0)
+        {
+            do
+            {
+                if (ags_strnicmp(ff.name, "music", 5) == 0 || ags_strnicmp(ff.name, "sound", 5) == 0)
+                    assets.push_back(ff.name);
+            }
+            while (al_findnext(&ff) == 0);
+            al_findclose(&ff);
+        }
+    }
+    BuildAudioClipArray(assets, audioclips);
 
     // Copy gathered data over to game
     game.audioClipTypes = audiocliptypes;

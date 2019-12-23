@@ -1,7 +1,102 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <limits>
 #include <stdlib.h>
 #include "cc_internallist.h"
 
 extern int currentline;  // in script_common
+
+AGS::LineHandler::SectionMap::SectionMap()
+    : _cacheSection("")
+    , _cacheId(0)
+    , _section({ "" })
+{
+}
+
+size_t AGS::LineHandler::SectionMap::Section2Id(std::string const &section)
+{
+    if (section == _cacheSection)
+        return _cacheId;
+    _cacheSection = section;
+    auto const it = std::find(_section.begin(), _section.end(), section);
+    _cacheId = it - _section.begin();
+    if (_cacheId == _section.size()) // hasn't been entered in the table yet
+        _section.push_back(section); 
+    return _cacheId;
+}
+
+AGS::LineHandler::LineHandler()
+    : _cacheLineStart(0)
+    , _cacheLineEnd (0)
+    , _cacheLineNo(0)
+    , _cacheSectionIdStart(0)
+    , _cacheSectionIdEnd(0)
+    , _cacheSectionId(0)
+{
+    // Add sentinels to the table for simpler lookup algorithms
+    size_t const maxsize = std::numeric_limits<size_t>::max();
+    _lineStartTable[0] = 0;
+    _lineStartTable[maxsize] = maxsize;
+    _sectionIdTable[0] = 0;
+    _sectionIdTable[maxsize] = maxsize;
+}
+
+size_t AGS::LineHandler::GetLineAt(size_t offset) const
+{
+    if (_cacheLineStart <= offset && offset < _cacheLineEnd)
+        return _cacheLineNo;
+
+    auto it = _lineStartTable.upper_bound(offset);
+    _cacheLineEnd = it->first;
+    it--;
+    _cacheLineStart = it->first;
+    _cacheLineNo = it->second;
+    return _cacheLineNo;
+}
+
+size_t AGS::LineHandler::GetSectionIdAt(size_t offset) const
+{
+    if (_cacheSectionIdStart <= offset && offset < _cacheSectionIdEnd)
+        return _cacheSectionId;
+
+    auto it = _sectionIdTable.upper_bound(offset);
+    _cacheSectionIdEnd = it->first;
+    _cacheSectionIdStart = _cacheSectionId = 0;
+    it--;
+    _cacheSectionIdStart = it->first;
+    _cacheSectionId = it->second;
+    return _cacheSectionId;
+}
+
+AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
+    : _script(script)
+    , _lineHandler(line_handler)
+    , _offset(0)
+    , _len (script.size())
+    , _cursor(0)
+{
+}
+
+AGS::SrcList::SrcList(SrcList const &src_list, size_t offset, size_t len)
+    : _script(src_list._script)
+    , _lineHandler(src_list._lineHandler)
+    , _offset(offset)
+    , _len(len)
+    , _cursor(_offset)
+{
+    size_t const maxlen = std::max<int>(_script.size() - _offset, 0);
+    _len = std::min<size_t>(_len, maxlen);
+}
+
+AGS::Symbol AGS::SrcList::GetNext()
+{
+    Symbol const p = PeekNext();
+    if (!ReachedEOF())
+        _cursor++;
+    currentline = GetLineno();
+    return p;
+}
 
 void ccInternalList::startread()
 {
@@ -121,3 +216,4 @@ bool ccInternalList::reached_eof()
     currentline = lineAtEnd;
     return true;
 }
+

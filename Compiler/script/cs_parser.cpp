@@ -1757,7 +1757,7 @@ int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t sli
 {
     size_t nesting_depth = 0;
 
-    int highest_prio_found = std::numeric_limits<int>::min(); // c++ STL lingo for MAXINT
+    int highest_prio_found = std::numeric_limits<int>::min(); // c++ STL lingo for MININT
     int index_of_highest_prio = -1;
 
     for (size_t slist_idx = 0; slist_idx < slist_len; slist_idx++)

@@ -30,6 +30,8 @@ Editor:
    Disabled by default, it makes game treat all sprites and rooms resolution as real one.
  - Added "Custom Say/Narrate function in dialog scripts" options which determine what
    functions are used when converting character lines in dialog scripts to real script.
+   IMPORTANT: this does not currently work with the "Say" checkbox. The workaround is as before:
+   duplicate option text as a first spoken line in the dialog script.
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.

@@ -37,7 +37,7 @@ namespace AGS.Types
 			GenerateNewGameID();
         }
 
-        private string _gameFileName = "";
+        private string _gameFileName = string.Empty;
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;

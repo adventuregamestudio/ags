@@ -1123,6 +1123,7 @@ namespace AGS.Types
             _useLowResCoordinatesInScript = true;
             _audioIndexer = AudioClip.FixedIndexBase;
             _enforceNewAudio = false;
+            _gameFileName = string.Empty;
 
             SerializeUtils.DeserializeFromXML(this, node);
 

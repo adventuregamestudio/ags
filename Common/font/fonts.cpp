@@ -328,7 +328,10 @@ void set_fontinfo(size_t fontNumber, const FontInfo &finfo)
 // Loads a font from disk
 bool wloadfont_size(size_t fontNumber, const FontInfo &font_info)
 {
-  fonts.resize(fontNumber + 1);
+  if (fonts.size() <= fontNumber)
+    fonts.resize(fontNumber + 1);
+  else
+    wfreefont(fontNumber);
   FontRenderParams params;
   params.SizeMultiplier = font_info.SizeMultiplier;
 
@@ -374,4 +377,14 @@ void wfreefont(size_t fontNumber)
     fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 
   fonts[fontNumber].Renderer = nullptr;
+}
+
+void free_all_fonts()
+{
+    for (size_t i = 0; i < fonts.size(); ++i)
+    {
+        if (fonts[i].Renderer != nullptr)
+            fonts[i].Renderer->FreeMemory(i);
+    }
+    fonts.clear();
 }

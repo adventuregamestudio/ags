@@ -962,7 +962,6 @@ const char* import_sci_font(const char*fnn,int fslot) {
   ooo->WriteInt16(tableat); 
   delete ooo;
   delete iii;
-  wfreefont(fslot);
   FontInfo fi;
   if (!wloadfont_size(fslot, fi))
   {
@@ -1375,7 +1374,6 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  wfreefont(curFont);
   return wloadfont_size(curFont, thisgame.fonts[curFont]);
 }
 
@@ -1429,8 +1427,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
     if (!err)
         return err;
 
-    for (int i = 0; i < thisgame.numfonts; ++i)
-        wfreefont(i);
+    free_all_fonts();
     for (int i = 0; i < thisgame.numfonts; ++i)
         reload_font(i);
 

@@ -2264,7 +2264,9 @@ builtin struct Screen {
 
 import readonly Character *player;
 import Mouse mouse;
+#ifdef SCRIPT_COMPAT_v350
 import System system;
+#endif
 import GameState  game;
 import Object object[MAX_ROOM_OBJECTS];
 import ColorType palette[PALETTE_SIZE];

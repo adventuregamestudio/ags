@@ -52,6 +52,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle) return false;
+
             int xClick = state.WindowXToRoom(e.X);
             int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
@@ -67,19 +69,22 @@ namespace AGS.Editor
         }
 
         private void SelectCharacter(Character character, int xClick, int yClick, RoomEditorState state)
-        {            
-            if (!state.DragFromCenter) 
-            {
-                _mouseOffsetX = xClick - character.StartX;
-                _mouseOffsetY = yClick - character.StartY;
-            }
-            else
-            {
-                _mouseOffsetX = 0;
-                _mouseOffsetY = 0;
-            }
+        {
             SetSelectedCharacter(character);
-            _movingCharacterWithMouse = true;
+            if (!DesignItems[GetItemID(character)].Locked)
+            {
+                if (!state.DragFromCenter)
+                {
+                    _mouseOffsetX = xClick - character.StartX;
+                    _mouseOffsetY = yClick - character.StartY;
+                }
+                else
+                {
+                    _mouseOffsetX = 0;
+                    _mouseOffsetY = 0;
+                }
+                _movingCharacterWithMouse = true;
+            }
         }
 
         private Character GetCharacter(int x, int y, RoomEditorState state)
@@ -89,7 +94,7 @@ namespace AGS.Editor
                 DesignTimeProperties p;
                 if (!DesignItems.TryGetValue(GetItemID(character), out p))
                     continue; // character is not in the room
-                if (!p.Visible || p.Locked) continue;
+                if (!p.Visible) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
 
@@ -165,13 +170,14 @@ namespace AGS.Editor
         public bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingCharacterWithMouse = false;
+            if (e.Button == MouseButtons.Middle) return false;
 
             if (e.Button == MouseButtons.Right)
             {
                 ShowCharCoordMenu(e, state);
+                return true;
             }
-            else return false;
-            return true;
+            return false;
         }
 
         public void Invalidate() { _panel.Invalidate(); }
@@ -291,33 +297,18 @@ namespace AGS.Editor
 
         private void SetPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            foreach (var item in RoomItemRefs)
-            {
-                defaultPropertyObjectList.Add(item.Value.PropertyGridTitle, item.Value);
-            }
-
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
-        }
-
-        // Refreshes property grid list explicitly for this room editor's content document;
-        // this is done to work around regular update system which assumes editor to be
-        // an active pane, which is not necessarily the case (this could be background operation).
-        // NOTE: this is done exclusively for Character Filter, because it's the only one
-        // that shares objects with other panes (Character Editor pane).
-        private void SetPropertyGridListExplicit()
-        {
-            object selObject = _editor.ContentDocument.SelectedPropertyGridObject;
             Dictionary<string, object> list = new Dictionary<string, object>();
             list.Add(_room.PropertyGridTitle, _room);
             foreach (var item in RoomItemRefs)
             {
                 list.Add(item.Value.PropertyGridTitle, item.Value);
             }
-            _editor.ContentDocument.PropertyGridObjectList = list;
-            if (!list.ContainsValue(selObject))
-                _editor.ContentDocument.SelectedPropertyGridObject = _room;
+            Factory.GUIController.SetPropertyGridObjectList(list, _editor.ContentDocument, _room);
+        }
+
+        protected void SetPropertyGridObject(object obj)
+        {
+            Factory.GUIController.SetPropertyGridObject(obj, _editor.ContentDocument);
         }
 
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
@@ -395,7 +386,11 @@ namespace AGS.Editor
 
         public bool KeyPressed(Keys key)
         {
-            if (_selectedCharacter == null) return false;
+            if (_selectedCharacter == null)
+                return false;
+            if (DesignItems[GetItemID(_selectedCharacter)].Locked)
+                return false;
+
             switch (key)
             {
                 case Keys.Right:
@@ -456,13 +451,13 @@ namespace AGS.Editor
                 if (RoomItemRefs.TryGetValue(id, out character))
                 {
                     _selectedCharacter = character;
-                    Factory.GUIController.SetPropertyGridObject(character);                    
+                    SetPropertyGridObject(character);                    
                     return;
                 }
             }
 
             _selectedCharacter = null;
-            Factory.GUIController.SetPropertyGridObject(_room);            
+            SetPropertyGridObject(_room);
         }
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)
@@ -510,7 +505,8 @@ namespace AGS.Editor
             UpdateCharactersRoom(e.Character, e.PreviousRoom);
             OnItemsChanged(this, null);
             Invalidate();
-            SetPropertyGridListExplicit();
+            if (Enabled)
+                SetPropertyGridList();
         }
 
         private void AddCharacterRef(Character c)

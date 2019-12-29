@@ -120,8 +120,16 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
 
 void GUIInvWindow::CalculateNumCells()
 {
+    if (ItemWidth <= 0 || ItemHeight <= 0)
+    {
+        ColCount = 0;
+        RowCount = 0;
+    }
+    else
+    {
         ColCount = Width / ItemWidth;
         RowCount = Height / ItemHeight;
+    }
 }
 
 } // namespace Common

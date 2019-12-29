@@ -289,7 +289,75 @@ namespace AGS.Editor
                 }
             }
 
-            game.SetScriptAPIForOldProject();
+            if (xmlVersionIndex < 22)
+            {
+                game.Settings.ScaleMovementSpeedWithMaskResolution = true;
+            }
+
+            if (xmlVersionIndex < 23)
+            {
+                // Set the import dimensions based on existing sprite dimensions
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    sprite.ImportWidth = sprite.Width;
+                    sprite.ImportHeight = sprite.Height;
+                }
+            }
+
+            if (xmlVersionIndex < 24)
+            {
+                // get all known source images and their largest known size
+                // (avoiding System.Drawing / GDI as a dependency to load the project)
+                Dictionary<string, Tuple<int, int>> sourceMaxSize = new Dictionary<string, Tuple<int, int>>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    if (!string.IsNullOrWhiteSpace(sprite.SourceFile))
+                    {
+                        int currentX = sprite.OffsetX + sprite.ImportWidth;
+                        int currentY = sprite.OffsetY + sprite.ImportHeight;
+
+                        if (sourceMaxSize.ContainsKey(sprite.SourceFile))
+                        {
+                            int maxX = sourceMaxSize[sprite.SourceFile].Item1;
+                            int maxY = sourceMaxSize[sprite.SourceFile].Item2;
+                            if (maxX < currentX) maxX = currentX;
+                            if (maxY < currentY) maxY = currentY;
+                            sourceMaxSize[sprite.SourceFile] = Tuple.Create(maxX, maxY);
+                        }
+                        else
+                        {
+                            sourceMaxSize.Add(sprite.SourceFile, Tuple.Create(currentX, currentY));
+                        }
+                    }
+                }
+
+                // Set the tiled image flag for existing imports - the only misdetection would be
+                // a single import from a source image that starts at 0,0, but wasn't for the
+                // entire image
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    if (sprite.OffsetX > 0 || sprite.OffsetY > 0)
+                    {
+                        sprite.ImportAsTile = true;
+                    }
+                    else if (sourceMaxSize.ContainsKey(sprite.SourceFile))
+                    {
+                        int maxX = sourceMaxSize[sprite.SourceFile].Item1;
+                        int maxY = sourceMaxSize[sprite.SourceFile].Item2;
+                        sprite.ImportAsTile = sprite.ImportWidth < maxX || sprite.ImportHeight < maxY;
+                    }
+                    else
+                    {
+                        sprite.ImportAsTile = false;
+                    }
+                }
+            }
+
+            System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
+            System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
+            if (projectVersion == null || projectVersion < editorVersion)
+                game.SetScriptAPIForOldProject();
         }
 
         private string RemoveAllLeadingSpacesFromLines(string script)

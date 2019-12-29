@@ -189,7 +189,6 @@ void main_print_help() {
            "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"
-           "  --hicolor                    Downmix 32bit colors to 16bit\n"
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
@@ -198,7 +197,7 @@ void main_print_help() {
 #endif
            "  --tell                       Print various information concerning engine\n"
            "                                 and the game; for selected output use:\n"
-           "  --tell-config                Print contents of game config\n"
+           "  --tell-config                Print contents of merged game config\n"
            "  --tell-configpath            Print paths to available config files\n"
            "  --tell-data                  Print information on game data and its location\n"
            "  --tell-engine                Print engine name and version\n"

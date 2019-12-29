@@ -15,6 +15,7 @@
 #define IDC_ADVANCED                    1012
 #define IDC_VOICEPACK                   1016
 #define IDC_REFRESH_85HZ                1017
+#define IDC_THREADEDAUDIO               1018
 #define IDC_ANTIALIAS                   1021
 #define IDC_REDUCE32TO16                1022
 #define IDC_GFXFILTER                   1023
@@ -37,7 +38,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        108
+#define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101

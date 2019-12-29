@@ -195,9 +195,9 @@ namespace AGS.Editor
             _native.ImportSCIFont(fileName, fontSlot);
         }
 
-        public void ReloadTTFFont(int fontSlot)
+        public void ReloadFont(int fontSlot)
         {
-            _native.ReloadTTFFont(fontSlot);
+            _native.ReloadFont(fontSlot);
         }
 
         public void OnFontUpdated(Game game, int fontSlot, bool forceUpdate)

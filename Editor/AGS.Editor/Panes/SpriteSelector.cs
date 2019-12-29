@@ -793,10 +793,9 @@ namespace AGS.Editor
                 {
                     SpriteSheet spritesheet;
 
-                    // if offset would make a selection, use it
-                    if (spr.OffsetX > 0 || spr.OffsetY > 0)
+                    if (spr.ImportAsTile)
                     {
-                        spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.Width, spr.Height));
+                        spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.ImportWidth, spr.ImportHeight));
                     }
                     else
                     {

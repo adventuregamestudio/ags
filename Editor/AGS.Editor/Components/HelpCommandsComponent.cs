@@ -48,7 +48,7 @@ namespace AGS.Editor.Components
         private const string ABOUT_AGS_COMMAND = "AboutAGS";
         private const string CRASH_EDITOR_COMMAND = "CrashEditor";
 
-        private const string UPDATES_URL = "http://www.adventuregamestudio.co.uk/releases/versions.xml";
+        private const string UPDATES_URL = "https://www.adventuregamestudio.co.uk/releases/versions.xml";
 
         private string _helpFileName;
         private Form _dummyHelpForm;
@@ -198,17 +198,17 @@ namespace AGS.Editor.Components
 
         private void LaunchBrowserAtAGSWebsite()
         {
-            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk");
+            System.Diagnostics.Process.Start("https://www.adventuregamestudio.co.uk");
         }
 
         private void LaunchBrowserAtAGSDownloadPage()
         {
-            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/site/ags/");
+            System.Diagnostics.Process.Start("https://www.adventuregamestudio.co.uk/site/ags/");
         }
 
         private void LaunchBrowserAtAGSForums()
         {
-            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/forums/index.php");
+            System.Diagnostics.Process.Start("https://www.adventuregamestudio.co.uk/forums/");
         }
 
         private void LaunchBrowserAtPage(string url)

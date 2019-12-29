@@ -82,8 +82,11 @@ namespace AGS.Editor
          * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts. GameFileName.
          * 20: 3.5.0.14   - Sprite.ImportAlphaChannel.
          * 21: 3.5.0.15   - AudioClip ID.
+         * 22: 3.5.0.18   - Settings.ScaleMovementSpeedWithMaskResolution.
+         * 23-24: 3.5.0.20+ - Sprite tile import properties.
+         * 25: 3.5.0.22   - Full editor version saved into XML header, RuntimeSetup.ThreadedAudio.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 21;
+        public const int    LATEST_XML_VERSION_INDEX = 25;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.
@@ -1539,6 +1542,7 @@ namespace AGS.Editor
             bool use_default_midi = _game.DefaultSetup.MidiSound == RuntimeAudioDriver.Default;
             NativeProxy.WritePrivateProfileString("sound", "digiid", use_default_digi ? "-1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("sound", "midiid", use_default_midi ? "-1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "threaded", _game.DefaultSetup.ThreadedAudio ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
 
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
@@ -1561,7 +1565,7 @@ namespace AGS.Editor
             writer.WriteStartElement(XML_USER_DATA_ROOT_NODE_NAME);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION, LATEST_USER_DATA_VERSION);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION_INDEX, LATEST_USER_DATA_XML_VERSION_INDEX.ToString());
-            writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION);
+            writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION);
 
             Factory.Events.OnSavingUserData(writer);
 
@@ -1601,7 +1605,7 @@ namespace AGS.Editor
             writer.WriteStartElement(XML_ROOT_NODE_NAME);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION, LATEST_XML_VERSION);
             writer.WriteAttributeString(XML_ATTRIBUTE_VERSION_INDEX, LATEST_XML_VERSION_INDEX.ToString());
-            writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION);
+            writer.WriteAttributeString(XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION);
 
 			_game.SavedXmlVersion = LATEST_XML_VERSION;
             _game.SavedXmlVersionIndex = LATEST_XML_VERSION_INDEX;

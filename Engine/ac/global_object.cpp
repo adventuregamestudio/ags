@@ -152,6 +152,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
     viw--;
     if (viw>=game.numviews) quit("!SetObjectFrame: invalid view number used");
+    if (views[viw].numLoops == 0) quit("!SetObjectFrame: specified view has no loops");
     if (lop>=views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
     objs[obn].view=viw;
     if (fra >= 0)
@@ -164,6 +165,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
         objs[obn].frame = 0;
 
+    // NOTE: pre-3.2.0 games are converting views from ViewStruct272 struct, always has at least 1 frame
     if (views[viw].loops[objs[obn].loop].numFrames == 0) 
         quit("!SetObjectFrame: specified loop has no frames");
 

@@ -10,8 +10,8 @@ namespace AGS.Editor
 {
     public class WalkableAreasEditorFilter : BaseAreasEditorFilter
     {
-        public WalkableAreasEditorFilter(Panel displayPanel, Room room)
-            : base(displayPanel, room)
+        public WalkableAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+            : base(displayPanel, editor, room)
         {
         }
 
@@ -30,7 +30,7 @@ namespace AGS.Editor
 
         protected override void SelectedAreaChanged(int areaNumber)
         {
-            Factory.GUIController.SetPropertyGridObject(_room.WalkableAreas[areaNumber]);
+            SetPropertyGridObject(_room.WalkableAreas[areaNumber]);
         }
 
         protected override string GetItemName(int id)
@@ -48,16 +48,15 @@ namespace AGS.Editor
             return items;
         }
 
-		protected override void SetPropertyGridList()
+        protected override Dictionary<string, object> GetPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
+            var list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
             foreach (RoomWalkableArea area in _room.WalkableAreas)
             {
-                defaultPropertyObjectList.Add(area.PropertyGridTitle, area);
+                list.Add(area.PropertyGridTitle, area);
             }
-
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+            return list;
         }
 
         protected override void GUIController_OnPropertyObjectChanged(object newPropertyObject)

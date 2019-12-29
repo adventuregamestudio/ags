@@ -237,11 +237,11 @@ namespace AGS
 			}
 		}
 
-    void NativeMethods::ReloadTTFFont(int fontSlot)
+    void NativeMethods::ReloadFont(int fontSlot)
     {
       if (!reload_font(fontSlot))
       {
-        throw gcnew AGSEditorException("Unable to load the TTF font file. The renderer was unable to load the font.");
+        throw gcnew AGSEditorException(String::Format("Unable to load font {0}. No supported font renderer was able to load the font.", fontSlot));
       }
     }
 
@@ -755,6 +755,7 @@ namespace AGS
             if (name->Equals("OPT_SCRIPTCOMPATLEV")) return OPT_SCRIPTCOMPATLEV;
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
             if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
+            if (name->Equals("OPT_WALKSPEEDABSOLUTE")) return OPT_WALKSPEEDABSOLUTE;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

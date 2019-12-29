@@ -367,11 +367,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     if (data_ver >= kGameVersion_341)
     {
-        // TODO: find a way to either automate this list of strings or make it more visible and safer to use!!
-        const char * const scapi_names[] = {"v3.2.1", "v3.3.0", "v3.3.4", "v3.3.5", "v3.4.0", "v3.4.1", "v3.5.0", "v3.5.0.7"};
+        // TODO: find a way to either automate this list of strings or make it more visible (shared & easier to find in engine code)
+        // TODO: stack-allocated strings, here and in other similar places
+        const String scapi_names[kScriptAPI_Current + 1] = {"v3.2.1", "v3.3.0", "v3.3.4", "v3.3.5", "v3.4.0", "v3.4.1", "v3.5.0", "v3.5.0.7"};
         Debug::Printf(kDbgMsg_Init, "Requested script API: %s (%d), compat level: %s (%d)",
-                    base_api >= 0 && base_api <= kScriptAPI_Current ? scapi_names[base_api] : "unknown", base_api,
-                    compat_api >= 0 && compat_api <= kScriptAPI_Current ? scapi_names[compat_api] : "unknown", compat_api);
+                    base_api >= 0 && base_api <= kScriptAPI_Current ? scapi_names[base_api].GetCStr() : "unknown", base_api,
+                    compat_api >= 0 && compat_api <= kScriptAPI_Current ? scapi_names[compat_api].GetCStr() : "unknown", compat_api);
     }
     // If the game was compiled using unsupported version of the script API,
     // we warn about potential incompatibilities but proceed further.

@@ -962,9 +962,15 @@ void convert_move_path_to_room_resolution(MoveList *ml)
         uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
         uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
         ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+    }
 
-        ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
-        ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
+    if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)
+    { // Speeds are scaling with MaskResolution
+        for (int i = 0; i < ml->numstage; i++)
+        {
+            ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
+            ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
+        }
     }
 }
 

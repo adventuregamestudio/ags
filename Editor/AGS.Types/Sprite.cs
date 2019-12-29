@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Resolution")]
-    public class Sprite : IComparable<Sprite>
+    public class Sprite : ICustomTypeDescriptor, IComparable<Sprite>
     {
         public const string PROPERTY_SPRITE_NUMBER = "Number";
 
@@ -22,9 +22,12 @@ namespace AGS.Types
         private SpriteImportTransparency _tranparentColour = SpriteImportTransparency.LeaveAsIs;
         private int _offsetX;
         private int _offsetY;
+        private int _importWidth;
+        private int _importHeight;
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
         private bool _importAlphaChannel;
+        private bool _importAsTile;
 
         public Sprite(int number, int width, int height, int colorDepth, bool alphaChannel)
         {
@@ -145,6 +148,31 @@ namespace AGS.Types
             set { _offsetY = value; }
         }
 
+        [Description("The width of the import")]
+        [Category("Import")]
+        public int ImportWidth
+        {
+            get { return _importWidth; }
+            set { _importWidth = value; }
+        }
+
+        [Description("The height of the import")]
+        [Category("Import")]
+        public int ImportHeight
+        {
+            get { return _importHeight; }
+            set { _importHeight = value; }
+        }
+
+        [Description("Import as a spritesheet tile using the specified size and offsets")]
+        [Category("Import")]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool ImportAsTile
+        {
+            get { return _importAsTile; }
+            set { _importAsTile = value; }
+        }
+
         [Description("The frame number of a multi-frame image within the source file")]
         [Category("Import")]
         public int Frame
@@ -201,6 +229,8 @@ namespace AGS.Types
                 try
                 {
                     _sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
+
+                    // added in XML version 17
                     _offsetX = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetX"));
                     _offsetY = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetY"));
                     _frame = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "Frame"));
@@ -213,6 +243,7 @@ namespace AGS.Types
                     // pass
                 }
 
+                // added with fixup task in XML version 20
                 try
                 {
                     _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
@@ -220,6 +251,28 @@ namespace AGS.Types
                 catch (InvalidDataException)
                 {
                     _importAlphaChannel = true;
+                }
+
+                // added with fixup task in XML Version 23
+                try
+                {
+                    _importWidth = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "ImportWidth"));
+                    _importHeight = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "ImportHeight"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importWidth = _width;
+                    _importHeight = _height;
+                }
+
+                // added with fixup task in XML Version 24
+                try
+                {
+                    _importAsTile = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAsTile"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importAsTile = false;
                 }
             }
         }
@@ -243,6 +296,9 @@ namespace AGS.Types
             writer.WriteElementString("FileName", _sourceFile);
             writer.WriteElementString("OffsetX", _offsetX.ToString());
             writer.WriteElementString("OffsetY", _offsetY.ToString());
+            writer.WriteElementString("ImportHeight", _importHeight.ToString());
+            writer.WriteElementString("ImportWidth", _importWidth.ToString());
+            writer.WriteElementString("ImportAsTile", _importAsTile.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());
@@ -252,6 +308,92 @@ namespace AGS.Types
 
             writer.WriteEndElement();
         }
+
+        #region ICustomTypeDescriptor Members
+
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
+
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
+
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
+
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
+
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
+
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
+
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
+
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
+
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            // if a re-import wouldn't be a spritesheet tile selected from the source
+            // file, don't return the properties that specify the tile size and offsets
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
+
+            foreach (PropertyDescriptor property in properties)
+            {
+                switch(property.Name)
+                {
+                    case "ImportHeight":
+                    case "ImportWidth":
+                    case "OffsetX":
+                    case "OffsetY":
+                        if (!_importAsTile) break;
+                        goto default;
+                    default:
+                        wantProperties.Add(property);
+                        break;
+                }
+            }
+
+            return new PropertyDescriptorCollection(wantProperties.ToArray());
+        }
+
+        public PropertyDescriptorCollection GetProperties()
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
+            return properties;
+        }
+
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+
+        #endregion
 
 		#region IComparable<Sprite> Members
 

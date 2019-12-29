@@ -13,8 +13,8 @@ namespace AGS.Editor
 		private bool _draggingBaseline = false;
 		private bool _shownTooltip = false;
 
-        public WalkBehindsEditorFilter(Panel displayPanel, Room room)
-            : base(displayPanel, room)
+        public WalkBehindsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+            : base(displayPanel, editor, room)
         {
         }
 
@@ -133,7 +133,7 @@ namespace AGS.Editor
 
         protected override void SelectedAreaChanged(int areaNumber)
         {
-            Factory.GUIController.SetPropertyGridObject(_room.WalkBehinds[areaNumber]);
+            SetPropertyGridObject(_room.WalkBehinds[areaNumber]);
         }
 
         protected override string GetItemName(int id)
@@ -151,16 +151,15 @@ namespace AGS.Editor
             return items;
         }
 
-        protected override void SetPropertyGridList()
+        protected override Dictionary<string, object> GetPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
+            var list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
             foreach (RoomWalkBehind area in _room.WalkBehinds)
             {
-                defaultPropertyObjectList.Add(area.PropertyGridTitle, area);
+                list.Add(area.PropertyGridTitle, area);
             }
-
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+            return list;
         }
 
         protected override void GUIController_OnPropertyObjectChanged(object newPropertyObject)

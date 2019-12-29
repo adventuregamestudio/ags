@@ -483,6 +483,29 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Sets property list for the given ContentDocument, and displays it in the
+        /// property grid if the given document is an active pane
+        /// (otherwise just assign them to the given document).
+        /// Optionally provides default object: that object will be selected if
+        /// previously selected object is no longer available in the new list.
+        /// </summary>
+        public void SetPropertyGridObjectList(Dictionary<string, object> propertyObjects, ContentDocument doc, object defObject)
+        {
+            if (_mainForm.ActivePane == doc)
+            {
+                _mainForm.ActivePane.PropertyGridObjectList = propertyObjects;
+                _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+            else
+            {
+                object selObject = doc.SelectedPropertyGridObject;
+                doc.PropertyGridObjectList = propertyObjects;
+                if (!propertyObjects.ContainsValue(selObject))
+                    doc.SelectedPropertyGridObject = defObject;
+            }
+        }
+
         public object GetPropertyGridObject()
         {
             if (_mainForm.ActivePane == null) return null;
@@ -496,6 +519,25 @@ namespace AGS.Editor
                 _mainForm.ActivePane.SelectedPropertyGridObject = objectToSetPropertiesOn;
                 _mainForm.ActivePane.SelectedPropertyGridObjects = null;
                 _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+        }
+
+        /// <summary>
+        /// Set selected property object for the given ContentDocument, and displays it in the
+        /// property grid if the given document is an active pane
+        /// (otherwise just assign them to the given document).
+        /// </summary>
+        public void SetPropertyGridObject(object objectToSetPropertiesOn, ContentDocument doc)
+        {
+            if (_mainForm.ActivePane == doc)
+            {
+                _mainForm.ActivePane.SelectedPropertyGridObject = objectToSetPropertiesOn;
+                _mainForm.ActivePane.SelectedPropertyGridObjects = null;
+                _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+            else
+            {
+                doc.SelectedPropertyGridObject = objectToSetPropertiesOn;
             }
         }
 
@@ -934,9 +976,20 @@ namespace AGS.Editor
                 }
             }
 
+            string newGamePath;
+
+            if (String.IsNullOrWhiteSpace(Factory.AGSEditor.Settings.NewGamePath))
+            {
+                newGamePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+            else
+            {
+                newGamePath = Factory.AGSEditor.Settings.NewGamePath;
+            }
+
             List<WizardPage> pages = new List<WizardPage>();
             StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(Factory.AGSEditor.Settings.NewGamePath);
+            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(newGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             
@@ -945,30 +998,33 @@ namespace AGS.Editor
 
             if (result == DialogResult.OK)
             {
-                createdSuccessfully = CreateNewGame(gameNameSelectPage.GetFullPath(), gameNameSelectPage.NewGameName, templateSelectPage.SelectedTemplate);
+                createdSuccessfully = CreateNewGame(gameNameSelectPage.GetFullPath(), gameNameSelectPage.FileName,
+                    gameNameSelectPage.NewGameName, templateSelectPage.SelectedTemplate);
             }
 
             dialog.Dispose();
             return createdSuccessfully;
         }
 
-        private bool CreateNewGame(string newGameDirectory, string newGameName, GameTemplate createFromTemplate)
+        private bool CreateNewGame(string newGamePath, string newFileName, string newGameName, GameTemplate createFromTemplate)
         {
             bool createdSuccessfully = false;
             try
             {
                 string templateFileName = Path.Combine(_agsEditor.EditorDirectory, createFromTemplate.FileName);
-                _agsEditor.Tasks.CreateNewGameFromTemplate(templateFileName, newGameDirectory);
-                string newGameFileName = Path.Combine(newGameDirectory, AGSEditor.GAME_FILE_NAME);
+                _agsEditor.Tasks.CreateNewGameFromTemplate(templateFileName, newGamePath);
+                string newGameFileName = Path.Combine(newGamePath, AGSEditor.GAME_FILE_NAME);
                 if (!File.Exists(newGameFileName))
                 {
-                    newGameFileName = Path.Combine(newGameDirectory, AGSEditor.OLD_GAME_FILE_NAME);
+                    newGameFileName = Path.Combine(newGamePath, AGSEditor.OLD_GAME_FILE_NAME);
                 }
                 if (_agsEditor.Tasks.LoadGameFromDisk(newGameFileName, false))
                 {
+                    _agsEditor.CurrentGame.Settings.GameFileName = newFileName;
                     _agsEditor.CurrentGame.Settings.GameName = newGameName;
                     _agsEditor.CurrentGame.Settings.SaveGameFolderName = newGameName;
                     _agsEditor.CurrentGame.Settings.GenerateNewGameID();
+                    _agsEditor.CurrentGame.DefaultSetup.TitleText = _agsEditor.CurrentGame.Settings.GameName + " Setup";
                     Factory.GUIController.GameNameUpdated();
                     _agsEditor.CurrentGame.WorkspaceState.LastBuildConfiguration = _agsEditor.CurrentGame.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
                     if (_agsEditor.SaveGameFiles())
@@ -1003,9 +1059,9 @@ namespace AGS.Editor
             if (!createdSuccessfully)
             {
                 Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
-                if (Directory.Exists(newGameDirectory))
+                if (Directory.Exists(newGamePath))
                 {
-                    Directory.Delete(newGameDirectory, true);
+                    Directory.Delete(newGamePath, true);
                 }
             }
 

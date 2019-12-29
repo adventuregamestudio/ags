@@ -302,11 +302,13 @@ namespace AGS.Editor.Components
                     if (fileTimeNow != lastCheckFileTime)
                     {
                         needsRebuild = true;
+                        break;
                     }
                 }
                 else
                 {
                     needsRebuild = true;
+                    break;
                 }
             }
             return needsRebuild;

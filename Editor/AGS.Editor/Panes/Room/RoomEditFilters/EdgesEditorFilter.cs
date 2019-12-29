@@ -141,6 +141,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle) return false;
+
             _mouseDown = true;
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);
@@ -338,7 +340,7 @@ namespace AGS.Editor
                 return;
             }
             _selectedEdge = edge;
-            _lastSelectedEdge = _selectedEdge;            
+            _lastSelectedEdge = _selectedEdge;
         }
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)
@@ -347,22 +349,27 @@ namespace AGS.Editor
             int roomY = state.WindowYToRoom(y);
             string toolTipText = null;
             Cursor cursor = null;
-            if (IsCursorOnVerticalEdge(roomX, _room.LeftEdgeX, SelectedEdge.Left))
+            SelectedEdge draggingEdge = _mouseDown ? _selectedEdge : SelectedEdge.None;
+            if (draggingEdge == SelectedEdge.Left ||
+                IsCursorOnVerticalEdge(roomX, _room.LeftEdgeX, SelectedEdge.Left))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Left edge";
             }
-            else if (IsCursorOnVerticalEdge(roomX, _room.RightEdgeX, SelectedEdge.Right))
+            else if (draggingEdge == SelectedEdge.Right || 
+                IsCursorOnVerticalEdge(roomX, _room.RightEdgeX, SelectedEdge.Right))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Right edge";
             }
-            else if (IsCursorOnHorizontalEdge(roomY, _room.TopEdgeY, SelectedEdge.Top))
+            else if (draggingEdge == SelectedEdge.Top || 
+                IsCursorOnHorizontalEdge(roomY, _room.TopEdgeY, SelectedEdge.Top))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Top edge";
             }
-            else if (IsCursorOnHorizontalEdge(roomY, _room.BottomEdgeY, SelectedEdge.Bottom))
+            else if (draggingEdge == SelectedEdge.Bottom || 
+                IsCursorOnHorizontalEdge(roomY, _room.BottomEdgeY, SelectedEdge.Bottom))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Bottom edge";

@@ -20,13 +20,12 @@ namespace AGS.Editor
             "Use the drop-down list at the top of the script editor to easily navigate through the script.",
             "The <a href=\"help:Global variables\">Global Variables</a> pane allows you to easily create variables that are shared between all your scripts.",
             "Alpha-channel sprites allow you to have much smoother edges, but only work in 32-bit colour games.",
-            "The <a href=\"http://www.adventuregamestudio.co.uk/forum\">AGS Forums</a> has several script modules and plugins that you can download to easily implement features in your game.",
-            "The <a href=\"http://www.adventuregamestudio.co.uk/wiki/\">AGS Wiki</a> has lots of scripting tips. Why not contribute some yourself?",
-            "For AGS news and gossip, check out <a href=\"http://ags-ssh.blogspot.com/\">SSH's AGS Blog</a>",
+            "The <a href=\"https://www.adventuregamestudio.co.uk/forums/\">AGS Forums</a> has several script modules and plugins that you can download to easily implement features in your game.",
+            "The <a href=\"https://www.adventuregamestudio.co.uk/wiki/\">AGS Wiki</a> has lots of scripting tips. Why not contribute some yourself?",
+            "To contribute to AGS development, check out <a href=\"https://github.com/adventuregamestudio\">AGS on GitHub.</a>",
             "Use the 'F' key to quickly flip frames in the view editor.",
             "Characters can talk and move between different rooms; objects cannot.",
             "You can select multiple sprites and move/delete them all in one go.",
-            "You can add a <a href=\"help:Custom icon\">custom icon</a> for your game and setup files.",
             "Use the <a href=\"help:Character.ActiveInventory\">player.ActiveInventory property</a> to find out which item the player used in Use Inventory events.",
             "If your room background is continually flashing, make sure you didn't accidentally import a second background." };
 
@@ -53,7 +52,7 @@ namespace AGS.Editor
 
         private void lnkUpgrading_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.4");
+            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.5");
         }
 
         private void WelcomePane_Resize(object sender, EventArgs e)

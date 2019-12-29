@@ -233,6 +233,7 @@ private:
     D3DCAPS9 direct3ddevicecaps;
     IDirect3DVertexBuffer9* vertexbuffer;
     IDirect3DSurface9 *pNativeSurface;
+    IDirect3DTexture9 *pNativeTexture;
     RECT viewport_rect;
     UINT availableVideoMemory;
     CUSTOMVERTEX defaultVertices[4];
@@ -249,6 +250,8 @@ private:
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
     D3DSpriteBatches _backupBatches;
+
+    D3DVIEWPORT9 _d3dViewport;
 
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
@@ -280,6 +283,7 @@ private:
     void RenderSpriteBatches();
     void RenderSpriteBatch(const D3DSpriteBatch &batch);
     void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
+    void _renderFromTexture();
 };
 
 

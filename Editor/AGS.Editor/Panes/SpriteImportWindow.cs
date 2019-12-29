@@ -100,7 +100,7 @@ namespace AGS.Editor
 
             set
             {
-                switch(SpriteImportMethod)
+                switch(value)
                 {
                     case SpriteImportTransparency.PaletteIndex0:
                         radTransColourIndex0.Checked = true;
@@ -131,7 +131,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
 
-            // take some defailts from Editor prederences
+            // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             // import, not replace
@@ -158,7 +158,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
 
-            // take some defailts from Editor prederences
+            // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             // import, not replace
@@ -405,7 +405,7 @@ namespace AGS.Editor
             try
             {
                 SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                    UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
             }
             catch (AGSEditorException ex)
             {
@@ -435,7 +435,7 @@ namespace AGS.Editor
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
                     SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
-                        UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                        UseBackgroundSlots, SpriteImportMethod, filename, 0, spritesheet);
                 }
                 else
                 {

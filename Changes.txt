@@ -1,5 +1,22 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 1, December 2019
+
+Editor:
+ - Fixed changing Audio Clip ID or deleting a clip could break sound links in view frames.
+ - Fixed importing an older version project during the same editor session, in which one game was
+   already opened, could assign previous game's GameFileName property to the next one.
+ - Fixed some fonts may be not drawn on GUI preview after any font with lower ID was modified.
+ - Fixed Pause and Stop buttons were enabled when first opening an audio clip preview, and clicking
+   these could lead to a crash.
+ - Fixed a potential crash during audio clip preview (related to irrKlang .NET library we use).
+ - Fixed a potential resource leak in the sprite preview.
+
+Engine:
+ - Fixed IsKeyPressed script function returning values other than 0 or 1 (broke some scripts).
+ - Fixed grey-out effect over disabled GUI controls was drawn at the wrong coordinates.
+
+
 VERSION 3.5.0, December 2019
 
 Common features:
@@ -30,6 +47,8 @@ Editor:
    Disabled by default, it makes game treat all sprites and rooms resolution as real one.
  - Added "Custom Say/Narrate function in dialog scripts" options which determine what
    functions are used when converting character lines in dialog scripts to real script.
+   IMPORTANT: this does not currently work with the "Say" checkbox. The workaround is as before:
+   duplicate option text as a first spoken line in the dialog script.
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.

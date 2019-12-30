@@ -710,7 +710,7 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
   return "\n\nPossible causes:\n"
     "* your graphics card drivers do not support requested resolution. "
     "Run the game setup program and try another resolution.\n"
-    "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+    "* the graphics driver you have selected does not work. Try switching to another graphics driver.\n"
     "* the graphics filter you have selected does not work. Try another filter.\n"
     "* your graphics card drivers are out of date. "
     "Try downloading updated graphics card drivers from your manufacturer's website.\n"

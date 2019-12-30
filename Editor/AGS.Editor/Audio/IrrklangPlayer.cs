@@ -23,17 +23,7 @@ namespace AGS.Editor
                 throw new AGSEditorException("AudioClip file is missing from the audio cache");
             }
 
-            if (Utilities.IsMonoRunning())
-            {
-                _soundEngine = new ISoundEngine(SoundOutputDriver.AutoDetect);
-            }
-            else
-            {
-                // explicitly ask for the software driver as there seem to
-                // be issues with ISound returning bad data when re-using
-                // the same source and certain audio drivers
-                _soundEngine = new ISoundEngine(SoundOutputDriver.WinMM);
-            }
+            _soundEngine = new ISoundEngine(SoundOutputDriver.AutoDetect);
 
             // we have to read it into memory and then play from memory,
             // because the built-in Irrklang play from file function keeps

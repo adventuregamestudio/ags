@@ -650,8 +650,7 @@ void unload_game_file()
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
 
-    for (int i = 0; i < game.numfonts; ++i)
-        wfreefont(i);
+    free_all_fonts();
 
     free_do_once_tokens();
     free(play.gui_draw_order);

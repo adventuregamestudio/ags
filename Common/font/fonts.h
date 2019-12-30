@@ -66,7 +66,10 @@ void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
 // Loads a font from disk
 bool wloadfont_size(size_t fontNumber, const FontInfo &font_info);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
+// Free particular font's data
 void wfreefont(size_t fontNumber);
+// Free all fonts data
+void free_all_fonts();
 
 // SplitLines class represents a list of lines and is meant to reduce
 // subsequent memory (de)allocations if used often during game loops

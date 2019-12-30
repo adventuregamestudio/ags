@@ -288,25 +288,29 @@ namespace AGS.Editor
             if (newHeight < 1) newHeight = 1;
 
             Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-            Graphics g = Graphics.FromImage(newBmp);
-            g.Clear(backgroundColour);
-            Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight);
 
-            int x = 0, y = 0;
-            if (centreInNewCanvas)
+            using (Graphics g = Graphics.FromImage(newBmp))
             {
-                x = width / 2 - bitmapToDraw.Width / 2;
-                y = height - bitmapToDraw.Height;
+                g.Clear(backgroundColour);
+                int x = 0, y = 0;
+
+                using (Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight))
+                {
+                    if (centreInNewCanvas)
+                    {
+                        x = width / 2 - bitmapToDraw.Width / 2;
+                        y = height - bitmapToDraw.Height;
+                    }
+
+                    g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
+                }
+
+                if (drawOutline)
+                {
+                    g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
+                }
             }
 
-            g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
-
-            if (drawOutline)
-            {
-                g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
-            }
-
-            g.Dispose();
             return newBmp;
         }
 

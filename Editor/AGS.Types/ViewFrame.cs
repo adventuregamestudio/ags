@@ -61,7 +61,7 @@ namespace AGS.Types
         [Description("Sound to be played when the frame becomes visible")]
         [Category("Design")]
         [TypeConverter(typeof(AudioClipTypeConverter))]
-        [DefaultValue(-1)]
+        [DefaultValue(AudioClip.FixedIndexNoValue)]
         public int Sound
         {
             get { return _sound; }

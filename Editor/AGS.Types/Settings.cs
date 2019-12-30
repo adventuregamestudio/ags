@@ -37,7 +37,7 @@ namespace AGS.Types
 			GenerateNewGameID();
         }
 
-        private string _gameFileName = "";
+        private string _gameFileName = string.Empty;
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
@@ -113,7 +113,7 @@ namespace AGS.Types
 		private string _saveGameExtension = string.Empty;
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
-        private int _audioIndexer = 0;
+        private int _audioIndexer = AudioClip.FixedIndexBase;
         private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
 
         /// <summary>
@@ -673,7 +673,7 @@ namespace AGS.Types
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
-        [DefaultValue(-1)]
+        [DefaultValue(AudioClip.FixedIndexNoValue)]
         [Category("Sound")]
         [TypeConverter(typeof(AudioClipTypeConverter))]
         public int PlaySoundOnScore
@@ -1072,7 +1072,8 @@ namespace AGS.Types
             set { _binaryFilesInSourceControl = value; }
         }
 
-        // NOTE: this index only purpose remains to connect clips to audio cache
+        // This is used to assign "fixed indices" to audio clips, which work as a stable reference the clip,
+        // regardless of any clip list rearrangements.
         [Browsable(false)]
         public int AudioIndexer
         {
@@ -1120,8 +1121,9 @@ namespace AGS.Types
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _useLowResCoordinatesInScript = true;
-            _audioIndexer = 0;
+            _audioIndexer = AudioClip.FixedIndexBase;
             _enforceNewAudio = false;
+            _gameFileName = string.Empty;
 
             SerializeUtils.DeserializeFromXML(this, node);
 

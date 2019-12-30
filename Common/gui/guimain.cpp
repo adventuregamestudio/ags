@@ -686,9 +686,9 @@ GuiVersion GameGuiVersion = kGuiVersion_Initial;
 void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 {
     color_t draw_color = ds->GetCompatibleColor(8);
-    for (int at_x = rc.Left; at_x < rc.GetWidth(); ++at_x)
+    for (int at_x = rc.Left; at_x <= rc.Right; ++at_x)
     {
-        for (int at_y = rc.Top + at_x % 2; at_y < rc.GetHeight(); at_y += 2)
+        for (int at_y = rc.Top + at_x % 2; at_y <= rc.Bottom; at_y += 2)
         {
             ds->PutPixel(at_x, at_y, draw_color);
         }

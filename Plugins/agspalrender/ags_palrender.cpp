@@ -1691,7 +1691,7 @@ int DrawReflections (int id, int charobj=0)
 		else coy = obj_baseline;
 		coz = 0;
 	}
-	bool scaled;
+	bool scaled = false;
 	int32 w,h;
 	engine->GetBitmapDimensions (charsprite,&w,&h,nullptr);
 	if (scale != 100)

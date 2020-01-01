@@ -66,7 +66,7 @@ bool APIENTRY DllMain( HANDLE hModule,
 namespace agspalrender {
 #endif
 
-
+typedef AGSViewFrame* (*SCAPI_GAME_GETVIEWFRAME) (int viewNumber, int loopNumber, int frame);
 typedef int (*SCAPI_VIEWFRAME_GETGRAPHIC)(AGSViewFrame *ch);
 typedef int (*SCAPI_CHARACTER_GETVIEW)(AGSCharacter *ch);
 typedef int (*SCAPI_CHARACTER_GETLOOP)(AGSCharacter *ch);
@@ -82,6 +82,7 @@ typedef int (*SCAPI_OBJECT_GETX)(AGSObject *obj);
 typedef int (*SCAPI_OBJECT_GETY)(AGSObject *obj);
 typedef int (*SCAPI_OBJECT_GETBASELINE)(AGSObject *obj);
 
+SCAPI_GAME_GETVIEWFRAME Game_GetViewFrame = NULL;
 SCAPI_VIEWFRAME_GETGRAPHIC ViewFrame_GetGraphic = NULL;
 SCAPI_CHARACTER_GETVIEW Character_GetView = NULL;
 SCAPI_CHARACTER_GETLOOP Character_GetLoop = NULL;
@@ -1662,7 +1663,7 @@ int DrawReflections (int id, int charobj=0)
 
 	if (Reflection.Characters[id].replaceview == 0) view = char_view;
 	else view = Reflection.Characters[id].replaceview;
-	AGSViewFrame *vf = engine->GetViewFrame (char_view,char_loop,char_frame);
+	AGSViewFrame *vf = Game_GetViewFrame (char_view,char_loop,char_frame);
     int char_graphic = ViewFrame_GetGraphic(vf);
 	charsprite = engine->GetSpriteGraphic (char_graphic);
 	long scaling = char_scaling;
@@ -2135,10 +2136,11 @@ void AGS_EngineStartup (IAGSEngine *lpEngine) {
   engine->RequestEventHook (AGSE_RESTOREGAME);
   engine->RequestEventHook (AGSE_ENTERROOM);
 
+  Game_GetViewFrame = (SCAPI_GAME_GETVIEWFRAME)engine->GetScriptFunctionAddress("Game::GetViewFrame^3");
   ViewFrame_GetGraphic = (SCAPI_VIEWFRAME_GETGRAPHIC)engine->GetScriptFunctionAddress("ViewFrame::get_Graphic");
   Character_GetView = (SCAPI_CHARACTER_GETVIEW)engine->GetScriptFunctionAddress("Character::get_View");
-  Character_GetLoop = (SCAPI_CHARACTER_GETLOOP)engine->GetScriptFunctionAddress("Character::get_Frame");
-  Character_GetFrame = (SCAPI_CHARACTER_GETFRAME)engine->GetScriptFunctionAddress("Character::get_Loop");
+  Character_GetLoop = (SCAPI_CHARACTER_GETLOOP)engine->GetScriptFunctionAddress("Character::get_Loop");
+  Character_GetFrame = (SCAPI_CHARACTER_GETFRAME)engine->GetScriptFunctionAddress("Character::get_Frame");
   Character_GetX = (SCAPI_CHARACTER_GETX)engine->GetScriptFunctionAddress("Character::get_x");
   Character_GetY = (SCAPI_CHARACTER_GETY)engine->GetScriptFunctionAddress("Character::get_y");
   Character_GetZ = (SCAPI_CHARACTER_GETZ)engine->GetScriptFunctionAddress("Character::get_z");
@@ -2199,7 +2201,7 @@ int AGS_EngineOnEvent (int event, int data) {
 				int32 vx = char_x;
 				int32 vy = char_y;
 				engine->RoomToViewport (&vx,&vy);
-				AGSViewFrame *vf = engine->GetViewFrame (char_view,char_loop,char_frame);
+				AGSViewFrame *vf = Game_GetViewFrame (char_view,char_loop,char_frame);
 				int char_graphic = ViewFrame_GetGraphic(vf);
 				int w = engine->GetSpriteWidth (char_graphic);
 				int h = engine->GetSpriteHeight (char_graphic);

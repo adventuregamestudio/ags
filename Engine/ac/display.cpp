@@ -445,6 +445,8 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
+#if defined (AGS_FONTOUTLINE_MOREOPAQUE)
+// TODO: was suggested by fernewelten, but it's unclear whether is necessary
 // Make semi-transparent bits much more opaque
 void wouttextxy_AutoOutline_Semitransparent2Opaque(Bitmap *map)
 {
@@ -469,6 +471,7 @@ void wouttextxy_AutoOutline_Semitransparent2Opaque(Bitmap *map)
         }
     }
 }
+#endif
 
 // Draw outline that is calculated from the text font, not derived from an outline font
 void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
@@ -489,7 +492,9 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     if (!outline_stencil || !texx_stencil)
         return;
     wouttextxy(texx_stencil, 0, 0, font, color, texx);
+#if defined (AGS_FONTOUTLINE_MOREOPAQUE)
     wouttextxy_AutoOutline_Semitransparent2Opaque(texx_stencil);
+#endif
     
     // move start of text so that the outline doesn't drop off the bitmap
     xxp += thickness;

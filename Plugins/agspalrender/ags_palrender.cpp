@@ -66,6 +66,38 @@ bool APIENTRY DllMain( HANDLE hModule,
 namespace agspalrender {
 #endif
 
+typedef AGSViewFrame* (*SCAPI_GAME_GETVIEWFRAME) (int viewNumber, int loopNumber, int frame);
+typedef int (*SCAPI_VIEWFRAME_GETGRAPHIC)(AGSViewFrame *ch);
+typedef int (*SCAPI_CHARACTER_GETVIEW)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETLOOP)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETFRAME)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETX)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETY)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETZ)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETSCALING)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETROOM)(AGSCharacter *ch);
+typedef int (*SCAPI_OBJECT_GETVISIBLE)(AGSObject *obj);
+typedef int (*SCAPI_OBJECT_GETGRAPHIC)(AGSObject *obj);
+typedef int (*SCAPI_OBJECT_GETX)(AGSObject *obj);
+typedef int (*SCAPI_OBJECT_GETY)(AGSObject *obj);
+typedef int (*SCAPI_OBJECT_GETBASELINE)(AGSObject *obj);
+
+SCAPI_GAME_GETVIEWFRAME Game_GetViewFrame = NULL;
+SCAPI_VIEWFRAME_GETGRAPHIC ViewFrame_GetGraphic = NULL;
+SCAPI_CHARACTER_GETVIEW Character_GetView = NULL;
+SCAPI_CHARACTER_GETLOOP Character_GetLoop = NULL;
+SCAPI_CHARACTER_GETFRAME Character_GetFrame = NULL;
+SCAPI_CHARACTER_GETX Character_GetX = NULL;
+SCAPI_CHARACTER_GETY Character_GetY = NULL;
+SCAPI_CHARACTER_GETZ Character_GetZ = NULL;
+SCAPI_CHARACTER_GETSCALING Character_GetScaling = NULL;
+SCAPI_CHARACTER_GETROOM Character_GetRoom = NULL;
+SCAPI_OBJECT_GETVISIBLE Object_GetVisible = NULL;
+SCAPI_OBJECT_GETGRAPHIC Object_GetGraphic = NULL;
+SCAPI_OBJECT_GETX Object_GetX = NULL;
+SCAPI_OBJECT_GETY Object_GetY = NULL;
+SCAPI_OBJECT_GETBASELINE Object_GetBaseline = NULL;
+
 const float halfpi = (0.5f * PI);
 const float twopi  = (2.0f * PI);
 const float twopi_inv =  (1.0f / TWO_PI);
@@ -1621,30 +1653,45 @@ int DrawReflections (int id, int charobj=0)
 	{
 	currchar = engine->GetCharacter (id);
 	int view=0;
-	if (Reflection.Characters[id].replaceview == 0) view = currchar->view+1;
+    int char_view = Character_GetView(currchar);
+    int char_frame = Character_GetFrame(currchar);
+    int char_loop = Character_GetLoop(currchar);
+    int char_x = Character_GetX(currchar);
+    int char_y = Character_GetY(currchar);
+    int char_z = Character_GetZ(currchar);
+    int char_scaling = Character_GetScaling(currchar);
+
+	if (Reflection.Characters[id].replaceview == 0) view = char_view;
 	else view = Reflection.Characters[id].replaceview;
-	AGSViewFrame *vf = engine->GetViewFrame (currchar->view+1,currchar->loop,currchar->frame);
-	charsprite = engine->GetSpriteGraphic (vf->pic);
-	long scaling = currchar->flags & CHF_NOSCALING;
-	if (!scaling)scale = engine->GetAreaScaling (currchar->x,currchar->y);
+	AGSViewFrame *vf = Game_GetViewFrame (char_view,char_loop,char_frame);
+    int char_graphic = ViewFrame_GetGraphic(vf);
+	charsprite = engine->GetSpriteGraphic (char_graphic);
+	long scaling = char_scaling;
+	if (!scaling)scale = engine->GetAreaScaling (char_x,char_y);
 	else scale = 100;
-	cox = currchar->x;
-	coy = currchar->y;
-	coz = currchar->z;
+	cox = char_x;
+	coy = char_y;
+	coz = char_z;
 	}
 	else if (charobj == 1)
 	{
 		currobj = engine->GetObject (id);
 		
-		charsprite = engine->GetSpriteGraphic (currobj->num);
+		charsprite = engine->GetSpriteGraphic (Object_GetGraphic(currobj));
+        int obj_x = Object_GetX(currobj);
+        int obj_y = Object_GetY(currobj);
+        int obj_baseline = Object_GetBaseline(currobj);
+
 		if (Reflection.Objects[id].ignorescaling) scale = 100;
-		else scale = engine->GetAreaScaling (currobj->x,currobj->y);
-		cox = currobj->x;
-		if (currobj->baseline < 0) coy = currobj->y;
-		else coy = currobj->baseline;
+		else scale = engine->GetAreaScaling (
+                obj_x,
+                obj_y);
+		cox = obj_x;
+		if (obj_baseline < 0) coy = obj_y;
+		else coy = obj_baseline;
 		coz = 0;
 	}
-	bool scaled;
+	bool scaled = false;
 	int32 w,h;
 	engine->GetBitmapDimensions (charsprite,&w,&h,nullptr);
 	if (scale != 100)
@@ -1703,7 +1750,11 @@ int DrawReflections (int id, int charobj=0)
 	{
 	int (*sfGetGameParameter)(int,int,int,int);
 	sfGetGameParameter = ((int(*)(int,int,int,int)) engine->GetScriptFunctionAddress("GetGameParameter"));
-	flipped = sfGetGameParameter(13,currchar->view+1,currchar->loop,currchar->frame);
+    int currchar_view = Character_GetView(currchar);
+    int currchar_frame = Character_GetFrame(currchar);
+    int currchar_loop = Character_GetLoop(currchar);
+
+	flipped = sfGetGameParameter(13,currchar_view,currchar_loop,currchar_frame);
 	}
 	else flipped = 0;
 	obst = new int [w];
@@ -2084,6 +2135,23 @@ void AGS_EngineStartup (IAGSEngine *lpEngine) {
   engine->RequestEventHook (AGSE_SAVEGAME);
   engine->RequestEventHook (AGSE_RESTOREGAME);
   engine->RequestEventHook (AGSE_ENTERROOM);
+
+  Game_GetViewFrame = (SCAPI_GAME_GETVIEWFRAME)engine->GetScriptFunctionAddress("Game::GetViewFrame^3");
+  ViewFrame_GetGraphic = (SCAPI_VIEWFRAME_GETGRAPHIC)engine->GetScriptFunctionAddress("ViewFrame::get_Graphic");
+  Character_GetView = (SCAPI_CHARACTER_GETVIEW)engine->GetScriptFunctionAddress("Character::get_View");
+  Character_GetLoop = (SCAPI_CHARACTER_GETLOOP)engine->GetScriptFunctionAddress("Character::get_Loop");
+  Character_GetFrame = (SCAPI_CHARACTER_GETFRAME)engine->GetScriptFunctionAddress("Character::get_Frame");
+  Character_GetX = (SCAPI_CHARACTER_GETX)engine->GetScriptFunctionAddress("Character::get_x");
+  Character_GetY = (SCAPI_CHARACTER_GETY)engine->GetScriptFunctionAddress("Character::get_y");
+  Character_GetZ = (SCAPI_CHARACTER_GETZ)engine->GetScriptFunctionAddress("Character::get_z");
+  Character_GetScaling = (SCAPI_CHARACTER_GETSCALING)engine->GetScriptFunctionAddress("Character::get_Scaling");
+  Character_GetRoom = (SCAPI_CHARACTER_GETROOM)engine->GetScriptFunctionAddress("Character::get_Room");
+  Object_GetVisible = (SCAPI_OBJECT_GETVISIBLE)engine->GetScriptFunctionAddress("Object::get_Visible");
+  Object_GetGraphic = (SCAPI_OBJECT_GETGRAPHIC)engine->GetScriptFunctionAddress("Object::get_Graphic");
+  Object_GetX = (SCAPI_OBJECT_GETX)engine->GetScriptFunctionAddress("Object::get_X");
+  Object_GetY = (SCAPI_OBJECT_GETY)engine->GetScriptFunctionAddress("Object::get_Y");
+  Object_GetBaseline = (SCAPI_OBJECT_GETBASELINE)engine->GetScriptFunctionAddress("Object::get_Baseline");
+
   stars = new starstype [MAX_STARS];
   Starfield.maxstars = MAX_STARS;
   Starfield.depthmultiplier = 256;
@@ -2121,13 +2189,22 @@ int AGS_EngineOnEvent (int event, int data) {
 			{
 				if (Reflection.Characters[i].reflect == 0) continue;
 				AGSCharacter *tempchar = engine->GetCharacter (i);
-				if (tempchar->room != engine->GetCurrentRoom ()) continue; //if character isn't even in the room, go to next iteration.
-				int32 vx = tempchar->x;
-				int32 vy = tempchar->y;
+                int char_view = Character_GetView(tempchar);
+                int char_frame = Character_GetFrame(tempchar);
+                int char_loop = Character_GetLoop(tempchar);
+                int char_x = Character_GetX(tempchar);
+                int char_y = Character_GetY(tempchar);
+                int char_room = Character_GetRoom(tempchar);
+
+
+				if (char_room != engine->GetCurrentRoom ()) continue; //if character isn't even in the room, go to next iteration.
+				int32 vx = char_x;
+				int32 vy = char_y;
 				engine->RoomToViewport (&vx,&vy);
-				AGSViewFrame *vf = engine->GetViewFrame (tempchar->view+1,tempchar->loop,tempchar->frame);
-				int w = engine->GetSpriteWidth (vf->pic);
-				int h = engine->GetSpriteHeight (vf->pic);
+				AGSViewFrame *vf = Game_GetViewFrame (char_view,char_loop,char_frame);
+				int char_graphic = ViewFrame_GetGraphic(vf);
+				int w = engine->GetSpriteWidth (char_graphic);
+				int h = engine->GetSpriteHeight (char_graphic);
 				vx = vx-(w/2);
 				int32 vxmax = vx+w;
 				int32 vymax = vy+h;
@@ -2138,12 +2215,12 @@ int AGS_EngineOnEvent (int event, int data) {
 			{
 				if (Reflection.Objects[i].reflect == 0) continue;
 				AGSObject *tempobj = engine->GetObject (i);
-				if (!tempobj->on) continue;
-				int32 vx = tempobj->x;
-				int32 vy = tempobj->baseline - tempobj->y;
+				if (!Object_GetVisible(tempobj)) continue;
+				int32 vx = Object_GetX(tempobj);
+				int32 vy = Object_GetBaseline(tempobj) - Object_GetY(tempobj);
 				engine->RoomToViewport (&vx,&vy);
-				int32 w = engine->GetSpriteWidth (tempobj->num);
-				int32 h = engine->GetSpriteHeight (tempobj->num);
+				int32 w = engine->GetSpriteWidth(Object_GetGraphic(tempobj));
+				int32 h = engine->GetSpriteHeight(Object_GetGraphic(tempobj));
 				int32 vxmax = vx+w;
 				int32 vymax = vy+h;
 				if (vxmax < 0 || vy > sh || vx > sw || vymax < 0) continue; //if all of the sprite is off screen in any direction, go to next iteration

@@ -2508,7 +2508,7 @@ void construct_engine_overlay()
         invalidate_sprite(0, 0, debugConsole, false);
     }
 
-    if (display_fps)
+    if (display_fps != kFPS_Hide)
         draw_fps(viewport);
 }
 

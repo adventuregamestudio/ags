@@ -145,8 +145,8 @@ void script_debug(int cmdd,int dataa) {
             NewRoom(goToRoom);
     }
     else if (cmdd == 4) {
-        if (display_fps != 2)
-            display_fps = dataa;
+        if (display_fps != kFPS_Forced)
+            display_fps = (FPSDisplayMode)dataa;
     }
     else if (cmdd == 5) {
         if (dataa == 0) dataa = game.playercharacter;

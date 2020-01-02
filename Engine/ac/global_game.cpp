@@ -374,7 +374,7 @@ void SetRestartPoint() {
 
 void SetGameSpeed(int newspd) {
     // if Ctrl+E has been used to max out frame rate, lock it there
-    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == kFPS_Forced);
     if (maxed_framerate) { return; }
 
     newspd += play.game_speed_modifier;

@@ -432,7 +432,7 @@ static void check_keyboard_controls()
 
     if ((kgn == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
         // if --fps paramter is used, Ctrl+E will max out frame rate
-        setTimerFps(1000);
+        setTimerFps( isTimerFpsMaxed() ? frames_per_second : 1000 );
         return;
     }
 

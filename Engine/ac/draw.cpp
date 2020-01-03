@@ -2106,7 +2106,7 @@ void draw_fps(const Rect &viewport)
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
 
     char base_buffer[20];
-    if (frames_per_second < 1000) {
+    if (!isTimerFpsMaxed()) {
         sprintf(base_buffer, "%d", frames_per_second);
     } else {
         sprintf(base_buffer, "unlimited");

@@ -120,7 +120,7 @@ namespace AGS.Types
             set { _outlineStyle = value; }
         }
 
-        [Description("Thickness of the automatic outline")]
+        [Description("Thickness of the automatic outline. WARNING: automatic outlines are generated at runtime and large sizes may negatively affect your game performance.")]
         [Category("Appearance")]
         [DefaultValue(1)]
 		public int AutoOutlineThickness

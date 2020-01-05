@@ -52,6 +52,11 @@ void setTimerFps(int new_fps)
     next_frame_timestamp = AGS_Clock::now();
 }
 
+bool isTimerFpsMaxed()
+{
+    return framerate_maxed;
+}
+
 void WaitForNextFrame()
 {
     auto now = AGS_Clock::now();

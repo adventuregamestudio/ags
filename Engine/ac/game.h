@@ -183,7 +183,7 @@ extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
-extern int frames_per_second;
+extern int frames_per_second; // fixed game fps, set by script
 extern unsigned int loopcounter;
 extern void set_loop_counter(unsigned int new_counter);
 extern int game_paused;

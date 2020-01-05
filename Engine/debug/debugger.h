@@ -46,8 +46,15 @@ void check_debug_keys();
 #define DBG_REGONLY   0x200
 #define DBG_NOVIDEO   0x400
 
+enum FPSDisplayMode
+{
+    kFPS_Hide = 0,    // hid by the script/user command
+    kFPS_Display = 1, // shown by the script/user command
+    kFPS_Forced = 2   // forced shown by the engine arg
+};
+
 extern float fps;
-extern int display_fps;
+extern FPSDisplayMode display_fps;
 extern int debug_flags;
 
 #endif // __AC_DEBUGGER_H

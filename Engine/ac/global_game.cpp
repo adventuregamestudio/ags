@@ -69,7 +69,6 @@ extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
-extern int frames_per_second;
 extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
@@ -373,10 +372,6 @@ void SetRestartPoint() {
 
 
 void SetGameSpeed(int newspd) {
-    // if Ctrl+E has been used to max out frame rate, lock it there
-    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
-    if (maxed_framerate) { return; }
-
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
     if (newspd<10) newspd=10;

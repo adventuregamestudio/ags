@@ -35,7 +35,8 @@ void GameLoopUntilNoOverlay();
 void RunGameUntilAborted();
 // Update everything game related
 void UpdateGameOnce(bool checkControls = false, IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
-// Gets current wanted game FPS, this is usually a fixed number set in script
+// Gets current logical game FPS, this is normally a fixed number set in script;
+// in case of "maxed fps" mode this function returns real measured FPS.
 float get_current_fps();
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.

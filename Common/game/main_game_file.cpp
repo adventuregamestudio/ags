@@ -28,6 +28,7 @@
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
+#include "font/fonts.h"
 
 namespace AGS
 {
@@ -484,6 +485,19 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             {
                 finfo.SizeMultiplier = 1;
             }
+        }
+    }
+    if (data_ver < kGameVersion_351)
+    {
+        for (size_t font = 0; font < game.numfonts; font++)
+        {
+            FontInfo &finfo = game.fonts[font];
+            // Thickness that corresponds to 1 game pixel
+            finfo.AutoOutlineThickness =
+                // if it's a scaled up bitmap font, move the outline out more
+                (is_bitmap_font(font) && get_font_scaling_mul(font) > 1) ?
+                get_fixed_pixel_size(1) : 1;
+            finfo.AutoOutlineStyle = FontInfo::kSquared;
         }
     }
 }

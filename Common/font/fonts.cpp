@@ -61,6 +61,8 @@ FontInfo::FontInfo()
     , Outline(FONT_OUTLINE_NONE)
     , YOffset(0)
     , LineSpacing(0)
+    , AutoOutlineStyle(kRounded)
+    , AutoOutlineThickness(1)
 {}
 
 
@@ -150,6 +152,13 @@ int get_font_outline(size_t font_number)
     if (font_number >= fonts.size())
         return FONT_OUTLINE_NONE;
     return fonts[font_number].Info.Outline;
+}
+
+int get_font_outline_thickness(size_t font_number)
+{
+    if (font_number >= fonts.size())
+        return 0;
+    return fonts[font_number].Info.AutoOutlineThickness;
 }
 
 void set_font_outline(size_t font_number, int outline_type)

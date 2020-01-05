@@ -354,6 +354,27 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 27)
+            {
+                bool is_legacy_hires = game.IsHighResolution;
+                foreach (Font font in game.Fonts)
+                {
+                    font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
+                    // For scaled-up bitmap fonts in hi-res game outline is x2
+                    if (is_legacy_hires &&
+                        // NOTE: unfortunately as of now there's no direct way to determine if
+                        // this is a bitmap font or TTF
+                        !File.Exists(font.TTFFileName) && font.SizeMultiplier > 1)
+                    {
+                        font.AutoOutlineThickness = 2;
+                    }
+                    else
+                    {
+                        font.AutoOutlineThickness = 1;
+                    }
+                }
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

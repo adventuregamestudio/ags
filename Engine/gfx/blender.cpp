@@ -17,8 +17,15 @@
 #include "util/wgt2allg.h"
 
 extern "C" {
-    unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n);
+    // Fallback routine for when we don't have anything better to do.
+    unsigned long _blender_black(unsigned long x, unsigned long y, unsigned long n);
+    // Standard Allegro 4 trans blenders for 16 and 15-bit color modes
     unsigned long _blender_trans15(unsigned long x, unsigned long y, unsigned long n);
+    unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n);
+    // Standard Allegro 4 alpha blenders for 16 and 15-bit color modes
+    unsigned long _blender_alpha15(unsigned long x, unsigned long y, unsigned long n);
+    unsigned long _blender_alpha16(unsigned long x, unsigned long y, unsigned long n);
+    unsigned long _blender_alpha24(unsigned long x, unsigned long y, unsigned long n);
 }
 
 // the allegro "inline" ones are not actually inline, so #define
@@ -248,6 +255,22 @@ unsigned long _argb2rgb_blender(unsigned long src_col, unsigned long dst_col, un
    return res | g;
 }
 
+// Based on _blender_alpha16, but keep source pixel if dest is transparent
+unsigned long skiptranspixels_blender_alpha16(unsigned long x, unsigned long y, unsigned long n)
+{
+    unsigned long result;
+    if ((y & 0xFFFF) == 0xF81F)
+        return x;
+    n = geta32(x);
+    if (n)
+        n = (n + 1) / 8;
+    x = makecol16(getr32(x), getg32(x), getb32(x));
+    x = (x | (x << 16)) & 0x7E0F81F;
+    y = ((y & 0xFFFF) | (y << 16)) & 0x7E0F81F;
+    result = ((x - y) * n / 32 + y) & 0x7E0F81F;
+    return ((result & 0xFFFF) | (result >> 16));
+}
+
 void set_additive_alpha_blender()
 {
     set_blender_mode(nullptr, nullptr, _additive_alpha_copysrc_blender, 0, 0, 0, 0);
@@ -267,4 +290,11 @@ unsigned long _opaque_alpha_blender(unsigned long x, unsigned long y, unsigned l
 void set_opaque_alpha_blender()
 {
     set_blender_mode(nullptr, nullptr, _opaque_alpha_blender, 0, 0, 0, 0);
+}
+
+void set_argb2any_blender()
+{
+    set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender,
+        _blender_alpha15, skiptranspixels_blender_alpha16, _blender_alpha24,
+        0, 0, 0, 0xff); // TODO: do we need to support proper 15- and 24-bit here?
 }

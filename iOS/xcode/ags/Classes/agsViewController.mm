@@ -43,6 +43,11 @@ extern "C"
 		mouse_button = 0;
 		return temp_button;
 	}
+    float get_device_scale()
+    {
+        float deviceScale = [[UIScreen mainScreen] scale];
+        return deviceScale;
+    }
 
 	void ios_poll_mouse_relative(int* x, int* y)
 	{

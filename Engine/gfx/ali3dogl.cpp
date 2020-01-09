@@ -74,6 +74,7 @@ extern "C"
   void ios_swap_buffers();
   void ios_select_buffer();
   void ios_create_screen();
+  float get_device_scale();
   void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);  
 }
 
@@ -570,7 +571,13 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
   // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
   // is selected in AGS. This ugly situation causes trouble...
-  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+  float device_scale = 1.0f;
+  
+  #if AGS_PLATFORM_OS_IOS
+    device_scale = get_device_scale();
+  #endif
+  
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, device_scale, device_scale);
 #endif
 }
 

@@ -112,6 +112,10 @@ extern void ios_initialize_renderer(int w, int h);
 
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
+        // Scale for Retina
+        float deviceScale = [[UIScreen mainScreen] scale];
+        self.contentScaleFactor = deviceScale;
+        
 }
 
 - (void)deleteFramebuffer

@@ -54,6 +54,7 @@
 #elif AGS_PLATFORM_OS_IOS
 
 #include <OpenGLES/ES1/gl.h>
+#include <OpenGLES/ES2/gl.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES

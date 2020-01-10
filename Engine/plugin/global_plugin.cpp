@@ -183,6 +183,90 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("SetLineHeightAdjust",          Sc_PluginStub_Void);
     return true;
   }
+  else if (ags_stricmp(name, "ags_nickenstien_GFX") == 0)
+  {
+    // ags_nickenstien_GFX.dll
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_Initialise", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_Enable", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_SetTimeScalar", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_FullScreenFadeOut", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_FullScreenFadeIn", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_FullScreenFadeOut_2", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_FullScreenFadeIn_2", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_FullScreenFadeOut_2_SetBackgroundColour", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_GRAPHICS_SetAnisotropicFilter", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_TEXTURE_Load", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_TEXTURE_Release", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_TEXTURE_GetWidth", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_TEXTURE_GetHeight", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_Create", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_Release", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetType", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetLife", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEmittionRate", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetParticlesPerEmittion", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetPosition1", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetPosition2", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartVelocity", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartVelocity_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndVelocity", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndVelocity_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartWidth", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartWidth_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndWidth", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndWidth_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartHeight", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartHeight_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndHeight", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndHeight_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartAngle", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartAngle_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetRotation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetRotation_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartColour", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetStartColour_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndColour", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetEndColour_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetBlendMode", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetTexture", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetForce", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetParticleLife", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetParticleLife_Deviation", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetNoTimeOut", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetDrawOrderReversed", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetProcessWhenOffScreen", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetUseVelocityParticles", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_SetChannelID", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_Start", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_Clone", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_ReleaseAll", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_PARTICLE_EMITTER_Evolve", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_HasGameRoomChanged", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_HasGameRoomChanged_SecondTest", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_SPRITE_ResetForNewRoom", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_Create", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("NGFX_SPRITE_Release", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetChannelID", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetPosition", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetPivot", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetTexture", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetBlendMode", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetWidth", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetHeight", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetAngle", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetColour_1", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetColour_2", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetColour_3", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetColour_4", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetClipRectangle", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetGourard", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetFlipped_H", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_SetFlipped_V", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_SPRITE_AddToDrawList", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("NGFX_InitForNewGameLoop", Sc_PluginStub_Void);
+
+    return true;
+  }
   else if (is_agsteam || is_agsgalaxy)
   {
     // agsteam.dll or agsgalaxy.dll

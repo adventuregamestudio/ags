@@ -1188,7 +1188,7 @@ void allegro_bitmap_test_init()
 // Only allow searching around for game data on desktop systems;
 // otherwise use explicit argument either from program wrapper, command-line
 // or read from default config.
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS || AGS_PLATFORM_OS_IOS
     #define AGS_SEARCH_FOR_GAME_ON_LAUNCH
 #endif
 

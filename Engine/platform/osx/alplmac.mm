@@ -1,3 +1,5 @@
+#ifdef AGS_PLATFORM_OS_MACOS
+
 #import <Cocoa/Cocoa.h>
 
 #include <stdio.h>
@@ -28,3 +30,5 @@ void AGSMacGetBundleDir(char gamepath[PATH_MAX])
   strcpy(gamepath, [parentDir UTF8String]);
   }
 }
+
+#endif

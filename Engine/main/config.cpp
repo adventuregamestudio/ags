@@ -453,12 +453,15 @@ void override_config_ext(ConfigTree &cfg)
     //    * 0 - no scaling
     //    * 1 - stretch and preserve aspect ratio
     //    * 2 - stretch to whole screen
+    //    * 3 - max rounded size that fits on screen
     if (psp_gfx_scaling == 0)
         INIwritestring(cfg, "graphics", "game_scale_fs", "1");
     else if (psp_gfx_scaling == 1)
         INIwritestring(cfg, "graphics", "game_scale_fs", "proportional");
-    else
+    else if (psp_gfx_scaling == 2)
         INIwritestring(cfg, "graphics", "game_scale_fs", "stretch");
+    else
+        INIwritestring(cfg, "graphics", "game_scale_fs", "max_round");
 
     // psp_gfx_smoothing - scaling filter:
     //    * 0 - nearest-neighbour

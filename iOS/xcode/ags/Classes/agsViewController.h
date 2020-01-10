@@ -10,14 +10,15 @@
 
 @interface agsViewController : UIViewController <UIAlertViewDelegate, UIKeyInput, UITextInputTraits>
 {
-	EAGLContext *context;
-	BOOL isInPortraitOrientation;
-	BOOL isKeyboardActive;
-	BOOL isIPad;
+    EAGLContext *context;
+    BOOL isInPortraitOrientation;
+    BOOL isKeyboardActive;
+    BOOL isIPad;
 }
 
 - (void)createGestureRecognizers;
 - (void)createKeyboardButtonBar:(int)openedKeylist;
 - (void)moveViewAnimated:(BOOL)upwards duration:(float)duration;
+- (BOOL)prefersStatusBarHidden;
 
 @end

@@ -799,7 +799,7 @@ void RoomProcessClick(int xx,int yy,int mood) {
     xx = vpt.first.X;
     yy = vpt.first.Y;
 
-    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
+    if (mood==MODE_WALK) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
         else if (thisroom.Hotspots[hsnum].WalkTo.X<1) ;

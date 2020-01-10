@@ -27,6 +27,7 @@
 #include "main/config.h"
 #include "plugin/agsplugin.h"
 #include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 
@@ -136,7 +137,7 @@ bool readConfigFile(char* directory)
 
   ResetConfiguration();
 
-  return ReadConfiguration(IOS_CONFIG_FILENAME, true);
+  return ReadConfiguration((char*)IOS_CONFIG_FILENAME, true);
 }
 
 
@@ -473,7 +474,7 @@ void ResetConfiguration()
 {
   reset_configuration = true;
 
-  ReadConfiguration(IOS_CONFIG_FILENAME, true);
+  ReadConfiguration((char*)IOS_CONFIG_FILENAME, true);
 
   reset_configuration = false;
 }
@@ -488,40 +489,40 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
 //    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
 
-    ReadString(&psp_translation[0], cfg, "misc", "translation", "default");
+    ReadString(&psp_translation[0], cfg, (char*)"misc", (char*)"translation", (char*)"default");
 
-    ReadInteger((int*)&psp_config_enabled, cfg, "misc", "config_enabled", 0, 1, 0);
+    ReadInteger((int*)&psp_config_enabled, cfg, (char*)"misc", (char*)"config_enabled", 0, 1, 0);
     if (!psp_config_enabled && !read_everything)
       return true;
 
-    ReadInteger(&psp_debug_write_to_logcat, cfg, "debug", "logging", 0, 1, 0);
-    ReadInteger(&display_fps, cfg, "debug", "show_fps", 0, 1, 0);
+    ReadInteger(&psp_debug_write_to_logcat, cfg, (char*)"debug", (char*)"logging", 0, 1, 0);
+    ReadInteger(&display_fps, cfg, (char*)"debug", (char*)"show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
 
-    ReadInteger((int*)&psp_rotation, cfg, "misc", "rotation", 0, 2, 0);
+    ReadInteger((int*)&psp_rotation, cfg, (char*)"misc", (char*)"rotation", 0, 2, 0);
 
-//    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
-    ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
+    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, cfg, (char*)"compatibility", (char*)"ignore_acsetup_cfg_file", 0, 1, 0);
+    ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, (char*)"compatibility", (char*)"clear_cache_on_room_change", 0, 1, 0);
 
-    ReadInteger((int*)&psp_audio_samplerate, cfg, "sound", "samplerate", 0, 44100, 44100);
-    ReadInteger((int*)&psp_audio_enabled, cfg, "sound", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_multithreaded, cfg, "sound", "threaded", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_cachesize, cfg, "sound", "cache_size", 1, 50, 10);
+    ReadInteger((int*)&psp_audio_samplerate, cfg, (char*)"sound", (char*)"samplerate", 0, 44100, 44100);
+    ReadInteger((int*)&psp_audio_enabled, cfg, (char*)"sound", (char*)"enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_multithreaded, cfg, (char*)"sound", (char*)"threaded", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_cachesize, cfg, (char*)"sound", (char*)"cache_size", 1, 50, 10);
 
-    ReadInteger((int*)&psp_midi_enabled, cfg, "midi", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_midi_preload_patches, cfg, "midi", "preload_patches", 0, 1, 0);
+    ReadInteger((int*)&psp_midi_enabled, cfg, (char*)"midi", (char*)"enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_preload_patches, cfg, (char*)"midi", (char*)"preload_patches", 0, 1, 0);
 
-    ReadInteger((int*)&psp_video_framedrop, cfg, "video", "framedrop", 0, 1, 0);
+    ReadInteger((int*)&psp_video_framedrop, cfg, (char*)"video", (char*)"framedrop", 0, 1, 0);
 
-    ReadInteger((int*)&psp_gfx_renderer, cfg, "graphics", "renderer", 0, 2, 0);
-    ReadInteger((int*)&psp_gfx_smoothing, cfg, "graphics", "smoothing", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_scaling, cfg, "graphics", "scaling", 0, 2, 1);
-    ReadInteger((int*)&psp_gfx_super_sampling, cfg, "graphics", "super_sampling", 0, 1, 0);
-    ReadInteger((int*)&psp_gfx_smooth_sprites, cfg, "graphics", "smooth_sprites", 0, 1, 0);
+    ReadInteger((int*)&psp_gfx_renderer, cfg, (char*)"graphics", (char*)"renderer", 0, 2, 0);
+    ReadInteger((int*)&psp_gfx_smoothing, cfg, (char*)"graphics", (char*)"smoothing", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_scaling, cfg, (char*)"graphics", (char*)"scaling", 0, 3, 1);
+    ReadInteger((int*)&psp_gfx_super_sampling, cfg, (char*)"graphics", (char*)"super_sampling", 0, 1, 0);
+    ReadInteger((int*)&psp_gfx_smooth_sprites, cfg, (char*)"graphics", (char*)"smooth_sprites", 0, 1, 0);
 
-    ReadInteger((int*)&config_mouse_control_mode, cfg, "controls", "mouse_method", 0, 1, 0);
-    ReadInteger((int*)&config_mouse_longclick, cfg, "controls", "mouse_longclick", 0, 1, 1);
+    ReadInteger((int*)&config_mouse_control_mode, cfg, (char*)"controls", (char*)"mouse_method", 0, 1, 0);
+    ReadInteger((int*)&config_mouse_longclick, cfg, (char*)"controls", (char*)"mouse_longclick", 0, 1, 1);
 
     return true;
   }
@@ -546,7 +547,7 @@ void startEngine(char* filename, char* directory, int loadLastSave)
   ResetConfiguration();
 
   // Read general configuration.
-  ReadConfiguration(IOS_CONFIG_FILENAME, true);
+  ReadConfiguration((char*)IOS_CONFIG_FILENAME, true);
 
   // Get the games path.
   char path[256];
@@ -562,7 +563,7 @@ void startEngine(char* filename, char* directory, int loadLastSave)
   setenv("ULTRADIR", "..", 1);
 
   // Read game specific configuration.
-  ReadConfiguration(IOS_CONFIG_FILENAME, false);
+  ReadConfiguration((char*)IOS_CONFIG_FILENAME, false);
 
   psp_load_latest_savegame = loadLastSave;
 

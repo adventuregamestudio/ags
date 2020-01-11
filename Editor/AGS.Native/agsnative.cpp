@@ -632,43 +632,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
-
-enum RoomAreaMask
-{
-    None,
-    Hotspots,
-    WalkBehinds,
-    WalkableAreas,
-    Regions
-};
-
-// TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
-// TODO: create weak_ptr here?
-AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
-{
-	switch (maskType) 
-	{
-	case RoomAreaMask::Hotspots: return roomptr->HotspotMask.get();
-	case RoomAreaMask::Regions: return roomptr->RegionMask.get();
-	case RoomAreaMask::WalkableAreas: return roomptr->WalkAreaMask.get();
-	case RoomAreaMask::WalkBehinds: return roomptr->WalkBehindMask.get();
-	}
-    return NULL;
-}
-
-float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
-{
-    switch (maskType)
-    {
-    case RoomAreaMask::Hotspots: return 1.f / roomptr->MaskResolution;
-    case RoomAreaMask::Regions: return 1.f / roomptr->MaskResolution;
-    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->MaskResolution;
-    case RoomAreaMask::WalkBehinds: return 1.f; // walk-behinds always 1:1 with room size
-    }
-    return 0.f;
-}
-
-
 void copy_walkable_to_regions (void *roomptr) {
     RoomStruct *theRoom = (RoomStruct*)roomptr;
 	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
@@ -676,35 +639,35 @@ void copy_walkable_to_regions (void *roomptr) {
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-    Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
+    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
 	return mask->GetPixel(x * scale, y * scale);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
+    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
 	mask->DrawLine(Line(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
+    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
     mask->FillRect(Rect(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
+    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
     mask->FloodFill(x1 * scale, y1 * scale, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
     auto &undoBuffer = RoomTools->undoBuffer;
   if (undoBuffer != NULL)
   {
@@ -737,7 +700,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
 {
   if (does_undo_buffer_exist())
   {
-  	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+  	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
     mask->Blit(RoomTools->undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
@@ -791,7 +754,7 @@ Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
 void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
-	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
+	Common::Bitmap *source = roomptr->GetMask(maskType);
 
 	if (source == NULL) return;
 
@@ -2533,7 +2496,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
 	color oldpale[256];
 	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
 	{
@@ -2546,12 +2509,12 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	}
 	delete importedImage;
 
-	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
+	validate_mask(mask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
 }
 
 SysBitmap ^export_area_mask(void *roomptr, int maskType)
 {
-    AGSBitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    AGSBitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
     return ConvertBlockToBitmap(mask, false);
 }
 

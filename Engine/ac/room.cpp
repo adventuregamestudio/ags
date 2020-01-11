@@ -138,6 +138,15 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
     return surface;
 }
 
+ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
+{
+    if (displayed_room < 0)
+        quit("!Room_GetDrawingSurfaceForMask: no room is currently loaded");
+    ScriptDrawingSurface *surface = new ScriptDrawingSurface();
+    surface->roomMaskType = mask;
+    ccRegisterManagedObject(surface, surface);
+    return surface;
+}
 
 int Room_GetObjectCount() {
     return croom->numobj;

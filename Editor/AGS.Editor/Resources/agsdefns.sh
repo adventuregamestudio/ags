@@ -741,6 +741,12 @@ import int  GetWalkableAreaAtScreen(int screenX, int screenY);
 /// Returns which walkable area is at the specified position within the room.
 import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
+#ifdef SCRIPT_API_v360
+/// Gets the drawing surface for the 8-bit walkable mask
+import DrawingSurface* GetDrawingSurfaceForWalkableArea();
+/// Gets the drawing surface for the 8-bit walk-behind mask
+import DrawingSurface* GetDrawingSurfaceForWalkbehind();
+#endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
 #ifdef SCRIPT_COMPAT_v335
@@ -1872,6 +1878,10 @@ builtin managed struct Hotspot {
   /// Returns the hotspot at the specified position within this room.
   import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v360
+  /// Gets the drawing surface for the 8-bit hotspots mask
+  import static DrawingSurface* GetDrawingSurface();     // $AUTOCOMPLETESTATICONLY$
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1903,6 +1913,10 @@ builtin managed struct Region {
 #ifdef SCRIPT_API_v3507
   /// Returns the region at the specified position on the screen.
   import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v360
+  /// Gets the drawing surface for the 8-bit regions mask
+  import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

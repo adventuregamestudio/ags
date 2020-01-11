@@ -827,6 +827,18 @@ RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, 
     API_SCALL_INT_PINT2(GetWalkableAreaAtScreen);
 }
 
+RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkable);
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+}
+
+RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkBehind);
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+}
+
 // void (int amnt) 
 RuntimeScriptValue Sc_GiveScore(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2418,6 +2430,8 @@ void RegisterGlobalAPI()
     ccAddExternalStaticFunction("GetWalkableAreaAtRoom",    Sc_GetWalkableAreaAtRoom);
 	ccAddExternalStaticFunction("GetWalkableAreaAt",        Sc_GetWalkableAreaAtScreen);
     ccAddExternalStaticFunction("GetWalkableAreaAtScreen",  Sc_GetWalkableAreaAtScreen);
+    ccAddExternalStaticFunction("GetDrawingSurfaceForWalkableArea", Sc_GetDrawingSurfaceForWalkableArea);
+    ccAddExternalStaticFunction("GetDrawingSurfaceForWalkbehind", Sc_GetDrawingSurfaceForWalkbehind);
 	ccAddExternalStaticFunction("GiveScore",                Sc_GiveScore);
 	ccAddExternalStaticFunction("HasPlayerBeenInRoom",      Sc_HasPlayerBeenInRoom);
 	ccAddExternalStaticFunction("HideMouseCursor",          Sc_HideMouseCursor);

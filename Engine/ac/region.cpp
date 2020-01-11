@@ -36,10 +36,7 @@ extern CCRegion ccDynamicRegion;
 
 
 ScriptRegion *GetRegionAtRoom(int xx, int yy) {
-    int hsnum = GetRegionIDAtRoom(xx, yy);
-    if (hsnum < 0)
-        hsnum = 0;
-    return &scrRegion[hsnum];
+    return &scrRegion[GetRegionIDAtRoom(xx, yy)];
 }
 
 ScriptRegion *GetRegionAtScreen(int x, int y)

@@ -56,23 +56,11 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss) {
 }
 
 ScriptHotspot *GetHotspotAtScreen(int xx, int yy) {
-    int hsnum = GetHotspotIDAtScreen(xx, yy);
-    ScriptHotspot *ret_hotspot;
-    if (hsnum <= 0)
-        ret_hotspot = &scrHotspot[0];
-    else
-        ret_hotspot = &scrHotspot[hsnum];
-    return ret_hotspot;
+    return &scrHotspot[GetHotspotIDAtScreen(xx, yy)];
 }
 
 ScriptHotspot *GetHotspotAtRoom(int x, int y) {
-    int hsnum = get_hotspot_at(x, y);
-    ScriptHotspot *ret_hotspot;
-    if (hsnum <= 0)
-        ret_hotspot = &scrHotspot[0];
-    else
-        ret_hotspot = &scrHotspot[hsnum];
-    return ret_hotspot;
+    return &scrHotspot[get_hotspot_at(x, y)];
 }
 
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
@@ -124,7 +112,7 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
 
 int get_hotspot_at(int xpp,int ypp) {
     int onhs=thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
-    if (onhs<0) return 0;
+    if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS) return 0;
     if (croom->hotspot_enabled[onhs]==0) return 0;
     return onhs;
 }

@@ -24,6 +24,7 @@
 #include "game/roomstruct.h"
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber);
+ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask);
 int Room_GetObjectCount();
 int Room_GetWidth();
 int Room_GetHeight();

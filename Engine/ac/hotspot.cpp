@@ -153,6 +153,12 @@ RuntimeScriptValue Sc_GetHotspotAtScreen(const RuntimeScriptValue *params, int32
     API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtScreen);
 }
 
+RuntimeScriptValue Sc_Hotspot_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaHotspot);
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+}
+
 // void (ScriptHotspot *hss, char *buffer)
 RuntimeScriptValue Sc_Hotspot_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -240,6 +246,7 @@ void RegisterHotspotAPI()
 {
     ccAddExternalStaticFunction("Hotspot::GetAtRoomXY^2",       Sc_GetHotspotAtRoom);
     ccAddExternalStaticFunction("Hotspot::GetAtScreenXY^2",     Sc_GetHotspotAtScreen);
+    ccAddExternalStaticFunction("Hotspot::GetDrawingSurface",   Sc_Hotspot_GetDrawingSurface);
     ccAddExternalObjectFunction("Hotspot::GetName^1",           Sc_Hotspot_GetName);
     ccAddExternalObjectFunction("Hotspot::GetProperty^1",       Sc_Hotspot_GetProperty);
     ccAddExternalObjectFunction("Hotspot::GetPropertyText^2",   Sc_Hotspot_GetPropertyText);

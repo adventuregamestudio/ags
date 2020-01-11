@@ -25,6 +25,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/walkbehind.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
@@ -62,6 +63,14 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
         }
 
         sds->roomBackgroundNumber = -1;
+    }
+    if (sds->roomMaskType > kRoomAreaNone)
+    {
+        if (sds->roomMaskType == kRoomAreaWalkBehind)
+        {
+            recache_walk_behinds();
+        }
+        sds->roomMaskType = kRoomAreaNone;
     }
     if (sds->dynamicSpriteNumber >= 0)
     {

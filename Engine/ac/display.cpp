@@ -51,7 +51,6 @@ using namespace AGS::Common;
 extern GameState play;
 extern GameSetupStruct game;
 extern int longestline;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern AGSPlatformDriver *platform;
 extern int loops_per_character;
 extern SpriteCache spriteset;

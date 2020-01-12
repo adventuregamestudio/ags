@@ -26,6 +26,7 @@
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
+#include "ac/overlay.h"
 #include "ac/roomstatus.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -59,8 +60,6 @@ extern DialogTopic *dialog;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern ViewStruct *views;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;

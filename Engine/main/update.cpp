@@ -235,11 +235,13 @@ void update_following_exactly_characters(int &numSheep, int *followingAsSheep)
 void update_overlay_timers()
 {
 	// update overlay timers
-  for (size_t i = 0; i < screenover.size(); ++i) {
+  for (size_t i = 0; i < screenover.size();) {
     if (screenover[i].timeout > 0) {
       screenover[i].timeout--;
       if (screenover[i].timeout == 0)
-        remove_screen_overlay(screenover[i].type);
+        remove_screen_overlay_index(i);
+      else
+        i++;
     }
   }
 }

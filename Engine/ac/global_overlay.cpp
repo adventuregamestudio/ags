@@ -33,7 +33,6 @@ using namespace Engine;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int crovr_id;  // whether using SetTextOverlay or CreateTextOvelay
 
 

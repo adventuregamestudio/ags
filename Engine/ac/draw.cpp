@@ -106,8 +106,6 @@ extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern int is_complete_overlay;
 extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
@@ -2149,7 +2147,7 @@ void draw_gui_and_overlays()
             add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);
         else if (screenover[gg].type != OVER_TEXTMSG && screenover[gg].type != OVER_PICTURE) {
             int tdxp, tdyp;
-            get_overlay_position(gg, &tdxp, &tdyp);
+            get_overlay_position(screenover[gg], &tdxp, &tdyp);
             add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, screenover[gg].hasAlphaChannel);
         }
     }
@@ -2232,7 +2230,7 @@ void draw_gui_and_overlays()
         if (screenover[gg].type == OVER_TEXTMSG || screenover[gg].type == OVER_PICTURE)
         {
             int tdxp, tdyp;
-            get_overlay_position(gg, &tdxp, &tdyp);
+            get_overlay_position(screenover[gg], &tdxp, &tdyp);
             add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, false);
         }
     }

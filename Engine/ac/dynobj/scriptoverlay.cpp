@@ -18,8 +18,6 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-
 int ScriptOverlay::Dispose(const char *address, bool force) 
 {
     // since the managed object is being deleted, remove the

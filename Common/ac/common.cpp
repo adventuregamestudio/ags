@@ -17,7 +17,6 @@
 
 using namespace AGS::Common;
 
-const char *croom_h_copyright = "ChrisRoom v2.00 - CRM reader/writer copyright (c) 1995, 1998, 1999 by Chris Jones.";
 const char *game_file_sig = "Adventure Creator Game File v2";
 
 void quitprintf(const char *fmt, ...)

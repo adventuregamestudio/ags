@@ -40,8 +40,7 @@ extern IGraphicsDriver *gfxDriver;
 
 
 
-ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-int numscreenover=0;
+std::vector<ScreenOverlay> screenover;
 int is_complete_overlay=0,is_text_overlay=0;
 int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
 
@@ -156,24 +155,22 @@ void dispose_overlay(ScreenOverlay &over)
         ccAttemptDisposeObject(over.associatedOverlayHandle);
 }
 
-void remove_screen_overlay_index(int over_idx)
+void remove_screen_overlay_index(size_t over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
     dispose_overlay(over);
     if (over.type==OVER_COMPLETE) is_complete_overlay--;
     if (over.type==OVER_TEXTMSG) is_text_overlay--;
-    numscreenover--;
-    for (int i = over_idx; i < numscreenover; ++i)
-        screenover[i] = screenover[i + 1];
+    screenover.erase(screenover.begin() + over_idx);
     // if an overlay before the sierra-style speech one is removed,
     // update the index
-    if (face_talking > over_idx)
+    if (face_talking >= 0 && (size_t)face_talking > over_idx)
         face_talking--;
 }
 
 void remove_screen_overlay(int type)
 {
-    for (int i = 0; i < numscreenover;)
+    for (size_t i = 0; i < screenover.size();)
     {
         if (type < 0 || screenover[i].type == type)
             remove_screen_overlay_index(i);
@@ -184,23 +181,23 @@ void remove_screen_overlay(int type)
 
 int find_overlay_of_type(int type)
 {
-    for (int i = 0; i < numscreenover; ++i)
+    for (size_t i = 0; i < screenover.size(); ++i)
     {
         if (screenover[i].type == type) return i;
     }
     return -1;
 }
 
-int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
+size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
-        for (int id = OVER_CUSTOM + 1; id < OVER_CUSTOM + 100; ++id) {
+        for (int id = OVER_CUSTOM + 1; id < screenover.size() + OVER_CUSTOM + 1; ++id) {
             if (find_overlay_of_type(id) == -1) { type=id; break; }
         }
     }
-    ScreenOverlay &over = screenover[numscreenover++];
+    ScreenOverlay over;
     over.pic=piccy;
     over.bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     over.x=x;
@@ -211,7 +208,8 @@ int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     over.associatedOverlayHandle = 0;
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
-    return numscreenover - 1;
+    screenover.push_back(over);
+    return screenover.size() - 1;
 }
 
 
@@ -260,14 +258,14 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
 
 void recreate_overlay_ddbs()
 {
-    for (int i = 0; i < numscreenover; ++i)
+    for (auto &over : screenover)
     {
-        if (screenover[i].bmp)
-            gfxDriver->DestroyDDB(screenover[i].bmp);
-        if (screenover[i].pic)
-            screenover[i].bmp = gfxDriver->CreateDDBFromBitmap(screenover[i].pic, false);
+        if (over.bmp)
+            gfxDriver->DestroyDDB(over.bmp);
+        if (over.pic)
+            over.bmp = gfxDriver->CreateDDBFromBitmap(over.pic, false);
         else
-            screenover[i].bmp = nullptr;
+            over.bmp = nullptr;
     }
 }
 

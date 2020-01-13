@@ -239,10 +239,12 @@ void update_overlay_timers()
     if (screenover[i].timeout > 0) {
       screenover[i].timeout--;
       if (screenover[i].timeout == 0)
+      {
         remove_screen_overlay_index(i);
-      else
-        i++;
+        continue;
+      }
     }
+    i++;
   }
 }
 

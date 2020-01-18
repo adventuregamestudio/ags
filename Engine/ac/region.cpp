@@ -17,8 +17,10 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_region.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
@@ -34,10 +36,7 @@ extern CCRegion ccDynamicRegion;
 
 
 ScriptRegion *GetRegionAtRoom(int xx, int yy) {
-    int hsnum = GetRegionIDAtRoom(xx, yy);
-    if (hsnum < 0)
-        hsnum = 0;
-    return &scrRegion[hsnum];
+    return &scrRegion[GetRegionIDAtRoom(xx, yy)];
 }
 
 ScriptRegion *GetRegionAtScreen(int x, int y)
@@ -148,6 +147,12 @@ RuntimeScriptValue Sc_GetRegionAtScreen(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtScreen);
 }
 
+RuntimeScriptValue Sc_Region_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaRegion);
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+}
+
 RuntimeScriptValue Sc_Region_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptRegion, Region_Tint);
@@ -236,6 +241,7 @@ void RegisterRegionAPI()
 {
     ccAddExternalStaticFunction("Region::GetAtRoomXY^2",        Sc_GetRegionAtRoom);
     ccAddExternalStaticFunction("Region::GetAtScreenXY^2",      Sc_GetRegionAtScreen);
+    ccAddExternalStaticFunction("Region::GetDrawingSurface",    Sc_Region_GetDrawingSurface);
     ccAddExternalObjectFunction("Region::Tint^4",               Sc_Region_TintNoLum);
     ccAddExternalObjectFunction("Region::Tint^5",               Sc_Region_Tint);
     ccAddExternalObjectFunction("Region::RunInteraction^1",     Sc_Region_RunInteraction);

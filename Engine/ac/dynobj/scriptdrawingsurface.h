@@ -16,11 +16,15 @@
 #define __AC_SCRIPTDRAWINGSURFACE_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "game/roomstruct.h"
 
 namespace AGS { namespace Common { class Bitmap; }}
 
 struct ScriptDrawingSurface final : AGSCCDynamicObject {
+    // These numbers and types are used to determine the source of this drawing surface;
+    // only one of them can be valid for this surface.
     int roomBackgroundNumber;
+    RoomAreaMask roomMaskType;
     int dynamicSpriteNumber;
     int dynamicSurfaceNumber;
     bool isLinkedBitmapOnly;

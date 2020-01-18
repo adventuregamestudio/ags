@@ -41,9 +41,9 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
         return dynamicallyCreatedSurfaces[dynamicSurfaceNumber];
     else if (linkedBitmapOnly != nullptr)
         return linkedBitmapOnly;
-    else
-        quit("!DrawingSurface: attempted to use surface after Release was called");
-
+    else if (roomMaskType > kRoomAreaNone)
+        return thisroom.GetMask(roomMaskType);
+    quit("!DrawingSurface: attempted to use surface after Release was called");
     return nullptr;
 }
 
@@ -78,7 +78,7 @@ const char *ScriptDrawingSurface::GetType() {
 
 int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsize) {
     StartSerialize(buffer);
-    SerializeInt(roomBackgroundNumber);
+    SerializeInt(roomBackgroundNumber & 0xFFFF | (roomMaskType << 16));
     SerializeInt(dynamicSpriteNumber);
     SerializeInt(dynamicSurfaceNumber);
     SerializeInt(currentColour);
@@ -92,7 +92,9 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
 
 void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, int dataSize) {
     StartUnserialize(serializedData, dataSize);
-    roomBackgroundNumber = UnserializeInt();
+    int room_ds = UnserializeInt();
+    roomBackgroundNumber = room_ds & 0xFFFF;
+    roomMaskType = (RoomAreaMask)(room_ds >> 16);
     dynamicSpriteNumber = UnserializeInt();
     dynamicSurfaceNumber = UnserializeInt();
     currentColour = UnserializeInt();
@@ -107,6 +109,7 @@ void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, in
 ScriptDrawingSurface::ScriptDrawingSurface() 
 {
     roomBackgroundNumber = -1;
+    roomMaskType = kRoomAreaNone;
     dynamicSpriteNumber = -1;
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;

@@ -2187,8 +2187,10 @@ builtin managed struct Object {
   import attribute int  Graphic;
   /// Gets the object's ID number.
   readonly import attribute int ID;
+#ifdef SCRIPT_COMPAT_v3507
   /// Gets/sets whether the object ignores walkable area scaling.
   import attribute bool IgnoreScaling;
+#endif
 #ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the object ignores walk-behind areas.
   import attribute bool IgnoreWalkbehinds;
@@ -2242,6 +2244,12 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v3507
   /// Returns the object at the specified position within this room.
   import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v351
+  /// Gets/sets whether the object uses manually specified scaling instead of using walkable area scaling.
+  import attribute bool ManualScaling;
+  /// Gets/sets the object's current scaling level.
+  import attribute int  Scaling;
 #endif
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$

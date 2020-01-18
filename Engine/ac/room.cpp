@@ -596,7 +596,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].moving=-1;
             croom->obj[cc].flags = thisroom.Objects[cc].Flags;
             croom->obj[cc].baseline=-1;
-            croom->obj[cc].last_zoom = 100;
+            croom->obj[cc].zoom = 100;
             croom->obj[cc].last_width = 0;
             croom->obj[cc].last_height = 0;
             croom->obj[cc].blocking_width = 0;

@@ -23,15 +23,14 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// This struct is only used in save games and by plugins
-// [IKM] Not really.... used in update loop
+// IMPORTANT: this struct is restricted by plugin API!
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
     short tint_r, tint_g;   // specific object tint
     short tint_b, tint_level;
     short tint_light;
-    short last_zoom;      // zoom level last time
+    short zoom;           // zoom level, either manual or from the current area
     short last_width, last_height;   // width/height last time drawn
     short num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline

@@ -260,6 +260,7 @@ namespace AGS.Editor
 
         private void UpdateFunctionList()
         {
+            if (!this.ContainsFocus) return; // only update for the active pane to avoid expensive combo Add operations
             List<string> functions = new List<string>();
             foreach (ScriptFunction func in _script.AutoCompleteData.Functions)
             {
@@ -278,13 +279,12 @@ namespace AGS.Editor
                     }
                 }
             }
+            cmbFunctions.BeginUpdate();
             cmbFunctions.Items.Clear();
             cmbFunctions.Items.Add("(general definitions)");
             functions.Sort();
-            foreach (string func in functions)
-            {
-                cmbFunctions.Items.Add(func);
-            }
+            cmbFunctions.Items.AddRange(functions.ToArray());
+            cmbFunctions.EndUpdate();
             SelectFunctionInListForCurrentPosition();
         }
 

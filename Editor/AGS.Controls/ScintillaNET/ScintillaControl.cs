@@ -657,6 +657,12 @@ namespace Scintilla
                     return;
                 }
             }
+            // [AVD] moving this above WM_NOTIFY fixes cursor flickering and cpu usage on W10
+            else if (m.Msg == WinAPI.WM_SETCURSOR)
+            {
+                base.DefWndProc(ref m); // Make sure message is sent to Scintilla
+                return;
+            }
             //	Uh-oh. Code based on undocumented unsupported .NET behavior coming up!
             //	Windows Forms Sends Notify messages back to the originating
             //	control ORed with 0x2000. This is way cool becuase we can listen for
@@ -666,11 +672,7 @@ namespace Scintilla
                 base.WndProc(ref m);
                 return;
             }
-            else if (m.Msg == WinAPI.WM_SETCURSOR)
-            {
-                base.DefWndProc(ref m); // Make sure message is sent to Scintilla
-                return;
-            }
+
 
             SCNotification scnotification = (SCNotification)Marshal.PtrToStructure(m.LParam, typeof(SCNotification));
             // dispatch to listeners of the native event first

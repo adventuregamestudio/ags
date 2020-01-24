@@ -25,10 +25,12 @@ namespace AGS.Editor
             Size = original.Size;
             TabIndex = original.TabIndex;
 
+            BeginUpdate();
             foreach (var i in original.Items)
             {
                 Items.Add(i);
             }
+            EndUpdate();
         }
 
         protected override void OnCreateControl()

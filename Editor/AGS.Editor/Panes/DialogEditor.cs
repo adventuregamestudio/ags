@@ -138,6 +138,7 @@ namespace AGS.Editor
             scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetAutoCompleteSource(_dialog);
             scintillaEditor.SetText(_dialog.Script);
+            scintillaEditor.EnableLineNumbers();
         }
 
         public ScintillaWrapper ScriptEditor

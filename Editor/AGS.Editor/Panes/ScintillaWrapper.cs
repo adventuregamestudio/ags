@@ -820,6 +820,23 @@ namespace AGS.Editor
             {
                 UpdateUI(this, null);
             }
+
+            UpdateStatusText();
+        }
+
+        private void UpdateStatusText()
+        {
+            var currentPos = this.scintillaControl1.CurrentPos;
+            var currentLine = this.scintillaControl1.LineFromPosition(currentPos);
+            var currentColumn = currentPos - this.scintillaControl1.PositionFromLine(currentLine);
+            var selected = this.scintillaControl1.SelectionEnd - this.scintillaControl1.SelectionStart;
+            var selectedLineStart = this.scintillaControl1.LineFromPosition(this.scintillaControl1.SelectionStart);
+            var selectedLineEnd = this.scintillaControl1.LineFromPosition(this.scintillaControl1.SelectionEnd);
+            var selectedLines = selectedLineEnd - selectedLineStart;
+            if (selected > 0)
+                GUIController.Instance.UpdateStatusBarText((selectedLines>0 ? (selectedLines+1) + " lines, " : "") + selected + " characters selected");
+            else
+                GUIController.Instance.UpdateStatusBarText("Line " + (currentLine+1) + ", Column " + (currentColumn+1));
         }
 
         private void OnCharAdded(object sender, Scintilla.CharAddedEventArgs e)

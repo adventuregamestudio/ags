@@ -46,7 +46,7 @@ namespace AGS.Editor
             WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient7 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.mainContainer = new WeifenLuo.WinFormsUI.Docking.DockPanel();
-            this.mainContainer.Theme = new VS2005Theme();
+            this.mainContainer.Theme = new VS2015BlueTheme();
             WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = this.mainContainer.Theme.Skin;
             this.tabbedDocumentContainer1 = new AGS.Editor.TabbedDocumentManager(mainContainer);
             this.pnlCallStack = new AGS.Editor.CallStackPanel();
@@ -63,6 +63,11 @@ namespace AGS.Editor
             this.mainMenu.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
+
+            mainContainer.Theme.ApplyTo(mainMenu);
+            mainContainer.Theme.ApplyTo(toolStrip);
+            mainContainer.Theme.ApplyTo(statusStrip);
+            
             // 
             // frmMain
             // 
@@ -89,7 +94,7 @@ namespace AGS.Editor
             //             
             this.mainContainer.ActiveAutoHideContent = null;
             this.mainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;            
+            //this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;            
             this.mainContainer.Location = new System.Drawing.Point(0, 51);
             this.mainContainer.Name = "mainContainer";
             this.mainContainer.DocumentStyle = WeifenLuo.WinFormsUI.Docking.DocumentStyle.DockingMdi;

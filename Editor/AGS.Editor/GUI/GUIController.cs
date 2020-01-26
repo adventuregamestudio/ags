@@ -136,7 +136,7 @@ namespace AGS.Editor
             get { return _mainForm.Icon; }
         }
 
-        public ColorThemes ColorThemes { get; private set; }
+        public IColorThemes ColorThemes { get; private set; }
 
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{

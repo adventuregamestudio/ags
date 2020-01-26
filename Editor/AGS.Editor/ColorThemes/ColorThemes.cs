@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public class ColorThemes
+    public class ColorThemes : IColorThemes
     {
         private readonly List<ColorTheme> _themes;
         private ColorTheme _current;

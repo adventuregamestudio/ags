@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
+    <Compile Include="ColorThemes\IColorThemes.cs" />
     <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />

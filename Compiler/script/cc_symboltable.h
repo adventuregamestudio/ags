@@ -85,22 +85,8 @@ public:
 
 struct SymbolTable {
     friend SymbolTableEntry;
+
 private:
-    // maps sections to IDs to save space
-    class SectionMap
-    {
-    private:
-        std::string _cacheSec;
-        int _cacheId;
-        std::vector <std::string> _section;
-
-    public:
-        int Section2Id(std::string const &sec);
-        std::string const Id2Section(int id) const;
-        void init();
-        SectionMap() { init(); };
-    } _sectionMap;
-
     // hashes pair<Vartype, VartypeType> for _vartypesCache
     struct VVTTHash
     {
@@ -200,9 +186,9 @@ public:
     inline Flags SymbolTable::GetFlags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // Set/get section and line where the item is declared
-    void SetDeclared(int idx, std::string const &section, int line);
+    void SetDeclared(int idx, int section_id, int line);
     inline int GetDeclaredLine(int idx) { return (*this)[idx].DeclLine; };
-    inline std::string const GetDeclaredSection(int idx) const { return _sectionMap.Id2Section(entries.at(idx).DeclSectionId); };
+    inline int GetDeclaredSectionId(int idx) { return (*this)[idx].DeclSectionId; };
 
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
@@ -215,9 +201,6 @@ public:
     // Includes the ancesters' components
     int GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
 
-    // Unfortunately, a bit of a kludge. Expose the section to id mapping
-    inline int Section2Id(std::string const &section) { return _sectionMap.Section2Id(section); };
-    inline std::string const Id2Section(int id) const { return _sectionMap.Id2Section(id); };
-};
+    };
 } // namespace AGS
 #endif //__CC_SYMBOLTABLE_H

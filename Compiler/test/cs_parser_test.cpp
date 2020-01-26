@@ -5,15 +5,13 @@
 #include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
 #include "script/cc_options.h"
+#include "script/script_common.h"
 
 #include "util/string.h"
 
 typedef AGS::Common::String AGSString;
-
-extern int currentline; // in script/script_common
-extern int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, SymbolTable &symt);
-
 std::string last_cc_error_buf;
+
 void clear_error()
 {
     last_cc_error_buf.clear();
@@ -234,7 +232,8 @@ TEST(Compile, ParsingNegIntOverflow) {
 
 TEST(Compile, EnumNegative) {
     ccCompiledScript *scrip = newScriptFixture();
-    ccInternalList targ;
+    std::vector<Symbol> tokens; AGS::LineHandler lh;
+    AGS::SrcList targ = { tokens, lh };
     SymbolTable sym;
 
     char *inpl = "\
@@ -255,8 +254,8 @@ TEST(Compile, EnumNegative) {
         ";
 
     clear_error();
-    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
-    int compileResult = cc_parse(&targ, scrip, sym);
+    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    int compileResult = cc_parse(&targ, scrip, &sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
@@ -282,7 +281,8 @@ TEST(Compile, EnumNegative) {
 
 TEST(Compile, DefaultParametersLargeInts) {
     ccCompiledScript *scrip = newScriptFixture();
-    ccInternalList targ;
+    std::vector<Symbol> tokens; AGS::LineHandler lh;
+    AGS::SrcList targ = { tokens, lh };
     SymbolTable sym;
 
     char *inpl = "\
@@ -300,8 +300,8 @@ TEST(Compile, DefaultParametersLargeInts) {
         ";
 
     clear_error();
-    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
-    int compileResult = cc_parse(&targ, scrip, sym);
+    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    int compileResult = cc_parse(&targ, scrip, &sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -339,7 +339,8 @@ TEST(Compile, DefaultParametersLargeInts) {
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {
     ccCompiledScript *scrip = newScriptFixture();
-    ccInternalList targ;
+    std::vector<Symbol> tokens; AGS::LineHandler lh;
+    AGS::SrcList targ = { tokens, lh };
     SymbolTable sym;
 
     char *inpl = "\
@@ -350,8 +351,8 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
         ";
 
     clear_error();
-    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
-    int compileResult = cc_parse(&targ, scrip, sym);
+    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    int compileResult = cc_parse(&targ, scrip, &sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -1409,7 +1410,8 @@ TEST(Compile, StaticFuncCall)
 TEST(Compile, Import2GlobalAllocation)
 {
     ccCompiledScript *scrip = newScriptFixture();
-    ccInternalList targ;
+    std::vector<Symbol> tokens; AGS::LineHandler lh;
+    AGS::SrcList targ = { tokens, lh };
     SymbolTable sym;
 
     // Imported var I becomes a global var; must be allocated only once.
@@ -1421,8 +1423,8 @@ TEST(Compile, Import2GlobalAllocation)
         int J;          \n\
     ";
 
-    ASSERT_LE(0, cc_tokenize(inpl, &targ, scrip, sym));
-    int compileResult = cc_parse(&targ, scrip, sym);
+    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    int compileResult = cc_parse(&targ, scrip, &sym);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     int idx = sym.Find("J");
     ASSERT_LE(0, idx);

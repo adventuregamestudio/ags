@@ -39,15 +39,16 @@ public:
     LineHandler();
 
     // Record that the named section begins at the offset of the SymbolList, 
-    inline void AddSectionAt(size_t offset, std::string const &section) { _sectionIdTable[offset] = Section2Id(section); }
+    void AddSectionAt(size_t offset, std::string const &section);
+
+    // Get the section number that corresponds to the offset
+    size_t GetSectionIdAt(size_t offset) const;
 
     // Record that the code line lineno begins at the offset of the SymbolList, 
-    inline void AddLineAt(size_t offset, size_t lineno) { _lineStartTable[offset] = lineno; }
+    void AddLineAt(size_t offset, size_t lineno);
         
     // Get the code line that corresponds to the offset
     size_t GetLineAt(size_t offset) const;
-    // Get the section number that corresponds to the offset
-    size_t GetSectionIdAt(size_t offset) const;
 };
 
 // A list of input tokens. Only _len tokens, beginning at _offset, are taken into
@@ -56,10 +57,7 @@ public:
 class SrcList
 {
 public:
-    enum
-    {
-        kEOF = -2,
-    };
+    static int const kEOF = -2;
 
 private:
     std::vector<Symbol> &_script;
@@ -77,7 +75,7 @@ public:
     inline size_t GetCursor() const { return _cursor - _offset; }
     inline void SetCursor(size_t idx) { _cursor = idx + _offset; }
 
-    inline size_t GetSize() const { return _len; };
+    inline size_t GetSize() const { return _len - _offset; };
     
     inline bool ReachedEOF() const { return _cursor - _offset >= _len  || _cursor >= _script.size(); }
     inline Symbol PeekNext() const { return ReachedEOF() ? kEOF : _script[_cursor]; }
@@ -92,7 +90,9 @@ public:
     inline size_t GetLineno() { return _lineHandler.GetLineAt(_cursor); }
     inline size_t GetSectionId(size_t idx) { return _lineHandler.GetSectionIdAt(idx + _offset); }
     inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(_cursor); }
-    inline std::string const Id2Section(size_t id) { return _lineHandler.Id2Section(id); }
+
+    inline int Section2Id(std::string const &section) { return _lineHandler.Section2Id(section); }
+    inline std::string const Id2Section(int id) const { return _lineHandler.Id2Section(id); }
 
     //
     // Used for building the srclist, not for processing the srclist

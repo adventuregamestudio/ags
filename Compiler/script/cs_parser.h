@@ -367,7 +367,7 @@ private:
     SymbolTable &_sym;
 
     // List of symbols from the tokenizer
-    ::ccInternalList &_src;
+    SrcList &_src;
 
     // Receives the parsing results
     ::ccCompiledScript &_scrip;
@@ -382,7 +382,7 @@ private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
     // Augment the message with a "See ..." indication
-    static std::string ReferenceMsg(std::string const &msg, std::string const &section, int line);
+    std::string ReferenceMsg(std::string const &msg, int section_id, int line);
 
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
 
@@ -869,7 +869,7 @@ public:
     // [fw] This should be moved somewhere. It isn't Parser functionality
     static int InterpretFloatAsInt(float floatval);
 
-    Parser(::SymbolTable &symt, ::ccInternalList &src, ::ccCompiledScript &scrip);
+    Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip);
 
     int Parse();
 
@@ -877,21 +877,21 @@ public:
 } // namespace AGS
 
 // Only use that for googletests. Scan and tokenize the input.
-extern int cc_tokenize(
-    const char *inpl,           // preprocessed text to be tokenized
-    ccInternalList *src,        // store for the tokenized text
+extern int cc_scan(
+    char const *inpl,           // preprocessed text to be tokenized
+    AGS::SrcList *src,          // store for the tokenized text
     ccCompiledScript *scrip,    // repository for the strings in the text
-    SymbolTable &symt);         // symbol table 
+    SymbolTable *symt);         // symbol table 
 
 // Only use that for googletests. Parse the input
 extern int cc_parse(
-    ccInternalList *src,        // tokenized text
+    AGS::SrcList *src,          // tokenized text
     ccCompiledScript *scrip,    // result of the compilation
-    SymbolTable &symt);         // symbol table
+    SymbolTable *symt);         // symbol table
 
 // Compile the input.
 extern int cc_compile(
-    const char *inpl,           // preprocessed text to be compiled
+    char const *inpl,           // preprocessed text to be compiled
     ccCompiledScript *scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H

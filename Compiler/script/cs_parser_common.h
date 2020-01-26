@@ -17,7 +17,6 @@ typedef int32_t GlobalLoc; // An offset into the global space
 typedef char FixupType; // the type of a fixup
 
 
-constexpr char const *NEW_SCRIPT_TOKEN_PREFIX = "\"__NEWSCRIPTSTART_";
 constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
 constexpr size_t MAX_FUNCTION_PARAMETERS = 15;

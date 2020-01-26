@@ -42,6 +42,13 @@ AGS::LineHandler::LineHandler()
     _sectionIdTable[maxsize] = maxsize;
 }
 
+void AGS::LineHandler::AddSectionAt(size_t offset, std::string const & section)
+{
+    _sectionIdTable[offset] = Section2Id(section);
+    // This makes the cache invalid, so
+    _cacheSectionIdStart = _cacheSectionIdEnd = _cacheSectionId = 0;
+}
+
 size_t AGS::LineHandler::GetLineAt(size_t offset) const
 {
     if (_cacheLineStart <= offset && offset < _cacheLineEnd)
@@ -67,6 +74,13 @@ size_t AGS::LineHandler::GetSectionIdAt(size_t offset) const
     _cacheSectionIdStart = it->first;
     _cacheSectionId = it->second;
     return _cacheSectionId;
+}
+
+void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
+{
+    _lineStartTable[offset] = lineno;
+    // This makes the cache invalid, so
+    _cacheLineStart = _cacheLineEnd = _cacheLineNo = 0;
 }
 
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
@@ -216,4 +230,3 @@ bool ccInternalList::reached_eof()
     currentline = lineAtEnd;
     return true;
 }
-

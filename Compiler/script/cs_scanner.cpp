@@ -1,23 +1,49 @@
 #include <string>
 #include <sstream>
-#include "cc_internallist.h"    // ccInternalList
+#include <iomanip>
+
+#include "cc_internallist.h"    // SrcList
 #include "cs_parser_common.h"
 
 #include "cs_scanner.h"
 
-AGS::Scanner::Scanner()
-    : _lineno(1)
-    , _tokenList(0)
-    , _lastError("")
-{
-}
+std::string const AGS::Scanner::new_section_lit_prefix  = "__NEWSCRIPTSTART_";
 
-AGS::Scanner::Scanner(std::string const &input, size_t lineno, ::ccInternalList *token_list)
-    : _lineno(lineno)
+AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, struct ::ccCompiledScript &string_collector, ::SymbolTable &symt)
+    : _ocMatcher(token_list)
+    , _lineno(1)
+    , _section("")
     , _tokenList(token_list)
     , _lastError("")
+    , _sym(symt)
+    , _stringCollector(string_collector)
 {
-    SetInput(input);
+    _inputStream.str(input);
+}
+
+void AGS::Scanner::Scan(bool &error_encountered)
+{
+    while (true)
+    {
+        bool eof_encountered = false;
+        Symbol const symbol = GetNextSymbol(eof_encountered, error_encountered);
+        if (eof_encountered || error_encountered)
+            return;
+        _tokenList.Append(symbol);
+    }        
+}
+
+void AGS::Scanner::NewLine(size_t lineno)
+{
+    _lineno = lineno;
+    _tokenList.NewLine(_lineno);
+}
+
+void AGS::Scanner::NewSection(std::string const section)
+{
+    _section = section;
+    _tokenList.NewSection(section);
+    NewLine(0);
 }
 
 void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered)
@@ -66,6 +92,12 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     {
         ReadInStringLit(symstring, eof_encountered, error_encountered);
         scan_type = kSct_StringLiteral;
+        size_t const len = new_section_lit_prefix.length();
+        if (new_section_lit_prefix == symstring.substr(0, len))
+        {
+            symstring = symstring.substr(len);
+            scan_type = kSct_SectionChange;
+        }
         return;
     }
 
@@ -110,6 +142,29 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     return;
 }
 
+AGS::Symbol AGS::Scanner::GetNextSymbol(bool &eof_encountered, bool &error_encountered)
+{
+    Symbol symbol = -1;
+    std::string symstring;
+    ScanType scan_type;
+    
+    while (true)
+    {
+        GetNextSymstring(symstring, scan_type, eof_encountered, error_encountered);
+        if (eof_encountered || error_encountered)
+            return symbol;
+
+        if (kSct_SectionChange != scan_type)
+            break;
+        NewSection(symstring);
+    }
+
+    SymstringToSym(symstring, scan_type, symbol, eof_encountered, error_encountered);
+    if (!eof_encountered && !error_encountered)
+        CheckMatcherNesting(symbol, error_encountered);
+    return symbol;
+}
+
 void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered)
 {
     while (true)
@@ -136,10 +191,7 @@ void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered
             continue;
 
         if ('\n' == ch)
-        {
-            // Write pseudocode for increased line number
-            WriteNewLinenoMeta(++_lineno);
-        }
+            NewLine(_lineno + 1);
     }
 }
 
@@ -340,9 +392,26 @@ int AGS::Scanner::EscapedChar2Char(int ch, bool &error_encountered)
     return 0; // can't be reached
 }
 
+std::string AGS::Scanner::MakeStringPrintable(std::string const &inp)
+{
+    std::ostringstream out;
+    out.put('"');
+
+    for (auto it = inp.begin(); it != inp.end(); ++it)
+    {
+        if (*it >= 32 && *it <= 127)
+            out.put(*it);
+        else // force re-interpretation of *it as an UNSIGNED char, then treat it as int       
+            out << "\\x" << std::hex << std::setw(2) << std::setfill('0') << +*reinterpret_cast<const unsigned char *>(&*it);
+    }
+
+    out.put('"');
+    return out.str();
+}
+
 void AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
-    symstring = "\"";
+    symstring = "";
     _inputStream.get(); // Eat '"'
     while (true)
     {
@@ -368,12 +437,13 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encountered
             continue;
         }
 
-        symstring.push_back(ch);
-
         // End of string
         if (ch == '"')
             return;
+
+        symstring.push_back(ch);
     }
+
     // Here when an error or eof occurs.
     if (eof_encountered)
         _lastError = "End of input encountered in an unclosed string literal";
@@ -455,7 +525,6 @@ void AGS::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered,
     error_encountered = true;
 }
 
-
 void AGS::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
     ReadIn1or2Char("<=", symstring, eof_encountered, error_encountered);
@@ -474,4 +543,128 @@ void AGS::Scanner::ReadInGTCombi(std::string &symstring, bool &eof_encountered, 
 
     if ((symstring == ">>") && (_inputStream.peek() == '='))
         symstring.push_back(_inputStream.get());
+}
+
+void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered, bool error_encountered)
+{
+    std::string name =
+        (kSct_StringLiteral == scan_type) ? MakeStringPrintable(symstring) : symstring;
+    symb = _sym.FindOrAdd(name.c_str());
+    if (symb < 0)
+    {
+        error_encountered = true;
+        _lastError = "Symbol table overflow - could not add new symbol";
+        return;
+    }
+
+    switch (scan_type)
+    {
+    default:
+        return;
+
+    case  Scanner::kSct_StringLiteral:
+        _sym[symb].SType = kSYM_LiteralString;
+        _sym[symb].vartype = _sym.GetOldStringSym();
+        _sym[symb].SOffset = _stringCollector.add_string(symstring.c_str());
+        return;
+
+    case Scanner::kSct_IntLiteral:
+        _sym[symb].SType = kSYM_LiteralInt;
+        return;
+
+    case Scanner::kSct_FloatLiteral:
+        _sym[symb].SType = kSYM_LiteralFloat;
+        return;
+    }
+}
+
+void AGS::Scanner::OpenCloseMatcher::Reset()
+{
+    _lastError = "";
+    _openInfoStack.clear();
+}
+
+
+AGS::Scanner::OpenCloseMatcher::OpenCloseMatcher(SrcList &sectionIdConverter)
+    :_sectionIdConverter(sectionIdConverter)
+{
+    Reset();
+}
+
+
+void AGS::Scanner::OpenCloseMatcher::Push(std::string const &opener, std::string const &expected_closer, int section_id, int lineno)
+{
+    struct OpenInfo oi = { opener, expected_closer, section_id, lineno };
+    _openInfoStack.push_back(oi);
+}
+
+
+void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, int section_id, int lineno, bool &error_encountered)
+{
+    if (_openInfoStack.empty())
+    {
+        error_encountered = true;
+        _lastError = "There isn't any opening symbol that matches the closing '&1'";
+        _lastError.replace(_lastError.find("&1"), 2, closer);
+        return;
+    }
+
+    struct OpenInfo const oi = _openInfoStack.back();
+    _openInfoStack.pop_back();
+    if (closer == oi.Closer)
+        return;
+
+    error_encountered = true;
+    _lastError = "Found '&1', this does not match the '&2' in &4, line &3";
+    if (section_id == oi.SectionId)
+        _lastError = "Found '&1', this does not match the '&2' on line &3";
+    if (oi.Lineno == lineno)
+        _lastError = "Found '&1', this does not match the '&2' on this line";
+    _lastError.replace(_lastError.find("&1"), 2, closer.c_str());
+    _lastError.replace(_lastError.find("&2"), 2, oi.Opener.c_str());
+    int idx;
+    if (_lastError.npos != (idx = _lastError.find("&3")))
+        _lastError.replace(idx, 2, std::to_string(oi.Lineno));
+    if (_lastError.npos != (idx = _lastError.find("&4")))
+        _lastError.replace(idx, 2, _sectionIdConverter.Id2Section(oi.SectionId).c_str());
+}
+
+// Check the nesting of () [] {}, error if mismatch
+void AGS::Scanner::CheckMatcherNesting(Symbol token, bool &error_encountered)
+{
+    switch (_sym.GetSymbolType(token))
+    {
+    default:
+        return;
+
+    case kSYM_CloseBrace:
+        _ocMatcher.PopAndCheck("}", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
+        if (error_encountered)
+            _lastError = _ocMatcher.GetLastError();
+        return;
+
+    case kSYM_CloseBracket:
+        _ocMatcher.PopAndCheck("]", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
+        if (error_encountered)
+            _lastError = _ocMatcher.GetLastError();
+        return;
+
+    case kSYM_CloseParenthesis:
+        _ocMatcher.PopAndCheck(")", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
+        if (error_encountered)
+            _lastError = _ocMatcher.GetLastError();
+        return;
+
+    case kSYM_OpenBrace:
+        _ocMatcher.Push("{", "}", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        return;
+
+    case kSYM_OpenBracket:
+        _ocMatcher.Push("[", "]", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        return;
+
+    case kSYM_OpenParenthesis:
+        _ocMatcher.Push("(", ")", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        return;
+    }
 }

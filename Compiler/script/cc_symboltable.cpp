@@ -6,33 +6,6 @@
 #include "script/script_common.h"       // macro definitions
 #include "script/cc_error.h"            // error processing
 
-int AGS::SymbolTable::SectionMap::Section2Id(std::string const &sec)
-{
-    if (sec == _cacheSec)
-        return _cacheId;
-    _cacheSec = sec;
-    size_t const section_size = _section.size();
-    for (size_t section_idx = 0; section_idx < section_size; section_idx++)
-        if (_section[section_idx] == sec)
-            return ((_cacheId = section_idx));
-    _section.push_back(sec);
-    return ((_cacheId = section_size));
-}
-
-std::string const AGS::SymbolTable::SectionMap::Id2Section(int id) const
-{
-    return
-        (id >= 0 && static_cast<size_t>(id) < _section.size()) ?
-        _section[id] : "";
-}
-
-void AGS::SymbolTable::SectionMap::init()
-{
-    _cacheSec = "";
-    _cacheId = -1;
-    _section.clear();
-}
-
 AGS::SymbolTableEntry::SymbolTableEntry()
     : SName("")
     , SType(kSYM_NoType)
@@ -245,9 +218,9 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
     return entries[symbl].SName;
 }
 
-void AGS::SymbolTable::SetDeclared(int idx, std::string const &section, int line)
+void AGS::SymbolTable::SetDeclared(int idx, int section_id, int line)
 {
-    (*this)[idx].DeclSectionId = _sectionMap.Section2Id(section);
+    (*this)[idx].DeclSectionId = section_id;
     (*this)[idx].DeclLine = line;
 }
 

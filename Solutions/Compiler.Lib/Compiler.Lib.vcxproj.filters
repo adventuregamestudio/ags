@@ -56,9 +56,6 @@
     <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cs_tokenizer.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_error.h">
@@ -98,9 +95,6 @@
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cs_scanner.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Compiler\script\cs_tokenizer.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
   </ItemGroup>

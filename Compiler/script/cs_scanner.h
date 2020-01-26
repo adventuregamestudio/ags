@@ -2,72 +2,94 @@
 #define __CS_SCANNER_H
 
 #include <vector>
-#include <deque>
 #include <string>
 #include <sstream>
 #include <map>
+
 #include "cc_internallist.h"
+#include "cc_symboltable.h"
+#include "cc_compiledscript.h"
 
 namespace AGS
 {
 
-// Scans the input, returning the symstrings one by one.
-// In this context, a "symstring" is defined to mean the string. 
-// When the symstring (i.e., the string) is entered into the symbol database, it becomes a "symbol". 
+// Scans the input, returns list of symbols
 class Scanner
 {
 public:
     // These types represent the different kinds of symstring that can be scanned.
     // Since the symstrings haven't become tokens yet, this is just rudimentary information.
+    // Only exposed for googletests
     enum ScanType
     {
         kSct_Unspecified = 0,
         kSct_Identifier,      // Identifier or keyword --- [A-Za-z][A-Za-z_]*
         kSct_FloatLiteral,    // Numbers containing a "." --- [0-9]+[.][0-9]*
         kSct_IntLiteral,      // Numbers not containing a "." --- [0-9]+
+        kSct_SectionChange,   // String literal beginning with magic string
         kSct_StringLiteral,   // Quoted strings --- ["]([\\].[^"]*)*["]
         kSct_NonChar          // i.e., +, ++, /=; this can be one character or two characters
     };
 
-    // ctors
-    Scanner();
-    Scanner(std::string const &input, size_t lineno, ::ccInternalList *token_list);
+    static std::string const new_section_lit_prefix;
 
-    // setters and getters
-    inline void SetInput(const std::string &input) { _inputStream.str(input); }
-    inline void SetLineno(std::size_t lineno) { _lineno = lineno; }
-    inline size_t GetLineno() const { return _lineno; }
-    void SetTokenList(::ccInternalList *token_list) { _tokenList = token_list; }
-
-    // If the input couldn't be scanned, this will explain the problem
-    inline const std::string GetLastError() const { return _lastError; };
-
-    // Get the next symstring from the input.
-    void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
-
-protected:
-    // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
-    inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool IsUpper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
-    inline static bool IsLower(int ch) { return (ch >= 'a' && ch <= 'z'); }
-    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
-
-    inline void WriteNewLinenoMeta(int ln) { _tokenList->write_meta(SMETA_LINENUM, ln); }
 
 private:
+    // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
+    class OpenCloseMatcher
+    {
+    private:
+        struct OpenInfo
+        {
+            std::string const Opener;
+            std::string const Closer;
+            int SectionId; // of the Opener symbol
+            int Lineno;  // of the Opener symbol
+        };
+        std::vector<OpenInfo> _openInfoStack;
+        std::string _lastError;
+        SrcList &_sectionIdConverter;
+
+    public:
+        OpenCloseMatcher(SrcList &sectionIdConverter);
+
+        // We've encountered an opening symbol; push it and the expected closer onto a stack
+        void Push(std::string const &opener, std::string const &expected_closer, int section_id, int lineno);
+
+        // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
+        // If they don't match, generate error. Otherwise, pop from stack
+        void PopAndCheck(std::string const &closer, int section_id, int lineno, bool &error_encountered);
+
+        std::string GetLastError() const { return _lastError; };
+
+        // Reset the matcher.
+        void Reset();
+    } _ocMatcher;
+
     std::istringstream _inputStream;
     std::size_t _lineno;
-    ccInternalList *_tokenList;
+    std::string _section;
+    SrcList &_tokenList;
     std::string _lastError;
+    struct ::SymbolTable &_sym;
+    struct ::ccCompiledScript &_stringCollector;
 
     // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
     void SkipWhitespace(bool &eof_encountered, bool &error_encountered);
+
+    // We encountered a new line; process it
+    void NewLine(size_t lineno);
+
+    // We encountered a section start; process it
+    void NewSection(std::string const section);
 
     //  Read in either an int literal or a float literal
     void ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
     // Translate a '\\' combination into a character, backslash is already read in
     int EscapedChar2Char(int first_char_after_backslash, bool &error_encountered);
+
+    std::string MakeStringPrintable(std::string const &inp);
 
     // Read oct combination \777; backslash is already read in
     int OctChar2Char(int first_digit_char);
@@ -99,12 +121,40 @@ private:
     // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
     void ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
-
     // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
     void ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
     // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
     void ReadInGTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+
+    void SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered, bool error_encountered);
+
+    void CheckMatcherNesting(Symbol token, bool &error_encountered);
+
+protected:
+    // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
+    inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
+    inline static bool IsUpper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
+    inline static bool IsLower(int ch) { return (ch >= 'a' && ch <= 'z'); }
+    inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
+
+public:
+    Scanner(std::string const &input, SrcList &token_list, struct ::ccCompiledScript &string_collector, SymbolTable &symt);
+
+    // Scan the input into token_list; symbols into symt; strings into _string_collector
+    void Scan(bool &error_encountered);
+
+    inline size_t GetLineno() const { return _lineno; }
+
+    inline std::string const GetSection() const{ return _section; }
+
+    inline std::string const GetLastError() const { return _lastError; }
+
+    // Get the next symstring from the input. Only exposed for googletests
+    void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
+
+    // Get next token from the input. Only exposed for googletests
+    Symbol GetNextSymbol(bool &eof_encountered, bool &error_encountered);
 };
 
 } // namespace AGS

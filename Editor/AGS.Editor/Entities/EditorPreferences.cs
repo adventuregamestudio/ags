@@ -74,7 +74,7 @@ namespace AGS.Editor.Preferences
         public string Path { get; set; }
     }
 
-    public sealed class AppSettings : ApplicationSettingsBase
+    public sealed class AppSettings : ApplicationSettingsBase, IAppSettings
     {
         const int MAX_RECENT_GAMES = 10;
         const int MAX_RECENT_SEARCHES = 10;
@@ -143,7 +143,7 @@ namespace AGS.Editor.Preferences
         {
             Dictionary<string, string> regmap = new Dictionary<string, string>()
             {
-            //  [<registry name>] = <setting name>
+                //  [<registry name>] = <setting name>
                 ["ScEdTabWidth"] = "TabSize",
                 ["TestGameStyle"] = "TestGameWindowStyle",
                 ["MessageBoxOnCompileErrors"] = "MessageBoxOnCompile",
@@ -228,7 +228,7 @@ namespace AGS.Editor.Preferences
                 key.Close();
                 int gameCount = Math.Min(gameNames.Count, gamePaths.Count);
 
-                for (int i = 0; i < gameCount; i ++)
+                for (int i = 0; i < gameCount; i++)
                 {
                     if (RecentGames.Count >= MAX_RECENT_GAMES)
                     {

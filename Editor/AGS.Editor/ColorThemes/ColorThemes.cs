@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
     public class ColorThemes : IColorThemes
     {
-        private readonly List<ColorTheme> _themes;
+        private readonly IAppSettings _settings;
+        private readonly List<ColorTheme> _themes = new List<ColorTheme>();
         private ColorTheme _current;
 
-        public ColorThemes()
+        public ColorThemes(IAppSettings settings)
         {
-            _themes = new List<ColorTheme>();
+            _settings = settings;
             Load();
             Init();
         }
@@ -33,8 +35,8 @@ namespace AGS.Editor
                 }
 
                 _current = value;
-                Factory.AGSEditor.Settings.ColorTheme = Current.Name;
-                Factory.AGSEditor.Settings.Save();
+                _settings.ColorTheme = Current.Name;
+                _settings.Save();
             }
         }
 
@@ -54,7 +56,7 @@ namespace AGS.Editor
             _themes.Clear();
             _themes.Add(ColorThemeStub.DEFAULT);
             Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
-            Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Settings.ColorTheme) ?? ColorThemeStub.DEFAULT;
+            Current = _themes.FirstOrDefault(t => t.Name == _settings.ColorTheme) ?? ColorThemeStub.DEFAULT;
         }
 
         public void Init()

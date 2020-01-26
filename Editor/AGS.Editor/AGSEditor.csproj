@@ -118,6 +118,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>

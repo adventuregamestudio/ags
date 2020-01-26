@@ -86,6 +86,8 @@ public:
     // Note: Can't assign through this operator, this is intentional.
     inline Symbol operator[](size_t idx) const { return InRange(idx) ? _script[idx + _offset] : kEOF; }
 
+    // Note that when this is a sub-list of an original list, the line numbers
+    // will still be relative to the original list. This is intentional.
     inline size_t GetLineno(size_t idx) { return _lineHandler.GetLineAt(idx + _offset); }
     inline size_t GetLineno() { return _lineHandler.GetLineAt(_cursor); }
     inline size_t GetSectionId(size_t idx) { return _lineHandler.GetSectionIdAt(idx + _offset); }

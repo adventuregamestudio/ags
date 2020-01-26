@@ -9,13 +9,13 @@
 
 void ccCompiledScript::push_reg(AGS::CodeCell regg)
 {
-    write_cmd1(SCMD_PUSHREG, regg);
+    write_cmd(SCMD_PUSHREG, regg);
     cur_sp += 4;
 }
 
 void ccCompiledScript::pop_reg(AGS::CodeCell regg)
 {
-    write_cmd1(SCMD_POPREG, regg);
+    write_cmd(SCMD_POPREG, regg);
     cur_sp -= 4;
 }
 
@@ -152,16 +152,6 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     export_addr[numexports] = eoffs | (static_cast<long>(etype) << 24L);
     numexports++;
     return numexports - 1;
-}
-
-void ccCompiledScript::flush_lineno()
-{
-    if (lineno_of_next_code && ccGetOption(SCOPT_LINENUMBERS))
-    {
-        write_code(SCMD_LINENUM);
-        write_code(lineno_of_next_code);
-        lineno_of_next_code = 0;
-    }
 }
 
 void ccCompiledScript::write_code(AGS::CodeCell byy)

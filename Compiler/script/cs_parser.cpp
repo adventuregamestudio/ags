@@ -315,9 +315,15 @@ void AGS::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS:
 // Copy the code in the chunk to the end of the bytecode vector 
 void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
 {
+    // Directly use _scrip.write_cmd() in here, we do NOT want the line
+    // that the current _src cursor points to
     Chunk const item = Chunks(level).at(index);
     id = item.Id;
-    _scrip.set_line_number(item.SrcLine);
+
+    currentline = item.SrcLine;
+    if (ccGetOption(SCOPT_LINENUMBERS))
+        _scrip.write_cmd(SCMD_LINENUM, item.SrcLine);
+
     CodeLoc const adjust = _scrip.codesize - item.CodeOffset;
 
     size_t limit = item.Code.size();
@@ -520,25 +526,25 @@ void AGS::MemoryLocation::MakeMARCurrent(ccCompiledScript &scrip)
     {
     default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
         if (_ComponentOffs > 0)
-            scrip.write_cmd2(SCMD_ADD, SREG_MAR, _ComponentOffs);
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
         break;
 
     case kSYM_GlobalVar:
-        scrip.write_cmd2(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
         scrip.fixup_previous(Parser::kFx_GlobalData);
         break;
 
     case kSYM_Import:
         // Have to convert the import number into a code offset first.
         // Can only then add the offset to it.
-        scrip.write_cmd2(SCMD_LITTOREG, SREG_MAR, _StartOffs);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs);
         scrip.fixup_previous(Parser::kFx_Import);
         if (_ComponentOffs != 0)
-            scrip.write_cmd2(SCMD_ADD, SREG_MAR, _ComponentOffs);
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
         break;
 
     case kSYM_LocalVar:
-        scrip.write_cmd1(
+        scrip.write_cmd(
             SCMD_LOADSPOFFS,
             scrip.cur_sp - _StartOffs - _ComponentOffs);
         break;
@@ -616,23 +622,23 @@ int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, b
 
     if (num_of_elements < 4)
     {
-        _scrip.write_cmd0(SCMD_MEMZEROPTR);
+        WriteCmd(SCMD_MEMZEROPTR);
         for (size_t loop = 1; loop < num_of_elements; ++loop)
         {
-            _scrip.write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
-            _scrip.write_cmd0(SCMD_MEMZEROPTR);
+            WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
+            WriteCmd(SCMD_MEMZEROPTR);
         }
         return 0;
     }
 
     clobbers_ax = true;
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, num_of_elements);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
 
     AGS::CodeLoc const loop_start = _scrip.codesize;
-    _scrip.write_cmd0(SCMD_MEMZEROPTR);
-    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
-    _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
-    _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    WriteCmd(SCMD_MEMZEROPTR);
+    WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
+    WriteCmd(SCMD_SUB, SREG_AX, 1);
+    WriteCmd(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return 0;
 }
 
@@ -660,12 +666,12 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
         // Let MAR point to the component
         size_t const diff = entry.SOffset - offset_so_far;
         if (diff > 0)
-            _scrip.write_cmd2(SCMD_ADD, SREG_MAR, diff);
+            WriteCmd(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.SOffset;
 
         if (_sym.IsDyn(entry.vartype))
         {
-            _scrip.write_cmd0(SCMD_MEMZEROPTR);
+            WriteCmd(SCMD_MEMZEROPTR);
             continue;
         }
 
@@ -687,7 +693,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     clobbers_ax = true;
 
     // AX will be the index of the current element
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, entry.NumArrayElements(_sym));
+    WriteCmd(SCMD_LITTOREG, SREG_AX, entry.NumArrayElements(_sym));
 
     AGS::CodeLoc const loop_start = _scrip.codesize;
     _scrip.push_reg(SREG_MAR);
@@ -695,9 +701,9 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
     _scrip.pop_reg(SREG_AX);
     _scrip.pop_reg(SREG_MAR);
-    _scrip.write_cmd2(SCMD_ADD, SREG_MAR, _sym.GetSize(struct_vtype));
-    _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
-    _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    WriteCmd(SCMD_ADD, SREG_MAR, _sym.GetSize(struct_vtype));
+    WriteCmd(SCMD_SUB, SREG_AX, 1);
+    WriteCmd(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return;
 }
 
@@ -750,13 +756,13 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
         int const sp_offset = _scrip.cur_sp - entry.SOffset;
         if (_sym.IsDyn(entry.vartype))
         {
-            _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
-            _scrip.write_cmd0(SCMD_MEMZEROPTR);
+            WriteCmd(SCMD_LOADSPOFFS, sp_offset);
+            WriteCmd(SCMD_MEMZEROPTR);
             continue;
         }
 
         // Set MAR to the start of the construct that contains releasable pointers
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
+        WriteCmd(SCMD_LOADSPOFFS, sp_offset);
 
         if (entry.IsArray(_sym))
             FreeDynpointersOfStdArray(entries_idx, clobbers_ax);
@@ -789,8 +795,8 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
 
         // Allocate a local dynamic pointer to hold the return value.
         _scrip.push_reg(SREG_AX);
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
+        WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
 
         AGS::CodeLoc const codesize_before_freeing = _scrip.codesize;
         bool dummy_bool;
@@ -802,9 +808,9 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
         // Now release the dynamic pointer with a special opcode that prevents 
         // memory de-allocation as long as AX still has this pointer, too
         if (mar_may_be_clobbered)
-            _scrip.write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
-        _scrip.write_cmd0(SCMD_MEMZEROPTRND); // special opcode
+            WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+        WriteCmd(SCMD_MEMREADPTR, SREG_AX);
+        WriteCmd(SCMD_MEMZEROPTRND); // special opcode
         _scrip.pop_reg(SREG_BX); // do NOT pop AX here
         if (no_precautions_were_necessary)
             _scrip.codesize = codesize_before_precautions; // rip out unneeded code
@@ -858,7 +864,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
     else if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Else)
     {
         _src.GetNext();  // eat "else"
-        _scrip.write_cmd1(SCMD_JMP, 0); // jump out, to be patched later
+        WriteCmd(SCMD_JMP, 0); // jump out, to be patched later
         else_after_then = true;
     }
 
@@ -877,7 +883,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
 
         // jump back to the start location
         // The bytecode byte with the relative dest is at code[codesize+1]
-        _scrip.write_cmd1(
+        WriteCmd(
             SCMD_JMP,
             ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
     }
@@ -918,7 +924,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
         if (totalsub > 0)
         {
             _scrip.cur_sp -= totalsub;
-            _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+            WriteCmd(SCMD_SUB, SREG_SP, totalsub);
         }
         RemoveLocalsFromSymtable(nesting_stack->Depth());
     }
@@ -956,7 +962,7 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
 
     // Jump back to the start of the loop while the condition is true
     // The bytecode byte with the relative dest is at code[codesize+1]
-    _scrip.write_cmd1(
+    WriteCmd(
         SCMD_JNZ,
         ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
     // Patch the jump out of the loop; it should point to here
@@ -980,7 +986,7 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
         _scrip.code[lastcmd_loc + 1] != ccCompiledScript::RelativeJumpDist(lastcmd_loc + 1, jumpout_loc))
     {
         // The bytecode int that contains the relative jump is in codesize+1
-        _scrip.write_cmd1(SCMD_JMP, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, jumpout_loc));
+        WriteCmd(SCMD_JMP, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, jumpout_loc));
     }
 
     // We begin the jump table; remember this address
@@ -1004,16 +1010,16 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
         _fcm.UpdateCallListOnWriting(codesize, id);
         _fim.UpdateCallListOnWriting(codesize, id);
         // Do the comparison
-        _scrip.write_cmd2(noteq_op, SREG_AX, SREG_BX);
+        WriteCmd(noteq_op, SREG_AX, SREG_BX);
         // This command will be written to code[codesize] and code[codesize]+1
-        _scrip.write_cmd1(
+        WriteCmd(
             SCMD_JZ,
             ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->Chunks().at(index).CodeOffset));
     }
 
     // Write the default jump if necessary
     if (nesting_stack->DefaultLabelLoc() != -1)
-        _scrip.write_cmd1(SCMD_JMP, nesting_stack->DefaultLabelLoc() - _scrip.codesize - 2);
+        WriteCmd(SCMD_JMP, nesting_stack->DefaultLabelLoc() - _scrip.codesize - 2);
 
     // Patch the jump to the end of the switch block 
     // to jump to here (for break statements)
@@ -1999,7 +2005,7 @@ void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
     if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
         _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
     {
-        _scrip.write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
+        WriteCmd(SCMD_CREATESTRING, SREG_AX); // convert AX
         _scrip.ax_vartype = _sym.VartypeWith(kVTT_Dynpointer, _sym.GetStringStructSym());
     }
 }
@@ -2038,7 +2044,7 @@ int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::V
         {
             // Interpret the memory address as the result
             vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-            _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+            WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
             vloc = kVL_ax_is_value;
             _scrip.ax_vartype = vartype;
             return 0;
@@ -2060,9 +2066,9 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
     _scrip.ax_val_scope = scope;
 
     if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype))
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+        WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     else
-        _scrip.write_cmd1(
+        WriteCmd(
             _sym.IsDyn(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
     vloc = kVL_ax_is_value;
@@ -2117,7 +2123,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(AGS::SymbolScript symlist, size_t sy
     {
         vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
         const size_t size = _sym.GetSize(new_vartype);
-        _scrip.write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, size);
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
         _scrip.ax_vartype = vartype;
         vloc = kVL_ax_is_value;
@@ -2135,7 +2141,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(AGS::SymbolScript symlist, size_t sy
         retval = AccessData_ReadIntExpression(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
-        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
 
         if (is_managed)
             vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
@@ -2169,9 +2175,9 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(AGS::SymbolScript symlist, si
     retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.GetIntSym(), cpuOp);
     if (retval < 0) return retval;
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
-    _scrip.write_cmd2(cpuOp, SREG_BX, SREG_AX);
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
+    WriteCmd(cpuOp, SREG_BX, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     vloc = kVL_ax_is_value;
     return 0;
 }
@@ -2198,7 +2204,7 @@ int AGS::Parser::ParseExpression_NotIsFirst(AGS::SymbolScript symlist, size_t sy
     if (retval < 0) return retval;
 
     // now, NOT the result
-    _scrip.write_cmd1(cpuOp, SREG_AX);
+    WriteCmd(cpuOp, SREG_AX);
     vloc = kVL_ax_is_value;
     return 0;
 }
@@ -2266,7 +2272,7 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
     // random number that's easy to spot in debugging outputs (where it's a clue
     // that it probably hasn't been replaced by a proper value).
     
-    _scrip.write_cmd1(
+    WriteCmd(
         (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
         -77);
     CodeLoc const test_jumpdest_to_patch = _scrip.codesize - 1;
@@ -2287,7 +2293,7 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
         // Jump to the end of the ternary expression;
         // We don't know the dest yet, thus the placeholder value -77. Don't
         // test for this random magic number or use it in code
-        _scrip.write_cmd1(SCMD_JMP, -77);
+        WriteCmd(SCMD_JMP, -77);
         jumpdest_after_term2_to_patch = _scrip.codesize - 1;
     }
     else
@@ -2398,7 +2404,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         // if AX is 0 then the AND has failed, 
         // so just jump directly past the AND instruction;
         // AX will still be 0 so that will do as the result of the calculation
-        _scrip.write_cmd1(SCMD_JZ, 0);
+        WriteCmd(SCMD_JZ, 0);
         // We don't know the end of the instruction yet, so remember the location we need to patch
         jump_dest_loc_to_patch = _scrip.codesize - 1;
     }
@@ -2408,7 +2414,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         // if AX is non-zero then the OR has succeeded, 
         // so just jump directly past the OR instruction; 
         // AX will still be non-zero so that will do as the result of the calculation
-        _scrip.write_cmd1(SCMD_JNZ, 0);
+        WriteCmd(SCMD_JNZ, 0);
         // We don't know the end of the instruction yet, so remember the location we need to patch
         jump_dest_loc_to_patch = _scrip.codesize - 1;
     }
@@ -2428,8 +2434,8 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
     retval = GetOperatorValidForVartype(vartype_lhs, vartype, vcpuOperator);
     if (retval < 0) return retval;
 
-    _scrip.write_cmd2(vcpuOperator, SREG_BX, SREG_AX);
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    WriteCmd(vcpuOperator, SREG_BX, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     vloc = kVL_ax_is_value;
 
     if (jump_dest_loc_to_patch >= 0)
@@ -2514,10 +2520,10 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
         }
 
         // push the default value onto the stack
-        _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[funcSymbol].FuncParamDefaultValues[arg_idx]);
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[funcSymbol].FuncParamDefaultValues[arg_idx]);
 
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             _scrip.push_reg(SREG_AX);
     }
@@ -2529,7 +2535,7 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
         _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo) )
-        _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
+        WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
 
 std::string AGS::Parser::ReferenceMsg(std::string const &msg, int section_id, int line)
@@ -2624,7 +2630,7 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
         // back with SCMD_MEMWRITEPTR.
 
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             _scrip.push_reg(SREG_AX);
 
@@ -2715,22 +2721,22 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
     {
         // tell it how many args for this call (nested imported functions
         // cause stack problems otherwise)
-        _scrip.write_cmd1(SCMD_NUMFUNCARGS, num_args);
+        WriteCmd(SCMD_NUMFUNCARGS, num_args);
     }
 
     // Call the function: Get address into AX
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
 
     if (func_is_import)
     {
         if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
         _scrip.fixup_previous(kFx_Import);
-        _scrip.write_cmd1(SCMD_CALLEXT, SREG_AX); // do the call
+        WriteCmd(SCMD_CALLEXT, SREG_AX); // do the call
         // At runtime, we will arrive here when the function call has returned
         // restore the stack
         if (num_args > 0)
-            _scrip.write_cmd1(SCMD_SUBREALSTACK, num_args);
+            WriteCmd(SCMD_SUBREALSTACK, num_args);
         return;
     }
 
@@ -2738,14 +2744,14 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
     if (_fcm.IsForwardDecl(name_of_func))
         _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
     _scrip.fixup_previous(kFx_Code);
-    _scrip.write_cmd1(SCMD_CALL, SREG_AX);  // do the call
+    WriteCmd(SCMD_CALL, SREG_AX);  // do the call
 
     // At runtime, we will arrive here when the function call has returned
     // restore the stack
     if (num_args > 0)
     {
         _scrip.cur_sp -= num_args * 4;
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, num_args * 4);
+        WriteCmd(SCMD_SUB, SREG_SP, num_args * 4);
     }
 }
 
@@ -2829,11 +2835,11 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
         }
         else
         {
-            _scrip.write_cmd1(
+            WriteCmd(
                 SCMD_LOADSPOFFS,
                 (func_uses_normal_stack ? num_args : 0) * 4 + 4);
         }
-        _scrip.write_cmd1(SCMD_CALLOBJ, SREG_MAR);
+        WriteCmd(SCMD_CALLOBJ, SREG_MAR);
     }
 
     AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
@@ -3019,7 +3025,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     if (is_attribute_set_func)
     {
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             _scrip.push_reg(SREG_AX);
         ++num_of_args;
@@ -3038,14 +3044,14 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
             _scrip.pop_reg(SREG_MAR);
 
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             _scrip.push_reg(SREG_AX);
         ++num_of_args;
     }
 
     if (attrib_uses_this)
-        _scrip.write_cmd1(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
+        WriteCmd(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
 
     AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
     
@@ -3066,8 +3072,8 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
 {
     if (kVL_ax_is_value == vloc)
     {
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        _scrip.write_cmd0(SCMD_CHECKNULL);
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
         vloc = kVL_mar_pointsto_value;
         mloc.Reset();
     }
@@ -3076,8 +3082,8 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
         mloc.MakeMARCurrent(_scrip);
         // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
         // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
-        _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
-        _scrip.write_cmd0(SCMD_CHECKNULL);
+        WriteCmd(SCMD_MEMREADPTR, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
     }
     return 0;
 }
@@ -3151,12 +3157,12 @@ int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, 
     // after the multiplication; static bounds before the multiplication.
     // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
     if (!is_dynarray)
-        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, dim);
+        WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
     if (factor != 1)
-        _scrip.write_cmd2(SCMD_MUL, SREG_AX, factor);
+        WriteCmd(SCMD_MUL, SREG_AX, factor);
     if (is_dynarray)
-        _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
-    _scrip.write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX);
+        WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
+    WriteCmd(SCMD_ADDREG, SREG_MAR, SREG_AX);
     return 0;
 }
 
@@ -3290,7 +3296,7 @@ int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, si
     float const f = static_cast<float>(d * (negate ? -1 : 1));
     int const i = InterpretFloatAsInt(f);
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, i);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, i);
     _scrip.ax_vartype = vartype = _sym.GetFloatSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
     symlist++;
@@ -3306,7 +3312,7 @@ int AGS::Parser::AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &sy
     symlist++;
     symlist_len--;
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, varSymValue);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, varSymValue);
     _scrip.ax_vartype = vartype = _sym.GetIntSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
 
@@ -3321,7 +3327,7 @@ int AGS::Parser::AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t
         return -1;
     }
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     _scrip.ax_vartype = vartype = _sym.GetNullSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
     symlist++;
@@ -3338,7 +3344,7 @@ int AGS::Parser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size
         return -1;
     }
 
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
     _scrip.fixup_previous(kFx_String);
     _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.GetOldStringSym())
         ;
@@ -3350,14 +3356,14 @@ int AGS::Parser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size
 // Negates the value; this clobbers AX and BX
 void AGS::Parser::AccessData_Negate(ValueLocation vloc)
 {
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
+    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
     if (kVL_mar_pointsto_value == vloc)
-        _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX);
-    _scrip.write_cmd2(SCMD_SUBREG, SREG_BX, SREG_AX);
+        WriteCmd(SCMD_MEMREAD, SREG_AX);
+    WriteCmd(SCMD_SUBREG, SREG_BX, SREG_AX);
     if (kVL_mar_pointsto_value == vloc)
-        _scrip.write_cmd1(SCMD_MEMWRITE, SREG_BX);
+        WriteCmd(SCMD_MEMWRITE, SREG_BX);
     else
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
+        WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
 }
 
 // We're getting a variable, literal, constant, func call or the first element
@@ -3387,8 +3393,8 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
             return -1;
         }
         vloc = kVL_mar_pointsto_value;
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
-        _scrip.write_cmd0(SCMD_CHECKNULL);
+        WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
         mloc.Reset();
         access_via_this = true;
         symlist++;
@@ -3407,8 +3413,8 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
         if (0 != _sym[thiscomponent].SType)
         {
             vloc = kVL_mar_pointsto_value;
-            _scrip.write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
-            _scrip.write_cmd0(SCMD_CHECKNULL);
+            WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+            WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
             access_via_this = true;
 
@@ -3731,23 +3737,23 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SymbolScript symlist, size_t sym
 // Stop when encountering a 0
 void AGS::Parser::AccessData_StrCpy()
 {
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
+    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
+    WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
+    WriteCmd(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
     AGS::CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
-    _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX);
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
-    _scrip.write_cmd1(SCMD_MEMWRITE, SREG_AX);
-    _scrip.write_cmd1(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
+    WriteCmd(SCMD_MEMREAD, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
+    WriteCmd(SCMD_MEMWRITE, SREG_AX);
+    WriteCmd(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
     AGS::CodeLoc const jumpout1_pos = _scrip.codesize - 1;
-    _scrip.write_cmd2(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
-    _scrip.write_cmd2(SCMD_ADD, SREG_CX, 1);
-    _scrip.write_cmd2(SCMD_SUB, SREG_DX, 1);
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX == 0) jumpto LOOP_END
-    _scrip.write_cmd1(SCMD_JZ, 0);
+    WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
+    WriteCmd(SCMD_ADD, SREG_CX, 1);
+    WriteCmd(SCMD_SUB, SREG_DX, 1);
+    WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX == 0) jumpto LOOP_END
+    WriteCmd(SCMD_JZ, 0);
     AGS::CodeLoc const jumpout2_pos = _scrip.codesize - 1;
-    _scrip.write_cmd1(
+    WriteCmd(
         SCMD_JMP,
         ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
     AGS::CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
@@ -3784,8 +3790,8 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
             cc_error("Cannot modify this value");
             return -1;
         }
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        _scrip.write_cmd0(SCMD_CHECKNULL);
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
         vloc = kVL_mar_pointsto_value;
     }
 
@@ -3824,9 +3830,9 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
     }
 
     if (_sym.IsDyn(lhsvartype))
-        _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
+        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
     else
-        _scrip.write_cmd1(
+        WriteCmd(
             GetWriteCommandForSize(_sym.GetSize(lhsvartype)),
             SREG_AX);
     return 0;
@@ -3977,7 +3983,7 @@ int AGS::Parser::ParseAssignment_ReadLHSForModification(ccInternalList const *lh
         // write memory to AX
         _scrip.ax_vartype = lhstype;
         _scrip.ax_val_scope = scope;
-        _scrip.write_cmd1(
+        WriteCmd(
             GetReadCommandForSize(_sym.GetSize(lhstype)),
             SREG_AX);
     }
@@ -4012,13 +4018,13 @@ int AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList 
     retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
     if (retval < 0) return retval;
     _scrip.pop_reg(SREG_BX);
-    _scrip.write_cmd2(cpuOp, SREG_AX, SREG_BX);
+    WriteCmd(cpuOp, SREG_AX, SREG_BX);
 
     if (kVL_mar_pointsto_value == vloc)
     {
         // write AX back to memory
         AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
-        _scrip.write_cmd1(memwrite, SREG_AX);
+        WriteCmd(memwrite, SREG_AX);
         return 0;
     }
     return AccessData_Assign(lhs->script, lhs->length);
@@ -4036,13 +4042,13 @@ int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList 
     int cpuOp = _sym[ass_symbol].GetCPUOp();
     retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
     if (retval < 0) return retval;
-    _scrip.write_cmd2(cpuOp, SREG_AX, 1);
+    WriteCmd(cpuOp, SREG_AX, 1);
 
     if (kVL_mar_pointsto_value == vloc)
     {
         // write AX back to memory
         AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
-        _scrip.write_cmd1(memwrite, SREG_AX);
+        WriteCmd(memwrite, SREG_AX);
         return 0;
     }
 
@@ -4308,9 +4314,9 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, 
     if (!has_initial_assignment)
     {
         // Initialize the variable with binary zeroes.
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd1(SCMD_ZEROMEMORY, var_size);
-        _scrip.write_cmd2(SCMD_ADD, SREG_SP, var_size);
+        WriteCmd(SCMD_LOADSPOFFS, 0);
+        WriteCmd(SCMD_ZEROMEMORY, var_size);
+        WriteCmd(SCMD_ADD, SREG_SP, var_size);
         _scrip.cur_sp += var_size;
         return 0;
     }
@@ -4331,11 +4337,11 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, 
     }
 
     ConvertAXStringToStringObject(vartype);
-    _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-    _scrip.write_cmd1(
+    WriteCmd(SCMD_LOADSPOFFS, 0);
+    WriteCmd(
         is_dyn ? SCMD_MEMINITPTR : GetWriteCommandForSize(var_size),
         SREG_AX);
-    _scrip.write_cmd2(SCMD_ADD, SREG_SP, var_size);
+    WriteCmd(SCMD_ADD, SREG_SP, var_size);
     _scrip.cur_sp += var_size;
     return 0;
 }
@@ -4423,11 +4429,11 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
 void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, AGS::NestingStack *nesting_stack)
 {
     // write base address of function for any relocation needed later
-    _scrip.write_cmd1(SCMD_THISBASE, _scrip.codesize);
+    WriteCmd(SCMD_THISBASE, _scrip.codesize);
     SymbolTableEntry &entry = _sym[name_of_func];
     if (FlagIsSet(entry.Flags, kSFLG_NoLoopCheck))
     {
-        _scrip.write_cmd0(SCMD_LOOPCHECKOFF);
+        WriteCmd(SCMD_LOOPCHECKOFF);
         SetFlag(entry.Flags, kSFLG_NoLoopCheck, false);
     }
 
@@ -4443,10 +4449,10 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         // For each managed parameter, an address is pushed where the parameter 
         // is stored, i.e. a value MAR (!!!)  where m[MAR] (!!!) contains the value. 
         // We need to convert this to the value itself.
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
-        _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
+        WriteCmd(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
+        WriteCmd(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
         // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
-        _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
+        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
     }
 
     SymbolTableEntry &this_entry = _sym[_sym.GetThisSym()];
@@ -4461,10 +4467,10 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         this_entry.Flags = kSFLG_Readonly | kSFLG_Accessed;
         // Allocate unused space on stack for the "this" pointer
         this_entry.SOffset = _scrip.cur_sp;
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);
+        WriteCmd(SCMD_LOADSPOFFS, 0);
+        WriteCmd(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);
         _scrip.cur_sp += SIZE_OF_DYNPOINTER;
-        _scrip.write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
+        WriteCmd(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
     }
 }
 
@@ -4508,7 +4514,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
         // Reduce the "high point" of the stack appropriately, 
         // write code for popping the bytes from the stack
         _scrip.cur_sp -= totalsub;
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+        WriteCmd(SCMD_SUB, SREG_SP, totalsub);
     }
 
     // All the local variables that were defined within the braces become invalid
@@ -4518,7 +4524,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
     {
         // Emit code that returns 0
         if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamTypes.at(0))
-            _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
+            WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
 
         _fcm.SetFuncExitJumppoint(name_of_current_func, _scrip.codesize);
         // We've just finished the body of the current function.
@@ -4528,7 +4534,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
         // Write code to return from the function.
         // This pops the return address from the stack, 
         // so adjust the "high point" of stack allocation appropriately
-        _scrip.write_cmd0(SCMD_RET);
+        WriteCmd(SCMD_RET);
         _scrip.cur_sp -= 4;
 
         nesting_stack->Pop();
@@ -5776,7 +5782,7 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     }
     else if (_sym.GetIntSym() == functionReturnType)
     {
-        _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
+        WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     }
     else if (_sym.GetVoidSym() != functionReturnType)
     {
@@ -5794,10 +5800,10 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     FreeDynpointersOfLocals(0, name_of_current_func);
     int totalsub = StacksizeOfLocals(0);
     if (totalsub > 0)
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+        WriteCmd(SCMD_SUB, SREG_SP, totalsub);
 
     // Jump to the exit point of the function
-    _scrip.write_cmd1(SCMD_JMP, 0);
+    WriteCmd(SCMD_JMP, 0);
     _fcm.TrackExitJumppoint(name_of_current_func, _scrip.codesize - 1);
 
     return 0;
@@ -5822,7 +5828,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-    _scrip.write_cmd1(SCMD_JZ, 0);
+    WriteCmd(SCMD_JZ, 0);
     AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
     // Assume unbraced as a default
@@ -5865,7 +5871,7 @@ int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack
 
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-    _scrip.write_cmd1(SCMD_JZ, 0);
+    WriteCmd(SCMD_JZ, 0);
     AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
     // Assume unbraced as a default
@@ -5886,8 +5892,8 @@ int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack
 int AGS::Parser::ParseDo(AGS::NestingStack *nesting_stack)
 {
     // We need a jump at a known location for the break command to work:
-    _scrip.write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
-    _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
+    WriteCmd(SCMD_JMP, 2); // Jump past the next jump :D
+    WriteCmd(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
     // This points to the address we have to patch with a jump past the end of the loop
     AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
@@ -5996,7 +6002,7 @@ int AGS::Parser::ParseFor_WhileClause()
     {
         // Not having a while clause is tantamount to the while condition "true".
         // So let's write "true" to the AX register.
-        _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 1);
+        WriteCmd(SCMD_LITTOREG, SREG_AX, 1);
         return 0;
     }
 
@@ -6097,7 +6103,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
 
     // Code for "If the expression we just evaluated is false, jump over the loop body."
     // the 0 will be fixed to a proper offset later
-    _scrip.write_cmd1(SCMD_JZ, 0);
+    WriteCmd(SCMD_JZ, 0);
     nesting_stack->SetJumpOutLoc(_scrip.codesize - 1); // the address to fix
 
     return 0;
@@ -6123,13 +6129,13 @@ int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
     int switch_expr_type = _scrip.ax_vartype;
 
     // Copy the result to the BX register, ready for case statements
-    _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
+    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
 
     // Remember the start of the lookup table
     AGS::CodeLoc const lookup_table_start = _scrip.codesize;
 
-    _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
-    _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
+    WriteCmd(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
+    WriteCmd(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
 
     // There's no such thing as an unbraced SWITCH, so '{' must follow
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenBrace)
@@ -6244,19 +6250,19 @@ int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
     // Pop local variables from the stack
     int totalsub = StacksizeOfLocals(loop_level - 1);
     if (totalsub > 0)
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+        WriteCmd(SCMD_SUB, SREG_SP, totalsub);
 
     // The jump out of the loop, below, may be a conditional jump.
     // So clear AX to make sure that the jump is executed.
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to a jump to the end of the loop
     // The bytecode byte with the relative dest is at code[codesize+1]
     if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
-        _scrip.write_cmd1(SCMD_JMP,
+        WriteCmd(SCMD_JMP,
             ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level) + 2));
     else
-        _scrip.write_cmd1(SCMD_JMP,
+        WriteCmd(SCMD_JMP,
             ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->JumpOutLoc(loop_level) - 1));
     return 0;
 }
@@ -6286,7 +6292,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
     // Pop local variables from the stack
     int totalsub = StacksizeOfLocals(loop_level - 1);
     if (totalsub > 0)
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+        WriteCmd(SCMD_SUB, SREG_SP, totalsub);
 
     // if it's a for loop, drop the yanked chunk (loop increment)back in
     if (nesting_stack->ChunksExist(loop_level))
@@ -6300,7 +6306,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
 
     // Jump to the start of the loop
     // The bytecode int with the relative dest is at code[codesize+1]
-    _scrip.write_cmd1(
+    WriteCmd(
         SCMD_JMP,
         ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level)));
     return 0;
@@ -6377,19 +6383,28 @@ int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_f
     return ParseCommand_EndOfDoIfElse(nesting_stack);
 }
 
-int AGS::Parser::Parse_HandleLines(int &currentlinewas)
+void AGS::Parser::HandleSrcLineChange()
 {
-    if (currentline == -10)
-        return 1; // end of stream was reached
+    size_t const src_lineno = _src.GetLineno();
+    if (src_lineno == currentline)
+        return;
 
+    currentline = src_lineno;
+    if (kPP_Main == _pp && ccGetOption(SCOPT_LINENUMBERS))
+        _scrip.write_cmd(SCMD_LINENUM, src_lineno);
+}
 
-    if ((currentline != currentlinewas) && (ccGetOption(SCOPT_LINENUMBERS) != 0))
-    {
-        _scrip.set_line_number(currentline);
-        currentlinewas = currentline;
-    }
+void AGS::Parser::HandleSrcSectionChange()
+{
+    size_t const src_section_id = _src.GetSectionId();
+    if (src_section_id == _currentsectionid)
+        return;
 
-    return 0;
+    _currentsectionid = src_section_id;
+    std::string const _scriptNameBuffer = _src.Id2Section(src_section_id);
+    ccCurScriptName = _scriptNameBuffer.c_str();
+    if (kPP_Main == _pp)
+        _scrip.start_new_section(_scriptNameBuffer.c_str());
 }
 
 int AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
@@ -6516,19 +6531,6 @@ void AGS::Parser::Parse_SkipToEndingBrace()
     _src.GetNext(); // Eat '}'
 }
 
-// Buffer for the script name
-std::string _ScriptNameBuffer;
-
-void AGS::Parser::Parse_StartNewSection(AGS::Symbol mangled_section_name)
-{
-    _ScriptNameBuffer = _sym.GetName(mangled_section_name).substr(18);
-    _ScriptNameBuffer.pop_back(); // strip closing speech mark
-    ccCurScriptName = _ScriptNameBuffer.c_str();
-    currentline = 0;
-    if (kPP_Main == _pp)
-        _scrip.start_new_section(_ScriptNameBuffer.c_str());
-}
-
 int AGS::Parser::ParseInput()
 {
     AGS::NestingStack nesting_stack(_scrip);
@@ -6545,22 +6547,14 @@ int AGS::Parser::ParseInput()
     // This collects the qualifiers ("static" etc.);
     // it is reset whenever the qualifiers are used.
     TypeQualifierSet tqs = 0;
+    int retval;
 
     while (!_src.ReachedEOF())
     {
         Symbol const cursym = _src.GetNext();
 
-        /* TODO: New section handling
-        if (0 == _sym.GetName(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
-        {
-            Parse_StartNewSection(cursym);
-            continue;
-        }
-        */
-
-        int retval = Parse_HandleLines(currentlinewas);
-        if (retval > 0)
-            break; // end of input
+        HandleSrcSectionChange();
+        HandleSrcLineChange();
 
         switch (_sym.GetSymbolType(cursym))
         {
@@ -6822,8 +6816,8 @@ int cc_scan(char const *inpl, SrcList *src, ccCompiledScript *scrip, SymbolTable
 
     // Scaffolding around cc_error()
     currentline = scanner.GetLineno();
-    _ScriptNameBuffer = scanner.GetSection();
-    ccCurScriptName = _ScriptNameBuffer.c_str();
+    std::string const section_buf = scanner.GetSection();
+    ccCurScriptName = section_buf.c_str();
     cc_error("%s", scanner.GetLastError().c_str());
     return -1;
 }

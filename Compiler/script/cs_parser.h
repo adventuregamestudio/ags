@@ -379,6 +379,12 @@ private:
     // The "Callpoint" of such a function is the index in the import table.
     FuncCallpointMgr _fim; // i for import
 
+    // Track current section ID
+    size_t _currentsectionid;
+
+    // Buffer for ccCurScriptName
+    std::string _scriptNameBuffer;
+
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
     // Augment the message with a "See ..." indication
@@ -833,7 +839,22 @@ private:
 
     int ParseCommand(Symbol cursym, Symbol &name_of_current_func, Symbol &struct_of_current_func, NestingStack *nesting_stack);
 
-    int Parse_HandleLines(int &currentlinewas);
+    // If a new section has begun, tell _scrip to deal with that.
+    // Refresh ccCurScriptName
+    void HandleSrcSectionChange();
+
+    // If the source line has changed, tell _scrip to emit a line change bytecode.
+    // Refresh currentline.
+    void HandleSrcLineChange();
+
+    inline void WriteCmd(CodeCell op)
+        { HandleSrcLineChange(); _scrip.write_cmd(op); }
+    inline void WriteCmd(CodeCell op, CodeCell p1)
+        { HandleSrcLineChange(); _scrip.write_cmd(op, p1); }
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
+        { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2); }
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
+        { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2, p3); }
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 
@@ -844,8 +865,7 @@ private:
 
     void Parse_SkipToEndingBrace();
 
-    void Parse_StartNewSection(Symbol mangled_section_name);
-
+    
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis
     int Parse_PreAnalyzePhase();

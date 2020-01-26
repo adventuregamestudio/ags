@@ -484,12 +484,12 @@ AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
     : Callpoint(-1)
 { }
 
-AGS::ImportMgr::ImportMgr()
+AGS::Parser::ImportMgr::ImportMgr()
     : _scrip(nullptr)
 {
 }
 
-void AGS::ImportMgr::Init(ccCompiledScript *scrip)
+void AGS::Parser::ImportMgr::Init(ccCompiledScript *scrip)
 {
     _importIdx.clear();
     _scrip = scrip;
@@ -497,12 +497,12 @@ void AGS::ImportMgr::Init(ccCompiledScript *scrip)
         _importIdx[scrip->imports[import_idx]] = import_idx;
 }
 
-bool AGS::ImportMgr::IsDeclaredImport(std::string s)
+bool AGS::Parser::ImportMgr::IsDeclaredImport(std::string s)
 {
     return (_importIdx.end() != _importIdx.find(s));
 }
 
-int AGS::ImportMgr::FindOrAdd(std::string s)
+int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
 {
     auto it = _importIdx.find(s);
     if (_importIdx.end() != it)

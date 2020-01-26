@@ -65,7 +65,6 @@ TEST_F(Scan, ShortInputBackslash3)
     // Should detect unclosed string.
 
     std::string Input3 = "String s = \"a\\";
-    struct ccInternalList TokenList3;
     AGS::Scanner scanner3(Input3, token_list, string_collector, sym);
     for (size_t loop = 0; loop < 3; loop++)
     {

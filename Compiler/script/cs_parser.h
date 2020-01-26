@@ -67,6 +67,7 @@ private:
         std::vector<char> FixupTypes;
         int CodeOffset;
         int FixupOffset;
+        size_t SrcLine;
         int Id;
     };
 
@@ -81,6 +82,7 @@ private:
     };
 
     std::vector<NestingInfo> _stack;
+    ::ccCompiledScript &_scrip;
 
 public:
     enum NestingType
@@ -98,7 +100,7 @@ public:
         kNT_Struct,       // Struct defn
     };
 
-    NestingStack();
+    NestingStack(::ccCompiledScript &scrip);
 
     // Depth of the nesting == index of the innermost nesting level
     inline size_t Depth() const { return _stack.size(); };
@@ -144,7 +146,7 @@ public:
     // True iff the innermost nesting is unbraced
     inline bool IsUnbraced()
     {
-        NestingType nt = Type();
+        NestingType const nt = Type();
         return (nt == kNT_UnbracedThen) || (nt == kNT_UnbracedElse) || (nt == kNT_UnbracedDo);
     }
 
@@ -157,13 +159,12 @@ public:
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
     // Returns the unique ID of this code in id
-    void YankChunk(::ccCompiledScript &scrip, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
-
+    void YankChunk(size_t src_line, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
 
     // Write chunk of code back into the codebase that has been stashed in level given, at index
-    void WriteChunk(::ccCompiledScript &scrip, size_t level, size_t index, int &id);
+    void WriteChunk(size_t level, size_t index, int &id);
     // Write chunk of code back into the codebase stashed in the innermost level, at index
-    inline void WriteChunk(::ccCompiledScript &scrip, size_t index, int &id) { WriteChunk(scrip, Depth() - 1, index, id); };
+    inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
 };
 
 class FuncCallpointMgr

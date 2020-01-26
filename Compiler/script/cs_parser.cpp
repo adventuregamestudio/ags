@@ -271,21 +271,14 @@ int AGS::NestingStack::_chunkIdCtr = 0;
 
 int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
 {
-    std::vector<AGS::NestingStack::Chunk> dummy_chunk;
-    struct AGS::NestingStack::NestingInfo ni = { type, start, info, 0, dummy_chunk };
-    try
-    {
-        _stack.push_back(ni);
-    }
-    catch (...)
-    {
-        cc_error("Out of memory");
-        return -1;
-    }
+    std::vector<Chunk> dummy_chunk;
+    struct NestingInfo const ni = { type, start, info, 0, dummy_chunk };
+    _stack.push_back(ni);
     return 0;
 }
 
-AGS::NestingStack::NestingStack()
+AGS::NestingStack::NestingStack(::ccCompiledScript &scrip)
+    :_scrip(scrip)
 {
     // Push first record on stack so that it isn't empty
     Push(AGS::NestingStack::kNT_Nothing);
@@ -293,19 +286,20 @@ AGS::NestingStack::NestingStack()
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void AGS::NestingStack::YankChunk(ccCompiledScript &scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
+void AGS::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
 {
-    AGS::NestingStack::Chunk item;
+    Chunk item;
+    item.SrcLine = src_line;
 
-    size_t const codesize = std::max(0, scrip.codesize);
+    size_t const codesize = std::max(0, _scrip.codesize);
     for (size_t code_idx = codeoffset; code_idx < codesize; code_idx++)
-        item.Code.push_back(scrip.code[code_idx]);
+        item.Code.push_back(_scrip.code[code_idx]);
 
-    size_t numfixups = std::max(0, scrip.numfixups);
+    size_t numfixups = std::max(0, _scrip.numfixups);
     for (size_t fixups_idx = fixupoffset; fixups_idx < numfixups; fixups_idx++)
     {
-        item.Fixups.push_back(scrip.fixups[fixups_idx]);
-        item.FixupTypes.push_back(scrip.fixuptypes[fixups_idx]);
+        item.Fixups.push_back(_scrip.fixups[fixups_idx]);
+        item.FixupTypes.push_back(_scrip.fixuptypes[fixups_idx]);
     }
     item.CodeOffset = codeoffset;
     item.FixupOffset = fixupoffset;
@@ -314,25 +308,25 @@ void AGS::NestingStack::YankChunk(ccCompiledScript &scrip, AGS::CodeLoc codeoffs
     _stack.back().Chunks.push_back(item);
 
     // Cut out the code that has been pushed
-    scrip.codesize = codeoffset;
-    scrip.numfixups = fixupoffset;
+    _scrip.codesize = codeoffset;
+    _scrip.numfixups = fixupoffset;
 }
 
 // Copy the code in the chunk to the end of the bytecode vector 
-void AGS::NestingStack::WriteChunk(ccCompiledScript &scrip, size_t level, size_t index, int &id)
+void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
 {
-    AGS::NestingStack::Chunk const item = Chunks(level).at(index);
+    Chunk const item = Chunks(level).at(index);
     id = item.Id;
-    scrip.flush_line_numbers();
-    AGS::CodeLoc adjust = scrip.codesize - item.CodeOffset;
+    _scrip.set_line_number(item.SrcLine);
+    CodeLoc const adjust = _scrip.codesize - item.CodeOffset;
 
     size_t limit = item.Code.size();
     for (size_t index = 0; index < limit; index++)
-        scrip.write_code(item.Code[index]);
+        _scrip.write_code(item.Code[index]);
 
     limit = item.Fixups.size();
     for (size_t index = 0; index < limit; index++)
-        scrip.add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
+        _scrip.add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
 }
 
 AGS::FuncCallpointMgr::FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip)
@@ -695,7 +689,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     // AX will be the index of the current element
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, entry.NumArrayElements(_sym));
 
-    AGS::CodeLoc loop_start = _scrip.codesize;
+    AGS::CodeLoc const loop_start = _scrip.codesize;
     _scrip.push_reg(SREG_MAR);
     _scrip.push_reg(SREG_AX); // FreeDynpointersOfStruct might call funcs that clobber AX
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
@@ -870,13 +864,12 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
 
     if (nesting_stack->StartLoc()) // a loop that features a jump back to the start
     {
-        _scrip.flush_line_numbers();
         // if it's a for loop, drop the yanked chunk (loop increment) back in
         if (nesting_stack->ChunksExist())
         {
             int id;
             AGS::CodeLoc const write_start = _scrip.codesize;
-            nesting_stack->WriteChunk(_scrip, 0, id);
+            nesting_stack->WriteChunk(0, id);
             _fcm.UpdateCallListOnWriting(write_start, id);
             _fim.UpdateCallListOnWriting(write_start, id);
             nesting_stack->Chunks().clear();
@@ -936,9 +929,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
 
 int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
 {
-    _scrip.flush_line_numbers();
-
-    AGS::Symbol cursym = _src.GetNext();
+    AGS::Symbol const cursym = _src.GetNext();
     if (_sym.GetSymbolType(cursym) != kSYM_While)
     {
         cc_error("Do without while");
@@ -949,7 +940,6 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
         cc_error("Expected '('");
         return -1;
     }
-    _scrip.flush_line_numbers();
 
     int retval = ParseExpression();
     if (retval < 0) return retval;
@@ -984,8 +974,8 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
 {
     // If there was no terminating break at the last switch-case, 
     // write a jump to the jumpout point to prevent a fallthrough into the jumptable
-    const AGS::CodeLoc lastcmd_loc = _scrip.codesize - 2;
-    const AGS::CodeLoc jumpout_loc = nesting_stack->StartLoc() + 2;
+    AGS::CodeLoc const lastcmd_loc = _scrip.codesize - 2;
+    AGS::CodeLoc const jumpout_loc = nesting_stack->StartLoc() + 2;
     if (_scrip.code[lastcmd_loc] != SCMD_JMP ||
         _scrip.code[lastcmd_loc + 1] != ccCompiledScript::RelativeJumpDist(lastcmd_loc + 1, jumpout_loc))
     {
@@ -994,7 +984,7 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
     }
 
     // We begin the jump table; remember this address
-    AGS::CodeLoc jumptable_loc = _scrip.codesize;
+    AGS::CodeLoc const jumptable_loc = _scrip.codesize;
 
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
@@ -1008,9 +998,9 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
     for (size_t index = 0; index < size_of_chunks; index++)
     {
         int id;
-        AGS::CodeLoc codesize = _scrip.codesize;
+        AGS::CodeLoc const codesize = _scrip.codesize;
         // Put the result of the expression into AX
-        nesting_stack->WriteChunk(_scrip, index, id);
+        nesting_stack->WriteChunk(index, id);
         _fcm.UpdateCallListOnWriting(codesize, id);
         _fim.UpdateCallListOnWriting(codesize, id);
         // Do the comparison
@@ -5833,7 +5823,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
     _scrip.write_cmd1(SCMD_JZ, 0);
-    AGS::CodeLoc jump_dest_loc = _scrip.codesize - 1;
+    AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
@@ -5857,7 +5847,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
     // point to the start of the code that evaluates the condition
-    AGS::CodeLoc condition_eval_loc = _scrip.codesize;
+    AGS::CodeLoc const condition_eval_loc = _scrip.codesize;
 
     // Get expression, must be in parentheses
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenParenthesis)
@@ -5876,7 +5866,7 @@ int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
     _scrip.write_cmd1(SCMD_JZ, 0);
-    AGS::CodeLoc jump_dest_loc = _scrip.codesize - 1;
+    AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
@@ -5899,7 +5889,7 @@ int AGS::Parser::ParseDo(AGS::NestingStack *nesting_stack)
     _scrip.write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
     _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
     // This points to the address we have to patch with a jump past the end of the loop
-    AGS::CodeLoc jump_dest_loc = _scrip.codesize - 1;
+    AGS::CodeLoc const jump_dest_loc = _scrip.codesize - 1;
 
     // Assume an unbraced DO as a default
     int retval = nesting_stack->Push(
@@ -5993,8 +5983,6 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
 // The first clause of a for header
 int AGS::Parser::ParseFor_InitClause(AGS::Symbol peeksym, size_t nested_level)
 {
-    _scrip.flush_line_numbers();
-
     if (_sym.GetSymbolType(peeksym) == kSYM_Semicolon)
         return 0; // Empty init clause
     if (_sym.GetSymbolType(peeksym) == kSYM_Vartype)
@@ -6004,8 +5992,6 @@ int AGS::Parser::ParseFor_InitClause(AGS::Symbol peeksym, size_t nested_level)
 
 int AGS::Parser::ParseFor_WhileClause()
 {
-    _scrip.flush_line_numbers();
-
     if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Semicolon)
     {
         // Not having a while clause is tantamount to the while condition "true".
@@ -6019,7 +6005,6 @@ int AGS::Parser::ParseFor_WhileClause()
 
 int AGS::Parser::ParseFor_IterateClause()
 {
-    _scrip.flush_line_numbers();
     // Check for empty interate clause
     if (kSYM_CloseParenthesis == _sym.GetSymbolType(_src.PeekNext()))
         return 0;
@@ -6063,7 +6048,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     }
 
     // Remember where the code of the while condition starts.
-    AGS::CodeLoc while_cond_loc = _scrip.codesize;
+    AGS::CodeLoc const while_cond_loc = _scrip.codesize;
 
     retval = ParseFor_WhileClause();
     if (retval < 0) return retval;
@@ -6075,7 +6060,8 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     }
 
     // Remember where the code of the iterate clause starts.
-    AGS::CodeLoc iterate_clause_loc = _scrip.codesize;
+    AGS::CodeLoc const iterate_clause_loc = _scrip.codesize;
+    size_t const iterate_clause_lineno = _src.GetLineno();
     size_t pre_fixup_count = _scrip.numfixups;
 
     retval = ParseFor_IterateClause();
@@ -6105,7 +6091,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     // So rip it out of the bytecode base and save it into our nesting stack.
     int id;
     size_t const yank_size = _scrip.codesize - iterate_clause_loc;
-    nesting_stack->YankChunk(_scrip, iterate_clause_loc, pre_fixup_count, id);
+    nesting_stack->YankChunk(iterate_clause_lineno, iterate_clause_loc, pre_fixup_count, id);
     _fcm.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
     _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
 
@@ -6138,10 +6124,9 @@ int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
 
     // Copy the result to the BX register, ready for case statements
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
-    _scrip.flush_line_numbers();
 
     // Remember the start of the lookup table
-    AGS::CodeLoc lookup_table_start = _scrip.codesize;
+    AGS::CodeLoc const lookup_table_start = _scrip.codesize;
 
     _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
     _scrip.write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
@@ -6193,7 +6178,8 @@ int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting
     }
     else // "case"
     {
-        AGS::CodeLoc start_of_code_loc = _scrip.codesize;
+        AGS::CodeLoc const start_of_code_loc = _scrip.codesize;
+        size_t start_of_code_lineno = _src.GetLineno();
         int numfixups_at_start_of_code = _scrip.numfixups;
         // Push the switch variable onto the stack
         _scrip.push_reg(SREG_BX);
@@ -6218,7 +6204,7 @@ int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting
     // rip out the already generated code for the case/switch and store it with the switch
         int id;
         size_t const yank_size = _scrip.codesize - start_of_code_loc;
-        nesting_stack->YankChunk(_scrip, start_of_code_loc, numfixups_at_start_of_code, id);
+        nesting_stack->YankChunk(start_of_code_lineno, start_of_code_loc, numfixups_at_start_of_code, id);
         _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
         _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
     }
@@ -6259,7 +6245,6 @@ int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
     int totalsub = StacksizeOfLocals(loop_level - 1);
     if (totalsub > 0)
         _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-    _scrip.flush_line_numbers();
 
     // The jump out of the loop, below, may be a conditional jump.
     // So clear AX to make sure that the jump is executed.
@@ -6302,23 +6287,16 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
     int totalsub = StacksizeOfLocals(loop_level - 1);
     if (totalsub > 0)
         _scrip.write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-    _scrip.flush_line_numbers();
 
     // if it's a for loop, drop the yanked chunk (loop increment)back in
     if (nesting_stack->ChunksExist(loop_level))
     {
         int id;
         AGS::CodeLoc const write_start = _scrip.codesize;
-        nesting_stack->WriteChunk(_scrip, loop_level, 0, id);
+        nesting_stack->WriteChunk(loop_level, 0, id);
         _fcm.UpdateCallListOnWriting(write_start, id);
         _fim.UpdateCallListOnWriting(write_start, id);
     }
-    _scrip.flush_line_numbers();
-
-    // original comment "The jump below may be a conditional jump."
-    //  [fw] Nooo? Leave it in, anyway, so that we have identical bytecode
-    // original comment "So clear AX to make sure that the jump is executed."
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to the start of the loop
     // The bytecode int with the relative dest is at code[codesize+1]
@@ -6553,7 +6531,7 @@ void AGS::Parser::Parse_StartNewSection(AGS::Symbol mangled_section_name)
 
 int AGS::Parser::ParseInput()
 {
-    AGS::NestingStack nesting_stack;
+    AGS::NestingStack nesting_stack(_scrip);
     size_t nested_level = 0;
 
     AGS::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open

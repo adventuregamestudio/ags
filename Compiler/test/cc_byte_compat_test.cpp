@@ -1139,24 +1139,24 @@ TEST(Bytecode, While) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("While", scrip);
-    const size_t codesize = 111;
+    const size_t codesize = 108;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,   29,    3,    6,    // 7
        2,    0,   24,    3,           29,    3,    6,    3,    // 15
        0,   30,    4,   19,            4,    3,    3,    4,    // 23
-       3,   28,   68,    6,            3,  500,   29,    3,    // 31
+       3,   28,   65,    6,            3,  500,   29,    3,    // 31
        6,    2,    0,   24,            3,   30,    4,   13,    // 39
        4,    3,    3,    4,            3,   29,    3,   51,    // 47
        8,    7,    3,   30,            4,   11,    3,    4,    // 55
        8,    3,    6,    2,            0,   24,    3,    2,    // 63
        3,    1,   26,    3,            6,    2,    0,   24,    // 71
        3,   29,    3,    6,            3,    1,   30,    4,    // 79
-      15,    4,    3,    3,            4,    3,   28,    5,    // 87
-       6,    3,    0,   31,          -86,   31,  -88,   51,    // 95
-       4,    7,    3,    2,            1,    4,   31,    6,    // 103
-       2,    1,    4,    6,            3,    0,    5,  -999
+      15,    4,    3,    3,            4,    3,   28,    2,    // 87
+      31,  -83,   31,  -85,           51,    4,    7,    3,    // 95
+       2,    1,    4,   31,            6,    2,    1,    4,    // 103
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1768,20 +1768,19 @@ TEST(Bytecode, For4) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For4", scrip);
-    const size_t codesize = 74;
+    const size_t codesize = 71;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,   29,    3,   51,    // 7
        4,    7,    3,   29,            3,    6,    3,   10,    // 15
       30,    4,   18,    4,            3,    3,    4,    3,    // 23
-      28,   44,   51,    4,            7,    3,   29,    3,    // 31
+      28,   41,   51,    4,            7,    3,   29,    3,    // 31
        6,    3,    5,   30,            4,   15,    4,    3,    // 39
-       3,    4,    3,   28,           14,   51,    4,    7,    // 47
-       3,    1,    3,    1,            8,    3,    6,    3,    // 55
-       0,   31,  -52,   51,            4,    7,    3,    1,    // 63
-       3,    1,    8,    3,           31,  -63,    2,    1,    // 71
-       4,    5,  -999
+       3,    4,    3,   28,           11,   51,    4,    7,    // 47
+       3,    1,    3,    1,            8,    3,   31,  -49,    // 55
+      51,    4,    7,    3,            1,    3,    1,    8,    // 63
+       3,   31,  -60,    2,            1,    4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1854,7 +1853,7 @@ TEST(Bytecode, For5) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For5", scrip);
-    const size_t codesize = 143;
+    const size_t codesize = 140;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1867,15 +1866,15 @@ TEST(Bytecode, For5) {
       47,    6,    3,    0,           23,    3,   29,    3,    // 55
       51,    4,    7,    3,           29,    3,    6,    3,    // 63
       11,   23,    3,   30,            4,   18,    4,    3,    // 71
-       3,    4,    3,   28,           62,   51,    4,    7,    // 79
+       3,    4,    3,   28,           59,   51,    4,    7,    // 79
        3,   29,    3,    6,            3,    0,   30,    4,    // 87
-      19,    4,    3,    3,            4,    3,   28,   23,    // 95
+      19,    4,    3,    3,            4,    3,   28,   20,    // 95
       51,    4,    7,    3,           29,    3,    6,    3,    // 103
       22,   23,    3,    2,            1,    4,   51,    4,    // 111
-       8,    3,    6,    3,            0,   31,  -63,   51,    // 119
-       4,    7,    3,   29,            3,    6,    3,   22,    // 127
-      23,    3,    2,    1,            4,   51,    4,    8,    // 135
-       3,   31,  -83,    2,            1,    4,    5,  -999
+       8,    3,   31,  -60,           51,    4,    7,    3,    // 119
+      29,    3,    6,    3,           22,   23,    3,    2,    // 127
+       1,    4,   51,    4,            8,    3,   31,  -80,    // 135
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1892,7 +1891,7 @@ TEST(Bytecode, For5) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      51,   64,  104,  127,        -999
+      51,   64,  104,  124,        -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1951,7 +1950,9 @@ TEST(Bytecode, For6) {
     char *inpl = "\
         void main()                     \n\
         {                               \n\
-            for(int i = Start(); i < Check(); i = Cont(i))   \n\
+            for(int i = Start();        \n\
+                i < Check();            \n\
+                i = Cont(i))            \n\
                 if (i >= 0)             \n\
                     continue;           \n\
         }                               \n\
@@ -1975,28 +1976,28 @@ TEST(Bytecode, For6) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For6", scrip);
-    const size_t codesize = 143;
+    const size_t codesize = 140;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    3,           96,   23,    3,   29,    // 7
+      38,    0,    6,    3,           93,   23,    3,   29,    // 7
        3,   51,    4,    7,            3,   29,    3,    6,    // 15
-       3,  107,   23,    3,           30,    4,   18,    4,    // 23
-       3,    3,    4,    3,           28,   62,   51,    4,    // 31
+       3,  104,   23,    3,           30,    4,   18,    4,    // 23
+       3,    3,    4,    3,           28,   59,   51,    4,    // 31
        7,    3,   29,    3,            6,    3,    0,   30,    // 39
        4,   19,    4,    3,            3,    4,    3,   28,    // 47
-      23,   51,    4,    7,            3,   29,    3,    6,    // 55
-       3,  118,   23,    3,            2,    1,    4,   51,    // 63
-       4,    8,    3,    6,            3,    0,   31,  -63,    // 71
-      51,    4,    7,    3,           29,    3,    6,    3,    // 79
-     118,   23,    3,    2,            1,    4,   51,    4,    // 87
-       8,    3,   31,  -83,            2,    1,    4,    5,    // 95
-      38,   96,    6,    3,            1,   31,    3,    6,    // 103
-       3,    0,    5,   38,          107,    6,    3,   10,    // 111
-      31,    3,    6,    3,            0,    5,   38,  118,    // 119
-      51,    8,    7,    3,           29,    3,    6,    3,    // 127
-       1,   30,    4,   11,            4,    3,    3,    4,    // 135
-       3,   31,    3,    6,            3,    0,    5,  -999
+      20,   51,    4,    7,            3,   29,    3,    6,    // 55
+       3,  115,   23,    3,            2,    1,    4,   51,    // 63
+       4,    8,    3,   31,          -60,   51,    4,    7,    // 71
+       3,   29,    3,    6,            3,  115,   23,    3,    // 79
+       2,    1,    4,   51,            4,    8,    3,   31,    // 87
+     -80,    2,    1,    4,            5,   38,   93,    6,    // 95
+       3,    1,   31,    3,            6,    3,    0,    5,    // 103
+      38,  104,    6,    3,           10,   31,    3,    6,    // 111
+       3,    0,    5,   38,          115,   51,    8,    7,    // 119
+       3,   29,    3,    6,            3,    1,   30,    4,    // 127
+      11,    4,    3,    3,            4,    3,   31,    3,    // 135
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2013,7 +2014,7 @@ TEST(Bytecode, For6) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   17,   57,   80,        -999
+       4,   17,   57,   77,        -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -7015,7 +7016,7 @@ TEST(Bytecode, AccessStructAsPointer03)
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    WriteOutput("AccessStructAsPointer03", scrip);
+    // WriteOutput("AccessStructAsPointer03", scrip);
     const size_t codesize = 28;
     EXPECT_EQ(codesize, scrip->codesize);
 

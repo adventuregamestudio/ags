@@ -3,7 +3,6 @@
 
 #include <string>
 #include "script/cc_script.h"   
-
 #include "cs_parser_common.h"   // macro definitions and typedefs
 #include "cc_symboltable.h"     // SymbolTableEntry
 
@@ -15,17 +14,16 @@ struct ccCompiledScript : public ccScript {
         size_t NumOfParams;
         AGS::CodeLoc CodeOffs;
     };
-
-    long codeallocated; // [fw] Misplaced. Should be in ccScript.
-
     std::vector<FuncProps> functions;
 
+    long codeallocated; // [fw] Misplaced. Should be in ccScript.
+    
     // Number of bytes that have been PUSHED onto the stack.
     // Local variables begin below that
     size_t cur_sp; 
 
-    // line number of next code
-    int next_line;  
+    // Line number of next code
+    int lineno_of_next_code;  // if 0, line number doesn't change
 
     // Variable type of value in AX, usually equiv. to type of the current expression
     AGS::Vartype ax_vartype;
@@ -65,15 +63,19 @@ struct ccCompiledScript : public ccScript {
     // Note: This function returns -1 on error
     int add_new_export(std::string const &name, AGS::Exporttype etype, AGS::CodeLoc location, size_t num_of_arguments = 0);
 
-    inline void set_line_number(int nlum) { next_line = nlum; }
-    void flush_line_numbers();
+    inline void set_line_number(int nlum) { lineno_of_next_code = nlum; }
     std::string start_new_section(std::string const &name);
 
+    void flush_lineno();
     void write_code(AGS::CodeCell code);
-    inline void write_cmd0(int cmdd) { write_code(cmdd); };
-    inline void write_cmd1(int cmdd, int param) { write_code(cmdd); write_code(param); };
-    inline void write_cmd2(int cmdd, int param1, int param2) { write_code(cmdd); write_code(param1); write_code(param2); };
-    inline void write_cmd3(int cmdd, int param1, int param2, int param3) { write_code(cmdd); write_code(param1); write_code(param2); write_code(param3); };
+    inline void write_cmd0(AGS::CodeCell cmdd)
+        { flush_lineno(); write_code(cmdd); };
+    inline void write_cmd1(AGS::CodeCell cmdd, AGS::CodeCell param)
+        { flush_lineno();  write_code(cmdd); write_code(param); };
+    inline void write_cmd2(AGS::CodeCell cmdd, AGS::CodeCell param1, AGS::CodeCell param2)
+        { flush_lineno(); write_code(cmdd); write_code(param1); write_code(param2); };
+    inline void write_cmd3(AGS::CodeCell cmdd, AGS::CodeCell param1, AGS::CodeCell param2, AGS::CodeCell param3)
+        { flush_lineno(); write_code(cmdd); write_code(param1); write_code(param2); write_code(param3); };
 
     // write a PUSH command; track in cur_sp the number of bytes pushed to the stack
     void push_reg(AGS::CodeCell regg);
@@ -85,8 +87,6 @@ struct ccCompiledScript : public ccScript {
     // the (relative) destination.It is not the location of the
     // start of the command but the location of its first parameter
     inline static AGS::CodeLoc RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest) { return dest - here - 1; }
-
-
 
     ccCompiledScript();
     virtual ~ccCompiledScript();

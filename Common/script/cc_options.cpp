@@ -26,8 +26,5 @@ void ccSetOption(int optbit, int onoroff)
 
 int ccGetOption(int optbit)
 {
-    if (ccCompOptions & optbit)
-        return 1;
-
-    return 0;
+    return 0 != (ccCompOptions & optbit);
 }

@@ -154,23 +154,22 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     return numexports - 1;
 }
 
-void ccCompiledScript::flush_line_numbers()
+void ccCompiledScript::flush_lineno()
 {
-    if (!next_line)
-        return;
-
-    int linum = next_line;
-    next_line = 0;
-    write_cmd1(SCMD_LINENUM, linum);
+    if (lineno_of_next_code && ccGetOption(SCOPT_LINENUMBERS))
+    {
+        write_code(SCMD_LINENUM);
+        write_code(lineno_of_next_code);
+        lineno_of_next_code = 0;
+    }
 }
 
 void ccCompiledScript::write_code(AGS::CodeCell byy)
 {
-    flush_line_numbers();
     if (codesize >= codeallocated - 2)
     {
         codeallocated += 500;
-        code = static_cast<int32_t *>(realloc(code, codeallocated * sizeof(intptr_t)));
+        code = static_cast<int32_t *>(realloc(code, codeallocated * sizeof(int32_t)));
     }
     code[codesize] = byy;
     codesize++;
@@ -178,7 +177,6 @@ void ccCompiledScript::write_code(AGS::CodeCell byy)
 
 std::string ccCompiledScript::start_new_section(std::string const &name)
 {
-
     if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))
     {
@@ -229,7 +227,7 @@ void ccCompiledScript::init()
     capacitySections = 0;
     sectionNames = NULL;
     sectionOffsets = NULL;
-    next_line = 0;
+    lineno_of_next_code = 0;
     ax_vartype = 0;
     ax_val_scope = 0;
 }

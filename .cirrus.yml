@@ -165,7 +165,9 @@ build_editor_task:
     AGS_DIRECTX_LIB: C:\Lib\DirectX
   nuget_packages_cache:
     folder: Solutions\packages
-    fingerprint_script: type Editor\AGS.Editor\packages.config
+    fingerprint_script:
+      - type Editor\AGS.Editor\packages.config
+      - type Editor\AGS.Editor.Tests\packages.config
     populate_script: nuget restore Solutions\AGS.Editor.Full.sln
   build_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&

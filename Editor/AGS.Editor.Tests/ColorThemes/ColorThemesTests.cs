@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AGS.Editor.Preferences;
 using NSubstitute;
 using NUnit.Framework;
@@ -19,6 +20,18 @@ namespace AGS.Editor
         }
 
         [Test]
+        public void CurrentWillDefaultToDefaultTheme()
+        {
+            Assert.That(_themes.Current.Name, Is.EqualTo(ColorThemeStub.DEFAULT.Name));
+        }
+
+        [Test]
+        public void DefaultThemeWillBeAddedToTheThemeCollection()
+        {
+            Assert.That(_themes.Themes.Any(t => t == ColorThemeStub.DEFAULT), Is.True);
+        }
+
+        [Test]
         public void SettingCurrentToNullWillThrowNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => _themes.Current = null);
@@ -27,8 +40,6 @@ namespace AGS.Editor
         [Test]
         public void SettingCurrentWillUpdateSettings()
         {
-            _themes.Current = ColorThemeStub.DEFAULT;
-
             Assert.That(_settings.ColorTheme, Is.EqualTo(ColorThemeStub.DEFAULT.Name));
             _settings.Received().Save();
         }

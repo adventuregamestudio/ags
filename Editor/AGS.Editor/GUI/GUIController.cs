@@ -799,7 +799,7 @@ namespace AGS.Editor
             {
                 _agsEditor = agsEditor;
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
-                ColorThemes = new ColorThemes(_agsEditor.Settings);
+                ColorThemes = new ColorThemes(_agsEditor, _agsEditor.Settings);
                 _mainForm = new frmMain();
                 SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);

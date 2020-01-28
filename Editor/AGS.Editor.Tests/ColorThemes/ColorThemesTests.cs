@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using AGS.Editor.Preferences;
 using NSubstitute;
@@ -9,14 +10,17 @@ namespace AGS.Editor
     [TestFixture]
     public class ColorThemesTests
     {
+        private IAGSEditorDirectories _agsEditorDirs;
         private IAppSettings _settings;
         private IColorThemes _themes;
 
         [SetUp]
         public void SetUp()
         {
+            _agsEditorDirs = Substitute.For<IAGSEditorDirectories>();
+            _agsEditorDirs.LocalAppData.Returns(Directory.GetCurrentDirectory());
             _settings = Substitute.For<IAppSettings>();
-            _themes = new ColorThemes(_settings);
+            _themes = new ColorThemes(_agsEditorDirs, _settings);
         }
 
         [Test]

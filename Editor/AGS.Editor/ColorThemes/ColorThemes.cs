@@ -9,12 +9,14 @@ namespace AGS.Editor
 {
     public class ColorThemes : IColorThemes
     {
+        private readonly IAGSEditorDirectories _agsEditorDirs;
         private readonly IAppSettings _settings;
         private readonly List<ColorTheme> _themes = new List<ColorTheme>();
         private ColorTheme _current;
 
-        public ColorThemes(IAppSettings settings)
+        public ColorThemes(IAGSEditorDirectories agsEditorDirs, IAppSettings settings)
         {
+            _agsEditorDirs = agsEditorDirs;
             _settings = settings;
             Load();
             Init();
@@ -44,7 +46,7 @@ namespace AGS.Editor
 
         public bool IsCurrentDefault => Current == ColorThemeStub.DEFAULT;
 
-        private static string DiskDir => Path.Combine(Factory.AGSEditor.LocalAppData, "Themes");
+        private string DiskDir => Path.Combine(_agsEditorDirs.LocalAppData, "Themes");
 
         public void Load()
         {

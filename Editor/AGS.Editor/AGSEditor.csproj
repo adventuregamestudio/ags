@@ -188,6 +188,7 @@
       <DependentUpon>ViewChooser.cs</DependentUpon>
     </Compile>
     <Compile Include="Hacks.cs" />
+    <Compile Include="IAGSEditorDirectories.cs" />
     <Compile Include="ImportExport.cs" />
     <Compile Include="GUI\NumberEntryDialog.cs">
       <SubType>Form</SubType>

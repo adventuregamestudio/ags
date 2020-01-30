@@ -178,6 +178,16 @@ build_editor_task:
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\8.0\Lib\Win8\um\x86;!LIB!" &&
     msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
+  test_script: |
+    curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
+    pushd Solutions\packages\NUnit.ConsoleRunner.3.*
+    set RUNNER="%CD%\tools\nunit3-console.exe"
+    popd
+    cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\%BUILD_CONFIG%\AGS.Editor.Tests.dll --x86 --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+  test_result_artifacts:
+    path: TestResult-junit.xml
+    type: text/xml
+    format: junit
   ags_editor_pdb_artifacts:
     path: Solutions/.build/*/*.pdb
   ags_native_pdb_artifacts:

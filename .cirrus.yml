@@ -184,10 +184,11 @@ build_editor_task:
     set RUNNER="%CD%\tools\nunit3-console.exe"
     popd
     cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\%BUILD_CONFIG%\AGS.Editor.Tests.dll --x86 --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
-  test_result_artifacts:
-    path: TestResult-junit.xml
-    type: text/xml
-    format: junit
+  always:
+    test_result_artifacts:
+      path: TestResult-junit.xml
+      type: text/xml
+      format: junit
   ags_editor_pdb_artifacts:
     path: Solutions/.build/*/*.pdb
   ags_native_pdb_artifacts:

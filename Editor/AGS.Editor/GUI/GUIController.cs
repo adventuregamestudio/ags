@@ -136,7 +136,7 @@ namespace AGS.Editor
             get { return _mainForm.Icon; }
         }
 
-        public ColorThemes ColorThemes { get; private set; }
+        public IColorThemes ColorThemes { get; private set; }
 
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{
@@ -799,7 +799,7 @@ namespace AGS.Editor
             {
                 _agsEditor = agsEditor;
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
-                ColorThemes = new ColorThemes();
+                ColorThemes = new ColorThemes(_agsEditor, _agsEditor.Settings);
                 _mainForm = new frmMain();
                 SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);

@@ -16,7 +16,7 @@ using System.Net;
 
 namespace AGS.Editor
 {
-    public class AGSEditor : ISourceControlIntegration
+    public class AGSEditor : IAGSEditorDirectories, ISourceControlIntegration
     {
         public event GetScriptHeaderListHandler GetScriptHeaderList;
         public event GetScriptModuleListHandler GetScriptModuleList;

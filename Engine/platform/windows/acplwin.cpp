@@ -812,8 +812,12 @@ void AGSWin32::RestoreWindowStyle()
   SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP)/* | WS_OVERLAPPEDWINDOW*/);
   // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
   // cannot be removed with style altering functions; here use SetWindowPos
-  // as a workaround
-  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  // with HWND_NOTOPMOST as a workaround.
+  SetWindowPos(allegro_wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+  // But then we also have to do second "hack" and call SetWindowPos with HWND_TOP,
+  // otherwise window may hide, causing inconvenience in case we are releasing
+  // gfx mode before displaying a system message box.
+  SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {

@@ -301,11 +301,8 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
     if (dm.Windowed)
     {
         // If windowed mode, make the resolution stay in the generally supported limits
-        if (Size(dm.Width, dm.Height).ExceedsByAny(device_size))
-        {
-            dm_compat.Width = device_size.Width;
-            dm_compat.Height = device_size.Height;
-        }
+        dm_compat.Width = Math::Min(dm_compat.Width, device_size.Width);
+        dm_compat.Height = Math::Min(dm_compat.Height, device_size.Height);
     }
     // Fullscreen mode
     else

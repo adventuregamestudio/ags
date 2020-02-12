@@ -155,11 +155,12 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, const Size &wanted_s
     int nearest_height = 0;
     int nearest_width_diff = 0;
     int nearest_height_diff = 0;
+    DisplayMode nearest_mode;
     int nearest_mode_index = -1;
     int mode_count = modes.GetModeCount();
-    DisplayMode mode;
     for (int i = 0; i < mode_count; ++i)
     {
+        DisplayMode mode;
         if (!modes.GetMode(i, mode))
         {
             continue;
@@ -199,13 +200,14 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, const Size &wanted_s
             nearest_width_diff = diff_w;
             nearest_height = mode.Height;
             nearest_height_diff = diff_h;
+            nearest_mode = mode;
             nearest_mode_index = i;
         }
     }
 
     if (nearest_width > 0 && nearest_height > 0)
     {
-        dm = mode;
+        dm = nearest_mode;
         if (mode_index)
             *mode_index = nearest_mode_index;
         return true;

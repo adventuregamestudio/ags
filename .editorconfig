@@ -1,0 +1,22 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+root = true
+
+# Any files
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# code files
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# C++ and C code files
+[{*.{cpp,c,h,hpp}}]
+indent_style = space
+indent_size = 4
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false

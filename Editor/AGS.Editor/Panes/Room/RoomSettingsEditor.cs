@@ -37,6 +37,8 @@ namespace AGS.Editor
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
+        private bool _mouseIsPanningDown = false;
+        private Point _panGrabPoint;
 
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;
@@ -597,13 +599,28 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
+            // defines the shortcut for click pan
+            if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Control)
+            {
+                _mouseIsPanningDown = true;
+                _panGrabPoint = e.Location;
+                return;
+            }
+	
             if (_layer != null && !IsLocked(_layer))
                 _layer.MouseDown(e, _state);
             _mouseIsDown = true;
-		}
+        }
 
         private void bufferedPanel1_MouseUp(object sender, MouseEventArgs e)
         {
+            if (_mouseIsPanningDown)
+            {
+                _panGrabPoint = Point.Empty;
+                _mouseIsPanningDown = false;
+                Cursor = Cursors.Default;
+            }
+	
             if (_mouseIsDown)
             {
                 bool handled = false;
@@ -661,6 +678,19 @@ namespace AGS.Editor
                 yPosText = "?";
             }
             lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
+
+            if (_mouseIsPanningDown)
+            {
+                Cursor = Cursors.Hand; // We need a better hand cursor, using the "link" hand for now
+
+                Point scrollPosition = bufferedPanel1.AutoScrollPosition;
+                scrollPosition.X = _panGrabPoint.X - e.X - scrollPosition.X;
+                scrollPosition.Y = _panGrabPoint.Y - e.Y - scrollPosition.Y;
+                bufferedPanel1.AutoScrollPosition = scrollPosition;
+                bufferedPanel1.Update(); // this prevents the room image to look garbled when panning
+                _panGrabPoint = e.Location; // <- without this the pan doesn't work
+                return;
+            }
 
             SelectCursor(e.X, e.Y, _state);
             if (_layer != null && !IsLocked(_layer))

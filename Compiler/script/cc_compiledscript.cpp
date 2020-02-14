@@ -7,6 +7,12 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
+void ccCompiledScript::write_lineno(size_t lno)
+{
+    write_cmd(SCMD_LINENUM, lno);
+    last_emitted_lineno = lno;
+}
+
 void ccCompiledScript::push_reg(AGS::CodeCell regg)
 {
     write_cmd(SCMD_PUSHREG, regg);
@@ -217,7 +223,7 @@ void ccCompiledScript::init()
     capacitySections = 0;
     sectionNames = NULL;
     sectionOffsets = NULL;
-    lineno_of_next_code = 0;
+    last_emitted_lineno = 0;
     ax_vartype = 0;
     ax_val_scope = 0;
 }

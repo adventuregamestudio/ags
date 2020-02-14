@@ -39,6 +39,7 @@ AGSString cc_error_without_line(const char *error_msg)
 
 ccCompiledScript *newScriptFixture() {
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, 0);
+    ccSetOption(SCOPT_LINENUMBERS, false);
     ccCompiledScript *scrip = new ccCompiledScript();
     scrip->init();
     return scrip;

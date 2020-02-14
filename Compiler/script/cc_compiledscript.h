@@ -22,8 +22,7 @@ struct ccCompiledScript : public ccScript {
     // Local variables begin below that
     size_t cur_sp; 
 
-    // Line number of next code
-    int lineno_of_next_code;  // if 0, line number doesn't change
+    int last_emitted_lineno;  
 
     // Variable type of value in AX, usually equiv. to type of the current expression
     AGS::Vartype ax_vartype;
@@ -66,7 +65,10 @@ struct ccCompiledScript : public ccScript {
     // Start a new section of the code.
     std::string start_new_section(std::string const &name);
 
+    // Write one Bytecode byte    
     void write_code(AGS::CodeCell code);
+
+    // Write a command
     inline void write_cmd(AGS::CodeCell op)
         { write_code(op); };
     inline void write_cmd(AGS::CodeCell op, AGS::CodeCell p1)
@@ -75,6 +77,10 @@ struct ccCompiledScript : public ccScript {
         { write_code(op); write_code(p1); write_code(p2); };
     inline void write_cmd(AGS::CodeCell op, AGS::CodeCell p1, AGS::CodeCell p2, AGS::CodeCell p3)
         { write_code(op); write_code(p1); write_code(p2); write_code(p3); };
+    // Write pseudo command that couples this point of the Bytecode
+    // with the source code line lno
+    void write_lineno(size_t lno);
+
 
     // write a PUSH command; track in cur_sp the number of bytes pushed to the stack
     void push_reg(AGS::CodeCell regg);

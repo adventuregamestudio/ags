@@ -277,7 +277,7 @@ public:
     };
 
     // This indicates where a value is stored.
-    // When reading, we need the value itself (but see below for arrays and structs)
+    // When reading, we need the value itself.
     // - It can be in AX (kVL_ax_is_value)
     // - or in m(MAR) (kVL_mar_pointsto_value).
     // When writing, we need a pointer to the adress that has to be modified.
@@ -331,6 +331,52 @@ public:
     typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
 
 private:
+    // Remembers a code generation point. If at some later time, Restore() is called,
+    // then all code that has been generated in the meantime is discarded.
+    // Currently only undoes the bytecode.
+    class RestorePoint
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        CodeLoc _restoreLoc;
+        size_t  _lastEmittedSrcLineno;
+    public:
+        RestorePoint(::ccCompiledScript &scrip);
+        void Restore();
+        inline bool IsEmpty() { return _scrip.codesize == _restoreLoc; }
+    };
+
+    // Remembers a point that is going to be the target of a backward jump.
+    // When at some later time, WriteJump() is called, then the appropriate
+    // instruction(s) for a backward jump are generated. This may entail a
+    // SCMD_LINENUM command, this may make the last emitted src line invalid.
+    class BackwardJumpDest
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        CodeLoc _dest;
+        size_t  _lastEmittedSrcLineno;
+    public:
+        BackwardJumpDest(::ccCompiledScript &scrip);
+        // Write a jump to the code location that I represent
+        void WriteJump(CodeCell jump_op, size_t cur_line);
+    };
+
+    // The location of the parameter of a forward jump. When at some later time,
+    // Patch() is called, then the jump will be patched to point at the current
+    // point in code; if appropriate, the last emitted strc line will be invalidated.
+    class ForwardJumpParam
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        CodeLoc _jumpDestParamLoc;
+        size_t  _lastEmittedSrcLineno;
+        bool _invalidateLastEmitted;
+    public:
+        ForwardJumpParam(::ccCompiledScript &scrip, bool invalidate_last_emitted, int offset = -1);
+        void Patch(size_t cur_line);
+    };
+
     // Measurements show that the checks whether imports already exist take up
     // considerable time. The Import Manager speeds this up by caching the lookups.
     class ImportMgr
@@ -356,7 +402,8 @@ private:
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
     // Only a global import may have a repeated identical definition.
-    // Only a global import may be re-defined as a global non-import (identical except for the "import" declarator),
+    // Only a global import may be re-defined as a global non-import
+    //    (that must be identical except for the "import" declarator),
     //    and this may only happen if the options don't forbid this.
     TGIVM _givm; // Global Import Variable Manager
 
@@ -379,8 +426,8 @@ private:
     // The "Callpoint" of such a function is the index in the import table.
     FuncCallpointMgr _fim; // i for import
 
-    // Track current section ID
-    size_t _currentsectionid;
+    size_t _lastEmittedSectionId;
+    size_t _lastEmittedLineno;
 
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
@@ -395,6 +442,7 @@ private:
     static int String2Int(std::string str, int &val, bool send_error);
 
     bool IsIdentifier(Symbol symb);
+
     inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
 
     void SetDynpointerInManagedVartype(Vartype &vartype);
@@ -445,10 +493,13 @@ private:
 
     int RemoveLocalsFromSymtable(int from_level);
 
+    // Handle the end of a compound statement (except for DO...WHILE or SWITCH statement)
     int DealWithEndOfElse(NestingStack *nesting_stack, bool &else_after_then);
 
+    // Handle the end of a DO...WHILE statement
     int DealWithEndOfDo(NestingStack *nesting_stack);
 
+    // Handle the end of a SWITCH statement
     int DealWithEndOfSwitch(NestingStack *nesting_stack);
 
     int ParseLiteralOrConstvalue(Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg);
@@ -466,7 +517,7 @@ private:
     int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
 
     // Extender function, eg. function GoAway(this Character *someone)
-    // We've just accepted something like "int func(", we expect "this" --OR-- "static"
+    // We've just accepted something like "int func("
     // We'll accept something like "this Character *" --OR-- "static Character"
     int ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &name_of_func, Symbol &struct_of_func);
 
@@ -855,6 +906,22 @@ private:
         { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2, p3); }
+
+
+    /*
+    Bedingter oder Unbedingter Sprung nach vorn
+Ich setze einen Sprungbefehl zum Ziel, der gepatcht werden muss, und merke mir, was zurzeit der Inhalt von last_emitted ist. Sei L1
+Wenn ich das Ziel erreicht habe, dann vermerke ich, dass die aktuelle Zeile nicht nur mit last_emitted, sondern auch mit L1 verglichen werden muss. Sind nicht alle allesamt identisch, setze ich last_emitted auf INT_MAX.
+
+Bedingter oder Unbedingter Sprung zurück.
+Als ich mir das Sprungziel gemerkt habe, habe ich mir auch gemerkt, was damals last_emitted ist. Sei L1. 
+Jetzt kann ich feststellen, ob am Sprungziel ein Line-Befehl steht, wenn ja, bin ich fertig.
+Wenn mein jetziges last_emitted != L1, schreibe ich "line L1" und setze last_emitted auf L1.
+Jetzt schreibe ich den Sprung. 
+    void ForwardJumpDest(label, last_emitted);
+    void ForwardJump(label, last_emitted);
+    void BackwardJumpDest(last_emitted);
+    void BackwardJump(last_emitted); */
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 

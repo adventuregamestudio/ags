@@ -310,19 +310,17 @@ void AGS::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS:
     // Cut out the code that has been pushed
     _scrip.codesize = codeoffset;
     _scrip.numfixups = fixupoffset;
+
 }
 
 // Copy the code in the chunk to the end of the bytecode vector 
 void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
 {
-    // Directly use _scrip.write_cmd() in here, we do NOT want the line
-    // that the current _src cursor points to
     Chunk const item = Chunks(level).at(index);
     id = item.Id;
 
-    currentline = item.SrcLine;
     if (ccGetOption(SCOPT_LINENUMBERS))
-        _scrip.write_cmd(SCMD_LINENUM, item.SrcLine);
+        _scrip.write_lineno(item.SrcLine);
 
     CodeLoc const adjust = _scrip.codesize - item.CodeOffset;
 
@@ -333,6 +331,10 @@ void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
     limit = item.Fixups.size();
     for (size_t index = 0; index < limit; index++)
         _scrip.add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
+
+    // Make the last emitted source line number invalid so that the next command will
+    // generate a line number opcode first
+    _scrip.last_emitted_lineno = INT_MAX;
 }
 
 AGS::FuncCallpointMgr::FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip)
@@ -484,6 +486,55 @@ AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
     : Callpoint(-1)
 { }
 
+AGS::Parser::RestorePoint::RestorePoint(::ccCompiledScript &scrip)
+    : _scrip(scrip)
+{
+    _restoreLoc = _scrip.codesize;
+    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+}
+
+void AGS::Parser::RestorePoint::Restore()
+{
+    _scrip.codesize = _restoreLoc;
+    _scrip.last_emitted_lineno = _lastEmittedSrcLineno;
+}
+
+AGS::Parser::BackwardJumpDest::BackwardJumpDest(::ccCompiledScript &scrip)
+    : _scrip(scrip)
+{
+    _dest = _scrip.codesize;
+    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+}
+
+void AGS::Parser::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
+{
+    if (SCMD_LINENUM != _scrip.code[_dest] &&
+        _scrip.last_emitted_lineno != _lastEmittedSrcLineno)
+    {
+        _scrip.write_lineno(cur_line);
+    }
+    _scrip.write_cmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
+}
+
+AGS::Parser::ForwardJumpParam::ForwardJumpParam(::ccCompiledScript &scrip, bool invalidate_last_emitted, int offset)
+    : _scrip(scrip)
+    , _invalidateLastEmitted(invalidate_last_emitted)
+{
+    _jumpDestParamLoc = _scrip.codesize + offset;
+    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+}
+
+void AGS::Parser::ForwardJumpParam::Patch(size_t cur_line)
+{
+    if (_invalidateLastEmitted)
+        _scrip.last_emitted_lineno = INT_MAX;
+    if (cur_line != _scrip.last_emitted_lineno ||
+        cur_line != _lastEmittedSrcLineno)
+        _scrip.last_emitted_lineno = INT_MAX;
+    _scrip.code[_jumpDestParamLoc] =
+        _scrip.RelativeJumpDist(_jumpDestParamLoc, _scrip.codesize);
+}
+
 AGS::Parser::ImportMgr::ImportMgr()
     : _scrip(nullptr)
 {
@@ -634,11 +685,11 @@ int AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, b
     clobbers_ax = true;
     WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
 
-    AGS::CodeLoc const loop_start = _scrip.codesize;
+    BackwardJumpDest loop_start(_scrip);
     WriteCmd(SCMD_MEMZEROPTR);
     WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
     WriteCmd(SCMD_SUB, SREG_AX, 1);
-    WriteCmd(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
     return 0;
 }
 
@@ -695,7 +746,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     // AX will be the index of the current element
     WriteCmd(SCMD_LITTOREG, SREG_AX, entry.NumArrayElements(_sym));
 
-    AGS::CodeLoc const loop_start = _scrip.codesize;
+    BackwardJumpDest loop_start(_scrip);
     _scrip.push_reg(SREG_MAR);
     _scrip.push_reg(SREG_AX); // FreeDynpointersOfStruct might call funcs that clobber AX
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
@@ -703,7 +754,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
     _scrip.pop_reg(SREG_MAR);
     WriteCmd(SCMD_ADD, SREG_MAR, _sym.GetSize(struct_vtype));
     WriteCmd(SCMD_SUB, SREG_AX, 1);
-    WriteCmd(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
     return;
 }
 
@@ -791,19 +842,18 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
         // now free the dynamic references and we don't take precautions,
         // this dynamic memory will get killed so our AX value is useless.
         // We only need these precautions if there are local dynamic objects.
-        AGS::CodeLoc const codesize_before_precautions = _scrip.codesize;
-
+        RestorePoint rp_before_precautions(_scrip);
+        
         // Allocate a local dynamic pointer to hold the return value.
         _scrip.push_reg(SREG_AX);
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
         WriteCmd(SCMD_MEMINITPTR, SREG_AX);
 
-        AGS::CodeLoc const codesize_before_freeing = _scrip.codesize;
+        RestorePoint rp_before_freeing(_scrip);
         bool dummy_bool;
         bool mar_may_be_clobbered = false;
         FreeDynpointersOfLocals0(from_level, dummy_bool, mar_may_be_clobbered);
-        bool const no_precautions_were_necessary =
-            (codesize_before_freeing == _scrip.codesize);
+        bool const no_precautions_were_necessary = rp_before_freeing.IsEmpty();
 
         // Now release the dynamic pointer with a special opcode that prevents 
         // memory de-allocation as long as AX still has this pointer, too
@@ -813,11 +863,11 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
         WriteCmd(SCMD_MEMZEROPTRND); // special opcode
         _scrip.pop_reg(SREG_BX); // do NOT pop AX here
         if (no_precautions_were_necessary)
-            _scrip.codesize = codesize_before_precautions; // rip out unneeded code
+            rp_before_precautions.Restore();
         return 0;
     }
 
-    size_t const codesize_before = _scrip.codesize;
+    RestorePoint rp_before_free(_scrip);
     bool clobbers_ax = false;
     bool dummy_bool;
     FreeDynpointersOfLocals0(from_level, clobbers_ax, dummy_bool);
@@ -825,7 +875,7 @@ int AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_cur
         return 0;
     // Oops. AX was carrying our return value and shouldn't have been clobbered.
     // So we have to redo this and this time save AX before freeing.
-    _scrip.codesize = codesize_before;
+    rp_before_free.Restore();
     _scrip.push_reg(SREG_AX);
     FreeDynpointersOfLocals0(from_level, clobbers_ax, dummy_bool);
     _scrip.pop_reg(SREG_AX);
@@ -2275,11 +2325,10 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
     WriteCmd(
         (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
         -77);
-    CodeLoc const test_jumpdest_to_patch = _scrip.codesize - 1;
+    ForwardJumpParam test_jumpdest(_scrip, false);
 
     // Second term of ternary
     bool const second_term_exists = (term2list_len > 0);
-    CodeLoc jumpdest_after_term2_to_patch = 0;
     if (second_term_exists)
     {
         ParseExpression_Subexpr(term2list, term2list_len, vloc, scope, term2_vartype);
@@ -2294,7 +2343,6 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
         // We don't know the dest yet, thus the placeholder value -77. Don't
         // test for this random magic number or use it in code
         WriteCmd(SCMD_JMP, -77);
-        jumpdest_after_term2_to_patch = _scrip.codesize - 1;
     }
     else
     {
@@ -2309,7 +2357,7 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
             term2_vartype = _scrip.ax_vartype;
         }
     }
-    
+    ForwardJumpParam jumpdest_after_term2(_scrip, false); // only valid if second_term_exists
 
     // Third term of ternary
     if (0 == term3list_len)
@@ -2318,8 +2366,7 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
         return -1;
     }
     if (second_term_exists)
-        _scrip.code[test_jumpdest_to_patch] =
-        ccCompiledScript::RelativeJumpDist(test_jumpdest_to_patch, _scrip.codesize);
+        test_jumpdest.Patch(_src.GetLineno());
 
     ParseExpression_Subexpr(term3list, term3list_len, vloc, term3_scope, term3_vartype);
     if (retval < 0) return retval;
@@ -2331,11 +2378,9 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
     }
 
     if (second_term_exists)
-        _scrip.code[jumpdest_after_term2_to_patch] =
-            ccCompiledScript::RelativeJumpDist(jumpdest_after_term2_to_patch, _scrip.codesize);
+        jumpdest_after_term2.Patch(_src.GetLineno());
     else
-        _scrip.code[test_jumpdest_to_patch] =
-            ccCompiledScript::RelativeJumpDist(test_jumpdest_to_patch, _scrip.codesize);
+        test_jumpdest.Patch(_src.GetLineno());
 
     scope =
         (kSYM_LocalVar == term2_scope || kSYM_LocalVar == term3_scope) ?
@@ -2397,7 +2442,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         return -1;
     }
 
-    AGS::CodeLoc jump_dest_loc_to_patch = -1;
+    ForwardJumpParam *to_exit = nullptr;
     if (vcpuOperator == SCMD_AND)
     {
         // "&&" operator lazy evaluation ... 
@@ -2406,7 +2451,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         // AX will still be 0 so that will do as the result of the calculation
         WriteCmd(SCMD_JZ, 0);
         // We don't know the end of the instruction yet, so remember the location we need to patch
-        jump_dest_loc_to_patch = _scrip.codesize - 1;
+        to_exit = new ForwardJumpParam{ _scrip, false };
     }
     else if (vcpuOperator == SCMD_OR)
     {
@@ -2416,7 +2461,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         // AX will still be non-zero so that will do as the result of the calculation
         WriteCmd(SCMD_JNZ, 0);
         // We don't know the end of the instruction yet, so remember the location we need to patch
-        jump_dest_loc_to_patch = _scrip.codesize - 1;
+        to_exit = new ForwardJumpParam{ _scrip, false };
     }
 
     _scrip.push_reg(SREG_AX);
@@ -2438,10 +2483,10 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     vloc = kVL_ax_is_value;
 
-    if (jump_dest_loc_to_patch >= 0)
+    if (to_exit)
     {
-        _scrip.code[jump_dest_loc_to_patch] =
-            ccCompiledScript::RelativeJumpDist(jump_dest_loc_to_patch, _scrip.codesize);
+        to_exit->Patch(_src.GetLineno());
+        delete to_exit;
     }
 
     // Operators like == return a bool (in our case, that's an int);
@@ -6385,26 +6430,27 @@ int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_f
 
 void AGS::Parser::HandleSrcLineChange()
 {
-    size_t const src_lineno = _src.GetLineno();
-    if (src_lineno == currentline)
+    if (kPP_Main != _pp)
         return;
 
-    currentline = src_lineno;
-    if (kPP_Main == _pp && ccGetOption(SCOPT_LINENUMBERS))
-        _scrip.write_cmd(SCMD_LINENUM, src_lineno);
+    size_t const src_lineno = _src.GetLineno();
+    if (src_lineno == _scrip.last_emitted_lineno)
+        return;
+
+    if (ccGetOption(SCOPT_LINENUMBERS))
+        _scrip.write_lineno(src_lineno);
 }
 
 void AGS::Parser::HandleSrcSectionChange()
 {
     size_t const src_section_id = _src.GetSectionId();
-    if (src_section_id == _currentsectionid)
+    if (src_section_id == _lastEmittedSectionId)
         return;
 
-    _currentsectionid = src_section_id;
-    std::string const _scriptNameBuffer = _src.Id2Section(src_section_id);
-    ccCurScriptName = _scriptNameBuffer.c_str();
+    std::string const script_name = _src.Id2Section(src_section_id);
     if (kPP_Main == _pp)
-        _scrip.start_new_section(_scriptNameBuffer.c_str());
+        _scrip.start_new_section(script_name.c_str());
+    _lastEmittedSectionId = src_section_id;
 }
 
 int AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
@@ -6541,8 +6587,6 @@ int AGS::Parser::ParseInput()
 
     // Go through the list of tokens one by one. We start off in the global data
     // part - no code is allowed until a function definition is started
-    currentline = 1; // This is an externally referenced, global variable. cc_internallist.cpp, cs_internallist_test.cpp, cs_parser.cpp
-    int currentlinewas = 0;
 
     // This collects the qualifiers ("static" etc.);
     // it is reset whenever the qualifiers are used.
@@ -6551,11 +6595,10 @@ int AGS::Parser::ParseInput()
 
     while (!_src.ReachedEOF())
     {
-        Symbol const cursym = _src.GetNext();
-
         HandleSrcSectionChange();
-        HandleSrcLineChange();
+        currentline = _src.GetLineno(); // only for debugging purposes.
 
+        Symbol const cursym = _src.GetNext();
         switch (_sym.GetSymbolType(cursym))
         {
 
@@ -6842,3 +6885,4 @@ int cc_compile(char const *inpl, ccCompiledScript *scrip)
 
     return cc_parse(&src, scrip, &sym);
 }
+

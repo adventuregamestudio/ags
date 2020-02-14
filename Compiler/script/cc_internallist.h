@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #include "cs_parser_common.h"
 
@@ -89,9 +90,11 @@ public:
     // Note that when this is a sub-list of an original list, the line numbers
     // will still be relative to the original list. This is intentional.
     inline size_t GetLineno(size_t idx) { return _lineHandler.GetLineAt(idx + _offset); }
-    inline size_t GetLineno() { return _lineHandler.GetLineAt(_cursor); }
     inline size_t GetSectionId(size_t idx) { return _lineHandler.GetSectionIdAt(idx + _offset); }
-    inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(_cursor); }
+    // Note: The cursor points at the symbol that will be read next, but we need the data
+    // of the symbol that has just been read. That's the symbol in front of the cursor.
+    inline size_t GetLineno() { return _lineHandler.GetLineAt(std::max(1u, _cursor) - 1); }
+    inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(std::max(1u, _cursor) - 1); }
 
     inline int Section2Id(std::string const &section) { return _lineHandler.Section2Id(section); }
     inline std::string const Id2Section(int id) const { return _lineHandler.Id2Section(id); }

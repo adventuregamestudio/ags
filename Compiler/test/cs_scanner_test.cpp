@@ -402,7 +402,7 @@ TEST_F(Scan, SectionChange)
 
     // ((Section change)) ;
     ASSERT_FALSE(token_list.ReachedEOF());
-    ASSERT_EQ(0, token_list.GetLineno());
+    ASSERT_EQ(2, token_list.GetLineno());
     s = token_list.GetNext();
 }
 

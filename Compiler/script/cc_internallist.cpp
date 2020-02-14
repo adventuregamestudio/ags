@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include "cc_internallist.h"
 
-extern int currentline;  // in script_common
+// TODO Throw me away as soon as internallist has died!
+static int currentline;  
 
 AGS::LineHandler::SectionMap::SectionMap()
     : _cacheSection("")
@@ -108,7 +109,6 @@ AGS::Symbol AGS::SrcList::GetNext()
     Symbol const p = PeekNext();
     if (!ReachedEOF())
         _cursor++;
-    currentline = GetLineno();
     return p;
 }
 

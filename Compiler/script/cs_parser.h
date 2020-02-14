@@ -53,212 +53,8 @@ and has the following key components (amongst many other components):
 namespace AGS
 {
 
-// The stack of nesting statements 
-class NestingStack
-{
-private:
-    static int _chunkIdCtr; // for assigning unique IDs to chunks
-
-    // A section of compiled code that needs to be moved or copied to a new location
-    struct Chunk
-    {
-        std::vector<CodeCell> Code;
-        std::vector<CodeLoc> Fixups;
-        std::vector<char> FixupTypes;
-        int CodeOffset;
-        int FixupOffset;
-        size_t SrcLine;
-        int Id;
-    };
-
-    // All data that is associated with a nesting level
-    struct NestingInfo
-    {
-        int Type; // Type of the level, see AGS::NestingStack::NestingType
-        CodeLoc StartLoc; // Index of the first byte generated for the level
-        CodeLoc Info; // Various uses that differ by nesting type
-        CodeLoc DefaultLabelLoc; // Location of default label
-        std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
-    };
-
-    std::vector<NestingInfo> _stack;
-    ::ccCompiledScript &_scrip;
-
-public:
-    enum NestingType
-    {
-        kNT_Nothing = 0,  // {...} in the code without a particular purpose
-        kNT_Function,     // A function
-        kNT_BracedThen,   // THEN clause with braces
-        kNT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
-        kNT_BracedElse,   // ELSE/inner FOR/WHILE clause with braces
-        kNT_UnbracedElse, // ELSE/inner FOR/WHILE clause without braces
-        kNT_BracedDo,     // DO clause with braces
-        kNT_UnbracedDo,   // DO clause without braces 
-        kNT_For,          // Outer FOR clause
-        kNT_Switch,       // SWITCH clause
-        kNT_Struct,       // Struct defn
-    };
-
-    NestingStack(::ccCompiledScript &scrip);
-
-    // Depth of the nesting == index of the innermost nesting level
-    inline size_t Depth() const { return _stack.size(); };
-
-    // Type of the innermost nesting
-    inline NestingType Type() { return static_cast<NestingType>(_stack.back().Type); };
-    inline void SetType(NestingType nt) { _stack.back().Type = nt; };
-    // Type of the nesting at the given nesting level
-    inline NestingType Type(size_t level) { return static_cast<NestingType>(_stack.at(level).Type); };
-
-    // If the innermost nesting is a loop that has a jump back to the start,
-    // then this gives the location to jump to; otherwise, it is 0
-    inline CodeLoc StartLoc() { return _stack.back().StartLoc; };
-    inline void SetStartLoc(CodeLoc start) { _stack.back().StartLoc = start; };
-    // If the nesting at the given level has a jump back to the start,
-    // then this gives the location to jump to; otherwise, it is 0
-    inline CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
-
-    // If the innermost nesting features a jump out instruction, 
-    // then this is the location of the bytecode symbol that says where to jump
-    inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
-    inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
-    // If the nesting at the given level features a jump out, then this is the location of it
-    inline CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
-
-    // If the innermost nesting is a SWITCH, the type of the switch expression
-    int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
-    inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
-
-    // If the innermost nesting is a SWITCH, the location of the "default:" label
-    inline CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
-    inline void SetDefaultLabelLoc(CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
-
-    // If the innermost nesting contains code chunks that must be moved around
-    // (e.g., in FOR loops), then this is true, else false
-    inline bool ChunksExist() { return !_stack.back().Chunks.empty(); }
-    inline bool ChunksExist(size_t level) { return !_stack.at(level).Chunks.empty(); }
-
-    // Code chunks that must be moved around (e.g., in FOR, DO loops)
-    inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
-    inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
-
-    // True iff the innermost nesting is unbraced
-    inline bool IsUnbraced()
-    {
-        NestingType const nt = Type();
-        return (nt == kNT_UnbracedThen) || (nt == kNT_UnbracedElse) || (nt == kNT_UnbracedDo);
-    }
-
-    // Push a new nesting level (returns a  value < 0 on error)
-    int Push(NestingType type, CodeLoc start, CodeLoc info);
-    inline int Push(NestingType type) { return Push(type, 0, 0); };
-
-    // Pop a nesting level
-    inline void Pop() { _stack.pop_back(); };
-
-    // Rip a generated chunk of code out of the codebase and stash it away for later 
-    // Returns the unique ID of this code in id
-    void YankChunk(size_t src_line, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
-
-    // Write chunk of code back into the codebase that has been stashed in level given, at index
-    void WriteChunk(size_t level, size_t index, int &id);
-    // Write chunk of code back into the codebase stashed in the innermost level, at index
-    inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
-};
-
-class FuncCallpointMgr
-{
-private:
-    int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
-    int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
-
-    SymbolTable &_sym;
-    ::ccCompiledScript &_scrip;
-
-    struct PatchInfo
-    {
-        int ChunkId;
-        AGS::CodeLoc Offset;
-    };
-    typedef std::vector<PatchInfo> PatchList;
-
-    struct CallpointInfo
-    {
-        CodeLoc Callpoint;
-        PatchList List;
-        CallpointInfo();
-    };
-
-    typedef std::map<Symbol, CallpointInfo> CallMap;
-    CallMap _funcCallpointMap;
-
-public:
-    FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip);
-    void Reset();
-
-    // Enter a code location where a function is called that hasn't been defined yet.
-    int TrackForwardDeclFuncCall(Symbol func, CodeLoc idx);
-
-    // Enter a code location to jump to in order to end a function
-    int TrackExitJumppoint(Symbol func, CodeLoc idx);
-
-    // When code is ripped out of the codebase: 
-    // Update list of calls to forward declared functions 
-    int UpdateCallListOnYanking(CodeLoc start, size_t len, int id);
-
-    // When code is inserted into the codebase:
-    // Update list of calls to forward declared functions
-    int UpdateCallListOnWriting(CodeLoc start, int id);
-
-    // Set the callpoint for a function. 
-    // Patch all the function calls of the given function to point to dest
-    int SetFuncCallpoint(Symbol func, CodeLoc dest);
-
-    // Set the exit point of a function.
-    // Patch this address into all the jumps to exit points.
-    int SetFuncExitJumppoint(Symbol func, CodeLoc dest);
-
-    inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
-
-    inline bool IsForwardDecl(Symbol func) { return (0 == _funcCallpointMap.count(func)); }
-
-    // Gives an error message and returns a value < 0 iff there are still callpoints
-    // without a location
-    int CheckForUnresolvedFuncs();
-};
-
 typedef long TypeQualifierSet;
 
-
-// We set the MAR register lazily to save on runtime computation. This object
-// encapsulates the stashed operations that haven't been done on MAR yet.
-class MemoryLocation
-{
-private:
-    SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
-    size_t _StartOffs;
-    size_t _ComponentOffs;
-
-public:
-    MemoryLocation()
-        : _Type(kSYM_NoType)
-        , _StartOffs(0)
-        , _ComponentOffs(0) {};
-
-    // Set the type and the offset of the MAR register
-    void SetStart(SymbolType type, size_t offset);
-
-    // Add an offset
-    inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
-
-    // Write out the opcodes necessary to bring MAR up-to-date
-    void MakeMARCurrent(ccCompiledScript &scrip);
-
-    inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
-
-    inline void Reset() { SetStart(kSYM_NoType, 0); };
-};
 
 class Parser
 {
@@ -330,7 +126,213 @@ public:
 
     typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
 
+    // Needs to be public because the manager is initialized outside of Parser
+    class FuncCallpointMgr
+    {
+    private:
+        int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
+        int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
+
+        SymbolTable &_sym;
+        ::ccCompiledScript &_scrip;
+
+        struct PatchInfo
+        {
+            int ChunkId;
+            AGS::CodeLoc Offset;
+        };
+        typedef std::vector<PatchInfo> PatchList;
+
+        struct CallpointInfo
+        {
+            CodeLoc Callpoint;
+            PatchList List;
+            CallpointInfo();
+        };
+
+        typedef std::map<Symbol, CallpointInfo> CallMap;
+        CallMap _funcCallpointMap;
+
+    public:
+        FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip);
+        void Reset();
+
+        // Enter a code location where a function is called that hasn't been defined yet.
+        int TrackForwardDeclFuncCall(Symbol func, CodeLoc idx);
+
+        // Enter a code location to jump to in order to end a function
+        int TrackExitJumppoint(Symbol func, CodeLoc idx);
+
+        // When code is ripped out of the codebase: 
+        // Update list of calls to forward declared functions 
+        int UpdateCallListOnYanking(CodeLoc start, size_t len, int id);
+
+        // When code is inserted into the codebase:
+        // Update list of calls to forward declared functions
+        int UpdateCallListOnWriting(CodeLoc start, int id);
+
+        // Set the callpoint for a function. 
+        // Patch all the function calls of the given function to point to dest
+        int SetFuncCallpoint(Symbol func, CodeLoc dest);
+
+        // Set the exit point of a function.
+        // Patch this address into all the jumps to exit points.
+        int SetFuncExitJumppoint(Symbol func, CodeLoc dest);
+
+        inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
+
+        inline bool IsForwardDecl(Symbol func) { return (0 == _funcCallpointMap.count(func)); }
+
+        // Gives an error message and returns a value < 0 iff there are still callpoints
+        // without a location
+        int CheckForUnresolvedFuncs();
+    };
+
 private:
+
+    // The stack of nesting statements 
+    class NestingStack
+    {
+    private:
+        static int _chunkIdCtr; // for assigning unique IDs to chunks
+
+        // A section of compiled code that needs to be moved or copied to a new location
+        struct Chunk
+        {
+            std::vector<CodeCell> Code;
+            std::vector<CodeLoc> Fixups;
+            std::vector<char> FixupTypes;
+            int CodeOffset;
+            int FixupOffset;
+            size_t SrcLine;
+            int Id;
+        };
+
+        // All data that is associated with a nesting level of compound statements
+        struct NestingInfo
+        {
+            int Type; // Type of the level, see AGS::NestingStack::NestingType
+            CodeLoc StartLoc; // Index of the first byte generated for the level
+            CodeLoc Info; // Various uses that differ by nesting type
+            CodeLoc DefaultLabelLoc; // Location of default label
+            std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+        };
+
+        std::vector<NestingInfo> _stack;
+        ::ccCompiledScript &_scrip;
+
+    public:
+        enum CompountStmtType
+        {
+            kNT_Nothing = 0,  // {...} in the code without a particular purpose
+            kNT_Function,     // A function
+            kNT_BracedThen,   // THEN clause with braces
+            kNT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
+            kNT_BracedElse,   // ELSE/inner FOR/WHILE clause with braces
+            kNT_UnbracedElse, // ELSE/inner FOR/WHILE clause without braces
+            kNT_BracedDo,     // DO clause with braces
+            kNT_UnbracedDo,   // DO clause without braces 
+            kNT_For,          // Outer FOR clause
+            kNT_Switch,       // SWITCH clause
+            kNT_Struct,       // Struct defn
+        };
+
+        NestingStack(::ccCompiledScript &scrip);
+
+        // Depth of the nesting == index of the innermost nesting level
+        inline size_t Depth() const { return _stack.size(); };
+
+        // Type of the innermost nesting
+        inline CompountStmtType Type() { return static_cast<CompountStmtType>(_stack.back().Type); };
+        inline void SetType(CompountStmtType nt) { _stack.back().Type = nt; };
+        // Type of the nesting at the given nesting level
+        inline CompountStmtType Type(size_t level) { return static_cast<CompountStmtType>(_stack.at(level).Type); };
+
+        // If the innermost nesting is a loop that has a jump back to the start,
+        // then this gives the location to jump to; otherwise, it is 0
+        inline CodeLoc StartLoc() { return _stack.back().StartLoc; };
+        inline void SetStartLoc(CodeLoc start) { _stack.back().StartLoc = start; };
+        // If the nesting at the given level has a jump back to the start,
+        // then this gives the location to jump to; otherwise, it is 0
+        inline CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
+
+        // If the innermost nesting features a jump out instruction, 
+        // then this is the location of the bytecode symbol that says where to jump
+        inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
+        inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
+        // If the nesting at the given level features a jump out, then this is the location of it
+        inline CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
+
+        // If the innermost nesting is a SWITCH, the type of the switch expression
+        int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
+        inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
+
+        // If the innermost nesting is a SWITCH, the location of the "default:" label
+        inline CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
+        inline void SetDefaultLabelLoc(CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
+
+        // If the innermost nesting contains code chunks that must be moved around
+        // (e.g., in FOR loops), then this is true, else false
+        inline bool ChunksExist() { return !_stack.back().Chunks.empty(); }
+        inline bool ChunksExist(size_t level) { return !_stack.at(level).Chunks.empty(); }
+
+        // Code chunks that must be moved around (e.g., in FOR, DO loops)
+        inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
+        inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
+
+        // True iff the innermost nesting is unbraced
+        inline bool IsUnbraced()
+        {
+            CompountStmtType const cst = Type();
+            return (cst == kNT_UnbracedThen) || (cst == kNT_UnbracedElse) || (cst == kNT_UnbracedDo);
+        }
+
+        // Push a new nesting level (returns a  value < 0 on error)
+        int Push(CompountStmtType type, CodeLoc start, CodeLoc info);
+        inline int Push(CompountStmtType type) { return Push(type, 0, 0); };
+
+        // Pop a nesting level
+        inline void Pop() { _stack.pop_back(); };
+
+        // Rip a generated chunk of code out of the codebase and stash it away for later 
+        // Returns the unique ID of this code in id
+        void YankChunk(size_t src_line, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
+
+        // Write chunk of code back into the codebase that has been stashed in level given, at index
+        void WriteChunk(size_t level, size_t index, int &id);
+        // Write chunk of code back into the codebase stashed in the innermost level, at index
+        inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
+    };
+
+    // We set the MAR register lazily to save on runtime computation. This object
+    // encapsulates the stashed operations that haven't been done on MAR yet.
+    class MemoryLocation
+    {
+    private:
+        SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
+        size_t _StartOffs;
+        size_t _ComponentOffs;
+
+    public:
+        MemoryLocation()
+            : _Type(kSYM_NoType)
+            , _StartOffs(0)
+            , _ComponentOffs(0) {};
+
+        // Set the type and the offset of the MAR register
+        void SetStart(SymbolType type, size_t offset);
+
+        // Add an offset
+        inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
+
+        // Write out the opcodes necessary to bring MAR up-to-date
+        void MakeMARCurrent(ccCompiledScript &scrip);
+
+        inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
+
+        inline void Reset() { SetStart(kSYM_NoType, 0); };
+    };
+
     // Remembers a code generation point. If at some later time, Restore() is called,
     // then all code that has been generated in the meantime is discarded.
     // Currently only undoes the bytecode.
@@ -655,7 +657,7 @@ private:
     int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
     // Process one index in a sequence of array indexes
-    int AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc);
+    int AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly

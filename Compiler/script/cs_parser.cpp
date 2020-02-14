@@ -26,7 +26,7 @@ The second phase has the following main components:
         Functions that process the keyword Kkk are called ParseKkk()
 
     Code nesting and compound statements
-        In ParseWhile() etc., DealWithEndOf..(), and class AGS::NestingStack.
+        In ParseWhile() etc., DealWithEndOf..(), and class AGS::Parser::NestingStack.
 
     Expression parsing
         In ParseExpression()
@@ -267,9 +267,9 @@ int AGS::Parser::SkipToScript(const AGS::SymbolType stoplist[], size_t stoplist_
 }
 
 // For assigning unique IDs to chunks
-int AGS::NestingStack::_chunkIdCtr = 0;
+int AGS::Parser::NestingStack::_chunkIdCtr = 0;
 
-int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
+int AGS::Parser::NestingStack::Push(CompountStmtType type, AGS::CodeLoc start, AGS::CodeLoc info)
 {
     std::vector<Chunk> dummy_chunk;
     struct NestingInfo const ni = { type, start, info, 0, dummy_chunk };
@@ -277,16 +277,16 @@ int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc i
     return 0;
 }
 
-AGS::NestingStack::NestingStack(::ccCompiledScript &scrip)
+AGS::Parser::NestingStack::NestingStack(::ccCompiledScript &scrip)
     :_scrip(scrip)
 {
     // Push first record on stack so that it isn't empty
-    Push(AGS::NestingStack::kNT_Nothing);
+    Push(AGS::Parser::NestingStack::kNT_Nothing);
 }
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void AGS::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
+void AGS::Parser::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
 {
     Chunk item;
     item.SrcLine = src_line;
@@ -314,7 +314,7 @@ void AGS::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS:
 }
 
 // Copy the code in the chunk to the end of the bytecode vector 
-void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
+void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t index, int &id)
 {
     Chunk const item = Chunks(level).at(index);
     id = item.Id;
@@ -337,17 +337,17 @@ void AGS::NestingStack::WriteChunk(size_t level, size_t index, int &id)
     _scrip.last_emitted_lineno = INT_MAX;
 }
 
-AGS::FuncCallpointMgr::FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip)
+AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip)
     : _sym(symt)
     , _scrip(scrip)
 { }
 
-void AGS::FuncCallpointMgr::Reset()
+void AGS::Parser::FuncCallpointMgr::Reset()
 {
     _funcCallpointMap.clear();
 }
 
-int AGS::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc)
+int AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc)
 {
     // Patch callpoint in when known
     CodeCell const callpoint = _funcCallpointMap[func].Callpoint;
@@ -366,7 +366,7 @@ int AGS::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc)
     return 0;
 }
 
-int AGS::FuncCallpointMgr::TrackExitJumppoint(Symbol func, CodeLoc loc)
+int AGS::Parser::FuncCallpointMgr::TrackExitJumppoint(Symbol func, CodeLoc loc)
 {
     PatchInfo pinfo;
     pinfo.ChunkId = CodeBaseId;
@@ -376,7 +376,7 @@ int AGS::FuncCallpointMgr::TrackExitJumppoint(Symbol func, CodeLoc loc)
     return 0;
 }
 
-int AGS::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc chunk_start, size_t chunk_len, int id)
+int AGS::Parser::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc chunk_start, size_t chunk_len, int id)
 {
     size_t const chunk_end = chunk_start + chunk_len;
 
@@ -402,7 +402,7 @@ int AGS::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc chunk_start, siz
     return 0;
 }
 
-int AGS::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc start, int id)
+int AGS::Parser::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc start, int id)
 {
     for (CallMap::iterator func_it = _funcCallpointMap.begin();
         func_it != _funcCallpointMap.end();
@@ -427,7 +427,7 @@ int AGS::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc start, int id)
     return 0;
 }
 
-int AGS::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS::CodeLoc dest)
+int AGS::Parser::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS::CodeLoc dest)
 {
     _funcCallpointMap[func].Callpoint = dest;
     PatchList &pl = _funcCallpointMap[func].List;
@@ -448,7 +448,7 @@ int AGS::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS::CodeLoc dest)
     return 0;
 }
 
-int AGS::FuncCallpointMgr::SetFuncExitJumppoint(AGS::Symbol func, AGS::CodeLoc dest)
+int AGS::Parser::FuncCallpointMgr::SetFuncExitJumppoint(AGS::Symbol func, AGS::CodeLoc dest)
 {
     // Exit points of functions are stored under the negative function number
     _funcCallpointMap[-func].Callpoint = dest;
@@ -464,7 +464,7 @@ int AGS::FuncCallpointMgr::SetFuncExitJumppoint(AGS::Symbol func, AGS::CodeLoc d
     return 0;
 }
 
-int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
+int AGS::Parser::FuncCallpointMgr::CheckForUnresolvedFuncs()
 {
     for (CallMap::iterator fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
     {
@@ -482,7 +482,7 @@ int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
     return 0;
 }
 
-AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
+AGS::Parser::FuncCallpointMgr::CallpointInfo::CallpointInfo()
     : Callpoint(-1)
 { }
 
@@ -564,14 +564,14 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
     return idx;
 }
 
-void AGS::MemoryLocation::SetStart(SymbolType type, size_t offset)
+void AGS::Parser::MemoryLocation::SetStart(SymbolType type, size_t offset)
 {
     _Type = type;
     _StartOffs = offset;
     _ComponentOffs = 0;
 }
 
-void AGS::MemoryLocation::MakeMARCurrent(ccCompiledScript &scrip)
+void AGS::Parser::MemoryLocation::MakeMARCurrent(ccCompiledScript &scrip)
 {
     switch (_Type)
     {
@@ -905,12 +905,12 @@ int AGS::Parser::RemoveLocalsFromSymtable(int from_level)
 // body of WHILE and other statements. 
 // If the symbol "else" follows a THEN clause of an IF, this is handled most easily
 // by adding an unconditional jump out and then changing the THEN clause into an ELSE clause. 
-int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_after_then)
+int AGS::Parser::DealWithEndOfElse(AGS::Parser::NestingStack *nesting_stack, bool &else_after_then)
 {
     // Check whether the symbol "else" follows a then branch
     else_after_then = false;
-    if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedElse);
-    else if (nesting_stack->Type() == AGS::NestingStack::kNT_BracedElse);
+    if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_UnbracedElse);
+    else if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_BracedElse);
     else if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Else)
     {
         _src.GetNext();  // eat "else"
@@ -945,10 +945,10 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
     if (else_after_then)
     {
         // convert the THEN branch into an ELSE, i.e., stay on the same Depth()
-        nesting_stack->SetType(AGS::NestingStack::kNT_UnbracedElse);
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_UnbracedElse);
         if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_OpenBrace)
         {
-            nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse);
+            nesting_stack->SetType(AGS::Parser::NestingStack::kNT_BracedElse);
             _src.GetNext();
         }
 
@@ -962,7 +962,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
     // Clause ends, so pop the level off the stack
     nesting_stack->Pop();
 
-    if (nesting_stack->Type() == AGS::NestingStack::kNT_For)
+    if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_For)
     {
         // A FOR is represented by two nestings, so we need to pop another level
         nesting_stack->Pop();
@@ -983,7 +983,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
 }
 
 
-int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
+int AGS::Parser::DealWithEndOfDo(AGS::Parser::NestingStack *nesting_stack)
 {
     AGS::Symbol const cursym = _src.GetNext();
     if (_sym.GetSymbolType(cursym) != kSYM_While)
@@ -1026,7 +1026,7 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
 }
 
 
-int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
+int AGS::Parser::DealWithEndOfSwitch(AGS::Parser::NestingStack *nesting_stack)
 {
     // If there was no terminating break at the last switch-case, 
     // write a jump to the jumpout point to prevent a fallthrough into the jumptable
@@ -2839,7 +2839,7 @@ int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, boo
     return 0;
 }
 
-int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &rettype)
+int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &rettype)
 {
     if (_sym.GetSymbolType(symlist[1]) != kSYM_OpenParenthesis)
     {
@@ -2982,7 +2982,7 @@ int AGS::Parser::AccessData_ReadIntExpression(SymbolScript symlist, size_t symli
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
-int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
+int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     SymbolTableEntry &entry = _sym[component];
 
@@ -3113,7 +3113,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
 
 
 // Location contains a pointer to another address. Get that address.
-int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation &mloc)
+int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc)
 {
     if (kVL_ax_is_value == vloc)
     {
@@ -3133,7 +3133,7 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
     return 0;
 }
 
-int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::MemoryLocation &mloc)
+int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::Parser::MemoryLocation &mloc)
 {
     int array_index = -1;
     int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
@@ -3156,7 +3156,7 @@ int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, 
     return 0;
 }
 
-int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc)
+int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc)
 {
     // Find end of current index
     SymbolScript const this_index = symlist;
@@ -3213,7 +3213,7 @@ int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, 
 
 // We're processing some struct component or global or local variable.
 // If an array index follows, parse it and shorten symlist accordingly
-int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
+int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     if (0 == symlist_len || kSYM_OpenBracket != _sym.GetSymbolType(symlist[0]))
         return 0;
@@ -3287,7 +3287,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, si
     return 0;
 }
 
-int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype)
+int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     AGS::Symbol const varname = symlist[0];
     SymbolTableEntry &entry = _sym[varname];
@@ -3416,7 +3416,7 @@ void AGS::Parser::AccessData_Negate(ValueLocation vloc)
 // This moves symlist in all cases except for the cascade to the end of what is parsed,
 // and in case of a cascade, to the end of the first element of the cascade, i.e.,
 // to the position of the '.'. 
-int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate)
+int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate)
 {
     if (symlist_len < 1)
     {
@@ -3670,7 +3670,7 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
     // For memory accesses, we set the MAR register lazily so that we can
     // accumulate offsets at runtime instead of compile time.
     // This struct tracks what we will need to do to set the MAR register.
-    AGS::MemoryLocation mloc = MemoryLocation();
+    AGS::Parser::MemoryLocation mloc = MemoryLocation();
 
     bool clause_is_last = false;
     int retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
@@ -4471,7 +4471,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     return -1;
 }
 
-void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, AGS::NestingStack *nesting_stack)
+void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, AGS::Parser::NestingStack *nesting_stack)
 {
     // write base address of function for any relocation needed later
     WriteCmd(SCMD_THISBASE, _scrip.codesize);
@@ -4519,7 +4519,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     }
 }
 
-int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
+int AGS::Parser::ParseOpenbrace(AGS::Parser::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
 {
     if (nesting_stack->IsUnbraced())
     {
@@ -4528,13 +4528,13 @@ int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol na
     }
 
     // Assume a brace without special reason as a default
-    int retval = nesting_stack->Push(AGS::NestingStack::kNT_Nothing);
+    int retval = nesting_stack->Push(AGS::Parser::NestingStack::kNT_Nothing);
     if (retval < 0) return retval;
 
     if (nesting_stack->Depth() == 2)
     {
         // In this case, the braces are around a function body
-        nesting_stack->SetType(AGS::NestingStack::kNT_Function);
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_Function);
         ParseOpenbrace_FuncBody(name_of_current_func, struct_of_current_func, nesting_stack);
     }
 
@@ -4542,7 +4542,7 @@ int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol na
 }
 
 
-int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
+int AGS::Parser::ParseClosebrace(AGS::Parser::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     size_t nesting_level = nesting_stack->Depth() - 1;
 
@@ -4594,13 +4594,13 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
         nesting_stack->Pop();
         return 0;
 
-    case AGS::NestingStack::kNT_BracedDo:
+    case AGS::Parser::NestingStack::kNT_BracedDo:
         retval = DealWithEndOfDo(nesting_stack);
         if (retval < 0) return retval;
         break;
 
-    case AGS::NestingStack::kNT_BracedElse:
-    case AGS::NestingStack::kNT_BracedThen:
+    case AGS::Parser::NestingStack::kNT_BracedElse:
+    case AGS::Parser::NestingStack::kNT_BracedThen:
     {
         bool if_turned_into_else;
         retval = DealWithEndOfElse(nesting_stack, if_turned_into_else);
@@ -4610,7 +4610,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
         break;
     }
 
-    case AGS::NestingStack::kNT_Switch:
+    case AGS::Parser::NestingStack::kNT_Switch:
         retval = DealWithEndOfSwitch(nesting_stack);
         if (retval < 0) return retval;
         break;
@@ -4620,7 +4620,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
     // has been turned into an ELSE
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
+        if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_UnbracedDo)
         {
             retval = DealWithEndOfDo(nesting_stack);
             if (retval < 0) return retval;
@@ -5194,7 +5194,7 @@ int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_
 }
 
 // Handle a "struct" definition clause
-int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
+int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
 {
     // get token for name of struct
     AGS::Symbol const stname = _src.GetNext();
@@ -5523,14 +5523,14 @@ int AGS::Parser::ParseVartype_GetVarName(AGS::Symbol &varname, AGS::Symbol &stru
     return 0;
 }
 
-int AGS::Parser::ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseVartype_CheckForIllegalContext(AGS::Parser::NestingStack *nesting_stack)
 {
     if (nesting_stack->IsUnbraced())
     {
         cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
         return -1;
     }
-    if (nesting_stack->Type() == AGS::NestingStack::kNT_Switch)
+    if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_Switch)
     {
         cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
         return -1;
@@ -5664,7 +5664,7 @@ int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness globalne
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
-int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
+int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::Parser::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
 {
     if (_src.ReachedEOF())
     {
@@ -5771,12 +5771,12 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
     return 0;
 }
 
-int AGS::Parser::ParseCommand_EndOfDoIfElse(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseCommand_EndOfDoIfElse(AGS::Parser::NestingStack *nesting_stack)
 {
     // Unravel else ... else ... chains
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
+        if (nesting_stack->Type() == AGS::Parser::NestingStack::kNT_UnbracedDo)
         {
             int retval = DealWithEndOfDo(nesting_stack);
             if (retval < 0) return retval;
@@ -5855,7 +5855,7 @@ int AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
 }
 
 // Evaluate the head of an "if" clause, e.g. "if (i < 0)".
-int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::Parser::NestingStack *nesting_stack)
 {
     // Get expression, must be in parentheses
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenParenthesis)
@@ -5878,7 +5878,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::kNT_UnbracedThen, // Type
+        AGS::Parser::NestingStack::kNT_UnbracedThen, // Type
         0, // Start
         jump_dest_loc); // Info
 
@@ -5887,7 +5887,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
     if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_OpenBrace)
     {
         _src.GetNext();
-        nesting_stack->SetType(AGS::NestingStack::kNT_BracedThen); // change to braced
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_BracedThen); // change to braced
     }
 
     return 0;
@@ -5895,7 +5895,7 @@ int AGS::Parser::ParseIf(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 
 
 // Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
-int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::Parser::NestingStack *nesting_stack)
 {
     // point to the start of the code that evaluates the condition
     AGS::CodeLoc const condition_eval_loc = _scrip.codesize;
@@ -5921,7 +5921,7 @@ int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::kNT_UnbracedThen, // Type
+        AGS::Parser::NestingStack::kNT_UnbracedThen, // Type
         condition_eval_loc, // Start
         jump_dest_loc); // Info
     if (retval < 0) return retval;
@@ -5929,12 +5929,12 @@ int AGS::Parser::ParseWhile(AGS::Symbol cursym, AGS::NestingStack *nesting_stack
     if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_OpenBrace)
     {
         _src.GetNext();
-        nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse); // change to braced
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_BracedElse); // change to braced
     }
     return 0;
 }
 
-int AGS::Parser::ParseDo(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseDo(AGS::Parser::NestingStack *nesting_stack)
 {
     // We need a jump at a known location for the break command to work:
     WriteCmd(SCMD_JMP, 2); // Jump past the next jump :D
@@ -5944,7 +5944,7 @@ int AGS::Parser::ParseDo(AGS::NestingStack *nesting_stack)
 
     // Assume an unbraced DO as a default
     int retval = nesting_stack->Push(
-        AGS::NestingStack::kNT_UnbracedDo, // Type
+        AGS::Parser::NestingStack::kNT_UnbracedDo, // Type
         _scrip.codesize, // Start
         jump_dest_loc);  // Info
     if (retval < 0) return retval;
@@ -5953,7 +5953,7 @@ int AGS::Parser::ParseDo(AGS::NestingStack *nesting_stack)
     {
         _src.GetNext();
         // Change to braced DO
-        nesting_stack->SetType(AGS::NestingStack::kNT_BracedDo);
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_BracedDo);
     }
 
     return 0;
@@ -6063,7 +6063,7 @@ int AGS::Parser::ParseFor_IterateClause()
     return ParseAssignmentOrFunccall(_src.GetNext());
 }
 
-int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::Parser::NestingStack *nesting_stack)
 {
     // "for (I; E; C) { ...}" is equivalent to "{ I; while (E) { ...; C} }"
     // We implement this with TWO levels of the nesting stack.
@@ -6071,7 +6071,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     // The inner level contains "while (E) { ...; C}"
 
     // Outer level
-    int retval = nesting_stack->Push(AGS::NestingStack::kNT_For);
+    int retval = nesting_stack->Push(AGS::Parser::NestingStack::kNT_For);
     if (retval < 0) return retval;
 
     cursym = _src.GetNext();
@@ -6125,7 +6125,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
 
     // Inner nesting level - assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::kNT_UnbracedElse, // Type
+        AGS::Parser::NestingStack::kNT_UnbracedElse, // Type
         while_cond_loc, // Start
         0); // Info
     if (retval < 0) return retval;
@@ -6134,7 +6134,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     {
         _src.GetNext();
         // Set type "braced" instead of "unbraced"
-        nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse);
+        nesting_stack->SetType(AGS::Parser::NestingStack::kNT_BracedElse);
     }
 
     // We've just generated code for getting to the next loop iteration.
@@ -6154,7 +6154,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseSwitch(AGS::Parser::NestingStack *nesting_stack)
 {
     // Get the switch expression, must be in parentheses
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenParenthesis)
@@ -6190,7 +6190,7 @@ int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
     }
 
     retval = nesting_stack->Push(
-        AGS::NestingStack::kNT_Switch, // Type
+        AGS::Parser::NestingStack::kNT_Switch, // Type
         lookup_table_start, // Start
         switch_expr_type); // Info
     if (retval < 0) return retval;
@@ -6210,9 +6210,9 @@ int AGS::Parser::ParseSwitch(AGS::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::Parser::NestingStack *nesting_stack)
 {
-    if (nesting_stack->Type() != AGS::NestingStack::kNT_Switch)
+    if (nesting_stack->Type() != AGS::Parser::NestingStack::kNT_Switch)
     {
         cc_error("Case label not valid outside switch statement block");
         return -1;
@@ -6270,7 +6270,7 @@ int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting
     return 0;
 }
 
-int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
@@ -6303,7 +6303,7 @@ int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
 
     // Jump to a jump to the end of the loop
     // The bytecode byte with the relative dest is at code[codesize+1]
-    if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
+    if (nesting_stack->Type(loop_level) == AGS::Parser::NestingStack::kNT_Switch)
         WriteCmd(SCMD_JMP,
             ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level) + 2));
     else
@@ -6312,7 +6312,7 @@ int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
@@ -6357,7 +6357,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::NestingStack *nesting_stack)
+int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::Parser::NestingStack *nesting_stack)
 {
     int retval;
 
@@ -6560,7 +6560,7 @@ int AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
     return 0;
 }
 
-int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
+int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
 {
     // func or variable definition
     int retval = Parse_CheckTQ(tqs, kSYM_Vartype);
@@ -6579,7 +6579,7 @@ void AGS::Parser::Parse_SkipToEndingBrace()
 
 int AGS::Parser::ParseInput()
 {
-    AGS::NestingStack nesting_stack(_scrip);
+    AGS::Parser::NestingStack nesting_stack(_scrip);
     size_t nested_level = 0;
 
     AGS::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open

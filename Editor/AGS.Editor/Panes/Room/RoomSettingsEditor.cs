@@ -600,7 +600,8 @@ namespace AGS.Editor
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
             // defines the shortcut for click pan
-            if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Control)
+            if ( (e.Button == MouseButtons.Left && Control.ModifierKeys == (Keys.Control | Keys.Shift))
+                || (e.Button == MouseButtons.Middle && Control.ModifierKeys == Keys.None))
             {
                 _mouseIsPanningDown = true;
                 _panGrabPoint = e.Location;
@@ -687,7 +688,7 @@ namespace AGS.Editor
                 scrollPosition.X = _panGrabPoint.X - e.X - scrollPosition.X;
                 scrollPosition.Y = _panGrabPoint.Y - e.Y - scrollPosition.Y;
                 bufferedPanel1.AutoScrollPosition = scrollPosition;
-                bufferedPanel1.Update(); // this prevents the room image to look garbled when panning
+                bufferedPanel1.Refresh(); // this prevents the room image to look garbled when panning
                 _panGrabPoint = e.Location; // <- without this the pan doesn't work
                 return;
             }

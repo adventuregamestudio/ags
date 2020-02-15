@@ -190,9 +190,24 @@ public:
 
 private:
 
-    // The stack of nesting statements 
+    // The stack of nesting compound statements 
     class NestingStack
     {
+    public:
+        enum StatementType
+        {
+            kStT_SimpleBraces = 0,  // {...} in the code without a particular purpose
+            kStT_Function,     // A function
+            kStT_BracedThen,   // THEN clause with braces
+            kStT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
+            kStT_BracedElseOrLoop,   // ELSE/inner FOR/WHILE clause with braces
+            kStT_UnbracedElseOrLoop, // ELSE/inner FOR/WHILE clause without braces
+            kStT_BracedDo,     // DO clause with braces
+            kStT_UnbracedDo,   // DO clause without braces 
+            kStT_For,          // Outer FOR clause
+            kStT_Switch,       // SWITCH clause
+        };
+
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
 
@@ -211,9 +226,10 @@ private:
         // All data that is associated with a nesting level of compound statements
         struct NestingInfo
         {
-            int Type; // Type of the level, see AGS::NestingStack::NestingType
+            StatementType Type; // Type of the compount statement of this level
             CodeLoc StartLoc; // Index of the first byte generated for the level
-            CodeLoc Info; // Various uses that differ by nesting type
+            CodeLoc JumpOutStmtLoc; // The destination byte of a jump instruction out of the statement
+            Vartype SwitchExprVartype; // If this is a switch, the Vartype of the switch expression
             CodeLoc DefaultLabelLoc; // Location of default label
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
         };
@@ -222,31 +238,16 @@ private:
         ::ccCompiledScript &_scrip;
 
     public:
-        enum CompountStmtType
-        {
-            kNT_Nothing = 0,  // {...} in the code without a particular purpose
-            kNT_Function,     // A function
-            kNT_BracedThen,   // THEN clause with braces
-            kNT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
-            kNT_BracedElse,   // ELSE/inner FOR/WHILE clause with braces
-            kNT_UnbracedElse, // ELSE/inner FOR/WHILE clause without braces
-            kNT_BracedDo,     // DO clause with braces
-            kNT_UnbracedDo,   // DO clause without braces 
-            kNT_For,          // Outer FOR clause
-            kNT_Switch,       // SWITCH clause
-            kNT_Struct,       // Struct defn
-        };
-
         NestingStack(::ccCompiledScript &scrip);
 
         // Depth of the nesting == index of the innermost nesting level
         inline size_t Depth() const { return _stack.size(); };
 
         // Type of the innermost nesting
-        inline CompountStmtType Type() { return static_cast<CompountStmtType>(_stack.back().Type); };
-        inline void SetType(CompountStmtType nt) { _stack.back().Type = nt; };
+        inline StatementType Type() { return _stack.back().Type; };
+        inline void SetType(StatementType nt) { _stack.back().Type = nt; };
         // Type of the nesting at the given nesting level
-        inline CompountStmtType Type(size_t level) { return static_cast<CompountStmtType>(_stack.at(level).Type); };
+        inline StatementType Type(size_t level) { return static_cast<StatementType>(_stack.at(level).Type); };
 
         // If the innermost nesting is a loop that has a jump back to the start,
         // then this gives the location to jump to; otherwise, it is 0
@@ -258,14 +259,13 @@ private:
 
         // If the innermost nesting features a jump out instruction, 
         // then this is the location of the bytecode symbol that says where to jump
-        inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
-        inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
+        inline std::intptr_t JumpOutStmtLoc() { return _stack.back().JumpOutStmtLoc; };
+        inline void SetJumpOutStmtLoc(CodeLoc loc) { _stack.back().JumpOutStmtLoc = loc; };
         // If the nesting at the given level features a jump out, then this is the location of it
-        inline CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
+        inline CodeLoc JumpOutStmtLoc(size_t level) { return _stack.at(level).JumpOutStmtLoc; };
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
-        int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
-        inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
+        Vartype SwitchExprVartype() { return _stack.back().SwitchExprVartype; };
 
         // If the innermost nesting is a SWITCH, the location of the "default:" label
         inline CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
@@ -283,13 +283,12 @@ private:
         // True iff the innermost nesting is unbraced
         inline bool IsUnbraced()
         {
-            CompountStmtType const cst = Type();
-            return (cst == kNT_UnbracedThen) || (cst == kNT_UnbracedElse) || (cst == kNT_UnbracedDo);
+            StatementType const st = Type();
+            return (st == kStT_UnbracedThen) || (st == kStT_UnbracedElseOrLoop) || (st == kStT_UnbracedDo);
         }
 
-        // Push a new nesting level (returns a  value < 0 on error)
-        int Push(CompountStmtType type, CodeLoc start, CodeLoc info);
-        inline int Push(CompountStmtType type) { return Push(type, 0, 0); };
+        // Push a new nesting level
+        int Push(StatementType type, CodeLoc start_loc = 0, CodeLoc jump_out_loc = 0, Vartype switch_expr_type = 0, CodeLoc default_label_loc = 0);
 
         // Pop a nesting level
         inline void Pop() { _stack.pop_back(); };

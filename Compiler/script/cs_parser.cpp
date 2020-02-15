@@ -9,7 +9,7 @@ Functions have names of the form AaaAaa or AaaAaa_BbbBbb
 where the component parts are camelcased. This means that function AaaAaa_BbbBbb is a
 subfunction of function AaaAaa that is exclusively called by function AaaAaa.
 
-The Parser does does NOT get the sequence of tokens in a pipe from the Tokenizing step, i.e.,
+The Parser does does NOT get the sequence of tokens in a pipe from the scanning step, i.e.,
 it does NOT read the symbols one-by-one. To the contrary, the logic reads back and forth in
 the token sequence.
 
@@ -59,19 +59,15 @@ Pointers and managed structs:
     Pointers are exclusively used for managed memory. If managed structs are manipulated,
     pointers MUST ALWAYS be used; for un-managed structs, pointers MAY NEVER be used. Blocks
     of primitive vartypes can be allocated as managed memory, in which case pointers MUST be
-    used. That means that the compiler can deduce in about 99 % of the cases whether
-    a pointer is used by looking at the managed keyword alone.
+    used. That means that the compiler can deduce whether a pointer is expected by looking
+    at the keyword "managed" alone -- except in global import declarations.
 
 Classic arrays and Dynarrays:
-    A variable type (vartype) consists of the symbol table index of the core type to which
-    flags are added.
-    A DynArray is always managed, so always also has the Managed flag.
     A Dynarray of primitives (e.g., int[]) is represented in memory as a pointer to a memory
     block that comprises all the elements, one after the other.
     [*]->[][]...[]
-    A Dynarray of structs must be a dynarray of managed structs, so there is no additional
-    indication that the structs are managed. It is represented in memory as a pointer to a
-    block of pointers, each of which points to one element.
+    A Dynarray of structs must be a dynarray of managed structs. It is represented in 
+    memory as a pointer to a block of pointers, each of which points to one element.
     [*]->[*][*]...[*]
           |  |     |
           V  V ... V
@@ -80,8 +76,7 @@ Classic arrays and Dynarrays:
     A classic array of primitives (e.g., int[12]) or of non-managed structs is represented
     in memory as a block of those elements.
     [][]...[]
-    A classic array of managed structs has both the Array and the Managed flag set. In this
-    case, the Managed tag refers to the core type, i.e., it's a classic array of pointers,
+    A classic array of managed structs is a classic array of pointers,
     each of which points to a memory block that contains one element.
     [*][*]...[*]
      |  |     |
@@ -97,23 +92,18 @@ Oldstyle strings, string literals, string buffers:
 */
 
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <string>
 #include <limits>
-#include <algorithm>
-#include <ctime>
 #include <fstream>
 
 #include "script/cc_options.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
 
-#include "cc_internallist.h"    // ccInternalList
-#include "cs_parser_common.h"
+#include "cc_internallist.h"
 #include "cc_symboltable.h"
 
+#include "cs_parser_common.h"
 #include "cs_scanner.h"
 #include "cs_parser.h"
 

@@ -10,28 +10,26 @@ The processing is done in the following layers:
 
 * Scanning
     Read the characters of the input and partition it in symbols (e.g., identifier, number literal).
-* Tokenizing
     Enter all the symbols into a symbol table (thus recognizing keywords)
     Enter all literal strings into a strings table
-These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
+These two steps are performed separately _before_ the Parsing (below) begins.
 The result is:
-    the symbol table, a parameter that is a struct SymbolTable.
-    the sequence of tokens, a parameter src that is a struct ccInternalList *.
+    the symbol table SymbolTable.
+    the sequence of tokens SrcList
     the collected string literals that go into a struct ccCompiledScript.
 
 * Parsing
     All the high-level logic.
-The parsing functions get the input in a parameter src that is a ccInternalList *.
-The parser augments the symbol table _sym as it goes along.
-The result is in a parameter scrip that is a struct ccCompiledScript *
-and has the following key components (amongst many other components):
-    functions - all the functions defined (i.e. they have a body) in the current inputstring
-    imports - all the functions declared (i.e. without body) in the current inputstring
-        NOTE: This includes "forward" declarations where a func definition will arrive later after all.
-    exports - all the functions that are made available to other entities
-    code, fixups - the Bytecode that is generated.
+    The parser augments the symbol table _sym as it goes along.
+    The result is in a parameter scrip that is a struct ccCompiledScript *
+    and has the following key components (amongst many other components):
+        functions - all the functions defined (i.e. they have a body) in the current inputstring
+        imports - all the functions declared (i.e. without body) in the current inputstring
+            NOTE: This includes "forward" declarations where a func definition will arrive later after all.
+        exports - all the functions that are made available to other entities
+        code, fixups - the Bytecode that is generated.
 
-(For an overview of the implementation details, see cs_parser.cpp)
+    (For an overview of the implementation details, see cs_parser.cpp)
 */
 
 //-----------------------------------------------------------------------------
@@ -749,7 +747,7 @@ private:
     // An assignment symbol is following. Compile the assignment.
     int ParseAssignment(Symbol ass_symbol, ccInternalList const *lhs);
 
-    int ParseVardecl_InitialValAssignment_Float(bool is_neg, void *& initial_val_ptr);
+    int ParseVardecl_InitialValAssignment_Float(bool is_neg, void *&initial_val_ptr);
 
     int ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr);
 
@@ -817,8 +815,10 @@ private:
     // We're waiting for the name of the member.
     int ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
+    // A "*" is allowed here. If it is here, gobble it.
     int EatDynpointerSymbolIfPresent(Vartype vartype);
 
+    // We've accepted, e.g., "struct foo {". Now we're parsing, e.g., "int P, Q, R;
     int ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
 
     // Handle a "struct" definition clause
@@ -831,10 +831,10 @@ private:
 
     int ParseEnum_Name2Symtable(Symbol enumName);
 
-    // enum EnumName { value1, value2 }
+    // We parse enum EnumName { value1, value2 }
     int ParseEnum0();
 
-    // enum eEnumName { value1, value2 };
+    // We parse enum eEnumName { value1, value2 };
     int ParseEnum(Symbol name_of_current_function);
 
     int ParseExport();

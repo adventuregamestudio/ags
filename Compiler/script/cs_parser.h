@@ -187,6 +187,56 @@ public:
     };
 
 private:
+    // Remembers a code generation point.
+    // If at some later time, Restore() is called,
+    // then all bytecode that has been generated in the meantime is discarded.
+    // Currently only undoes the bytecode, not the fixups.
+    class RestorePoint
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        CodeLoc _restoreLoc;
+        size_t  _lastEmittedSrcLineno;
+    public:
+        RestorePoint(::ccCompiledScript &scrip);
+        void Restore();
+        inline bool IsEmpty() { return _scrip.codesize == _restoreLoc; }
+    };
+
+    // Remembers a point of the bytecode that is going to be the destination
+    // of a backward jump. When at some later time, WriteJump() is called,
+    // then the appropriate instruction(s) for a backward jump are generated.
+    // This may entail a SCMD_LINENUM command.
+    // This may make the last emitted src line invalid.
+    class BackwardJumpDest
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        CodeLoc _dest;
+        size_t  _lastEmittedSrcLineno;
+    public:
+        BackwardJumpDest(::ccCompiledScript &scrip);
+        // Write a jump to the code location that I represent
+        void WriteJump(CodeCell jump_op, size_t cur_line);
+    };
+
+    // A storage for parameters of forward jumps. When at some later time,
+    // Patch() is called, then all the jumps will be patched to point to the current
+    // point in code; if appropriate, the last emitted strc line will be invalidated.
+    class ForwardJump
+    {
+    private:
+        ::ccCompiledScript &_scrip;
+        std::vector<CodeLoc> _jumpDestParamLocs;
+        size_t  _lastEmittedSrcLineno;
+
+    public:
+        ForwardJump(::ccCompiledScript &scrip);
+        // Add the parameter of another forward jump 
+        void AddParam(int offset = -1);
+        // Patch all the forward jump parameters
+        void Patch(size_t cur_line);
+    };
 
     // The stack of nesting compound statements 
     class NestingStack
@@ -328,52 +378,6 @@ private:
         inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
 
         inline void Reset() { SetStart(kSYM_NoType, 0); };
-    };
-
-    // Remembers a code generation point. If at some later time, Restore() is called,
-    // then all code that has been generated in the meantime is discarded.
-    // Currently only undoes the bytecode.
-    class RestorePoint
-    {
-    private:
-        ::ccCompiledScript &_scrip;
-        CodeLoc _restoreLoc;
-        size_t  _lastEmittedSrcLineno;
-    public:
-        RestorePoint(::ccCompiledScript &scrip);
-        void Restore();
-        inline bool IsEmpty() { return _scrip.codesize == _restoreLoc; }
-    };
-
-    // Remembers a point that is going to be the target of a backward jump.
-    // When at some later time, WriteJump() is called, then the appropriate
-    // instruction(s) for a backward jump are generated. This may entail a
-    // SCMD_LINENUM command, this may make the last emitted src line invalid.
-    class BackwardJumpDest
-    {
-    private:
-        ::ccCompiledScript &_scrip;
-        CodeLoc _dest;
-        size_t  _lastEmittedSrcLineno;
-    public:
-        BackwardJumpDest(::ccCompiledScript &scrip);
-        // Write a jump to the code location that I represent
-        void WriteJump(CodeCell jump_op, size_t cur_line);
-    };
-
-    // The location of the parameter of a forward jump. When at some later time,
-    // Patch() is called, then the jump will be patched to point at the current
-    // point in code; if appropriate, the last emitted strc line will be invalidated.
-    class ForwardJumpParam
-    {
-    private:
-        ::ccCompiledScript &_scrip;
-        CodeLoc _jumpDestParamLoc;
-        size_t  _lastEmittedSrcLineno;
-        bool _invalidateLastEmitted;
-    public:
-        ForwardJumpParam(::ccCompiledScript &scrip, bool invalidate_last_emitted, int offset = -1);
-        void Patch(size_t cur_line);
     };
 
     // Measurements show that the checks whether imports already exist take up
@@ -907,22 +911,6 @@ private:
         { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2, p3); }
-
-
-    /*
-    Bedingter oder Unbedingter Sprung nach vorn
-Ich setze einen Sprungbefehl zum Ziel, der gepatcht werden muss, und merke mir, was zurzeit der Inhalt von last_emitted ist. Sei L1
-Wenn ich das Ziel erreicht habe, dann vermerke ich, dass die aktuelle Zeile nicht nur mit last_emitted, sondern auch mit L1 verglichen werden muss. Sind nicht alle allesamt identisch, setze ich last_emitted auf INT_MAX.
-
-Bedingter oder Unbedingter Sprung zurück.
-Als ich mir das Sprungziel gemerkt habe, habe ich mir auch gemerkt, was damals last_emitted ist. Sei L1. 
-Jetzt kann ich feststellen, ob am Sprungziel ein Line-Befehl steht, wenn ja, bin ich fertig.
-Wenn mein jetziges last_emitted != L1, schreibe ich "line L1" und setze last_emitted auf L1.
-Jetzt schreibe ich den Sprung. 
-    void ForwardJumpDest(label, last_emitted);
-    void ForwardJump(label, last_emitted);
-    void BackwardJumpDest(last_emitted);
-    void BackwardJump(last_emitted); */
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 

@@ -507,29 +507,39 @@ void AGS::Parser::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
     _scrip.write_cmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
 }
 
-AGS::Parser::ForwardJumpParam::ForwardJumpParam(::ccCompiledScript &scrip, bool invalidate_last_emitted, int offset)
+AGS::Parser::ForwardJump::ForwardJump(::ccCompiledScript &scrip)
     : _scrip(scrip)
-    , _invalidateLastEmitted(invalidate_last_emitted)
+    , _lastEmittedSrcLineno(INT_MAX)
+{ }
+
+void AGS::Parser::ForwardJump::AddParam(int offset)
 {
-    _jumpDestParamLoc = _scrip.codesize + offset;
-    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+    // If the current value for the last emitted lineno doesn't match the
+    // saved value then the saved value won't work for all jumps so it
+    // must be set to invalid.
+    if (_jumpDestParamLocs.empty())
+        _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+    else if (_lastEmittedSrcLineno != _scrip.last_emitted_lineno)
+        _lastEmittedSrcLineno = INT_MAX;
+    _jumpDestParamLocs.push_back(_scrip.codesize + offset);
 }
 
-void AGS::Parser::ForwardJumpParam::Patch(size_t cur_line)
+void AGS::Parser::ForwardJump::Patch(size_t cur_line)
 {
-    if (_invalidateLastEmitted)
-        _scrip.last_emitted_lineno = INT_MAX;
+    // There are two ways of reaching the bytecode that will be emitted next:
+    // through the jump or from the previous bytecode command. If the source line
+    // of both isn't identical then a line opcode must be emitted next.
     if (cur_line != _scrip.last_emitted_lineno ||
         cur_line != _lastEmittedSrcLineno)
         _scrip.last_emitted_lineno = INT_MAX;
-    _scrip.code[_jumpDestParamLoc] =
-        _scrip.RelativeJumpDist(_jumpDestParamLoc, _scrip.codesize);
+
+    for (auto loc = _jumpDestParamLocs.cbegin(); loc != _jumpDestParamLocs.cend(); loc++)
+        _scrip.code[*loc] = _scrip.RelativeJumpDist(*loc, _scrip.codesize);
 }
 
 AGS::Parser::ImportMgr::ImportMgr()
     : _scrip(nullptr)
-{
-}
+{ }
 
 void AGS::Parser::ImportMgr::Init(ccCompiledScript *scrip)
 {
@@ -2307,15 +2317,16 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
     int retval = ParseExpression_Subexpr(term1list, term1list_len, vloc, term1_scope, term1_vartype);
     if (retval < 0) return retval;
     ResultToAX(vloc, term1_scope, term1_vartype);
+
     // We jump either to the start of the third term or to the end of the ternary
     // expression. We don't know where this is yet, thus -77. This is just a
     // random number that's easy to spot in debugging outputs (where it's a clue
-    // that it probably hasn't been replaced by a proper value).
-    
+    // that it probably hasn't been replaced by a proper value). Don't use for anything.
     WriteCmd(
         (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
         -77);
-    ForwardJumpParam test_jumpdest(_scrip, false);
+    ForwardJump test_jumpdest(_scrip);
+    test_jumpdest.AddParam();
 
     // Second term of ternary
     bool const second_term_exists = (term2list_len > 0);
@@ -2347,7 +2358,8 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
             term2_vartype = _scrip.ax_vartype;
         }
     }
-    ForwardJumpParam jumpdest_after_term2(_scrip, false); // only valid if second_term_exists
+    ForwardJump jumpdest_after_term2(_scrip); // only valid if second_term_exists
+    jumpdest_after_term2.AddParam();
 
     // Third term of ternary
     if (0 == term3list_len)
@@ -2432,26 +2444,26 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
         return -1;
     }
 
-    ForwardJumpParam *to_exit = nullptr;
-    if (vcpuOperator == SCMD_AND)
+    ForwardJump to_exit(_scrip);
+    if (SCMD_AND == vcpuOperator)
     {
         // "&&" operator lazy evaluation ... 
         // if AX is 0 then the AND has failed, 
         // so just jump directly past the AND instruction;
         // AX will still be 0 so that will do as the result of the calculation
-        WriteCmd(SCMD_JZ, 0);
+        WriteCmd(SCMD_JZ, -77);
         // We don't know the end of the instruction yet, so remember the location we need to patch
-        to_exit = new ForwardJumpParam{ _scrip, false };
+        to_exit.AddParam();
     }
-    else if (vcpuOperator == SCMD_OR)
+    else if (SCMD_OR == vcpuOperator)
     {
         // "||" operator lazy evaluation ... 
         // if AX is non-zero then the OR has succeeded, 
         // so just jump directly past the OR instruction; 
         // AX will still be non-zero so that will do as the result of the calculation
-        WriteCmd(SCMD_JNZ, 0);
+        WriteCmd(SCMD_JNZ, -77);
         // We don't know the end of the instruction yet, so remember the location we need to patch
-        to_exit = new ForwardJumpParam{ _scrip, false };
+        to_exit.AddParam();
     }
 
     _scrip.push_reg(SREG_AX);
@@ -2473,11 +2485,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScr
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
     vloc = kVL_ax_is_value;
 
-    if (to_exit)
-    {
-        to_exit->Patch(_src.GetLineno());
-        delete to_exit;
-    }
+    to_exit.Patch(_src.GetLineno());
 
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on

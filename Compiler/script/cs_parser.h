@@ -158,9 +158,6 @@ public:
         // Enter a code location where a function is called that hasn't been defined yet.
         int TrackForwardDeclFuncCall(Symbol func, CodeLoc idx);
 
-        // Enter a code location to jump to in order to end a function
-        int TrackExitJumppoint(Symbol func, CodeLoc idx);
-
         // When code is ripped out of the codebase: 
         // Update list of calls to forward declared functions 
         int UpdateCallListOnYanking(CodeLoc start, size_t len, int id);
@@ -172,10 +169,6 @@ public:
         // Set the callpoint for a function. 
         // Patch all the function calls of the given function to point to dest
         int SetFuncCallpoint(Symbol func, CodeLoc dest);
-
-        // Set the exit point of a function.
-        // Patch this address into all the jumps to exit points.
-        int SetFuncExitJumppoint(Symbol func, CodeLoc dest);
 
         inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
 
@@ -216,6 +209,9 @@ private:
         size_t  _lastEmittedSrcLineno;
     public:
         BackwardJumpDest(::ccCompiledScript &scrip);
+        // Set the destination to the location given; default to current location in code
+        void Set(CodeLoc cl = -1);
+        inline CodeLoc Get() const { return _dest; }
         // Write a jump to the code location that I represent
         void WriteJump(CodeCell jump_op, size_t cur_line);
     };
@@ -232,7 +228,7 @@ private:
 
     public:
         ForwardJump(::ccCompiledScript &scrip);
-        // Add the parameter of another forward jump 
+        // Add the parameter of a forward jump 
         void AddParam(int offset = -1);
         // Patch all the forward jump parameters
         void Patch(size_t cur_line);
@@ -241,21 +237,6 @@ private:
     // The stack of nesting compound statements 
     class NestingStack
     {
-    public:
-        enum StatementType
-        {
-            kStT_SimpleBraces = 0,  // {...} in the code without a particular purpose
-            kStT_Function,     // A function
-            kStT_BracedThen,   // THEN clause with braces
-            kStT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
-            kStT_BracedElseOrLoop,   // ELSE/inner FOR/WHILE clause with braces
-            kStT_UnbracedElseOrLoop, // ELSE/inner FOR/WHILE clause without braces
-            kStT_BracedDo,     // DO clause with braces
-            kStT_UnbracedDo,   // DO clause without braces 
-            kStT_For,          // Outer FOR clause
-            kStT_Switch,       // SWITCH clause
-        };
-
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
 
@@ -274,11 +255,12 @@ private:
         // All data that is associated with a nesting level of compound statements
         struct NestingInfo
         {
-            StatementType Type; // Type of the compount statement of this level
-            CodeLoc StartLoc; // Index of the first byte generated for the level
-            CodeLoc JumpOutStmtLoc; // The destination byte of a jump instruction out of the statement
-            Vartype SwitchExprVartype; // If this is a switch, the Vartype of the switch expression
-            CodeLoc DefaultLabelLoc; // Location of default label
+            SymbolType Type; // Type of the compound statement of this level
+            BackwardJumpDest Start; 
+            ForwardJump JumpOut; // First byte after the statement
+            Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
+            BackwardJumpDest SwitchDefault; // when switch: Default label
+            ForwardJump SwitchJumptable; // when switch: Jumptable
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
         };
 
@@ -292,32 +274,36 @@ private:
         inline size_t Depth() const { return _stack.size(); };
 
         // Type of the innermost nesting
-        inline StatementType Type() { return _stack.back().Type; };
-        inline void SetType(StatementType nt) { _stack.back().Type = nt; };
+        inline SymbolType Type() const { return _stack.back().Type; }
+        inline void SetType(SymbolType nt) { _stack.back().Type = nt; }
         // Type of the nesting at the given nesting level
-        inline StatementType Type(size_t level) { return static_cast<StatementType>(_stack.at(level).Type); };
+        inline SymbolType Type(size_t level) const { return _stack.at(level).Type; }
 
         // If the innermost nesting is a loop that has a jump back to the start,
-        // then this gives the location to jump to; otherwise, it is 0
-        inline CodeLoc StartLoc() { return _stack.back().StartLoc; };
-        inline void SetStartLoc(CodeLoc start) { _stack.back().StartLoc = start; };
+        // then this gives the location to jump to
+        inline BackwardJumpDest &Start() { return _stack.back().Start; }
         // If the nesting at the given level has a jump back to the start,
-        // then this gives the location to jump to; otherwise, it is 0
-        inline CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
+        // then this gives the location to jump to
+        inline BackwardJumpDest &Start(size_t level) { return _stack.at(level).Start; }
 
-        // If the innermost nesting features a jump out instruction, 
-        // then this is the location of the bytecode symbol that says where to jump
-        inline std::intptr_t JumpOutStmtLoc() { return _stack.back().JumpOutStmtLoc; };
-        inline void SetJumpOutStmtLoc(CodeLoc loc) { _stack.back().JumpOutStmtLoc = loc; };
-        // If the nesting at the given level features a jump out, then this is the location of it
-        inline CodeLoc JumpOutStmtLoc(size_t level) { return _stack.at(level).JumpOutStmtLoc; };
+        // Collects the jumps to the Bytecode byte after the construct
+        inline ForwardJump &JumpOut() { return _stack.back().JumpOut; }
+        // Collects the jumps to the Bytecode byte after the construct
+        inline ForwardJump &JumpOut(size_t level) { return _stack.at(level).JumpOut; }
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
-        Vartype SwitchExprVartype() { return _stack.back().SwitchExprVartype; };
+        inline Vartype SwitchExprVartype() { return _stack.back().SwitchExprVartype; };
+        inline void SetSwitchExprVartype(Vartype vt) { _stack.back().SwitchExprVartype = vt;  }
 
-        // If the innermost nesting is a SWITCH, the location of the "default:" label
-        inline CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
-        inline void SetDefaultLabelLoc(CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
+        // If the innermost nesting is a SWITCH, the location of the "default:" code
+        inline BackwardJumpDest &SwitchDefault() { return _stack.back().SwitchDefault; }
+        // If the nesting at the given level is a SWITCH, the location of the "default:" code
+        inline BackwardJumpDest &SwitchDefault(size_t level) { return _stack.at(level).SwitchDefault; }
+
+        // If the innermost nesting is a SWITCH, the location of the jump table
+        inline ForwardJump &SwitchJumptable() { return _stack.back().SwitchJumptable; }
+        // If the nesting at the given level is a SWITCH, the location of the  jump table
+        inline ForwardJump &SwitchJumptable(size_t level) { return _stack.at(level).SwitchJumptable; }
 
         // If the innermost nesting contains code chunks that must be moved around
         // (e.g., in FOR loops), then this is true, else false
@@ -328,15 +314,8 @@ private:
         inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
         inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
 
-        // True iff the innermost nesting is unbraced
-        inline bool IsUnbraced()
-        {
-            StatementType const st = Type();
-            return (st == kStT_UnbracedThen) || (st == kStT_UnbracedElseOrLoop) || (st == kStT_UnbracedDo);
-        }
-
         // Push a new nesting level
-        int Push(StatementType type, CodeLoc start_loc = 0, CodeLoc jump_out_loc = 0, Vartype switch_expr_type = 0, CodeLoc default_label_loc = 0);
+        int Push(SymbolType type);
 
         // Pop a nesting level
         inline void Pop() { _stack.pop_back(); };
@@ -373,7 +352,7 @@ private:
         inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
 
         // Write out the opcodes necessary to bring MAR up-to-date
-        void MakeMARCurrent(ccCompiledScript &scrip);
+        void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
 
         inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
 
@@ -466,7 +445,7 @@ private:
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); };
 
     // Return number of bytes to remove from stack to unallocate local vars
-    // of level from_level or higher
+    // of levels that are above from_level
     int StacksizeOfLocals(size_t from_level);
 
     // Does vartype v contain releasable pointers?
@@ -496,15 +475,6 @@ private:
 
     int RemoveLocalsFromSymtable(int from_level);
 
-    // Handle the end of a compound statement (except for DO...WHILE or SWITCH statement)
-    int DealWithEndOfElse(NestingStack *nesting_stack, bool &else_after_then);
-
-    // Handle the end of a DO...WHILE statement
-    int DealWithEndOfDo(NestingStack *nesting_stack);
-
-    // Handle the end of a SWITCH statement
-    int DealWithEndOfSwitch(NestingStack *nesting_stack);
-
     int ParseLiteralOrConstvalue(Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg);
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
@@ -522,7 +492,7 @@ private:
     // Extender function, eg. function GoAway(this Character *someone)
     // We've just accepted something like "int func("
     // We'll accept something like "this Character *" --OR-- "static Character"
-    int ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &name_of_func, Symbol &struct_of_func);
+    int ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func);
 
     // In a parameter list, process the vartype of a parameter declaration
     int ParseParamlist_ParamType(Vartype &vartype);
@@ -730,6 +700,9 @@ private:
     // that src->getnext() will get the symbol after the expression
     int BufferExpression(ccInternalList &expr_script);
 
+    // Parse expression in parentheses
+    int ParseParenthesizedExpression();
+
     // evaluate the supplied expression, putting the result into AX
     // returns 0 on success or -1 if compile error
     // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
@@ -781,11 +754,9 @@ private:
 
     int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
-    void ParseOpenbrace_FuncBody(Symbol name_of_func, int struct_of_func, NestingStack *nesting_stack);
-
-    int ParseOpenbrace(NestingStack *nesting_stack, Symbol name_of_current_func, Symbol struct_of_current_func);
-
-    int ParseClosebrace(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    int ParseFuncBody(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
+  
+    int HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
 
@@ -826,7 +797,7 @@ private:
     int ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
 
     // Handle a "struct" definition clause
-    int ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol name_of_current_func, Symbol struct_of_current_func);
+    int ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
     int ParseEnum_AssignedValue(int &currentValue);
@@ -843,7 +814,9 @@ private:
 
     int ParseExport();
 
-    int ParseVartype_GetVarName(Symbol &varname, Symbol &struct_of_member_fct);
+    int ParseReturn(NestingStack *nesting_stack, Symbol name_of_current_func);
+
+    int ParseVartype_GetVarName(Symbol &struct_of_member_fct, Symbol &varname);
 
     int ParseVartype_CheckForIllegalContext(NestingStack *nesting_stack);
 
@@ -858,66 +831,98 @@ private:
     // We accepted a variable type such as "int", so what follows is a function or variable definition
     int ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
-    int ParseCommand_EndOfDoIfElse(NestingStack *nesting_stack);
+    // After a command statement. This command might be the end of sequences such as
+    // "if (...) while (...) stmt;"
+    //  Find out what surrounding compound statements have ended and handle these endings.
+    int HandleEndOfCompoundStmts(NestingStack *nesting_stack);
 
-    int ParseReturn(Symbol name_of_current_func);
+    // Parse start of a brace command
+    int ParseBraceCommandStart(NestingStack *nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);
 
-    // Evaluate the head of an "if" clause, e.g. "if (i < 0)".
-    int ParseIf(Symbol cursym, NestingStack *nesting_stack);
+    // Handle the end of a {...} command
+    int HandleEndOfBraceCommand(NestingStack *nesting_stack);
 
-    // Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
-    int ParseWhile(Symbol cursym, NestingStack *nesting_stack);
-
+    // Parse the head of a "do ... while(...)" clause
     int ParseDo(NestingStack *nesting_stack);
 
+    // Handle the end of a "do" body and the "while" clause following it
+    int HandleEndOfDo(NestingStack *nesting_stack);
+
+    // Handle the end of an "else" body
+    int HandleEndOfElse(NestingStack *nesting_stack);
+
+    // The first clause of "for (I; W; C);" when it is a declaration
+    int ParseFor_InitClauseVardecl(size_t nested_level);
+
+    // The first clause of "for (I; W; C);"
+    int ParseFor_InitClause(Symbol peeksym, size_t nested_level);
+
+    // The middle clause of "for (I; W; C);"
+    int ParseFor_WhileClause();
+
+    // The last clause of "for (I; W; C);"
+    int ParseFor_IterateClause();
+
+    // Handle the head of "for (I; W; C);"
+    int ParseFor(NestingStack *nesting_stack);
+
+    // Evaluate an "if" clause, e.g. "if (i < 0)".
+    int ParseIf(NestingStack *nesting_stack);
+
+    // Handle the end of an "if" body
+    int HandleEndOfIf(NestingStack *nesting_stack, bool &else_follows);
+
+    // Parse, e.g., "switch (bar)"
+    int ParseSwitch(NestingStack *nesting_stack);
+
+    // Parse "case foo:" or "default:"
+    int ParseSwitchLabel(Symbol cursym, NestingStack *nesting_stack);
+
+    // Handle the end of a "switch" body
+    int HandleEndOfSwitch(NestingStack *nesting_stack);
+
+    // Parse, e.g., "while (i < 0)"
+    // Is NOT responsible for handling the "while" in a "do ... while" clause
+    int ParseWhile(NestingStack *nesting_stack);
+
+    // Handle the end of a "while" body
+    // (Will also handle the outer "for" nesting)
+    int HandleEndOfWhile(NestingStack *nesting_stack);
+    
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     int ParseAssignmentOrFunccall(Symbol cursym);
 
-    int ParseFor_InitClauseVardecl(size_t nested_level);
-
-    // The first clause of a for header
-    int ParseFor_InitClause(Symbol peeksym, size_t nested_level);
-
-    int ParseFor_WhileClause();
-
-    int ParseFor_IterateClause();
-
-    int ParseFor(Symbol &cursym, NestingStack *nesting_stack);
-
-    int ParseSwitch(NestingStack *nesting_stack);
-
-    int ParseSwitchLabel(Symbol cursym, NestingStack *nesting_stack);
+    int ExitNesting(size_t loop_level);
 
     int ParseBreak(NestingStack *nesting_stack);
 
     int ParseContinue(NestingStack *nesting_stack);
 
-    int ParseCommand(Symbol cursym, Symbol &name_of_current_func, Symbol &struct_of_current_func, NestingStack *nesting_stack);
+    int ParseCloseBrace(AGS::Parser::NestingStack *nesting_stack);
+
+    int ParseCommand(Symbol cursym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
 
     // If a new section has begun, tell _scrip to deal with that.
     // Refresh ccCurScriptName
     void HandleSrcSectionChange();
 
-    // If the source line has changed, tell _scrip to emit a line change bytecode.
-    // Refresh currentline.
-    void HandleSrcLineChange();
 
     inline void WriteCmd(CodeCell op)
-        { HandleSrcLineChange(); _scrip.write_cmd(op); }
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op); }
     inline void WriteCmd(CodeCell op, CodeCell p1)
-        { HandleSrcLineChange(); _scrip.write_cmd(op, p1); }
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
-        { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2); }
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-        { HandleSrcLineChange(); _scrip.write_cmd(op, p1, p2, p3); }
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2, p3); }
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 
     // Check whether the qualifiers that accumulated for this decl go together
     int Parse_CheckTQ(TypeQualifierSet tqs, Symbol decl_type);
 
-    int ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &name_of_current_func, Symbol &struct_of_current_func);
+    int ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void Parse_SkipToEndingBrace();
 

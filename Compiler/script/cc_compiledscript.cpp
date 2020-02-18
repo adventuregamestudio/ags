@@ -9,7 +9,8 @@
 
 void ccCompiledScript::write_lineno(size_t lno)
 {
-    write_cmd(SCMD_LINENUM, lno);
+    if (ccGetOption(SCOPT_LINENUMBERS))
+        write_cmd(SCMD_LINENUM, lno);
     last_emitted_lineno = lno;
 }
 

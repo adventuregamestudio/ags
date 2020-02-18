@@ -1223,7 +1223,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Managed Pool",
-        0,
+        1,
         0,
         WriteManagedPool,
         ReadManagedPool

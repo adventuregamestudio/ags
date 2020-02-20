@@ -1635,8 +1635,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
-  if (usingLinearFiltering)
-  {
   if (tile->width < tileWidth)
   {
     if (tilex > 0)
@@ -1673,7 +1671,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
       edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
     }
   }
-  } // usingLinearFiltering
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);

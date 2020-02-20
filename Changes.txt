@@ -11,6 +11,8 @@ Editor:
 
 Engine:
  - Fixed crash when saving a game containing Set or Dictionary in script.
+ - Fixed occasional regression (since 3.4.3) in OpenGL renderer that caused graphic
+   artifacts at the borders of sprites, but only when nearest-neighbour filter is used.
 
 Windows:
  - Fixed maximal allowed window size deduction, which works better on Windows 8 and higher.

@@ -464,6 +464,114 @@ TEST(Bytecode, SimpleVoidFunction) {
 
 }
 
+TEST(Bytecode, UnaryMinus1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Accept a unary minus in front of parens
+
+    char *inpl = "\
+        void Foo()              \n\
+        {                       \n\
+            int bar = 5;        \n\
+            int baz = -(-bar);  \n\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("UnaryMinus1", scrip);
+    const size_t codesize = 35;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            5,   29,    3,   51,    // 7
+       4,    7,    3,    6,            4,    0,   12,    4,    // 15
+       3,    3,    4,    3,            6,    4,    0,   12,    // 23
+       4,    3,    3,    4,            3,   29,    3,    2,    // 31
+       1,    8,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, UnaryMinus2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Unary minus binds more than multiply
+
+    char *inpl = "\
+        int main()                      \n\
+        {                               \n\
+            int five = 5;               \n\
+            int seven = 7;              \n\
+            return -five * -seven;      \n\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("UnaryMinus2", scrip);
+}
+
+TEST(Bytecode, NotNot) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // !!a should be interpreted as !(!a)
+    char *inpl = "\
+        int main()                  \n\
+        {                           \n\
+            int five = 5;           \n\
+            return !!(!5);          \n\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("Notnot", scrip);
+}
+
 TEST(Bytecode, SimpleIntFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1441,7 +1549,7 @@ TEST(Bytecode, For1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("For1", scrip);
+    WriteOutput("For1", scrip);
     const size_t codesize = 119;
     EXPECT_EQ(codesize, scrip->codesize);
 

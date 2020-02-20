@@ -981,27 +981,24 @@ int AGS::Parser::HandleEndOfSwitch(AGS::Parser::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg)
+int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol symb, int &theValue, bool isNegative, std::string errorMsg)
 {
-    if (fromSym >= 0)
+    SymbolType const stype = _sym.GetSymbolType(symb);
+    if (kSYM_Constant == stype)
     {
-        SymbolTableEntry &from_entry = _sym[fromSym];
-        if (from_entry.SType == kSYM_Constant)
-        {
-            theValue = from_entry.SOffset;
-            if (isNegative)
-                theValue = -theValue;
-            return 0;
-        }
+        theValue = _sym[symb].SOffset;
+        if (isNegative)
+            theValue = -theValue;
+        return 0;
+    }
 
-        if (_sym.GetSymbolType(fromSym) == kSYM_LiteralInt)
-        {
-            std::string literalStrValue = _sym.GetName(fromSym);
-            if (isNegative)
-                literalStrValue = '-' + literalStrValue;
+    if (kSYM_LiteralInt == stype)
+    {
+        std::string literalStrValue = _sym.GetName(symb);
+        if (isNegative)
+            literalStrValue = '-' + literalStrValue;
 
-            return String2Int(literalStrValue, theValue, true);
-        }
+        return String2Int(literalStrValue, theValue, true);
     }
 
     if (!errorMsg.empty())
@@ -1689,15 +1686,14 @@ int AGS::Parser::InterpretFloatAsInt(float floatval)
     return *intptr; // return the int that the pointer points to
 }
 
-// return the index of the operator in the list that binds the least,
-// so that either side of it can be evaluated first.
-// returns -1 if no operator was found
-int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len)
+int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len, int &idx)
 {
     size_t nesting_depth = 0;
 
-    int highest_prio_found = std::numeric_limits<int>::min(); // c++ STL lingo for MININT
-    int index_of_highest_prio = -1;
+    int largest_prio_found = INT_MIN; // note: largest number == lowest priority!
+    bool largest_is_binary = true;
+    int index_of_largest_prio = -1;
+    bool encountered_operand = false;
 
     for (size_t slist_idx = 0; slist_idx < slist_len; slist_idx++)
     {
@@ -1705,22 +1701,25 @@ int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t sli
         switch (this_type)
         {
         default:
+            encountered_operand = true;
             break;
 
         case kSYM_New:
+        case kSYM_Operator:
         case kSYM_Tern:
             this_type = kSYM_Operator;
             break;
 
+        case kSYM_CloseBracket:
+        case kSYM_CloseParenthesis:
+            encountered_operand = true;
+            if (nesting_depth > 0)
+                nesting_depth--;
+            continue;
+
         case kSYM_OpenBracket:
         case kSYM_OpenParenthesis:
             nesting_depth++;
-            continue;
-
-        case kSYM_CloseBracket:
-        case kSYM_CloseParenthesis:
-            if (nesting_depth > 0)
-                nesting_depth--;
             continue;
         }
 
@@ -1731,15 +1730,36 @@ int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t sli
         if (this_type != kSYM_Operator)
             continue;
 
-        int const this_prio = _sym.OperatorPrio(slist[slist_idx]);
-        if (this_prio < highest_prio_found)
-            continue; // can't be highest priority
+        // a binary operator has an operand to its left
+        bool const is_binary = encountered_operand;
+        encountered_operand = false;
 
-        // remember this and keep looking
-        highest_prio_found = this_prio;
-        index_of_highest_prio = slist_idx;
+        Symbol const this_op = slist[slist_idx];
+        int const this_prio =
+            is_binary ? _sym.BinaryOpPrio(this_op) : _sym.UnaryOpPrio(this_op);
+        if (this_prio < 0)
+        {
+            cc_error(
+                "'%s' cannot be used as %s operator",
+                _sym.GetName(this_op),
+                is_binary ? "binary" : "unary");
+            return -1;
+        }
+        if (this_prio < largest_prio_found)
+            continue; // can't be lowest priority
+
+        // remember this and continue looking
+        largest_prio_found = this_prio;
+        index_of_largest_prio = slist_idx;
+        largest_is_binary = is_binary;
     }
-    return index_of_highest_prio;
+
+    // unary operators are prefix, so if the least binding operator
+    // turns out to be unary and not in first position, it must be
+    // a chain of unary operators and the first should be evaluated
+    // first
+    idx = largest_is_binary? index_of_largest_prio : 0;
+    return 0;
 }
 
 // Change the generic operator vcpuOp to the one that is correct for the vartypes
@@ -2056,7 +2076,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t
     return -1;
 }
 
-int AGS::Parser::ParseExpression_NewIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_New(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     int retval = ParseExpression_CheckArgOfNew(symlist, symlist_len);
     if (retval < 0) return retval;
@@ -2101,15 +2121,24 @@ int AGS::Parser::ParseExpression_NewIsFirst(AGS::SymbolScript symlist, size_t sy
 }
 
 // We're parsing an expression that starts with '-' (unary minus)
-int AGS::Parser::ParseExpression_UnaryMinusIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_UnaryMinus(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
-    if (symlist_len < 2)
+    ++symlist; // Eat '-'
+    --symlist_len; // Eat '-' cont'd.
+
+    if (symlist_len < 1)
     {
         cc_error("Parse error at '-'");
         return -1;
     }
+    if (symlist_len == 1)
+    {
+        SymbolType const stype = _sym.GetSymbolType(symlist[0]);
+        if (kSYM_Constant == stype || kSYM_LiteralInt == stype)
+            return AccessData_LitOrConst(true, symlist, symlist_len, vartype);
+    };
     // parse the rest of the expression into AX
-    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1, vloc, scope, vartype);
+    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
     if (retval < 0) return retval;
     retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
@@ -2127,7 +2156,7 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(AGS::SymbolScript symlist, si
 }
 
 // We're parsing an expression that starts with '!' (boolean NOT)
-int AGS::Parser::ParseExpression_NotIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_Not(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len < 2)
     {
@@ -2155,25 +2184,25 @@ int AGS::Parser::ParseExpression_NotIsFirst(AGS::SymbolScript symlist, size_t sy
 
 // The least binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-int AGS::Parser::ParseExpression_OpIsFirst(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_Unary(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kSYM_New == _sym.GetSymbolType(symlist[0]))
     {
         // we're parsing something like "new foo"
-        return ParseExpression_NewIsFirst(symlist, symlist_len, vloc, scope, vartype);
+        return ParseExpression_New(symlist, symlist_len, vloc, scope, vartype);
     }
 
-    int const cmd = _sym[symlist[0]].OpToVCPUCmd();
-    if (cmd == SCMD_SUBREG)
+    int const opcode = _sym.GetOperatorOpcode(symlist[0]);
+    if (SCMD_SUBREG == opcode)
     {
         // we're parsing something like "- foo"
-        return ParseExpression_UnaryMinusIsFirst(symlist, symlist_len, vloc, scope, vartype);
+        return ParseExpression_UnaryMinus(symlist, symlist_len, vloc, scope, vartype);
     }
 
-    if (cmd == SCMD_NOTREG)
+    if (SCMD_NOTREG == opcode)
     {
         // we're parsing something like "! foo"
-        return ParseExpression_NotIsFirst(symlist, symlist_len, vloc, scope, vartype);
+        return ParseExpression_Not(symlist, symlist_len, vloc, scope, vartype);
     }
 
     // All the other operators need a non-empty left hand side
@@ -2182,7 +2211,7 @@ int AGS::Parser::ParseExpression_OpIsFirst(AGS::SymbolScript symlist, size_t sym
 }
 
 // The least binding operator is '?'
-int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_Tern(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     SymbolScript const term1list = symlist;
     size_t term1list_len = op_idx;
@@ -2298,29 +2327,12 @@ int AGS::Parser::ParseExpression_TernIsSecondOrLater(size_t op_idx, AGS::SymbolS
 }
 
 // The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_Binary(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kSYM_Tern == _sym.GetSymbolType(symlist[op_idx]))
-        return ParseExpression_TernIsSecondOrLater(op_idx, symlist, symlist_len, vloc, scope, vartype);
+        return ParseExpression_Tern(op_idx, symlist, symlist_len, vloc, scope, vartype);
 
-    int vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
-
-    if (vcpuOperator == SCMD_NOTREG)
-    {
-        // you can't do   a = b ! c;
-        cc_error("Invalid use of operator '!'");
-        return -1;
-    }
-
-    if ((vcpuOperator == SCMD_SUBREG) &&
-        (op_idx > 1) &&
-        (kSYM_Operator == _sym.GetSymbolType(symlist[op_idx - 1])))
-    {
-        // We aren't looking at a subtraction; instead, the '-' is the unary minus of a negative value
-        // Thus, the "real" operator must be further to the right, find it.
-        op_idx = IndexOfLeastBondingOperator(symlist, op_idx);
-        vcpuOperator = _sym[symlist[op_idx]].OpToVCPUCmd();
-    }
+    int vcpuOperator = _sym.GetOperatorOpcode(symlist[op_idx]);
 
     // process the left hand side
     // This will be in vain if we find out later on that there isn't any right hand side,
@@ -2808,7 +2820,7 @@ int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist
         return AccessData(false, false, symlist, symlist_len, vloc, scope, vartype);
 
     // The operator at the beginning must be a unary minus
-    if (SCMD_SUBREG == _sym[symlist[0]].OpToVCPUCmd())
+    if (SCMD_SUBREG == _sym.GetOperatorOpcode(symlist[0]))
     {
         size_t len_minus_1 = symlist_len - 1;
         SymbolScript symlist1 = symlist + 1;
@@ -2834,24 +2846,14 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
         return -99;
     }
 
-    int least_binding_op_idx = IndexOfLeastBondingOperator(symlist, symlist_len);  // can be < 0
-
-    // If the least bonding operator is '-' and right in front,
-    // then it has been misinterpreted so far: it's really a unary minus
-    if ((least_binding_op_idx == 0) &&
-        (symlist_len > 1) &&
-        (_sym[symlist[0]].OpToVCPUCmd() == SCMD_SUBREG))
-    {
-        least_binding_op_idx = IndexOfLeastBondingOperator(&symlist[1], symlist_len - 1);
-        if (least_binding_op_idx >= 0)
-            least_binding_op_idx++;
-    }
-
-    int retval = 0;
-    if (least_binding_op_idx == 0)
-        retval = ParseExpression_OpIsFirst(symlist, symlist_len, vloc, scope, vartype);
-    else if (least_binding_op_idx > 0)
-        retval = ParseExpression_OpIsSecondOrLater(static_cast<size_t>(least_binding_op_idx), symlist, symlist_len, vloc, scope, vartype);
+    int least_binding_op_idx;
+    int retval = IndexOfLeastBondingOperator(symlist, symlist_len, least_binding_op_idx);  // can be < 0
+    if (retval < 0) return retval;
+    
+    if (0 == least_binding_op_idx)
+        retval = ParseExpression_Unary(symlist, symlist_len, vloc, scope, vartype);
+    else if (0 < least_binding_op_idx)
+        retval = ParseExpression_Binary(static_cast<size_t>(least_binding_op_idx), symlist, symlist_len, vloc, scope, vartype);
     else
         retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
     if (retval < 0) return retval;
@@ -3969,7 +3971,7 @@ int AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList 
     if (retval < 0) return retval;
 
     // Use the operator on LHS and RHS
-    int cpuOp = _sym[ass_symbol].GetCPUOp();
+    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
     retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
     if (retval < 0) return retval;
     _scrip.pop_reg(SREG_BX);
@@ -3993,8 +3995,8 @@ int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList 
     int retval = ParseAssignment_ReadLHSForModification(lhs, vloc, lhsvartype);
     if (retval < 0) return retval;
 
-    // increment or decrement AX, using the correct bytecode
-    int cpuOp = _sym[ass_symbol].GetCPUOp();
+    // increment or decrement AX, using the correct opcode
+    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
     retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
     if (retval < 0) return retval;
     WriteCmd(cpuOp, SREG_AX, 1);

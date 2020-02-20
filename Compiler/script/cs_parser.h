@@ -475,7 +475,7 @@ private:
 
     int RemoveLocalsFromSymtable(int from_level);
 
-    int ParseLiteralOrConstvalue(Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg);
+    int ParseLiteralOrConstvalue(Symbol symb, int &theValue, bool isNegative, std::string errorMsg);
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
     // We accept a default value clause like "= 15" if it follows at this point.
@@ -531,10 +531,9 @@ private:
     // This might or might not be within a struct defn
     int ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
 
-    // return the index of the operator in the list that binds the least
-    // so that either side of it can be evaluated first.
-    // returns -1 if no operator was found
-    int IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len);
+    // finds the index of the operator in the list that binds the least
+    // so that either side of it can be evaluated first. -1 if no operator was found
+    int IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len, int &idx);
 
     // Change the generic operator vcpuOp to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
@@ -566,22 +565,19 @@ private:
     // Checks on the type following "new"
     int ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len);
 
-    int ParseExpression_NewIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_New(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '-' (unary minus)
-    int ParseExpression_UnaryMinusIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_UnaryMinus(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '!' (boolean NOT)
-    int ParseExpression_NotIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_Not(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // The least binding operator is the first thing in the expression
-    // This means that the op must be an unary op.
-    int ParseExpression_OpIsFirst(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_Unary(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    int ParseExpression_TernIsSecondOrLater(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+    int ParseExpression_Tern(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
 
-    // The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-    int ParseExpression_OpIsSecondOrLater(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_Binary(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     int ParseExpression_OpenParenthesis(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
@@ -604,10 +600,10 @@ private:
 
     int AccessData_FunctionCall(Symbol name_of_func, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &rettype);
 
-    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
 
     // Parse an expression; if RETURN_PTR, will return a pointer, else dereference it.
-    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
 
     // Read from the symlist
     int AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len);

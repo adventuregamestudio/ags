@@ -49,11 +49,21 @@ public:
     enum VartypeType VartypeType;
     std::vector<size_t> Dims; // number of elements in each dimension of static array
     
-    // Vars or vartypes
-    
-    // Array or Dynarray
-    size_t NumArrayElements(SymbolTable const &symt) const;
-    size_t GetSize(SymbolTable const &symt) const;
+    // Structs and struct members only
+    AGS::Vartype Extends; // parent struct (for structs) / owning struct (for members)
+
+    // Functions only
+    std::vector<AGS::Vartype> FuncParamTypes;
+    std::vector<int> FuncParamDefaultValues;
+    std::vector<bool> FuncParamHasDefaultValues;
+
+    // Operator types only
+    CodeCell OperatorOpcode;
+    int OperatorBinaryPrio; // or 0 if not a binary operator
+    int OperatorUnaryPrio;  // of 0 if not a unary operator
+
+public:
+    // General
     inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
     inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
     inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
@@ -64,29 +74,24 @@ public:
     inline bool IsDyn(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); };
     inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_Managed, symt); };
     inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); };
+    inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
 
-    // Structs and struct members only
-    AGS::Vartype Extends; // parent struct (for structs) / owning struct (for members)
-
-    // Functions only
-    std::vector<AGS::Vartype> FuncParamTypes;
-    std::vector<int> FuncParamDefaultValues;
-    std::vector<bool> FuncParamHasDefaultValues;
+    // Array or Dynarray
+    size_t NumArrayElements(SymbolTable const &symt) const;
+    size_t GetSize(SymbolTable const &symt) const;
+    
+    // Functions
     inline size_t GetNumOfFuncParams() const { return FuncParamTypes.size() - 1; }
     inline bool IsVarargsFunc() const { return (SScope > 0); }
 
     SymbolTableEntry();
-    SymbolTableEntry(const char *name, SymbolType stype, size_t ssize);
-
-    inline int OpToVCPUCmd() const { return this->vartype; }
-
-    inline int GetCPUOp() const { return SSize; };
+    SymbolTableEntry(std::string const name, SymbolType stype = kSYM_NoType, size_t ssize = 0);
 };
 
 struct SymbolTable {
     friend SymbolTableEntry;
 
-private:
+private:  
     // hashes pair<Vartype, VartypeType> for _vartypesCache
     struct VVTTHash
     {
@@ -152,19 +157,20 @@ public:
     // A predefined atomic vartype such as int and float.
     inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= GetVoidSym()); };
 
+    inline bool IsOperator(Symbol s) const { return entries[s].IsOperator(); }
+    inline int BinaryOpPrio(Symbol s) const { return entries[s].OperatorBinaryPrio; }
+    inline int UnaryOpPrio(Symbol s) const { return entries[s].OperatorUnaryPrio; }
+    inline CodeCell GetOperatorOpcode(Symbol s) const { return entries[s].OperatorOpcode; }
+
     bool IsAnyTypeOfString(Symbol s) const;
     bool IsOldstring(Symbol s) const;
 
-    inline int OperatorPrio(Symbol op) const { return entries[op].SSize; };
-       
     // add the name to the symbol table, give it the type stype and the size ssize
-    Symbol SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize);
+    Symbol Add(std::string const name, SymbolType stype = kSYM_NoType, int ssize = 0);
 
-    // add the name to the symbol table, empty type and size
-    inline Symbol Add(char const *name) { return AddWithTypeAndSize(name, kSYM_NoType, 0); };
-
-    // add the operator to the symbol table
-    int AddOp(const char *opname, int priority, int vcpucmd);
+    // add the operator opname to the symbol table
+    // Priorities: lower value = higher prio; negative value means no priority
+    AGS::Symbol AddOp(char const *opname, SymbolType sty, CodeCell opcode, int binary_prio = -1, int unary_prio = -1);
 
     // Return the symbol to the name, or -1 if not found
     inline Symbol Find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }

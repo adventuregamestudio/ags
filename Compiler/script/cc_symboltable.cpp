@@ -19,13 +19,17 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , FuncParamTypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamTypes(std::vector<Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<int>(1))
     , FuncParamHasDefaultValues(std::vector<bool>(1))
+    , OperatorOpcode(0)
+    , OperatorBinaryPrio(-1)
+    , OperatorUnaryPrio(-1)
 { }
 
-AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size_t sizee)
-    : SName(std::string(name))
+
+AGS::SymbolTableEntry::SymbolTableEntry(std::string const name, SymbolType stype, size_t sizee)
+    : SName(name)
     , SType(stype)
     , DeclSectionId(0)
     , DeclLine(0)
@@ -37,9 +41,12 @@ AGS::SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, size
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , FuncParamTypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamTypes(std::vector<Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<int>(1))
     , FuncParamHasDefaultValues(std::vector<bool>(1))
+    , OperatorOpcode(0)
+    , OperatorBinaryPrio(-1)
+    , OperatorUnaryPrio(-1)
 { }
 
 bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt) const
@@ -86,16 +93,7 @@ bool AGS::SymbolTableEntry::IsVTF(AGS::Flags f, SymbolTable const &symt) const
 }
 
 AGS::SymbolTable::SymbolTable()
-    : _charSym(0)
-    , _floatSym(0)
-    , _intSym(0)
-    , _nullSym(0)
-    , _dynpointerSym(0)
-    , _oldStringSym(0)
-    , _stringStructSym(0)
-    , _thisSym(0)
-    , _voidSym(0)
-    , _lastPredefSym(0)
+    : _stringStructSym(0)
 {
     reset();
 }
@@ -109,104 +107,107 @@ void AGS::SymbolTable::reset()
 
     SetStringStructSym(0);
 
-    AddWithTypeAndSize("___dummy__sym0", static_cast<SymbolType>(999), 0);
+    Add("__dummy_sym_0__", kSYM_NoType);
 
     // Primitive types
     _charSym =
-        AddWithTypeAndSize("char", kSYM_Vartype, 1);
+        Add("char", kSYM_Vartype, 1);
     _floatSym =
-        AddWithTypeAndSize("float", kSYM_Vartype, 4);
+        Add("float", kSYM_Vartype, 4);
     _intSym =
-        AddWithTypeAndSize("int", kSYM_Vartype, SIZE_OF_INT);
-    AddWithTypeAndSize("long", kSYM_Vartype, SIZE_OF_INT);
-    AddWithTypeAndSize("short", kSYM_Vartype, 2);
+        Add("int", kSYM_Vartype, SIZE_OF_INT);
+    Add("long", kSYM_Vartype, SIZE_OF_INT);
+    Add("short", kSYM_Vartype, 2);
     _oldStringSym =
-        AddWithTypeAndSize("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
+        Add("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
     _voidSym =
-        AddWithTypeAndSize("void", kSYM_Vartype, 0);
+        Add("void", kSYM_Vartype);
 
     // can be part of expression
-    AddWithTypeAndSize("]", kSYM_CloseBracket, 0);
-    AddWithTypeAndSize(")", kSYM_CloseParenthesis, 0);
-    AddWithTypeAndSize(".", kSYM_Dot, 0);
-    _nullSym = AddWithTypeAndSize("null", kSYM_Null, 0);
-    AddWithTypeAndSize("[", kSYM_OpenBracket, 0);
-    AddWithTypeAndSize("(", kSYM_OpenParenthesis, 0);
-    AddWithTypeAndSize("?", kSYM_Tern, 20); // note, set operator prio
-    // the second argument to the operators is their precedence: 1 is highest
-    AddOp("!", 1, SCMD_NOTREG);
+    Add("]", kSYM_CloseBracket);
+    Add(")", kSYM_CloseParenthesis);
+    Add(".", kSYM_Dot);
+    _nullSym =
+        Add("null", kSYM_Null);
+    Add("[", kSYM_OpenBracket);
+    Add("(", kSYM_OpenParenthesis);
+
+    AddOp("!", kSYM_Operator,  SCMD_NOTREG, -1, 101);
     _dynpointerSym =
-        AddOp("*", 3, SCMD_MULREG);
-    AddOp("/", 3, SCMD_DIVREG);
-    AddOp("%", 3, SCMD_MODREG);
-    AddOp("+", 5, SCMD_ADDREG);
-    AddOp("-", 5, SCMD_SUBREG);
-    AddOp("<<", 7, SCMD_SHIFTLEFT);
-    AddOp(">>", 7, SCMD_SHIFTRIGHT);
-    AddOp("&", 9, SCMD_BITAND);
-    AddOp("|", 10, SCMD_BITOR);
-    AddOp("^", 10, SCMD_XORREG);
-    AddOp("==", 12, SCMD_ISEQUAL);
-    AddOp("!=", 12, SCMD_NOTEQUAL);
-    AddOp(">", 12, SCMD_GREATER);
-    AddOp("<", 12, SCMD_LESSTHAN);
-    AddOp(">=", 12, SCMD_GTE);
-    AddOp("<=", 12, SCMD_LTE);
-    AddOp("&&", 18, SCMD_AND);
-    AddOp("||", 19, SCMD_OR);
+        AddOp("*", kSYM_Operator, SCMD_MULREG, 103);
+    AddOp("/", kSYM_Operator, SCMD_DIVREG, 103);
+    AddOp("%", kSYM_Operator, SCMD_MODREG, 103);
+    AddOp("+", kSYM_Operator, SCMD_ADDREG, 105);
+    AddOp("-", kSYM_Operator, SCMD_SUBREG, 105, 101);
+    AddOp("<<", kSYM_Operator, SCMD_SHIFTLEFT, 107);
+    AddOp(">>", kSYM_Operator, SCMD_SHIFTRIGHT, 107);
+    AddOp("&", kSYM_Operator, SCMD_BITAND, 109);
+    AddOp("|", kSYM_Operator, SCMD_BITOR, 110);
+    AddOp("^", kSYM_Operator, SCMD_XORREG, 110);
+    AddOp("==", kSYM_Operator, SCMD_ISEQUAL, 112);
+    AddOp("!=", kSYM_Operator, SCMD_NOTEQUAL, 112);
+    AddOp(">", kSYM_Operator, SCMD_GREATER, 112);
+    AddOp("<", kSYM_Operator, SCMD_LESSTHAN, 112);
+    AddOp(">=", kSYM_Operator, SCMD_GTE, 112);
+    AddOp("<=", kSYM_Operator, SCMD_LTE, 112);
+    AddOp("&&", kSYM_Operator, SCMD_AND, 118);
+    AddOp("||", kSYM_Operator, SCMD_OR, 119);
+    AddOp("?", kSYM_Tern, -1, 120);
+
     _thisSym =
         Add("this");
 
     // other keywords and symbols
-    AddWithTypeAndSize("=", kSYM_Assign, 0);
-    AddWithTypeAndSize("+=", kSYM_AssignMod, SCMD_ADDREG);
-    AddWithTypeAndSize("-=", kSYM_AssignMod, SCMD_SUBREG);
-    AddWithTypeAndSize("*=", kSYM_AssignMod, SCMD_MULREG);
-    AddWithTypeAndSize("/=", kSYM_AssignMod, SCMD_DIVREG);
-    AddWithTypeAndSize("&=", kSYM_AssignMod, SCMD_BITAND);
-    AddWithTypeAndSize("|=", kSYM_AssignMod, SCMD_BITOR);
-    AddWithTypeAndSize("^=", kSYM_AssignMod, SCMD_XORREG);
-    AddWithTypeAndSize("<<=", kSYM_AssignMod, SCMD_SHIFTLEFT);
-    AddWithTypeAndSize(">>=", kSYM_AssignMod, SCMD_SHIFTRIGHT);
-    AddWithTypeAndSize("++", kSYM_AssignSOp, SCMD_ADD);
-    AddWithTypeAndSize("--", kSYM_AssignSOp, SCMD_SUB);
-    AddWithTypeAndSize("attribute", kSYM_Attribute, 0);
-    AddWithTypeAndSize("autoptr", kSYM_AutoPtr, 0);
-    AddWithTypeAndSize("break", kSYM_Break, 0);
-    AddWithTypeAndSize("builtin", kSYM_Builtin, 0);
-    AddWithTypeAndSize("case", kSYM_Case, 0);
-    AddWithTypeAndSize("}", kSYM_CloseBrace, 0);
-    AddWithTypeAndSize(",", kSYM_Comma, 0);
-    AddWithTypeAndSize("const", kSYM_Const, 0);
-    AddWithTypeAndSize("continue", kSYM_Continue, 0);
-    AddWithTypeAndSize("default", kSYM_Default, 0);
-    AddWithTypeAndSize("do", kSYM_Do, 0);
-    AddWithTypeAndSize("else", kSYM_Else, 0);
-    AddWithTypeAndSize("enum", kSYM_Enum, 0);
-    AddWithTypeAndSize("export", kSYM_Export, 0);
-    AddWithTypeAndSize("extends", kSYM_Extends, 0);
-    AddWithTypeAndSize("for", kSYM_For, 0);
-    AddWithTypeAndSize("if", kSYM_If, 0);
-    AddWithTypeAndSize("import", kSYM_Import, 0);
-    AddWithTypeAndSize("_tryimport", kSYM_Import, 0);
-    AddWithTypeAndSize("internalstring", kSYM_InternalString, 0);
-    AddWithTypeAndSize(":", kSYM_Label, 0);
-    AddWithTypeAndSize("noloopcheck", kSYM_NoLoopCheck, 0);
-    AddWithTypeAndSize("managed", kSYM_Managed, 0);
-    AddWithTypeAndSize("::", kSYM_MemberAccess, 0);
-    AddWithTypeAndSize("new", kSYM_New, 1); // note, set operator priority
-    AddWithTypeAndSize("{", kSYM_OpenBrace, 0);
-    AddWithTypeAndSize("protected", kSYM_Protected, 0);
-    AddWithTypeAndSize("readonly", kSYM_ReadOnly, 0);
-    AddWithTypeAndSize("return", kSYM_Return, 0);
-    AddWithTypeAndSize(";", kSYM_Semicolon, 0);
-    AddWithTypeAndSize("static", kSYM_Static, 0);
-    AddWithTypeAndSize("struct", kSYM_Struct, 0);
-    AddWithTypeAndSize("switch", kSYM_Switch, 0);
-    AddWithTypeAndSize("...", kSYM_Varargs, 0);
-    AddWithTypeAndSize("while", kSYM_While, 0);
+    AddOp("=", kSYM_Assign, 0);
+    AddOp("+=", kSYM_AssignMod, SCMD_ADDREG);
+    AddOp("-=", kSYM_AssignMod, SCMD_SUBREG);
+    AddOp("*=", kSYM_AssignMod, SCMD_MULREG);
+    AddOp("/=", kSYM_AssignMod, SCMD_DIVREG);
+    AddOp("&=", kSYM_AssignMod, SCMD_BITAND);
+    AddOp("|=", kSYM_AssignMod, SCMD_BITOR);
+    AddOp("^=", kSYM_AssignMod, SCMD_XORREG);
+    AddOp("<<=", kSYM_AssignMod, SCMD_SHIFTLEFT);
+    AddOp(">>=", kSYM_AssignMod, SCMD_SHIFTRIGHT);
+    AddOp("++", kSYM_AssignSOp, SCMD_ADD);
+    AddOp("--", kSYM_AssignSOp, SCMD_SUB);
+
+    Add("attribute", kSYM_Attribute);
+    Add("autoptr", kSYM_AutoPtr);
+    Add("break", kSYM_Break);
+    Add("builtin", kSYM_Builtin);
+    Add("case", kSYM_Case);
+    Add("}", kSYM_CloseBrace);
+    Add(",", kSYM_Comma);
+    Add("const", kSYM_Const);
+    Add("continue", kSYM_Continue);
+    Add("default", kSYM_Default);
+    Add("do", kSYM_Do);
+    Add("else", kSYM_Else);
+    Add("enum", kSYM_Enum);
+    Add("export", kSYM_Export);
+    Add("extends", kSYM_Extends);
+    Add("for", kSYM_For);
+    Add("if", kSYM_If);
+    Add("import", kSYM_Import);
+    Add("_tryimport", kSYM_Import);
+    Add("internalstring", kSYM_InternalString);
+    Add(":", kSYM_Label);
+    Add("noloopcheck", kSYM_NoLoopCheck);
+    Add("managed", kSYM_Managed);
+    Add("::", kSYM_MemberAccess);
+    AddOp("new", kSYM_New, -1, -1, 101); // note, can also be operator
+    Add("{", kSYM_OpenBrace);
+    Add("protected", kSYM_Protected);
+    Add("readonly", kSYM_ReadOnly);
+    Add("return", kSYM_Return);
+    Add(";", kSYM_Semicolon);
+    Add("static", kSYM_Static);
+    Add("struct", kSYM_Struct);
+    Add("switch", kSYM_Switch);
+    Add("...", kSYM_Varargs);
+    Add("while", kSYM_While);
     _lastPredefSym =
-        AddWithTypeAndSize("writeprotected", kSYM_WriteProtected, 0); 
+        Add("writeprotected", kSYM_WriteProtected); 
 }
 
 std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
@@ -356,7 +357,7 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
 }
 
 
-AGS::Symbol AGS::SymbolTable::AddWithTypeAndSize(char const *name, SymbolType stype, int ssize)
+AGS::Symbol AGS::SymbolTable::Add(std::string const name, SymbolType stype, int ssize)
 {
     if (0 != _findCache.count(name))
         return -1;
@@ -368,10 +369,13 @@ AGS::Symbol AGS::SymbolTable::AddWithTypeAndSize(char const *name, SymbolType st
     return idx_of_new_entry;
 }
 
-int AGS::SymbolTable::AddOp(const char *opname, int priority, int vcpucmd)
+AGS::Symbol AGS::SymbolTable::AddOp(char const *opname, SymbolType sty, CodeCell opcode, int binary_prio, int unary_prio)
 {
-    AGS::Symbol symbol_idx = AddWithTypeAndSize(opname, kSYM_Operator, priority);
-    if (symbol_idx >= 0)
-        entries.at(symbol_idx).vartype = vcpucmd;
+    Symbol symbol_idx = Add(opname, sty);
+    if (symbol_idx < 0)
+        return symbol_idx;
+    entries[symbol_idx].OperatorOpcode = opcode;
+    entries[symbol_idx].OperatorBinaryPrio = binary_prio;
+    entries[symbol_idx].OperatorUnaryPrio = unary_prio;
     return symbol_idx;
 }

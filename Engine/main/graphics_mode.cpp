@@ -184,6 +184,7 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, const Size &wanted_s
             nearest_width = mode.Width;
             nearest_height = mode.Height;
             nearest_mode_index = i;
+            nearest_mode = mode;
             break;
         }
       

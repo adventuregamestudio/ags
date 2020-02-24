@@ -10,14 +10,21 @@ Editor:
  - Fixed an imported palette did not really apply to sprites until reopening a game in the editor.
 
 Engine:
- - Fixed crash when saving a game containing Set or Dictionary in script.
+ - Fixed crash when saving in a game which contains Set or Dictionary in script.
+ - Fixed crash caused by a 32-bit sprite with alpha channel in a 8-bit game.
  - Fixed occasional regression (since 3.4.3) in OpenGL renderer that caused graphic
    artifacts at the borders of sprites, but only when nearest-neighbour filter is used.
 
 Windows:
+ - Fixed keyboard and mouse not working when game is run under Wine (or, potentially, particular
+   Windows setups too).
  - Fixed maximal allowed window size deduction, which works better on Windows 8 and higher.
- - Fixed game becoming minimized when quitting with error from the fullscreen mode,
-   requiring player to switch back in order to read the error message.
+ - Fixed game becoming minimized when quitting with error from the fullscreen mode, requiring
+   player to switch back in order to read the error message.
+
+WinSetup:
+ - Fixed crash occuring if the chosen graphics driver does not support any modes for the current
+   game's color depth.
 
 
 VERSION 3.5.0 - Patch 1, December 2019

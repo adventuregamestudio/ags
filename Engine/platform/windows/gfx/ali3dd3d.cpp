@@ -358,8 +358,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  if (platform->ExitFullscreenMode())
-    platform->RestoreWindowStyle();
+  platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -663,8 +662,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (!mode.Windowed)
   {
-    if (platform->EnterFullscreenMode(mode))
-      platform->AdjustWindowStyleForFullscreen();
+    platform->AdjustWindowStyleForFullscreen();
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -985,12 +983,13 @@ PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
 
 void D3DGraphicsDriver::UnInit() 
 {
-  OnUnInit();
-  ReleaseDisplayMode();
-
 #ifndef AGS_NO_VIDEO_PLAYER
+  // TODO: this should not be done inside the graphics driver!
   dxmedia_shutdown_3d();
 #endif
+
+  OnUnInit();
+  ReleaseDisplayMode();
 
   if (pNativeSurface)
   {

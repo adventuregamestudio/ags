@@ -1248,14 +1248,18 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
 #define SIMP_LEAVEALONE 5
 #define SIMP_NONE     6
 
-void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, color*itspal, bool useBgSlots, int importedColourDepth) 
+// Adjusts sprite's transparency using the chosen method
+void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, color*itspal, int importedColourDepth,
+    int &transcol)
 {
   if (sprite_import_method == SIMP_LEAVEALONE)
+  {
+    transcol = 0;
     return;
+  }
 
-  int uu,tt;
   set_palette_range(palette, 0, 255, 0);
-  int transcol=toimp->GetMaskColor();
+  transcol=toimp->GetMaskColor();
   // NOTE: This takes the pixel from the corner of the overall import
   // graphic, NOT just the image to be imported
   if (sprite_import_method == SIMP_TOPLEFT)
@@ -1277,8 +1281,8 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     else
       changeTransparencyTo = transcol - 1;
 
-    for (tt=0;tt<toimp->GetWidth();tt++) {
-      for (uu=0;uu<toimp->GetHeight();uu++) {
+    for (int tt=0;tt<toimp->GetWidth();tt++) {
+      for (int uu=0;uu<toimp->GetHeight();uu++) {
         if (toimp->GetPixel(tt,uu) == transcol)
           toimp->PutPixel(tt,uu, changeTransparencyTo);
       }
@@ -1296,8 +1300,8 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
 		    replaceWithCol = 0;
 	  }
     // swap all transparent pixels with index 0 pixels
-    for (tt=0;tt<toimp->GetWidth();tt++) {
-      for (uu=0;uu<toimp->GetHeight();uu++) {
+    for (int tt=0;tt<toimp->GetWidth();tt++) {
+      for (int uu=0;uu<toimp->GetHeight();uu++) {
         if (toimp->GetPixel(tt,uu)==transcol)
           toimp->PutPixel(tt,uu, bitmapMaskColor);
         else if (toimp->GetPixel(tt,uu) == bitmapMaskColor)
@@ -1305,7 +1309,12 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
       }
     }
   }
+}
 
+// Adjusts 8-bit sprite's palette
+void sort_out_palette(Common::Bitmap *toimp, color*itspal, bool useBgSlots, int transcol)
+{
+  set_palette_range(palette, 0, 255, 0);
   if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
     // 256-colour mode only
     if (transcol!=0)
@@ -1313,7 +1322,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     wsetrgb(0,0,0,0,itspal); // set index 0 to black
     __wremap_keep_transparent = 1;
     color oldpale[256];
-    for (uu=0;uu<255;uu++) {
+    for (int uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
       else if (thisgame.paluses[uu]==PAL_BACKGROUND)
@@ -2552,10 +2561,17 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
   int importedColourDepth;
 	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if ((remapColours) || (thisgame.color_depth > 1)) 
+	if (thisgame.color_depth > 1) 
 	{
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
+    else
+    {
+        int transcol;
+        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
+        if (remapColours)
+            sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
+    }
 
     int flags = 0;
 	if (alphaChannel)

@@ -24,39 +24,41 @@ namespace AGS
 namespace Common
 {
 
-String::Header::Header()
-    : RefCount(0)
-    , Capacity(0)
-    , Length(0)
-    , CStr(nullptr)
-{
-}
-
 String::String()
-    : _data(nullptr)
+    : _cstr(nullptr)
+    , _len(0)
+    , _buf(nullptr)
 {
 }
 
 String::String(const String &str)
-    : _data(nullptr)
+    : _cstr(nullptr)
+    , _len(0)
+    , _buf(nullptr)
 {
     *this = str;
 }
 
 String::String(const char *cstr)
-    :_data(nullptr)
+    : _cstr(nullptr)
+    , _len(0)
+    , _buf(nullptr)
 {
     *this = cstr;
 }
 
 String::String(const char *cstr, size_t length)
-    : _data(nullptr)
+    : _cstr(nullptr)
+    , _len(0)
+    , _buf(nullptr)
 {
     SetString(cstr, length);
 }
 
 String::String(char c, size_t count)
-    : _data(nullptr)
+    : _cstr(nullptr)
+    , _len(0)
+    , _buf(nullptr)
 {
     FillString(c, count);
 }
@@ -111,9 +113,9 @@ void String::ReadCount(Stream *in, size_t count)
     if (in && count > 0)
     {
         ReserveAndShift(false, count);
-        count = in->Read(_meta->CStr, count);
-        _meta->CStr[count] = 0;
-        _meta->Length = strlen(_meta->CStr);
+        count = in->Read(_cstr, count);
+        _cstr[count] = 0;
+        _len = strlen(_cstr);
     }
 }
 
@@ -201,28 +203,28 @@ int String::CompareRightNoCase(const char *cstr, size_t count) const
 
 size_t String::FindChar(char c, size_t from) const
 {
-    if (_meta && c && from < _meta->Length)
+    if (c && from < _len)
     {
-        const char * found_cstr = strchr(_meta->CStr + from, c);
-        return found_cstr ? found_cstr - _meta->CStr : -1;
+        const char * found_cstr = strchr(_cstr + from, c);
+        return found_cstr ? found_cstr - _cstr : -1;
     }
     return -1;
 }
 
 size_t String::FindCharReverse(char c, size_t from) const
 {
-    if (!_meta || !c)
+    if (!_cstr || !c)
     {
         return -1;
     }
 
-    from = Math::Min(from, _meta->Length - 1);
-    const char *seek_ptr = _meta->CStr + from;
-    while (seek_ptr >= _meta->CStr)
+    from = Math::Min(from, _len - 1);
+    const char *seek_ptr = _cstr + from;
+    while (seek_ptr >= _cstr)
     {
         if (*seek_ptr == c)
         {
-            return seek_ptr - _meta->CStr;
+            return seek_ptr - _cstr;
         }
         seek_ptr--;
     }
@@ -231,10 +233,10 @@ size_t String::FindCharReverse(char c, size_t from) const
 
 size_t String::FindString(const char *cstr, size_t from) const
 {
-    if (_meta && cstr && from < _meta->Length)
+    if (cstr && from < _len)
     {
-        const char * found_cstr = strstr(_meta->CStr + from, cstr);
-        return found_cstr ? found_cstr - _meta->CStr : -1;
+        const char * found_cstr = strstr(_cstr + from, cstr);
+        return found_cstr ? found_cstr - _cstr : -1;
     }
     return -1;
 }
@@ -242,7 +244,7 @@ size_t String::FindString(const char *cstr, size_t from) const
 bool String::FindSection(char separator, size_t first, size_t last, bool exclude_first_sep, bool exclude_last_sep,
                         size_t &from, size_t &to) const
 {
-    if (!_meta || !separator)
+    if (!_cstr || !separator)
     {
         return false;
     }
@@ -253,13 +255,13 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
 
     size_t this_field = 0;
     size_t slice_from = 0;
-    size_t slice_to = _meta->Length;
+    size_t slice_to = _len;
     size_t slice_at = -1;
     do
     {
         slice_at = FindChar(separator, slice_at + 1);
         if (slice_at == -1)
-            slice_at = _meta->Length;
+            slice_at = _len;
         // found where previous field ends
         if (this_field == last)
         {
@@ -267,7 +269,7 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
             // then set the section tail
             slice_to = exclude_last_sep ? slice_at : slice_at + 1;
         }
-        if (slice_at != _meta->Length)
+        if (slice_at != _len)
         {
             this_field++;
             if (this_field == first)
@@ -278,15 +280,15 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
             }
         }
     }
-    while (slice_at < _meta->Length && this_field <= last);
+    while (slice_at < _len && this_field <= last);
 
     // the search is a success if at least the first field was found
     if (this_field >= first)
     {
         // correct the indices to stay in the [0; length] range
         assert(slice_from <= slice_to);
-        from = Math::Clamp(slice_from, (size_t)0, _meta->Length);
-        to   = Math::Clamp(slice_to, (size_t)0, _meta->Length);
+        from = Math::Clamp(slice_from, (size_t)0, _len);
+        to   = Math::Clamp(slice_to, (size_t)0, _len);
         return true;
     }
     return false;
@@ -363,7 +365,7 @@ String String::Right(size_t count) const
 
 String String::LeftSection(char separator, bool exclude_separator) const
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindChar(separator);
         if (slice_at != -1)
@@ -377,12 +379,12 @@ String String::LeftSection(char separator, bool exclude_separator) const
 
 String String::RightSection(char separator, bool exclude_separator) const
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindCharReverse(separator);
         if (slice_at != -1)
         {
-            size_t count = exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at;
+            size_t count = exclude_separator ? _len - slice_at - 1 : _len - slice_at;
             return Right(count);
         }
     }
@@ -392,7 +394,7 @@ String String::RightSection(char separator, bool exclude_separator) const
 String String::Section(char separator, size_t first, size_t last,
                           bool exclude_first_sep, bool exclude_last_sep) const
 {
-    if (!_meta || !separator)
+    if (!_cstr || !separator)
     {
         return String();
     }
@@ -410,9 +412,9 @@ String String::Section(char separator, size_t first, size_t last,
 std::vector<String> String::Split(char separator) const
 {
     std::vector<String> result;
-    if (!_meta || !separator)
+    if (!_cstr || !separator)
         return result;
-    const char *ptr = _meta->CStr;
+    const char *ptr = _cstr;
     while (*ptr)
     {
         const char *found_cstr = strchr(ptr, separator);
@@ -426,12 +428,12 @@ std::vector<String> String::Split(char separator) const
 
 void String::Reserve(size_t max_length)
 {
-    if (_meta)
+    if (_bufHead)
     {
-        if (max_length > _meta->Capacity)
+        if (max_length > _bufHead->Capacity)
         {
             // grow by 50%
-            size_t grow_length = _meta->Capacity + (_meta->Capacity / 2);
+            size_t grow_length = _bufHead->Capacity + (_bufHead->Capacity / 2);
             Copy(Math::Max(max_length, grow_length));
         }
     }
@@ -448,9 +450,9 @@ void String::ReserveMore(size_t more_length)
 
 void String::Compact()
 {
-    if (_meta && _meta->Capacity > _meta->Length)
+    if (_bufHead && _bufHead->Capacity > _len)
     {
-        Copy(_meta->Length);
+        Copy(_len);
     }
 }
 
@@ -462,9 +464,9 @@ void String::Append(const char *cstr)
         if (length > 0)
         {
             ReserveAndShift(false, length);
-            memcpy(_meta->CStr + _meta->Length, cstr, length);
-            _meta->Length += length;
-            _meta->CStr[_meta->Length] = 0;
+            memcpy(_cstr + _len, cstr, length);
+            _len += length;
+            _cstr[_len] = 0;
         }
     }
 }
@@ -474,45 +476,45 @@ void String::AppendChar(char c)
     if (c)
     {
         ReserveAndShift(false, 1);
-        _meta->CStr[_meta->Length++] = c;
-        _meta->CStr[_meta->Length] = 0;
+        _cstr[_len++] = c;
+        _cstr[_len] = 0;
     }
 }
 
 void String::ClipLeft(size_t count)
 {
-    if (_meta && _meta->Length > 0 && count > 0)
+    if (_len > 0 && count > 0)
     {
-        count = Math::Min(count, _meta->Length);
+        count = Math::Min(count, _len);
         BecomeUnique();
-        _meta->Length -= count;
-        _meta->CStr += count;
+        _len -= count;
+        _cstr += count;
     }
 }
 
 void String::ClipMid(size_t from, size_t count)
 {
-    if (_meta && from < _meta->Length)
+    if (from < _len)
     {
-        count = Math::Min(count, _meta->Length - from);
+        count = Math::Min(count, _len - from);
         if (count > 0)
         {
             BecomeUnique();
             if (!from)
             {
-                _meta->Length -= count;
-                _meta->CStr += count;
+                _len -= count;
+                _cstr += count;
             }
-            else if (from + count == _meta->Length)
+            else if (from + count == _len)
             {
-                _meta->Length -= count;
-                _meta->CStr[_meta->Length] = 0;
+                _len -= count;
+                _cstr[_len] = 0;
             }
             else
             {
-                char *cstr_mid = _meta->CStr + from;
-                memmove(cstr_mid, _meta->CStr + from + count, _meta->Length - from - count + 1);
-                _meta->Length -= count;
+                char *cstr_mid = _cstr + from;
+                memmove(cstr_mid, _cstr + from + count, _len - from - count + 1);
+                _len -= count;
             }
         }
     }
@@ -520,18 +522,18 @@ void String::ClipMid(size_t from, size_t count)
 
 void String::ClipRight(size_t count)
 {
-    if (_meta && count > 0)
+    if (count > 0)
     {
         count = Math::Min(count, GetLength());
         BecomeUnique();
-        _meta->Length -= count;
-        _meta->CStr[_meta->Length] = 0;
+        _len -= count;
+        _cstr[_len] = 0;
     }
 }
 
 void String::ClipLeftSection(char separator, bool include_separator)
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindChar(separator);
         if (slice_at != -1)
@@ -545,12 +547,12 @@ void String::ClipLeftSection(char separator, bool include_separator)
 
 void String::ClipRightSection(char separator, bool include_separator)
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindCharReverse(separator);
         if (slice_at != -1)
         {
-            ClipRight(include_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
+            ClipRight(include_separator ? _len - slice_at : _len - slice_at - 1);
         }
         else
             Empty();
@@ -560,7 +562,7 @@ void String::ClipRightSection(char separator, bool include_separator)
 void String::ClipSection(char separator, size_t first, size_t last,
                               bool include_first_sep, bool include_last_sep)
 {
-    if (!_meta || !separator)
+    if (!_cstr || !separator)
     {
         return;
     }
@@ -576,11 +578,11 @@ void String::ClipSection(char separator, size_t first, size_t last,
 
 void String::Empty()
 {
-    if (_meta)
+    if (_cstr)
     {
         BecomeUnique();
-        _meta->Length = 0;
-        _meta->CStr[0] = 0;
+        _len = 0;
+        _cstr[0] = 0;
     }
 }
 
@@ -590,9 +592,9 @@ void String::FillString(char c, size_t count)
     if (count > 0)
     {
         ReserveAndShift(false, count);
-        memset(_meta->CStr, c, count);
-        _meta->Length = count;
-        _meta->CStr[count] = 0;
+        memset(_cstr, c, count);
+        _len = count;
+        _cstr[count] = 0;
     }
 }
 
@@ -611,41 +613,43 @@ void String::FormatV(const char *fcstr, va_list argptr)
     va_copy(argptr_cpy, argptr);
     size_t length = vsnprintf(nullptr, 0u, fcstr, argptr);
     ReserveAndShift(false, Math::Surplus(length, GetLength()));
-    vsprintf(_meta->CStr, fcstr, argptr_cpy);
+    vsprintf(_cstr, fcstr, argptr_cpy);
     va_end(argptr_cpy);
-    _meta->Length = length;
-    _meta->CStr[_meta->Length] = 0;
+    _len = length;
+    _cstr[_len] = 0;
 }
 
 void String::Free()
 {
-    if (_meta)
+    if (_bufHead)
     {
-        assert(_meta->RefCount > 0);
-        _meta->RefCount--;
-        if (!_meta->RefCount)
+        assert(_bufHead->RefCount > 0);
+        _bufHead->RefCount--;
+        if (!_bufHead->RefCount)
         {
-            delete [] _data;
+            delete [] _buf;
         }
     }
-    _data = nullptr;
+    _buf = nullptr;
+    _cstr = nullptr;
+    _len = 0;
 }
 
 void String::MakeLower()
 {
-    if (_meta)
+    if (_cstr)
     {
         BecomeUnique();
-        ags_strlwr(_meta->CStr);
+        ags_strlwr(_cstr);
     }
 }
 
 void String::MakeUpper()
 {
-    if (_meta)
+    if (_cstr)
     {
         BecomeUnique();
-        ags_strupr(_meta->CStr);
+        ags_strupr(_cstr);
     }
 }
 
@@ -657,9 +661,9 @@ void String::Prepend(const char *cstr)
         if (length > 0)
         {
             ReserveAndShift(true, length);
-            memcpy(_meta->CStr - length, cstr, length);
-            _meta->Length += length;
-            _meta->CStr -= length;
+            memcpy(_cstr - length, cstr, length);
+            _len += length;
+            _cstr -= length;
         }
     }
 }
@@ -669,18 +673,18 @@ void String::PrependChar(char c)
     if (c)
     {
         ReserveAndShift(true, 1);
-        _meta->Length++;
-        _meta->CStr--;
-        _meta->CStr[0] = c;
+        _len++;
+        _cstr--;
+        _cstr[0] = c;
     }
 }
 
 void String::Replace(char what, char with)
 {
-    if (_meta && what && with && what != with)
+    if (_cstr && what && with && what != with)
     {
         BecomeUnique();
-        char *rep_ptr = _meta->CStr;
+        char *rep_ptr = _cstr;
         while (*rep_ptr)
         {
             if (*rep_ptr == what)
@@ -699,16 +703,16 @@ void String::ReplaceMid(size_t from, size_t count, const char *cstr)
     size_t length = strlen(cstr);
     Math::ClampLength(from, count, (size_t)0, GetLength());
     ReserveAndShift(false, Math::Surplus(length, count));
-    memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
-    memcpy(_meta->CStr + from, cstr, length);
-    _meta->Length += length - count;
+    memmove(_cstr + from + length, _cstr + from + count, GetLength() - (from + count) + 1);
+    memcpy(_cstr + from, cstr, length);
+    _len += length - count;
 }
 
 void String::Reverse()
 {
-    if (!_meta || GetLength() <= 1)
+    if (!_cstr || GetLength() <= 1)
         return;
-    for (char *fw = _meta->CStr, *bw = _meta->CStr + _meta->Length - 1;
+    for (char *fw = _cstr, *bw = _cstr + _len - 1;
         *fw; ++fw, --bw)
     {
         std::swap(*fw, *bw);
@@ -717,10 +721,10 @@ void String::Reverse()
 
 void String::SetAt(size_t index, char c)
 {
-    if (_meta && index < GetLength() && c)
+    if (_cstr && index < GetLength() && c)
     {
         BecomeUnique();
-        _meta->CStr[index] = c;
+        _cstr[index] = c;
     }
 }
 
@@ -732,9 +736,9 @@ void String::SetString(const char *cstr, size_t length)
         if (length > 0)
         {
             ReserveAndShift(false, Math::Surplus(length, GetLength()));
-            memcpy(_meta->CStr, cstr, length);
-            _meta->Length = length;
-            _meta->CStr[length] = 0;
+            memcpy(_cstr, cstr, length);
+            _len = length;
+            _cstr[length] = 0;
         }
         else
         {
@@ -755,12 +759,12 @@ void String::Trim(char c)
 
 void String::TrimLeft(char c)
 {
-    if (!_meta || !_meta->Length)
+    if (!_cstr || !_len)
     {
         return;
     }
 
-    const char *trim_ptr = _meta->CStr;
+    const char *trim_ptr = _cstr;
     for (;;)
     {
         auto t = *trim_ptr;
@@ -769,86 +773,86 @@ void String::TrimLeft(char c)
         if (!c && !isspace(t)) { break; }
         trim_ptr++;
     }
-    size_t trimmed = trim_ptr - _meta->CStr;
+    size_t trimmed = trim_ptr - _cstr;
     if (trimmed > 0)
     {
         BecomeUnique();
-        _meta->Length -= trimmed;
-        _meta->CStr += trimmed;
+        _len -= trimmed;
+        _cstr += trimmed;
     }
 }
 
 void String::TrimRight(char c)
 {
-    if (!_meta || !_meta->Length)
+    if (!_cstr || !_len)
     {
         return;
     }
 
-    const char *trim_ptr = _meta->CStr + _meta->Length - 1;
+    const char *trim_ptr = _cstr + _len - 1;
     for (;;) 
     {
-        if (trim_ptr < _meta->CStr) { break; }
+        if (trim_ptr < _cstr) { break; }
         auto t = *trim_ptr;
         if (c && t != c) { break; }
         if (!c && !isspace(t)) { break; }
         trim_ptr--;
     }
-    size_t trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;
+    size_t trimmed = (_cstr + _len - 1) - trim_ptr;
     if (trimmed > 0)
     {
         BecomeUnique();
-        _meta->Length -= trimmed;
-        _meta->CStr[_meta->Length] = 0;
+        _len -= trimmed;
+        _cstr[_len] = 0;
     }
 }
 
 void String::TruncateToLeft(size_t count)
 {
-    if (_meta)
+    if (_cstr)
     {
-        count = Math::Min(count, _meta->Length);
-        if (count < _meta->Length)
+        count = Math::Min(count, _len);
+        if (count < _len)
         {
             BecomeUnique();
-            _meta->Length = count;
-            _meta->CStr[_meta->Length] = 0;
+            _len = count;
+            _cstr[_len] = 0;
         }
     }
 }
 
 void String::TruncateToMid(size_t from, size_t count)
 {
-    if (_meta)
+    if (_cstr)
     {
-        Math::ClampLength(from, count, (size_t)0, _meta->Length);
-        if (from > 0 || count < _meta->Length)
+        Math::ClampLength(from, count, (size_t)0, _len);
+        if (from > 0 || count < _len)
         {
             BecomeUnique();
-            _meta->Length = count;
-            _meta->CStr += from;
-            _meta->CStr[_meta->Length] = 0;
+            _len = count;
+            _cstr += from;
+            _cstr[_len] = 0;
         }
     }
 }
 
 void String::TruncateToRight(size_t count)
 {
-    if (_meta)
+    if (_cstr)
     {
         count = Math::Min(count, GetLength());
-        if (count < _meta->Length)
+        if (count < _len)
         {
             BecomeUnique();
-            _meta->CStr += _meta->Length - count;
-            _meta->Length = count;
+            _cstr += _len - count;
+            _len = count;
         }
     }
 }
 
 void String::TruncateToLeftSection(char separator, bool exclude_separator)
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindChar(separator);
         if (slice_at != -1)
@@ -860,12 +864,12 @@ void String::TruncateToLeftSection(char separator, bool exclude_separator)
 
 void String::TruncateToRightSection(char separator, bool exclude_separator)
 {
-    if (_meta && separator)
+    if (_cstr && separator)
     {
         size_t slice_at = FindCharReverse(separator);
         if (slice_at != -1)
         {
-            TruncateToRight(exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
+            TruncateToRight(exclude_separator ? _len - slice_at - 1 : _len - slice_at);
         }
     }
 }
@@ -873,7 +877,7 @@ void String::TruncateToRightSection(char separator, bool exclude_separator)
 void String::TruncateToSection(char separator, size_t first, size_t last,
                           bool exclude_first_sep, bool exclude_last_sep)
 {
-    if (!_meta || !separator)
+    if (!_cstr || !separator)
     {
         return;
     }
@@ -893,15 +897,17 @@ void String::TruncateToSection(char separator, size_t first, size_t last,
 
 String &String::operator=(const String& str)
 {
-    if (_data != str._data)
+    if (_cstr != str._cstr)
     {
         Free();
-        if (str._data && str._meta->Length > 0)
+        if (str._buf && str._len > 0)
         {
-            _data = str._data;
-            if (_meta)
+            _buf = str._buf;
+            _cstr = str._cstr;
+            _len = str._len;
+            if (_bufHead)
             {
-                _meta->RefCount++;
+                _bufHead->RefCount++;
             }
         }
     }
@@ -916,78 +922,78 @@ String &String::operator=(const char *cstr)
 
 void String::Create(size_t max_length)
 {
-    _data = new char[sizeof(String::Header) + max_length + 1];
-    _meta->RefCount = 1;
-    _meta->Capacity = max_length;
-    _meta->Length = 0;
-    _meta->CStr = _data + sizeof(String::Header);
-    _meta->CStr[_meta->Length] = 0;
+    _buf = new char[sizeof(String::BufHeader) + max_length + 1];
+    _bufHead->RefCount = 1;
+    _bufHead->Capacity = max_length;
+    _len = 0;
+    _cstr = _buf + sizeof(String::BufHeader);
+    _cstr[_len] = 0;
 }
 
 void String::Copy(size_t max_length, size_t offset)
 {
-    if (!_meta)
+    if (!_cstr)
     {
         return;
     }
 
-    char *new_data = new char[sizeof(String::Header) + max_length + 1];
-    // remember, that _meta->CStr may point to any address in buffer
-    char *cstr_head = new_data + sizeof(String::Header) + offset;
-    memcpy(new_data, _data, sizeof(String::Header));
-    size_t copy_length = Math::Min(_meta->Length, max_length);
-    memcpy(cstr_head, _meta->CStr, copy_length);
+    char *new_data = new char[sizeof(String::BufHeader) + max_length + 1];
+    // remember, that _cstr may point to any address in buffer
+    char *cstr_head = new_data + sizeof(String::BufHeader) + offset;
+    memcpy(new_data, _buf, sizeof(String::BufHeader));
+    size_t copy_length = Math::Min(_len, max_length);
+    memcpy(cstr_head, _cstr, copy_length);
     Free();
-    _data = new_data;
-    _meta->RefCount = 1;
-    _meta->Capacity = max_length;
-    _meta->Length = copy_length;
-    _meta->CStr = cstr_head;
-    _meta->CStr[_meta->Length] = 0;
+    _buf = new_data;
+    _bufHead->RefCount = 1;
+    _bufHead->Capacity = max_length;
+    _len = copy_length;
+    _cstr = cstr_head;
+    _cstr[_len] = 0;
 }
 
 void String::Align(size_t offset)
 {
-    char *cstr_head = _data + sizeof(String::Header) + offset;
-    memmove(cstr_head, _meta->CStr, _meta->Length + 1);
-    _meta->CStr = cstr_head;
+    char *cstr_head = _buf + sizeof(String::BufHeader) + offset;
+    memmove(cstr_head, _cstr, _len + 1);
+    _cstr = cstr_head;
 }
 
 void String::BecomeUnique()
 {
-    if (_meta && _meta->RefCount > 1)
+    if (_bufHead && _bufHead->RefCount > 1)
     {
-        Copy(_meta->Length);
+        Copy(_len);
     }
 }
 
 void String::ReserveAndShift(bool left, size_t more_length)
 {
-    if (_meta)
+    if (_bufHead)
     {
-        size_t total_length = _meta->Length + more_length;
-        if (_meta->Capacity < total_length)
+        size_t total_length = _len + more_length;
+        if (_bufHead->Capacity < total_length)
         {
             // grow by 50% or at least to total_size
-            size_t grow_length = _meta->Capacity + (_meta->Capacity >> 1);
+            size_t grow_length = _bufHead->Capacity + (_bufHead->Capacity >> 1);
             Copy(Math::Max(total_length, grow_length), left ? more_length : 0u);
         }
-        else if (_meta->RefCount > 1)
+        else if (_bufHead->RefCount > 1)
         {
             Copy(total_length, left ? more_length : 0u);
         }
         else
         {
             // make sure we make use of all of our space
-            const char *cstr_head = _data + sizeof(String::Header);
+            const char *cstr_head = _buf + sizeof(String::BufHeader);
             size_t free_space = left ?
-                _meta->CStr - cstr_head :
-                (cstr_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
+                _cstr - cstr_head :
+                (cstr_head + _bufHead->Capacity) - (_cstr + _len);
             if (free_space < more_length)
             {
                 Align((left ?
-                    _meta->CStr + (more_length - free_space) :
-                    _meta->CStr - (more_length - free_space)) - cstr_head);
+                    _cstr + (more_length - free_space) :
+                    _cstr - (more_length - free_space)) - cstr_head);
             }
         }
     }

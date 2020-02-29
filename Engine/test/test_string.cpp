@@ -47,8 +47,8 @@ void Test_String()
         String s2 = s1;
         String s3 = s1;
         assert(s1.GetRefCount() == 3);
-        assert(s1.GetData() == s2.GetData());
-        assert(s2.GetData() == s3.GetData());
+        assert(s1.GetBuffer() == s2.GetBuffer());
+        assert(s2.GetBuffer() == s3.GetBuffer());
 
         int cap1 = s1.GetCapacity();
         assert(cap1 == s1.GetLength());

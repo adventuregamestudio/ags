@@ -299,6 +299,13 @@ int String::ToInt() const
     return atoi(GetCStr());
 }
 
+String String::Wrapper(const char *cstr)
+{
+    String str;
+    str.Wrap(cstr);
+    return str;
+}
+
 /* static */ String String::FromFormat(const char *fcstr, ...)
 {
     fcstr = fcstr ? fcstr : "";
@@ -895,20 +902,28 @@ void String::TruncateToSection(char separator, size_t first, size_t last,
     }
 }
 
+void String::Wrap(const char *cstr)
+{
+    Free();
+    _buf = nullptr;
+    // Note that String is NOT supposed to *modify* the const buffer.
+    // Any non-read operation on the buffer is preceded by a call to BecomeUnique,
+    // which in turn will allocate a reference-counted buffer copy.
+    _cstr = const_cast<char*>(cstr);
+    _len = strlen(cstr);
+}
+
 String &String::operator=(const String& str)
 {
     if (_cstr != str._cstr)
     {
         Free();
-        if (str._buf && str._len > 0)
+        _buf = str._buf;
+        _cstr = str._cstr;
+        _len = str._len;
+        if (_bufHead)
         {
-            _buf = str._buf;
-            _cstr = str._cstr;
-            _len = str._len;
-            if (_bufHead)
-            {
-                _bufHead->RefCount++;
-            }
+            _bufHead->RefCount++;
         }
     }
     return *this;
@@ -940,7 +955,6 @@ void String::Copy(size_t max_length, size_t offset)
     char *new_data = new char[sizeof(String::BufHeader) + max_length + 1];
     // remember, that _cstr may point to any address in buffer
     char *cstr_head = new_data + sizeof(String::BufHeader) + offset;
-    memcpy(new_data, _buf, sizeof(String::BufHeader));
     size_t copy_length = Math::Min(_len, max_length);
     memcpy(cstr_head, _cstr, copy_length);
     Free();
@@ -961,7 +975,7 @@ void String::Align(size_t offset)
 
 void String::BecomeUnique()
 {
-    if (_bufHead && _bufHead->RefCount > 1)
+    if (_cstr && (_bufHead && _bufHead->RefCount > 1 || !_bufHead))
     {
         Copy(_len);
     }

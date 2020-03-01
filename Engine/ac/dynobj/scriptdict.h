@@ -15,11 +15,11 @@
 // Managed script object wrapping std::map<String, String> and
 // unordered_map<String, String>.
 //
-// TODO: support wrapping non-owned container, passed by the reference.
-// TODO: optimize key lookup operations by not creating a String object from
-// const char*. It seems C++14 standard allows to use convertible types as
-// keys. Perhaps there may also be ways to adjust String class and let it
-// wrap non-owned char buffer without any allocations on heap.
+// TODO: support wrapping non-owned Dictionary, passed by the reference, -
+// that would let expose internal engine's dicts using same interface.
+// TODO: maybe optimize key lookup operations further by not creating a String
+// object from const char*. It seems, C++14 standard allows to use convertible
+// types as keys; need to research what perfomance impact that would make.
 //
 //=============================================================================
 #ifndef __AC_SCRIPTDICT_H
@@ -77,16 +77,16 @@ public:
             DeleteItem(it);
         _dic.clear();
     }
-    bool Contains(const char *key) override { return _dic.count(String(key)) != 0; }
+    bool Contains(const char *key) override { return _dic.count(String::Wrapper(key)) != 0; }
     const char *Get(const char *key) override
     {
-        auto it = _dic.find(String(key));
+        auto it = _dic.find(String::Wrapper(key));
         if (it == _dic.end()) return nullptr;
         return it->second.GetNullableCStr();
     }
     bool Remove(const char *key) override
     {
-        auto it = _dic.find(String(key));
+        auto it = _dic.find(String::Wrapper(key));
         if (it == _dic.end()) return false;
         DeleteItem(it);
         _dic.erase(it);

@@ -14,11 +14,11 @@
 //
 // Managed script object wrapping std::set<String> and unordered_set<String>.
 //
-// TODO: support wrapping non-owned container, passed by the reference.
-// TODO: optimize key lookup operations by not creating a String object from
-// const char*. It seems C++14 standard allows to use convertible types as
-// keys. Perhaps there may also be ways to adjust String class and let it
-// wrap non-owned char buffer without any allocations on heap.
+// TODO: support wrapping non-owned Set, passed by the reference, -
+// that would let expose internal engine's sets using same interface.
+// TODO: maybe optimize key lookup operations further by not creating a String
+// object from const char*. It seems, C++14 standard allows to use convertible
+// types as keys; need to research what perfomance impact that would make.
 //
 //=============================================================================
 #ifndef __AC_SCRIPTSET_H
@@ -80,10 +80,10 @@ public:
             DeleteItem(it);
         _set.clear();
     }
-    bool Contains(const char *item) const override { return _set.count(String(item)) != 0; }
+    bool Contains(const char *item) const override { return _set.count(String::Wrapper(item)) != 0; }
     bool Remove(const char *item) override
     {
-        auto it = _set.find(String(item));
+        auto it = _set.find(String::Wrapper(item));
         if (it == _set.end()) return false;
         DeleteItem(it);
         _set.erase(it);

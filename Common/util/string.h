@@ -180,6 +180,10 @@ public:
     // Factory methods
     //-------------------------------------------------------------------------
 
+    // Wraps the given string buffer without owning it, won't count references,
+    // won't delete it at destruction. Can be used with string literals.
+    static String Wrapper(const char *cstr);
+
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
     // Reads stream until null-terminator or EOS
@@ -303,6 +307,9 @@ public:
     // given character
     void    TruncateToSection(char separator, size_t first, size_t last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true);
+    // Wraps the given string buffer without owning it, won't count references,
+    // won't delete it at destruction. Can be used with string literals.
+    void    Wrap(const char *cstr);
 
     //-------------------------------------------------------------------------
     // Operators

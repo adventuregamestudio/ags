@@ -484,6 +484,20 @@ void Test_String()
         assert(strcmp(result[3], "") == 0);
         assert(strcmp(result[4], "") == 0);
     }
+
+    // Test Wrap
+    {
+        const char *cstr = "This is a string literal";
+        String str1 = String::Wrapper(cstr);
+        String str2 = str1;
+        assert(str1.GetCStr() == cstr);
+        assert(str2.GetCStr() == cstr);
+        assert(str1.GetRefCount() == 0);
+        assert(str2.GetRefCount() == 0);
+        str2.SetAt(0, 'A');
+        assert(str2.GetCStr() != cstr);
+        assert(str2.GetRefCount() == 1);
+    }
 }
 
 #endif // AGS_RUN_TESTS

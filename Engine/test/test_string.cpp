@@ -47,8 +47,8 @@ void Test_String()
         String s2 = s1;
         String s3 = s1;
         assert(s1.GetRefCount() == 3);
-        assert(s1.GetData() == s2.GetData());
-        assert(s2.GetData() == s3.GetData());
+        assert(s1.GetBuffer() == s2.GetBuffer());
+        assert(s2.GetBuffer() == s3.GetBuffer());
 
         int cap1 = s1.GetCapacity();
         assert(cap1 == s1.GetLength());
@@ -483,6 +483,20 @@ void Test_String()
         assert(strcmp(result[2], "test") == 0);
         assert(strcmp(result[3], "") == 0);
         assert(strcmp(result[4], "") == 0);
+    }
+
+    // Test Wrap
+    {
+        const char *cstr = "This is a string literal";
+        String str1 = String::Wrapper(cstr);
+        String str2 = str1;
+        assert(str1.GetCStr() == cstr);
+        assert(str2.GetCStr() == cstr);
+        assert(str1.GetRefCount() == 0);
+        assert(str2.GetRefCount() == 0);
+        str2.SetAt(0, 'A');
+        assert(str2.GetCStr() != cstr);
+        assert(str2.GetRefCount() == 1);
     }
 }
 

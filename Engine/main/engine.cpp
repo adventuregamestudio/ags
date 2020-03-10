@@ -972,7 +972,7 @@ void engine_init_game_settings()
     play.text_speed=15;
     play.text_min_display_time_ms = 1000;
     play.ignore_user_input_after_text_timeout_ms = 500;
-    play.ignore_user_input_until_time = AGS_Clock::now();
+    play.ClearIgnoreInput();
     play.lipsync_speed = 15;
     play.close_mouth_speech_time = 10;
     play.disable_antialiasing = 0;

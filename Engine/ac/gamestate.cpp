@@ -422,6 +422,22 @@ ScriptCamera *GameState::GetScriptCamera(int index)
     return _scCameraRefs[index].first;
 }
 
+bool GameState::IsIgnoringInput() const
+{
+    return AGS_Clock::now() < _ignoreUserInputUntilTime;
+}
+
+void GameState::SetIgnoreInput(int timeout_ms)
+{
+    if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
+        _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+}
+
+void GameState::ClearIgnoreInput()
+{
+    _ignoreUserInputUntilTime = AGS_Clock::now();
+}
+
 bool GameState::IsBlockingVoiceSpeech() const
 {
     return speech_has_voice && speech_voice_blocking;

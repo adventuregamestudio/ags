@@ -251,28 +251,21 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         return screenover[nse].type;
     }
 
+    // Wait for the blocking text to timeout or until skipped by another command
     if (blocking) {
+        // If fast-forwarding, then skip immediately
         if (play.fast_forward) {
             remove_screen_overlay(OVER_TEXTMSG);
             play.messagetime=-1;
             return 0;
         }
 
-        /*    wputblock(xx,yy,screenop,1);
-        remove_screen_overlay(OVER_TEXTMSG);*/
-
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_ENABLE);
-        // play.skip_display has same values as SetSkipSpeech:
-        // 0 = click mouse or key to skip
-        // 1 = key only
-        // 2 = can't skip at all
-        // 3 = only on keypress, no auto timer
-        // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        while (1) {
-
+        // Loop until skipped
+        while (true) {
             update_audio_system_on_game_loop();
             render_graphics();
 
@@ -301,6 +294,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             countdown--;
 
+            // Special behavior when coupled with a voice-over
             if (play.speech_has_voice) {
                 // extend life of text if the voice hasn't finished yet
                 if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
@@ -310,14 +304,13 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 else  // if the voice has finished, remove the speech
                     countdown = 0;
             }
-
+            // Test for the timed auto-skip
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
+                play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
                 break;
             }
-            // if skipping cutscene, don't get stuck on No Auto Remove
-            // text boxes
+            // if skipping cutscene, don't get stuck on No Auto Remove text boxes
             if ((countdown < 1) && (play.fast_forward))
                 break;
         }

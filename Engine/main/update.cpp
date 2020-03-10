@@ -285,7 +285,7 @@ void update_speech_and_messages()
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(OVER_TEXTMSG);
-        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
+        play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
       }
     }
   }

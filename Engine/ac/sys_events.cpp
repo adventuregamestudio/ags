@@ -42,7 +42,7 @@ int mouse_z_was = 0;
 
 int ags_kbhit () {
     int result = keypressed();
-    if ((result) && (AGS_Clock::now() < play.ignore_user_input_until_time))
+    if ((result != 0) && play.IsIgnoringInput())
     {
         // ignoring user input
         ags_getch();
@@ -74,7 +74,7 @@ int ags_mgetbutton() {
         result = mgetbutton();
     }
 
-    if ((result >= 0) && (AGS_Clock::now() < play.ignore_user_input_until_time))
+    if ((result >= 0) && play.IsIgnoringInput())
     {
         // ignoring user input
         result = NONE;

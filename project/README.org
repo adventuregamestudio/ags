@@ -1,0 +1,116 @@
+# -*- mode: org -*-
+
+#+TITLE: Build Instructions
+
+** Build settings
+
+Create images directory if it doesn't exist
+
+#+BEGIN_SRC emacs-lisp
+  (unless (file-exists-p "images")
+    (make-directory "images"))
+#+END_SRC
+
+Create build directory if it doesn't exist
+
+#+BEGIN_SRC emacs-lisp
+  (unless (file-exists-p "build")
+    (make-directory "build"))
+#+END_SRC
+
+Require Org mode
+
+#+BEGIN_SRC emacs-lisp
+  (require 'org)
+#+END_SRC
+
+Enable evaluation of dot files in org mode
+
+#+BEGIN_SRC emacs-lisp
+  (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((dot . t)))
+#+END_SRC
+
+Don't prompt if it is OK to evaluate dot source
+
+#+BEGIN_SRC emacs-lisp
+  (defun ags/org-confirm-babel-evaluate (lang body)
+    (not (string= lang "dot")))
+  (setq org-confirm-babel-evaluate 'ags/org-confirm-babel-evaluate)
+#+END_SRC
+
+Remove the HTML validation link from the page footer
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-html-validation-link nil)
+#+END_SRC
+
+Publish the content
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-publish-project-alist
+        `(("ags-spec-pages"
+           :base-directory ,(expand-file-name ".")
+           :base-extension "org"
+           :exclude "README.org"
+           :publishing-directory ,(expand-file-name "build")
+           :publishing-function org-html-publish-to-html)
+          ("ags-spec-images"
+           :base-directory ,(expand-file-name "images")
+           :base-extension "png"
+           :publishing-directory ,(expand-file-name "build/images")
+           :publishing-function org-publish-attachment)
+          ("ags-spec"
+           :components ("ags-spec-pages" "ags-spec-images"))))
+
+  (org-publish "ags-spec")
+#+END_SRC
+
+** Build scripts
+
+You can export these scripts with:
+
+#+BEGIN_SRC
+  emacs --batch --quick --load=org --eval "(org-babel-tangle-file \"README.org\")"
+#+END_SRC
+
+Note: These scripts use the variable name EMACSBIN to take a custom Emacs path,
+since a variable named EMACS is already used within an Emacs environment to
+indicate its version number.
+
+*** POSIX shell script
+
+#+BEGIN_SRC sh :tangle build.sh :tangle-mode (identity #o755)
+  #!/bin/sh
+
+  scriptpath=$(readlink -f "$0")
+  scriptdir=$(dirname "$scriptpath")
+
+  ${EMACSBIN:-emacs} --batch \
+       --quick \
+       --chdir "$scriptdir" \
+       --load=org \
+       --eval '(org-babel-load-file "README.org")'
+#+END_SRC
+
+*** Windows batch script
+
+#+BEGIN_SRC cmd :tangle build.cmd
+  @echo off
+  setlocal
+
+  set SCRIPTDIR=%~dp0
+  set SCRIPTDIR=%SCRIPTDIR:~,-1%
+  set SCRIPTDIR=%SCRIPTDIR:\=\\%
+
+  if not defined EMACSBIN set EMACSBIN=emacs
+
+  %EMACSBIN% --batch ^
+       --quick ^
+       --chdir "%SCRIPTDIR%" ^
+       --load=org ^
+       --eval "(org-babel-load-file \"README.org\")"
+
+  endlocal
+#+END_SRC

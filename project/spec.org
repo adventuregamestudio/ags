@@ -1,0 +1,187 @@
+# -*- mode: org -*-
+
+#+TITLE: AGS Project Specification
+#+AUTHOR: AGS Project
+
+* What this document is
+
+This is intended to be a first part of a set of documents which create a
+definitive specification for:
+
+  - the direction of the AGS project
+  - a high level description of required components
+  - specific implementation details for design
+
+To begin the process this document first looks at organisational issues which
+have influenced development of AGS and how it has been used in recent years.
+Then follows a request for clarification, which this author believes is needed
+to make any additional progression with future development.
+
+A conscious decision has been made to present this document for consideration as
+part of the source code so that its contents may:
+
+  - generate discussion amongst project members
+  - be changed before inclusion
+  - be subject to normal source code change procedures
+
+
+* What this document is not
+
+To make it very clear, this is not:
+
+  - a request for specific changes to existing versions of AGS
+  - a decision on technical details, such as underlying languages, platforms, or
+    file formats
+  - a look at implementation details of the software (graphical editors, compilation
+    tools, game engine, game publishing, etc.)
+
+It is this author's view that discussion of these topics is detrimental to
+solving the more fundamental issue of what the purpose of the project and
+software is.
+
+
+* Undefined project goal
+
+There is not currently a clear statement of what the main objective of the AGS
+project is, or what is required of any software that it produces. The closest
+match which currently exists is the description of the software given on the AGS
+website.
+
+#+BEGIN_QUOTE
+Adventure Game Studio (AGS) provides the tools to make your own adventure, for
+free! Bring your story and artwork and slot it in, and let AGS do the rest. AGS
+provides everything you need from within one easy-to-use application. Create,
+test and debug your game, all in one place. Why wait? Get cracking on your first
+game now! -- https://www.adventuregamestudio.co.uk/ (April 23rd 2020)
+#+END_QUOTE
+
+In fact, this hasn't changed significantly since the oldest description of the
+software that is available from archive.org.
+
+#+BEGIN_QUOTE
+Adventure Game Studio allows you to create your own Sierra-style point-and-click
+adventure games. It consists of an easy-to-use development environment, and
+run-time engine. The game interface is fully customizable, although the classic
+Sierra and Lucasarts interfaces are supported by default. You need no
+programming experience to make a game using AGS - setting most game options is
+just a matter of point-and-click! AGS manages most of the game so that you don't
+have to - it provides load/save game functions, inventory management, and
+more. All you have to do is draw the graphics and think of a plot! Add in a few
+interactions (ie. what happens when the player clicks on various things) and
+you're done. You can even create a standalone EXE file containing your entire
+game, which you can then distribute. For advanced users, AGS supports scripting,
+which gives you even more powerful control of your game by learning a script
+language. -- https://www.adventuregamestudio.co.uk/ (January 24th 2001)
+#+END_QUOTE
+
+Superficially there would appear to be no issue here, but the ticket which was
+opened in May 2019 in an attempt to clarify the issue still remains open.
+
+https://github.com/adventuregamestudio/ags/issues/769
+
+Since the scope of usage for the software has ranged from hobbyist to
+professional the requirements of users has varied greatly, particularly with
+regard to supporting running old games or patching current ones. In an attempt
+to be more specific, it is this author's suggestion that the community using AGS
+is now split between two purposes:
+
+  - using the backwards compatibility found in the AGS engine to run older AGS
+    game data on newer engine revisions (typically because the engine that ships
+    with the game was not available of not functional for their chosen platform)
+  - using AGS to create new games
+
+The level of backwards compatibility provided by the engine seems a critical
+point, even in the second case of creating brand new games there are
+compatibility factors to consider.
+
+
+* Issues for consideration
+
+** Backwards compatibility for old games
+
+This is typically the critical issue when discussing future development, since
+there is currently no official stance on how backwards compatibility is (or would
+be) limited. From the current source code the note on backwards compatibility
+reads:
+
+#+BEGIN_QUOTE
+Supports (imports into editor and runs by the engine) all versions of AGS games
+starting from games made with AGS 2.50 up to games made with the latest 3.x
+release, but there may be unknown compatibility issues with very old games. --
+https://github.com/adventuregamestudio/ags
+#+END_QUOTE
+
+The noteworthy points being:
+
+  - backwards compatibility will try to load very old AGS data (version 2.50 is
+    listed as being released on September 18th 2002 according to the
+    [[https://www.adventuregamestudio.co.uk/wiki/AGS_Version_history][AGS Wiki]]
+  - there is no guarantee of what will run, just a suggestion that older games
+    may have issues
+
+AGS games with issues don't tend to keep running once any scripting or engine
+problems are encountered — this author suggests that in the majority of cases if
+a problem does occur the engine will shut itself down.
+
+** Backwards compatibility and new games
+
+Even in the case of new games there has traditionally been a reliance on
+backwards compatibility, which seems to have happened organically due to long
+standing shortcomings in the save/load system. Since, traditionally, rebuilding
+the game using a newer engine would invalidate any previous save games, it was
+often easier to rely on backwards compatibility to incorporate fixes which were
+made to the engine.
+
+As an example, if a game were released which was made with AGS version 3.n, but
+some critical fix for the engine had gone into a newly available release, it
+would be possible for someone to 'upgrade' their game by repacking the older
+game data with a newer engine.
+
+#+BEGIN_SRC dot :file ./images/exe_compat.png
+digraph {
+  rankdir=LR;
+  node [shape=box];
+
+  game [label="AGS 3.n compiled game\n(executable binary)"]
+  engine [label="AGS 3.n+1 engine\n(executable binary)"]
+  play [label="Playable game"]
+
+  game -> engine -> play
+}
+#+END_SRC
+
+This introduces a reliance on the backwards compatibility feature, although the
+short-coming in the save/load system were actually the source of the problem
+(and are not longer trivially fixed because such changes will need to
+accommodate backwards compatibility).
+
+** Licensing
+
+The current licence which AGS uses is not ideal when the original (and sole)
+author of the original program is no longer involved with the project. In
+numerous places the licence compliance options refer to and require the
+involvement of the 'copyright holder'. The inability to identify a party or
+parties as the 'copyright holder' limits the options for compliance by third
+parties, particularly with regard to changes which must remain private to comply
+with non-disclosure agreements.
+
+This author mentions the point since the future direction of development could
+be restricted or steered by licence compliance or limitations. If a goal of the
+project is to facilitate usage on proprietary platforms which impose their own
+licensing restrictions (e.g. game consoles) then it could be wise to address
+this issue as early as possible. If there is any move, towards integrating with
+or leveraging functionality from other projects (e.g. ScummVM) the licensing
+would also have to be compatible with those projects.
+
+
+* Request for clarification
+
+To make any type of organisational or technical decision it would seem fairly
+critical to first decide on the purpose of the project and its software. Subject
+to the points raised above, this author would like to request that:
+
+  - this document should be reviewed and edited further before being committed
+    as part of the AGS source code
+  - the issues raised above are considered in the creation of the next document
+    in this sequence, which defines the goal of the AGS project (thereby closing
+    issue [[https://github.com/adventuregamestudio/ags/issues/769][#769]])

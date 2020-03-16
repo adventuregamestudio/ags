@@ -93,3 +93,10 @@ Windows/Installer/Output/
 Windows/Installer/Source/*
 !Windows/Installer/Source/Licenses/
 !Windows/Installer/Source/URLs/
+
+
+# project documentation
+project/build/
+project/images/
+project/*.el
+project/build.*

@@ -336,6 +336,16 @@ struct GameState {
     void SetIgnoreInput(int timeout_ms);
 
     //
+    // Blocking text management
+    //
+    // Returns an arbitrary ID of a currently displayed blocking text (speech or another message);
+    // the ID is incrementing with each new text, allowing to distinguish new messages.
+    // Returns 0 if no blocking message is currently on.
+    int GetBlockingTextID() const;
+    // Sets or clears the blocking text state; each new state increments the blocking text ID.
+    void SetBlockingText(bool on);
+
+    //
     // Voice speech management
     //
     // Tells if there's a blocking voice speech playing right now
@@ -384,6 +394,11 @@ private:
     bool  _mainViewportHasChanged;
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged;
+
+    // Blocking text state
+    bool  _isBlockingText;
+    // Last blocking text ID
+    int   _blockingTextID;
 
     // User input state
     bool _userInputOn;

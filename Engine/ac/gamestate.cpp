@@ -42,6 +42,8 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
+    _isBlockingText = false;
+    _blockingTextID = 0;
     _userInputOn = true;
 }
 
@@ -441,6 +443,20 @@ void GameState::SetIgnoreInput(int timeout_ms)
 {
     if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
         _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+}
+
+int GameState::GetBlockingTextID() const
+{
+    return _isBlockingText ? _blockingTextID : 0;
+}
+
+void GameState::SetBlockingText(bool on)
+{
+    if (on && !_isBlockingText)
+    {
+        _blockingTextID = (_blockingTextID == INT32_MAX) ? 1 : _blockingTextID + 1;
+    }
+    _isBlockingText = on;
 }
 
 bool GameState::IsBlockingVoiceSpeech() const

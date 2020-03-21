@@ -259,6 +259,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             ags_domouse(DOMOUSE_ENABLE);
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
+        play.SetBlockingText(true);
         // Loop until skipped
         while (true) {
             update_audio_system_on_game_loop();
@@ -309,6 +310,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             if ((countdown < 1) && (play.fast_forward))
                 break;
         }
+        play.SetBlockingText(false);
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_DISABLE);
         remove_screen_overlay(OVER_TEXTMSG);
@@ -328,7 +330,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             screenover[nse].y = vpt.first.Y;
         }
 
+        play.SetBlockingText(true);
         GameLoopUntilNoOverlay();
+        play.SetBlockingText(false);
     }
 
     play.messagetime=-1;

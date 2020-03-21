@@ -954,6 +954,11 @@ void Game_SetUserInputEnabled(bool on)
     return play.SetUserInputEnabled(on);
 }
 
+int Game_BlockingTextIndex()
+{
+    return play.GetBlockingTextID();
+}
+
 //=============================================================================
 
 // save game functions
@@ -2438,6 +2443,11 @@ RuntimeScriptValue Sc_Game_SetUserInputEnabled(const RuntimeScriptValue *params,
     API_SCALL_VOID_PBOOL(Game_SetUserInputEnabled);
 }
 
+RuntimeScriptValue Sc_Game_BlockingTextIndex(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingTextIndex);
+}
+
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2493,6 +2503,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
     ccAddExternalStaticFunction("Game::get_UserInputEnabled",                   Sc_Game_GetUserInputEnabled);
     ccAddExternalStaticFunction("Game::set_UserInputEnabled",                   Sc_Game_SetUserInputEnabled);
+    ccAddExternalStaticFunction("Game::get_BlockingTextIndex",                  Sc_Game_BlockingTextIndex);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

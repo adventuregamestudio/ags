@@ -2653,6 +2653,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v351
   /// Gets/sets whether user input is enabled in game
   import static attribute bool UserInputEnabled;
+  /// Gets an arbitrary ID of a currently displayed blocking text (speech or another message), or 0 if none is display at the moment
+  import static readonly attribute int BlockingTextIndex;
 #endif
 };
 

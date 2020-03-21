@@ -242,14 +242,9 @@ static void check_mouse_controls()
     int mwheelz;
     if (run_service_mb_controls(mbut, mwheelz)) {
 
-        CutsceneSkipStyle skip = get_cutscene_skipstyle();
-        if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
-            (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
-        {
-            start_skipping_cutscene();
-        }
+        check_skip_cutscene_mclick(mbut);
 
-        if (play.fast_forward) { }
+        if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
             play.wait_counter = -1;
         else if (is_text_overlay > 0) {
@@ -384,30 +379,20 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
-    int kgn;
-
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
+    int kgn;
     if (!run_service_key_controls(kgn)) {
         return;
     }
-
-    // Now check for in-game controls
-
-    // if (kgn == eAGSKeyCodeF9) { restart_game(); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear"); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { Display("Crashing"); strcpy(NULL, NULL); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { SetCharacterIdle (game.playercharacter, 5, 0); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { Display("Some for?ign text"); return; }
-    // if (kgn == eAGSKeyCodeCtrlB) { do_conversation(5); return; }
-
-    check_skip_cutscene_keypress (kgn);
-
+    // Then, check cutscene skip
+    check_skip_cutscene_keypress(kgn);
     if (play.fast_forward) { 
         return; 
     }
-
+    if (play.IsIgnoringInput()) {
+        return;
+    }
+    // Now check for in-game controls
     if (pl_run_plugin_hooks(AGSE_KEYPRESS, kgn)) {
         // plugin took the keypress
         debug_script_log("Keypress code %d taken by plugin", kgn);

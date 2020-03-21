@@ -340,6 +340,9 @@ bool run_service_key_controls(int &kgn)
         }
     }
 
+    if (kbhit_res)
+        play.CancelScheduledIgnoreInput();
+
     if (!kbhit_res || handled)
         return false;
 
@@ -371,6 +374,7 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
     if (mb == NONE && mz == 0)
         return false;
     lock_mouse_on_click(); // do not claim
+    play.CancelScheduledIgnoreInput();
     mbut = mb;
     mwheelz = mwheelz;
     return true;

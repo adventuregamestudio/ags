@@ -194,7 +194,7 @@ int ags_getch() {
 void ags_clear_input_buffer()
 {
     while (ags_kbhit()) ags_getch();
-    while (mgetbutton() != NONE);
+    while (ags_mgetbutton() != NONE);
 }
 
 void ags_wait_until_keypress()

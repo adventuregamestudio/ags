@@ -290,6 +290,7 @@ void update_speech_and_messages()
       {
         remove_screen_overlay(OVER_TEXTMSG);
         play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
+        play.ScheduleIgnoreInput(play.ignore_user_input_at_next_text_ms);
       }
     }
   }

@@ -436,6 +436,24 @@ void GameState::SetIgnoreInput(int timeout_ms)
 void GameState::ClearIgnoreInput()
 {
     _ignoreUserInputUntilTime = AGS_Clock::now();
+    _scheduleIgnoreUserInputUntilTime = AGS_Clock::now();
+}
+
+void GameState::ScheduleIgnoreInput(int timeout_ms)
+{
+    if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _scheduleIgnoreUserInputUntilTime)
+        _scheduleIgnoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+}
+
+void GameState::ActivateScheduledIgnoreInput()
+{
+    if (AGS_Clock::now() < _scheduleIgnoreUserInputUntilTime)
+        _ignoreUserInputUntilTime = _scheduleIgnoreUserInputUntilTime;
+}
+
+void GameState::CancelScheduledIgnoreInput()
+{
+    _scheduleIgnoreUserInputUntilTime = AGS_Clock::now();
 }
 
 bool GameState::IsBlockingVoiceSpeech() const

@@ -217,6 +217,7 @@ struct GameState {
     std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
+    int   ignore_user_input_at_next_text_ms;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
     // Dynamic custom property values for characters and items
@@ -334,6 +335,13 @@ struct GameState {
     void SetIgnoreInput(int timeout_ms);
     // Clears ignore input state
     void ClearIgnoreInput();
+    // Schedules ignore input state, but does not enable it right away.
+    // The state may be activated using ActivateScheduledInput().
+    void ScheduleIgnoreInput(int timeout_ms);
+    // Activates ignore input state if one was scheduled, otherwise does nothing.
+    void ActivateScheduledIgnoreInput();
+    // Cancels scheduled ignore input state, if there's one
+    void CancelScheduledIgnoreInput();
 
     //
     // Voice speech management
@@ -386,6 +394,7 @@ private:
     bool  _roomViewportZOrderChanged;
 
     AGS_Clock::time_point _ignoreUserInputUntilTime;
+    AGS_Clock::time_point _scheduleIgnoreUserInputUntilTime;
 };
 
 // Converts legacy alignment type used in script API

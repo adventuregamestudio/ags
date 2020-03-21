@@ -809,6 +809,16 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
     play.ignore_user_input_after_text_timeout_ms = newValueMs;
 }
 
+int Game_GetIgnoreUserInputForNextTextMs()
+{
+    return play.ignore_user_input_at_next_text_ms;
+}
+
+void Game_SetIgnoreUserInputForNextTextMs(int newValueMs)
+{
+    play.ignore_user_input_at_next_text_ms = newValueMs;
+}
+
 const char *Game_GetFileName() {
     return CreateNewScriptString(ResPaths.GamePak.Name);
 }
@@ -2258,6 +2268,16 @@ RuntimeScriptValue Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs(const RuntimeScr
     API_SCALL_INT(Game_GetIgnoreUserInputAfterTextTimeoutMs);
 }
 
+RuntimeScriptValue Sc_Game_SetIgnoreUserInputForNextTextMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetIgnoreUserInputForNextTextMs);
+}
+
+RuntimeScriptValue Sc_Game_GetIgnoreUserInputForNextTextMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetIgnoreUserInputForNextTextMs);
+}
+
 // void (int newValueMs)
 RuntimeScriptValue Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2447,6 +2467,8 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_GUICount",                           Sc_Game_GetGUICount);
     ccAddExternalStaticFunction("Game::get_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs);
     ccAddExternalStaticFunction("Game::set_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs);
+    ccAddExternalStaticFunction("Game::get_IgnoreUserInputForNextTextMs",       Sc_Game_GetIgnoreUserInputForNextTextMs);
+    ccAddExternalStaticFunction("Game::set_IgnoreUserInputForNextTextMs",       Sc_Game_SetIgnoreUserInputForNextTextMs);
     ccAddExternalStaticFunction("Game::get_InSkippableCutscene",                Sc_Game_GetInSkippableCutscene);
     ccAddExternalStaticFunction("Game::get_InventoryItemCount",                 Sc_Game_GetInventoryItemCount);
     ccAddExternalStaticFunction("Game::get_MinimumTextDisplayTimeMs",           Sc_Game_GetMinimumTextDisplayTimeMs);

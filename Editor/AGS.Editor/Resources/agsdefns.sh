@@ -2650,6 +2650,10 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
+#ifdef SCRIPT_API_v351
+  /// Gets/sets the time for which user input is ignored for the new text, after previous one was automatically removed
+  import static attribute int IgnoreUserInputForNextTextMs;
+#endif
 };
 
 builtin struct GameState {

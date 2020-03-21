@@ -954,9 +954,9 @@ bool DialogOptions::Run()
           parserActivated = 1;
       }
 
-      int mouseButtonPressed = ags_mgetbutton();
-
-      if (mouseButtonPressed != NONE)
+      int mouseButtonPressed = NONE;
+      int mouseWheelTurn = 0;
+      if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0)
       {
         if (mouseison < 0 && !new_custom_render)
         {
@@ -997,7 +997,6 @@ bool DialogOptions::Run()
 
       if (usingCustomRendering)
       {
-        int mouseWheelTurn = ags_check_mouse_wheel();
         if (mouseWheelTurn != 0)
         {
             runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);

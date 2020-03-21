@@ -268,8 +268,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         while (true) {
             update_audio_system_on_game_loop();
             render_graphics();
-
-            if (ags_mgetbutton()>NONE) {
+            int mbut, mwheelz;
+            if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
                 // If we're allowed, skip with mouse
                 if (skip_setting & SKIP_MOUSECLICK)
                     break;

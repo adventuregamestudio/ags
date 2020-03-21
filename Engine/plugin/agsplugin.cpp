@@ -409,14 +409,13 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 }
 
 extern void domouse(int);
-extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
-    int mbut = mgetbutton();
-    if (mbut > NONE)
+    int mbut, mwheelz;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0)
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
 
     int kp;

@@ -239,9 +239,9 @@ static void check_mouse_controls()
         wasbutdown=0;
     }
 
-    int mbut = ags_mgetbutton();
-    if (mbut>NONE) {
-        lock_mouse_on_click();
+    int mbut = NONE;
+    int mwheelz = 0;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
 
         CutsceneSkipStyle skip = get_cutscene_skipstyle();
         if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
@@ -275,12 +275,10 @@ static void check_mouse_controls()
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
-    mbut = ags_check_mouse_wheel();
-    if (mbut !=0)
-        lock_mouse_on_click();
-    if (mbut < 0)
+
+    if (mwheelz < 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
-    else if (mbut > 0)
+    else if (mwheelz > 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 }
 
@@ -372,6 +370,18 @@ bool run_service_key_controls(int &kgn)
 
     // No service operation triggered? return active keypress and shifts to caller
     kgn = keycode;
+    return true;
+}
+
+bool run_service_mb_controls(int &mbut, int &mwheelz)
+{
+    int mb = ags_mgetbutton();
+    int mz = ags_check_mouse_wheel();
+    if (mb == NONE && mz == 0)
+        return false;
+    lock_mouse_on_click(); // do not claim
+    mbut = mb;
+    mwheelz = mz;
     return true;
 }
 

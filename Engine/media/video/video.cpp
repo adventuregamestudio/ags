@@ -69,15 +69,15 @@ Bitmap *fli_target = nullptr;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
-    int key;
+    int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
         if ((key==27) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key
     }
-    if (canabort == 3) {  // skip on mouse click
-        if (ags_mgetbutton()!=NONE) return 1;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && canabort == 3) {
+        return 1; // skip on mouse click
     }
     return 0;
 }

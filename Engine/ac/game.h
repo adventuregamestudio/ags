@@ -158,7 +158,8 @@ long write_screen_shot_for_vista(Common::Stream *out, Common::Bitmap *screenshot
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();
 void start_skipping_cutscene ();
-void check_skip_cutscene_keypress (int kgn);
+bool check_skip_cutscene_keypress(int kgn);
+bool check_skip_cutscene_mclick(int mbut);
 void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 

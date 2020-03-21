@@ -391,14 +391,14 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
     RenderToSurface(vscreen);
     //Sleep(0);
-    int key;
+    int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
       if ((canskip == 1) && (key == 27))
         break;
       if (canskip >= 2)
         break;
     }
-    if ((ags_mgetbutton() >= 0) && (canskip == 3))
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && (canskip == 3))
       break;
   }
 

@@ -370,7 +370,10 @@ bool InventoryScreen::Run()
         if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
             isonitem=-1;
 
-        int mclick = ags_mgetbutton();
+        int mclick, mwheelz;
+        if (!run_service_mb_controls(mclick, mwheelz)) {
+            mclick = NONE;
+        }
         if (mclick == LEFT) {
             if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
                 return true; // continue inventory screen loop

@@ -44,7 +44,7 @@ void remove_screen_overlay_index(int over_idx);
 void recreate_overlay_ddbs();
 
 extern int is_complete_overlay;
-extern int is_text_overlay;
+extern int is_text_overlay; // blocking text overlay on screen
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;

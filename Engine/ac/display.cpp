@@ -268,7 +268,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 check_skip_cutscene_mclick(mbut);
                 if (play.fast_forward)
                     break;
-                if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+                if (skip_setting & SKIP_MOUSECLICK && play.IsUserInputEnabled())
                     break;
             }
             int kp;
@@ -276,7 +276,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 check_skip_cutscene_keypress (kp);
                 if (play.fast_forward)
                     break;
-                if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
+                if ((skip_setting & SKIP_KEYPRESS) && play.IsUserInputEnabled())
                     break;
             }
             

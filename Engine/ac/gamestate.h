@@ -329,11 +329,11 @@ struct GameState {
     // Tells if game should ignore user input right now. Note that some of the parent states
     // may not ignore it at the same time, such as cutscene state, which may still be skipped
     // with a key press or a mouse button.
-    bool IsIgnoringInput() const;
+    bool IsUserInputEnabled() const;
+    // Enables/disables user input, also clears ignore input timeout when enabling input
+    void SetUserInputEnabled(bool on);
     // Sets ignore input state, for the given time; if there's one already, chooses max timeout
     void SetIgnoreInput(int timeout_ms);
-    // Clears ignore input state
-    void ClearIgnoreInput();
 
     //
     // Voice speech management
@@ -385,6 +385,8 @@ private:
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged;
 
+    // User input state
+    bool _userInputOn;
     AGS_Clock::time_point _ignoreUserInputUntilTime;
 };
 

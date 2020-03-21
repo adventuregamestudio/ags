@@ -244,7 +244,7 @@ static void check_mouse_controls()
 
         check_skip_cutscene_mclick(mbut);
 
-        if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
+        if (play.fast_forward || !play.IsUserInputEnabled()) { /* do nothing if skipping cutscene or input disabled */ }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
             play.wait_counter = -1;
         else if (is_text_overlay > 0) {
@@ -389,7 +389,7 @@ static void check_keyboard_controls()
     if (play.fast_forward) { 
         return; 
     }
-    if (play.IsIgnoringInput()) {
+    if (!play.IsUserInputEnabled()) {
         return;
     }
     // Now check for in-game controls

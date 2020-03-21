@@ -415,10 +415,10 @@ void IAGSEngine::PollSystem () {
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
     int mbut, mwheelz;
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput())
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && play.IsUserInputEnabled())
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
     int kp;
-    if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
+    if (run_service_key_controls(kp) && play.IsUserInputEnabled()) {
         pl_run_plugin_hooks (AGSE_KEYPRESS, kp);
     }
 

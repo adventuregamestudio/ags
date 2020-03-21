@@ -270,18 +270,18 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             render_graphics();
             int mbut, mwheelz;
             if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
-                // If we're allowed, skip with mouse
-                if (skip_setting & SKIP_MOUSECLICK)
+                check_skip_cutscene_mclick(mbut);
+                if (play.fast_forward)
+                    break;
+                if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
                     break;
             }
             int kp;
             if (run_service_key_controls(kp)) {
-                // let them press ESC to skip the cutscene
                 check_skip_cutscene_keypress (kp);
                 if (play.fast_forward)
                     break;
-
-                if (skip_setting & SKIP_KEYPRESS)
+                if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
                     break;
             }
             

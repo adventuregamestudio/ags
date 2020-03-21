@@ -352,7 +352,7 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 bool InventoryScreen::Run()
 {
     int kgn;
-    if (run_service_key_controls(kgn) && !play.IsIgnoringInput())
+    if (run_service_key_controls(kgn) && play.IsUserInputEnabled())
     {
         return false; // end inventory screen loop
     }
@@ -371,7 +371,7 @@ bool InventoryScreen::Run()
             isonitem=-1;
 
         int mclick, mwheelz;
-        if (!run_service_mb_controls(mclick, mwheelz) || play.IsIgnoringInput()) {
+        if (!run_service_mb_controls(mclick, mwheelz) || !play.IsUserInputEnabled()) {
             mclick = NONE;
         }
 

@@ -238,9 +238,9 @@ static void check_mouse_controls()
         wasbutdown=0;
     }
 
-    int mbut;
-    int mwheelz;
-    if (run_service_mb_controls(mbut, mwheelz)) {
+    int mbut = NONE;
+    int mwheelz = 0;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
 
         check_skip_cutscene_mclick(mbut);
 
@@ -376,7 +376,7 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
     lock_mouse_on_click(); // do not claim
     play.CancelScheduledIgnoreInput();
     mbut = mb;
-    mwheelz = mwheelz;
+    mwheelz = mz;
     return true;
 }
 

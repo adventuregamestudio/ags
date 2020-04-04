@@ -582,8 +582,15 @@ builtin managed struct DrawingSurface {
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif
+#ifdef SCRIPT_API_v351
+  /// Draws the specified surface onto this surface.
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+#endif
+#ifndef SCRIPT_API_v351
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
+#endif
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
   /// Gets the colour of a single pixel on the surface.

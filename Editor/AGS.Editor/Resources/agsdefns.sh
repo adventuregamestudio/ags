@@ -567,10 +567,15 @@ builtin managed struct DrawingSurface {
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
+  /// Draws the specified surface onto this surface.
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
 #endif
 #ifndef SCRIPT_API_v360
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
+  /// Draws the specified surface onto this surface.
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
 #endif
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
@@ -590,8 +595,6 @@ builtin managed struct DrawingSurface {
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif
-  /// Draws the specified surface onto this surface.
-  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
   /// Gets the colour of a single pixel on the surface.

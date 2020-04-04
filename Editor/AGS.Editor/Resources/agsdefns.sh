@@ -542,8 +542,15 @@ builtin managed struct DrawingSurface {
   import DrawingSurface* CreateCopy();
   /// Draws a circle onto the surface with its centre at (x,y).
   import void DrawCircle(int x, int y, int radius);
+#ifdef SCRIPT_API_v351
+  /// Draws a sprite onto the surface with its top-left corner at (x,y).
+  import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+#endif
+#ifndef SCRIPT_API_v351
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
+#endif
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
   /// Draws a message from the Room Message Editor, wrapping at the specified width.

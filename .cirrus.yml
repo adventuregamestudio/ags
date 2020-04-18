@@ -360,3 +360,14 @@ make_release_task:
         --header "Content-Type: application/octet-stream" \
         "https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=${fpath##*/}"
     done
+
+project_specification_task:
+  container:
+    image: alpine:3.10
+  install_packages_script: apk add --no-cache emacs-nox graphviz ttf-freefont
+  tangle_readme_script: >
+    cd project &&
+    emacs --batch --quick --load=org --eval "(org-babel-tangle-file \"README.org\")"
+  build_documents_script: project/build.sh
+  documents_artifacts:
+    path: project/build/**

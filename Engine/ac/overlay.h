@@ -17,7 +17,8 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__OVERLAY_H
 #define __AGS_EE_AC__OVERLAY_H
-
+#include <vector>
+#include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
@@ -33,15 +34,17 @@ int  Overlay_GetValid(ScriptOverlay *scover);
 ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent);
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
 
-int  find_overlay_of_type(int typ);
+int  find_overlay_of_type(int type);
 void remove_screen_overlay(int type);
 // Calculates overlay position in screen coordinates
-void get_overlay_position(int overlayidx, int *x, int *y);
-int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
-void remove_screen_overlay_index(int cc);
+void get_overlay_position(const ScreenOverlay &over, int *x, int *y);
+size_t add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
+void remove_screen_overlay_index(size_t over_idx);
 void recreate_overlay_ddbs();
 
 extern int is_complete_overlay;
 extern int is_text_overlay;
+
+extern std::vector<ScreenOverlay> screenover;
 
 #endif // __AGS_EE_AC__OVERLAY_H

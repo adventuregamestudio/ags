@@ -14,54 +14,75 @@
 
 #include "ac/timer.h"
 
-#include <thread>
 #include "core/platform.h"
 #if AGS_PLATFORM_DEBUG && defined (__GNUC__)
 #include <stdio.h>
 #include <execinfo.h>
 #include <unistd.h>
 #endif
+#include <thread>
 #include "platform/base/agsplatformdriver.h"
-#include "util/wgt2allg.h" // END_OF_FUNCTION macro
-
-volatile int timerloop=0;
-int time_between_timers=25;  // in milliseconds
-
-// our timer, used to keep game running at same speed on all systems
-#if defined(WINDOWS_VERSION)
-void __cdecl dj_timer_handler() {
-#else
-extern "C" void dj_timer_handler() {
-#endif
-    timerloop++;
-}
-END_OF_FUNCTION(dj_timer_handler);
-
-void WaitForNextFrame()
-{
-    while (timerloop == 0) 
-    { 
-        platform->YieldCPU(); 
-    }
-}
 
 namespace {
 
 const auto MAXIMUM_FALL_BEHIND = 3;
 
-auto last_tick_time = AGS_Clock::now();
 auto tick_duration = std::chrono::microseconds(1000000LL/40);
 auto framerate_maxed = false;
 
+auto last_tick_time = AGS_Clock::now();
+auto next_frame_timestamp = AGS_Clock::now();
+
 }
 
-void setTimerFps(int new_fps) {
+std::chrono::microseconds GetFrameDuration()
+{
+    if (framerate_maxed) {
+        return std::chrono::microseconds(0);
+    }
+    return tick_duration;
+}
+
+void setTimerFps(int new_fps) 
+{
     tick_duration = std::chrono::microseconds(1000000LL/new_fps);
-    last_tick_time = AGS_Clock::now();
     framerate_maxed = new_fps >= 1000;
+
+    last_tick_time = AGS_Clock::now();
+    next_frame_timestamp = AGS_Clock::now();
 }
 
-bool waitingForNextTick() {
+bool isTimerFpsMaxed()
+{
+    return framerate_maxed;
+}
+
+void WaitForNextFrame()
+{
+    auto now = AGS_Clock::now();
+    auto frameDuration = GetFrameDuration();
+
+    // early exit if we're trying to maximise framerate
+    if (frameDuration <= std::chrono::milliseconds::zero()) {
+        next_frame_timestamp = now;
+        return;
+    }
+
+    // jump ahead if we're lagging
+    if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND*frameDuration)) {
+        next_frame_timestamp = now;
+    }
+
+    auto frame_time_remaining = next_frame_timestamp - now;
+    if (frame_time_remaining > std::chrono::milliseconds::zero()) {
+        std::this_thread::sleep_for(frame_time_remaining);
+    }
+    
+    next_frame_timestamp += frameDuration;
+}
+
+bool waitingForNextTick() 
+{
     auto now = AGS_Clock::now();
 
     if (framerate_maxed) {
@@ -89,10 +110,11 @@ bool waitingForNextTick() {
         return false;
     }
 
-    platform->YieldCPU();
     return true;
 }
 
-void skipMissedTicks() {
+void skipMissedTicks() 
+{
     last_tick_time = AGS_Clock::now();
+    next_frame_timestamp = AGS_Clock::now();
 }

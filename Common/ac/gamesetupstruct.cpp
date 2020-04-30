@@ -134,6 +134,12 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
             fonts[i].YOffset = in->ReadInt32();
             fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
             AdjustFontInfoUsingFlags(fonts[i], flags);
+            if (data_ver >= kGameVersion_351)
+            {
+                fonts[i].AutoOutlineThickness = in->ReadInt32();
+                fonts[i].AutoOutlineStyle = 
+                    static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+            }
         }
     }
 }

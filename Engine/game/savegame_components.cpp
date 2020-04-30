@@ -26,6 +26,7 @@
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
+#include "ac/overlay.h"
 #include "ac/roomstatus.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -59,8 +60,6 @@ extern DialogTopic *dialog;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern ViewStruct *views;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
@@ -765,11 +764,11 @@ HSaveError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams
 
 HSaveError WriteOverlays(PStream out)
 {
-    out->WriteInt32(numscreenover);
-    for (int i = 0; i < numscreenover; ++i)
+    out->WriteInt32(screenover.size());
+    for (const auto &over : screenover)
     {
-        screenover[i].WriteToFile(out.get());
-        serialize_bitmap(screenover[i].pic, out.get());
+        over.WriteToFile(out.get());
+        serialize_bitmap(over.pic, out.get());
     }
     return HSaveError::None();
 }
@@ -777,15 +776,14 @@ HSaveError WriteOverlays(PStream out)
 HSaveError ReadOverlays(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     HSaveError err;
-    int over_count = in->ReadInt32();
-    if (!AssertCompatLimit(err, over_count, MAX_SCREEN_OVERLAYS, "overlays"))
-        return err;
-    numscreenover = over_count;
-    for (int i = 0; i < numscreenover; ++i)
+    size_t over_count = in->ReadInt32();
+    for (size_t i = 0; i < over_count; ++i)
     {
-        screenover[i].ReadFromFile(in.get());
-        if (screenover[i].hasSerializedBitmap)
-            screenover[i].pic = read_serialized_bitmap(in.get());
+        ScreenOverlay over;
+        over.ReadFromFile(in.get());
+        if (over.hasSerializedBitmap)
+            over.pic = read_serialized_bitmap(in.get());
+        screenover.push_back(over);
     }
     return err;
 }

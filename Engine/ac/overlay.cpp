@@ -40,8 +40,7 @@ extern IGraphicsDriver *gfxDriver;
 
 
 
-ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-int numscreenover=0;
+std::vector<ScreenOverlay> screenover;
 int is_complete_overlay=0,is_text_overlay=0;
 int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
 
@@ -69,7 +68,7 @@ int Overlay_GetX(ScriptOverlay *scover) {
         quit("!invalid overlay ID specified");
 
     int tdxp, tdyp;
-    get_overlay_position(ovri, &tdxp, &tdyp);
+    get_overlay_position(screenover[ovri], &tdxp, &tdyp);
 
     return tdxp;
 }
@@ -88,7 +87,7 @@ int Overlay_GetY(ScriptOverlay *scover) {
         quit("!invalid overlay ID specified");
 
     int tdxp, tdyp;
-    get_overlay_position(ovri, &tdxp, &tdyp);
+    get_overlay_position(screenover[ovri], &tdxp, &tdyp);
 
     return tdyp;
 }
@@ -140,86 +139,85 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 
 //=============================================================================
 
-void remove_screen_overlay_index(int cc) {
-    int dd;
-    delete screenover[cc].pic;
-    screenover[cc].pic=nullptr;
-
-    if (screenover[cc].bmp != nullptr)
-        gfxDriver->DestroyDDB(screenover[cc].bmp);
-    screenover[cc].bmp = nullptr;
-
-    if (screenover[cc].type==OVER_COMPLETE) is_complete_overlay--;
-    if (screenover[cc].type==OVER_TEXTMSG) is_text_overlay--;
-
+void dispose_overlay(ScreenOverlay &over)
+{
+    delete over.pic;
+    over.pic = nullptr;
+    if (over.bmp != nullptr)
+        gfxDriver->DestroyDDB(over.bmp);
+    over.bmp = nullptr;
     // if the script didn't actually use the Overlay* return
     // value, dispose of the pointer
-    if (screenover[cc].associatedOverlayHandle)
-        ccAttemptDisposeObject(screenover[cc].associatedOverlayHandle);
+    if (over.associatedOverlayHandle)
+        ccAttemptDisposeObject(over.associatedOverlayHandle);
+}
 
-    numscreenover--;
-    for (dd = cc; dd < numscreenover; dd++)
-        screenover[dd] = screenover[dd+1];
-
+void remove_screen_overlay_index(size_t over_idx)
+{
+    ScreenOverlay &over = screenover[over_idx];
+    dispose_overlay(over);
+    if (over.type==OVER_COMPLETE) is_complete_overlay--;
+    if (over.type==OVER_TEXTMSG) is_text_overlay--;
+    screenover.erase(screenover.begin() + over_idx);
     // if an overlay before the sierra-style speech one is removed,
     // update the index
-    if (face_talking > cc)
+    if (face_talking >= 0 && (size_t)face_talking > over_idx)
         face_talking--;
 }
 
-void remove_screen_overlay(int type) {
-    int cc;
-    for (cc=0;cc<numscreenover;cc++) {
-        if (screenover[cc].type==type) ;
-        else if (type==-1) ;
-        else continue;
-        remove_screen_overlay_index(cc);
-        cc--;
+void remove_screen_overlay(int type)
+{
+    for (size_t i = 0; i < screenover.size();)
+    {
+        if (type < 0 || screenover[i].type == type)
+            remove_screen_overlay_index(i);
+        else
+            i++;
     }
 }
 
-int find_overlay_of_type(int typ) {
-    int ww;
-    for (ww=0;ww<numscreenover;ww++) {
-        if (screenover[ww].type == typ) return ww;
+int find_overlay_of_type(int type)
+{
+    for (size_t i = 0; i < screenover.size(); ++i)
+    {
+        if (screenover[i].type == type) return i;
     }
     return -1;
 }
 
-int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
-    if (numscreenover>=MAX_SCREEN_OVERLAYS)
-        quit("too many screen overlays created");
+size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {
-        int uu;  // find an unused custom ID
-        for (uu=OVER_CUSTOM+1;uu<OVER_CUSTOM+100;uu++) {
-            if (find_overlay_of_type(uu) == -1) { type=uu; break; }
+        // find an unused custom ID; TODO: find a better approach!
+        for (int id = OVER_CUSTOM + 1; id < screenover.size() + OVER_CUSTOM + 1; ++id) {
+            if (find_overlay_of_type(id) == -1) { type=id; break; }
         }
     }
-    screenover[numscreenover].pic=piccy;
-    screenover[numscreenover].bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
-    screenover[numscreenover].x=x;
-    screenover[numscreenover].y=y;
-    screenover[numscreenover].type=type;
-    screenover[numscreenover].timeout=0;
-    screenover[numscreenover].bgSpeechForChar = -1;
-    screenover[numscreenover].associatedOverlayHandle = 0;
-    screenover[numscreenover].hasAlphaChannel = alphaChannel;
-    screenover[numscreenover].positionRelativeToScreen = true;
-    numscreenover++;
-    return numscreenover-1;
+    ScreenOverlay over;
+    over.pic=piccy;
+    over.bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
+    over.x=x;
+    over.y=y;
+    over.type=type;
+    over.timeout=0;
+    over.bgSpeechForChar = -1;
+    over.associatedOverlayHandle = 0;
+    over.hasAlphaChannel = alphaChannel;
+    over.positionRelativeToScreen = true;
+    screenover.push_back(over);
+    return screenover.size() - 1;
 }
 
 
 
-void get_overlay_position(int overlayidx, int *x, int *y) {
+void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
     int tdxp, tdyp;
     const Rect &ui_view = play.GetUIViewport();
 
-    if (screenover[overlayidx].x == OVR_AUTOPLACE) {
+    if (over.x == OVR_AUTOPLACE) {
         // auto place on character
-        int charid = screenover[overlayidx].y;
+        int charid = over.y;
         int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
 
         tdyp = play.RoomToScreenY(game.chars[charid].get_effective_y()) - 5;
@@ -228,23 +226,23 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         else
             tdyp -= charextra[charid].height;
 
-        tdyp -= screenover[overlayidx].pic->GetHeight();
+        tdyp -= over.pic->GetHeight();
         if (tdyp < 5) tdyp=5;
-        tdxp = play.RoomToScreenX(game.chars[charid].x - screenover[overlayidx].pic->GetWidth()/2);
+        tdxp = play.RoomToScreenX(game.chars[charid].x - over.pic->GetWidth()/2);
         if (tdxp < 0) tdxp=0;
 
-        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= ui_view.GetWidth())
-            tdxp = (ui_view.GetWidth() - screenover[overlayidx].pic->GetWidth()) - 1;
+        if ((tdxp + over.pic->GetWidth()) >= ui_view.GetWidth())
+            tdxp = (ui_view.GetWidth() - over.pic->GetWidth()) - 1;
         if (game.chars[charid].room != displayed_room) {
-            tdxp = ui_view.GetWidth()/2 - screenover[overlayidx].pic->GetWidth()/2;
-            tdyp = ui_view.GetHeight()/2 - screenover[overlayidx].pic->GetHeight()/2;
+            tdxp = ui_view.GetWidth()/2 - over.pic->GetWidth()/2;
+            tdyp = ui_view.GetHeight()/2 - over.pic->GetHeight()/2;
         }
     }
     else {
-        tdxp = screenover[overlayidx].x;
-        tdyp = screenover[overlayidx].y;
+        tdxp = over.x;
+        tdyp = over.y;
 
-        if (!screenover[overlayidx].positionRelativeToScreen)
+        if (!over.positionRelativeToScreen)
         {
             Point tdxy = play.RoomToScreen(tdxp, tdyp);
             tdxp = tdxy.X;
@@ -257,14 +255,14 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
 void recreate_overlay_ddbs()
 {
-    for (int i = 0; i < numscreenover; ++i)
+    for (auto &over : screenover)
     {
-        if (screenover[i].bmp)
-            gfxDriver->DestroyDDB(screenover[i].bmp);
-        if (screenover[i].pic)
-            screenover[i].bmp = gfxDriver->CreateDDBFromBitmap(screenover[i].pic, false);
+        if (over.bmp)
+            gfxDriver->DestroyDDB(over.bmp);
+        if (over.pic)
+            over.bmp = gfxDriver->CreateDDBFromBitmap(over.pic, false);
         else
-            screenover[i].bmp = nullptr;
+            over.bmp = nullptr;
     }
 }
 

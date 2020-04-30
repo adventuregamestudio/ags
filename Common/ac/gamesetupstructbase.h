@@ -93,10 +93,6 @@ struct GameSetupStructBase {
 
     // Get actual game's resolution
     const Size &GetGameRes() const { return _gameResolution; }
-    // Get multiplier for various default UI sizes, meant to keep UI looks
-    // more or less readable in any game resolution.
-    // TODO: find a better solution for UI sizes, perhaps make variables.
-    inline int GetRelativeUIMult() const { return _relativeUIMult; }
     
     // Tells if game runs in native letterbox mode (legacy option)
     inline bool IsLegacyLetterbox() const { return options[OPT_LETTERBOX] != 0; }

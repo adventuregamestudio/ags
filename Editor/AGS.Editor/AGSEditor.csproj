@@ -87,8 +87,8 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.6.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
-      <HintPath>..\..\Solutions\packages\DockPanelSuite.2.6.0.1\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=3.0.6.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\..\Solutions\packages\DockPanelSuite.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
+    <Compile Include="ColorThemes\IColorThemes.cs" />
     <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -186,6 +188,7 @@
       <DependentUpon>ViewChooser.cs</DependentUpon>
     </Compile>
     <Compile Include="Hacks.cs" />
+    <Compile Include="IAGSEditorDirectories.cs" />
     <Compile Include="ImportExport.cs" />
     <Compile Include="GUI\NumberEntryDialog.cs">
       <SubType>Form</SubType>

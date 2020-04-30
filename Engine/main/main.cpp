@@ -312,7 +312,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             else
                 INIwritestring(cfg, "graphics", "game_scale_win", "max_round");
         }
-        else if (ags_stricmp(arg, "--fps") == 0) display_fps = 2;
+        else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
         else if (ags_stricmp(arg, "-noiface") == 0) debug_flags |= DBG_NOIFACE;
         else if (ags_stricmp(arg, "-nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;

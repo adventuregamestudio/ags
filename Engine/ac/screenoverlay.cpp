@@ -20,6 +20,7 @@ using AGS::Common::Stream;
 void ScreenOverlay::ReadFromFile(Stream *in)
 {
     // Skipping bmp and pic pointer values
+    // TODO: find out if it's safe to just drop these pointers!! replace with unique_ptr?
     bmp = nullptr;
     pic = nullptr;
     in->ReadInt32(); // bmp
@@ -34,7 +35,7 @@ void ScreenOverlay::ReadFromFile(Stream *in)
     positionRelativeToScreen = in->ReadBool();
 }
 
-void ScreenOverlay::WriteToFile(Stream *out)
+void ScreenOverlay::WriteToFile(Stream *out) const
 {
     // Writing bitmap "pointers" to correspond to full structure writing
     out->WriteInt32(0); // bmp

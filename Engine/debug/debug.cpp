@@ -83,7 +83,7 @@ String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 float fps = std::numeric_limits<float>::quiet_NaN();
-int display_fps=0;
+FPSDisplayMode display_fps = kFPS_Hide;
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;

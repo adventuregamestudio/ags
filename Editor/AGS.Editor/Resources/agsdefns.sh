@@ -681,6 +681,12 @@ import int  GetWalkableAreaAtScreen(int screenX, int screenY);
 /// Returns which walkable area is at the specified position within the room.
 import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
+#ifdef SCRIPT_API_v351
+/// Gets the drawing surface for the 8-bit walkable mask
+import DrawingSurface* GetDrawingSurfaceForWalkableArea();
+/// Gets the drawing surface for the 8-bit walk-behind mask
+import DrawingSurface* GetDrawingSurfaceForWalkbehind();
+#endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
 #ifdef SCRIPT_COMPAT_v350
@@ -1338,11 +1344,15 @@ builtin managed struct Hotspot {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this hotspot.
   import bool SetTextProperty(const string property, const string value);
-  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 #ifdef SCRIPT_API_v3507
   /// Returns the hotspot at the specified position within this room.
   import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v351
+  /// Gets the drawing surface for the 8-bit hotspots mask
+  import static DrawingSurface* GetDrawingSurface();     // $AUTOCOMPLETESTATICONLY$
+#endif
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Region {
@@ -1374,7 +1384,11 @@ builtin managed struct Region {
   /// Returns the region at the specified position on the screen.
   import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #endif
-  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_API_v351
+  /// Gets the drawing surface for the 8-bit regions mask
+  import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
+#endif
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Dialog {
@@ -1639,8 +1653,14 @@ builtin managed struct Object {
   import function RunInteraction(CursorMode);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
+#ifdef SCRIPT_API_v351
+  /// Sets the object to use the specified view, ahead of doing an animation.
+  import function SetView(int view, int loop=0, int frame=0);
+#endif
+#ifndef SCRIPT_API_v351
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=-1, int frame=-1);
+#endif
   /// Stops any currently running animation on the object.
   import function StopAnimating();
   /// Stops any currently running move on the object.
@@ -1663,8 +1683,10 @@ builtin managed struct Object {
   import attribute int  Graphic;
   /// Gets the object's ID number.
   readonly import attribute int ID;
+#ifdef SCRIPT_COMPAT_v3507
   /// Gets/sets whether the object ignores walkable area scaling.
   import attribute bool IgnoreScaling;
+#endif
 #ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the object ignores walk-behind areas.
   import attribute bool IgnoreWalkbehinds;
@@ -1714,6 +1736,12 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v3507
   /// Returns the object at the specified position within this room.
   import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v351
+  /// Gets/sets whether the object uses manually specified scaling instead of using walkable area scaling.
+  import attribute bool ManualScaling;
+  /// Gets/sets the object's current scaling level.
+  import attribute int  Scaling;
 #endif
 
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$

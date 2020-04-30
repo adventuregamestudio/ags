@@ -61,8 +61,6 @@ extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
 
@@ -237,12 +235,16 @@ void update_following_exactly_characters(int &numSheep, int *followingAsSheep)
 void update_overlay_timers()
 {
 	// update overlay timers
-  for (int aa=0;aa<numscreenover;aa++) {
-    if (screenover[aa].timeout > 0) {
-      screenover[aa].timeout--;
-      if (screenover[aa].timeout == 0)
-        remove_screen_overlay(screenover[aa].type);
+  for (size_t i = 0; i < screenover.size();) {
+    if (screenover[i].timeout > 0) {
+      screenover[i].timeout--;
+      if (screenover[i].timeout == 0)
+      {
+        remove_screen_overlay_index(i);
+        continue;
+      }
     }
+    i++;
   }
 }
 

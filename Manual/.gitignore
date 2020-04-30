@@ -1,5 +1,0 @@
-# Manual output and temporary files
-*.htm
-*.con
-ags.*
-!ags.tex

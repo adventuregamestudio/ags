@@ -19,10 +19,11 @@
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
 #include "script/script_api.h"
+#include "util/memory.h"
+#include "ac/dynobj/cc_dynamicobject.h"
 
 struct ICCStaticObject;
 struct StaticArray;
-struct ICCDynamicObject;
 
 enum ScriptValueType
 {
@@ -309,13 +310,63 @@ public:
         return !(*this == rval);
     }
 
+    // FIXME: find out all certain cases when we are reading a pointer and store it
+    // as 32-bit value here. There should be a solution to distinct these cases and
+    // store value differently, otherwise it won't work for 64-bit build.
+    inline RuntimeScriptValue ReadValue()
+    {
+        RuntimeScriptValue rval;
+        switch(this->Type) {
+        case kScValStackPtr:
+        {
+            if (RValue->Type == kScValData)
+            {
+                rval.SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
+            }
+            else
+            {
+                rval = *RValue;
+            }
+        }
+        break;
+        case kScValGlobalVar:
+        {
+            if (RValue->Type == kScValData)
+            {
+                rval.SetInt32(AGS::Common::Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
+            }
+            else
+            {
+                rval = *RValue;
+            }
+        }
+        break;
+        case kScValStaticObject: case kScValStaticArray:
+        {
+            rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
+        }
+        break;
+        case kScValDynamicObject:
+        {
+            rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
+        }
+        break;
+        default:
+        {
+            // 64 bit: Memory reads are still 32 bit
+            rval.SetInt32(*(int32_t*)this->GetPtrWithOffset());
+        }
+        }
+        return rval;
+    }
+
+
     // Helper functions for reading or writing values from/to
     // object, referenced by this Runtime Value.
     // Copy implementation depends on value type.
     uint8_t     ReadByte();
     int16_t     ReadInt16();
     int32_t     ReadInt32();
-    RuntimeScriptValue ReadValue();
     bool        WriteByte(uint8_t val);
     bool        WriteInt16(int16_t val);
     bool        WriteInt32(int32_t val);

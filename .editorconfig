@@ -4,7 +4,6 @@ root = true
 
 # Any files
 [*]
-end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
@@ -12,3 +11,12 @@ trim_trailing_whitespace = true
 [*.cs]
 indent_style = space
 indent_size = 4
+
+# C++ and C code files
+[{*.{cpp,c,h,hpp}}]
+indent_style = space
+indent_size = 4
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false

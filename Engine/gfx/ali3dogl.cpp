@@ -74,6 +74,7 @@ extern "C"
   void ios_swap_buffers();
   void ios_select_buffer();
   void ios_create_screen();
+  float get_device_scale();
   void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);  
 }
 
@@ -570,7 +571,13 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
   // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
   // is selected in AGS. This ugly situation causes trouble...
-  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+  float device_scale = 1.0f;
+  
+  #if AGS_PLATFORM_OS_IOS
+    device_scale = get_device_scale();
+  #endif
+  
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, device_scale, device_scale);
 #endif
 }
 
@@ -1635,8 +1642,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
-  if (usingLinearFiltering)
-  {
   if (tile->width < tileWidth)
   {
     if (tilex > 0)
@@ -1673,7 +1678,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
       edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
     }
   }
-  } // usingLinearFiltering
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
@@ -1892,17 +1896,12 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(false);
 
-    do
-    {
-      if (_pollingCallback)
-        _pollingCallback();
-      platform->YieldCPU();
-    }
-    while (timerValue == *_loopTimer);
+    if (_pollingCallback)
+      _pollingCallback();
+    WaitForNextFrame();
   }
 
   if (fadingOut)

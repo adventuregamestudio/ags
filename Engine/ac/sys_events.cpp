@@ -29,6 +29,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameState play;
 
+extern volatile unsigned long globalTimerCounter;
 extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;

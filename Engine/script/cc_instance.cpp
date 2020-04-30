@@ -33,6 +33,7 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
@@ -79,38 +80,38 @@ struct ScriptCommandInfo
 const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
 {
     ScriptCommandInfo( 0                    , "NULL"              , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_ADD             , "add"               , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SUB             , "sub"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_ADD             , "addi"              , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_SUB             , "subi"              , 2, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_REGTOREG        , "mov"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"       , 2, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_RET             , "ret"               , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_LITTOREG        , "mov"               , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREAD         , "memread"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITE        , "memwrite"          , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_LITTOREG        , "movl"              , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREAD         , "memread4"          , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITE        , "memwrite4"         , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_MULREG          , "mul"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_DIVREG          , "div"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_ADDREG          , "add"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_SUBREG          , "sub"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITAND          , "bit_and"           , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITOR           , "bit_or"            , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ISEQUAL         , "cmp"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_NOTEQUAL        , "ncmp"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_BITAND          , "and"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_BITOR           , "or"                , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_ISEQUAL         , "cmpeq"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_NOTEQUAL        , "cmpne"             , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_GREATER         , "gt"                , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_LESSTHAN        , "lt"                , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_GTE             , "gte"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_LTE             , "lte"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_AND             , "and"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_OR              , "or"                , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_AND             , "land"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_OR              , "lor"               , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_CALL            , "call"              , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADB        , "memread.b"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADW        , "memread.w"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEB       , "memwrite.b"        , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEW       , "memwrite.w"        , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JZ              , "jz"                , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREADB        , "memread1"          , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREADW        , "memread2"          , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITEB       , "memwrite1"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITEW       , "memwrite2"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_JZ              , "jzi"               , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_PUSHREG         , "push"              , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_POPREG          , "pop"               , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JMP             , "jmp"               , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MUL             , "mul"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_JMP             , "jmpi"              , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MUL             , "muli"              , 2, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_CALLEXT         , "farcall"           , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_PUSHREAL        , "farpush"           , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"          , 1, kScOpNoArgIsReg ),
@@ -131,24 +132,24 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_MEMINITPTR      , "meminit.ptr"       , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"      , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"     , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_FADD            , "f.add"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FSUB            , "f.sub"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FMULREG         , "f.mul"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FDIVREG         , "f.div"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FADDREG         , "f.add"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FSUBREG         , "f.sub"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGREATER        , "f.gt"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLESSTHAN       , "f.lt"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGTE            , "f.gte"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLTE            , "f.lte"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FADD            , "faddi"             , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_FSUB            , "fsubi"             , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_FMULREG         , "fmul"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FDIVREG         , "fdiv"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FADDREG         , "fadd"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FSUBREG         , "fsub"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FGREATER        , "fgt"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FLESSTHAN       , "flt"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FGTE            , "fgte"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FLTE            , "flte"              , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"           , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_CREATESTRING    , "newstring"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "strcmp"            , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "strnotcmp"         , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "streq"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "strne"             , 2, kScOpTwoArgsAreReg ),
     ScriptCommandInfo( SCMD_CHECKNULLREG    , "checknull"         , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"      , 0, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd" , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_JNZ             , "jnz"               , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_JNZ             , "jnzi"              , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
@@ -796,18 +797,6 @@ int ccInstance::Run(int32_t curpc)
               pc += arg1.IValue;
           break;
       case SCMD_PUSHREG:
-          // Script code analysis shows that statistically there's a moderate
-          // chance (10-30% depending on game) that a PUSHREG instruction will be
-          // immediately followed by POPREG.
-          // This runtime fixup serves the purpose of slightly increasing
-          // execution speed by skipping two stack operations.
-          // Practically, this is identical to REGTOREG instruction.
-          if (codeInst->code[pc + 2] == SCMD_POPREG)
-          {
-              registers[codeInst->code[pc + 3]] = reg1;
-              pc += 2;
-              break;
-          }
           // Push reg[arg1] value to the stack
           ASSERT_STACK_SPACE_AVAILABLE(1);
           PushValueToStack(reg1);
@@ -1851,16 +1840,6 @@ bool ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 {
-    if (!rval.IsValid())
-    {
-        cc_error("internal error: undefined value pushed to stack");
-        return;
-    }
-    if (registers[SREG_SP].RValue->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return;
-    }
     // Write value to the stack tail and advance stack ptr
     registers[SREG_SP].WriteValue(rval);
     registers[SREG_SP].RValue++;

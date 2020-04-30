@@ -47,8 +47,6 @@ extern RoomStruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptInvItem scrInv[MAX_INV];
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 
 // defined in character unit
 extern CharacterExtras *charextra;
@@ -578,12 +576,11 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
 int DisplaySpeechBackground(int charid, const char*speel) {
     // remove any previous background speech for this character
-    int cc;
-    for (cc = 0; cc < numscreenover; cc++) {
-        if (screenover[cc].bgSpeechForChar == charid) {
-            remove_screen_overlay_index(cc);
-            cc--;
-        }
+    for (size_t i = 0; i < screenover.size();) {
+        if (screenover[i].bgSpeechForChar == charid)
+            remove_screen_overlay_index(i);
+        else
+            i++;
     }
 
     int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.GetUIViewport().GetWidth()/2,FONT_SPEECH,

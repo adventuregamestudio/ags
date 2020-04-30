@@ -95,7 +95,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-extern int time_between_timers;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
@@ -110,8 +109,6 @@ extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 
 #if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
@@ -329,9 +326,8 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps) {
     frames_per_second = new_fps;
-    time_between_timers = 1000 / new_fps;
-
-    install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
+    if (!isTimerFpsMaxed()) // if in maxed mode, don't update timer for now
+        setTimerFps(new_fps);
 }
 
 extern int cbuttfont;
@@ -1390,20 +1386,20 @@ void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 void ReadOverlays_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < numscreenover; ++i)
+    for (auto &over : screenover)
     {
-        screenover[i].ReadFromFile(&align_s);
+        over.ReadFromFile(&align_s);
         align_s.Reset();
     }
 }
 
 void restore_game_overlays(Stream *in)
 {
-    numscreenover = in->ReadInt32();
+    screenover.resize(in->ReadInt32());
     ReadOverlays_Aligned(in);
-    for (int bb=0;bb<numscreenover;bb++) {
-        if (screenover[bb].hasSerializedBitmap)
-            screenover[bb].pic = read_serialized_bitmap(in);
+    for (auto &over : screenover) {
+        if (over.hasSerializedBitmap)
+            over.pic = read_serialized_bitmap(in);
     }
 }
 

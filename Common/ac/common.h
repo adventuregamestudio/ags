@@ -22,7 +22,6 @@ void update_polled_stuff_if_runtime();
 void set_our_eip(int eip);
 int  get_our_eip();
 
-extern const char *croom_h_copyright;
 extern const char *game_file_sig;
 
 #endif // __AC_COMMON_H

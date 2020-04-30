@@ -12,7 +12,7 @@ namespace AGS.Types
         private int _id;
         private int _image = 0;
         private bool _flipped = false;
-        private int _sound = -1;
+        private int _sound = AudioClip.FixedIndexNoValue;
         private int _speed = 0;
 
         public ViewFrame()

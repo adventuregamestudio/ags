@@ -20,7 +20,6 @@
 
 #include <utility>
 #include "core/types.h"
-#include "script/runtimescriptvalue.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -108,7 +107,6 @@ extern int32_t ccGetObjectHandleFromAddress(const char *address);
 // TODO: not sure if it makes any sense whatsoever to use "const char*"
 // in these functions, might as well change to char* or just void*.
 extern const char *ccGetObjectAddressFromHandle(int32_t handle);
-extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager);
 
 extern int ccAddObjectReference(int32_t handle);
 extern int ccReleaseObjectReference(int32_t handle);

@@ -37,6 +37,7 @@
 #include "ac/path_helper.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "ac/dynobj/scriptobject.h"
 #include "font/fonts.h"
 #include "util/string_compat.h"

@@ -431,7 +431,8 @@ void engine_init_keyboard()
 void engine_init_timer()
 {
     Debug::Printf(kDbgMsg_Init, "Install timer");
-    install_timer();
+
+    skipMissedTicks();
 }
 
 bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
@@ -1502,8 +1503,6 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     engine_init_pathfinder();
 
-    LOCK_VARIABLE(timerloop);
-    LOCK_FUNCTION(dj_timer_handler);
     set_game_speed(40);
 
     our_eip=-20;

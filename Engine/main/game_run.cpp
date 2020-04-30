@@ -86,7 +86,6 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
-extern volatile int timerloop;
 
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
@@ -431,10 +430,9 @@ static void check_keyboard_controls()
         return;
     }
 
-    if ((kgn == eAGSKeyCodeCtrlE) && (display_fps == 2)) {
+    if ((kgn == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
         // if --fps paramter is used, Ctrl+E will max out frame rate
-        SetGameSpeed(1000);
-        display_fps = 2;
+        setTimerFps( isTimerFpsMaxed() ? frames_per_second : 1000 );
         return;
     }
 
@@ -736,10 +734,9 @@ static void game_loop_update_fps()
 }
 
 float get_current_fps() {
-    // if wanted frames_per_second is >= 1000, that means we have maxed out framerate so return the frame rate we're seeing instead
-    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    // if we have maxed out framerate then return the frame rate we're seeing instead
     // fps must be greater that 0 or some timings will take forever.
-    if (maxed_framerate && fps > 0.0f) {
+    if (isTimerFpsMaxed() && fps > 0.0f) {
         return fps;
     }
     return frames_per_second;
@@ -766,7 +763,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
-    timerloop=0;
 
     game_loop_check_problems_at_start();
 

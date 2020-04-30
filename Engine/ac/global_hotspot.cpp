@@ -73,12 +73,8 @@ int GetHotspotPointY (int hotspot) {
 
 int GetHotspotIDAtScreen(int scrx, int scry) {
     VpPoint vpt = play.ScreenToRoom(scrx, scry);
-    if (vpt.second < 0)
-        return 0;
-    Point pt = vpt.first;
-    if ((pt.X>=thisroom.Width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.Height))
-        return 0;
-    return get_hotspot_at(pt.X, pt.Y);
+    if (vpt.second < 0) return 0;
+    return get_hotspot_at(vpt.first.X, vpt.first.Y);
 }
 
 void GetHotspotName(int hotspot, char *buffer) {

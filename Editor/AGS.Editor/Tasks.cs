@@ -345,6 +345,15 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 27)
+            {
+                foreach (Font font in game.Fonts)
+                {
+                    font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
+                    font.AutoOutlineThickness = 1;
+                }
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

@@ -138,7 +138,6 @@ protected:
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
-    volatile int *      _loopTimer;
 
     // Callbacks
     GFXDRV_CLIENTCALLBACK _pollingCallback;

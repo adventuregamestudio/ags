@@ -71,13 +71,11 @@ extern ViewStruct*views;
 extern RoomObject*objs;
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
 extern int is_text_overlay;
 extern int said_speech_line;
-extern int numscreenover;
 extern int said_text;
 extern int our_eip;
 extern CCCharacter ccDynamicCharacter;
@@ -2355,14 +2353,13 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     said_speech_line = 1;
 
-    int aa;
     if (play.bgspeech_stay_on_display == 0) {
         // remove any background speech
-        for (aa=0;aa<numscreenover;aa++) {
-            if (screenover[aa].timeout > 0) {
-                remove_screen_overlay(screenover[aa].type);
-                aa--;
-            }
+        for (size_t i = 0; i < screenover.size();) {
+            if (screenover[i].timeout > 0)
+                remove_screen_overlay(screenover[i].type);
+            else
+                i++;
         }
     }
     said_text = 1;
@@ -2373,7 +2370,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     int isPause = 1;
     // if the message is all .'s, don't display anything
-    for (aa = 0; texx[aa] != 0; aa++) {
+    for (int aa = 0; texx[aa] != 0; aa++) {
         if (texx[aa] != '.') {
             isPause = 0;
             break;

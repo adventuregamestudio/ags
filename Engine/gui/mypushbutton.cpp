@@ -27,8 +27,6 @@
 
 using AGS::Common::Bitmap;
 
-extern volatile int timerloop;
-
 extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;
 extern int cbuttfont;
@@ -77,7 +75,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
 {
     int wasstat;
     while (mbutrelease(LEFT) == 0) {
-        timerloop = 0;
+
         wasstat = state;
         state = mouseisinarea(mousex, mousey);
         // stop mp3 skipping if button held down

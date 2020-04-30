@@ -19,6 +19,7 @@
 #include <queue>
 #include <unordered_map>
 
+#include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 namespace AGS { namespace Common { class Stream; }}

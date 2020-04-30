@@ -16,7 +16,7 @@ using System.Net;
 
 namespace AGS.Editor
 {
-    public class AGSEditor : ISourceControlIntegration
+    public class AGSEditor : IAGSEditorDirectories, ISourceControlIntegration
     {
         public event GetScriptHeaderListHandler GetScriptHeaderList;
         public event GetScriptModuleListHandler GetScriptModuleList;
@@ -86,8 +86,9 @@ namespace AGS.Editor
          * 23-24: 3.5.0.20+ - Sprite tile import properties.
          * 25: 3.5.0.22   - Full editor version saved into XML header, RuntimeSetup.ThreadedAudio.
          * 26:            - Fixed sound references in game properties.
+         * 27: 3.5.1?     - Font outline thickness.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 26;
+        public const int    LATEST_XML_VERSION_INDEX = 27;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

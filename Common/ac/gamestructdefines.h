@@ -159,7 +159,8 @@ enum ScriptAPIVersion
     kScriptAPI_v341 = 5,
     kScriptAPI_v350 = 6,
     kScriptAPI_v3507= 7,
-    kScriptAPI_Current = kScriptAPI_v3507
+    kScriptAPI_v351 = 8,
+    kScriptAPI_Current = kScriptAPI_v351
 };
 
 // Determines whether the graphics renderer should scale sprites at the final
@@ -213,6 +214,12 @@ struct SpriteInfo
 // multiple lines, and similar cases.
 struct FontInfo
 {
+    enum AutoOutlineStyle : int
+    {
+        kRounded = 0,
+        kSquared = 1,
+    };
+
     // General font's loading and rendering flags
     uint32_t      Flags;
     // Font size, in points (basically means pixels in AGS)
@@ -225,6 +232,10 @@ struct FontInfo
     int           YOffset;
     // custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;
+    // When automatic outlining, thickness of the outline (0 = use legacy thickness)
+    int           AutoOutlineThickness;
+    // When automatic outlining, style of the outline
+    AutoOutlineStyle AutoOutlineStyle;
 
     FontInfo();
 };

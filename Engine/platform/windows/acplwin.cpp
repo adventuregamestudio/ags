@@ -809,8 +809,12 @@ void AGSWin32::RestoreWindowStyle()
   SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP)/* | WS_OVERLAPPEDWINDOW*/);
   // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
   // cannot be removed with style altering functions; here use SetWindowPos
-  // as a workaround
-  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  // with HWND_NOTOPMOST as a workaround.
+  SetWindowPos(allegro_wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+  // But then we also have to do second "hack" and call SetWindowPos with HWND_TOP,
+  // otherwise window may hide, causing inconvenience in case we are releasing
+  // gfx mode before displaying a system message box.
+  SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 void AGSWin32::DisplayAlert(const char *text, ...) {
@@ -1005,31 +1009,23 @@ int AGSWin32::ConvertKeycodeToScanCode(int keycode)
 
 void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
 {
-    // MS Windows DirectDraw and Direct3D renderers do not support a window
-    // which exceeds the height of current desktop resolution
-    RECT rc;
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &rc, 0);
-    int cx = rc.right - rc.left;
-    int cy = rc.bottom - rc.top;
-    if (!borderless)
-    {
-        OSVERSIONINFO OS;
-        OS.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-        GetVersionEx (&OS);
-
-        NONCLIENTMETRICS ncm;
-        size_t ncm_sz = sizeof(ncm);
-        if (OS.dwMajorVersion < 6)
-            ncm_sz -= sizeof(ncm.iPaddedBorderWidth);
-        ncm.cbSize = ncm_sz;
-        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm_sz, &ncm, 0);
-        int border = ncm.iBorderWidth * 2 + ncm.iCaptionHeight;
-        if (OS.dwMajorVersion >= 6)
-            border += ncm.iPaddedBorderWidth * 2;
-        cy -= border;
-    }
-    x = Math::Clamp(x, 1, cx);
-    y = Math::Clamp(y, 1, cy);
+    RECT wa_rc, nc_rc;
+    // This is the size of the available workspace on user's desktop
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &wa_rc, 0);
+    // This is the maximal size that OS can reliably resize the window to (including any frame)
+    const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
+    // This is the size of window's non-client area (frame, caption, etc)
+    HWND allegro_wnd = win_get_window();
+    LONG winstyle = borderless ? WS_POPUP : WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
+    LONG winstyle_al = GetWindowLong(allegro_wnd, GWL_STYLE);
+    SetRectEmpty(&nc_rc);
+    AdjustWindowRect(&nc_rc, winstyle, FALSE);
+    // Limit the window's full size to the system's window size limit,
+    // and limit window's client size to the work space (visible area)
+    x = Math::Min(x, (int)(max_win.Width - (nc_rc.right - nc_rc.left)));
+    y = Math::Min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
+    x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
+    y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
 }
 
 bool AGSWin32::LockMouseToWindow()

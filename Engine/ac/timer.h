@@ -18,12 +18,6 @@
 #ifndef __AGS_EE_AC__TIMER_H
 #define __AGS_EE_AC__TIMER_H
 
-#if defined(WINDOWS_VERSION)
-void __cdecl dj_timer_handler();
-#else
-extern "C" void dj_timer_handler();
-#endif
-
 #include <type_traits>
 #include <chrono>
 
@@ -36,7 +30,10 @@ using AGS_Clock = std::conditional<
 
 extern void WaitForNextFrame();
 
+// Sets real FPS to the given number of frames per second; pass 1000+ for maxed FPS mode
 extern void setTimerFps(int new_fps);
+// Tells whether maxed FPS mode is currently set
+extern bool isTimerFpsMaxed();
 extern bool waitingForNextTick();  // store last tick time.
 extern void skipMissedTicks();  // if more than N frames, just skip all, start a fresh.
 

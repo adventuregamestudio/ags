@@ -1,3 +1,5 @@
+using WeifenLuo.WinFormsUI.Docking;
+
 namespace AGS.Editor
 {
     partial class frmMain
@@ -28,7 +30,6 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-            WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = new WeifenLuo.WinFormsUI.Docking.DockPanelSkin();
             WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin autoHideStripSkin1 = new WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin();
             WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient1 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
             WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient1 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
@@ -45,6 +46,8 @@ namespace AGS.Editor
             WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient7 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.mainContainer = new WeifenLuo.WinFormsUI.Docking.DockPanel();
+            this.mainContainer.Theme = new VS2005Theme();
+            WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = this.mainContainer.Theme.Skin;
             this.tabbedDocumentContainer1 = new AGS.Editor.TabbedDocumentManager(mainContainer);
             this.pnlCallStack = new AGS.Editor.CallStackPanel();
             this.pnlFindResults = new AGS.Editor.FindResultsPanel();
@@ -136,7 +139,6 @@ namespace AGS.Editor
             dockPaneStripToolWindowGradient1.InactiveTabGradient = tabGradient7;
             dockPaneStripSkin1.ToolWindowGradient = dockPaneStripToolWindowGradient1;
             dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;            
-            this.mainContainer.Skin = dockPanelSkin1;
             this.mainContainer.TabIndex = 0;             
             // 
             // pnlCallStack

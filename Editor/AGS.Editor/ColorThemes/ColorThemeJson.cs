@@ -46,7 +46,7 @@ namespace AGS.Editor
 
         public override ComboBox GetComboBox(string id, ComboBox original)
         {
-            return DoTransform(id, t => new ComboBoxCustom(this, t.Path, original));
+            return DoTransform(id, t => new ComboBoxCustom(Factory.GUIController.ColorThemes, t.Path, original));
         }
 
         public override Image GetImage(string id, Image original)

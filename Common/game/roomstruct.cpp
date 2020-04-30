@@ -194,6 +194,31 @@ void RoomStruct::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
+Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const
+{
+    switch (mask)
+    {
+    case kRoomAreaHotspot: return HotspotMask.get();
+    case kRoomAreaWalkBehind: return WalkBehindMask.get();
+    case kRoomAreaWalkable: return WalkAreaMask.get();
+    case kRoomAreaRegion: return RegionMask.get();
+    }
+    return nullptr;
+}
+
+float RoomStruct::GetMaskScale(RoomAreaMask mask) const
+{
+    switch (mask)
+    {
+    case kRoomAreaWalkBehind: return 1.f; // walk-behinds always 1:1 with room size
+    case kRoomAreaHotspot:
+    case kRoomAreaWalkable:
+    case kRoomAreaRegion:
+        return 1.f / MaskResolution;
+    }
+    return 0.f;
+}
+
 bool RoomStruct::HasRegionLightLevel(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)

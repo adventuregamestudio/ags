@@ -149,7 +149,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
 
         if ((text[0] == ']') && (compareto != nullptr)) {
             if (!in_optional)
-                quit("!Said: unexpected ']'");
+                quitprintf("!Said: unexpected ']'\nText: %s", src_text);
             do_word_now = 1;
         }
 
@@ -160,7 +160,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
         }
         else if ((text[0] == '[') && (compareto != nullptr)) {
             if (in_optional)
-                quit("!Said: nested optional words");
+                quitprintf("!Said: nested optional words\nText: %s", src_text);
 
             in_optional = 1;
             optional_start = comparing;
@@ -200,7 +200,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                     return 0;
                 }
                 if (word <= 0)
-                    quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word", thisword);
+                    quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word\nText: %s", thisword, src_text);
                 if (word == ANYWORD) { }
                 else if (word != compareto[comparing]) {
                     // words don't match - if a comma then a list of possibles,
@@ -213,7 +213,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                             // inside an optional clause, so skip it
                             while (text[0] != ']') {
                                 if (text[0] == 0)
-                                    quit("!Said: unterminated [optional]");
+                                    quitprintf("!Said: unterminated [optional]\nText: %s", src_text);
                                 text++;
                             }
                             // -1 because it's about to be ++'d again

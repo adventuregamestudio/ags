@@ -106,8 +106,6 @@ extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
 extern int is_complete_overlay;
 extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
@@ -1316,23 +1314,24 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     int zoom_level = 100;
 
     // calculate the zoom level
-    if (objs[aa].flags & OBJF_USEROOMSCALING) {
+    if ((objs[aa].flags & OBJF_USEROOMSCALING) == 0)
+    {
+        zoom_level = objs[aa].zoom;
+    }
+    else
+    {
         int onarea = get_walkable_area_at_location(objs[aa].x, objs[aa].y);
-
         if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0)) {
             // just off the edge of an area -- use the scaling we had
             // while on the area
-            zoom_level = objs[aa].last_zoom;
+            zoom_level = objs[aa].zoom;
         }
         else
             zoom_level = get_area_scaling(onarea, objs[aa].x, objs[aa].y);
-
-        if (zoom_level != 100)
-            scale_sprite_size(objs[aa].num, zoom_level, &sprwidth, &sprheight);
-
     }
-    // save the zoom level for next time
-    objs[aa].last_zoom = zoom_level;
+    if (zoom_level != 100)
+        scale_sprite_size(objs[aa].num, zoom_level, &sprwidth, &sprheight);
+    objs[aa].zoom = zoom_level;
 
     // save width/height into parameters if requested
     if (drawnWidth)
@@ -1513,7 +1512,7 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].last_zoom, objs[aa].last_width, objs[aa].last_height);
+            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
@@ -1642,10 +1641,12 @@ void prepare_characters_for_drawing() {
         onarea = get_walkable_area_at_character (aa);
         our_eip = 332;
 
+        // calculate the zoom level
         if (chin->flags & CHF_MANUALSCALING)  // character ignores scaling
             zoom_level = charextra[aa].zoom;
         else if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0)) {
             zoom_level = charextra[aa].zoom;
+            // NOTE: room objects don't have this fix
             if (zoom_level == 0)
                 zoom_level = 100;
         }
@@ -1975,7 +1976,7 @@ void draw_fps(const Rect &viewport)
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
 
     char base_buffer[20];
-    if (frames_per_second < 1000) {
+    if (!isTimerFpsMaxed()) {
         sprintf(base_buffer, "%d", frames_per_second);
     } else {
         sprintf(base_buffer, "unlimited");
@@ -2006,20 +2007,18 @@ void draw_fps(const Rect &viewport)
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
-    int gg;
-
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
         add_thing_to_draw(nullptr, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // draw overlays, except text boxes and portraits
-    for (gg=0;gg<numscreenover;gg++) {
+    for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
-        if (screenover[gg].type == OVER_COMPLETE)
-            add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);
-        else if (screenover[gg].type != OVER_TEXTMSG && screenover[gg].type != OVER_PICTURE) {
+        if (over.type == OVER_COMPLETE)
+            add_thing_to_draw(over.bmp, over.x, over.y, TRANS_OPAQUE, false);
+        else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
-            get_overlay_position(gg, &tdxp, &tdyp);
-            add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, screenover[gg].hasAlphaChannel);
+            get_overlay_position(over, &tdxp, &tdyp);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.hasAlphaChannel);
         }
     }
 
@@ -2070,7 +2069,7 @@ void draw_gui_and_overlays()
         }
         our_eip = 38;
         // Draw the GUIs
-        for (gg = 0; gg < game.numgui; gg++) {
+        for (int gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
             if (!guis[aa].IsDisplayed()) continue;
 
@@ -2090,13 +2089,13 @@ void draw_gui_and_overlays()
     }
 
     // draw speech and portraits (so that they appear over GUIs)
-    for (gg=0;gg<numscreenover;gg++) 
+    for (const auto &over : screenover) 
     {
-        if (screenover[gg].type == OVER_TEXTMSG || screenover[gg].type == OVER_PICTURE)
+        if (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE)
         {
             int tdxp, tdyp;
-            get_overlay_position(gg, &tdxp, &tdyp);
-            add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, false);
+            get_overlay_position(over, &tdxp, &tdyp);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, false);
         }
     }
 
@@ -2371,7 +2370,7 @@ void construct_engine_overlay()
         invalidate_sprite(0, 0, debugConsole, false);
     }
 
-    if (display_fps)
+    if (display_fps != kFPS_Hide)
         draw_fps(viewport);
 }
 

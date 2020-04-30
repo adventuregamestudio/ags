@@ -54,16 +54,16 @@ void set_rgb_mask_using_alpha_channel(Bitmap *image)
 
 // CLNUP remove 15-16 bit support
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
-Bitmap *remove_alpha_channel(Bitmap *from) {
-    int depth = game.GetColorDepth();
-
-    Bitmap *to = BitmapHelper::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
-    int maskcol = to->GetMaskColor();
+Bitmap *remove_alpha_channel(Bitmap *from)
+{
+    const int game_cd = game.GetColorDepth();
+    Bitmap *to = BitmapHelper::CreateBitmap(from->GetWidth(), from->GetHeight(), game_cd);
+    const int maskcol = to->GetMaskColor();
     int y,x;
     unsigned int c,b,g,r;
 
-    if (depth == 24) {
-        // 32-to-24
+    if (game_cd == 24) // 32-to-24
+    {
         for (y=0; y < from->GetHeight(); y++) {
             unsigned int*psrc = (unsigned int *)from->GetScanLine(y);
             unsigned char*pdest = (unsigned char*)to->GetScanLine(y);
@@ -79,8 +79,8 @@ Bitmap *remove_alpha_channel(Bitmap *from) {
             }
         }
     }
-    else {  // 32 to 15 or 16
-
+    else if (game_cd > 8) // 32 to 15 or 16
+    {
         for (y=0; y < from->GetHeight(); y++) {
             unsigned int*psrc = (unsigned int *)from->GetScanLine(y);
             unsigned short*pdest = (unsigned short *)to->GetScanLine(y);
@@ -95,12 +95,15 @@ Bitmap *remove_alpha_channel(Bitmap *from) {
                     r = (c >> 16) & 0x00ff;
                     g = (c >> 8) & 0x00ff;
                     b = c & 0x00ff;
-                    pdest[x] = makecol_depth(depth, r, g, b);
+                    pdest[x] = makecol_depth(game_cd, r, g, b);
                 }
             }
         }
     }
-
+    else // 32 to 8-bit game
+    { // TODO: consider similar to above approach if this becomes a wanted feature
+        to->Blit(from);
+    }
     return to;
 }
 

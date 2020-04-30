@@ -358,8 +358,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  if (platform->ExitFullscreenMode())
-    platform->RestoreWindowStyle();
+  platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -663,8 +662,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (!mode.Windowed)
   {
-    if (platform->EnterFullscreenMode(mode))
-      platform->AdjustWindowStyleForFullscreen();
+    platform->AdjustWindowStyleForFullscreen();
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -985,12 +983,13 @@ PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
 
 void D3DGraphicsDriver::UnInit() 
 {
-  OnUnInit();
-  ReleaseDisplayMode();
-
 #ifndef AGS_NO_VIDEO_PLAYER
+  // TODO: this should not be done inside the graphics driver!
   dxmedia_shutdown_3d();
 #endif
+
+  OnUnInit();
+  ReleaseDisplayMode();
 
   if (pNativeSurface)
   {
@@ -1846,16 +1845,12 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_renderAndPresent(false);
-    do
-    {
-      if (_pollingCallback)
-        _pollingCallback();
-      platform->YieldCPU();
-    }
-    while (timerValue == *_loopTimer);
+
+    if (_pollingCallback)
+      _pollingCallback();
+    WaitForNextFrame();
   }
 
   if (fadingOut)

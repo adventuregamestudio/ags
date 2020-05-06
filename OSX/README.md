@@ -2,10 +2,37 @@
 
 Uses a modified Allegro 4 library which sets up an offscreen buffer that the game renders to. And then blits that to texture memory in the OpenGL graphics hardware and finally renders that texture to screen.
 
-Supports Mac OS X 10.7+ (tested through 10.11).
+Supports Mac OS X 10.7+ (tested through 10.15).
 
 This port was initially done by Edward Rudd for providing Gemini Rue in a Humble Bundle.
 
+## Prerequisites
+
+You need a current XCode and the XCode command line tools.
+
+Install them by running
+
+    xcode-select --install
+
+## Compiling
+
+Install and compile the used libraries by running
+
+    cd OSX/buildlibs
+    make
+    cd -
+
+Afterwards compile the engine by running
+
+    make --directory Engine
+
+## Packaging
+
+Copy the template app `OSX/AGS.app` to a path and name it like your game. Copy your game data files (ac2game.dat, acsetup.cfg, audio.vox, speech.vox) to <your game>.app/Contents/Resources. 
+
+Finally, copy the engine binary into the app container:
+
+    cp Engine/ags <your game>.app/Contents/MacOS/AGS
 
 ## Creating Icon Sets
 
@@ -24,8 +51,3 @@ When you build within the cmake build directory, it should pick these files up.
 
 TIP: Use `touch AGS.app` to force macos to reload the application icon.
 
-
-## Adding resources for the game
-
-All game resources are taken from `OSX/Resources` . Please feel free to replace the stub files that
-exist there with your own game files, as long as they have the same names.

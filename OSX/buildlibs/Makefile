@@ -6,7 +6,7 @@ PREFIX:=$(shell pwd)/opt
 BUILD:=$(shell pwd)/build
 PKG_CONFIG_PATH:=${PREFIX}/lib/pkgconfig
 export PKG_CONFIG_PATH
-PLAT_FLAGS:=-mmacosx-version-min=10.7 -arch i386 -arch x86_64
+PLAT_FLAGS:=-mmacosx-version-min=10.14 -arch x86_64
 	
 .PHONY: libs prepare lua freetype ogg vorbis theora allegro dumb install
 
@@ -87,8 +87,8 @@ allegro: prepare
 		mkdir -p build && \
 		pushd build && \
 		cmake \
-		'-DCMAKE_OSX_ARCHITECTURES=x86_64;i386' \
-		-D CMAKE_OSX_DEPLOYMENT_TARGET=10.7 \
+		'-DCMAKE_OSX_ARCHITECTURES=x86_64' \
+		-D CMAKE_OSX_DEPLOYMENT_TARGET=10.14 \
 		-D SHARED=off \
 		-D WANT_ALLEGROGL=off -D WANT_LOADPNG=off -D WANT_LOGG=off -D WANT_JPGALLEG=off -D WANT_EXAMPLES=off -D WANT_TOOLS=off -D WANT_TESTS=off \
 		-D WANT_DOCS=off \
@@ -102,7 +102,7 @@ include make/unix.inc
 ALL_TARGETS := core core-headers
 ALL_TARGETS += allegro allegro-headers
 PREFIX := $(PREFIX)
-PLAT_CFLAGS := -mmacosx-version-min=10.7 -arch i386 -arch x86_64 -I\$(PREFIX)/include
+PLAT_CFLAGS := -mmacosx-version-min=10.14 -arch x86_64 -I\$(PREFIX)/include
 endef
 export DUMB_CONF
 

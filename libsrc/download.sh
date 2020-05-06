@@ -12,7 +12,7 @@ function get {
         echo
         echo ${FILENAME}: $URL
         echo
-        curl -O $URL
+        curl -L -O $URL
     fi
 }
 

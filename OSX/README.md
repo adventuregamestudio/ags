@@ -19,7 +19,7 @@ Install them by running
 Install and compile the used libraries by running
 
     cd OSX/buildlibs
-    make
+    make install
     cd -
 
 Afterwards compile the engine by running

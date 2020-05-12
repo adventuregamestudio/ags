@@ -681,9 +681,11 @@ namespace AddressBarExt.Controls
         /// <returns>Boolean indicating </returns>
         private bool TooManyNodes()
         {
-            if (ts_bar.Items.Count == 0) return false;
+            //AGS: Remove overflow handling
+            return false;
+            //if (ts_bar.Items.Count == 0) return false;
             //check if the last item has overflowed
-            return ts_bar.Items[ts_bar.Items.Count - 1].IsOnOverflow;
+            //return ts_bar.Items[ts_bar.Items.Count - 1].IsOnOverflow;
         }
 
         #endregion

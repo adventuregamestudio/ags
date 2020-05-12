@@ -348,6 +348,9 @@ namespace AddressBarExt.Controls
             else
                 tsButton = new ToolStripButton(node.DisplayName, null, NodeButtonClicked);
 
+            //AGS: match the padding on the dropdown buttons
+            tsButton.Padding = new Padding(1, 0, 1, 0);
+
             //attach the node as the tag
             tsButton.Tag = node;
 
@@ -372,7 +375,12 @@ namespace AddressBarExt.Controls
                 if (node.Children.Length > 0)
                 {
                     //create the drop down button
-                    tsddButton = new ToolStripDropDownButton("");
+                    //tsddButton = new ToolStripDropDownButton("");
+
+                    //AGS: use some text to pickup text layout styling
+                    //and provide a bigger target to click on
+                    tsddButton = new ToolStripDropDownButton("···");
+                    tsddButton.ShowDropDownArrow = false;
 
                     //check if we have any tag data (we cache already built drop down items in the node TAG data.
                     if (node.Tag == null)
@@ -452,13 +460,21 @@ namespace AddressBarExt.Controls
                     tsddButton.DropDown = tsDropDown;
 
                     //set it to ignore text rendering
-                    tsddButton.DisplayStyle = ToolStripItemDisplayStyle.None;
+                    //tsddButton.DisplayStyle = ToolStripItemDisplayStyle.None;
+
+                    //AGS: use text stlying for dropdown menu to match the vertical
+                    //offset of other text inside the ToolStrip overflow
+                    tsddButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
 
                     //align the image
                     tsddButton.ImageAlign = ContentAlignment.TopCenter;
 
                     //giving right margin to avoid drop down hiding itself when accidentally slightly moving the cursor to the button on the right
-                    tsddButton.Margin = new Padding(0, 0, 5, 0);
+                    //tsddButton.Margin = new Padding(0, 0, 5, 0);
+
+                    //AGS: prefer padding over margin to get a bigger click target
+                    //and reduce the amount of unclickable gaps
+                    tsddButton.Padding = new Padding(1, 0, 1, 0);
 
                     //add it to the bar
                     if (position < 0)

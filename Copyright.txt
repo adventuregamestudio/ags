@@ -11,6 +11,7 @@ OSX port created by Edward Rudd.
 
 The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order): 
 
+Alan Van Drake
 Benjamin Penney
 Benoit Pierre
 Bernhard Rosenkraenzer

@@ -32,7 +32,6 @@ namespace AGS.Editor
             this.lblZoomInfo = new System.Windows.Forms.Label();
             this._editAddressBar = new AddressBarExt.Controls.AddressBarExt();
             this.chkCharacterOffset = new System.Windows.Forms.CheckBox();
-            this.coordbox = new System.Windows.Forms.CheckBox();
             this.lblTransparency = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.lblMousePos = new System.Windows.Forms.Label();
@@ -58,7 +57,6 @@ namespace AGS.Editor
             this.mainFrame.Controls.Add(this.lblZoomInfo);
             this.mainFrame.Controls.Add(this._editAddressBar);
             this.mainFrame.Controls.Add(this.chkCharacterOffset);
-            this.mainFrame.Controls.Add(this.coordbox);
             this.mainFrame.Controls.Add(this.lblTransparency);
             this.mainFrame.Controls.Add(this.label3);
             this.mainFrame.Controls.Add(this.lblMousePos);
@@ -113,18 +111,6 @@ namespace AGS.Editor
             this.chkCharacterOffset.UseVisualStyleBackColor = true;
             this.chkCharacterOffset.Visible = false;
             this.chkCharacterOffset.CheckedChanged += new System.EventHandler(this.chkCharacterOffset_CheckedChanged);
-            // 
-            // coordbox
-            // 
-            this.coordbox.AutoSize = true;
-            this.coordbox.Enabled = false;
-            this.coordbox.Location = new System.Drawing.Point(280, 69);
-            this.coordbox.Name = "coordbox";
-            this.coordbox.Size = new System.Drawing.Size(178, 17);
-            this.coordbox.TabIndex = 16;
-            this.coordbox.Text = "Display Coordinates as Low Res";
-            this.coordbox.UseVisualStyleBackColor = true;
-            this.coordbox.Visible = false;
             // 
             // lblTransparency
             // 
@@ -288,7 +274,6 @@ namespace AGS.Editor
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label lblTransparency;
 		private System.Windows.Forms.TrackBar sldTransparency;
-        public  System.Windows.Forms.CheckBox coordbox;
         private System.Windows.Forms.CheckBox chkCharacterOffset;
         private AddressBarExt.Controls.AddressBarExt _editAddressBar;
         private System.Windows.Forms.Label lblZoomInfo;

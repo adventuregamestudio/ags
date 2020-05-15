@@ -668,7 +668,7 @@ namespace AGS.Editor
             {
                 yPosText = "?";
             }
-            lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
+            lblMousePos.Text = $"{xPosText}, {yPosText}";
 
             SelectCursor(e.X, e.Y, _state);
             if (_layer != null && !IsLocked(_layer))

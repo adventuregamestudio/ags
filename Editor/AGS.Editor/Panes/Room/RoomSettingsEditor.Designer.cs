@@ -138,7 +138,7 @@ namespace AGS.Editor
             this.lblMousePos.Name = "lblMousePos";
             this.lblMousePos.Size = new System.Drawing.Size(103, 13);
             this.lblMousePos.TabIndex = 11;
-            this.lblMousePos.Text = "Mouse Coordinates:";
+            this.lblMousePos.Text = "?, ?";
             // 
             // label2
             // 

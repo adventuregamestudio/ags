@@ -36,6 +36,8 @@
             this.btnOK = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cbResolutionPreset = new System.Windows.Forms.ComboBox();
+            this.lblAspectRatioCalc = new System.Windows.Forms.Label();
+            this.lblAspectRatio = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.udWidth)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udHeight)).BeginInit();
             this.SuspendLayout();
@@ -59,7 +61,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(36, 91);
+            this.label2.Location = new System.Drawing.Point(39, 91);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 1;
@@ -131,6 +133,24 @@
             this.cbResolutionPreset.TabIndex = 8;
             this.cbResolutionPreset.SelectedIndexChanged += new System.EventHandler(this.cbResolutionPreset_SelectedIndexChanged);
             // 
+            // lblAspectRatioCalc
+            // 
+            this.lblAspectRatioCalc.AutoSize = true;
+            this.lblAspectRatioCalc.Location = new System.Drawing.Point(92, 142);
+            this.lblAspectRatioCalc.Name = "lblAspectRatioCalc";
+            this.lblAspectRatioCalc.Size = new System.Drawing.Size(22, 13);
+            this.lblAspectRatioCalc.TabIndex = 9;
+            this.lblAspectRatioCalc.Text = "?:?";
+            // 
+            // lblAspectRatio
+            // 
+            this.lblAspectRatio.AutoSize = true;
+            this.lblAspectRatio.Location = new System.Drawing.Point(12, 142);
+            this.lblAspectRatio.Name = "lblAspectRatio";
+            this.lblAspectRatio.Size = new System.Drawing.Size(66, 13);
+            this.lblAspectRatio.TabIndex = 10;
+            this.lblAspectRatio.Text = "Aspect ratio:";
+            // 
             // CustomResolutionDialog
             // 
             this.AcceptButton = this.btnOK;
@@ -138,6 +158,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(394, 197);
+            this.Controls.Add(this.lblAspectRatio);
+            this.Controls.Add(this.lblAspectRatioCalc);
             this.Controls.Add(this.cbResolutionPreset);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnCancel);
@@ -169,5 +191,7 @@
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cbResolutionPreset;
+        private System.Windows.Forms.Label lblAspectRatioCalc;
+        private System.Windows.Forms.Label lblAspectRatio;
     }
 }

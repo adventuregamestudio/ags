@@ -426,6 +426,9 @@ void engine_init_keyboard()
 
     install_keyboard();
 #endif
+#if AGS_PLATFORM_OS_LINUX
+    setlocale(LC_NUMERIC, "C"); // needed in X platform because install keyboard affects locale of printfs
+#endif
 }
 
 void engine_init_timer()

@@ -191,6 +191,9 @@ int my_getpixel(Common::Bitmap *blk, int x, int y);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);
+// Returns character's room height (after in-room scaling, but before camera transform);
+// optionally uses frame 0 of the current loop, or refers to actual current frame by default
+int GetCharacterRoomHeight(int chid, bool use_frame_0 = false);
 void _DisplaySpeechCore(int chid, const char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
 

@@ -365,7 +365,7 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int 
     if (scv->GetID() < 0) { debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport"); return nullptr; }
     data_to_game_coords(&scrx, &scry);
 
-    VpPoint vpt = play.ScreenToRoom(scrx, scry, scv->GetID(), clipViewport);
+    VpPoint vpt = play.GetRoomViewport(scv->GetID())->ScreenToRoom(scrx, scry, clipViewport);
     if (vpt.second < 0)
         return nullptr;
 

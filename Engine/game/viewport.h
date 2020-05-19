@@ -101,6 +101,11 @@ private:
 };
 
 
+// A result of coordinate conversion between screen and the room,
+// tells which viewport was used to pass the "touch" through.
+typedef std::pair<Point, int> VpPoint;
+
+
 // Viewport class defines a rectangular area on game screen where the contents
 // of a Camera are rendered.
 // Viewport may have one linked camera at a time.
@@ -139,6 +144,15 @@ public:
     // pass nullptr to leave viewport without a camera link
     void LinkCamera(PCamera cam);
 
+    // TODO: provide a Transform object here that does these conversions instead
+    // Converts room coordinates to the game screen coordinates through this viewport;
+    // if clipping is on, the function will fail for room coordinates outside of camera
+    VpPoint RoomToScreen(int roomx, int roomy, bool clip) const;
+    // Converts game screen coordinates to the room coordinates through this viewport;
+    // if clipping is on, the function will fail for screen coordinates outside of viewport;
+    // convert_cam_to_data parameter converts camera "game" coordinates to "data" units (legacy mode)
+    VpPoint ScreenToRoom(int scrx, int scry, bool clip, bool convert_cam_to_data = false) const;
+
     // Following functions tell if this viewport has changed recently
     inline bool HasChangedPosition() const { return _hasChangedPosition; }
     inline bool HasChangedSize() const { return _hasChangedSize; }
@@ -153,6 +167,9 @@ public:
     }
 
 private:
+    // Parameterized implementation of screen-to-room coordinate conversion
+    VpPoint ScreenToRoomImpl(int scrx, int scry, bool clip, bool convert_cam_to_data);
+
     int _id = -1;
     // Position of the viewport on screen
     Rect _position;

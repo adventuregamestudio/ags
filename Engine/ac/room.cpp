@@ -282,7 +282,6 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
-    play.GetRoomCamera(0)->Release();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
@@ -421,10 +420,15 @@ static void adjust_viewport_to_room()
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    play.GetRoomViewport(0)->SetRect(new_room_view);
-    auto cam = play.GetRoomCamera(0);
-    cam->SetSize(new_room_view.GetSize());
-    cam->SetAt(0, 0);
+    auto view = play.GetRoomViewport(0);
+    view->SetRect(new_room_view);
+    auto cam = view->GetCamera();
+    if (cam)
+    {
+        cam->SetSize(new_room_view.GetSize());
+        cam->SetAt(0, 0);
+        cam->Release();
+    }
 }
 
 // Run through all viewports and cameras to make sure they can work in new room's bounds

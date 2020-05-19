@@ -15,6 +15,7 @@
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"
+#include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
@@ -223,18 +224,15 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
     if (screenover[overlayidx].x == OVR_AUTOPLACE) {
         // auto place on character
         int charid = screenover[overlayidx].y;
-        int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
 
-        tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[charid].get_effective_y())) - 5;
-        if (charextra[charid].height<1)
-            tdyp -= game.SpriteInfos[charpic].Height;
-        else
-            tdyp -= charextra[charid].height;
-
+        tdxp = play.RoomToScreenX((data_to_game_coord(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth() / 2));
+        if (tdxp < 0) tdxp = 0;
+        const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
+        const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
+        tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[charid].get_effective_y()) - height)
+                - get_fixed_pixel_size(5);
         tdyp -= screenover[overlayidx].pic->GetHeight();
-        if (tdyp < 5) tdyp=5;
-        tdxp = play.RoomToScreenX((data_to_game_coord(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2));
-        if (tdxp < 0) tdxp=0;
+        if (tdyp < 5) tdyp = 5;
 
         if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= ui_view.GetWidth())
             tdxp = (ui_view.GetWidth() - screenover[overlayidx].pic->GetWidth()) - 1;

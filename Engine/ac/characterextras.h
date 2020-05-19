@@ -29,6 +29,7 @@ struct CharacterExtras {
     // used in the scripts, therefore overflowing stuff has to go here
     short invorder[MAX_INVORDER];
     short invorder_count;
+    // TODO: implement full AABB and keep updated, so that engine could rely on these cached values all time
     short width;
     short height;
     short zoom;

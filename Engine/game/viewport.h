@@ -147,11 +147,11 @@ public:
     // TODO: provide a Transform object here that does these conversions instead
     // Converts room coordinates to the game screen coordinates through this viewport;
     // if clipping is on, the function will fail for room coordinates outside of camera
-    VpPoint RoomToScreen(int roomx, int roomy, bool clip) const;
+    VpPoint RoomToScreen(int roomx, int roomy, bool clip = false) const;
     // Converts game screen coordinates to the room coordinates through this viewport;
     // if clipping is on, the function will fail for screen coordinates outside of viewport;
     // convert_cam_to_data parameter converts camera "game" coordinates to "data" units (legacy mode)
-    VpPoint ScreenToRoom(int scrx, int scry, bool clip, bool convert_cam_to_data = false) const;
+    VpPoint ScreenToRoom(int scrx, int scry, bool clip = false, bool convert_cam_to_data = false) const;
 
     // Following functions tell if this viewport has changed recently
     inline bool HasChangedPosition() const { return _hasChangedPosition; }

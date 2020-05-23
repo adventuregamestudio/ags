@@ -2512,8 +2512,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         our_eip=1504;
 
         // Calculate speech position based on character's position on screen
+        auto view = FindNearestViewport(aschar);
         if (tdxp < 0)
-            tdxp = play.RoomToScreenX(data_to_game_coord(speakingChar->x));
+            tdxp = view->RoomToScreen(data_to_game_coord(speakingChar->x), 0).first.X;
         if (tdxp < 2)
             tdxp = 2;
         tdxp = -tdxp;  // tell it to centre it ([ikm] not sure what's going on here... wrong comment?)
@@ -2522,7 +2523,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
             int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : height = charextra[aschar].height;
-            tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[aschar].get_effective_y()) - height)
+            tdyp = view->RoomToScreen(0, data_to_game_coord(game.chars[aschar].get_effective_y()) - height).first.Y
                     - get_fixed_pixel_size(5);
             if (isThought) // if it's a thought, lift it a bit further up
                 tdyp -= get_fixed_pixel_size(10);
@@ -2905,6 +2906,43 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
 
     talkframeptr[0] = talkframe;
     return talkwait;
+}
+
+Rect GetCharacterRoomBBox(int charid, bool use_frame_0)
+{
+    int width, height;
+    const CharacterExtras& chex = charextra[charid];
+    const CharacterInfo& chin = game.chars[charid];
+    int frame = use_frame_0 ? 0 : chin.frame;
+    int pic = views[chin.view].loops[chin.loop].frames[frame].pic;
+    scale_sprite_size(pic, chex.zoom, &width, &height);
+    return RectWH(chin.x - width / 2, chin.y - height, width, height);
+}
+
+PViewport FindNearestViewport(int charid)
+{
+    Rect bbox = GetCharacterRoomBBox(charid, true);
+    float min_dist = -1.f;
+    PViewport nearest_view;
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+    {
+        auto view = play.GetRoomViewport(i);
+        if (!view->IsVisible())
+            continue;
+        auto cam = view->GetCamera();
+        if (!cam)
+            continue;
+        Rect camr = cam->GetRect();
+        float dist = DistanceBetween(bbox, camr);
+        if (dist == 0.f)
+            return view;
+        if (min_dist < 0.f || dist < min_dist)
+        {
+            min_dist = dist;
+            nearest_view = view;
+        }
+    }
+    return nearest_view ? nearest_view : play.GetRoomViewport(0);
 }
 
 //=============================================================================

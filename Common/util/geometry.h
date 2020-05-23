@@ -385,6 +385,8 @@ struct Circle
 bool AreRectsIntersecting(const Rect &r1, const Rect &r2);
 // Tells if the item is completely inside place
 bool IsRectInsideRect(const Rect &place, const Rect &item);
+// Calculates a distance between two axis-aligned rectangles
+float DistanceBetween(const Rect &r1, const Rect &r2);
 
 int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align);
 int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align);

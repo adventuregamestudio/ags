@@ -603,13 +603,26 @@ int check_not_eof(ccInternalList &targ) {
   return 0;
 }
 
-int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
+// return the float as an int32 (but not actually converted to int)
+int float_to_int_raw(float toconv) {
+    union
+    {
+        float   f;
+        int32_t i32;
+    } conv;
+    conv.f = toconv;
+    return conv.i32;
+}
 
+int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
     if (sym.get_type(targ.peeknext()) == SYM_ASSIGN) {
+        const char *vartype = sym.get_name(targ.script[targ.pos - 2]);
         // parameter has default value
         targ.getnext();
         int defValSym = targ.getnext();
         bool negateIt = false;
+        bool isFloat = false;
+        bool isPointer = strchr(vartype, '*') != NULL;
 
         if (sym.get_name(defValSym)[0] == '-') {
             // allow negative default value
@@ -618,10 +631,36 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         }
 
         int defaultValue;
-
+        if (strchr(sym.get_name(defValSym), '.') != NULL) {
+            float fval = atof(sym.get_name(defValSym));
+            isFloat = true;
+            if (negateIt)
+                fval = -fval;
+            defaultValue = float_to_int_raw(fval);
+        }
         // extract the default value
-        if (accept_literal_or_constant_value(defValSym, defaultValue, negateIt, "Parameter default value must be literal") < 0) {
+        else if (accept_literal_or_constant_value(defValSym, defaultValue, negateIt, "Parameter default value must be literal") < 0) {
             return -1;
+        }
+
+        // check validity of value type to parameter type
+        if (defaultValue != 0) {
+            // 0 as value or pointer is always valid, so we only check the other cases
+
+            if (isPointer) {
+                cc_error("Parameter default pointer value can only be 0");
+                return -1;
+            }
+            if (isFloat ^ (strcmp(vartype, "float") == 0)) {
+                // float values allowed only for type float
+                cc_error("Parameter default value must be %s or 0", vartype);
+                return -1;
+            }
+            if (strcmp(vartype, "String") == 0) {
+                // prevent non-zero integers for type String
+                cc_error("Parameter default value for type String must be 0");
+                return -1;
+            }
         }
 
         sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = defaultValue;
@@ -1009,17 +1048,6 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   }
 
   return 0;
-}
-
-// return the float as an int32 (but not actually converted to int)
-int float_to_int_raw(float toconv) {
-    union
-    {
-        float   f;
-        int32_t i32;
-    } conv;
-    conv.f = toconv;
-    return conv.i32;
 }
 
 int isPartOfExpression(ccInternalList *targ, int j) {

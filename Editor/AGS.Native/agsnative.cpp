@@ -1213,8 +1213,6 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[spriteNum].IsRelativeRes()) ?
-        (thisgame.SpriteInfos[spriteNum].IsLegacyHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1224,12 +1222,12 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
 		flipped->FillTransparent();
 		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
-		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, flipped, x, y, 1);
 		delete flipped;
 	}
 	else 
 	{
-		drawBlockScaledAt(hdc, theSprite, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, theSprite, x, y, 1);
 	}
 }
 

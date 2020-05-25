@@ -18,8 +18,10 @@ namespace AGS.Editor
 
         public delegate string SizeToStringDelegate(Size size);
         public delegate Size StringToSizeDelegate(string s);
+        public delegate string SizeToAspectRatioDelegate(Size size);
         public static SizeToStringDelegate SizeToString = new SizeToStringDelegate(Types.Utilities.ResolutionToUserString);
         public static StringToSizeDelegate StringToSize = new StringToSizeDelegate(Types.Utilities.UserStringToResolution);
+        public static SizeToAspectRatioDelegate SizeToAspectRatio = new SizeToAspectRatioDelegate(Types.Utilities.ResolutionToAspectRatio);
 
         static CustomResolutionDialog()
         {
@@ -61,7 +63,8 @@ namespace AGS.Editor
             InitializeComponent();
             foreach (Size preset in _sizePresets)
             {
-                cbResolutionPreset.Items.Add(SizeToString(preset));
+                string resolution = string.Format("{0} ({1})", SizeToString(preset), SizeToAspectRatio(preset));
+                cbResolutionPreset.Items.Add(resolution);
             }
             Value = initialSize;
         }
@@ -74,6 +77,7 @@ namespace AGS.Editor
                 _updatingControls = true;
                 udWidth.Value = value.Width;
                 udHeight.Value = value.Height;
+                lblAspectRatioCalc.Text = SizeToAspectRatio(value);
                 _updatingControls = false;
                 SelectPresetIfExists();
             }
@@ -111,6 +115,7 @@ namespace AGS.Editor
                 EnableCustomItem(true);
                 cbResolutionPreset.SelectedIndex = _customItemIndex;
             }
+            lblAspectRatioCalc.Text = SizeToAspectRatio(wanted_size);
             _updatingControls = false;
         }
 
@@ -126,6 +131,7 @@ namespace AGS.Editor
             Size preset = _sizePresets[cbResolutionPreset.SelectedIndex];
             udWidth.Value = preset.Width;
             udHeight.Value = preset.Height;
+            lblAspectRatioCalc.Text = SizeToAspectRatio(preset);
             _updatingControls = false;
         }
 

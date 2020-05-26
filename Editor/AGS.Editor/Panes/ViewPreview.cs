@@ -113,20 +113,17 @@ namespace AGS.Editor
                     spriteWidth *= 2;
                     spriteHeight *= 2;
                 }
-                int x = 0, y;
-                y = previewPanel.ClientSize.Height - spriteHeight;
-                if (chkCentrePivot.Checked)
+                if (spriteWidth <= previewPanel.ClientSize.Width && spriteHeight <= previewPanel.ClientSize.Height)
                 {
-                    x = previewPanel.ClientSize.Width / 2 - spriteWidth / 2;
+                    int scale = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
+                    int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - (spriteWidth * scale) / 2 : 0;
+                    int y = previewPanel.ClientSize.Height - (spriteHeight * scale);
+                    IntPtr hdc = e.Graphics.GetHdc();
+                    Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
+                    Factory.NativeProxy.DrawSprite(hdc, x, y, spriteSize.Width * scale, spriteSize.Height * scale, spriteNum, thisFrame.Flipped);
+                    e.Graphics.ReleaseHdc();
                 }
-				if ((spriteWidth <= previewPanel.ClientSize.Width) &&
-					(spriteHeight <= previewPanel.ClientSize.Height))
-				{
-					IntPtr hdc = e.Graphics.GetHdc();
-					Factory.NativeProxy.DrawSprite(hdc, x, y, spriteNum, thisFrame.Flipped);
-					e.Graphics.ReleaseHdc();
-				}
-				else
+                else
 				{
 					Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteWidth, spriteHeight), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
 

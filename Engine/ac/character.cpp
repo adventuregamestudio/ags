@@ -2487,10 +2487,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         // run the "else" clause which  does text in the middle of
         // the screen.
         our_eip=1501;
-        if (tdxp < 0)
-            tdxp = play.RoomToScreenX(data_to_game_coord(speakingChar->x));
-        if (tdxp < 2)
-            tdxp=2;
 
         if (speakingChar->walking)
             StopMoving(aschar);
@@ -2515,24 +2511,25 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
         our_eip=1504;
 
-        if (tdyp < 0) 
+        // Calculate speech position based on character's position on screen
+        if (tdxp < 0)
+            tdxp = play.RoomToScreenX(data_to_game_coord(speakingChar->x));
+        if (tdxp < 2)
+            tdxp = 2;
+        tdxp = -tdxp;  // tell it to centre it ([ikm] not sure what's going on here... wrong comment?)
+
+        if (tdyp < 0)
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
-            tdyp = play.RoomToScreenY(data_to_game_coord(speakingChar->get_effective_y())) - get_fixed_pixel_size(5);
-            if (charextra[aschar].height < 1)
-                tdyp -= game.SpriteInfos[sppic].Height;
-            else
-                tdyp -= charextra[aschar].height;
-            // if it's a thought, lift it a bit further up
-            if (isThought)  
+            int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : height = charextra[aschar].height;
+            tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[aschar].get_effective_y()) - height)
+                    - get_fixed_pixel_size(5);
+            if (isThought) // if it's a thought, lift it a bit further up
                 tdyp -= get_fixed_pixel_size(10);
         }
-
-        our_eip=1505;
         if (tdyp < 5)
-            tdyp=5;
+            tdyp = 5;
 
-        tdxp=-tdxp;  // tell it to centre it
         our_eip=152;
 
         if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {

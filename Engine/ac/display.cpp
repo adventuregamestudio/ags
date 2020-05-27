@@ -332,7 +332,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!overlayPositionFixed)
         {
             screenover[nse].positionRelativeToScreen = false;
-            VpPoint vpt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y, 0, false);
+            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
             screenover[nse].x = vpt.first.X;
             screenover[nse].y = vpt.first.Y;
         }

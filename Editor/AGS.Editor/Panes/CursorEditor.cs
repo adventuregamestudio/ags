@@ -49,12 +49,12 @@ namespace AGS.Editor
         {
             if (_item != null)
             {
-                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.Image);
                 IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
 
                 if (_item.Image > 0)
                 {
                     IntPtr hdc = e.Graphics.GetHdc();
+                    Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.Image);
                     Factory.NativeProxy.DrawSprite(hdc, 0, 0, spriteSize.Width * IMAGE_SCALE_FACTOR, spriteSize.Height * IMAGE_SCALE_FACTOR, _item.Image);
                     e.Graphics.ReleaseHdc();
                 }

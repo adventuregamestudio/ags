@@ -37,6 +37,7 @@ namespace AGS.Editor
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
+        private object _startNode; // track breadcrumbs path so that it can be compared when saving
 
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;
@@ -61,12 +62,18 @@ namespace AGS.Editor
             {
                 foreach (IRoomEditorFilter layer in _layers)
                     if (layer.Modified) return true;
+
+                if (_startNode != _editAddressBar.CurrentNode.UniqueID)
+                    return true;
+
                 return false;
             }
             set
             { // Kind of ugly, I know...
                 foreach (IRoomEditorFilter layer in _layers)
                     layer.Modified = value;
+
+                _startNode = _editAddressBar.CurrentNode.UniqueID;
             }
         }
 
@@ -101,6 +108,7 @@ namespace AGS.Editor
             
             RefreshLayersTree();
             _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
+            _startNode = _editAddressBar.CurrentNode.UniqueID;
 
             RepopulateBackgroundList(0);
             UpdateScrollableWindowSize();
@@ -660,7 +668,7 @@ namespace AGS.Editor
             {
                 yPosText = "?";
             }
-            lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
+            lblMousePos.Text = $"{xPosText}, {yPosText}";
 
             SelectCursor(e.X, e.Y, _state);
             if (_layer != null && !IsLocked(_layer))

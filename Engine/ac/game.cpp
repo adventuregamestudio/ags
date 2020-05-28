@@ -547,8 +547,11 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
+// TODO: call this when exiting the game (currently only called in RunAGSGame)
 void unload_game_file()
 {
+    close_translation();
+
     play.FreeViewportsAndCameras();
 
     characterScriptObjNames.clear();

@@ -56,6 +56,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
+#include "main/config.h"
 #include "main/game_file.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
@@ -226,6 +227,7 @@ void GetGlobalString (int index, char *strval) {
     strcpy (strval, play.globalstrings[index]);
 }
 
+// TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
 int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
@@ -263,7 +265,11 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     unload_old_room();
     displayed_room = -10;
 
+    save_config_file(); // save current user config in case engine fails to run new game
     unload_game_file();
+
+    // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
+    usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());

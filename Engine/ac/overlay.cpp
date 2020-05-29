@@ -225,12 +225,15 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         // auto place on character
         int charid = screenover[overlayidx].y;
 
-        tdxp = play.RoomToScreenX((data_to_game_coord(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth() / 2));
-        if (tdxp < 0) tdxp = 0;
+        auto view = FindNearestViewport(charid);
         const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
         const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
-        tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[charid].get_effective_y()) - height)
-                - get_fixed_pixel_size(5);
+        Point screenpt = view->RoomToScreen(
+            (data_to_game_coord(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth() / 2),
+            data_to_game_coord(game.chars[charid].get_effective_y()) - height).first;
+        tdxp = screenpt.X;
+        if (tdxp < 0) tdxp = 0;
+        tdyp = screenpt.Y - get_fixed_pixel_size(5);
         tdyp -= screenover[overlayidx].pic->GetHeight();
         if (tdyp < 5) tdyp = 5;
 

@@ -23,6 +23,8 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptinvitem.h"
 #include "ac/dynobj/scriptoverlay.h"
+#include "game/viewport.h"
+#include "util/geometry.h"
 
 // **** CHARACTER: FUNCTIONS ****
 
@@ -193,12 +195,18 @@ int check_click_on_character(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);
 void _DisplaySpeechCore(int chid, const char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
-
 void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought);
 int get_character_currently_talking();
 void DisplaySpeech(const char*texx, int aschar);
-
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr);
+
+// Calculates character's bounding box in room coordinates (takes only in-room transform into account)
+// use_frame_0 optionally tells to use frame 0 of current loop instead of current frame.
+Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
+// Find a closest viewport given character is to. Checks viewports in their order in game's array,
+// and returns either first viewport character's bounding box intersects with (or rather with its camera),
+// or the one that is least far away from its camera; calculated as a perpendicular distance between two AABBs.
+PViewport FindNearestViewport(int charid);
 
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;

@@ -1865,6 +1865,7 @@ void prepare_characters_for_drawing() {
         }
         else {
             // draw at original size, so just use the sprite width and height
+            // TODO: store width and height always, that's much simplier to use for reference!
             charextra[aa].width=0;
             charextra[aa].height=0;
             newwidth = game.SpriteInfos[sppic].Width;
@@ -2055,7 +2056,7 @@ void draw_preroom_background()
 // ds and roomcam_surface may be the same bitmap.
 // no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
 // whatsoever.
-PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
+PBitmap draw_room_background(Viewport *view, const SpriteTransform &room_trans)
 {
     our_eip = 31;
 
@@ -2339,7 +2340,7 @@ static void construct_room_view()
             }
             else
             { // room background is drawn by dirty rects system
-                PBitmap bg_surface = draw_room_background(viewport, room_trans);
+                PBitmap bg_surface = draw_room_background(viewport.get(), room_trans);
                 gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
             }
         }

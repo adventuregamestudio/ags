@@ -365,11 +365,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   ios_create_screen();
   ios_select_buffer();
 #elif AGS_PLATFORM_OS_WINDOWS
-  if (!mode.Windowed)
+  if (mode.Windowed)
+  {
+    platform->AdjustWindowStyleForWindowed();
+  }
+  else
   {
     if (platform->EnterFullscreenMode(mode))
       platform->AdjustWindowStyleForFullscreen();
   }
+
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
   if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
   {
@@ -1041,8 +1046,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = nullptr;
 
-  if (platform->ExitFullscreenMode())
-    platform->RestoreWindowStyle();
+  platform->ExitFullscreenMode();
 }
 
 void OGLGraphicsDriver::UnInit() 

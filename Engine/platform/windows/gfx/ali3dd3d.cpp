@@ -357,8 +357,6 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   DestroyAllStageScreens();
 
   gfx_driver = NULL;
-
-  platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -660,10 +658,10 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
   HWND allegro_wnd = win_get_window();
 
-  if (!mode.Windowed)
-  {
+  if (mode.Windowed)
+    platform->AdjustWindowStyleForWindowed();
+  else
     platform->AdjustWindowStyleForFullscreen();
-  }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;

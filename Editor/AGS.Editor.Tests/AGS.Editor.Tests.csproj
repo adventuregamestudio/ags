@@ -69,6 +69,7 @@
     <Compile Include="Editor\ColorThemes\ColorThemesTests.cs" />
     <Compile Include="Editor\ColorThemes\Controls\ComboBoxCustomTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SetUp.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

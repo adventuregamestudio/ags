@@ -1,5 +1,31 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 3, June 2020
+
+Editor:
+ - In room editor adjusted the object selection bar's visual style, made dropdown buttons larger
+   and easier to click on.
+ - Fixed room editor failing to initialize if currently selected object's name exceeded navigation
+   bar's width.
+ - Fixed some panels were not upscaling sprite previews in low-resolution projects as intended.
+ - Fixed ViewFrame's default Sound value set as "-1 (unknown)" (should be "none").
+
+Engine:
+ - RunAGSGame() will now automatically reset translation to Default before starting new game,
+   to prevent situations when new game will be trying to init a translation from previous game.
+ - Character speech will be now displayed relative to the first found viewport the character is
+   seen in, or the one which camera is closest to the character in the room.
+ - Fixed Viewport.Camera not handling set null pointer properly (should disable viewport now).
+ - Fixed Screen.RoomToScreenPoint()/ScreenToRoomPoint() functions were converting coordinates
+   always through camera #0, instead of a camera actually linked to the primary viewport.
+ - Fixed Screen.AutoSizeViewportOnRoomLoad property was forcing always camera #0 to align itself
+   to the new room, instead of a camera actually linked to the primary viewport.
+ - Fixed speech vertical position was not correctly calculated if the room camera is zoomed.
+
+Windows:
+ - Again fixed game becoming minimized when quitting with error from the Direct3D fullscreen.
+
+
 VERSION 3.5.0 - Patch 2, February 2020
 
 Editor:

@@ -633,7 +633,6 @@ void post_config()
 
 void save_config_file()
 {
-    char buffer[STD_BUFFER_SIZE];
     ConfigTree cfg;
 
     // Last display mode
@@ -665,9 +664,7 @@ void save_config_file()
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
     cfg["mouse"]["control_enabled"] = String::FromFormat("%d", usetup.mouse_ctrl_enabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
-    bool is_available = GetTranslationName(buffer) != 0 || !buffer[0];
-    if (is_available)
-        cfg["language"]["translation"] = buffer;
+    cfg["language"]["translation"] = usetup.translation;
 
     String cfg_file = find_user_cfg_file();
     if (!cfg_file.IsEmpty())

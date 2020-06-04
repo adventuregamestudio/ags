@@ -1176,8 +1176,6 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[spriteNum].IsRelativeRes()) ?
-        (thisgame.SpriteInfos[spriteNum].IsLegacyHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1187,16 +1185,16 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
 		flipped->FillTransparent();
 		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
-		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, flipped, x, y, 1);
 		delete flipped;
 	}
 	else 
 	{
-		drawBlockScaledAt(hdc, theSprite, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, theSprite, x, y, 1);
 	}
 }
 
-void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum) {
+void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
   Common::Bitmap *tempBlock = NULL;
 	
@@ -1210,8 +1208,16 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
 	  todraw = tempBlock;
   }
 
-  // FIXME later
-  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(), x,y, width, height);
+  if (flipImage) {
+    Common::Bitmap* flipped = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), todraw->GetColorDepth());
+    flipped->FillTransparent();
+    flipped->FlipBlt(todraw, 0, 0, Common::kBitmap_HFlip);
+    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), (HDC)hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
+    delete flipped;
+  } else {
+    // FIXME later
+    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), (HDC)hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
+  }
 
   delete tempBlock;
 }

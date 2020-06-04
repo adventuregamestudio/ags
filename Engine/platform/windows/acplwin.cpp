@@ -128,7 +128,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
   virtual bool ExitFullscreenMode();
   virtual void AdjustWindowStyleForFullscreen();
-  virtual void RestoreWindowStyle();
+  virtual void AdjustWindowStyleForWindowed();
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
@@ -803,21 +803,14 @@ void AGSWin32::AdjustWindowStyleForFullscreen()
   SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, sz.Width, sz.Height, 0);
 }
 
-void AGSWin32::RestoreWindowStyle()
+void AGSWin32::AdjustWindowStyleForWindowed()
 {
-  // Restore allegro window styles in case we modified them
-  restore_window_style();
+  // Make a regular window with a border
   HWND allegro_wnd = win_get_window();
   LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
-  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP)/* | WS_OVERLAPPEDWINDOW*/);
-  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
-  // cannot be removed with style altering functions; here use SetWindowPos
-  // with HWND_NOTOPMOST as a workaround.
+  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP) | (WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX));
+  // Make window go on top, but at the same time remove WS_EX_TOPMOST style (applied by Direct3D fullscreen mode)
   SetWindowPos(allegro_wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-  // But then we also have to do second "hack" and call SetWindowPos with HWND_TOP,
-  // otherwise window may hide, causing inconvenience in case we are releasing
-  // gfx mode before displaying a system message box.
-  SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {

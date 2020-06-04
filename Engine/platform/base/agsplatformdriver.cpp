@@ -57,7 +57,7 @@ void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
 bool AGSPlatformDriver::EnterFullscreenMode(const DisplayMode &dm) { return true; }
 bool AGSPlatformDriver::ExitFullscreenMode() { return true; }
 void AGSPlatformDriver::AdjustWindowStyleForFullscreen() { }
-void AGSPlatformDriver::RestoreWindowStyle() { }
+void AGSPlatformDriver::AdjustWindowStyleForWindowed() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::PlayVideo(const char* name, int skip, int flags) {}

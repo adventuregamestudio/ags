@@ -911,40 +911,29 @@ void SetGraphicalVariable (const char *varName, int p_value) {
         theVar->Value = p_value;
 }
 
-void scrWait(int nloops) {
+int WaitImpl(int skip_type, int nloops)
+{
     if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!Wait: must wait at least 1 loop");
 
     play.wait_counter = nloops;
-    play.key_skip_wait = 0;
+    play.key_skip_wait = skip_type;
 
     GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
+
+    if (play.wait_counter < 0)
+        return 1;
+    return 0;
+}
+
+void scrWait(int nloops) {
+    WaitImpl(SKIP_AUTOTIMER, nloops);
 }
 
 int WaitKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
-        quit("!WaitKey: must wait at least 1 loop");
-
-    play.wait_counter = nloops;
-    play.key_skip_wait = 1;
-
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
-
-    if (play.wait_counter < 0)
-        return 1;
-    return 0;
+    return WaitImpl(SKIP_KEYPRESS | SKIP_AUTOTIMER, nloops);
 }
 
 int WaitMouseKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
-        quit("!WaitMouseKey: must wait at least 1 loop");
-
-    play.wait_counter = nloops;
-    play.key_skip_wait = 3;
-
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
-
-    if (play.wait_counter < 0)
-        return 1;
-    return 0;
+    return WaitImpl(SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
 }

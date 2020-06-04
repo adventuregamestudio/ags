@@ -114,6 +114,8 @@ const int LegacyRoomVolumeFactor            = 30;
 #define EVENT_INPROGRESS 1
 #define EVENT_CLAIMED    2
 
+// Internal skip style flags, for speech/display, wait
+#define SKIP_NONE       0
 #define SKIP_AUTOTIMER  1
 #define SKIP_KEYPRESS   2
 #define SKIP_MOUSECLICK 4

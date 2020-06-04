@@ -250,7 +250,7 @@ static void check_mouse_controls()
         }
 
         if (play.fast_forward) { }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
+        else if ((play.wait_counter > 0) && (play.key_skip_wait & SKIP_MOUSECLICK) != 0)
             play.wait_counter = -1;
         else if (is_text_overlay > 0) {
             if (play.cant_skip_speech & SKIP_MOUSECLICK)
@@ -424,7 +424,7 @@ static void check_keyboard_controls()
         return;
     }
 
-    if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
+    if ((play.wait_counter > 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
         play.wait_counter = -1;
         debug_script_log("Keypress code %d ignored - in Wait", kgn);
         return;

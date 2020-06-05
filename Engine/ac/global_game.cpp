@@ -813,13 +813,24 @@ int WaitImpl(int skip_type, int nloops)
         quit("!Wait: must wait at least 1 loop");
 
     play.wait_counter = nloops;
+    play.wait_skipped_by = SKIP_AUTOTIMER; // we set timer flag by default to simplify that case
+    play.wait_skipped_by_data = 0;
     play.key_skip_wait = skip_type;
 
     GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
 
-    if (play.wait_counter < 0)
-        return 1;
-    return 0;
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
+    {
+        // < 3.6.0 return 1 is skipped by user input, otherwise 0
+        return (play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK) != 0) ? 1 : 0;
+    }
+    // >= 3.6.0 return positive keycode, negative mouse button code, or 0 as time-out
+    switch (play.wait_skipped_by)
+    {
+    case SKIP_KEYPRESS: return play.wait_skipped_by_data;
+    case SKIP_MOUSECLICK: return -(play.wait_skipped_by_data + 1); // convert to 1-based code and negate
+    default: return 0;
+    }
 }
 
 void scrWait(int nloops) {

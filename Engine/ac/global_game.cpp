@@ -913,15 +913,12 @@ void SetGraphicalVariable (const char *varName, int p_value) {
 
 int WaitImpl(int skip_type, int nloops)
 {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
-        quit("!Wait: must wait at least 1 loop");
-
     play.wait_counter = nloops;
     play.wait_skipped_by = SKIP_AUTOTIMER; // we set timer flag by default to simplify that case
     play.wait_skipped_by_data = 0;
     play.key_skip_wait = skip_type;
 
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
+    GameLoopUntilValueIsZero(&play.wait_counter);
 
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v351)
     {

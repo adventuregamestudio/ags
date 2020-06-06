@@ -95,9 +95,6 @@ static int ShouldStayInWaitMode();
 static int numEventsAtStartOfFunction;
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
-static int user_disabled_for = 0;
-static const void *user_disabled_data = nullptr;
-
 #define UNTIL_ANIMEND   1
 #define UNTIL_MOVEEND   2
 #define UNTIL_CHARIS0   3
@@ -107,7 +104,11 @@ static const void *user_disabled_data = nullptr;
 #define UNTIL_SHORTIS0  7
 #define UNTIL_INTISNEG  8
 
+// Following 3 parameters instruct the engine to run game loops until
+// certain condition is not fullfilled.
 static int restrict_until=0;
+static int user_disabled_for = 0;
+static const void *user_disabled_data = nullptr;
 
 unsigned int loopcounter=0;
 static unsigned int lastcounter=0;
@@ -247,7 +248,7 @@ static void check_mouse_controls()
         check_skip_cutscene_mclick(mbut);
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait & SKIP_MOUSECLICK) != 0) {
+        else if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_MOUSECLICK) != 0) {
             play.wait_counter = 0;
             play.wait_skipped_by = SKIP_MOUSECLICK;
             play.wait_skipped_by_data = mbut;
@@ -497,7 +498,7 @@ static void check_keyboard_controls()
         return;
     }
 
-    if ((play.wait_counter > 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
+    if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
         play.wait_counter = 0;
         play.wait_skipped_by = SKIP_KEYPRESS;
         play.wait_skipped_by_data = kgn;

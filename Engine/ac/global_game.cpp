@@ -949,3 +949,7 @@ int WaitMouse(int nloops) {
 int WaitMouseKey(int nloops) {
     return WaitImpl(SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
 }
+
+void SkipWait() {
+    play.wait_counter = 0;
+}

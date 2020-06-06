@@ -2213,6 +2213,11 @@ RuntimeScriptValue Sc_WaitMouseKey(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_PINT(WaitMouseKey);
 }
 
+RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SkipWait);
+}
+
 //=============================================================================
 //
 // Exclusive API for Plugins
@@ -2663,6 +2668,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("WaitKey",                  Sc_WaitKey);
 	ccAddExternalStaticFunction("WaitMouse",                Sc_WaitMouse);
 	ccAddExternalStaticFunction("WaitMouseKey",             Sc_WaitMouseKey);
+	ccAddExternalStaticFunction("SkipWait",                 Sc_SkipWait);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

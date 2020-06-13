@@ -212,6 +212,15 @@ namespace AGS.Editor.Components
             return menu;
         }
 
+        // Synchronize open character documents with Views
+        public void UpdateCharacterViews()
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                ((CharacterEditor)doc.Control).UpdateViewPreview();
+            }
+        }
+
         public override void RefreshDataFromGame()
         {
             foreach (ContentDocument doc in _documents.Values)

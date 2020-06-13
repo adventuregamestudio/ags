@@ -192,6 +192,11 @@ namespace AGS.Editor.Components
         {
             RePopulateTreeView(GetNodeIDForView(item));
             UpdateOpenWindowTitles();
+            Components.CharactersComponent cmp = ComponentController.Instance.FindComponent<Components.CharactersComponent>();
+            if (cmp != null)
+            {
+                cmp.UpdateCharacterViews();
+            }
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

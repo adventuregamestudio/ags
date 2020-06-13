@@ -119,6 +119,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 clipClicked.ID = newNumber;
+                SwapItemsInFlatList(oldNumber, newNumber);
                 OnItemIDChanged(clipClicked);
             }
             else if (controlID == SPEECH_NODE_ID)
@@ -672,6 +673,11 @@ namespace AGS.Editor.Components
         protected override AudioClipFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootAudioClipFolder;
+        }
+
+        protected override IList<AudioClip> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.AudioClipFlatList;
         }
 
         protected override ProjectTreeItem CreateTreeItemForItem(AudioClip item)

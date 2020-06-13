@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         where FolderType : BaseFolderCollection<ItemType,FolderType>
     {
         protected abstract FolderType GetRootFolder();
+        protected abstract IList<ItemType> GetFlatList();
         protected abstract ProjectTreeItem CreateTreeItemForItem(ItemType item);
         protected abstract void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);
         protected abstract void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);
@@ -152,6 +153,17 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.StartFromNode(this, _rightClickedID);
             string newNodeID = AddTreeNodeForItem(item);
             return newNodeID;
+        }
+
+        // Swaps two items in the flat item list only, keeping their folder location unchanged.
+        protected void SwapItemsInFlatList(int index1, int index2)
+        {
+            if (index1 == index2)
+                return;
+            var list = GetFlatList();
+            ItemType item = list[index1];
+            list[index1] = list[index2];
+            list[index2] = item;
         }
                        
         protected void CreateSubFolder(string parentNodeID, FolderType parentFolder)

@@ -304,6 +304,11 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.RootViewFolder;
         }
 
+        protected override IList<View> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.ViewFlatList;
+        }
+
         protected override ProjectTreeItem CreateTreeItemForItem(View item)
         {
             string nodeID = GetNodeIDForView(item);

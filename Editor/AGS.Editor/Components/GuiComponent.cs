@@ -135,6 +135,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _guiRightClicked.ID = newNumber;
+                SwapItemsInFlatList(oldNumber, newNumber);
                 OnItemIDChanged(_guiRightClicked);
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
@@ -334,6 +335,11 @@ namespace AGS.Editor.Components
         protected override GUIFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootGUIFolder;
+        }
+
+        protected override IList<GUI> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.GUIFlatList;
         }
 
     }

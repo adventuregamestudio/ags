@@ -87,6 +87,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                SwapItemsInFlatList(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
@@ -321,6 +322,11 @@ namespace AGS.Editor.Components
         protected override DialogFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootDialogFolder;
+        }
+
+        protected override IList<Dialog> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.DialogFlatList;
         }
     }
 }

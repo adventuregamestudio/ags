@@ -106,6 +106,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                SwapItemsInFlatList(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
@@ -279,6 +280,11 @@ namespace AGS.Editor.Components
         protected override CharacterFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootCharacterFolder;
+        }
+
+        protected override IList<Character> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.CharacterFlatList;
         }
 
         protected override ProjectTreeItem CreateTreeItemForItem(Character item)

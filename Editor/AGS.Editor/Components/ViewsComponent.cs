@@ -61,7 +61,13 @@ namespace AGS.Editor.Components
             {
                 View viewClicked = _items[_rightClickedID];
                 int oldNumber = viewClicked.ID;
-                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1, _items.Count);
+                // Note that the views are not sequential, there may be gaps in IDs
+                int maxNumber = 1;
+                foreach (var obj in _items)
+                {
+                    maxNumber = Math.Max(maxNumber, obj.Value.ID);
+                }
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1, maxNumber);
                 if (newNumber < 0)
                     return;
                 foreach (var obj in _items)

@@ -38,7 +38,6 @@ namespace AGS.Editor
         private int _menuClickX;
         private int _menuClickY;
 
-        private bool _mouseIsPanningDown = false;
         private Point _panGrabPoint;
         private object _startNode; // track breadcrumbs path so that it can be compared when saving
 
@@ -609,11 +608,10 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
-            // defines the shortcut for click pan
+            // defines the shortcut for click pan Control+Shift+Left Click Hold or Middle Click Hold without any modifier.
             if ( (e.Button == MouseButtons.Left && Control.ModifierKeys == (Keys.Control | Keys.Shift))
                 || (e.Button == MouseButtons.Middle && Control.ModifierKeys == Keys.None))
             {
-                _mouseIsPanningDown = true;
                 _panGrabPoint = e.Location;
                 return;
             }
@@ -625,10 +623,9 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_mouseIsPanningDown)
+            if (_panGrabPoint!= Point.Empty)
             {
                 _panGrabPoint = Point.Empty;
-                _mouseIsPanningDown = false;
                 Cursor = Cursors.Default;
             }
 	
@@ -690,7 +687,7 @@ namespace AGS.Editor
             }
             lblMousePos.Text = $"{xPosText}, {yPosText}";
 
-            if (_mouseIsPanningDown)
+            if (_panGrabPoint != Point.Empty)
             {
                 Cursor = Cursors.Hand; // We need a better hand cursor, using the "link" hand for now
 

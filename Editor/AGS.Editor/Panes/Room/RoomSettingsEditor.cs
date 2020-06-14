@@ -37,10 +37,8 @@ namespace AGS.Editor
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
-
         private Point _panGrabPoint;
         private object _startNode; // track breadcrumbs path so that it can be compared when saving
-
 
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;

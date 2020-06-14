@@ -22,6 +22,7 @@ namespace AGS.Editor
             string[] libs =
             {
                 "alleg-alsadigi.so",
+                "alleg-sdl2digi.so",
                 "alleg-alsamidi.so",
                 "libaldmb.so.1",
                 "liballeg.so.4.4",
@@ -172,7 +173,7 @@ scriptdir=$(dirname ""$scriptpath"")
 
 for arg; do
     if [ ""$arg"" = ""--help"" ]; then
-        echo ""Usage: $(basename ""$scriptpath"") [<ags options>]\n""
+        printf ""Usage: %s [<ags options>]\n\n"" ""$(basename ""$scriptpath"")""
         break
     fi
 done

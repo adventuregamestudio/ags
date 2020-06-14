@@ -52,7 +52,7 @@ RUN mkdir Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
 
 ARG ALLEGRO_REPO=adventuregamestudio/lib-allegro
-ARG ALLEGRO_RELEASES=v4.4.3.1-agspatch-2
+ARG ALLEGRO_RELEASES=v4.4.3.1-agspatch-3
 RUN for %a in (%ALLEGRO_RELEASES%) do \
   mkdir Source\Allegro\%a && \
   curl -fLSs "https://github.com/%ALLEGRO_REPO%/archive/%a.tar.gz" | tar -f - -xvzC Source\Allegro\%a --strip-components 1 && \

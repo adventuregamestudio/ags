@@ -42,8 +42,9 @@ Engine/resource/version.aps
 *.vcproj.*.user
 *.vcxproj.user
 **/Debug
-**/Develop
+**/Debug_XP
 **/Release
+**/Release_XP
 **/.build
 **/.lib
 **/.test

@@ -366,11 +366,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   ios_create_screen();
   ios_select_buffer();
 #elif AGS_PLATFORM_OS_WINDOWS
-  if (!mode.Windowed)
+  if (mode.Windowed)
+  {
+    platform->AdjustWindowStyleForWindowed();
+  }
+  else
   {
     if (platform->EnterFullscreenMode(mode))
       platform->AdjustWindowStyleForFullscreen();
   }
+
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
   if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
   {
@@ -1048,8 +1053,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = nullptr;
 
-  if (platform->ExitFullscreenMode())
-    platform->RestoreWindowStyle();
+  platform->ExitFullscreenMode();
 }
 
 void OGLGraphicsDriver::UnInit() 
@@ -1642,8 +1646,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
-  if (usingLinearFiltering)
-  {
   if (tile->width < tileWidth)
   {
     if (tilex > 0)
@@ -1680,7 +1682,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
       edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
     }
   }
-  } // usingLinearFiltering
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);

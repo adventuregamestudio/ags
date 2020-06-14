@@ -108,6 +108,35 @@ namespace AGS.Types
             return String.Format("{0} x {1}", size.Width, size.Height);
         }
 
+        public static string ResolutionToAspectRatio(Size size)
+        {
+            int gcd = GreatestCommonDivisor(size.Width, size.Height);
+            int w = size.Width / gcd;
+            int h = size.Height / gcd;
+            int scale = 1;
+
+            if (w == 8 && h == 5)
+            {
+                scale = 2;
+            }
+
+            return String.Format("{0}:{1}", w * scale, h * scale);
+        }
+
+        public static int GreatestCommonDivisor(int a, int b)
+        {
+            int remainder;
+
+            while (b != 0)
+            {
+                remainder = a % b;
+                a = b;
+                b = remainder;
+            }
+
+            return a;
+        }
+
         /// <summary>
         /// Tells if the given path equals to parent or subdirectory of parent.
         /// </summary>

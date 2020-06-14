@@ -93,7 +93,7 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
 void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, int dataSize) {
     StartUnserialize(serializedData, dataSize);
     int room_ds = UnserializeInt();
-    roomBackgroundNumber = room_ds & 0xFFFF;
+    roomBackgroundNumber = static_cast<short>(room_ds & 0xFFFF);
     roomMaskType = (RoomAreaMask)(room_ds >> 16);
     dynamicSpriteNumber = UnserializeInt();
     dynamicSurfaceNumber = UnserializeInt();

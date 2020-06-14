@@ -299,12 +299,22 @@ ScriptCamera* Viewport_GetCamera(ScriptViewport *scv)
 void Viewport_SetCamera(ScriptViewport *scv, ScriptCamera *scam)
 {
     if (scv->GetID() < 0) { debug_script_warn("Viewport.Camera: trying to use deleted viewport"); return; }
+    if (scam != nullptr && scam->GetID() < 0) { debug_script_warn("Viewport.Camera: trying to link deleted camera"); return; }
     auto view = play.GetRoomViewport(scv->GetID());
-    auto cam = play.GetRoomCamera(scam->GetID());
-    if (view != nullptr && cam != nullptr)
+    // unlink previous camera
+    auto cam = view->GetCamera();
+    if (cam)
+        cam->UnlinkFromViewport(view->GetID());
+    // link new one
+    if (scam != nullptr)
     {
+        cam = play.GetRoomCamera(scam->GetID());
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
+    }
+    else
+    {
+        view->LinkCamera(nullptr);
     }
 }
 
@@ -355,7 +365,7 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int 
     if (scv->GetID() < 0) { debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport"); return nullptr; }
     data_to_game_coords(&scrx, &scry);
 
-    VpPoint vpt = play.ScreenToRoom(scrx, scry, scv->GetID(), clipViewport);
+    VpPoint vpt = play.GetRoomViewport(scv->GetID())->ScreenToRoom(scrx, scry, clipViewport);
     if (vpt.second < 0)
         return nullptr;
 

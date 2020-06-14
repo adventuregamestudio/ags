@@ -153,19 +153,19 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     viw--;
     if (viw < 0 || viw >= game.numviews) quit("!SetObjectFrame: invalid view number used");
     if (lop < 0 || lop >= views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
-    if (fra < 0 || fra >= views[viw].loops[objs[obn].loop].numFrames) quit("!SetObjectFrame: invalid frame number used");
+    if (fra < 0 || fra >= views[viw].loops[lop].numFrames) quit("!SetObjectFrame: invalid frame number used");
     // AGS >= 3.2.0 do not let assign an empty loop
     // NOTE: pre-3.2.0 games are converting views from ViewStruct272 struct, always has at least 1 frame
     if (loaded_game_file_version >= kGameVersion_320)
     {
-        if (views[viw].loops[objs[obn].loop].numFrames == 0) 
+        if (views[viw].loops[lop].numFrames == 0)
             quit("!SetObjectFrame: specified loop has no frames");
     }
     objs[obn].view = viw;
     objs[obn].loop = lop;
     objs[obn].frame = fra;
     objs[obn].cycling=0;
-    objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    objs[obn].num = views[viw].loops[lop].frames[fra].pic;
     CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
 }
 

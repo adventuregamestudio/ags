@@ -17,8 +17,6 @@
 //
 // String objects do reference counting and share data buffer on assignment.
 // The reallocation and copying is done only when the string is modified.
-// This means that passing string object by value is about as effective, as
-// passing by reference.
 //
 // The copying of memory inside buffer is reduced to minimum. If the string is
 // truncated, it is not aligned to buffer head each time, instead the c-str
@@ -69,39 +67,39 @@ public:
     // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
     {
-        return _meta ? _meta->CStr : "";
+        return _cstr ? _cstr : "";
     }
     // Get C-string or nullptr
     inline const char *GetNullableCStr() const
     {
-        return _meta ? _meta->CStr : nullptr;
+        return _cstr ? _cstr : nullptr;
     }
     // Get character count
     inline size_t GetLength() const
     {
-        return _meta ? _meta->Length : 0;
+        return _len;
     }
     // Know if the string is empty (has no meaningful characters)
     inline bool IsEmpty() const
     {
-        return _meta ? _meta->Length == 0 : true;
+        return _len == 0;
     }
 
     // Those getters are for tests only, hence if AGS_PLATFORM_DEBUG
 #if AGS_PLATFORM_DEBUG
-    inline const char *GetData() const
+    inline const char *GetBuffer() const
     {
-        return _data;
+        return _buf;
     }
 
     inline size_t GetCapacity() const
     {
-        return _meta ? _meta->Capacity : 0;
+        return _bufHead ? _bufHead->Capacity : 0;
     }
 
     inline size_t GetRefCount() const
     {
-        return _meta ? _meta->RefCount : 0;
+        return _bufHead ? _bufHead->RefCount : 0;
     }
 #endif
 
@@ -165,11 +163,11 @@ public:
     // Get Nth character with bounds check (as opposed to subscript operator)
     inline char GetAt(size_t index) const
     {
-        return (_meta && index < _meta->Length) ? _meta->CStr[index] : 0;
+        return (index < _len) ? _cstr[index] : 0;
     }
     inline char GetLast() const
     {
-        return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
+        return (_len > 0) ? _cstr[_len - 1] : 0;
     }
 
     //-------------------------------------------------------------------------
@@ -181,6 +179,10 @@ public:
     //-------------------------------------------------------------------------
     // Factory methods
     //-------------------------------------------------------------------------
+
+    // Wraps the given string buffer without owning it, won't count references,
+    // won't delete it at destruction. Can be used with string literals.
+    static String Wrapper(const char *cstr);
 
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
@@ -305,6 +307,9 @@ public:
     // given character
     void    TruncateToSection(char separator, size_t first, size_t last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true);
+    // Wraps the given string buffer without owning it, won't count references,
+    // won't delete it at destruction. Can be used with string literals.
+    void    Wrap(const char *cstr);
 
     //-------------------------------------------------------------------------
     // Operators
@@ -320,8 +325,8 @@ public:
     String &operator=(const char *cstr);
     inline char operator[](size_t index) const
     {
-        assert(_meta && index < _meta->Length);
-        return _meta->CStr[index];
+        assert(index < _len);
+        return _cstr[index];
     }
     inline bool operator==(const char *cstr) const
     {
@@ -350,21 +355,21 @@ private:
     // or after the current string data
     void    ReserveAndShift(bool left, size_t more_length);
 
-    struct Header
-    {
-        Header();
+    char    *_cstr;  // pointer to actual string data
+    size_t  _len;    // valid string length, in characters, excluding null-term
 
-        size_t  RefCount;   // reference count
-        // Capacity and Length do not include null-terminator
-        size_t  Capacity;   // available space, in characters
-        size_t  Length;     // used space
-        char    *CStr;      // pointer to string data start
+    // Header of a reference-counted buffer
+    struct BufHeader
+    {
+        size_t  RefCount = 0; // reference count
+        size_t  Capacity = 0; // available space, in characters
     };
 
+    // Union that groups mutually exclusive data (currently only ref counted buffer)
     union
     {
-        char    *_data;
-        Header  *_meta;
+        char      *_buf;     // reference-counted data (raw ptr)
+        BufHeader *_bufHead; // the header of a reference-counted data
     };
 };
 

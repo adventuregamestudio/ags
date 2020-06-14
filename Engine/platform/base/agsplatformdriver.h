@@ -113,8 +113,8 @@ struct AGSPlatformDriver
     virtual bool ExitFullscreenMode();
     // Adjust application window's parameters to suit fullscreen mode
     virtual void AdjustWindowStyleForFullscreen();
-    // Restore application window to normal parameters
-    virtual void RestoreWindowStyle();
+    // Adjust application window's parameters to suit windowed mode
+    virtual void AdjustWindowStyleForWindowed();
     virtual void RegisterGameWithGameExplorer();
     virtual void UnRegisterGameWithGameExplorer();
     virtual int  ConvertKeycodeToScanCode(int keyCode);

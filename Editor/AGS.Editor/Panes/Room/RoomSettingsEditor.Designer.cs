@@ -44,7 +44,7 @@ namespace AGS.Editor
             this.btnChangeImage = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cmbBackgrounds = new System.Windows.Forms.ComboBox();
-            this.bufferedPanel1 = new AGS.Editor.BufferedPanel();
+            this.bufferedPanel1 = new AGS.Editor.FreePanControl();
             this.mainFrame.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).BeginInit();
@@ -275,7 +275,7 @@ namespace AGS.Editor
         private System.Windows.Forms.GroupBox mainFrame;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cmbBackgrounds;
-        private BufferedPanel bufferedPanel1;
+        private FreePanControl bufferedPanel1;
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.Button btnChangeImage;

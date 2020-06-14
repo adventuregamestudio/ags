@@ -223,6 +223,9 @@
     <Compile Include="Panes\ZoomTrackbar.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\FreePanControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Panes\ZoomTrackbar.Designer.cs">
       <DependentUpon>ZoomTrackbar.cs</DependentUpon>
     </Compile>

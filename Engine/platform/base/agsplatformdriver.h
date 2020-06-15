@@ -57,6 +57,7 @@ struct AGSPlatformDriver
     virtual void AboutToQuitGame();
     virtual void Delay(int millis);
     virtual void DisplayAlert(const char*, ...) = 0;
+    virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
     // Get root directory for storing per-game shared data
     virtual const char *GetAllUsersDataDirectory() { return "."; }

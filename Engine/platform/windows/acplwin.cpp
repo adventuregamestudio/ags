@@ -1104,5 +1104,13 @@ LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
   return mouse_dinput_device;
 }
 
+#undef main
+// Implement a dummy main() method that just calls WinMain so that we can create a console
+// that we can write to.
+int main()
+{
+    return WinMain(GetModuleHandle(NULL), NULL, GetCommandLineA(), SW_SHOWNORMAL);
+}
+
 
 #endif

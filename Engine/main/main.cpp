@@ -106,6 +106,11 @@ int psp_gfx_super_sampling = 1;
 int psp_gfx_smooth_sprites = 0;
 #endif
 
+#if AGS_PLATFORM_OS_WINDOWS
+bool enableMessageBox = true;
+#endif
+
+
 
 void main_pre_init()
 {
@@ -192,6 +197,7 @@ void main_print_help() {
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
 #if AGS_PLATFORM_OS_WINDOWS
+           "  --no-message-box             Write alerts to stdout instead of showing a message box\n"
            "  --setup                      Run setup application\n"
 #endif
            "  --tell                       Print various information concerning engine\n"
@@ -328,6 +334,12 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         // Special case: data file location
         //
         else if (arg[0]!='-') datafile_argv=ee;
+
+#if AGS_PLATFORM_OS_WINDOWS
+        // Windows-specific option to disable message boxes.
+        else if (ags_stricmp(arg, "--no-message-box") == 0) enableMessageBox = false;
+#endif
+
     }
 
     if (datafile_argv > 0)
@@ -427,7 +439,12 @@ int ags_entry_point(int argc, char *argv[]) {
     }
 
     if (!justTellInfo)
+#if AGS_PLATFORM_OS_WINDOWS
+        platform->SetGUIMode(enableMessageBox);
+#else
         platform->SetGUIMode(true);
+#endif
+
     init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 

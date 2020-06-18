@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using AGS.Types.AutoComplete;
 
 namespace AGS.Types

@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace AGS.Types
 {
     /// <summary>

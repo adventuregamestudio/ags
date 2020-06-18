@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing.Design;
-using System.Text;
 using System.Windows.Forms.Design;
 
 // Based on an idea by Ozcan Degirmenci:

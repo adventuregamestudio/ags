@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml;
-using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
 
 namespace AGS.Types

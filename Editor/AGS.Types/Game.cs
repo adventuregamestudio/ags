@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
-using System.Resources;
-using System.Text;
 using System.Xml;
 
 namespace AGS.Types

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
-using AGS.Types;
 using System.Xml;
 
 namespace AGS.Types

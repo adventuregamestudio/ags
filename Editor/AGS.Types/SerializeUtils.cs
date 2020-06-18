@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using System.Globalization;
 

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using System.Xml;
-using System.Windows.Forms;
 
 namespace AGS.Types
 {

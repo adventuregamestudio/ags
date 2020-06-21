@@ -108,6 +108,7 @@ namespace AGS.Editor.Components
                 _itemRightClicked.ID = newNumber;
                 SwapItemsInFlatList(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
+                OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))

@@ -197,11 +197,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
+                var docItem = ((GUIEditor)doc.Control).GuiToEdit;
+                doc.Name = item.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }
 

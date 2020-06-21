@@ -132,11 +132,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((DialogEditor)doc.Control).ItemToEdit.WindowTitle;
+                var docItem = ((DialogEditor)doc.Control).ItemToEdit;
+                doc.Name = item.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
 
             // Force re-build of dialog scripts since names/ids have changed

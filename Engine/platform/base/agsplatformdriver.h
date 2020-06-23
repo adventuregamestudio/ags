@@ -24,6 +24,7 @@
 #include "ac/datetime.h"
 #include "debug/outputhandler.h"
 #include "util/ini_util.h"
+#include "util/geometry.h"
 
 namespace AGS
 {
@@ -83,6 +84,8 @@ struct AGSPlatformDriver
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
     virtual void PlayVideo(const char* name, int skip, int flags);
+    // Returns the monitor resolution of where ags window is
+    virtual Size GetDesktopSize();
     virtual void InitialiseAbufAtStartup();
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;

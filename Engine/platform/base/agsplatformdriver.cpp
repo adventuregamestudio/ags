@@ -62,6 +62,13 @@ void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::PlayVideo(const char* name, int skip, int flags) {}
 
+Size AGSPlatformDriver::GetDesktopSize()
+{
+    Size sz;
+    get_desktop_resolution(&sz.Width, &sz.Height);
+    return sz;
+}
+
 const char* AGSPlatformDriver::GetAllegroFailUserHint()
 {
     return "Make sure you have latest version of Allegro 4 libraries installed, and your system is running in graphical mode.";

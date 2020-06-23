@@ -31,6 +31,10 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
+#ifdef AGS_XWINDOWS_WITH_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif
+
 using AGS::Common::String;
 
 
@@ -62,6 +66,7 @@ struct AGSLinux : AGSPlatformDriver {
   bool LockMouseToWindow() override;
   void UnlockMouse() override;
   void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms) override;
+  Size GetDesktopSize() override;
 };
 
 
@@ -212,6 +217,60 @@ void AGSLinux::GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms)
         dms.push_back(Engine::DisplayMode(Engine::GraphicResolution(m.width, m.height, m.bpp)));
     }
     destroy_gfx_mode_list(gmlist);
+
+#ifdef AGS_XWINDOWS_WITH_XINERAMA
+    int xineramaScreenCount = 0;
+    XineramaScreenInfo *xinerama  = XineramaQueryScreens(_xwin.display, &xineramaScreenCount);
+    if(xinerama) {
+       for(int i=0; i<xineramaScreenCount; i++){
+           dms.push_back(Engine::DisplayMode(Engine::GraphicResolution(xinerama[i].width, xinerama[i].height, 32)));
+       }
+    }
+#endif
+}
+
+Size AGSLinux::GetDesktopSize()
+{
+#ifdef AGS_XWINDOWS_WITH_XINERAMA
+    XLOCK();
+    Size sz;
+    int screenCount;
+    XineramaScreenInfo *xinerama  = XineramaQueryScreens(_xwin.display, &screenCount);
+    if (xinerama) {
+        int foundBest = 0;
+        Window window = _xwin.window != None ? XDefaultRootWindow(_xwin.display) : _xwin.window;
+
+        //find the center of the window and try to figurout which screen it is
+        XWindowAttributes windowAttributes;
+        int window_h_center, window_v_center;
+        if(XGetWindowAttributes(_xwin.display, _xwin.window, &windowAttributes) != 0) {
+            window_h_center = windowAttributes.x + windowAttributes.width / 2;
+            window_v_center = windowAttributes.y + windowAttributes.height / 2;
+        }
+        int i=0;
+        for(i=0; i<screenCount; i++){
+            if( xinerama[i].x_org <= window_h_center &&
+                xinerama[i].y_org <= window_v_center &&
+                window_h_center <= xinerama[i].x_org+xinerama[i].width &&
+                window_v_center <= xinerama[i].y_org+xinerama[i].height) {
+
+                foundBest = 1;
+                break;
+            }
+        }
+
+        if(foundBest == 1) {
+            sz.Width = xinerama[i].width;
+            sz.Height = xinerama[i].height;
+            XFree(xinerama);
+            XUNLOCK();
+            return sz;
+        }
+        XFree(xinerama);
+    }
+    XUNLOCK();
+#endif
+    return AGSPlatformDriver::GetDesktopSize();
 }
 
 #endif

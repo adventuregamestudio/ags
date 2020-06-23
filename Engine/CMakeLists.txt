@@ -8,6 +8,8 @@ set_target_properties(engine PROPERTIES
     CXX_EXTENSIONS NO
 )
 
+option(AGS_X11_WITH_XINERAMA "Enable X11 Xinerama fixes" ON)
+
 target_include_directories(engine PUBLIC .)
 
 target_sources(engine
@@ -591,6 +593,16 @@ if (WIN32)
     target_link_libraries(engine PUBLIC DirectX::Direct3D9 shlwapi)
 elseif (LINUX)
     target_link_libraries(engine PUBLIC X11::X11)
+
+    if(AGS_X11_WITH_XINERAMA)
+        check_include_file("X11/extensions/Xinerama.h" HAVE_XINERAMA_H)
+        check_library_exists(Xinerama XineramaQueryExtension "" CAN_XINERAMA)
+        if(CAN_XINERAMA AND HAVE_XINERAMA_H)
+            target_compile_definitions(engine PRIVATE AGS_XWINDOWS_WITH_XINERAMA)
+            find_library(XINERAMA_LIB "Xinerama")
+            target_link_libraries(engine PRIVATE "${XINERAMA_LIB}")
+        endif()
+    endif(AGS_X11_WITH_XINERAMA)
 endif()
 
 get_target_property(ENGINE_SOURCES engine SOURCES)

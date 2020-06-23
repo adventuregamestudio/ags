@@ -91,9 +91,7 @@ DisplayModeSetup::DisplayModeSetup()
 
 Size get_desktop_size()
 {
-    Size sz;
-    get_desktop_resolution(&sz.Width, &sz.Height);
-    return sz;
+    return platform->GetDesktopSize();
 }
 
 Size get_max_display_size(bool windowed)

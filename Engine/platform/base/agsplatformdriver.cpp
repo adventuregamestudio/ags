@@ -49,6 +49,7 @@ AGSPlatformDriver *platform = nullptr;
 
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
+void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
 void AGSPlatformDriver::DisplaySwitchIn() { }
 void AGSPlatformDriver::PauseApplication() { }

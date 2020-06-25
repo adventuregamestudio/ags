@@ -95,9 +95,11 @@ extern SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out, 
 
 struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
+  ~AGSWin32();
 
   virtual void AboutToQuitGame();
   virtual int  CDPlayerCommand(int cmdd, int datt);
+  virtual void AttachToParentConsole();
   virtual void DisplayAlert(const char*, ...);
   virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();
@@ -155,10 +157,21 @@ private:
 
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   DisplayMode _preFullscreenMode; // saved display mode before switching system to fullscreen
+  bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
 };
 
-AGSWin32::AGSWin32() {
-  _isDebuggerPresent = ::IsDebuggerPresent() != FALSE;
+AGSWin32::AGSWin32() :
+    _isDebuggerPresent(::IsDebuggerPresent() != FALSE),
+    _isAttachedToParentConsole(false)
+{
+    // Do nothing.
+}
+
+AGSWin32::~AGSWin32() {
+    if (_isAttachedToParentConsole)
+    {
+        ::FreeConsole();
+    }
 }
 
 void check_parental_controls() {
@@ -821,6 +834,33 @@ int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
 #endif
 }
 
+void AGSWin32::AttachToParentConsole() {
+    if (_isAttachedToParentConsole)
+        return;
+
+    _isAttachedToParentConsole = ::AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+    if (_isAttachedToParentConsole)
+    {
+        // Require that both STDOUT and STDERR are valid handles from the parent process.
+        if (::GetStdHandle(STD_OUTPUT_HANDLE) != INVALID_HANDLE_VALUE &&
+            ::GetStdHandle(STD_ERROR_HANDLE) != INVALID_HANDLE_VALUE)
+        {
+            // Re-open STDOUT and STDERR to the parent's.
+            FILE* fp = NULL;
+            freopen_s(&fp, "CONOUT$", "w", stdout);
+            setvbuf(stdout, NULL, _IONBF, 0);
+
+            freopen_s(&fp, "CONOUT$", "w", stderr);
+            setvbuf(stderr, NULL, _IONBF, 0);
+        }
+        else
+        {
+            ::FreeConsole();
+            _isAttachedToParentConsole = false;
+        }
+    }
+}
+
 void AGSWin32::DisplayAlert(const char *text, ...) {
   char displbuf[2500];
   va_list ap;
@@ -829,7 +869,9 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   va_end(ap);
   if (_guiMode)
     MessageBox(win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
-  else if (_logToStdErr)
+
+  // Always write to either stderr or stdout, even if message boxes are enabled.
+  if (_logToStdErr)
     AGSWin32::WriteStdErr("%s", displbuf);
   else
     AGSWin32::WriteStdOut("%s", displbuf);
@@ -1103,6 +1145,5 @@ LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard() {
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
   return mouse_dinput_device;
 }
-
 
 #endif

@@ -84,6 +84,8 @@ bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 bool justTellInfo = false;
+bool attachToParentConsole = false;
+bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 const char *loadSaveGameOnStartup = nullptr;
 
@@ -172,8 +174,11 @@ extern char return_to_room[150];
 
 void main_print_help() {
     platform->WriteStdOut(
-           "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+        "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
            "Options:\n"
+#if AGS_PLATFORM_OS_WINDOWS
+           "  --console-attach             Write output to the parent process's console\n"
+#endif
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
@@ -192,6 +197,7 @@ void main_print_help() {
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
 #if AGS_PLATFORM_OS_WINDOWS
+           "  --no-message-box              Disable reporting of alerts to message boxes\n"
            "  --setup                      Run setup application\n"
 #endif
            "  --tell                       Print various information concerning engine\n"
@@ -328,6 +334,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         // Special case: data file location
         //
         else if (arg[0]!='-') datafile_argv=ee;
+        else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
+        else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
     }
 
     if (datafile_argv > 0)
@@ -414,6 +422,9 @@ int ags_entry_point(int argc, char *argv[]) {
     if (res != 0)
         return res;
 
+    if (attachToParentConsole)
+        platform->AttachToParentConsole();
+
     if (justDisplayVersion)
     {
         platform->WriteStdOut(get_engine_string());
@@ -426,8 +437,9 @@ int ags_entry_point(int argc, char *argv[]) {
         return EXIT_NORMAL;
     }
 
-    if (!justTellInfo)
+    if (!justTellInfo && !hideMessageBoxes)
         platform->SetGUIMode(true);
+
     init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 

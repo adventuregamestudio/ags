@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -159,7 +160,23 @@ namespace AGS.Types
         public string GameFileName
         {
             get { return _gameFileName; }
-            set { _gameFileName = value; }
+            set
+            {
+                // Limit what they can set it to
+                if ((value.Length> 0) && value.Where(c => c > 127).Count() > 0)
+                {
+                    throw new ArgumentException("Game name should use only letters and numbers.");
+                }
+                if ((value.Length > 0) && (value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0))
+                {
+                    throw new ArgumentException("Game name has invalid filename characters");
+                }
+                if (value.Length == 0)
+                {
+                    throw new ArgumentException("Game name can't be empty.");
+                }
+                _gameFileName = value;
+            }
         }
 
         [DisplayName(PROPERTY_GAME_NAME)]

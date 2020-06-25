@@ -81,6 +81,10 @@
       <Project>{6c0d2bf2-2f34-42ff-8356-79254ccf3131}</Project>
       <Name>AGSEditor</Name>
     </ProjectReference>
+    <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
+      <Project>{3ebbedab-214c-4201-bb5a-5152d56908dd}</Project>
+      <Name>AGS.Types</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

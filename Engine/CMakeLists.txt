@@ -651,7 +651,7 @@ if (MACOS)
     file(GLOB RESOURCE_FILES
         CONFIGURE_DEPENDS
         ../OSX/Resources/ags.icns
-        ../OSX/Resources/ac2game.dat
+        ../OSX/Resources/*.ags
         ../OSX/Resources/acsetup.cfg
         ../OSX/Resources/audio.vox
         ../OSX/Resources/music.vox

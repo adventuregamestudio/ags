@@ -29,3 +29,48 @@ TIP: Use `touch AGS.app` to force macos to reload the application icon.
 
 All game resources are taken from `OSX/Resources` . Please feel free to replace the stub files that
 exist there with your own game files, as long as they have the same names.
+
+The default accepted name for the game file to be placed there is `game.ags`, which is generated in the `Compiled/Data/`
+directory of your AGS game project. This name is defined in `Engine/platform/osx/alplmac.mm` file.
+
+
+## Building your game with CMake and Xcode
+
+At the ags project root, use CMake to generate the needed Xcode project.
+```
+mkdir buildXcode
+cd buildXcode
+cmake -G Xcode ..
+```
+
+Using the flags `-DCMAKE_BUILD_TYPE=Release` or `-DCMAKE_BUILD_TYPE=Debug` to specify the build type don't affect the 
+generated Xcode project. The project will build for debug by default, and to change to release, in Xcode you can go to 
+`Product` -> `Scheme` -> `Edit Scheme...` to change the build type from Debug to Release.
+
+The produced binary will be in the `ags/buildXcode/Debug/` directory or `ags/buildXcode/Release/`, depending of the 
+target used. By default the name is `AGS.app`.
+
+
+## Building your game with CMake and make
+
+You can also use CMake and make to build ags. 
+
+```
+export BUILD_TYPE=Release
+mkdir build_$BUILD_TYPE
+cd build_$BUILD_TYPE
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+make
+```
+
+This will build the executable `AGS.app` in `the build_Release/` directory. The `AGS.app` has at it's root the directory `Contents`, and inside of it the following:
+
+- `Info.plist` , the file that holds the `AGS.app` details and points to `AGS` as the target executable.
+
+- `MacOS/`, contains the `AGS` engine binary used to run your game.
+
+- `Resources/`, the directory where your game and it's resources, including the icon are placed.
+
+
+
+

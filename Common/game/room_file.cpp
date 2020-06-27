@@ -567,12 +567,6 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
     return HRoomFileError::None();
 }
 
-void SkipRoomBlock(Stream *in, RoomFileVersion data_ver)
-{
-    soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
-    in->Seek(block_len);
-}
-
 
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
@@ -756,6 +750,7 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
         if (b < 0)
             return new RoomFileError(kRoomFileErr_UnexpectedEOF);
         block = (RoomFileBlock)b;
+        soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
         if (block == kRoomFblk_Script)
         {
             char *buf = nullptr;
@@ -768,7 +763,7 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
             return err;
         }
         if (block != kRoomFile_EOF)
-            SkipRoomBlock(in, data_ver);
+            in->Seek(block_len); // skip block
     } while (block != kRoomFile_EOF);
     return new RoomFileError(kRoomFileErr_BlockNotFound);
 }

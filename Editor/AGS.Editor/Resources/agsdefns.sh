@@ -1396,9 +1396,15 @@ import void UnPauseGame();
 /// Blocks the script for the specified number of game loops.
 import void Wait(int waitLoops);
 /// Blocks the script for the specified number of game loops, unless a key is pressed.
-import int  WaitKey(int waitLoops);
+import int  WaitKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless a key is pressed or the mouse is clicked.
-import int  WaitMouseKey(int waitLoops);
+import int  WaitMouseKey(int waitLoops = -1);
+#ifdef SCRIPT_API_v351
+/// Blocks the script for the specified number of game loops, unless the mouse is clicked.
+import int  WaitMouse(int waitLoops = -1);
+/// Cancels current Wait function, regardless of its type, if one was active at the moment.
+import void SkipWait();
+#endif
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);
 import void SetGlobalInt(int globalInt, int value);

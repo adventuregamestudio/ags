@@ -135,7 +135,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _guiRightClicked.ID = newNumber;
-                SwapItemsInFlatList(oldNumber, newNumber);
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_guiRightClicked);
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&

@@ -154,17 +154,6 @@ namespace AGS.Editor.Components
             string newNodeID = AddTreeNodeForItem(item);
             return newNodeID;
         }
-
-        // Swaps two items in the flat item list only, keeping their folder location unchanged.
-        protected void SwapItemsInFlatList(int index1, int index2)
-        {
-            if (index1 == index2)
-                return;
-            var list = GetFlatList();
-            ItemType item = list[index1];
-            list[index1] = list[index2];
-            list[index2] = item;
-        }
                        
         protected void CreateSubFolder(string parentNodeID, FolderType parentFolder)
         {

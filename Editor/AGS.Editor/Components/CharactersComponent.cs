@@ -106,7 +106,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
-                SwapItemsInFlatList(oldNumber, newNumber);
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
                 OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }

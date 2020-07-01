@@ -10,6 +10,16 @@ namespace AGS.Types
 {
     public static class Utilities
     {
+        public static void Swap<T>(this IList<T> list, int index1, int index2)
+        {
+            if (index1 == index2)
+                return;
+
+            var temp = list[index1];
+            list[index1] = list[index2];
+            list[index2] = temp;
+        }
+
         public static T GetDefaultValue<T>(Type type, string propertyName, T defaultValue)
         {
             PropertyInfo property = type.GetProperty(propertyName);

@@ -87,7 +87,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
-                SwapItemsInFlatList(oldNumber, newNumber);
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)

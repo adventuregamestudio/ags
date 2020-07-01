@@ -119,7 +119,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 clipClicked.ID = newNumber;
-                SwapItemsInFlatList(oldNumber, newNumber);
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(clipClicked);
             }
             else if (controlID == SPEECH_NODE_ID)

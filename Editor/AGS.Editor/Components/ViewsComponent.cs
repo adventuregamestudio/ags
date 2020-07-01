@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Xml;
 using AGS.Types;
@@ -62,12 +63,8 @@ namespace AGS.Editor.Components
                 View viewClicked = _items[_rightClickedID];
                 int oldNumber = viewClicked.ID;
                 // Note that the views are not sequential, there may be gaps in IDs
-                int maxNumber = 1;
-                foreach (var obj in _items)
-                {
-                    maxNumber = Math.Max(maxNumber, obj.Value.ID);
-                }
-                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1, maxNumber);
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1,
+                    Math.Max(1, _items.Max(i => i.Value.ID)));
                 if (newNumber < 0)
                     return;
                 foreach (var obj in _items)
@@ -192,11 +189,7 @@ namespace AGS.Editor.Components
         {
             RePopulateTreeView(GetNodeIDForView(item));
             UpdateOpenWindowTitles();
-            Components.CharactersComponent cmp = ComponentController.Instance.FindComponent<Components.CharactersComponent>();
-            if (cmp != null)
-            {
-                cmp.UpdateCharacterViews();
-            }
+            ComponentController.Instance.FindComponent<CharactersComponent>()?.UpdateCharacterViews();
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

@@ -22,13 +22,11 @@ struct ScriptHeader
 
 std::vector<ScriptHeader> defaultHeaders;
 
-int ccAddDefaultHeader(char *hd_content, char *hd_name)
+int ccAddDefaultHeader(char *hd_content, char const *hd_name)
 {
-    if (!hd_content)
-        hd_content = "";
-    if (!hd_name)
-        hd_name = "Internal Header File";
-    struct ScriptHeader head = { std::string(hd_name), std::string(hd_content) };
+    struct ScriptHeader head =
+        { std::string(hd_name? hd_name : "Internal Header File"),
+          std::string(hd_content? hd_content : "") };
     defaultHeaders.push_back(head);
 
     return 0;

@@ -95,6 +95,7 @@ Oldstyle strings, string literals, string buffers:
 #include <string>
 #include <limits>
 #include <fstream>
+#include <cmath>
 
 #include "script/cc_options.h"
 #include "script/script_common.h"
@@ -4683,11 +4684,9 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(AGS::Symbol func, bool is_setter
     if (is_static)
         SetFlag(entry.Flags, kSFLG_Static, true);
     entry.SOffset = _importMgr.FindOrAdd(entry.SName);
-    char  *num_param_suffix;
-    if (is_setter)
-        num_param_suffix = (is_indexed ? "^2" : "^1");
-    else // getter
-        num_param_suffix = (is_indexed ? "^1" : "^0");
+    const char *num_param_suffix =
+        (is_setter) ? (is_indexed ? "^2" : "^1")
+                    : (is_indexed ? "^1" : "^0");
     strcat(_scrip.imports[entry.SOffset], num_param_suffix);
 
     entry.FuncParamTypes[0] = entry.vartype = 

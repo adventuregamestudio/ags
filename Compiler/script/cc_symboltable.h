@@ -33,7 +33,7 @@ public:
     std::string SName;
     SymbolType SType; // e.g., kSYM_GlobalVar
     int DeclSectionId, DeclLine; // where this was declared
-    Flags Flags;
+    AGS::Flags Flags;
     CodeLoc SOffset; // multiple use
 
     // Variables only
@@ -185,11 +185,11 @@ public:
     inline SymbolType GetSymbolType(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype SymbolTable::GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
+    inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline Flags SymbolTable::GetFlags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
+    inline Flags GetFlags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // Set/get section and line where the item is declared
     void SetDeclared(int idx, int section_id, int line);

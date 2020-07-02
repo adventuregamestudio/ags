@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include <map>
 
 #include "cc_internallist.h"

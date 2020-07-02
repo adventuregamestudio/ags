@@ -93,8 +93,8 @@ public:
     inline size_t GetSectionId(size_t idx) { return _lineHandler.GetSectionIdAt(idx + _offset); }
     // Note: The cursor points at the symbol that will be read next, but we need the data
     // of the symbol that has just been read. That's the symbol in front of the cursor.
-    inline size_t GetLineno() { return _lineHandler.GetLineAt(std::max(1u, _cursor) - 1); }
-    inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(std::max(1u, _cursor) - 1); }
+    inline size_t GetLineno() { return _lineHandler.GetLineAt(std::max<size_t>(1u, _cursor) - 1); }
+    inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(std::max<size_t>(1u, _cursor) - 1); }
 
     inline int Section2Id(std::string const &section) { return _lineHandler.Section2Id(section); }
     inline std::string const Id2Section(int id) const { return _lineHandler.Id2Section(id); }
@@ -132,10 +132,10 @@ struct ccInternalList {
     AGS::Symbol getnext();  // and update global current_line
 
     // Append the value
-    void ccInternalList::write(AGS::Symbol value);
+    void write(AGS::Symbol value);
 
     // Append the meta command
-    void ccInternalList::write_meta(AGS::Symbol type, int param);
+    void write_meta(AGS::Symbol type, int param);
 
     // Free internal memory allocated
     void shutdown();

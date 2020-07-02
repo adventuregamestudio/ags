@@ -210,6 +210,51 @@ int AGS::Parser::SkipTo(const AGS::SymbolType stoplist[], size_t stoplist_len)
     return -1;
 }
 
+int AGS::Parser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::SymbolType stoplist[], size_t stoplist_len, AGS::Symbol *&act_sym_ptr)
+{
+    int delimeter_nesting_depth = 0;
+
+    for (; act_sym_ptr != end_sym_ptr; act_sym_ptr++)
+    {
+        // Note that the scanner/tokenizer has already verified
+        // that all opening symbols get closed and 
+        // that we don't have (...] or similar in the input
+        Symbol const cursym = *act_sym_ptr;
+        SymbolType const curtype = _sym.GetSymbolType(cursym);
+        if (curtype == kSYM_OpenBrace ||
+            curtype == kSYM_OpenBracket ||
+            curtype == kSYM_OpenParenthesis)
+        {
+            ++delimeter_nesting_depth;
+            continue;
+        }
+        if (curtype == kSYM_CloseBrace ||
+            curtype == kSYM_CloseBracket ||
+            curtype == kSYM_CloseParenthesis)
+        {
+            if (--delimeter_nesting_depth < 0)
+                return 0;
+            continue;
+        }
+        if (0 < delimeter_nesting_depth)
+            continue;
+
+        for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
+            if (curtype == stoplist[stoplist_idx])
+                return 0;
+    }
+    return -1;
+}
+
+// Like SkipTo, but for symbol scripts
+int AGS::Parser::SkipToScript(const AGS::SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len)
+{
+    SymbolScript const end_ptr = symlist + symlist_len;
+    int retval = SkipToScript0(end_ptr, stoplist, stoplist_len, symlist);
+    symlist_len = end_ptr - symlist; // Get new length of the symbol script
+
+    return retval;
+}
 
 // For assigning unique IDs to chunks
 int AGS::Parser::NestingStack::_chunkIdCtr = 0;
@@ -507,14 +552,59 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
     return idx;
 }
 
+void AGS::Parser::MemoryLocation::SetStart(SymbolType type, size_t offset)
+{
+    _Type = type;
+    _StartOffs = offset;
+    _ComponentOffs = 0;
+}
+
+void AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript &scrip)
+{
+    switch (_Type)
+    {
+    default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
+        if (_ComponentOffs > 0)
+        {
+            scrip.refresh_lineno(lineno);
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
+        }
+        break;
+
+    case kSYM_GlobalVar:
+        scrip.refresh_lineno(lineno);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
+        scrip.fixup_previous(Parser::kFx_GlobalData);
+        break;
+
+    case kSYM_Import:
+        // Have to convert the import number into a code offset first.
+        // Can only then add the offset to it.
+        scrip.refresh_lineno(lineno);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs);
+        scrip.fixup_previous(Parser::kFx_Import);
+        if (_ComponentOffs != 0)
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
+        break;
+
+    case kSYM_LocalVar:
+        scrip.refresh_lineno(lineno);
+        scrip.write_cmd(
+            SCMD_LOADSPOFFS,
+            scrip.cur_sp - _StartOffs - _ComponentOffs);
+        break;
+    }
+    Reset();
+    return;
+}
+
 AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)
-    : _sym(symt)
-    , _src(src)
-    , _scrip(scrip)
-    , _fcm(symt, scrip)
+    : _fcm(symt, scrip)
     , _fim(symt, scrip)
+    , _scrip(scrip)
     , _pp(kPP_PreAnalyze)
-    , _lastEmittedSectionId(0)
+    , _sym(symt)
+    , _src(src)
 {
     _importMgr.Init(&scrip);
     _givm.clear();
@@ -816,9 +906,7 @@ int AGS::Parser::HandleEndOfDo(AGS::Parser::NestingStack *nesting_stack)
         return -1;
     }
 
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseParenthesizedExpression();
+    int retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
 
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
@@ -1598,6 +1686,82 @@ int AGS::Parser::InterpretFloatAsInt(float floatval)
     return *intptr; // return the int that the pointer points to
 }
 
+int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len, int &idx)
+{
+    size_t nesting_depth = 0;
+
+    int largest_prio_found = INT_MIN; // note: largest number == lowest priority!
+    bool largest_is_binary = true;
+    int index_of_largest_prio = -1;
+    bool encountered_operand = false;
+
+    for (size_t slist_idx = 0; slist_idx < slist_len; slist_idx++)
+    {
+        SymbolType this_type = _sym.GetSymbolType(slist[slist_idx]);
+        switch (this_type)
+        {
+        default:
+            encountered_operand = true;
+            break;
+
+        case kSYM_New:
+        case kSYM_Operator:
+        case kSYM_Tern:
+            this_type = kSYM_Operator;
+            break;
+
+        case kSYM_CloseBracket:
+        case kSYM_CloseParenthesis:
+            encountered_operand = true;
+            if (nesting_depth > 0)
+                nesting_depth--;
+            continue;
+
+        case kSYM_OpenBracket:
+        case kSYM_OpenParenthesis:
+            nesting_depth++;
+            continue;
+        }
+
+        // Continue if we aren't at zero nesting depth, since ()[] take priority
+        if (nesting_depth > 0)
+            continue;
+
+        if (this_type != kSYM_Operator)
+            continue;
+
+        // a binary operator has an operand to its left
+        bool const is_binary = encountered_operand;
+        encountered_operand = false;
+
+        Symbol const this_op = slist[slist_idx];
+        int const this_prio =
+            is_binary ? _sym.BinaryOpPrio(this_op) : _sym.UnaryOpPrio(this_op);
+        if (this_prio < 0)
+        {
+            cc_error(
+                "'%s' cannot be used as %s operator",
+                _sym.GetName(this_op),
+                is_binary ? "binary" : "unary");
+            return -1;
+        }
+        if (this_prio < largest_prio_found)
+            continue; // can't be lowest priority
+
+        // remember this and continue looking
+        largest_prio_found = this_prio;
+        index_of_largest_prio = slist_idx;
+        largest_is_binary = is_binary;
+    }
+
+    // unary operators are prefix, so if the least binding operator
+    // turns out to be unary and not in first position, it must be
+    // a chain of unary operators and the first should be evaluated
+    // first
+    idx = largest_is_binary? index_of_largest_prio : 0;
+    return 0;
+}
+
 // Change the generic operator vcpuOp to the one that is correct for the vartypes
 // Also check whether the operator can handle the types at all
 int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Vartype vartype2, AGS::CodeCell &vcpuOp)
@@ -1830,6 +1994,33 @@ int AGS::Parser::GetWriteCommandForSize(int the_size)
     }
 }
 
+int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc)
+{
+    if (_sym.IsArray(vartype))
+    {
+        cc_error("Cannot access array as a whole (did you forget to add \"[0]\"?)");
+        return -1;
+    }
+    
+    if (_sym.IsAtomic(vartype) && _sym.IsStruct(vartype))
+    {
+        if (_sym.IsManaged(vartype))
+        {
+            // Interpret the memory address as the result
+            vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+            WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+            vloc = kVL_ax_is_value;
+            _scrip.ax_vartype = vartype;
+            return 0;
+        }
+
+        cc_error("Cannot access non-managed struct as a whole");
+        return -1;
+    }
+
+    return 0;
+}
+
 int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kVL_mar_pointsto_value != vloc)
@@ -1848,6 +2039,445 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
     return 0;
 }
 
+int AGS::Parser::ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len)
+{
+    if (symlist_len >= 2)
+    {
+        Vartype const new_vartype = symlist[1];
+        if (_sym.GetSymbolType(new_vartype) == kSYM_Vartype)
+            return 0;
+
+        if (_sym.GetSymbolType(new_vartype) == kSYM_UndefinedStruct)
+        {
+            cc_error(
+                "The struct %s hasn't been completely defined yet",
+                _sym.GetName(new_vartype).c_str());
+            return -1;
+        }
+
+        if (!_sym.IsPrimitive(new_vartype) && !_sym.IsManaged(new_vartype))
+        {
+            cc_error("Can only use primitive or managed types with 'new'");
+            return -1;
+        }
+
+        if (_sym.IsBuiltin(new_vartype))
+        {
+            cc_error(
+                "Built-in type '%s' cannot be instantiated directly",
+                _sym.GetName(new_vartype).c_str());
+            return -1;
+        }
+
+        return 0;
+    }
+   
+    cc_error("Expected a type after 'new'");
+    return -1;
+}
+
+int AGS::Parser::ParseExpression_New(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    int retval = ParseExpression_CheckArgOfNew(symlist, symlist_len);
+    if (retval < 0) return retval;
+
+    Vartype const new_vartype = vartype = symlist[1];
+    
+    if (symlist_len <= 3) // "new VARTYPE", nothing following
+    {
+        vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+        const size_t size = _sym.GetSize(new_vartype);
+        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, size);
+        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
+        _scrip.ax_vartype = vartype;
+        vloc = kVL_ax_is_value;
+        return 0;
+    }
+
+    // new VARTYPE[...]
+    if (kSYM_OpenBracket == _sym.GetSymbolType(symlist[2]) && kSYM_CloseBracket == _sym.GetSymbolType(symlist[symlist_len - 1]))
+    {
+        bool const is_managed = !_sym.IsPrimitive(new_vartype);
+        int const element_size = _sym.GetSize(new_vartype);
+        
+        // Expression for length of array begins after "[", ends before "]"
+        // So expression_length = whole_length - 3 - 1
+        retval = AccessData_ReadIntExpression(&symlist[3], symlist_len - 4);
+        if (retval < 0) return retval;
+
+        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+
+        if (is_managed)
+            vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+        vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
+        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
+        _scrip.ax_vartype = vartype;
+        vloc = kVL_ax_is_value;
+        return 0;
+    }
+
+    cc_error("Unexpected characters following 'new %s'", _sym.GetName(symlist[1]).c_str());
+    return -1;
+}
+
+// We're parsing an expression that starts with '-' (unary minus)
+int AGS::Parser::ParseExpression_UnaryMinus(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    ++symlist; // Eat '-'
+    --symlist_len; // Eat '-' cont'd.
+
+    if (symlist_len < 1)
+    {
+        cc_error("Parse error at '-'");
+        return -1;
+    }
+    if (symlist_len == 1)
+    {
+        SymbolType const stype = _sym.GetSymbolType(symlist[0]);
+        if (kSYM_Constant == stype || kSYM_LiteralInt == stype)
+            return AccessData_LitOrConst(true, symlist, symlist_len, vartype);
+    };
+    // parse the rest of the expression into AX
+    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    // now, subtract the result from 0 (which negates it)
+    int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
+    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.GetIntSym(), cpuOp);
+    if (retval < 0) return retval;
+
+    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
+    WriteCmd(cpuOp, SREG_BX, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    vloc = kVL_ax_is_value;
+    return 0;
+}
+
+// We're parsing an expression that starts with '!' (boolean NOT)
+int AGS::Parser::ParseExpression_Not(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (symlist_len < 2)
+    {
+        cc_error("Parse error at '!'");
+        return -1;
+    }
+
+    // parse the rest of the expression
+    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    // negate the result
+    // First determine the correct bytecode for the negation
+    int cpuOp = SCMD_NOTREG;
+    retval = GetOperatorValidForVartype(_scrip.ax_vartype, 0, cpuOp);
+    if (retval < 0) return retval;
+
+    // now, NOT the result
+    WriteCmd(cpuOp, SREG_AX);
+    vloc = kVL_ax_is_value;
+    return 0;
+}
+
+// The least binding operator is the first thing in the expression
+// This means that the op must be an unary op.
+int AGS::Parser::ParseExpression_Unary(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (kSYM_New == _sym.GetSymbolType(symlist[0]))
+    {
+        // we're parsing something like "new foo"
+        return ParseExpression_New(symlist, symlist_len, vloc, scope, vartype);
+    }
+
+    int const opcode = _sym.GetOperatorOpcode(symlist[0]);
+    if (SCMD_SUBREG == opcode)
+    {
+        // we're parsing something like "- foo"
+        return ParseExpression_UnaryMinus(symlist, symlist_len, vloc, scope, vartype);
+    }
+
+    if (SCMD_NOTREG == opcode)
+    {
+        // we're parsing something like "! foo"
+        return ParseExpression_Not(symlist, symlist_len, vloc, scope, vartype);
+    }
+
+    // All the other operators need a non-empty left hand side
+    cc_error("Unexpected operator '%s' without a preceding expression", _sym.GetName(symlist[0]).c_str());
+    return -1;
+}
+
+// The least binding operator is '?'
+int AGS::Parser::ParseExpression_Tern(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    SymbolScript const term1list = symlist;
+    size_t term1list_len = op_idx;
+    SymbolScript const term2list = symlist + op_idx + 1;
+    size_t term2list_len = symlist_len - op_idx - 1;
+
+    // Find beginning of third term
+    SymbolScript  term3list = term2list;
+    size_t term3list_len = term2list_len;
+    SymbolType const stoplist[] = { kSYM_Label, };
+    size_t stoplist_len = 1;
+    SkipToScript(stoplist, stoplist_len, term3list, term3list_len);
+    if (0 == term3list_len || kSYM_Label != _sym.GetSymbolType(*term3list))
+    {
+        cc_error("Didn't find the matching ':' to a '?'");
+        return -1;
+    }
+    term2list_len = term3list - term2list;
+    term3list++; // Eat ':'
+    term3list_len--; // Eat ':' cont'd
+    
+    Vartype term1_vartype, term2_vartype, term3_vartype;
+    int term1_scope, term2_scope, term3_scope;
+
+    // First term of ternary
+    int retval = ParseExpression_Subexpr(term1list, term1list_len, vloc, term1_scope, term1_vartype);
+    if (retval < 0) return retval;
+    ResultToAX(vloc, term1_scope, term1_vartype);
+
+    // We jump either to the start of the third term or to the end of the ternary
+    // expression. We don't know where this is yet, thus -77. This is just a
+    // random number that's easy to spot in debugging outputs (where it's a clue
+    // that it probably hasn't been replaced by a proper value). Don't use for anything.
+    WriteCmd(
+        (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
+        -77);
+    ForwardJump test_jumpdest(_scrip);
+    test_jumpdest.AddParam();
+
+    // Second term of ternary
+    bool const second_term_exists = (term2list_len > 0);
+    if (second_term_exists)
+    {
+        retval = ParseExpression_Subexpr(term2list, term2list_len, vloc, scope, term2_vartype);
+        if (retval < 0) return retval;
+        ResultToAX(vloc, term2_scope, term2_vartype);
+        if (_sym.IsAnyTypeOfString(term2_vartype))
+        {
+            ConvertAXStringToStringObject(_sym.GetStringStructSym());
+            term2_vartype = _scrip.ax_vartype;
+        }
+        // Jump to the end of the ternary expression;
+        // We don't know the dest yet, thus the placeholder value -77. Don't
+        // test for this random magic number or use it in code
+        WriteCmd(SCMD_JMP, -77);
+    }
+    else
+    {
+        // Take the first expression as the result of the missing second expression
+        // No code is generated; instead, the conditional jump after the test goes
+        // to the end of the expression if the test does NOT yield zero
+        term2_vartype = term1_vartype;
+        term2_scope = term1_scope;
+        if (_sym.IsAnyTypeOfString(term2_vartype))
+        {
+            ConvertAXStringToStringObject(_sym.GetStringStructSym());
+            term2_vartype = _scrip.ax_vartype;
+        }
+    }
+    ForwardJump jumpdest_after_term2(_scrip); // only valid if second_term_exists
+    jumpdest_after_term2.AddParam();
+
+    // Third term of ternary
+    if (0 == term3list_len)
+    {
+        cc_error("The third expression of this ternary is empty");
+        return -1;
+    }
+    if (second_term_exists)
+        test_jumpdest.Patch(_src.GetLineno());
+
+    retval = ParseExpression_Subexpr(term3list, term3list_len, vloc, term3_scope, term3_vartype);
+    if (retval < 0) return retval;
+    ResultToAX(vloc, term3_scope, term3_vartype);
+    if (_sym.IsAnyTypeOfString(term3_vartype))
+    {
+        ConvertAXStringToStringObject(_sym.GetStringStructSym());
+        term3_vartype = _scrip.ax_vartype;
+    }
+
+    if (second_term_exists)
+        jumpdest_after_term2.Patch(_src.GetLineno());
+    else
+        test_jumpdest.Patch(_src.GetLineno());
+
+    scope =
+        (kSYM_LocalVar == term2_scope || kSYM_LocalVar == term3_scope) ?
+        kSYM_LocalVar : kSYM_GlobalVar;
+
+    if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
+    {
+        vartype = _scrip.ax_vartype = term3_vartype;
+        return 0;
+    }
+    if (!IsVartypeMismatch_Oneway(term3_vartype, term2_vartype))
+    {
+        vartype = _scrip.ax_vartype = term2_vartype;
+        return 0;
+    }
+    cc_error("An expression of type '%s' is incompatible with an expression of type '%s'",
+        _sym.GetName(term2_vartype).c_str(), _sym.GetName(term3_vartype).c_str());
+    return -1;
+}
+
+// The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
+int AGS::Parser::ParseExpression_Binary(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (kSYM_Tern == _sym.GetSymbolType(symlist[op_idx]))
+        return ParseExpression_Tern(op_idx, symlist, symlist_len, vloc, scope, vartype);
+
+    int vcpuOperator = _sym.GetOperatorOpcode(symlist[op_idx]);
+
+    // process the left hand side
+    // This will be in vain if we find out later on that there isn't any right hand side,
+    // but doing the left hand side first means that any errors will be generated from left to right
+    AGS::Vartype vartype_lhs = 0;
+    int retval = ParseExpression_Subexpr(&symlist[0], op_idx, vloc, scope, vartype_lhs);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype_lhs);
+    if (retval < 0) return retval;
+
+    if (op_idx + 1 >= symlist_len)
+    {
+        // there is no right hand side for the expression
+        cc_error("Parse error: invalid use of operator '%s'", _sym.GetName(symlist[op_idx]).c_str());
+        return -1;
+    }
+
+    ForwardJump to_exit(_scrip);
+    if (SCMD_AND == vcpuOperator)
+    {
+        // "&&" operator lazy evaluation ... 
+        // if AX is 0 then the AND has failed, 
+        // so just jump directly past the AND instruction;
+        // AX will still be 0 so that will do as the result of the calculation
+        WriteCmd(SCMD_JZ, -77);
+        // We don't know the end of the instruction yet, so remember the location we need to patch
+        to_exit.AddParam();
+    }
+    else if (SCMD_OR == vcpuOperator)
+    {
+        // "||" operator lazy evaluation ... 
+        // if AX is non-zero then the OR has succeeded, 
+        // so just jump directly past the OR instruction; 
+        // AX will still be non-zero so that will do as the result of the calculation
+        WriteCmd(SCMD_JNZ, -77);
+        // We don't know the end of the instruction yet, so remember the location we need to patch
+        to_exit.AddParam();
+    }
+
+    _scrip.push_reg(SREG_AX);
+    retval = ParseExpression_Subexpr(&symlist[op_idx + 1], symlist_len - (op_idx + 1), vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
+    if (retval < 0) return retval;
+    _scrip.pop_reg(SREG_BX); // <-- note, we pop to BX although we have pushed AX
+    // now the result of the left side is in BX, of the right side is in AX
+
+    // Check whether the left side type and right side type match either way
+    retval = IsVartypeMismatch(vartype_lhs, vartype, false);
+    if (retval < 0) return retval;
+
+    retval = GetOperatorValidForVartype(vartype_lhs, vartype, vcpuOperator);
+    if (retval < 0) return retval;
+
+    WriteCmd(vcpuOperator, SREG_BX, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    vloc = kVL_ax_is_value;
+
+    to_exit.Patch(_src.GetLineno());
+
+    // Operators like == return a bool (in our case, that's an int);
+    // other operators like + return the type that they're operating on
+    if (IsBooleanVCPUOperator(vcpuOperator))
+        _scrip.ax_vartype = vartype = _sym.GetIntSym();
+    return 0;
+}
+
+int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    int matching_paren_idx = -1;
+    size_t paren_nesting_depth = 1; // we've already read a '('
+    // find the corresponding closing parenthesis
+    for (size_t idx = 1; idx < symlist_len; idx++)
+    {
+        switch (_sym.GetSymbolType(symlist[idx]))
+        {
+        default:
+            continue;
+
+        case kSYM_OpenParenthesis:
+            paren_nesting_depth++;
+            continue;
+
+        case kSYM_CloseParenthesis:
+            if (--paren_nesting_depth > 0)
+                continue;
+
+            matching_paren_idx = idx; // found the index of the matching ')'
+            break;
+        }
+
+        break;
+    }
+
+    if (matching_paren_idx < 0)
+    {
+        cc_error("Internal error: Open parenthesis does not have a matching close parenthesis");
+        return -1;
+    }
+
+    if (matching_paren_idx <= 1)
+    {
+        cc_error("Unexpected \"()\"");
+        return -1;
+    }
+
+    // Recursively compile the subexpression
+    int retval = ParseExpression_Subexpr(&symlist[1], matching_paren_idx - 1, vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    symlist += matching_paren_idx + 1;
+    symlist_len -= matching_paren_idx + 1;
+    if (symlist_len > 0)
+    {
+        // there is some code after the ')'
+        // this should not be possible unless the user does
+        // something like "if ((x) 1234)", i.e. with an operator missing
+        cc_error("Parse error: operator expected");
+        return -1;
+    }
+    return 0;
+}
+
+// We're in the parameter list of a function call, and we have less parameters than declared.
+// Provide defaults for the missing values
+int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
+{
+    for (size_t arg_idx = num_func_args; arg_idx > num_supplied_args; arg_idx--)
+    {
+        if (!_sym[funcSymbol].FuncParamHasDefaultValues[arg_idx])
+        {
+            cc_error("Function call parameter # %d isn't provided and does not have a default value", arg_idx);
+            return -1;
+        }
+
+        // push the default value onto the stack
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[funcSymbol].FuncParamDefaultValues[arg_idx]);
+
+        if (func_is_import)
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
+        else
+            _scrip.push_reg(SREG_AX);
+    }
+    return 0;
+}
 
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
@@ -1879,6 +2509,1528 @@ std::string AGS::Parser::ReferenceMsgSym(std::string const &msg, AGS::Symbol sym
         msg,
         _sym.GetDeclaredSectionId(symb),
         _sym.GetDeclaredLine(symb));
+}
+
+int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
+{
+    size_t param_num = num_supplied_args + 1;
+    size_t start_of_this_param = 0;
+    int end_of_this_param = closedParenIdx;  // can become < 0, points to (last byte of parameter + 1)
+    // Go backwards through the parameters since they must be pushed that way
+    do
+    {
+        // Find the start of the next parameter
+        param_num--;
+        int paren_nesting_depth = 0;
+        for (size_t paramListIdx = end_of_this_param - 1; true; paramListIdx--)
+        {
+            // going backwards so ')' increases the depth level
+            const SymbolType idx_type = _sym.GetSymbolType(paramList[paramListIdx]);
+            if (idx_type == kSYM_CloseParenthesis)
+                paren_nesting_depth++;
+            if (idx_type == kSYM_OpenParenthesis)
+                paren_nesting_depth--;
+            if ((paren_nesting_depth == 0 && idx_type == kSYM_Comma) ||
+                (paren_nesting_depth < 0 && idx_type == kSYM_OpenParenthesis))
+            {
+                start_of_this_param = paramListIdx + 1;
+                break;
+            }
+            if (paramListIdx == 0)
+                break; // Don't put this into the for header!
+        }
+
+        if (end_of_this_param < static_cast<int>(start_of_this_param))
+        {
+            cc_error("Internal error: parameter length is negative");
+            return -99;
+        }
+
+        // Compile the parameter
+        ValueLocation vloc;
+        int scope;
+        AGS::Vartype vartype;
+
+        int retval = ParseExpression_Subexpr(&paramList[start_of_this_param], end_of_this_param - start_of_this_param, vloc, scope, vartype);
+        if (retval < 0) return retval;
+        retval = ResultToAX(vloc, scope, vartype);
+        if (retval < 0) return retval;
+
+        if (param_num <= num_func_args) // we know what type to expect
+        {
+            // If we need a string object ptr but AX contains a normal string, convert AX
+            Vartype const param_vartype = _sym[funcSymbol].FuncParamTypes[param_num];
+            ConvertAXStringToStringObject(param_vartype);
+            vartype = _scrip.ax_vartype;
+            // If we need a normal string but AX contains a string object ptr, 
+            // check that this ptr isn't null
+            DoNullCheckOnStringInAXIfNecessary(param_vartype);
+
+            if (IsVartypeMismatch(vartype, param_vartype, true))
+                return -1;
+        }
+
+        // Note: We push the parameters, which is tantamount to writing them
+        // into memory with SCMD_MEMWRITE. The called function will use them
+        // as local variables. However, if a parameter is managed, then its 
+        // memory must be written with SCMD_MEMWRITEPTR, not SCMD_MEMWRITE 
+        // as we do here. So to compensate, the called function will have to 
+        // read each pointer variable with SCMD_MEMREAD and then write it
+        // back with SCMD_MEMWRITEPTR.
+
+        if (func_is_import)
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
+        else
+            _scrip.push_reg(SREG_AX);
+
+        end_of_this_param = start_of_this_param - 1;
+    }
+    while (end_of_this_param > 0);
+
+    return 0;
+}
+
+
+// Count parameters, check that all the parameters are non-empty; find closing paren
+int AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(const AGS::SymbolScript &paramList, size_t paramListLen, AGS::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args)
+{
+    size_t paren_nesting_depth = 1;
+    num_supplied_args = 1;
+    size_t paramListIdx;
+    bool found_param_symbol = false;
+
+    for (paramListIdx = 1; paramListIdx < paramListLen; paramListIdx++)
+    {
+        const SymbolType idx_type = _sym.GetSymbolType(paramList[paramListIdx]);
+
+        if (idx_type == kSYM_OpenParenthesis)
+            paren_nesting_depth++;
+        if (idx_type == kSYM_CloseParenthesis)
+        {
+            paren_nesting_depth--;
+            if (paren_nesting_depth == 0)
+                break;
+        }
+
+        if (paren_nesting_depth == 1 && idx_type == kSYM_Comma)
+        {
+            num_supplied_args++;
+            if (found_param_symbol)
+                continue;
+
+            cc_error("Argument %d in function call is empty", num_supplied_args - 1);
+            return -1;
+        }
+        found_param_symbol = true;
+    }
+
+    // Special case: "()" means 0 arguments
+    if (num_supplied_args == 1 &&
+        paramListLen > 1 &&
+        _sym.GetSymbolType(paramList[1]) == kSYM_CloseParenthesis)
+    {
+        num_supplied_args = 0;
+    }
+
+    indexOfCloseParen = paramListIdx;
+
+    if (_sym.GetSymbolType(paramList[indexOfCloseParen]) != kSYM_CloseParenthesis)
+    {
+        cc_error("Internal error: Missing ')' at the end of the parameter list");
+        return -1;
+    }
+
+    if (indexOfCloseParen > 0 &&
+        _sym.GetSymbolType(paramList[indexOfCloseParen - 1]) == kSYM_Comma)
+    {
+        cc_error("Last argument in function call is empty");
+        return -1;
+    }
+
+    if (indexOfCloseParen < paramListLen - 1 &&
+        _sym.GetSymbolType(paramList[indexOfCloseParen + 1]) != kSYM_Semicolon)
+    {
+        cc_error("Internal error: Unexpected symbols trailing the parameter list");
+        return -1;
+    }
+
+    if (paren_nesting_depth > 0)
+    {
+        cc_error("Internal error: Parser confused near '%s'", _sym.GetName(funcSymbol).c_str());
+        return -1;
+    }
+
+    return 0;
+}
+
+// We are processing a function call. General the actual function call
+void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size_t num_args, bool func_is_import)
+{
+    if (func_is_import)
+    {
+        // tell it how many args for this call (nested imported functions
+        // cause stack problems otherwise)
+        WriteCmd(SCMD_NUMFUNCARGS, num_args);
+    }
+
+    // Call the function: Get address into AX
+    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
+
+    if (func_is_import)
+    {
+        if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
+            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
+        _scrip.fixup_previous(kFx_Import);
+        WriteCmd(SCMD_CALLEXT, SREG_AX); // do the call
+        // At runtime, we will arrive here when the function call has returned
+        // restore the stack
+        if (num_args > 0)
+            WriteCmd(SCMD_SUBREALSTACK, num_args);
+        return;
+    }
+
+    // Func is non-import
+    if (_fcm.IsForwardDecl(name_of_func))
+        _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
+    _scrip.fixup_previous(kFx_Code);
+    WriteCmd(SCMD_CALL, SREG_AX);  // do the call
+
+    // At runtime, we will arrive here when the function call has returned
+    // restore the stack
+    if (num_args > 0)
+    {
+        _scrip.cur_sp -= num_args * 4;
+        WriteCmd(SCMD_SUB, SREG_SP, num_args * 4);
+    }
+}
+
+// We are processing a function call.
+// Get the parameters of the call and push them onto the stack.
+// Return the number of the parameters pushed
+int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args)
+{
+    // Expected number of arguments, or expected minimal number of arguments
+    size_t const num_func_args = _sym[name_of_func].GetNumOfFuncParams();
+    bool const func_is_varargs = _sym[name_of_func].IsVarargsFunc();
+
+    size_t num_supplied_args = 0;
+    size_t indexOfClosedParen;
+    int retval = AccessData_FunctionCall_CountAndCheckParm(paramList, paramListLen, name_of_func, indexOfClosedParen, num_supplied_args);
+    if (retval < 0) return retval;
+
+    // Push default parameters onto the stack when applicable
+    // This will give an error if there aren't enough default parameters
+    if (num_supplied_args < num_func_args)
+    {
+        retval = AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
+        if (retval < 0) return retval;
+    }
+    if (num_supplied_args > num_func_args && !func_is_varargs)
+    {
+        cc_error("Expected just %d parameters but found %d", num_func_args, num_supplied_args);
+        return -1;
+    }
+    // ASSERT at this point, the number of parameters is okay
+
+    // Push the explicit arguments of the function
+    if (num_supplied_args > 0)
+    {
+        retval = AccessData_FunctionCall_PushParams(paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func, func_is_import);
+        if (retval < 0) return retval;
+    }
+
+    actual_num_args = std::max(num_supplied_args, num_func_args);
+    return 0;
+}
+
+int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &rettype)
+{
+    if (_sym.GetSymbolType(symlist[1]) != kSYM_OpenParenthesis)
+    {
+        cc_error("Expected '('");
+        return -1;
+    }
+
+    AGS::SymbolScript paramList = symlist + 1;
+    size_t paramListLen = symlist_len - 1;
+
+    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
+    // If function uses normal stack, we need to do stack calculations to get at certain elements
+    bool const func_uses_normal_stack = !func_is_import;
+    bool func_uses_this = false;
+    if (std::string::npos != _sym.GetName(name_of_func).find("::"))
+        func_uses_this = !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static);
+
+    if (func_uses_this)
+    {
+        if (0 != _sym.GetVartype(_sym.GetThisSym()))
+            _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
+
+        // Get address of outer into MAR; that's what the func will use as its "this"
+        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        _scrip.push_reg(SREG_MAR);
+    }
+
+    size_t num_args = 0;
+    int retval = AccessData_PushFunctionCallParams(name_of_func, func_is_import, paramList, paramListLen, num_args);
+    if (retval < 0) return retval;
+
+    if (func_uses_this)
+    {
+        if (0 == num_args)
+        {   // Undo unneeded PUSH
+            _scrip.cur_sp -= 4;
+            _scrip.codesize -= 2; 
+        }
+        else
+        {
+            WriteCmd(
+                SCMD_LOADSPOFFS,
+                (func_uses_normal_stack ? num_args : 0) * 4 + 4);
+        }
+        WriteCmd(SCMD_CALLOBJ, SREG_MAR);
+    }
+
+    AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
+
+    // function return type
+    rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamTypes[0];
+    _scrip.ax_val_scope = kSYM_LocalVar;
+
+    // At runtime, we have returned from the func call,
+    // so we must continue with the object pointer that was in use before the call
+    if (func_uses_this)
+    {
+        if (0 < num_args)
+            _scrip.pop_reg(SREG_MAR);
+        if (0 != _sym.GetVartype(_sym.GetThisSym()))
+            _scrip.pop_reg(SREG_OP);
+    }
+
+    MarkAcessed(name_of_func);
+    return 0;
+}
+
+int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (kSYM_OpenParenthesis == _sym.GetSymbolType(symlist[0]))
+        return ParseExpression_OpenParenthesis(symlist, symlist_len, vloc, scope, vartype);
+
+    if (kSYM_Operator != _sym.GetSymbolType(symlist[0]))
+        return AccessData(false, false, symlist, symlist_len, vloc, scope, vartype);
+
+    // The operator at the beginning must be a unary minus
+    if (SCMD_SUBREG == _sym.GetOperatorOpcode(symlist[0]))
+    {
+        size_t len_minus_1 = symlist_len - 1;
+        SymbolScript symlist1 = symlist + 1;
+        return AccessData(false, true, symlist1, len_minus_1, vloc, scope, vartype);
+    }
+    cc_error("Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
+    return -1;
+}
+
+int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (symlist_len == 0)
+    {
+        cc_error("Internal error: Cannot parse empty subexpression");
+        return -99;
+    }
+    SymbolType const stype = _sym.GetSymbolType(symlist[0]);
+    if (kSYM_CloseParenthesis == stype || kSYM_CloseBracket == stype || kSYM_CloseBrace == stype)
+    {   // Shouldn't happen: the scanner sees to it that nesting symbols match
+        cc_error(
+            "Internal error: Unexpected '%s' at start of expression",
+            _sym.GetName(symlist[0]).c_str());
+        return -99;
+    }
+
+    int least_binding_op_idx;
+    int retval = IndexOfLeastBondingOperator(symlist, symlist_len, least_binding_op_idx);  // can be < 0
+    if (retval < 0) return retval;
+    
+    if (0 == least_binding_op_idx)
+        retval = ParseExpression_Unary(symlist, symlist_len, vloc, scope, vartype);
+    else if (0 < least_binding_op_idx)
+        retval = ParseExpression_Binary(static_cast<size_t>(least_binding_op_idx), symlist, symlist_len, vloc, scope, vartype);
+    else
+        retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    return HandleStructOrArrayResult(vartype, vloc);
+}
+
+// symlist starts a sequence of bracketed expressions; parse it
+int AGS::Parser::AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len)
+{
+    ValueLocation vloc;
+    int scope;
+    AGS::Vartype vartype;
+    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    return IsVartypeMismatch(vartype, _sym.GetIntSym(), true);
+}
+
+// We access a variable or a component of a struct in order to read or write it.
+// This is a simple member of the struct.
+int AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    SymbolTableEntry &entry = _sym[component];
+
+    if (writing && FlagIsSet(entry.Flags, kSFLG_WriteProtected) && !access_via_this)
+    {
+        cc_error(
+            "Writeprotected component '%s' must not be modified from outside",
+            _sym.GetName(component).c_str());
+        return -1;
+    }
+    if (FlagIsSet(entry.Flags, kSFLG_Protected) && !access_via_this)
+    {
+        cc_error(
+            "Protected component '%s' must not be accessed from outside",
+            _sym.GetName(component).c_str());
+        return -1;
+    }
+
+    mloc.AddComponentOffset(entry.SOffset);
+    vartype = _sym.GetVartype(component);
+    symlist++;
+    symlist_len--;
+    return 0;
+}
+
+// Get the symbol for the get or set function corresponding to the attribute given.
+int AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func)
+{
+    std::string member_str = _sym.GetName(attribsym);
+    // If "::" in the name, take the part after the last "::"
+    size_t const m_access_position = member_str.rfind("::");
+    if (std::string::npos != m_access_position)
+        member_str = member_str.substr(m_access_position + 2);
+    char const *stem_str = writing ? "set" : "get";
+    char const *indx_str = indexed ? "i_" : "_";
+    std::string func_str = stem_str + (indx_str + member_str);
+    func = _sym.FindOrAdd(func_str.c_str());
+    return 0;
+}
+
+// We call the getter or setter of an attribute
+int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+{
+    AGS::Symbol const component = symlist[0];
+    symlist++;  // eat component
+    symlist_len--; // eat component ct'd.
+    AGS::Symbol const struct_of_component =
+        AccessData_FindStructOfComponent(Vartype2Symbol(vartype), component);
+    if (0 == struct_of_component)
+    {
+        cc_error(
+            "Struct '%s' does not have an attribute named '%s'",
+            _sym.GetName(Vartype2Symbol(vartype)).c_str(),
+            _sym.GetName(component).c_str());
+        return -1;
+    }
+    AGS::Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
+
+    bool const attrib_uses_this =
+        !FlagIsSet(_sym.GetFlags(name_of_attribute), kSFLG_Static);
+    bool const call_is_indexed =
+        (symlist_len > 0 && kSYM_OpenBracket == _sym.GetSymbolType(symlist[0]));
+    bool const attrib_is_indexed =
+        _sym.IsDynarray(name_of_attribute);
+
+    if (call_is_indexed != attrib_is_indexed)
+    {
+        cc_error(call_is_indexed ? "Unexpected '['" : "'[' expected but not found");
+        return -1;
+    }
+
+    // Get the appropriate access function (as a symbol)
+    AGS::Symbol name_of_func = -1;
+    int retval = ConstructAttributeFuncName(component, is_attribute_set_func, attrib_is_indexed, name_of_func);
+    if (retval < 0) return retval;
+    name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
+    if (name_of_func < 0) return retval;
+
+    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
+
+    if (attrib_uses_this)
+        _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
+
+    size_t num_of_args = 0;
+    if (is_attribute_set_func)
+    {
+        if (func_is_import)
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
+        else
+            _scrip.push_reg(SREG_AX);
+        ++num_of_args;
+    }
+
+    if (call_is_indexed)
+    {
+        // The index to be set is in the [...] clause; push it as the first parameter
+        if (attrib_uses_this)
+            _scrip.push_reg(SREG_MAR); // must not be clobbered
+        retval = AccessData_ReadIntExpression(&symlist[1], symlist_len - 2);
+        if (retval < 0) return retval;
+        symlist += symlist_len; // Eat the index
+        symlist_len = 0; // Eat the index, ct'd
+        if (attrib_uses_this)
+            _scrip.pop_reg(SREG_MAR);
+
+        if (func_is_import)
+            WriteCmd(SCMD_PUSHREAL, SREG_AX);
+        else
+            _scrip.push_reg(SREG_AX);
+        ++num_of_args;
+    }
+
+    if (attrib_uses_this)
+        WriteCmd(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
+
+    AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
+    
+    if (attrib_uses_this)
+        _scrip.pop_reg(SREG_OP); // restore old this ptr after the func call
+
+    // attribute return type
+    _scrip.ax_val_scope = kSYM_LocalVar;
+    _scrip.ax_vartype = vartype = _sym.GetVartype(name_of_func);
+
+    MarkAcessed(name_of_func);
+    return 0;
+}
+
+
+// Location contains a pointer to another address. Get that address.
+int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc)
+{
+    if (kVL_ax_is_value == vloc)
+    {
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
+        vloc = kVL_mar_pointsto_value;
+        mloc.Reset();
+    }
+    else
+    {
+        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
+        // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
+        WriteCmd(SCMD_MEMREADPTR, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
+    }
+    return 0;
+}
+
+int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::Parser::MemoryLocation &mloc)
+{
+    int array_index = -1;
+    int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
+    if (retval < 0) return retval;
+    if (array_index < 0)
+    {
+        cc_error("Array index %d out of bounds (minimum is 0)", array_index);
+        return -1;
+    }
+    if (num_array_elements > 0 && static_cast<size_t>(array_index) >= num_array_elements)
+    {
+        cc_error(
+            "Array index %d out of bounds (maximum is %d)",
+            array_index,
+            static_cast<int>(num_array_elements - 1));
+        return -1;
+    }
+    
+    mloc.AddComponentOffset(array_index * element_size);
+    return 0;
+}
+
+int AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc)
+{
+    // Find end of current index
+    SymbolScript const this_index = symlist;
+    SymbolType const stoplist[] = { kSYM_Comma, kSYM_CloseBracket, };
+    size_t const stoplist_len = 2;
+    SkipToScript(stoplist, stoplist_len, symlist, symlist_len);
+    size_t const this_index_len = symlist - this_index;
+    if (0 == this_index_len)
+    {
+        cc_error("Empty array index is not supported");
+        return -1;
+    }
+
+    // If the index is a constant, process it at compile time
+    if (1 == this_index_len)
+    {
+        SymbolType const first_index_sym_type = _sym.GetSymbolType(this_index[0]);
+        if (kSYM_LiteralInt == first_index_sym_type || kSYM_Const == first_index_sym_type)
+            return AccessData_ProcessArrayIndexConstant(this_index[0], dim, factor, mloc);
+    }
+
+    // Save MAR from being clobbered if it may contain something important
+    // If nothing has been done, MAR can't have been set yet, so no need to remember it
+    bool mar_pushed = false;
+    if (!mloc.NothingDoneYet())
+    {
+        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        _scrip.push_reg(SREG_MAR);
+        mar_pushed = true;
+    }
+
+    int retval = AccessData_ReadIntExpression(this_index, this_index_len);
+    if (retval < 0) return retval;
+
+    if (mar_pushed)
+        _scrip.pop_reg(SREG_MAR);
+    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+
+    // Note: DYNAMICBOUNDS compares the offset into the memory block;
+    // it mustn't be larger than the size of the allocated memory. 
+    // On the other hand, CHECKBOUNDS checks the index; it mustn't be
+    //  larger than the maximum given. So dynamic bounds must be checked
+    // after the multiplication; static bounds before the multiplication.
+    // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
+    if (!is_dynarray)
+        WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
+    if (factor != 1)
+        WriteCmd(SCMD_MUL, SREG_AX, factor);
+    if (is_dynarray)
+        WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
+    WriteCmd(SCMD_ADDREG, SREG_MAR, SREG_AX);
+    return 0;
+}
+
+// We're processing some struct component or global or local variable.
+// If an array index follows, parse it and shorten symlist accordingly
+int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    if (0 == symlist_len || kSYM_OpenBracket != _sym.GetSymbolType(symlist[0]))
+        return 0;
+
+    symlist++; // Eat '['
+    symlist_len--; // Eat '[' cont'd
+
+    bool const is_dynarray = _sym.IsDynarray(vartype);
+    bool const is_array = _sym.IsArray(vartype);
+    if (!is_dynarray && !is_array)
+    {
+        cc_error("Array index is only legal after an array");
+        return -1;
+    }
+
+    AGS::Vartype const element_vartype = _sym[vartype].vartype;
+    size_t const element_size = _sym.GetSize(element_vartype);
+    std::vector<size_t> dim_sizes;
+    std::vector<size_t> dynarray_dims = { 0, };
+    std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[vartype].Dims;
+    vartype = element_vartype;
+
+    if (is_dynarray)
+        AccessData_Dereference(vloc, mloc);
+
+    // Number of dimensions and the the size of the dimension for each dimension
+    size_t const num_of_dims = dims.size();
+    dim_sizes.resize(num_of_dims);
+    size_t factor = element_size;
+    for (int dim_idx = num_of_dims - 1; dim_idx >= 0; dim_idx--) // yes, "int"
+    {
+        dim_sizes[dim_idx] = factor;
+        factor *= dims[dim_idx];
+    }
+
+    for (size_t dim_idx = 0; dim_idx < num_of_dims; dim_idx++)
+    {
+        int retval = AccessData_ProcessCurrentArrayIndex(dims[dim_idx], dim_sizes[dim_idx], is_dynarray, symlist, symlist_len, mloc);
+        if (retval < 0) return retval;
+
+        SymbolType divider_sym_type = _sym.GetSymbolType(symlist[0]);
+        if (kSYM_CloseBracket != divider_sym_type && kSYM_Comma != divider_sym_type)
+        {
+            cc_error("Expected ',' or '] after array index");
+            return -1;
+        }
+        if (kSYM_CloseBracket == divider_sym_type)
+        {
+            symlist++; // Eat ']'
+            symlist_len--; // Eat ']' cont'd.
+            if (symlist_len > 0)
+                divider_sym_type = _sym.GetSymbolType(symlist[0]);
+        }
+        if (kSYM_Comma == divider_sym_type || kSYM_OpenBracket == divider_sym_type)
+        {
+            if (num_of_dims == dim_idx + 1)
+            {
+                cc_error("Expected %d indexes, found more", num_of_dims);
+                return -1;
+            }
+            symlist++; // Eat ',' or '['
+            symlist_len--; // Eat ',' or '[' cont'd
+            continue;
+        }
+        if (num_of_dims != dim_idx + 1)
+        {
+            cc_error("Expected %d indexes, but only found %d", num_of_dims, dim_idx + 1);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    AGS::Symbol const varname = symlist[0];
+    SymbolTableEntry &entry = _sym[varname];
+    AGS::CodeCell const soffs = entry.SOffset;
+    symlist++;
+    symlist_len--;
+
+    if (writing && FlagIsSet(entry.Flags, kSFLG_Readonly))
+    {
+        cc_error("Cannot write to readonly '%s'", _sym.GetName(varname).c_str());
+        return -1;
+    }
+
+    if (FlagIsSet(_sym.GetFlags(varname), kSFLG_Imported))
+        mloc.SetStart(kSYM_Import, soffs);
+    else
+        mloc.SetStart(is_global ? kSYM_GlobalVar : kSYM_LocalVar, soffs);
+
+    vartype = _sym.GetVartype(varname);
+
+    // Process an array index if it follows
+    ValueLocation vl_dummy = kVL_mar_pointsto_value;
+    return AccessData_ProcessAnyArrayIndex(kVL_mar_pointsto_value, _sym.NumArrayElements(varname), symlist, symlist_len, vl_dummy, mloc, vartype);
+}
+
+int AGS::Parser::AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    vartype = symlist[0];
+    symlist++;
+    symlist_len--;
+    mloc.Reset();
+    return 0;
+}
+
+int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+{
+    char *endptr;
+    std::string float_as_string = _sym.GetName(symlist[0]);
+    char const *instring = float_as_string.c_str();
+    double const d = strtod(instring, &endptr);
+    if (endptr != instring + _sym.GetName(symlist[0]).length())
+    {
+        cc_error("Illegal floating point literal '%s'", instring);
+        return -1;
+    }
+    if (HUGE_VAL == d)
+    {
+        cc_error("Floating point literal '%s' is out of range", instring);
+        return -1;
+    }
+    float const f = static_cast<float>(d * (negate ? -1 : 1));
+    int const i = InterpretFloatAsInt(f);
+
+    WriteCmd(SCMD_LITTOREG, SREG_AX, i);
+    _scrip.ax_vartype = vartype = _sym.GetFloatSym();
+    _scrip.ax_val_scope = kSYM_GlobalVar;
+    symlist++;
+    symlist_len--;
+    return 0;
+}
+
+int AGS::Parser::AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+{
+    int varSymValue;
+    int retval = ParseLiteralOrConstvalue(symlist[0], varSymValue, negateLiteral, "Error parsing integer value");
+    if (retval < 0) return retval;
+    symlist++;
+    symlist_len--;
+
+    WriteCmd(SCMD_LITTOREG, SREG_AX, varSymValue);
+    _scrip.ax_vartype = vartype = _sym.GetIntSym();
+    _scrip.ax_val_scope = kSYM_GlobalVar;
+
+    return 0;
+}
+
+int AGS::Parser::AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+{
+    if (negate)
+    {
+        cc_error("'-null' is undefined");
+        return -1;
+    }
+
+    WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+    _scrip.ax_vartype = vartype = _sym.GetNullSym();
+    _scrip.ax_val_scope = kSYM_GlobalVar;
+    symlist++;
+    symlist_len--;
+
+    return 0;
+}
+
+int AGS::Parser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+{
+    if (negate)
+    {
+        cc_error("The negative value of a string is undefined");
+        return -1;
+    }
+
+    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
+    _scrip.fixup_previous(kFx_String);
+    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.GetOldStringSym())
+        ;
+    symlist++;
+    symlist_len--;
+    return 0;
+}
+
+// Negates the value; this clobbers AX and BX
+void AGS::Parser::AccessData_Negate(ValueLocation vloc)
+{
+    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
+    if (kVL_mar_pointsto_value == vloc)
+        WriteCmd(SCMD_MEMREAD, SREG_AX);
+    WriteCmd(SCMD_SUBREG, SREG_BX, SREG_AX);
+    if (kVL_mar_pointsto_value == vloc)
+        WriteCmd(SCMD_MEMWRITE, SREG_BX);
+    else
+        WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+}
+
+// We're getting a variable, literal, constant, func call or the first element
+// of a STRUCT.STRUCT.STRUCT... cascade.
+// This moves symlist in all cases except for the cascade to the end of what is parsed,
+// and in case of a cascade, to the end of the first element of the cascade, i.e.,
+// to the position of the '.'. 
+int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate)
+{
+    if (symlist_len < 1)
+    {
+        cc_error("Internal error: Empty variable");
+        return -99;
+    }
+
+    // In many cases, we can handle the negation here, so we reset the flag.
+    // If we find that we _cannot_ handle negation later on, we'll undo that
+    bool const input_negate = need_to_negate;
+    need_to_negate = false;
+
+    if (_sym.GetThisSym() == symlist[0])
+    {
+        vartype = _sym.GetVartype(_sym.GetThisSym());
+        if (0 == vartype)
+        {
+            cc_error("'this' is only legal in non-static struct functions");
+            return -1;
+        }
+        vloc = kVL_mar_pointsto_value;
+        WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
+        mloc.Reset();
+        access_via_this = true;
+        symlist++;
+        symlist_len--;
+        return 0;
+    }
+
+    switch (_sym.GetSymbolType(symlist[0]))
+    {
+    default:
+    {
+        // If this unknown symbol can be interpreted as a component of this,
+        // treat it that way.
+        vartype = _sym.GetVartype(_sym.GetThisSym());
+        AGS::Symbol const thiscomponent = MangleStructAndComponent(vartype, symlist[0]);
+        if (0 != _sym[thiscomponent].SType)
+        {
+            vloc = kVL_mar_pointsto_value;
+            WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+            WriteCmd(SCMD_CHECKNULL);
+            mloc.Reset();
+            access_via_this = true;
+
+            // We _should_ prepend "this." to symlist here but can't do that (easily).
+            // So we don't and the '.' that should be prepended doesn't exist.
+            // To compensate for that, we back up symlist by one index
+            symlist--;
+            symlist_len++;
+            return 0;
+        }
+
+        cc_error("Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
+        return -1;
+    }
+
+    case kSYM_Constant:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_LitOrConst(input_negate, symlist, symlist_len, vartype);
+
+    case kSYM_Function:
+    {
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        need_to_negate = input_negate;
+        int retval = AccessData_FunctionCall(symlist[0], symlist, symlist_len, mloc, vartype);
+        if (retval < 0) return retval;
+        int const zero_array_size_dummy = 0; // A function cannot return a static array.
+        if (_sym.IsDynarray(vartype))
+            return AccessData_ProcessAnyArrayIndex(vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
+        return 0;
+    }
+
+    case kSYM_GlobalVar:
+    {
+        scope = kSYM_GlobalVar;
+        vloc = kVL_mar_pointsto_value;
+        bool const is_global = true;
+        need_to_negate = input_negate;
+        MarkAcessed(symlist[0]);
+        return AccessData_GlobalOrLocalVar(is_global, writing, symlist, symlist_len, mloc, vartype);
+    }
+
+    case kSYM_LiteralFloat:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_LitFloat(input_negate, symlist, symlist_len, vartype);
+
+    case kSYM_LiteralInt:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_LitOrConst(input_negate, symlist, symlist_len, vartype);
+
+    case kSYM_LiteralString:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_String(need_to_negate, symlist, symlist_len, vartype);
+
+    case kSYM_LocalVar:
+    {
+        scope =
+            (FlagIsSet(_sym.GetFlags(symlist[0]), kSFLG_Parameter)) ?
+            kSYM_GlobalVar : kSYM_LocalVar;
+        vloc = kVL_mar_pointsto_value;
+        bool const is_global = false;
+        need_to_negate = input_negate;
+        return AccessData_GlobalOrLocalVar(is_global, writing, symlist, symlist_len, mloc, vartype);
+    }
+
+    case kSYM_Null:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_Null(need_to_negate, symlist, symlist_len, vartype);
+
+    case kSYM_Vartype:
+        scope = kSYM_GlobalVar;
+        static_access = true;
+        need_to_negate = input_negate;
+        return AccessData_Static(symlist, symlist_len, mloc, vartype);
+    }
+
+    cc_error("Cannot assign a value to '%s'", _sym.GetName(symlist[0]).c_str());
+    return -1;
+}
+
+// We're processing a STRUCT.STRUCT. ... clause.
+// We've already processed some structs, and the type of the last one is vartype.
+// Now we process a component of vartype.
+int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    AGS::Symbol const component = AccessData_FindComponent(Vartype2Symbol(vartype), symlist[0]);
+    SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : kSYM_NoType;
+
+    if (static_access && !FlagIsSet(_sym.GetFlags(component), kSFLG_Static))
+    {
+        cc_error("Must specify a specific struct for this non-static component");
+        return -1;
+    }
+
+    int retval = 0;
+    switch (component_type)
+    {
+    default:
+        cc_error(
+            "Expected a component of '%s', found '%s' instead",
+            _sym.GetName(vartype).c_str(),
+            _sym.GetName(symlist[0]).c_str());
+        return -1;
+
+    case kSYM_Attribute:
+    {
+        mloc.MakeMARCurrent(_src.GetLineno(), _scrip); // make MAR point to the struct of the attribute
+        if (writing)
+        {
+            // We cannot process the attribute here so return to the assignment that
+            // this attribute was originally called from
+            vartype = _sym.GetVartype(component);
+            vloc = kVL_attribute;
+            return 0;
+        }
+        vloc = kVL_ax_is_value;
+        bool const is_attribute_set_func = false;
+        return AccessData_Attribute(is_attribute_set_func, symlist, symlist_len, vartype);
+    }
+
+    case kSYM_Function:
+    {
+        vloc = kVL_ax_is_value;
+        scope = kSYM_LocalVar;
+        retval = AccessData_FunctionCall(component, symlist, symlist_len, mloc, vartype);
+        if (retval < 0) return retval;
+        int const zero_array_size_dummy = 0; // A function cannot return a static array.
+        if (_sym.IsDynarray(vartype))
+            return AccessData_ProcessAnyArrayIndex(vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
+        return 0;
+    }
+
+    case kSYM_StructComponent:
+        vloc = kVL_mar_pointsto_value;
+        retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mloc, vartype);
+        if (retval < 0) return retval;
+        return AccessData_ProcessAnyArrayIndex(vloc, _sym.NumArrayElements(component), symlist, symlist_len, vloc, mloc, vartype);
+    }
+
+    return 0; // Can't reach
+}
+
+AGS::Symbol AGS::Parser::AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component)
+{
+    do
+    {
+        AGS::Symbol symb = MangleStructAndComponent(strct, component);
+        if (kSYM_NoType != _sym.GetSymbolType(symb))
+            return strct;
+        strct = _sym[strct].Extends;
+    }
+    while (strct > 0);
+    return 0;
+}
+
+AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbol component)
+{
+    do
+    {
+        AGS::Symbol ret = MangleStructAndComponent(strct, component);
+        if (kSYM_NoType != _sym.GetSymbolType(ret))
+            return ret;
+        strct = _sym[strct].Extends;
+    }
+    while (strct > 0);
+    return 0;
+}
+
+// We are in a STRUCT.STRUCT.STRUCT... cascade.
+// Check whether we have passed the last dot
+int AGS::Parser::AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool &is_last)
+{
+    SymbolType const stoplist[] = { kSYM_Dot };
+    SkipToScript(stoplist, 1, symlist, symlist_len);
+    is_last = (0 == symlist_len || kSYM_Dot != _sym.GetSymbolType(symlist[0]));
+    return 0;
+}
+
+// Access a variable, constant, literal, func call, struct.component.component cascade, etc.
+// Result is in AX or m[MAR], dependent on vloc. Type is in vartype.
+// At end of function, symlist and symlist_len will point to the part of the symbol string
+// that has not been processed yet
+// NOTE: If this selects an attribute for writing, then the corresponding function will
+// _not_ be called and symlist[0] will be the attribute.
+int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (symlist_len == 0)
+    {
+        cc_error("Internal error: empty expression");
+        return -99;
+    }
+    if (writing && need_to_negate)
+    {
+        cc_error("Can't apply unary minus to a value you are modifying");
+        return -1;
+    }
+
+    // For memory accesses, we set the MAR register lazily so that we can
+    // accumulate offsets at runtime instead of compile time.
+    // This struct tracks what we will need to do to set the MAR register.
+    AGS::Parser::MemoryLocation mloc = MemoryLocation();
+
+    bool clause_is_last = false;
+    int retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
+    if (retval < 0) return retval;
+
+    bool access_via_this = false; // only true when "this" has just been parsed
+    bool static_access = false; // only true when a vartype has just been parsed
+
+    // If we are reading, then all the accesses are for reading.
+    // If we are writing, then all the accesses except for the last one
+    // are for reading and the last one will be for writing.
+    retval = AccessData_FirstClause((writing && clause_is_last), symlist, symlist_len, vloc, scope, mloc, vartype, access_via_this, static_access, need_to_negate);
+    if (retval < 0) return retval;
+
+    AGS::Vartype outer_vartype = 0;
+
+    // Unfortunately, the while condition is ugly:
+    // Normally, the while body must be executed whenever symlist starts with a '.'.
+    // However, if the previous function has assumed a "this." that isn't there,
+    // then symlist won't start with a '.' but the while body must be executed anyway.
+    // This is why the while condition has "access_via_this" in it.
+    while (symlist_len > 0 && (kSYM_Dot == _sym.GetSymbolType(symlist[0]) || access_via_this))
+    {
+        ++symlist; // Eat '.'
+        if (0 == --symlist_len) // Eat '.' cnt'd.
+        {
+            cc_error("Expected struct component after '.' but did not find it");
+            return -1;
+        }
+        // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
+        // We accumulate mar_offset at compile time as long as possible to save computing.
+        outer_vartype = vartype;
+        if (!_sym.IsStruct(outer_vartype))
+        {
+            cc_error("Expected a struct before '.' but did not find it");
+            return -1;
+        }
+
+        // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
+        if (_sym.IsDynpointer(vartype))
+        {
+            retval = AccessData_Dereference(vloc, mloc);
+            if (retval < 0) return retval;
+            vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype);
+        }
+
+        retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
+        if (retval < 0) return retval;
+
+        // If we are reading, then all the accesses are for reading.
+        // If we are writing, then all the accesses except for the last one
+        // are for reading and the last one will be for writing.
+        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, symlist, symlist_len, vloc, scope, mloc, vartype);
+        if (retval < 0) return retval;
+
+        // Only the _immediate_ access via 'this.' counts for this flag.
+        // This has passed now, so reset the flag.
+        access_via_this = false;
+        static_access = false; // Same for 'vartype.'
+    }
+
+    if (need_to_negate)
+        AccessData_Negate(vloc);
+
+    if (kVL_attribute == vloc)
+    {
+        // Caller will do the assignment
+        // For this to work, the caller must know the type of the struct
+        // in which the attribute resides
+        vartype = _sym.VartypeWithout(
+                kVTT_Const|kVTT_Dynarray|kVTT_Dynpointer,
+                outer_vartype);
+        return 0;
+    }
+
+    if (kVL_ax_is_value == vloc)
+    {
+        _scrip.ax_vartype = vartype;
+        _scrip.ax_val_scope = scope;
+        return 0;
+    }
+
+    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+    return 0;
+}
+
+// In order to avoid push AX/pop AX, find out common cases that don't clobber AX
+bool AGS::Parser::AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len)
+{
+    if (kSYM_GlobalVar != _sym.GetSymbolType(symlist[0]) && kSYM_LocalVar != _sym.GetSymbolType(symlist[0]))
+        return true;
+
+    if (symlist_len == 1)
+        return false;
+
+    for (size_t symlist_idx = 0; symlist_idx < symlist_len - 3; symlist_idx += 2)
+    {
+        if (kSYM_Dot != _sym.GetSymbolType(symlist[symlist_idx + 1]))
+            return true;
+        AGS::Symbol const compo = MangleStructAndComponent(symlist[0], symlist[2]);
+        if (kSYM_StructComponent != _sym.GetSymbolType(compo))
+            return true;
+    }
+    return false;
+}
+
+// Insert Bytecode for:
+// Copy at most OLDSTRING_LENGTH-1 bytes from m[MAR...] to m[AX...]
+// Stop when encountering a 0
+void AGS::Parser::AccessData_StrCpy()
+{
+    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
+    WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
+    WriteCmd(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
+    AGS::CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
+    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
+    WriteCmd(SCMD_MEMREAD, SREG_AX);
+    WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
+    WriteCmd(SCMD_MEMWRITE, SREG_AX);
+    WriteCmd(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
+    AGS::CodeLoc const jumpout1_pos = _scrip.codesize - 1;
+    WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
+    WriteCmd(SCMD_ADD, SREG_CX, 1);
+    WriteCmd(SCMD_SUB, SREG_DX, 1);
+    WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX == 0) jumpto LOOP_END
+    WriteCmd(SCMD_JZ, 0);
+    AGS::CodeLoc const jumpout2_pos = _scrip.codesize - 1;
+    WriteCmd(
+        SCMD_JMP,
+        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
+    AGS::CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
+    _scrip.code[jumpout1_pos] = ccCompiledScript::RelativeJumpDist(jumpout1_pos, loop_end);
+    _scrip.code[jumpout2_pos] = ccCompiledScript::RelativeJumpDist(jumpout2_pos, loop_end);
+}
+
+// We are typically in an assignment LHS = RHS; the RHS has already been
+// evaluated, and the result of that evaluation is in AX.
+// Store AX into the memory location that corresponds to LHS, or
+// call the attribute function corresponding to LHS.
+int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
+{
+    // AX contains the result of evaluating the RHS of the assignment
+    // Save on the stack so that it isn't clobbered
+    AGS::Vartype rhsvartype = _scrip.ax_vartype;
+    int rhsscope = _scrip.ax_val_scope;
+    // Save AX unless we are sure that it won't be clobbered
+    bool const may_clobber = AccessData_MayAccessClobberAX(symlist, symlist_len);
+    if (may_clobber)
+        _scrip.push_reg(SREG_AX);
+
+    bool const writing = true;
+    bool const negate_dummy = false; // when writing, this parameter is pointless
+    ValueLocation vloc;
+    AGS::Vartype lhsvartype;
+    int lhsscope;
+    int retval = AccessData(writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
+    if (retval < 0) return retval;
+    if (kVL_ax_is_value == vloc)
+    {
+        if (!_sym.IsManaged(lhsvartype))
+        {
+            cc_error("Cannot modify this value");
+            return -1;
+        }
+        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        WriteCmd(SCMD_CHECKNULL);
+        vloc = kVL_mar_pointsto_value;
+    }
+
+    if (may_clobber)
+        _scrip.pop_reg(SREG_AX);
+    _scrip.ax_vartype = rhsvartype;
+    _scrip.ax_val_scope = rhsscope;
+
+    if (kVL_attribute == vloc)
+    {
+        // We need to call the attribute setter 
+        AGS::Vartype struct_of_attribute = lhsvartype;
+
+        bool const is_attribute_set_func = true;
+        return AccessData_Attribute(is_attribute_set_func, symlist, symlist_len, struct_of_attribute);
+    }
+
+    // MAR points to the value
+
+    if (_sym.GetOldStringSym() == lhsvartype && _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype))
+    {
+        // copy the string contents over.
+        AccessData_StrCpy();
+        return 0;
+    }
+
+    ConvertAXStringToStringObject(lhsvartype);
+    rhsvartype = _scrip.ax_vartype;
+    if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
+    {
+        cc_error(
+            "Cannot assign a type '%s' value to a type '%s' variable",
+            _sym.GetName(rhsvartype).c_str(),
+            _sym.GetName(lhsvartype).c_str());
+        return -1;
+    }
+
+    if (_sym.IsDyn(lhsvartype))
+        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
+    else
+        WriteCmd(
+            GetWriteCommandForSize(_sym.GetSize(lhsvartype)),
+            SREG_AX);
+    return 0;
+}
+
+// Read the symbols of an expression and buffer them into expr_script
+// At end of routine, the cursor will be positioned in such a way
+// that _src.GetNext() will get the symbol after the expression
+int AGS::Parser::BufferExpression(ccInternalList &expr_script)
+{
+    int nesting_depth = 0;
+
+    // The ':' in an "a ? b : c" construct can also be the end of a label, and in AGS,
+    // expressions are allowed for labels. So we must take care that label ends aren't
+    // mistaken for expression parts. For this, tern_depth counts the number of
+    // unmatched '?' on the outer level. If this is non-zero, then any arriving 
+    // ':' will be interpreted as part of a ternary.
+    int tern_depth = 0;
+
+    AGS::Symbol peeksym;
+    while (0 <= (peeksym = _src.PeekNext())) // note assignment in while condition
+    {
+        size_t const cursor = _src.GetCursor(); // for backing up if necessary
+
+        // Skip over parts that are enclosed in braces, brackets, or parens
+        SymbolType const peektype = _sym.GetSymbolType(peeksym);
+        if (kSYM_OpenParenthesis == peektype || kSYM_OpenBracket == peektype || kSYM_OpenBrace == peektype)
+            ++nesting_depth;
+        else if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
+            if (--nesting_depth < 0)
+                break; // this symbol can't be part of the current expression
+        if (nesting_depth != 0)
+        {
+            expr_script.write(_src.GetNext());
+            continue;
+        }
+
+        if (kSYM_Dot == peektype)
+        {
+            expr_script.write(_src.GetNext()); // '.'
+            // Eat and write next symbol, is a component name
+            if (_src.PeekNext() > 0)
+                expr_script.write(_src.GetNext());
+            continue;
+        }
+        else if (kSYM_Label == peektype)
+        {
+            if (--tern_depth >= 0)
+            {
+                expr_script.write(_src.GetNext());
+                continue; // ':'
+            }
+        }
+        else if (kSYM_New == peektype)
+        {
+            // This is only allowed if a type follows
+            _src.GetNext(); // Eat 'new'
+            AGS::Symbol const nextnextsym = _src.GetNext();
+            SymbolType const nextnexttype = _sym.GetSymbolType(nextnextsym);
+            if (kSYM_Vartype == nextnexttype || kSYM_UndefinedStruct == nextnexttype)
+            {
+                expr_script.write(peeksym);
+                expr_script.write(nextnextsym);
+                continue;
+            }
+            _src.SetCursor(cursor); // Back up so that 'new' is still unread
+            break;
+        }
+        else if (kSYM_Tern == peektype)
+        {
+            tern_depth++;
+        }
+        else if (kSYM_Vartype == peektype)
+        {
+            // This is only allowed if a dot follows
+            _src.GetNext(); // Eat the vartype
+            AGS::Symbol const nextsym = _src.GetNext();
+            if (kSYM_Dot == _sym.GetSymbolType(nextsym))
+            {
+                expr_script.write(peeksym);
+                expr_script.write(nextsym);
+                continue;
+            }
+            _src.SetCursor(cursor); // Back up so that the vartype is still unread
+            break;
+        }
+
+        // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
+        // be part of an expression
+        if (peektype >= NOTEXPRESSION)
+            break;
+
+        expr_script.write(_src.GetNext());
+    }
+
+    if (expr_script.length <= 0)
+    {
+        cc_error("Internal error: Empty expression");
+        return -1;
+    }
+    if (nesting_depth > 0)
+    {
+        cc_error("Unexpected '%s' in expression", _sym.GetName(peeksym).c_str());
+        return -1;
+    }
+
+    return 0;
+}
+
+// evaluate the supplied expression, putting the result into AX
+// returns 0 on success or -1 if compile error
+// leaves targ pointing to last token in expression, so do getnext() to get the following ; or whatever
+int AGS::Parser::ParseExpression()
+{
+    ccInternalList expr_script;
+    int retval = BufferExpression(expr_script);
+    if (retval < 0) return retval;
+
+    ValueLocation vloc;
+    int scope;
+    Vartype vartype;
+
+    // we now have the expression in expr_script, parse it
+    retval = ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    return ResultToAX(vloc, scope, vartype);
+}
+
+int AGS::Parser::ParseParenthesizedExpression()
+{
+    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenParenthesis)
+    {
+        cc_error("Expected '('");
+        return -1;
+    }
+    int retval = ParseExpression();
+    if (retval < 0) return retval;
+
+    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_CloseParenthesis)
+    {
+        cc_error("Expected ')'");
+        return -1;
+    }
+    return 0;
+}
+
+// We are parsing the left hand side of a += or similar statement.
+int AGS::Parser::ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, AGS::Vartype &lhstype)
+{
+    int scope;
+    size_t lhs_length = (lhs->length < 0) ? 0 : lhs->length;
+    AGS::SymbolScript lhs_script = lhs->script;
+    bool const negative = false; // LHS can't start with a unary minus
+    bool const writing = false; // reading access
+    int retval = AccessData(writing, negative, lhs_script, lhs_length, vloc, scope, lhstype);
+    if (retval < 0) return retval;
+    if (lhs_length > 0)
+    {
+        cc_error("Internal error: Unexpected symbols following expression");
+        return -99;
+    }
+
+    if (kVL_mar_pointsto_value == vloc)
+    {
+        // write memory to AX
+        _scrip.ax_vartype = lhstype;
+        _scrip.ax_val_scope = scope;
+        WriteCmd(
+            GetReadCommandForSize(_sym.GetSize(lhstype)),
+            SREG_AX);
+    }
+    return 0;
+}
+
+// "var = expression"; lhs is the variable
+int AGS::Parser::ParseAssignment_Assign(ccInternalList const *lhs)
+{
+    int retval = ParseExpression(); // RHS of the assignment
+    if (retval < 0) return retval;
+    return AccessData_Assign(lhs->script, lhs->length);
+}
+
+// We compile something like "var += expression"
+int AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs)
+{
+    // Parse RHS
+    int retval = ParseExpression();
+    if (retval < 0) return retval;
+    _scrip.push_reg(SREG_AX);
+    AGS::Vartype rhsvartype = _scrip.ax_vartype;
+
+    // Parse LHS
+    ValueLocation vloc;
+    AGS::Vartype lhsvartype;
+    retval = ParseAssignment_ReadLHSForModification(lhs, vloc, lhsvartype);
+    if (retval < 0) return retval;
+
+    // Use the operator on LHS and RHS
+    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
+    retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
+    if (retval < 0) return retval;
+    _scrip.pop_reg(SREG_BX);
+    WriteCmd(cpuOp, SREG_AX, SREG_BX);
+
+    if (kVL_mar_pointsto_value == vloc)
+    {
+        // write AX back to memory
+        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
+        WriteCmd(memwrite, SREG_AX);
+        return 0;
+    }
+    return AccessData_Assign(lhs->script, lhs->length);
+}
+
+// "var++" or "var--"
+int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs)
+{
+    ValueLocation vloc;
+    AGS::Vartype lhsvartype;
+    int retval = ParseAssignment_ReadLHSForModification(lhs, vloc, lhsvartype);
+    if (retval < 0) return retval;
+
+    // increment or decrement AX, using the correct opcode
+    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
+    retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
+    if (retval < 0) return retval;
+    WriteCmd(cpuOp, SREG_AX, 1);
+
+    if (kVL_mar_pointsto_value == vloc)
+    {
+        // write AX back to memory
+        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
+        WriteCmd(memwrite, SREG_AX);
+        return 0;
+    }
+
+    return ParseAssignment_Assign(lhs);
+}
+
+// We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
+// An assignment symbol is following. Compile the assignment.
+int AGS::Parser::ParseAssignment(AGS::Symbol ass_symbol, ccInternalList const *lhs)
+{
+    switch (_sym.GetSymbolType(ass_symbol))
+    {
+    default: // can't happen
+        cc_error("Internal error: Illegal assignment symbol found");
+        return -99;
+
+    case kSYM_Assign:
+        return ParseAssignment_Assign(lhs);
+
+    case kSYM_AssignMod:
+        return ParseAssignment_MAssign(ass_symbol, lhs);
+
+    case kSYM_AssignSOp:
+        return ParseAssignment_SAssign(ass_symbol, lhs);
+    }
 }
 
 int AGS::Parser::ParseVardecl_InitialValAssignment_Float(bool is_neg, void *& initial_val_ptr)
@@ -2128,9 +4280,7 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, 
 
     // "readonly" vars can't be assigned to, so don't use standard assignment function here.
     _src.GetNext(); // Eat '='
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseExpression(); 
+    int retval = ParseExpression(); 
     if (retval < 0) return retval;
 
     bool const is_dyn = _sym.IsDyn(vartype);
@@ -2286,15 +4436,14 @@ int AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, Symbol 
 
 int AGS::Parser::ParseBraceCommandStart(AGS::Parser::NestingStack *nesting_stack, AGS::Symbol struct_of_current_func, AGS::Symbol name_of_current_func)
 {
-    _src.GetNext(); // Eat '{'
     return nesting_stack->Push(kSYM_OpenBrace);
 }
 
 int AGS::Parser::HandleEndOfFuncBody(AGS::Parser::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
-    ExitNesting(NestingStack::kFunctionLevel);
+    ExitNesting(1);
     // All the local variables that were defined within the braces become invalid
-    RemoveLocalsFromSymtable(NestingStack::kFunctionLevel);
+    RemoveLocalsFromSymtable(1);
        
     // Function has ended. Emit code that returns 0
     if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamTypes.at(0))
@@ -2578,21 +4727,6 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
     int retval = ParseStruct_EnterAttributeFunc(func, is_setter, is_indexed, is_static, vartype);
     if (retval < 0) return retval;
     return _fim.SetFuncCallpoint(func, _sym[func].SOffset);
-}
-
-// Get the symbol for the get or set function corresponding to the attribute given.
-int AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func)
-{
-    std::string member_str = _sym.GetName(attribsym);
-    // If "::" in the name, take the part after the last "::"
-    size_t const m_access_position = member_str.rfind("::");
-    if (std::string::npos != m_access_position)
-        member_str = member_str.substr(m_access_position + 2);
-    char const *stem_str = writing ? "set" : "get";
-    char const *indx_str = indexed ? "i_" : "_";
-    std::string func_str = stem_str + (indx_str + member_str);
-    func = _sym.FindOrAdd(func_str.c_str());
-    return 0;
 }
 
 // We're in a struct declaration, parsing a struct attribute
@@ -2891,8 +5025,6 @@ int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_
 // Handle a "struct" definition clause
 int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol struct_of_current_func, AGS::Symbol name_of_current_func)
 {
-    _src.GetNext(); // Eat 'struct'
-
     // get token for name of struct
     AGS::Symbol const stname = _src.GetNext();
 
@@ -3100,8 +5232,6 @@ int AGS::Parser::ParseEnum0()
 // enum eEnumName { value1, value2 };
 int AGS::Parser::ParseEnum(AGS::Symbol name_of_current_function)
 {
-    _src.GetNext(); // Eat 'enum'
-
     if (name_of_current_function >= 0)
     {
         cc_error("Enum declaration not allowed within a function body");
@@ -3122,8 +5252,6 @@ int AGS::Parser::ParseEnum(AGS::Symbol name_of_current_function)
 
 int AGS::Parser::ParseExport()
 {
-    _src.GetNext(); // Eat 'export'
-
     if (kPP_PreAnalyze == _pp)
     {
         const SymbolType stoplist[] = { kSYM_Semicolon };
@@ -3518,9 +5646,8 @@ int AGS::Parser::HandleEndOfCompoundStmts(AGS::Parser::NestingStack *nesting_sta
 
 int AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_current_func)
 {
-    Symbol const functionReturnType = _sym[name_of_current_func].FuncParamTypes[0];
+    AGS::Symbol const functionReturnType = _sym[name_of_current_func].FuncParamTypes[0];
 
-    _src.GetNext(); // Eat 'function'
     if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_Semicolon)
     {
         if (functionReturnType == _sym.GetVoidSym())
@@ -3529,9 +5656,8 @@ int AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_cu
             return -1;
         }
 
-        SrcList &expression_src = SrcList(_src, _src.GetCursor());
-        ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-        int retval = ep.ParseExpression();
+        // parse what is being returned
+        int retval = ParseExpression();
         if (retval < 0) return retval;
 
         // If we need a string object ptr but AX contains a normal string, convert AX
@@ -3575,7 +5701,7 @@ int AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_cu
 
     // Jump to the exit point of the function
     WriteCmd(SCMD_JMP, 0);
-    nesting_stack->JumpOut(NestingStack::kFunctionLevel).AddParam();
+    nesting_stack->JumpOut(1).AddParam();
 
     return 0;
 }
@@ -3583,12 +5709,8 @@ int AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_cu
 // Evaluate the header of an "if" clause, e.g. "if (i < 0)".
 int AGS::Parser::ParseIf(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat 'if'
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseParenthesizedExpression();
+    int retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
-    _src.AddCursor(expression_src.GetCursor());
 
     retval = nesting_stack->Push(kSYM_If);
     if (retval < 0) return retval;
@@ -3630,14 +5752,10 @@ int AGS::Parser::HandleEndOfIf(NestingStack *nesting_stack, bool &else_follows)
 int AGS::Parser::ParseWhile(AGS::Parser::NestingStack *nesting_stack)
 {
     // point to the start of the code that evaluates the condition
-    CodeLoc const condition_eval_loc = _scrip.codesize;
+    AGS::CodeLoc const condition_eval_loc = _scrip.codesize;
 
-    _src.GetNext(); // Eat 'while'
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseParenthesizedExpression();
+    int retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
-    _src.AddCursor(expression_src.GetCursor());
 
     retval = nesting_stack->Push(kSYM_While);
     if (retval < 0) return retval;
@@ -3683,7 +5801,6 @@ int AGS::Parser::HandleEndOfWhile(NestingStack * nesting_stack)
 
 int AGS::Parser::ParseDo(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat 'do'
     int retval = nesting_stack->Push(kSYM_Do);
     if (retval < 0) return retval;
     nesting_stack->Start().Set();
@@ -3698,6 +5815,37 @@ int AGS::Parser::HandleEndOfBraceCommand(NestingStack *nesting_stack)
     RemoveLocalsFromSymtable(nesting_stack->Depth());
     
     return 0;
+}
+
+// We're compiling function body code; the code does not start with a keyword or type.
+// Thus, we should be at the start of an assignment or a funccall. Compile it.
+int AGS::Parser::ParseAssignmentOrFunccall(AGS::Symbol cursym)
+{
+    ccInternalList expr_script;
+    expr_script.write(cursym); // expression starts with this
+    int retval = BufferExpression(expr_script);
+    expr_script.startread();
+    if (retval < 0) return retval;
+
+    AGS::Symbol nextsym = _src.PeekNext();
+    SymbolType const nexttype = _sym.GetSymbolType(nextsym);
+
+    if (expr_script.length > 0)
+    {
+        if (nexttype == kSYM_Assign || nexttype == kSYM_AssignMod || nexttype == kSYM_AssignSOp)
+        {
+            _src.GetNext();
+            return ParseAssignment(nextsym, &expr_script);
+        }
+        ValueLocation vloc;
+        int scope;
+        AGS::Vartype vartype;
+        retval = ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
+        if (retval < 0) return retval;
+        return ResultToAX(vloc, scope, vartype);
+    }
+    cc_error("Unexpected symbol '%s'", _sym.GetName(nextsym).c_str());
+    return -1;
 }
 
 int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
@@ -3748,9 +5896,7 @@ int AGS::Parser::ParseFor_InitClause(AGS::Symbol peeksym, size_t nested_level)
         return 0; // Empty init clause
     if (_sym.GetSymbolType(peeksym) == kSYM_Vartype)
         return ParseFor_InitClauseVardecl(nested_level);
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    return ep.ParseAssignmentOrFunccall();
+    return ParseAssignmentOrFunccall(_src.GetNext());
 }
 
 int AGS::Parser::ParseFor_WhileClause()
@@ -3765,9 +5911,7 @@ int AGS::Parser::ParseFor_WhileClause()
         return 0;
     }
 
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    return ep.ParseExpression();
+    return ParseExpression();
 }
 
 int AGS::Parser::ParseFor_IterateClause()
@@ -3776,9 +5920,7 @@ int AGS::Parser::ParseFor_IterateClause()
     if (kSYM_CloseParenthesis == _sym.GetSymbolType(_src.PeekNext()))
         return 0;
 
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    return ep.ParseAssignmentOrFunccall();
+    return ParseAssignmentOrFunccall(_src.GetNext());
 }
 
 int AGS::Parser::ParseFor(AGS::Parser::NestingStack *nesting_stack)
@@ -3787,8 +5929,6 @@ int AGS::Parser::ParseFor(AGS::Parser::NestingStack *nesting_stack)
     // We implement this with TWO levels of the nesting stack.
     // The outer level contains "I"
     // The inner level contains "while (E) { ...; C}"
-
-    _src.GetNext(); // Eat 'for'
 
     // Outer level
     int retval = nesting_stack->Push(kSYM_For);
@@ -3866,12 +6006,9 @@ int AGS::Parser::ParseFor(AGS::Parser::NestingStack *nesting_stack)
 
 int AGS::Parser::ParseSwitch(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat 'switch'
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseParenthesizedExpression();
+    // Get the switch expression
+    int retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
-    _src.AddCursor(expression_src.GetCursor());
 
     // Remember the type of this expression to enforce it later
     Vartype const switch_expr_vartype = _scrip.ax_vartype;
@@ -3909,17 +6046,15 @@ int AGS::Parser::ParseSwitch(AGS::Parser::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseSwitchLabel(AGS::Parser::NestingStack *nesting_stack)
+int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::Parser::NestingStack *nesting_stack)
 {
-    Symbol const keyword = _src.GetNext();
-
     if (kSYM_Switch != nesting_stack->Type())
     {
-        cc_error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(keyword).c_str());
+        cc_error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(cursym).c_str());
         return -1;
     }
 
-    if (kSYM_Default == _sym.GetSymbolType(keyword))
+    if (kSYM_Default == _sym.GetSymbolType(cursym))
     {
         if (INT_MAX != nesting_stack->SwitchDefault().Get())
         {
@@ -3930,16 +6065,14 @@ int AGS::Parser::ParseSwitchLabel(AGS::Parser::NestingStack *nesting_stack)
     }
     else // "case"
     {
-        CodeLoc const start_of_code_loc = _scrip.codesize;
+        AGS::CodeLoc const start_of_code_loc = _scrip.codesize;
         size_t const start_of_code_lineno = _src.GetLineno();
         int const numfixups_at_start_of_code = _scrip.numfixups;
 
         // Push the switch variable onto the stack
         _scrip.push_reg(SREG_BX);
 
-        SrcList &expression_src = SrcList(_src, _src.GetCursor());
-        ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-        int retval = ep.ParseExpression(); // case n: label expression
+        int retval = ParseExpression(); // case n: label expression
         if (retval < 0) return retval;  
 
         // check that the types of the "case" expression and the "switch" expression match
@@ -3957,7 +6090,8 @@ int AGS::Parser::ParseSwitchLabel(AGS::Parser::NestingStack *nesting_stack)
         _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
     }
 
-    if (kSYM_Label != _sym.GetSymbolType(_src.GetNext()))
+    // expect and gobble the ':'
+    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Label)
     {
         cc_error("Expected ':'");
         return -1;
@@ -3983,7 +6117,6 @@ int AGS::Parser::ExitNesting(size_t nesting_level)
 
 int AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat 'break'
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
     {
         cc_error("Expected ';'");
@@ -4017,7 +6150,6 @@ int AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 
 int AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat 'continue'
     if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
     {
         cc_error("Expected ';'");
@@ -4060,30 +6192,25 @@ int AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 
 int AGS::Parser::ParseCloseBrace(AGS::Parser::NestingStack *nesting_stack)
 {
-    _src.GetNext(); // Eat ')'
     if (kSYM_Switch == nesting_stack->Type())
         return HandleEndOfSwitch(nesting_stack); 
     return HandleEndOfBraceCommand(nesting_stack);
 }
 
-int AGS::Parser::ParseCommand(AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func, AGS::Parser::NestingStack *nesting_stack)
+int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func, AGS::Parser::NestingStack *nesting_stack)
 {
     int retval;
 
-    SymbolType const symtype = _sym.GetSymbolType(_src.PeekNext());
+    SymbolType const symtype = _sym.GetSymbolType(cursym);
 
     // NOTE that some branches of this switch will leave
     // the whole function, others will continue after the switch.
     switch (symtype)
     {
     default:
-    {
         // If it doesn't begin with a keyword, it should be an assignment
         // or a func call.
-        SrcList &expression_src = SrcList(_src, _src.GetCursor());
-        ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-        retval = ep.ParseAssignmentOrFunccall();
-        _src.AddCursor(expression_src.GetCursor());
+        retval = ParseAssignmentOrFunccall(cursym);
         if (retval < 0) return retval;
         if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
         {
@@ -4091,20 +6218,20 @@ int AGS::Parser::ParseCommand(AGS::Symbol &struct_of_current_func, AGS::Symbol &
             return -1;
         }
         break;
-    }
+
     case kSYM_Break:
         retval = ParseBreak(nesting_stack);
         if (retval < 0) return retval;
         break;
 
     case kSYM_Case:
-        retval = ParseSwitchLabel(nesting_stack);
+        retval = ParseSwitchLabel(cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 
     case  kSYM_CloseBrace:
         // Note that the scanner has already made sure that every close brace has an open brace
-        if (nesting_stack->kFunctionLevel + 1 >= nesting_stack->Depth())
+        if (2 >= nesting_stack->Depth())
             return HandleEndOfFuncBody(nesting_stack, struct_of_current_func, name_of_current_func);
 
         retval = ParseCloseBrace(nesting_stack);
@@ -4117,7 +6244,7 @@ int AGS::Parser::ParseCommand(AGS::Symbol &struct_of_current_func, AGS::Symbol &
         break;
 
     case kSYM_Default:
-        retval = ParseSwitchLabel(nesting_stack);
+        retval = ParseSwitchLabel(cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 
@@ -4135,7 +6262,7 @@ int AGS::Parser::ParseCommand(AGS::Symbol &struct_of_current_func, AGS::Symbol &
         return ParseIf(nesting_stack);
 
     case kSYM_OpenBrace:
-        if (nesting_stack->kFunctionLevel >= nesting_stack->Depth())
+        if (2 > nesting_stack->Depth())
             return ParseFuncBody(nesting_stack, struct_of_current_func, name_of_current_func);
         return ParseBraceCommandStart(nesting_stack, struct_of_current_func, name_of_current_func);
 
@@ -4281,18 +6408,18 @@ int AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
     return 0;
 }
 
-int AGS::Parser::ParseVartype(TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
+int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     // func or variable definition
     int retval = Parse_CheckTQ(tqs, kSYM_Vartype);
     if (retval < 0) return retval;
-    Vartype const vartype = _src.GetNext();
+    Vartype const vartype = cursym;
     return ParseVartype0(vartype, &nesting_stack, tqs, struct_of_current_func, name_of_current_func);
 }
 
 void AGS::Parser::Parse_SkipToEndingBrace()
 {
-    _src.GetNext(); // Eat '{'
+    // Skip to matching '}'
     SymbolType const stoplist[] = { kSYM_NoType, };
     SkipTo(stoplist, 0); // pass empty list
     _src.GetNext(); // Eat '}'
@@ -4317,85 +6444,91 @@ int AGS::Parser::ParseInput()
     while (!_src.ReachedEOF())
     {
         HandleSrcSectionChange();
-        _src.AddCursor(1);
-        currentline = _src.GetLineno();
-        _src.AddCursor(-1);
+        Symbol const cursym = _src.GetNext();
+        currentline = _src.GetLineno(); // only for debugging purposes.
 
-       switch (_sym.GetSymbolType(_src.PeekNext()))
+        switch (_sym.GetSymbolType(cursym))
         {
 
         default: break;
 
         case 0:
-        {
-            Symbol const nextsym = _src.PeekNext();
             // let it through if "this" can be implied
             if (struct_of_current_func > 0)
             {
-                AGS::Symbol combined = MangleStructAndComponent(struct_of_current_func, nextsym);
+                AGS::Symbol combined = MangleStructAndComponent(struct_of_current_func, cursym);
                 if (kSYM_NoType != _sym.GetSymbolType(combined))
                     break;
             }
-            cc_error("Unexpected token '%s'", _sym.GetName(nextsym).c_str());
+            cc_error("Unexpected token '%s'", _sym.GetName(cursym).c_str());
             return -1;
-        }
+
         case kSYM_AutoPtr:
-            _src.GetNext(); // Eat 'autoptr'
+        {
             SetFlag(tqs, kTQ_Autoptr, true);
             continue;
+        }
 
         case kSYM_Builtin:
-            _src.GetNext(); // Eat 'builtin'
+        {
             SetFlag(tqs, kTQ_Builtin, true);
             continue;
+        }
 
         case kSYM_Const:
-            _src.GetNext(); // Eat 'const'
+        {
             SetFlag(tqs, kTQ_Const, true);
             continue;
+        }
 
         case kSYM_Enum:
+        {
             retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseEnum(name_of_current_func);
             if (retval < 0) return retval;
             tqs = 0;
             continue;
+        }
 
         case kSYM_Export:
+        {
             retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
             tqs = 0;
             continue;
+        }
 
         case kSYM_Import:
         {
-            Symbol const keyword = _src.GetNext(); 
-            if (std::string::npos != _sym.GetName(keyword).find("_tryimport"))
+            if (std::string::npos != _sym.GetName(cursym).find("_tryimport"))
                 SetFlag(tqs, kTQ_ImportTry, true);
             else
                 SetFlag(tqs, kTQ_ImportStd, true);
             if (name_of_current_func > 0)
             {
-                cc_error("'%s' is illegal inside a function", _sym.GetName(keyword).c_str());
+                cc_error("'import' not allowed inside function body");
                 return -1;
             }
             continue;
         }
 
         case kSYM_InternalString:
-            _src.GetNext(); 
+        {
             SetFlag(tqs, kTQ_Stringstruct, true);
             continue;
+        }
 
         case  kSYM_Managed:
-            _src.GetNext(); // Eat ''
+        {
             SetFlag(tqs, kTQ_Managed, true);
             continue;
+        }
 
         case kSYM_OpenBrace:
+        {
             if (kPP_Main == _pp)
                 break; // treat as a command, below the switch
 
@@ -4403,9 +6536,11 @@ int AGS::Parser::ParseInput()
             tqs = 0;
             name_of_current_func = -1;
             struct_of_current_func = -1;
+            continue;
+        }
 
         case kSYM_Protected:
-            _src.GetNext(); // Eat 'protected'
+        {
             SetFlag(tqs, kTQ_Protected, true);
             if (name_of_current_func > 0)
             {
@@ -4413,14 +6548,16 @@ int AGS::Parser::ParseInput()
                 return -1;
             }
             continue;
+        }
 
         case kSYM_ReadOnly:
-            _src.GetNext(); // Eat 'readonly'
+        {
             SetFlag(tqs, kTQ_Readonly, true);
             continue;
+        }
 
         case kSYM_Static:
-            _src.GetNext(); // Eat 'static'
+        {
             SetFlag(tqs, kTQ_Static, true);
             if (name_of_current_func >= 0)
             {
@@ -4428,33 +6565,38 @@ int AGS::Parser::ParseInput()
                 return -1;
             }
             continue;
+        }
 
         case  kSYM_Struct:
+        {
             retval = Parse_CheckTQ(tqs, kSYM_Struct);
             if (retval < 0) return retval;
             retval = ParseStruct(tqs, nesting_stack, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;
             tqs = 0;
             continue;
+        }
 
         case kSYM_Vartype:
+        {
             if (kSYM_Dot == _sym.GetSymbolType(_src.PeekNext()))
                 break; // this is a static struct component function call, so a command
-            retval = ParseVartype(tqs, nesting_stack, struct_of_current_func, name_of_current_func);
+            retval = ParseVartype(cursym, tqs, nesting_stack, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;
             tqs = 0;
             continue;
+        }
 
         } // switch (symType)
 
         // Commands are only allowed within a function
         if (name_of_current_func <= 0)
         {
-            cc_error("'%s' is illegal outside a function", _sym.GetName(_src.PeekNext()).c_str());
+            cc_error("'%s' is illegal outside a function", _sym.GetName(cursym).c_str());
             return -1;
         }
 
-        retval = ParseCommand(struct_of_current_func, name_of_current_func, &nesting_stack);
+        retval = ParseCommand(cursym, struct_of_current_func, name_of_current_func, &nesting_stack);
         if (retval < 0) return retval;
         tqs = 0;
     } // while (!targ.reached_eof())
@@ -4554,2038 +6696,6 @@ int AGS::Parser::Parse()
     return Parse_BlankOutUnusedImports();
 }
 
-void AGS::ExpressionParser::MemoryLocation::SetStart(SymbolType type, size_t offset)
-{
-    _Type = type;
-    _StartOffs = offset;
-    _ComponentOffs = 0;
-}
-
-void AGS::ExpressionParser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript &scrip)
-{
-    switch (_Type)
-    {
-    default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
-        if (_ComponentOffs > 0)
-        {
-            scrip.refresh_lineno(lineno);
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
-        }
-        break;
-
-    case kSYM_GlobalVar:
-        scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
-        scrip.fixup_previous(Parser::kFx_GlobalData);
-        break;
-
-    case kSYM_Import:
-        // Have to convert the import number into a code offset first.
-        // Can only then add the offset to it.
-        scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs);
-        scrip.fixup_previous(Parser::kFx_Import);
-        if (_ComponentOffs != 0)
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
-        break;
-
-    case kSYM_LocalVar:
-        scrip.refresh_lineno(lineno);
-        scrip.write_cmd(
-            SCMD_LOADSPOFFS,
-            scrip.cur_sp - _StartOffs - _ComponentOffs);
-        break;
-    }
-    Reset();
-    return;
-}
-
-// We're in the parameter list of a function call, and we have less parameters than declared.
-// Provide defaults for the missing values
-int AGS::ExpressionParser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
-{
-    for (size_t arg_idx = num_func_args; arg_idx > num_supplied_args; arg_idx--)
-    {
-        if (!_sym[funcSymbol].FuncParamHasDefaultValues[arg_idx])
-        {
-            cc_error("Function call parameter # %d isn't provided and does not have a default value", arg_idx);
-            return -1;
-        }
-
-        // push the default value onto the stack
-        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[funcSymbol].FuncParamDefaultValues[arg_idx]);
-
-        if (func_is_import)
-            WriteCmd(SCMD_PUSHREAL, SREG_AX);
-        else
-            _scrip.push_reg(SREG_AX);
-    }
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
-{
-    size_t param_num = num_supplied_args + 1;
-    size_t start_of_this_param = 0;
-    int end_of_this_param = closedParenIdx;  // can become < 0, points to (last byte of parameter + 1)
-    // Go backwards through the parameters since they must be pushed that way
-    do
-    {
-        // Find the start of the next parameter
-        param_num--;
-        int paren_nesting_depth = 0;
-        for (size_t paramListIdx = end_of_this_param - 1; true; paramListIdx--)
-        {
-            // going backwards so ')' increases the depth level
-            const SymbolType idx_type = _sym.GetSymbolType(paramList[paramListIdx]);
-            if (idx_type == kSYM_CloseParenthesis)
-                paren_nesting_depth++;
-            if (idx_type == kSYM_OpenParenthesis)
-                paren_nesting_depth--;
-            if ((paren_nesting_depth == 0 && idx_type == kSYM_Comma) ||
-                (paren_nesting_depth < 0 && idx_type == kSYM_OpenParenthesis))
-            {
-                start_of_this_param = paramListIdx + 1;
-                break;
-            }
-            if (paramListIdx == 0)
-                break; // Don't put this into the for header!
-        }
-
-        if (end_of_this_param < static_cast<int>(start_of_this_param))
-        {
-            cc_error("Internal error: parameter length is negative");
-            return -99;
-        }
-
-        // Compile the parameter
-        ValueLocation vloc;
-        int scope;
-        AGS::Vartype vartype;
-
-        int retval = ParseExpression_Subexpr(&paramList[start_of_this_param], end_of_this_param - start_of_this_param, vloc, scope, vartype);
-        if (retval < 0) return retval;
-        retval = ResultToAX(vloc, scope, vartype);
-        if (retval < 0) return retval;
-
-        if (param_num <= num_func_args) // we know what type to expect
-        {
-            // If we need a string object ptr but AX contains a normal string, convert AX
-            Vartype const param_vartype = _sym[funcSymbol].FuncParamTypes[param_num];
-            ConvertAXStringToStringObject(param_vartype);
-            vartype = _scrip.ax_vartype;
-            // If we need a normal string but AX contains a string object ptr, 
-            // check that this ptr isn't null
-            DoNullCheckOnStringInAXIfNecessary(param_vartype);
-
-            if (IsVartypeMismatch(vartype, param_vartype, true))
-                return -1;
-        }
-
-        // Note: We push the parameters, which is tantamount to writing them
-        // into memory with SCMD_MEMWRITE. The called function will use them
-        // as local variables. However, if a parameter is managed, then its 
-        // memory must be written with SCMD_MEMWRITEPTR, not SCMD_MEMWRITE 
-        // as we do here. So to compensate, the called function will have to 
-        // read each pointer variable with SCMD_MEMREAD and then write it
-        // back with SCMD_MEMWRITEPTR.
-
-        if (func_is_import)
-            WriteCmd(SCMD_PUSHREAL, SREG_AX);
-        else
-            _scrip.push_reg(SREG_AX);
-
-        end_of_this_param = start_of_this_param - 1;
-    }
-    while (end_of_this_param > 0);
-
-    return 0;
-}
-
-// Count parameters, check that all the parameters are non-empty; find closing paren
-int AGS::ExpressionParser::AccessData_FunctionCall_CountAndCheckParams(const AGS::SymbolScript &paramList, size_t paramListLen, AGS::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args)
-{
-    size_t paren_nesting_depth = 1;
-    num_supplied_args = 1;
-    size_t paramListIdx;
-    bool found_param_symbol = false;
-
-    for (paramListIdx = 1; paramListIdx < paramListLen; paramListIdx++)
-    {
-        const SymbolType idx_type = _sym.GetSymbolType(paramList[paramListIdx]);
-
-        if (idx_type == kSYM_OpenParenthesis)
-            paren_nesting_depth++;
-        if (idx_type == kSYM_CloseParenthesis)
-        {
-            paren_nesting_depth--;
-            if (paren_nesting_depth == 0)
-                break;
-        }
-
-        if (paren_nesting_depth == 1 && idx_type == kSYM_Comma)
-        {
-            num_supplied_args++;
-            if (found_param_symbol)
-                continue;
-
-            cc_error("Argument %d in function call is empty", num_supplied_args - 1);
-            return -1;
-        }
-        found_param_symbol = true;
-    }
-
-    // Special case: "()" means 0 arguments
-    if (num_supplied_args == 1 &&
-        paramListLen > 1 &&
-        _sym.GetSymbolType(paramList[1]) == kSYM_CloseParenthesis)
-    {
-        num_supplied_args = 0;
-    }
-
-    indexOfCloseParen = paramListIdx;
-
-    if (_sym.GetSymbolType(paramList[indexOfCloseParen]) != kSYM_CloseParenthesis)
-    {
-        cc_error("Internal error: Missing ')' at the end of the parameter list");
-        return -1;
-    }
-
-    if (indexOfCloseParen > 0 &&
-        _sym.GetSymbolType(paramList[indexOfCloseParen - 1]) == kSYM_Comma)
-    {
-        cc_error("Last argument in function call is empty");
-        return -1;
-    }
-
-    if (indexOfCloseParen < paramListLen - 1 &&
-        _sym.GetSymbolType(paramList[indexOfCloseParen + 1]) != kSYM_Semicolon)
-    {
-        cc_error("Internal error: Unexpected symbols trailing the parameter list");
-        return -1;
-    }
-
-    if (paren_nesting_depth > 0)
-    {
-        cc_error("Internal error: Parser confused near '%s'", _sym.GetName(funcSymbol).c_str());
-        return -1;
-    }
-
-    return 0;
-}
-
-// We are processing a function call. General the actual function call
-void AGS::ExpressionParser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size_t num_args, bool func_is_import)
-{
-    if (func_is_import)
-    {
-        // tell it how many args for this call (nested imported functions
-        // cause stack problems otherwise)
-        WriteCmd(SCMD_NUMFUNCARGS, num_args);
-    }
-
-    // Call the function: Get address into AX
-    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
-
-    if (func_is_import)
-    {
-        _scrip.fixup_previous(kFx_Import);
-       if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
-            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
-         WriteCmd(SCMD_CALLEXT, SREG_AX); // do the call
-        // At runtime, we will arrive here when the function call has returned
-        // restore the stack
-        if (num_args > 0)
-            WriteCmd(SCMD_SUBREALSTACK, num_args);
-        return;
-    }
-
-    // Func is non-import
-    _scrip.fixup_previous(kFx_Code);
-    if (_fcm.IsForwardDecl(name_of_func))
-        _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
-    
-    WriteCmd(SCMD_CALL, SREG_AX);  // do the call
-
-    // At runtime, we will arrive here when the function call has returned
-    // restore the stack
-    if (num_args > 0)
-    {
-        _scrip.cur_sp -= num_args * 4;
-        WriteCmd(SCMD_SUB, SREG_SP, num_args * 4);
-    }
-}
-
-// We are processing a function call.
-// Get the parameters of the call and push them onto the stack.
-// Return the number of the parameters pushed
-int AGS::ExpressionParser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args)
-{
-    // Expected number of arguments, or expected minimal number of arguments
-    size_t const num_func_args = _sym[name_of_func].GetNumOfFuncParams();
-    bool const func_is_varargs = _sym[name_of_func].IsVarargsFunc();
-
-    size_t num_supplied_args = 0;
-    size_t indexOfClosedParen;
-    int retval = AccessData_FunctionCall_CountAndCheckParams(paramList, paramListLen, name_of_func, indexOfClosedParen, num_supplied_args);
-    if (retval < 0) return retval;
-
-    // Push default parameters onto the stack when applicable
-    // This will give an error if there aren't enough default parameters
-    if (num_supplied_args < num_func_args)
-    {
-        retval = AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
-        if (retval < 0) return retval;
-    }
-    if (num_supplied_args > num_func_args && !func_is_varargs)
-    {
-        cc_error("Expected just %d parameters but found %d", num_func_args, num_supplied_args);
-        return -1;
-    }
-    // ASSERT at this point, the number of parameters is okay
-
-    // Push the explicit arguments of the function
-    if (num_supplied_args > 0)
-    {
-        retval = AccessData_FunctionCall_PushParams(paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func, func_is_import);
-        if (retval < 0) return retval;
-    }
-
-    actual_num_args = std::max(num_supplied_args, num_func_args);
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::ExpressionParser::MemoryLocation &mloc, AGS::Vartype &rettype)
-{
-    if (_sym.GetSymbolType(symlist[1]) != kSYM_OpenParenthesis)
-    {
-        cc_error("Expected '('");
-        return -1;
-    }
-
-    AGS::SymbolScript paramList = symlist + 1;
-    size_t paramListLen = symlist_len - 1;
-
-    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
-    // If function uses normal stack, we need to do stack calculations to get at certain elements
-    bool const func_uses_normal_stack = !func_is_import;
-    bool func_uses_this = false;
-    if (std::string::npos != _sym.GetName(name_of_func).find("::"))
-        func_uses_this = !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static);
-
-    if (func_uses_this)
-    {
-        if (0 != _sym.GetVartype(_sym.GetThisSym()))
-            _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
-
-        // Get address of outer into MAR; that's what the func will use as its "this"
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-        _scrip.push_reg(SREG_MAR);
-    }
-
-    size_t num_args = 0;
-    int retval = AccessData_PushFunctionCallParams(name_of_func, func_is_import, paramList, paramListLen, num_args);
-    if (retval < 0) return retval;
-
-    if (func_uses_this)
-    {
-        if (0 == num_args)
-        {   // Undo unneeded PUSH
-            _scrip.cur_sp -= 4;
-            _scrip.codesize -= 2;
-        }
-        else
-        {
-            WriteCmd(
-                SCMD_LOADSPOFFS,
-                (func_uses_normal_stack ? num_args : 0) * 4 + 4);
-        }
-        WriteCmd(SCMD_CALLOBJ, SREG_MAR);
-    }
-
-    AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
-
-    // function return type
-    rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamTypes[0];
-    _scrip.ax_val_scope = kSYM_LocalVar;
-
-    // At runtime, we have returned from the func call,
-    // so we must continue with the object pointer that was in use before the call
-    if (func_uses_this)
-    {
-        if (0 < num_args)
-            _scrip.pop_reg(SREG_MAR);
-        if (0 != _sym.GetVartype(_sym.GetThisSym()))
-            _scrip.pop_reg(SREG_OP);
-    }
-
-    MarkAcessed(name_of_func);
-    return 0;
-}
-
-AGS::Symbol AGS::ExpressionParser::AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component)
-{
-    do
-    {
-        AGS::Symbol symb = MangleStructAndComponent(strct, component);
-        if (kSYM_NoType != _sym.GetSymbolType(symb))
-            return strct;
-        strct = _sym[strct].Extends;
-    }
-    while (strct > 0);
-    return 0;
-}
-
-AGS::Symbol AGS::ExpressionParser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbol component)
-{
-    do
-    {
-        AGS::Symbol ret = MangleStructAndComponent(strct, component);
-        if (kSYM_NoType != _sym.GetSymbolType(ret))
-            return ret;
-        strct = _sym[strct].Extends;
-    }
-    while (strct > 0);
-    return 0;
-}
-
-// We access a variable or a component of a struct in order to read or write it.
-// This is a simple member of the struct.
-int AGS::ExpressionParser::AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
-{
-    SymbolTableEntry &entry = _sym[component];
-
-    if (writing && FlagIsSet(entry.Flags, kSFLG_WriteProtected) && !access_via_this)
-    {
-        cc_error(
-            "Writeprotected component '%s' must not be modified from outside",
-            _sym.GetName(component).c_str());
-        return -1;
-    }
-    if (FlagIsSet(entry.Flags, kSFLG_Protected) && !access_via_this)
-    {
-        cc_error(
-            "Protected component '%s' must not be accessed from outside",
-            _sym.GetName(component).c_str());
-        return -1;
-    }
-
-    mloc.AddComponentOffset(entry.SOffset);
-    vartype = _sym.GetVartype(component);
-    symlist++;
-    symlist_len--;
-    return 0;
-}
-
-// We call the getter or setter of an attribute
-int AGS::ExpressionParser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    AGS::Symbol const component = symlist[0];
-    symlist++;  // eat component
-    symlist_len--; // eat component ct'd.
-    AGS::Symbol const struct_of_component =
-        AccessData_FindStructOfComponent(Vartype2Symbol(vartype), component);
-    if (0 == struct_of_component)
-    {
-        cc_error(
-            "Struct '%s' does not have an attribute named '%s'",
-            _sym.GetName(Vartype2Symbol(vartype)).c_str(),
-            _sym.GetName(component).c_str());
-        return -1;
-    }
-    AGS::Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
-
-    bool const attrib_uses_this =
-        !FlagIsSet(_sym.GetFlags(name_of_attribute), kSFLG_Static);
-    bool const call_is_indexed =
-        (symlist_len > 0 && kSYM_OpenBracket == _sym.GetSymbolType(symlist[0]));
-    bool const attrib_is_indexed =
-        _sym.IsDynarray(name_of_attribute);
-
-    if (call_is_indexed != attrib_is_indexed)
-    {
-        cc_error(call_is_indexed ? "Unexpected '['" : "'[' expected but not found");
-        return -1;
-    }
-
-    // Get the appropriate access function (as a symbol)
-    AGS::Symbol name_of_func = -1;
-    int retval = ConstructAttributeFuncName(component, is_attribute_set_func, attrib_is_indexed, name_of_func);
-    if (retval < 0) return retval;
-    name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
-    if (name_of_func < 0) return retval;
-
-    bool const func_is_import = FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Imported);
-
-    if (attrib_uses_this)
-        _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
-
-    size_t num_of_args = 0;
-    if (is_attribute_set_func)
-    {
-        if (func_is_import)
-            WriteCmd(SCMD_PUSHREAL, SREG_AX);
-        else
-            _scrip.push_reg(SREG_AX);
-        ++num_of_args;
-    }
-
-    if (call_is_indexed)
-    {
-        // The index to be set is in the [...] clause; push it as the first parameter
-        if (attrib_uses_this)
-            _scrip.push_reg(SREG_MAR); // must not be clobbered
-        retval = ParseIntExpression(&symlist[1], symlist_len - 2);
-        if (retval < 0) return retval;
-        symlist += symlist_len; // Eat the index
-        symlist_len = 0; // Eat the index, ct'd
-        if (attrib_uses_this)
-            _scrip.pop_reg(SREG_MAR);
-
-        if (func_is_import)
-            WriteCmd(SCMD_PUSHREAL, SREG_AX);
-        else
-            _scrip.push_reg(SREG_AX);
-        ++num_of_args;
-    }
-
-    if (attrib_uses_this)
-        WriteCmd(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
-
-    AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
-
-    if (attrib_uses_this)
-        _scrip.pop_reg(SREG_OP); // restore old this ptr after the func call
-
-    // attribute return type
-    _scrip.ax_val_scope = kSYM_LocalVar;
-    _scrip.ax_vartype = vartype = _sym.GetVartype(name_of_func);
-
-    MarkAcessed(name_of_func);
-    return 0;
-}
-
-// Location contains a pointer to another address. Get that address.
-int AGS::ExpressionParser::AccessData_Dereference(ValueLocation &vloc, AGS::ExpressionParser::MemoryLocation &mloc)
-{
-    if (kVL_ax_is_value == vloc)
-    {
-        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_mar_pointsto_value;
-        mloc.Reset();
-    }
-    else
-    {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-        // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
-        // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
-        WriteCmd(SCMD_MEMREADPTR, SREG_MAR);
-        WriteCmd(SCMD_CHECKNULL);
-    }
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::ExpressionParser::MemoryLocation &mloc)
-{
-    int array_index = -1;
-    int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
-    if (retval < 0) return retval;
-    if (array_index < 0)
-    {
-        cc_error("Array index %d out of bounds (minimum is 0)", array_index);
-        return -1;
-    }
-    if (num_array_elements > 0 && static_cast<size_t>(array_index) >= num_array_elements)
-    {
-        cc_error(
-            "Array index %d out of bounds (maximum is %d)",
-            array_index,
-            static_cast<int>(num_array_elements - 1));
-        return -1;
-    }
-
-    mloc.AddComponentOffset(array_index * element_size);
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::ExpressionParser::MemoryLocation &mloc)
-{
-    // Find end of current index
-    SymbolScript const this_index = symlist;
-    SymbolType const stoplist[] = { kSYM_Comma, kSYM_CloseBracket, };
-    size_t const stoplist_len = 2;
-    SkipToScript(stoplist, stoplist_len, symlist, symlist_len);
-    size_t const this_index_len = symlist - this_index;
-    if (0 == this_index_len)
-    {
-        cc_error("Empty array index is not supported");
-        return -1;
-    }
-
-    // If the index is a constant, process it at compile time
-    if (1 == this_index_len)
-    {
-        SymbolType const first_index_sym_type = _sym.GetSymbolType(this_index[0]);
-        if (kSYM_LiteralInt == first_index_sym_type || kSYM_Const == first_index_sym_type)
-            return AccessData_ProcessArrayIndexConstant(this_index[0], dim, factor, mloc);
-    }
-
-    // Save MAR from being clobbered if it may contain something important
-    // If nothing has been done, MAR can't have been set yet, so no need to remember it
-    bool mar_pushed = false;
-    if (!mloc.NothingDoneYet())
-    {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-        _scrip.push_reg(SREG_MAR);
-        mar_pushed = true;
-    }
-
-    int retval = ParseIntExpression(this_index, this_index_len);
-    if (retval < 0) return retval;
-
-    if (mar_pushed)
-        _scrip.pop_reg(SREG_MAR);
-    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-
-    // Note: DYNAMICBOUNDS compares the offset into the memory block;
-    // it mustn't be larger than the size of the allocated memory. 
-    // On the other hand, CHECKBOUNDS checks the index; it mustn't be
-    //  larger than the maximum given. So dynamic bounds must be checked
-    // after the multiplication; static bounds before the multiplication.
-    // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
-    if (!is_dynarray)
-        WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
-    if (factor != 1)
-        WriteCmd(SCMD_MUL, SREG_AX, factor);
-    if (is_dynarray)
-        WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
-    WriteCmd(SCMD_ADDREG, SREG_MAR, SREG_AX);
-    return 0;
-}
-
-// We're processing some struct component or global or local variable.
-// If an array index follows, parse it and shorten symlist accordingly
-int AGS::ExpressionParser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::ExpressionParser::MemoryLocation &mloc, AGS::Vartype &vartype)
-{
-    if (0 == symlist_len || kSYM_OpenBracket != _sym.GetSymbolType(symlist[0]))
-        return 0;
-
-    symlist++; // Eat '['
-    symlist_len--; // Eat '[' cont'd
-
-    bool const is_dynarray = _sym.IsDynarray(vartype);
-    bool const is_array = _sym.IsArray(vartype);
-    if (!is_dynarray && !is_array)
-    {
-        cc_error("Array index is only legal after an array");
-        return -1;
-    }
-
-    AGS::Vartype const element_vartype = _sym[vartype].vartype;
-    size_t const element_size = _sym.GetSize(element_vartype);
-    std::vector<size_t> dim_sizes;
-    std::vector<size_t> dynarray_dims = { 0, };
-    std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[vartype].Dims;
-    vartype = element_vartype;
-
-    if (is_dynarray)
-        AccessData_Dereference(vloc, mloc);
-
-    // Number of dimensions and the the size of the dimension for each dimension
-    size_t const num_of_dims = dims.size();
-    dim_sizes.resize(num_of_dims);
-    size_t factor = element_size;
-    for (int dim_idx = num_of_dims - 1; dim_idx >= 0; dim_idx--) // yes, "int"
-    {
-        dim_sizes[dim_idx] = factor;
-        factor *= dims[dim_idx];
-    }
-
-    for (size_t dim_idx = 0; dim_idx < num_of_dims; dim_idx++)
-    {
-        int retval = AccessData_ProcessCurrentArrayIndex(dims[dim_idx], dim_sizes[dim_idx], is_dynarray, symlist, symlist_len, mloc);
-        if (retval < 0) return retval;
-
-        SymbolType divider_sym_type = _sym.GetSymbolType(symlist[0]);
-        if (kSYM_CloseBracket != divider_sym_type && kSYM_Comma != divider_sym_type)
-        {
-            cc_error("Expected ',' or '] after array index");
-            return -1;
-        }
-        if (kSYM_CloseBracket == divider_sym_type)
-        {
-            symlist++; // Eat ']'
-            symlist_len--; // Eat ']' cont'd.
-            if (symlist_len > 0)
-                divider_sym_type = _sym.GetSymbolType(symlist[0]);
-        }
-        if (kSYM_Comma == divider_sym_type || kSYM_OpenBracket == divider_sym_type)
-        {
-            if (num_of_dims == dim_idx + 1)
-            {
-                cc_error("Expected %d indexes, found more", num_of_dims);
-                return -1;
-            }
-            symlist++; // Eat ',' or '['
-            symlist_len--; // Eat ',' or '[' cont'd
-            continue;
-        }
-        if (num_of_dims != dim_idx + 1)
-        {
-            cc_error("Expected %d indexes, but only found %d", num_of_dims, dim_idx + 1);
-            return -1;
-        }
-    }
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::ExpressionParser::MemoryLocation &mloc, AGS::Vartype &vartype)
-{
-    AGS::Symbol const varname = symlist[0];
-    SymbolTableEntry &entry = _sym[varname];
-    AGS::CodeCell const soffs = entry.SOffset;
-    symlist++;
-    symlist_len--;
-
-    if (writing && FlagIsSet(entry.Flags, kSFLG_Readonly))
-    {
-        cc_error("Cannot write to readonly '%s'", _sym.GetName(varname).c_str());
-        return -1;
-    }
-
-    if (FlagIsSet(_sym.GetFlags(varname), kSFLG_Imported))
-        mloc.SetStart(kSYM_Import, soffs);
-    else
-        mloc.SetStart(is_global ? kSYM_GlobalVar : kSYM_LocalVar, soffs);
-
-    vartype = _sym.GetVartype(varname);
-
-    // Process an array index if it follows
-    ValueLocation vl_dummy = kVL_mar_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(kVL_mar_pointsto_value, _sym.NumArrayElements(varname), symlist, symlist_len, vl_dummy, mloc, vartype);
-}
-
-int AGS::ExpressionParser::AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
-{
-    vartype = symlist[0];
-    symlist++;
-    symlist_len--;
-    mloc.Reset();
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    char *endptr;
-    std::string float_as_string = _sym.GetName(symlist[0]);
-    char const *instring = float_as_string.c_str();
-    double const d = strtod(instring, &endptr);
-    if (endptr != instring + _sym.GetName(symlist[0]).length())
-    {
-        cc_error("Illegal floating point literal '%s'", instring);
-        return -1;
-    }
-    if (HUGE_VAL == d)
-    {
-        cc_error("Floating point literal '%s' is out of range", instring);
-        return -1;
-    }
-    float const f = static_cast<float>(d * (negate ? -1 : 1));
-    int const i = InterpretFloatAsInt(f);
-
-    WriteCmd(SCMD_LITTOREG, SREG_AX, i);
-    _scrip.ax_vartype = vartype = _sym.GetFloatSym();
-    _scrip.ax_val_scope = kSYM_GlobalVar;
-    symlist++;
-    symlist_len--;
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    int varSymValue;
-    int retval = ParseLiteralOrConstvalue(symlist[0], varSymValue, negateLiteral, "Error parsing integer value");
-    if (retval < 0) return retval;
-    symlist++;
-    symlist_len--;
-
-    WriteCmd(SCMD_LITTOREG, SREG_AX, varSymValue);
-    _scrip.ax_vartype = vartype = _sym.GetIntSym();
-    _scrip.ax_val_scope = kSYM_GlobalVar;
-
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    if (negate)
-    {
-        cc_error("'-null' is undefined");
-        return -1;
-    }
-
-    WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
-    _scrip.ax_vartype = vartype = _sym.GetNullSym();
-    _scrip.ax_val_scope = kSYM_GlobalVar;
-    symlist++;
-    symlist_len--;
-
-    return 0;
-}
-
-int AGS::ExpressionParser::AccessData_String(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    if (negate)
-    {
-        cc_error("The negative value of a string is undefined");
-        return -1;
-    }
-
-    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[symlist[0]].SOffset);
-    _scrip.fixup_previous(kFx_String);
-    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.GetOldStringSym())
-        ;
-    symlist++;
-    symlist_len--;
-    return 0;
-}
-
-// Negates the value; this clobbers AX and BX
-void AGS::ExpressionParser::AccessData_Negate(ValueLocation vloc)
-{
-    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
-    if (kVL_mar_pointsto_value == vloc)
-        WriteCmd(SCMD_MEMREAD, SREG_AX);
-    WriteCmd(SCMD_SUBREG, SREG_BX, SREG_AX);
-    if (kVL_mar_pointsto_value == vloc)
-        WriteCmd(SCMD_MEMWRITE, SREG_BX);
-    else
-        WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-}
-
-// We're getting a variable, literal, constant, func call or the first element
-// of a STRUCT.STRUCT.STRUCT... cascade.
-// This moves symlist in all cases except for the cascade to the end of what is parsed,
-// and in case of a cascade, to the end of the first element of the cascade, i.e.,
-// to the position of the '.'. 
-int AGS::ExpressionParser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::ExpressionParser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate)
-{
-    if (symlist_len < 1)
-    {
-        cc_error("Internal error: Empty variable");
-        return -99;
-    }
-
-    // In many cases, we can handle the negation here, so we reset the flag.
-    // If we find that we _cannot_ handle negation later on, we'll undo that
-    bool const input_negate = need_to_negate;
-    need_to_negate = false;
-
-    if (_sym.GetThisSym() == symlist[0])
-    {
-        vartype = _sym.GetVartype(_sym.GetThisSym());
-        if (0 == vartype)
-        {
-            cc_error("'this' is only legal in non-static struct functions");
-            return -1;
-        }
-        vloc = kVL_mar_pointsto_value;
-        WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
-        WriteCmd(SCMD_CHECKNULL);
-        mloc.Reset();
-        access_via_this = true;
-        symlist++;
-        symlist_len--;
-        return 0;
-    }
-
-    switch (_sym.GetSymbolType(symlist[0]))
-    {
-    default:
-    {
-        // If this unknown symbol can be interpreted as a component of this,
-        // treat it that way.
-        vartype = _sym.GetVartype(_sym.GetThisSym());
-        AGS::Symbol const thiscomponent = MangleStructAndComponent(vartype, symlist[0]);
-        if (0 != _sym[thiscomponent].SType)
-        {
-            vloc = kVL_mar_pointsto_value;
-            WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
-            WriteCmd(SCMD_CHECKNULL);
-            mloc.Reset();
-            access_via_this = true;
-
-            // We _should_ prepend "this." to symlist here but can't do that (easily).
-            // So we don't and the '.' that should be prepended doesn't exist.
-            // To compensate for that, we back up symlist by one index
-            symlist--;
-            symlist_len++;
-            return 0;
-        }
-
-        cc_error("Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
-        return -1;
-    }
-
-    case kSYM_Constant:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_LitOrConst(input_negate, symlist, symlist_len, vartype);
-
-    case kSYM_Function:
-    {
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        need_to_negate = input_negate;
-        int retval = AccessData_FunctionCall(symlist[0], symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;
-        int const zero_array_size_dummy = 0; // A function cannot return a static array.
-        if (_sym.IsDynarray(vartype))
-            return AccessData_ProcessAnyArrayIndex(vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
-        return 0;
-    }
-
-    case kSYM_GlobalVar:
-    {
-        scope = kSYM_GlobalVar;
-        vloc = kVL_mar_pointsto_value;
-        bool const is_global = true;
-        need_to_negate = input_negate;
-        MarkAcessed(symlist[0]);
-        return AccessData_GlobalOrLocalVar(is_global, writing, symlist, symlist_len, mloc, vartype);
-    }
-
-    case kSYM_LiteralFloat:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_LitFloat(input_negate, symlist, symlist_len, vartype);
-
-    case kSYM_LiteralInt:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_LitOrConst(input_negate, symlist, symlist_len, vartype);
-
-    case kSYM_LiteralString:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_String(need_to_negate, symlist, symlist_len, vartype);
-
-    case kSYM_LocalVar:
-    {
-        scope =
-            (FlagIsSet(_sym.GetFlags(symlist[0]), kSFLG_Parameter)) ?
-            kSYM_GlobalVar : kSYM_LocalVar;
-        vloc = kVL_mar_pointsto_value;
-        bool const is_global = false;
-        need_to_negate = input_negate;
-        return AccessData_GlobalOrLocalVar(is_global, writing, symlist, symlist_len, mloc, vartype);
-    }
-
-    case kSYM_Null:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_Null(need_to_negate, symlist, symlist_len, vartype);
-
-    case kSYM_Vartype:
-        scope = kSYM_GlobalVar;
-        static_access = true;
-        need_to_negate = input_negate;
-        return AccessData_Static(symlist, symlist_len, mloc, vartype);
-    }
-
-    cc_error("Cannot assign a value to '%s'", _sym.GetName(symlist[0]).c_str());
-    return -1;
-}
-
-// We're processing a STRUCT.STRUCT. ... clause.
-// We've already processed some structs, and the type of the last one is vartype.
-// Now we process a component of vartype.
-int AGS::ExpressionParser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
-{
-    AGS::Symbol const component = AccessData_FindComponent(Vartype2Symbol(vartype), symlist[0]);
-    SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : kSYM_NoType;
-
-    if (static_access && !FlagIsSet(_sym.GetFlags(component), kSFLG_Static))
-    {
-        cc_error("Must specify a specific struct for this non-static component");
-        return -1;
-    }
-
-    int retval = 0;
-    switch (component_type)
-    {
-    default:
-        cc_error(
-            "Expected a component of '%s', found '%s' instead",
-            _sym.GetName(vartype).c_str(),
-            _sym.GetName(symlist[0]).c_str());
-        return -1;
-
-    case kSYM_Attribute:
-    {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip); // make MAR point to the struct of the attribute
-        if (writing)
-        {
-            // We cannot process the attribute here so return to the assignment that
-            // this attribute was originally called from
-            vartype = _sym.GetVartype(component);
-            vloc = kVL_attribute;
-            return 0;
-        }
-        vloc = kVL_ax_is_value;
-        bool const is_attribute_set_func = false;
-        return AccessData_Attribute(is_attribute_set_func, symlist, symlist_len, vartype);
-    }
-
-    case kSYM_Function:
-    {
-        vloc = kVL_ax_is_value;
-        scope = kSYM_LocalVar;
-        retval = AccessData_FunctionCall(component, symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;
-        int const zero_array_size_dummy = 0; // A function cannot return a static array.
-        if (_sym.IsDynarray(vartype))
-            return AccessData_ProcessAnyArrayIndex(vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
-        return 0;
-    }
-
-    case kSYM_StructComponent:
-        vloc = kVL_mar_pointsto_value;
-        retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;
-        return AccessData_ProcessAnyArrayIndex(vloc, _sym.NumArrayElements(component), symlist, symlist_len, vloc, mloc, vartype);
-    }
-
-    return 0; // Can't reach
-}
-
-// We are in a STRUCT.STRUCT.STRUCT... cascade.
-// Check whether we have passed the last dot
-int AGS::ExpressionParser::AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool &is_last)
-{
-    SymbolType const stoplist[] = { kSYM_Dot };
-    SkipToScript(stoplist, 1, symlist, symlist_len);
-    is_last = (0 == symlist_len || kSYM_Dot != _sym.GetSymbolType(symlist[0]));
-    return 0;
-}
-
-// In order to avoid push AX/pop AX, find out common cases that don't clobber AX
-bool AGS::ExpressionParser::AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len)
-{
-    if (kSYM_GlobalVar != _sym.GetSymbolType(symlist[0]) && kSYM_LocalVar != _sym.GetSymbolType(symlist[0]))
-        return true;
-
-    if (symlist_len == 1)
-        return false;
-
-    for (size_t symlist_idx = 0; symlist_idx < symlist_len - 3; symlist_idx += 2)
-    {
-        if (kSYM_Dot != _sym.GetSymbolType(symlist[symlist_idx + 1]))
-            return true;
-        AGS::Symbol const compo = MangleStructAndComponent(symlist[0], symlist[2]);
-        if (kSYM_StructComponent != _sym.GetSymbolType(compo))
-            return true;
-    }
-    return false;
-}
-
-// Insert Bytecode for:
-// Copy at most OLDSTRING_LENGTH-1 bytes from m[MAR...] to m[AX...]
-// Stop when encountering a 0
-void AGS::ExpressionParser::AccessData_StrCpy()
-{
-    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
-    WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
-    WriteCmd(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
-    AGS::CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
-    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
-    WriteCmd(SCMD_MEMREAD, SREG_AX);
-    WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
-    WriteCmd(SCMD_MEMWRITE, SREG_AX);
-    WriteCmd(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
-    AGS::CodeLoc const jumpout1_pos = _scrip.codesize - 1;
-    WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
-    WriteCmd(SCMD_ADD, SREG_CX, 1);
-    WriteCmd(SCMD_SUB, SREG_DX, 1);
-    WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX == 0) jumpto LOOP_END
-    WriteCmd(SCMD_JZ, 0);
-    AGS::CodeLoc const jumpout2_pos = _scrip.codesize - 1;
-    WriteCmd(
-        SCMD_JMP,
-        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
-    AGS::CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
-    _scrip.code[jumpout1_pos] = ccCompiledScript::RelativeJumpDist(jumpout1_pos, loop_end);
-    _scrip.code[jumpout2_pos] = ccCompiledScript::RelativeJumpDist(jumpout2_pos, loop_end);
-}
-
-// We are typically in an assignment LHS = RHS; the RHS has already been
-// evaluated, and the result of that evaluation is in AX.
-// Store AX into the memory location that corresponds to LHS, or
-// call the attribute function corresponding to LHS.
-int AGS::ExpressionParser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
-{
-    // AX contains the result of evaluating the RHS of the assignment
-    // Save on the stack so that it isn't clobbered
-    AGS::Vartype rhsvartype = _scrip.ax_vartype;
-    int rhsscope = _scrip.ax_val_scope;
-    // Save AX unless we are sure that it won't be clobbered
-    bool const may_clobber = AccessData_MayAccessClobberAX(symlist, symlist_len);
-    if (may_clobber)
-        _scrip.push_reg(SREG_AX);
-
-    bool const writing = true;
-    bool const negate_dummy = false; // when writing, this parameter is pointless
-    ValueLocation vloc;
-    AGS::Vartype lhsvartype;
-    int lhsscope;
-    int retval = AccessData(writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
-    if (retval < 0) return retval;
-    if (kVL_ax_is_value == vloc)
-    {
-        if (!_sym.IsManaged(lhsvartype))
-        {
-            cc_error("Cannot modify this value");
-            return -1;
-        }
-        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_mar_pointsto_value;
-    }
-
-    if (may_clobber)
-        _scrip.pop_reg(SREG_AX);
-    _scrip.ax_vartype = rhsvartype;
-    _scrip.ax_val_scope = rhsscope;
-
-    if (kVL_attribute == vloc)
-    {
-        // We need to call the attribute setter 
-        AGS::Vartype struct_of_attribute = lhsvartype;
-
-        bool const is_attribute_set_func = true;
-        return AccessData_Attribute(is_attribute_set_func, symlist, symlist_len, struct_of_attribute);
-    }
-
-    // MAR points to the value
-
-    if (_sym.GetOldStringSym() == lhsvartype && _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype))
-    {
-        // copy the string contents over.
-        AccessData_StrCpy();
-        return 0;
-    }
-
-    ConvertAXStringToStringObject(lhsvartype);
-    rhsvartype = _scrip.ax_vartype;
-    if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
-    {
-        cc_error(
-            "Cannot assign a type '%s' value to a type '%s' variable",
-            _sym.GetName(rhsvartype).c_str(),
-            _sym.GetName(lhsvartype).c_str());
-        return -1;
-    }
-
-    if (_sym.IsDyn(lhsvartype))
-        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
-    else
-        WriteCmd(
-            GetWriteCommandForSize(_sym.GetSize(lhsvartype)),
-            SREG_AX);
-    return 0;
-}
-
-// Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-// Result is in AX or m[MAR], dependent on vloc. Type is in vartype.
-// At end of function, symlist and symlist_len will point to the part of the symbol string
-// that has not been processed yet
-// NOTE: If this selects an attribute for writing, then the corresponding function will
-// _not_ be called and symlist[0] will be the attribute.
-int AGS::ExpressionParser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (symlist_len == 0)
-    {
-        cc_error("Internal error: empty expression");
-        return -99;
-    }
-    if (writing && need_to_negate)
-    {
-        cc_error("Can't apply unary minus to a value you are modifying");
-        return -1;
-    }
-
-    // For memory accesses, we set the MAR register lazily so that we can
-    // accumulate offsets at runtime instead of compile time.
-    // This struct tracks what we will need to do to set the MAR register.
-    MemoryLocation mloc = MemoryLocation();
-
-    bool clause_is_last = false;
-    int retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
-    if (retval < 0) return retval;
-
-    bool access_via_this = false; // only true when "this" has just been parsed
-    bool static_access = false; // only true when a vartype has just been parsed
-
-    // If we are reading, then all the accesses are for reading.
-    // If we are writing, then all the accesses except for the last one
-    // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause((writing && clause_is_last), symlist, symlist_len, vloc, scope, mloc, vartype, access_via_this, static_access, need_to_negate);
-    if (retval < 0) return retval;
-
-    AGS::Vartype outer_vartype = 0;
-
-    // Unfortunately, the while condition is ugly:
-    // Normally, the while body must be executed whenever symlist starts with a '.'.
-    // However, if the previous function has assumed a "this." that isn't there,
-    // then symlist won't start with a '.' but the while body must be executed anyway.
-    // This is why the while condition has "access_via_this" in it.
-    while (symlist_len > 0 && (kSYM_Dot == _sym.GetSymbolType(symlist[0]) || access_via_this))
-    {
-        ++symlist; // Eat '.'
-        if (0 == --symlist_len) // Eat '.' cnt'd.
-        {
-            cc_error("Expected struct component after '.' but did not find it");
-            return -1;
-        }
-        // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
-        // We accumulate mar_offset at compile time as long as possible to save computing.
-        outer_vartype = vartype;
-        if (!_sym.IsStruct(outer_vartype))
-        {
-            cc_error("Expected a struct before '.' but did not find it");
-            return -1;
-        }
-
-        // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
-        if (_sym.IsDynpointer(vartype))
-        {
-            retval = AccessData_Dereference(vloc, mloc);
-            if (retval < 0) return retval;
-            vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype);
-        }
-
-        retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
-        if (retval < 0) return retval;
-
-        // If we are reading, then all the accesses are for reading.
-        // If we are writing, then all the accesses except for the last one
-        // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, symlist, symlist_len, vloc, scope, mloc, vartype);
-        if (retval < 0) return retval;
-
-        // Only the _immediate_ access via 'this.' counts for this flag.
-        // This has passed now, so reset the flag.
-        access_via_this = false;
-        static_access = false; // Same for 'vartype.'
-    }
-
-    if (need_to_negate)
-        AccessData_Negate(vloc);
-
-    if (kVL_attribute == vloc)
-    {
-        // Caller will do the assignment
-        // For this to work, the caller must know the type of the struct
-        // in which the attribute resides
-        vartype = _sym.VartypeWithout(
-            kVTT_Const | kVTT_Dynarray | kVTT_Dynpointer,
-            outer_vartype);
-        return 0;
-    }
-
-    if (kVL_ax_is_value == vloc)
-    {
-        _scrip.ax_vartype = vartype;
-        _scrip.ax_val_scope = scope;
-        return 0;
-    }
-
-    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-    return 0;
-}
-
-
-int AGS::ExpressionParser::SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::SymbolType stoplist[], size_t stoplist_len, AGS::Symbol *&act_sym_ptr)
-{
-    int delimeter_nesting_depth = 0;
-
-    for (; act_sym_ptr != end_sym_ptr; act_sym_ptr++)
-    {
-        // Note that the scanner/tokenizer has already verified
-        // that all opening symbols get closed and 
-        // that we don't have (...] or similar in the input
-        Symbol const cursym = *act_sym_ptr;
-        SymbolType const curtype = _sym.GetSymbolType(cursym);
-        if (curtype == kSYM_OpenBrace ||
-            curtype == kSYM_OpenBracket ||
-            curtype == kSYM_OpenParenthesis)
-        {
-            ++delimeter_nesting_depth;
-            continue;
-        }
-        if (curtype == kSYM_CloseBrace ||
-            curtype == kSYM_CloseBracket ||
-            curtype == kSYM_CloseParenthesis)
-        {
-            if (--delimeter_nesting_depth < 0)
-                return 0;
-            continue;
-        }
-        if (0 < delimeter_nesting_depth)
-            continue;
-
-        for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
-            if (curtype == stoplist[stoplist_idx])
-                return 0;
-    }
-    return -1;
-}
-
-// Like SkipTo, but for symbol scripts
-int AGS::ExpressionParser::SkipToScript(const AGS::SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len)
-{
-    SymbolScript const end_ptr = symlist + symlist_len;
-    int retval = SkipToScript0(end_ptr, stoplist, stoplist_len, symlist);
-    symlist_len = end_ptr - symlist; // Get new length of the symbol script
-
-    return retval;
-}
-
-int AGS::ExpressionParser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len, int &idx)
-{
-    size_t nesting_depth = 0;
-
-    int largest_prio_found = INT_MIN; // note: largest number == lowest priority!
-    bool largest_is_binary = true;
-    int index_of_largest_prio = -1;
-    bool encountered_operand = false;
-
-    for (size_t slist_idx = 0; slist_idx < slist_len; slist_idx++)
-    {
-        SymbolType this_type = _sym.GetSymbolType(slist[slist_idx]);
-        switch (this_type)
-        {
-        default:
-            encountered_operand = true;
-            break;
-
-        case kSYM_New:
-        case kSYM_Operator:
-        case kSYM_Tern:
-            this_type = kSYM_Operator;
-            break;
-
-        case kSYM_CloseBracket:
-        case kSYM_CloseParenthesis:
-            encountered_operand = true;
-            if (nesting_depth > 0)
-                nesting_depth--;
-            continue;
-
-        case kSYM_OpenBracket:
-        case kSYM_OpenParenthesis:
-            nesting_depth++;
-            continue;
-        }
-
-        // Continue if we aren't at zero nesting depth, since ()[] take priority
-        if (nesting_depth > 0)
-            continue;
-
-        if (this_type != kSYM_Operator)
-            continue;
-
-        // a binary operator has an operand to its left
-        bool const is_binary = encountered_operand;
-        encountered_operand = false;
-
-        Symbol const this_op = slist[slist_idx];
-        int const this_prio =
-            is_binary ? _sym.BinaryOpPrio(this_op) : _sym.UnaryOpPrio(this_op);
-        if (this_prio < 0)
-        {
-            cc_error(
-                "'%s' cannot be used as %s operator",
-                _sym.GetName(this_op),
-                is_binary ? "binary" : "unary");
-            return -1;
-        }
-        if (this_prio < largest_prio_found)
-            continue; // can't be lowest priority
-
-        // remember this and continue looking
-        largest_prio_found = this_prio;
-        index_of_largest_prio = slist_idx;
-        largest_is_binary = is_binary;
-    }
-
-    // unary operators are prefix, so if the least binding operator
-    // turns out to be unary and not in first position, it must be
-    // a chain of unary operators and the first should be evaluated
-    // first
-    idx = largest_is_binary ? index_of_largest_prio : 0;
-    return 0;
-}
-
-int AGS::ExpressionParser::ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len)
-{
-    if (symlist_len >= 2)
-    {
-        Vartype const new_vartype = symlist[1];
-        if (_sym.GetSymbolType(new_vartype) == kSYM_Vartype)
-            return 0;
-
-        if (_sym.GetSymbolType(new_vartype) == kSYM_UndefinedStruct)
-        {
-            cc_error(
-                "The struct %s hasn't been completely defined yet",
-                _sym.GetName(new_vartype).c_str());
-            return -1;
-        }
-
-        if (!_sym.IsPrimitive(new_vartype) && !_sym.IsManaged(new_vartype))
-        {
-            cc_error("Can only use primitive or managed types with 'new'");
-            return -1;
-        }
-
-        if (_sym.IsBuiltin(new_vartype))
-        {
-            cc_error(
-                "Built-in type '%s' cannot be instantiated directly",
-                _sym.GetName(new_vartype).c_str());
-            return -1;
-        }
-
-        return 0;
-    }
-
-    cc_error("Expected a type after 'new'");
-    return -1;
-}
-
-int AGS::ExpressionParser::ParseExpression_New(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    int retval = ParseExpression_CheckArgOfNew(symlist, symlist_len);
-    if (retval < 0) return retval;
-
-    Vartype const new_vartype = vartype = symlist[1];
-
-    if (symlist_len <= 3) // "new VARTYPE", nothing following
-    {
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-        const size_t size = _sym.GetSize(new_vartype);
-        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, size);
-        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
-        _scrip.ax_vartype = vartype;
-        vloc = kVL_ax_is_value;
-        return 0;
-    }
-
-    // new VARTYPE[...]
-    if (kSYM_OpenBracket == _sym.GetSymbolType(symlist[2]) && kSYM_CloseBracket == _sym.GetSymbolType(symlist[symlist_len - 1]))
-    {
-        bool const is_managed = !_sym.IsPrimitive(new_vartype);
-        int const element_size = _sym.GetSize(new_vartype);
-
-        // Expression for length of array begins after "[", ends before "]"
-        // So expression_length = whole_length - 3 - 1
-        retval = ParseIntExpression(&symlist[3], symlist_len - 4);
-        if (retval < 0) return retval;
-
-        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
-
-        if (is_managed)
-            vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-        vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
-        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
-        _scrip.ax_vartype = vartype;
-        vloc = kVL_ax_is_value;
-        return 0;
-    }
-
-    cc_error("Unexpected characters following 'new %s'", _sym.GetName(symlist[1]).c_str());
-    return -1;
-}
-
-// We're parsing an expression that starts with '-' (unary minus)
-int AGS::ExpressionParser::ParseExpression_UnaryMinus(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    ++symlist; // Eat '-'
-    --symlist_len; // Eat '-' cont'd.
-
-    if (symlist_len < 1)
-    {
-        cc_error("Parse error at '-'");
-        return -1;
-    }
-    if (symlist_len == 1)
-    {
-        SymbolType const stype = _sym.GetSymbolType(symlist[0]);
-        if (kSYM_Constant == stype || kSYM_LiteralInt == stype)
-            return AccessData_LitOrConst(true, symlist, symlist_len, vartype);
-    };
-    // parse the rest of the expression into AX
-    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
-    if (retval < 0) return retval;
-    retval = ResultToAX(vloc, scope, vartype);
-    if (retval < 0) return retval;
-
-    // now, subtract the result from 0 (which negates it)
-    int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.GetIntSym(), cpuOp);
-    if (retval < 0) return retval;
-
-    WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
-    WriteCmd(cpuOp, SREG_BX, SREG_AX);
-    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_ax_is_value;
-    return 0;
-}
-
-// We're parsing an expression that starts with '!' (boolean NOT)
-int AGS::ExpressionParser::ParseExpression_Not(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (symlist_len < 2)
-    {
-        cc_error("Parse error at '!'");
-        return -1;
-    }
-
-    // parse the rest of the expression
-    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1, vloc, scope, vartype);
-    if (retval < 0) return retval;
-    retval = ResultToAX(vloc, scope, vartype);
-    if (retval < 0) return retval;
-
-    // negate the result
-    // First determine the correct bytecode for the negation
-    int cpuOp = SCMD_NOTREG;
-    retval = GetOperatorValidForVartype(_scrip.ax_vartype, 0, cpuOp);
-    if (retval < 0) return retval;
-
-    // now, NOT the result
-    WriteCmd(cpuOp, SREG_AX);
-    vloc = kVL_ax_is_value;
-    return 0;
-}
-
-// The least binding operator is the first thing in the expression
-// This means that the op must be an unary op.
-int AGS::ExpressionParser::ParseExpression_Unary(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (kSYM_New == _sym.GetSymbolType(symlist[0]))
-    {
-        // we're parsing something like "new foo"
-        return ParseExpression_New(symlist, symlist_len, vloc, scope, vartype);
-    }
-
-    int const opcode = _sym.GetOperatorOpcode(symlist[0]);
-    if (SCMD_SUBREG == opcode)
-    {
-        // we're parsing something like "- foo"
-        return ParseExpression_UnaryMinus(symlist, symlist_len, vloc, scope, vartype);
-    }
-
-    if (SCMD_NOTREG == opcode)
-    {
-        // we're parsing something like "! foo"
-        return ParseExpression_Not(symlist, symlist_len, vloc, scope, vartype);
-    }
-
-    // All the other operators need a non-empty left hand side
-    cc_error("Unexpected operator '%s' without a preceding expression", _sym.GetName(symlist[0]).c_str());
-    return -1;
-}
-
-// The least binding operator is '?'
-int AGS::ExpressionParser::ParseExpression_Tern(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    SymbolScript const term1list = symlist;
-    size_t term1list_len = op_idx;
-    SymbolScript const term2list = symlist + op_idx + 1;
-    size_t term2list_len = symlist_len - op_idx - 1;
-
-    // Find beginning of third term
-    SymbolScript  term3list = term2list;
-    size_t term3list_len = term2list_len;
-    SymbolType const stoplist[] = { kSYM_Label, };
-    size_t stoplist_len = 1;
-    SkipToScript(stoplist, stoplist_len, term3list, term3list_len);
-    if (0 == term3list_len || kSYM_Label != _sym.GetSymbolType(*term3list))
-    {
-        cc_error("Didn't find the matching ':' to a '?'");
-        return -1;
-    }
-    term2list_len = term3list - term2list;
-    term3list++; // Eat ':'
-    term3list_len--; // Eat ':' cont'd
-
-    Vartype term1_vartype, term2_vartype, term3_vartype;
-    int term1_scope, term2_scope, term3_scope;
-
-    // First term of ternary
-    int retval = ParseExpression_Subexpr(term1list, term1list_len, vloc, term1_scope, term1_vartype);
-    if (retval < 0) return retval;
-    ResultToAX(vloc, term1_scope, term1_vartype);
-
-    // We jump either to the start of the third term or to the end of the ternary
-    // expression. We don't know where this is yet, thus -77. This is just a
-    // random number that's easy to spot in debugging outputs (where it's a clue
-    // that it probably hasn't been replaced by a proper value). Don't use for anything.
-    WriteCmd(
-        (term2list_len > 0) ? SCMD_JZ : SCMD_JNZ,
-        -77);
-    ForwardJump test_jumpdest(_scrip);
-    test_jumpdest.AddParam();
-
-    // Second term of ternary
-    bool const second_term_exists = (term2list_len > 0);
-    if (second_term_exists)
-    {
-        retval = ParseExpression_Subexpr(term2list, term2list_len, vloc, scope, term2_vartype);
-        if (retval < 0) return retval;
-        ResultToAX(vloc, term2_scope, term2_vartype);
-        if (_sym.IsAnyTypeOfString(term2_vartype))
-        {
-            ConvertAXStringToStringObject(_sym.GetStringStructSym());
-            term2_vartype = _scrip.ax_vartype;
-        }
-        // Jump to the end of the ternary expression;
-        // We don't know the dest yet, thus the placeholder value -77. Don't
-        // test for this random magic number or use it in code
-        WriteCmd(SCMD_JMP, -77);
-    }
-    else
-    {
-        // Take the first expression as the result of the missing second expression
-        // No code is generated; instead, the conditional jump after the test goes
-        // to the end of the expression if the test does NOT yield zero
-        term2_vartype = term1_vartype;
-        term2_scope = term1_scope;
-        if (_sym.IsAnyTypeOfString(term2_vartype))
-        {
-            ConvertAXStringToStringObject(_sym.GetStringStructSym());
-            term2_vartype = _scrip.ax_vartype;
-        }
-    }
-    ForwardJump jumpdest_after_term2(_scrip); // only valid if second_term_exists
-    jumpdest_after_term2.AddParam();
-
-    // Third term of ternary
-    if (0 == term3list_len)
-    {
-        cc_error("The third expression of this ternary is empty");
-        return -1;
-    }
-    if (second_term_exists)
-        test_jumpdest.Patch(_src.GetLineno());
-
-    retval = ParseExpression_Subexpr(term3list, term3list_len, vloc, term3_scope, term3_vartype);
-    if (retval < 0) return retval;
-    ResultToAX(vloc, term3_scope, term3_vartype);
-    if (_sym.IsAnyTypeOfString(term3_vartype))
-    {
-        ConvertAXStringToStringObject(_sym.GetStringStructSym());
-        term3_vartype = _scrip.ax_vartype;
-    }
-
-    if (second_term_exists)
-        jumpdest_after_term2.Patch(_src.GetLineno());
-    else
-        test_jumpdest.Patch(_src.GetLineno());
-
-    scope =
-        (kSYM_LocalVar == term2_scope || kSYM_LocalVar == term3_scope) ?
-        kSYM_LocalVar : kSYM_GlobalVar;
-
-    if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
-    {
-        vartype = _scrip.ax_vartype = term3_vartype;
-        return 0;
-    }
-    if (!IsVartypeMismatch_Oneway(term3_vartype, term2_vartype))
-    {
-        vartype = _scrip.ax_vartype = term2_vartype;
-        return 0;
-    }
-    cc_error("An expression of type '%s' is incompatible with an expression of type '%s'",
-        _sym.GetName(term2_vartype).c_str(), _sym.GetName(term3_vartype).c_str());
-    return -1;
-}
-
-// The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int AGS::ExpressionParser::ParseExpression_Binary(size_t op_idx, AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (kSYM_Tern == _sym.GetSymbolType(symlist[op_idx]))
-        return ParseExpression_Tern(op_idx, symlist, symlist_len, vloc, scope, vartype);
-
-    int vcpuOperator = _sym.GetOperatorOpcode(symlist[op_idx]);
-
-    // process the left hand side
-    // This will be in vain if we find out later on that there isn't any right hand side,
-    // but doing the left hand side first means that any errors will be generated from left to right
-    AGS::Vartype vartype_lhs = 0;
-    int retval = ParseExpression_Subexpr(&symlist[0], op_idx, vloc, scope, vartype_lhs);
-    if (retval < 0) return retval;
-    retval = ResultToAX(vloc, scope, vartype_lhs);
-    if (retval < 0) return retval;
-
-    if (op_idx + 1 >= symlist_len)
-    {
-        // there is no right hand side for the expression
-        cc_error("Parse error: invalid use of operator '%s'", _sym.GetName(symlist[op_idx]).c_str());
-        return -1;
-    }
-
-    ForwardJump to_exit(_scrip);
-    if (SCMD_AND == vcpuOperator)
-    {
-        // "&&" operator lazy evaluation ... 
-        // if AX is 0 then the AND has failed, 
-        // so just jump directly past the AND instruction;
-        // AX will still be 0 so that will do as the result of the calculation
-        WriteCmd(SCMD_JZ, -77);
-        // We don't know the end of the instruction yet, so remember the location we need to patch
-        to_exit.AddParam();
-    }
-    else if (SCMD_OR == vcpuOperator)
-    {
-        // "||" operator lazy evaluation ... 
-        // if AX is non-zero then the OR has succeeded, 
-        // so just jump directly past the OR instruction; 
-        // AX will still be non-zero so that will do as the result of the calculation
-        WriteCmd(SCMD_JNZ, -77);
-        // We don't know the end of the instruction yet, so remember the location we need to patch
-        to_exit.AddParam();
-    }
-
-    _scrip.push_reg(SREG_AX);
-    retval = ParseExpression_Subexpr(&symlist[op_idx + 1], symlist_len - (op_idx + 1), vloc, scope, vartype);
-    if (retval < 0) return retval;
-    retval = ResultToAX(vloc, scope, vartype);
-    if (retval < 0) return retval;
-    _scrip.pop_reg(SREG_BX); // <-- note, we pop to BX although we have pushed AX
-    // now the result of the left side is in BX, of the right side is in AX
-
-    // Check whether the left side type and right side type match either way
-    retval = IsVartypeMismatch(vartype_lhs, vartype, false);
-    if (retval < 0) return retval;
-
-    retval = GetOperatorValidForVartype(vartype_lhs, vartype, vcpuOperator);
-    if (retval < 0) return retval;
-
-    WriteCmd(vcpuOperator, SREG_BX, SREG_AX);
-    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_ax_is_value;
-
-    to_exit.Patch(_src.GetLineno());
-
-    // Operators like == return a bool (in our case, that's an int);
-    // other operators like + return the type that they're operating on
-    if (IsBooleanVCPUOperator(vcpuOperator))
-        _scrip.ax_vartype = vartype = _sym.GetIntSym();
-    return 0;
-}
-
-int AGS::ExpressionParser::ParseExpression_OpenParenthesis(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    int matching_paren_idx = -1;
-    size_t paren_nesting_depth = 1; // we've already read a '('
-    // find the corresponding closing parenthesis
-    for (size_t idx = 1; idx < symlist_len; idx++)
-    {
-        switch (_sym.GetSymbolType(symlist[idx]))
-        {
-        default:
-            continue;
-
-        case kSYM_OpenParenthesis:
-            paren_nesting_depth++;
-            continue;
-
-        case kSYM_CloseParenthesis:
-            if (--paren_nesting_depth > 0)
-                continue;
-
-            matching_paren_idx = idx; // found the index of the matching ')'
-            break;
-        }
-
-        break;
-    }
-
-    if (matching_paren_idx < 0)
-    {
-        cc_error("Internal error: Open parenthesis does not have a matching close parenthesis");
-        return -1;
-    }
-
-    if (matching_paren_idx <= 1)
-    {
-        cc_error("Unexpected \"()\"");
-        return -1;
-    }
-
-    // Recursively compile the subexpression
-    int retval = ParseExpression_Subexpr(&symlist[1], matching_paren_idx - 1, vloc, scope, vartype);
-    if (retval < 0) return retval;
-
-    symlist += matching_paren_idx + 1;
-    symlist_len -= matching_paren_idx + 1;
-    if (symlist_len > 0)
-    {
-        // there is some code after the ')'
-        // this should not be possible unless the user does
-        // something like "if ((x) 1234)", i.e. with an operator missing
-        cc_error("Parse error: operator expected");
-        return -1;
-    }
-    return 0;
-}
-
-int AGS::ExpressionParser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (kSYM_OpenParenthesis == _sym.GetSymbolType(symlist[0]))
-        return ParseExpression_OpenParenthesis(symlist, symlist_len, vloc, scope, vartype);
-
-    if (kSYM_Operator != _sym.GetSymbolType(symlist[0]))
-        return AccessData(false, false, symlist, symlist_len, vloc, scope, vartype);
-
-    // The operator at the beginning must be a unary minus
-    if (SCMD_SUBREG == _sym.GetOperatorOpcode(symlist[0]))
-    {
-        size_t len_minus_1 = symlist_len - 1;
-        SymbolScript symlist1 = symlist + 1;
-        return AccessData(false, true, symlist1, len_minus_1, vloc, scope, vartype);
-    }
-    cc_error("Unexpected '%s'", _sym.GetName(symlist[0]).c_str());
-    return -1;
-}
-
-int AGS::ExpressionParser::HandleStructOrArrayResult(AGS::Vartype &vartype, ValueLocation &vloc)
-{
-    if (_sym.IsArray(vartype))
-    {
-        cc_error("Cannot access array as a whole (did you forget to add \"[0]\"?)");
-        return -1;
-    }
-
-    if (_sym.IsAtomic(vartype) && _sym.IsStruct(vartype))
-    {
-        if (_sym.IsManaged(vartype))
-        {
-            // Interpret the memory address as the result
-            vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-            WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-            vloc = kVL_ax_is_value;
-            _scrip.ax_vartype = vartype;
-            return 0;
-        }
-
-        cc_error("Cannot access non-managed struct as a whole");
-        return -1;
-    }
-
-    return 0;
-}
-
-int AGS::ExpressionParser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
-{
-    if (symlist_len == 0)
-    {
-        cc_error("Internal error: Cannot parse empty subexpression");
-        return -99;
-    }
-    SymbolType const stype = _sym.GetSymbolType(symlist[0]);
-    if (kSYM_CloseParenthesis == stype || kSYM_CloseBracket == stype || kSYM_CloseBrace == stype)
-    {   // Shouldn't happen: the scanner sees to it that nesting symbols match
-        cc_error(
-            "Internal error: Unexpected '%s' at start of expression",
-            _sym.GetName(symlist[0]).c_str());
-        return -99;
-    }
-
-    int least_binding_op_idx;
-    int retval = IndexOfLeastBondingOperator(symlist, symlist_len, least_binding_op_idx);  // can be < 0
-    if (retval < 0) return retval;
-
-    if (0 == least_binding_op_idx)
-        retval = ParseExpression_Unary(symlist, symlist_len, vloc, scope, vartype);
-    else if (0 < least_binding_op_idx)
-        retval = ParseExpression_Binary(static_cast<size_t>(least_binding_op_idx), symlist, symlist_len, vloc, scope, vartype);
-    else
-        retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
-    if (retval < 0) return retval;
-    return HandleStructOrArrayResult(vartype, vloc);
-}
-
-// Read the symbols of an expression and buffer them into expr_script
-// At end of routine, the cursor will be positioned in such a way
-// that _src.GetNext() will get the symbol after the expression
-int AGS::ExpressionParser::BufferExpression(ccInternalList &expr_script)
-{
-    int nesting_depth = 0;
-
-    // The ':' in an "a ? b : c" construct can also be the end of a label, and in AGS,
-    // expressions are allowed for labels. So we must take care that label ends aren't
-    // mistaken for expression parts. For this, tern_depth counts the number of
-    // unmatched '?' on the outer level. If this is non-zero, then any arriving 
-    // ':' will be interpreted as part of a ternary.
-    int tern_depth = 0;
-
-    AGS::Symbol peeksym;
-    while (0 <= (peeksym = _src.PeekNext())) // note assignment in while condition
-    {
-        size_t const cursor = _src.GetCursor(); // for backing up if necessary
-
-        // Skip over parts that are enclosed in braces, brackets, or parens
-        SymbolType const peektype = _sym.GetSymbolType(peeksym);
-        if (kSYM_OpenParenthesis == peektype || kSYM_OpenBracket == peektype || kSYM_OpenBrace == peektype)
-            ++nesting_depth;
-        else if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
-            if (--nesting_depth < 0)
-                break; // this symbol can't be part of the current expression
-        if (nesting_depth != 0)
-        {
-            expr_script.write(_src.GetNext());
-            continue;
-        }
-
-        if (kSYM_Dot == peektype)
-        {
-            expr_script.write(_src.GetNext()); // '.'
-            // Eat and write next symbol, is a component name
-            if (_src.PeekNext() > 0)
-                expr_script.write(_src.GetNext());
-            continue;
-        }
-        else if (kSYM_Label == peektype)
-        {
-            if (--tern_depth >= 0)
-            {
-                expr_script.write(_src.GetNext());
-                continue; // ':'
-            }
-        }
-        else if (kSYM_New == peektype)
-        {
-            // This is only allowed if a type follows
-            _src.GetNext(); // Eat 'new'
-            AGS::Symbol const nextnextsym = _src.GetNext();
-            SymbolType const nextnexttype = _sym.GetSymbolType(nextnextsym);
-            if (kSYM_Vartype == nextnexttype || kSYM_UndefinedStruct == nextnexttype)
-            {
-                expr_script.write(peeksym);
-                expr_script.write(nextnextsym);
-                continue;
-            }
-            _src.SetCursor(cursor); // Back up so that 'new' is still unread
-            break;
-        }
-        else if (kSYM_Tern == peektype)
-        {
-            tern_depth++;
-        }
-        else if (kSYM_Vartype == peektype)
-        {
-            // This is only allowed if a dot follows
-            _src.GetNext(); // Eat the vartype
-            AGS::Symbol const nextsym = _src.GetNext();
-            if (kSYM_Dot == _sym.GetSymbolType(nextsym))
-            {
-                expr_script.write(peeksym);
-                expr_script.write(nextsym);
-                continue;
-            }
-            _src.SetCursor(cursor); // Back up so that the vartype is still unread
-            break;
-        }
-
-        // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
-        // be part of an expression
-        if (peektype >= NOTEXPRESSION)
-            break;
-
-        expr_script.write(_src.GetNext());
-    }
-
-    if (expr_script.length <= 0)
-    {
-        cc_error("Internal error: Empty expression");
-        return -1;
-    }
-    if (nesting_depth > 0)
-    {
-        cc_error("Unexpected '%s' in expression", _sym.GetName(peeksym).c_str());
-        return -1;
-    }
-
-    return 0;
-}
-
-AGS::ExpressionParser::ExpressionParser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)
-    : Parser(symt, src, scrip)
-{ }
-
-// evaluate the supplied expression, putting the result into AX
-// returns 0 on success or -1 if compile error
-// leaves targ pointing to last token in expression, so do getnext() to get the following ; or whatever
-int AGS::ExpressionParser::ParseExpression()
-{
-    ccInternalList expr_script;
-    int retval = BufferExpression(expr_script);
-    if (retval < 0) return retval;
-
-    ValueLocation vloc;
-    int scope;
-    Vartype vartype;
-
-    // we now have the expression in expr_script, parse it
-    retval = ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
-    if (retval < 0) return retval;
-
-    return ResultToAX(vloc, scope, vartype);
-}
-
-int AGS::ExpressionParser::ParseParenthesizedExpression()
-{
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenParenthesis)
-    {
-        cc_error("Expected '('");
-        return -1;
-    }
-    int retval = ParseExpression();
-    if (retval < 0) return retval;
-
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_CloseParenthesis)
-    {
-        cc_error("Expected ')'");
-        return -1;
-    }
-    return 0;
-}
-
-// symlist starts a sequence of bracketed expressions; parse it
-int AGS::ExpressionParser::ParseIntExpression(SymbolScript symlist, size_t symlist_len)
-{
-    ValueLocation vloc;
-    int scope;
-    AGS::Vartype vartype;
-    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
-    if (retval < 0) return retval;
-    retval = ResultToAX(vloc, scope, vartype);
-    if (retval < 0) return retval;
-
-    return IsVartypeMismatch(vartype, _sym.GetIntSym(), true);
-}
-
 // Scan inpl into scan tokens, build a symbol table
 int cc_scan(char const *inpl, SrcList *src, ccCompiledScript *scrip, SymbolTable *sym)
 {
@@ -6624,153 +6734,3 @@ int cc_compile(char const *inpl, ccCompiledScript *scrip)
     return cc_parse(&src, scrip, &sym);
 }
 
-// We are parsing the left hand side of a += or similar statement.
-int AGS::ExpressionParser::ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, AGS::Vartype &lhstype)
-{
-    int scope;
-    size_t lhs_length = (lhs->length < 0) ? 0 : lhs->length;
-    AGS::SymbolScript lhs_script = lhs->script;
-    bool const negative = false; // LHS can't start with a unary minus
-    bool const writing = false; // reading access
-    int retval = AccessData(writing, negative, lhs_script, lhs_length, vloc, scope, lhstype);
-    if (retval < 0) return retval;
-    if (lhs_length > 0)
-    {
-        cc_error("Internal error: Unexpected symbols following expression");
-        return -99;
-    }
-
-    if (kVL_mar_pointsto_value == vloc)
-    {
-        // write memory to AX
-        _scrip.ax_vartype = lhstype;
-        _scrip.ax_val_scope = scope;
-        WriteCmd(
-            GetReadCommandForSize(_sym.GetSize(lhstype)),
-            SREG_AX);
-    }
-    return 0;
-}
-
-// "var = expression"; lhs is the variable
-int AGS::ExpressionParser::ParseAssignment_Assign(ccInternalList const *lhs)
-{
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseExpression(); // RHS of the assignment
-    if (retval < 0) return retval;
-    return AccessData_Assign(lhs->script, lhs->length);
-}
-
-// We compile something like "var += expression"
-int AGS::ExpressionParser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs)
-{
-    // Parse RHS
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    int retval = ep.ParseExpression();
-    if (retval < 0) return retval;
-    _scrip.push_reg(SREG_AX);
-    AGS::Vartype rhsvartype = _scrip.ax_vartype;
-
-    // Parse LHS
-    ValueLocation vloc;
-    AGS::Vartype lhsvartype;
-    retval = ParseAssignment_ReadLHSForModification(lhs, vloc, lhsvartype);
-    if (retval < 0) return retval;
-
-    // Use the operator on LHS and RHS
-    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
-    retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
-    if (retval < 0) return retval;
-    _scrip.pop_reg(SREG_BX);
-    WriteCmd(cpuOp, SREG_AX, SREG_BX);
-
-    if (kVL_mar_pointsto_value == vloc)
-    {
-        // write AX back to memory
-        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
-        WriteCmd(memwrite, SREG_AX);
-        return 0;
-    }
-    return AccessData_Assign(lhs->script, lhs->length);
-}
-
-// "var++" or "var--"
-int AGS::ExpressionParser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs)
-{
-    ValueLocation vloc;
-    AGS::Vartype lhsvartype;
-    int retval = ParseAssignment_ReadLHSForModification(lhs, vloc, lhsvartype);
-    if (retval < 0) return retval;
-
-    // increment or decrement AX, using the correct opcode
-    int cpuOp = _sym.GetOperatorOpcode(ass_symbol);
-    retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
-    if (retval < 0) return retval;
-    WriteCmd(cpuOp, SREG_AX, 1);
-
-    if (kVL_mar_pointsto_value == vloc)
-    {
-        // write AX back to memory
-        AGS::Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
-        WriteCmd(memwrite, SREG_AX);
-        return 0;
-    }
-
-    return ParseAssignment_Assign(lhs);
-}
-
-// We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
-// An assignment symbol is following. Compile the assignment.
-int AGS::ExpressionParser::ParseAssignment(AGS::Symbol ass_symbol, ccInternalList const *lhs)
-{
-    switch (_sym.GetSymbolType(ass_symbol))
-    {
-    default: // can't happen
-        cc_error("Internal error: Illegal assignment symbol found");
-        return -99;
-
-    case kSYM_Assign:
-        return ParseAssignment_Assign(lhs);
-
-    case kSYM_AssignMod:
-        return ParseAssignment_MAssign(ass_symbol, lhs);
-
-    case kSYM_AssignSOp:
-        return ParseAssignment_SAssign(ass_symbol, lhs);
-    }
-}
-
-// We're compiling function body code; the code does not start with a keyword or type.
-// Thus, we should be at the start of an assignment or a funccall. Compile it.
-int AGS::ExpressionParser::ParseAssignmentOrFunccall()
-{
-    SrcList &expression_src = SrcList(_src, _src.GetCursor());
-    ExpressionParser ep = ExpressionParser(_sym, expression_src, _scrip);
-    ccInternalList expr_script;
-    int retval = ep.BufferExpression(expr_script);
-    expr_script.startread();
-    if (retval < 0) return retval;
-    _src.AddCursor(expression_src.GetCursor());
-
-    AGS::Symbol nextsym = _src.PeekNext();
-    SymbolType const nexttype = _sym.GetSymbolType(nextsym);
-
-    if (expr_script.length > 0)
-    {
-        if (nexttype == kSYM_Assign || nexttype == kSYM_AssignMod || nexttype == kSYM_AssignSOp)
-        {
-            _src.GetNext();
-            return ParseAssignment(nextsym, &expr_script);
-        }
-        ValueLocation vloc;
-        int scope;
-        AGS::Vartype vartype;
-        retval = ep.ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
-        if (retval < 0) return retval;
-        return ResultToAX(vloc, scope, vartype);
-    }
-    cc_error("Unexpected symbol '%s'", _sym.GetName(nextsym).c_str());
-    return -1;
-}

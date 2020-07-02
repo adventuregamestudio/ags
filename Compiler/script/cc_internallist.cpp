@@ -96,7 +96,7 @@ AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
 AGS::SrcList::SrcList(SrcList const &src_list, size_t offset, size_t len)
     : _script(src_list._script)
     , _lineHandler(src_list._lineHandler)
-    , _offset(src_list._offset + offset)
+    , _offset(offset)
     , _len(len)
     , _cursor(_offset)
 {

@@ -71,11 +71,10 @@ private:
 
 public:
     SrcList(std::vector<Symbol> &script, LineHandler &line_handler);
-    SrcList(SrcList const &src_list, size_t offset, size_t len = INT_MAX);
+    SrcList(SrcList const &src_list, size_t offset, size_t len);
 
     inline size_t GetCursor() const { return _cursor - _offset; }
     inline void SetCursor(size_t idx) { _cursor = idx + _offset; }
-    inline void AddCursor(size_t idx) { _cursor += idx; }
 
     inline size_t GetSize() const { return _len - _offset; };
     
@@ -86,8 +85,7 @@ public:
     inline bool InRange(size_t idx) const { return idx < _len && idx + _offset < _script.size(); }
 
     // Note: Can't assign through this operator, this is intentional.
-    inline Symbol at(size_t idx) const { return InRange(idx) ? _script[idx + _offset] : kEOF; }
-    inline Symbol operator[](size_t idx) const { return at(idx); }
+    inline Symbol operator[](size_t idx) const { return InRange(idx) ? _script[idx + _offset] : kEOF; }
 
     // Note that when this is a sub-list of an original list, the line numbers
     // will still be relative to the original list. This is intentional.

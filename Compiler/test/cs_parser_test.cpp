@@ -728,6 +728,7 @@ TEST(Compile, ProtectedFault1) {
 TEST(Compile, FuncHeader1) {
     ccCompiledScript *scrip = newScriptFixture();
 
+    // Can't have a specific array size in func parameters
     char *inpl = "\
         void main(int a[15])                   \n\
         {                                      \n\
@@ -737,8 +738,7 @@ TEST(Compile, FuncHeader1) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-
-    // Should fail, no modifying of protected components from the outside.
+ 
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();

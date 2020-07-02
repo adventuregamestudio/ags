@@ -87,6 +87,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
@@ -131,11 +132,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((DialogEditor)doc.Control).ItemToEdit.WindowTitle;
+                var docItem = ((DialogEditor)doc.Control).ItemToEdit;
+                doc.Name = item.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
 
             // Force re-build of dialog scripts since names/ids have changed
@@ -321,6 +323,11 @@ namespace AGS.Editor.Components
         protected override DialogFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootDialogFolder;
+        }
+
+        protected override IList<Dialog> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.DialogFlatList;
         }
     }
 }

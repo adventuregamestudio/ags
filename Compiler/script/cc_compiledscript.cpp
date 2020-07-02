@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include "cc_compiledscript.h"
 #include "script/script_common.h"   // macro definitions
 #include "cc_symboltable.h"         // SymbolTable
@@ -136,26 +136,20 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
         cc_error("export offset too high; script data size too large?");
         return -1;
     }
-    char *newName = static_cast<char *>(malloc(name.size() + 20));
-    strcpy(newName, name.c_str());
+    
     // mangle the name for functions to record parameters
+    std::string new_name(name);
     if (etype == EXPORT_FUNCTION)
-    {
-        char tempAddition[20];
-        sprintf(tempAddition, "$%u", num_of_args);
-        strcat(newName, tempAddition);
-    }
+        new_name.append("$").append(std::to_string(num_of_args));
+ 
     // Check if it's already exported
     for (int exports_idx = 0; exports_idx < numexports; exports_idx++)
-    {
-        if (strcmp(exports[exports_idx], newName) == 0)
-        {
-            free(newName);
+        if (0 == new_name.compare(exports[exports_idx]))
             return exports_idx;
-        }
-    }
-    exports[numexports] = newName;
 
+    size_t const new_name_size = new_name.size() + 1;
+    exports[numexports] = static_cast<char *>(malloc(new_name_size));
+    strncpy(exports[numexports], new_name.c_str(), new_name_size);
     export_addr[numexports] = eoffs | (static_cast<long>(etype) << 24L);
     numexports++;
     return numexports - 1;

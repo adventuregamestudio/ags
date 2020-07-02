@@ -1,6 +1,7 @@
 #ifndef __CS_PARSER_COMMON_H
 #define __CS_PARSER_COMMON_H
 #include <cstdint>
+#include <cstddef>  // size_t
 
 namespace AGS
 {

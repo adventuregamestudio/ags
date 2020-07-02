@@ -151,8 +151,7 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     exports[numexports] = static_cast<char *>(malloc(new_name_size));
     strncpy(exports[numexports], new_name.c_str(), new_name_size);
     export_addr[numexports] = eoffs | (static_cast<long>(etype) << 24L);
-    numexports++;
-    return numexports - 1;
+    return numexports++;
 }
 
 void ccCompiledScript::write_code(AGS::CodeCell byy)

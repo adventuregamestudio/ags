@@ -179,7 +179,7 @@ public:
         int CheckForUnresolvedFuncs();
     };
 
-private:
+protected:
     // Remembers a code generation point.
     // If at some later time, Restore() is called,
     // then all bytecode that has been generated in the meantime is discarded.
@@ -234,6 +234,97 @@ private:
         void Patch(size_t cur_line);
     };
 
+    // Get the symbol for the get or set function corresponding to the attribute given.
+    int ConstructAttributeFuncName(Symbol attribsym, bool writing, bool indexed, Symbol &func);
+
+
+protected:
+    // Main symbol table
+    SymbolTable &_sym;
+
+    // List of symbols from the tokenizer
+    SrcList &_src;
+
+    // Receives the parsing results
+    ::ccCompiledScript &_scrip;
+
+    // Manage a map of all the functions that have bodies (in the current source).
+    FuncCallpointMgr _fcm;
+
+    // Manage a map of all imported functions where the import decl comes after the function
+    // The "Callpoint" of such a function is the index in the import table.
+    FuncCallpointMgr _fim; // i for import
+
+    // Measurements show that the checks whether imports already exist take up
+    // considerable time. The Import Manager speeds this up by caching the lookups.
+    class ImportMgr
+    {
+    private:
+        std::map<std::string, size_t> _importIdx;
+        ccCompiledScript *_scrip;
+
+    public:
+        ImportMgr();
+
+        void Init(::ccCompiledScript *scrip);
+
+        // Whether s is in the import table already (doesn't add)
+        bool IsDeclaredImport(std::string s);
+
+        // Finds s in the import table; adds it if not found;
+        // returns the index of s in the table.
+        int FindOrAdd(std::string s);
+    } _importMgr;
+
+protected:
+    inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
+
+    inline void WriteCmd(CodeCell op)
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op); }
+    inline void WriteCmd(CodeCell op, CodeCell p1)
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1); }
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2); }
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
+        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2, p3); }
+
+    void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
+
+    // Augment the message with a "See ..." indication
+    std::string ReferenceMsg(std::string const &msg, int section_id, int line);
+
+    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
+
+    // If the result isn't in AX, move it there. Dereferences a pointer
+    int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // If we need a StringStruct but AX contains a string, 
+    // then convert AX into a String object and set its type accordingly
+    void ConvertAXStringToStringObject(Vartype wanted_vartype);
+
+    // Check for a type mismatch in one direction only
+    bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be);
+
+    // Check whether there is a type mismatch; if so, give an error
+    int IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters);
+
+    // Combine the arguments to stname::component, get the symbol for that
+    Symbol MangleStructAndComponent(Symbol stname, Symbol component);
+
+    int ParseLiteralOrConstvalue(Symbol symb, int &theValue, bool isNegative, std::string errorMsg);
+
+    static int GetReadCommandForSize(int the_size);
+
+    static int GetWriteCommandForSize(int the_size);
+
+    // Change the generic operator vcpuOp to the one that is correct for the vartypes
+    // Also check whether the operator can handle the types at all
+    int GetOperatorValidForVartype(Vartype type1, Vartype type2, CodeCell &vcpuOp);
+
+    // returns whether this operator's val type is always bool
+    static bool IsBooleanVCPUOperator(int scmdtype);
+
+private:
     // The stack of nesting compound statements 
     class NestingStack
     {
@@ -268,6 +359,8 @@ private:
         ::ccCompiledScript &_scrip;
 
     public:
+        static int const kFunctionLevel = 1;
+
         NestingStack(::ccCompiledScript &scrip);
 
         // Depth of the nesting == index of the innermost nesting level
@@ -330,56 +423,8 @@ private:
         inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
     };
 
-    // We set the MAR register lazily to save on runtime computation. This object
-    // encapsulates the stashed operations that haven't been done on MAR yet.
-    class MemoryLocation
-    {
-    private:
-        SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
-        size_t _StartOffs;
-        size_t _ComponentOffs;
-
-    public:
-        MemoryLocation()
-            : _Type(kSYM_NoType)
-            , _StartOffs(0)
-            , _ComponentOffs(0) {};
-
-        // Set the type and the offset of the MAR register
-        void SetStart(SymbolType type, size_t offset);
-
-        // Add an offset
-        inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
-
-        // Write out the opcodes necessary to bring MAR up-to-date
-        void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
-
-        inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
-
-        inline void Reset() { SetStart(kSYM_NoType, 0); };
-    };
-
-    // Measurements show that the checks whether imports already exist take up
-    // considerable time. The Import Manager speeds this up by caching the lookups.
-    class ImportMgr
-    {
-    private:
-        std::map<std::string, size_t> _importIdx;
-        ccCompiledScript *_scrip;
-
-    public:
-        ImportMgr();
-
-        void Init(::ccCompiledScript *scrip);
-
-        // Whether s is in the import table already (doesn't add)
-        bool IsDeclaredImport(std::string s);
-
-        // Finds s in the import table; adds it if not found;
-        // returns the index of s in the table.
-        int FindOrAdd(std::string s);
-    } _importMgr;
-
+    
+private:
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
@@ -390,59 +435,23 @@ private:
     TGIVM _givm; // Global Import Variable Manager
 
     // Track the phase the parser is in.
-    ParsingPhase _pp;
-
-    // Main symbol table
-    SymbolTable &_sym;
-
-    // List of symbols from the tokenizer
-    SrcList &_src;
-
-    // Receives the parsing results
-    ::ccCompiledScript &_scrip;
-
-    // Manage a map of all the functions that have bodies (in the current source).
-    FuncCallpointMgr _fcm;
-
-    // Manage a map of all imported functions where the import decl comes after the function
-    // The "Callpoint" of such a function is the index in the import table.
-    FuncCallpointMgr _fim; // i for import
-
-    size_t _lastEmittedSectionId;
-    size_t _lastEmittedLineno;
+    ParsingPhase _pp;  
 
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
 
-    void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
+    size_t _lastEmittedSectionId;
 
-    // Augment the message with a "See ..." indication
-    std::string ReferenceMsg(std::string const &msg, int section_id, int line);
-
-    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
-
+private:
     static int String2Int(std::string str, int &val, bool send_error);
 
     bool IsIdentifier(Symbol symb);
 
-    inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
-
     void SetDynpointerInManagedVartype(Vartype &vartype);
-
-    // Combine the arguments to stname::component, get the symbol for that
-    Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
     // Eat symbols until either reaching an unopened close symbol or a symbol whose type is in the stop list.
     // Don't eat the symbol that stopped the scan.
     int SkipTo(const SymbolType stoplist[], size_t stoplist_len);
-
-    int SkipToScript0(Symbol *end_sym_ptr, const SymbolType stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
-
-    // Like SkipTo, but for symbol scripts
-    int SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
-
-    // Mark the symbol as "accessed" in the symbol table
-    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); };
 
     // Return number of bytes to remove from stack to unallocate local vars
     // of levels that are above from_level
@@ -474,8 +483,6 @@ private:
     int FreeDynpointersOfLocals(int from_level, Symbol name_of_current_func = 0, bool ax_irrelevant = false);
 
     int RemoveLocalsFromSymtable(int from_level);
-
-    int ParseLiteralOrConstvalue(Symbol symb, int &theValue, bool isNegative, std::string errorMsg);
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
     // We accept a default value clause like "= 15" if it follows at this point.
@@ -530,195 +537,6 @@ private:
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
     int ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
-
-    // finds the index of the operator in the list that binds the least
-    // so that either side of it can be evaluated first. -1 if no operator was found
-    int IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len, int &idx);
-
-    // Change the generic operator vcpuOp to the one that is correct for the vartypes
-    // Also check whether the operator can handle the types at all
-    int GetOperatorValidForVartype(Vartype type1, Vartype type2, CodeCell &vcpuOp);
-
-    // Check for a type mismatch in one direction only
-    bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be);
-
-    // Check whether there is a type mismatch; if so, give an error
-    int IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters);
-
-    // returns whether this operator's val type is always bool
-    static bool IsBooleanVCPUOperator(int scmdtype);
-
-    // If we need a StringStruct but AX contains a string, 
-    // then convert AX into a String object and set its type accordingly
-    void ConvertAXStringToStringObject(Vartype wanted_vartype);
-
-    static int GetReadCommandForSize(int the_size);
-
-    static int GetWriteCommandForSize(int the_size);
-
-    // Handle the cases where a value is a whole array or dynarray or struct
-    int HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc);
-
-    // If the result isn't in AX, move it there. Dereferences a pointer
-    int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // Checks on the type following "new"
-    int ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len);
-
-    int ParseExpression_New(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // We're parsing an expression that starts with '-' (unary minus)
-    int ParseExpression_UnaryMinus(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // We're parsing an expression that starts with '!' (boolean NOT)
-    int ParseExpression_Not(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    int ParseExpression_Unary(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    int ParseExpression_Tern(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
-
-    int ParseExpression_Binary(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    int ParseExpression_OpenParenthesis(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // We're in the parameter list of a function call, and we have less parameters than declared.
-    // Provide defaults for the missing values
-    int AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
-
-    int AccessData_FunctionCall_PushParams(const SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
-
-    // Count parameters, check that all the parameters are non-empty; find closing paren
-    int AccessData_FunctionCall_CountAndCheckParm(const SymbolScript &paramList, size_t paramListLen, Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
-
-    // We are processing a function call. General the actual function call
-    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
-
-    // We are processing a function call.
-    // Get the parameters of the call and push them onto the stack.
-    // Return the number of the parameters pushed
-    int AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args);
-
-    int AccessData_FunctionCall(Symbol name_of_func, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &rettype);
-
-    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
-
-    // Parse an expression; if RETURN_PTR, will return a pointer, else dereference it.
-    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
-
-    // Read from the symlist
-    int AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len);
-
-    // We access a variable or a component of a struct in order to read or write it.
-    // This is a simple member of the struct.
-    int AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
-
-    // Get the symbol for the get or set function corresponding to the attribute given.
-    int ConstructAttributeFuncName(Symbol attribsym, bool writing, bool indexed, Symbol &func);
-
-    // We call the getter or setter of an attribute
-    int AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    // Location contains a pointer to another address. Get that address.
-    int AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
-
-    int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
-
-    // Process one index in a sequence of array indexes
-    int AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc);
-
-    // We're processing some struct component or global or local variable.
-    // If a sequence of array indexes follows, parse it and shorten symlist accordingly
-    int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
-
-    int AccessData_GlobalOrLocalVar(bool is_global, bool writing, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
-
-    int AccessData_Static(SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
-
-    int AccessData_LitFloat(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    int AccessData_LitOrConst(bool negateLiteral, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    int AccessData_Null(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    int AccessData_String(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    // Negates the value; this clobbers AX and BX
-    void AccessData_Negate(ValueLocation vloc);
-
-    // We're getting a variable, literal, constant, func call or the first element
-    // of a STRUCT.STRUCT.STRUCT... cascade.
-    // This moves symlist in all cases except for the cascade to the end of what is parsed,
-    // and in case of a cascade, to the end of the first element of the cascade, i.e.,
-    // to the position of the '.'. 
-    int AccessData_FirstClause(bool writing, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
-
-    // We're processing a STRUCT.STRUCT. ... clause.
-    // We've already processed some structs, and the type of the last one is vartype.
-    // Now we process a component of vartype.
-    int AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
-
-    // Find the component of a struct (in the struct or in the ancestors of the struct)
-    // and return the struct that the component is defined in
-    AGS::Symbol AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component);
-
-    // Find the component of a struct (in the struct or in the ancestors of the struct)
-    // and return the "real" component name
-    Symbol AccessData_FindComponent(Vartype strct, Symbol component);
-
-    // We are in a STRUCT.STRUCT.STRUCT... cascade.
-    // Check whether we have passed the last dot
-    int AccessData_IsClauseLast(SymbolScript symlist, size_t symlist_len, bool &is_last);
-
-    // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-    // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
-    // At end of function, symlist and symlist_len will point to the part of the symbol string
-    // that has not been processed yet
-    // NOTE: If this selects an attribute for writing, then the corresponding function will
-    // _not_ be called and symlist[0] will be the attribute.
-    int AccessData(bool writing, bool need_to_negate, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
-
-    // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
-    bool AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len);
-
-    // Insert Bytecode for:
-    // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
-    // Stop when encountering a 0
-    void AccessData_StrCpy();
-
-    // We are typically in an assignment LHS = RHS; the RHS has already been
-    // evaluated, and the result of that evaluation is in AX.
-    // Store AX into the memory location that corresponds to LHS, or
-    // call the attribute function corresponding to LHS.
-    int AccessData_Assign(SymbolScript symlist, size_t symlist_len);
-
-    // Read the symbols of an expression and buffer them into expr_script
-    // At end of routine, the cursor will be positioned in such a way
-    // that src->getnext() will get the symbol after the expression
-    int BufferExpression(ccInternalList &expr_script);
-
-    // Parse expression in parentheses
-    int ParseParenthesizedExpression();
-
-    // evaluate the supplied expression, putting the result into AX
-    // returns 0 on success or -1 if compile error
-    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
-    int ParseExpression();
-
-    // We are parsing the left hand side of a += or similar statement.
-    int ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, Vartype &lhstype);
-
-    // "var = expression"; lhs is the variable
-    int ParseAssignment_Assign(ccInternalList const *lhs);
-
-    // We compile something like "var += expression"
-    int ParseAssignment_MAssign(Symbol ass_symbol, ccInternalList const *lhs);
-
-    // "var++" or "var--"
-    int ParseAssignment_SAssign(Symbol ass_symbol, ccInternalList const *lhs);
-
-    // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
-    // An assignment symbol is following. Compile the assignment.
-    int ParseAssignment(Symbol ass_symbol, ccInternalList const *lhs);
 
     int ParseVardecl_InitialValAssignment_Float(bool is_neg, void *&initial_val_ptr);
 
@@ -872,7 +690,7 @@ private:
     int ParseSwitch(NestingStack *nesting_stack);
 
     // Parse "case foo:" or "default:"
-    int ParseSwitchLabel(Symbol cursym, NestingStack *nesting_stack);
+    int ParseSwitchLabel(NestingStack *nesting_stack);
 
     // Handle the end of a "switch" body
     int HandleEndOfSwitch(NestingStack *nesting_stack);
@@ -885,10 +703,6 @@ private:
     // (Will also handle the outer "for" nesting)
     int HandleEndOfWhile(NestingStack *nesting_stack);
     
-    // We're compiling function body code; the code does not start with a keyword or type.
-    // Thus, we should be at the start of an assignment or a funccall. Compile it.
-    int ParseAssignmentOrFunccall(Symbol cursym);
-
     int ExitNesting(size_t loop_level);
 
     int ParseBreak(NestingStack *nesting_stack);
@@ -897,28 +711,18 @@ private:
 
     int ParseCloseBrace(AGS::Parser::NestingStack *nesting_stack);
 
-    int ParseCommand(Symbol cursym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
+    int ParseCommand(Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
 
     // If a new section has begun, tell _scrip to deal with that.
     // Refresh ccCurScriptName
     void HandleSrcSectionChange();
-
-
-    inline void WriteCmd(CodeCell op)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op); }
-    inline void WriteCmd(CodeCell op, CodeCell p1)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1); }
-    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2); }
-    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2, p3); }
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 
     // Check whether the qualifiers that accumulated for this decl go together
     int Parse_CheckTQ(TypeQualifierSet tqs, Symbol decl_type);
 
-    int ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    int ParseVartype(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void Parse_SkipToEndingBrace();
 
@@ -951,6 +755,219 @@ public:
     int Parse();
 
 }; // class Parser
+
+// Parses expressions
+class ExpressionParser : public Parser
+{
+
+private:
+
+    // We set the MAR register lazily to save on runtime computation. This object
+    // encapsulates the stashed operations that haven't been done on MAR yet.
+    class MemoryLocation
+    {
+    private:
+        SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
+        size_t _StartOffs;
+        size_t _ComponentOffs;
+
+    public:
+        MemoryLocation()
+            : _Type(kSYM_NoType)
+            , _StartOffs(0)
+            , _ComponentOffs(0) {};
+
+        // Set the type and the offset of the MAR register
+        void SetStart(SymbolType type, size_t offset);
+
+        // Add an offset
+        inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
+
+        // Write out the opcodes necessary to bring MAR up-to-date
+        void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
+
+        inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
+
+        inline void Reset() { SetStart(kSYM_NoType, 0); };
+    };
+
+
+    int SkipToScript0(Symbol *end_sym_ptr, const SymbolType stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
+
+    // Like SkipTo, but for symbol scripts
+    int SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
+
+    // finds the index of the operator in the list that binds the least
+    // so that either side of it can be evaluated first. -1 if no operator was found
+    int IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len, int &idx);
+
+    // Mark the symbol as "accessed" in the symbol table
+    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); };
+
+    // We're in the parameter list of a function call, and we have less parameters than declared.
+    // Provide defaults for the missing values
+    int AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+
+    int AccessData_FunctionCall_PushParams(const SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+
+    // Count parameters, check that all the parameters are non-empty; find closing paren
+    int AccessData_FunctionCall_CountAndCheckParams(const SymbolScript &paramList, size_t paramListLen, Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
+
+    // We are processing a function call. Generate the actual function call
+    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
+
+    // We are processing a function call.
+    // Get the parameters of the call and push them onto the stack.
+    // Return the number of the parameters pushed
+    int AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args);
+
+    int AccessData_FunctionCall(Symbol name_of_func, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &rettype);
+
+    // Find the component of a struct (in the struct or in the ancestors of the struct)
+    // and return the struct that the component is defined in
+    Symbol AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component);
+
+    // Find the component of a struct (in the struct or in the ancestors of the struct)
+    // and return the "real" component name
+    Symbol AccessData_FindComponent(Vartype strct, Symbol component);
+
+    // We access a variable or a component of a struct in order to read or write it.
+    // This is a simple member of the struct.
+    int AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+
+    // We call the getter or setter of an attribute
+    int AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+
+    // Location contains a pointer to another address. Get that address.
+    int AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
+
+    int AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
+
+    // Process one index in a sequence of array indexes
+    int AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc);
+
+    // We're processing some struct component or global or local variable.
+    // If a sequence of array indexes follows, parse it and shorten symlist accordingly
+    int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
+
+    int AccessData_GlobalOrLocalVar(bool is_global, bool writing, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+
+    int AccessData_Static(SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+
+    int AccessData_LitFloat(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+
+    int AccessData_LitOrConst(bool negateLiteral, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+
+    int AccessData_Null(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+
+    int AccessData_String(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+
+    // Negates the value; this clobbers AX and BX
+    void AccessData_Negate(ValueLocation vloc);
+
+    // We're getting a variable, literal, constant, func call or the first element
+    // of a STRUCT.STRUCT.STRUCT... cascade.
+    // This moves symlist in all cases except for the cascade to the end of what is parsed,
+    // and in case of a cascade, to the end of the first element of the cascade, i.e.,
+    // to the position of the '.'. 
+    int AccessData_FirstClause(bool writing, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
+
+    // We're processing a STRUCT.STRUCT. ... clause.
+    // We've already processed some structs, and the type of the last one is vartype.
+    // Now we process a component of vartype.
+    int AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
+
+    // We are in a STRUCT.STRUCT.STRUCT... cascade.
+    // Check whether we have passed the last dot
+    int AccessData_IsClauseLast(SymbolScript symlist, size_t symlist_len, bool &is_last);
+
+    // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
+    bool AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len);
+
+    // Insert Bytecode for:
+    // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
+    // Stop when encountering a 0
+    void AccessData_StrCpy();
+
+    // We are typically in an assignment LHS = RHS; the RHS has already been
+    // evaluated, and the result of that evaluation is in AX.
+    // Store AX into the memory location that corresponds to LHS, or
+    // call the attribute function corresponding to LHS.
+    int AccessData_Assign(SymbolScript symlist, size_t symlist_len);
+
+    // Handle the cases where a value is a whole array or dynarray or struct
+    int HandleStructOrArrayResult(Vartype &vartype, ValueLocation &vloc);
+
+    // Checks on the type following "new"
+    int ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len);
+
+    int ParseExpression_New(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // We're parsing an expression that starts with '-' (unary minus)
+    int ParseExpression_UnaryMinus(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // We're parsing an expression that starts with '!' (boolean NOT)
+    int ParseExpression_Not(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_Unary(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_Tern(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    int ParseExpression_Binary(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_OpenParenthesis(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    // We are parsing the left hand side of a += or similar statement.
+    int ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, Vartype &lhstype);
+
+    // "var = expression"; lhs is the variable
+    int ParseAssignment_Assign(ccInternalList const *lhs);
+
+    // We compile something like "var += expression"
+    int ParseAssignment_MAssign(Symbol ass_symbol, ccInternalList const *lhs);
+
+    // "var++" or "var--"
+    int ParseAssignment_SAssign(Symbol ass_symbol, ccInternalList const *lhs);
+
+    // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
+    // An assignment symbol is following. Compile the assignment.
+    int ParseAssignment(Symbol ass_symbol, ccInternalList const *lhs);
+
+public:
+    // We're compiling function body code; the code does not start with a keyword or type.
+    // Thus, we should be at the start of an assignment or a funccall. Compile it.
+    int ParseAssignmentOrFunccall();
+
+    // Read the symbols of an expression and buffer them into expr_script
+    // At end of routine, the cursor will be positioned in such a way
+    // that src->getnext() will get the symbol after the expression
+    int BufferExpression(ccInternalList &expr_script);
+    
+    ExpressionParser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip);
+
+    // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
+    // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
+    // At end of function, symlist and symlist_len will point to the part of the symbol string
+    // that has not been processed yet
+    // NOTE: If this selects an attribute for writing, then the corresponding function will
+    // _not_ be called and symlist[0] will be the attribute.
+    int AccessData(bool writing, bool need_to_negate, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    // evaluate the supplied expression, putting the result into AX
+    // returns 0 on success or -1 if compile error
+    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
+    int ParseExpression();
+
+    // Parse expression in parentheses
+    int ParseParenthesizedExpression();
+
+    // Read from the symlist
+    int ParseIntExpression(SymbolScript symlist, size_t symlist_len);
+};
 } // namespace AGS
 
 // Only use that for googletests. Scan and tokenize the input.

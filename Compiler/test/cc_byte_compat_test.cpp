@@ -5198,6 +5198,236 @@ TEST(Bytecode, Func11) {
 
 }
 
+TEST(Bytecode, Func12) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Function with float default, or default "0", for float parameter
+    char *inpl = "\
+    float Func1(float F = 7.2)          \n\
+    {                                   \n\
+        return F;                       \n\
+    }                                   \n\
+                                        \n\
+    float Func2(float F = 0)            \n\
+    {                                   \n\
+        return F;                       \n\
+    }                                   \n\
+                                        \n\
+    float Call()                        \n\
+    {                                   \n\
+        return Func1() + Func2();       \n\
+    }                                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Func12", scrip);
+    const size_t codesize = 68;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    8,            7,    3,   31,    3,    // 7
+       6,    3,    0,    5,           38,   12,   51,    8,    // 15
+       7,    3,   31,    3,            6,    3,    0,    5,    // 23
+      38,   24,    6,    3,         1088841318,   29,    3,    6,    // 31
+       3,    0,   23,    3,            2,    1,    4,   29,    // 39
+       3,    6,    3,    0,           29,    3,    6,    3,    // 47
+      12,   23,    3,    2,            1,    4,   30,    4,    // 55
+      57,    4,    3,    3,            4,    3,   31,    3,    // 63
+       6,    3,    0,    5,          -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      33,   48,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,   2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+
+TEST(Bytecode, Func13) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Function with default null or 0 for managed parameter
+    char *inpl = "\
+    managed struct S                    \n\
+    {                                   \n\
+        float f;                        \n\
+    };                                  \n\
+                                        \n\
+    S *Func1(S s = null)                \n\
+    {                                   \n\
+        return s;                       \n\
+    }                                   \n\
+                                        \n\
+    S *Func2(S s = 0)                   \n\
+    {                                   \n\
+        return s;                       \n\
+    }                                   \n\
+                                        \n\
+    int Call()                           \n\
+    {                                   \n\
+        return Func1() == Func2();      \n\
+    }                                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Func13", scrip);
+    const size_t codesize = 118;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    8,            7,    3,   50,    3,    // 7
+      51,    8,   48,    3,           29,    3,   51,    4,    // 15
+      50,    3,   51,   12,           49,   51,    4,   48,    // 23
+       3,   69,   30,    4,           31,    6,   51,    8,    // 31
+      49,    6,    3,    0,            5,   38,   37,   51,    // 39
+       8,    7,    3,   50,            3,   51,    8,   48,    // 47
+       3,   29,    3,   51,            4,   50,    3,   51,    // 55
+      12,   49,   51,    4,           48,    3,   69,   30,    // 63
+       4,   31,    6,   51,            8,   49,    6,    3,    // 71
+       0,    5,   38,   74,            6,    3,    0,   29,    // 79
+       3,    6,    3,    0,           23,    3,    2,    1,    // 87
+       4,   29,    3,    6,            3,    0,   29,    3,    // 95
+       6,    3,   37,   23,            3,    2,    1,    4,    // 103
+      30,    4,   15,    4,            3,    3,    4,    3,    // 111
+      31,    3,    6,    3,            0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      83,   98,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,   2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+
+
 TEST(Bytecode, Writeprotected) {
     ccCompiledScript *scrip = newScriptFixture();
 

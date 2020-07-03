@@ -30,6 +30,31 @@ protected:
     bool IsVTT(enum VartypeType vtt, SymbolTable const &symt) const;
 
 public:
+
+    enum ParamDefaultType
+    {
+        kDT_None = 0,
+        kDT_Int,
+        kDT_Float,
+        kDT_Dyn,
+    };
+
+    struct ParamDefault
+    {
+        ParamDefaultType Type;
+        union
+        {
+            int IntDefault;
+            float FloatDefault;
+            void *DynDefault;
+        };
+
+        inline ParamDefault() { Type = kDT_None; }
+        bool operator== (const ParamDefault &other) const;
+        std::string ToString() const;
+        int32_t ToInt32() const;
+    };
+
     std::string SName;
     SymbolType SType; // e.g., kSYM_GlobalVar
     int DeclSectionId, DeclLine; // where this was declared
@@ -54,8 +79,7 @@ public:
 
     // Functions only
     std::vector<AGS::Vartype> FuncParamTypes;
-    std::vector<int> FuncParamDefaultValues;
-    std::vector<bool> FuncParamHasDefaultValues;
+    std::vector<ParamDefault> FuncParamDefaultValues;
 
     // Operator types only
     CodeCell OperatorOpcode;
@@ -83,9 +107,10 @@ public:
     // Functions
     inline size_t GetNumOfFuncParams() const { return FuncParamTypes.size() - 1; }
     inline bool IsVarargsFunc() const { return (SScope > 0); }
+    inline bool HasParamDefault(size_t param) const { return kDT_None != FuncParamDefaultValues[param].Type; }
 
     SymbolTableEntry();
-    SymbolTableEntry(std::string const name, SymbolType stype = kSYM_NoType, size_t ssize = 0);
+    SymbolTableEntry(std::string const &name, SymbolType stype = kSYM_NoType, size_t ssize = 0);
 };
 
 struct SymbolTable {

@@ -308,34 +308,42 @@ TEST(Compile, DefaultParametersLargeInts) {
     int funcidx;
     funcidx = sym.Find("importedfunc");
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[1]);
-    EXPECT_EQ(0, sym.entries.at(funcidx).FuncParamDefaultValues[1]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(1));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[1].Type);
+    EXPECT_EQ(0, sym.entries.at(funcidx).FuncParamDefaultValues[1].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[2]);
-    EXPECT_EQ(1, sym.entries.at(funcidx).FuncParamDefaultValues[2]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(2));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[2].Type);
+    EXPECT_EQ(1, sym.entries.at(funcidx).FuncParamDefaultValues[2].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[3]);
-    EXPECT_EQ(2, sym.entries.at(funcidx).FuncParamDefaultValues[3]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(3));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[3].Type);
+    EXPECT_EQ(2, sym.entries.at(funcidx).FuncParamDefaultValues[3].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[4]);
-    EXPECT_EQ(-32000, sym.entries.at(funcidx).FuncParamDefaultValues[4]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(4));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[4].Type);
+    EXPECT_EQ(-32000, sym.entries.at(funcidx).FuncParamDefaultValues[4].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[5]);
-    EXPECT_EQ(32001, sym.entries.at(funcidx).FuncParamDefaultValues[5]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(5));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[5].Type);
+    EXPECT_EQ(32001, sym.entries.at(funcidx).FuncParamDefaultValues[5].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[6]);
-    EXPECT_EQ((2147483647), sym.entries.at(funcidx).FuncParamDefaultValues[6]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(6));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[6].Type);
+    EXPECT_EQ((2147483647), sym.entries.at(funcidx).FuncParamDefaultValues[6].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[7]);
-    // NOTE: It's not possible to write the lowest possible signed integer as
-    // -2147483648
-    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).FuncParamDefaultValues[7]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(7));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[7].Type);
+    // NOTE: It's not possible to write the lowest possible signed integer as -2147483648
+    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).FuncParamDefaultValues[7].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[8]);
-    EXPECT_EQ(-1, sym.entries.at(funcidx).FuncParamDefaultValues[8]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(8));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[8].Type);
+    EXPECT_EQ(-1, sym.entries.at(funcidx).FuncParamDefaultValues[8].IntDefault);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).FuncParamHasDefaultValues[9]);
-    EXPECT_EQ(-2, sym.entries.at(funcidx).FuncParamDefaultValues[9]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(9));
+    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[9].Type);
+    EXPECT_EQ(-2, sym.entries.at(funcidx).FuncParamDefaultValues[9].IntDefault);
 }
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {
@@ -376,7 +384,7 @@ TEST(Compile, DoubleNegatedConstant) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GE(0, compileResult);
-    EXPECT_STREQ("Parameter default value must be literal", last_seen_cc_error());
+    EXPECT_STREQ("Expected an integer literal or constant as parameter default", last_seen_cc_error());
 }
 
 TEST(Compile, SubtractionWithoutSpaces) {
@@ -743,6 +751,51 @@ TEST(Compile, FuncHeader1) {
     ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rray size"));
+}
+
+TEST(Compile, FuncHeader2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Default for float parameter, an int value. Should fail
+    char *inpl = "\
+        void Foo(float Param = 7);              \n\
+        {                                      \n\
+             return;                           \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_GE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("float literal"));
+}
+
+TEST(Compile, FuncHeader3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Integer default for managed parameter. Should fail
+    char *inpl = "\
+        managed struct Payload                  \n\
+        {                                       \n\
+            float foo;                          \n\
+        };                                      \n\
+                                                \n\
+        void Foo(Payload Param = 7);            \n\
+        {                                       \n\
+             return;                            \n\
+        }                                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_GE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("rameter default"));
 }
 
 TEST(Compile, ExtenderFuncHeaderFault1a) {

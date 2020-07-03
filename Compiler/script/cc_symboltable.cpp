@@ -20,15 +20,14 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , Dims({})
     , Extends(0)
     , FuncParamTypes(std::vector<Vartype>(1)) // Function must have at least the return param
-    , FuncParamDefaultValues(std::vector<int>(1))
-    , FuncParamHasDefaultValues(std::vector<bool>(1))
+    , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
     , OperatorBinaryPrio(-1)
     , OperatorUnaryPrio(-1)
 { }
 
 
-AGS::SymbolTableEntry::SymbolTableEntry(std::string const name, SymbolType stype, size_t sizee)
+AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType stype, size_t sizee)
     : SName(name)
     , SType(stype)
     , DeclSectionId(0)
@@ -42,8 +41,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const name, SymbolType stype
     , Dims({})
     , Extends(0)
     , FuncParamTypes(std::vector<Vartype>(1)) // Function must have at least the return param
-    , FuncParamDefaultValues(std::vector<int>(1))
-    , FuncParamHasDefaultValues(std::vector<bool>(1))
+    , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
     , OperatorBinaryPrio(-1)
     , OperatorUnaryPrio(-1)
@@ -90,6 +88,42 @@ bool AGS::SymbolTableEntry::IsVTF(AGS::Flags f, SymbolTable const &symt) const
     if (kVTT_Atomic == VartypeType)
         return FlagIsSet(Flags, f);
     return symt.IsVTF(vartype, f);
+}
+
+bool AGS::SymbolTableEntry::ParamDefault::operator==(const ParamDefault &other) const
+{
+    if (Type != other.Type)
+        return false;
+    switch (Type)
+    {
+    default:            return false;
+    case kDT_None:      return true;
+    case kDT_Int:       return IntDefault == other.IntDefault;
+    case kDT_Float:     return FloatDefault == other.FloatDefault;
+    case kDT_Dyn:       return DynDefault == other.DynDefault;
+    }
+}
+
+std::string AGS::SymbolTableEntry::ParamDefault::ToString() const
+{
+    switch (Type)
+    {
+    default:            return "(Illegal default type)";
+    case kDT_None:      return "(No default)";
+    case kDT_Int:       return std::to_string(IntDefault);
+    case kDT_Float:     return std::to_string(FloatDefault);
+    case kDT_Dyn:       return (nullptr == DynDefault) ? "null" : "(A non-null value)";
+    }
+}
+
+int32_t AGS::SymbolTableEntry::ParamDefault::ToInt32() const
+{
+    switch (Type)
+    {
+    default:            return 0;
+    case kDT_Int:       return IntDefault;
+    case kDT_Float:     return *((CodeCell *)&FloatDefault);
+    }
 }
 
 AGS::SymbolTable::SymbolTable()
@@ -379,3 +413,4 @@ AGS::Symbol AGS::SymbolTable::AddOp(char const *opname, SymbolType sty, CodeCell
     entries[symbol_idx].OperatorUnaryPrio = unary_prio;
     return symbol_idx;
 }
+

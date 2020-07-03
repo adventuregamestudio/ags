@@ -421,7 +421,8 @@ private:
 
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
 
-    static int String2Int(std::string str, int &val, bool send_error);
+    static int String2Int(std::string const &str, int &val);
+    static int String2Float(std::string const &str, float &val);
 
     bool IsIdentifier(Symbol symb);
 
@@ -475,11 +476,13 @@ private:
 
     int RemoveLocalsFromSymtable(int from_level);
 
-    int ParseLiteralOrConstvalue(Symbol symb, int &theValue, bool isNegative, std::string errorMsg);
+    int ParseIntLiteralOrConstvalue(Symbol symb, bool isNegative, std::string const &errorMsg, int &theValue);
+    int ParseFloatLiteral(Symbol symb, bool isNegative, std::string const &errorMsg, float &theValue);
+
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
     // We accept a default value clause like "= 15" if it follows at this point.
-    int ParseParamlist_Param_DefaultValue(bool &has_default_int, int &default_int_value);
+    int ParseParamlist_Param_DefaultValue(Vartype param_type, SymbolTableEntry::ParamDefault &default_value);
 
     // process a dynamic array declaration, when present
     // We have accepted something like "int foo" and we might expect a trailing "[]" here
@@ -503,7 +506,7 @@ private:
 
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_type, bool param_is_const, int param_idx);
 
-    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_type, bool param_is_const, bool param_has_int_default, int param_int_default);
+    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_type, bool param_is_const, SymbolTableEntry::ParamDefault const &param_default);
 
     // process a parameter decl in a function parameter list, something like int foo(INT BAR
     int ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, int param_idx);

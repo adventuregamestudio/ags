@@ -138,7 +138,7 @@ bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 }
 
 
-int AGS::Parser::String2Int(std::string str, int &val, bool send_error)
+int AGS::Parser::String2Int(std::string const &str, int &val)
 {
     const bool is_neg = (0 == str.length() || '-' == str.at(0));
     errno = 0;
@@ -148,8 +148,7 @@ int AGS::Parser::String2Int(std::string str, int &val, bool send_error)
         (is_neg && (endptr[0] != '\0')) ||
         (longValue < INT_MIN))
     {
-        if (send_error)
-            cc_error("Literal value '%s' is too low (min. is '%d')", str.c_str(), INT_MIN);
+        cc_error("Literal value '%s' is too low (min. is '%d')", str.c_str(), INT_MIN);
         return -1;
     }
 
@@ -157,14 +156,34 @@ int AGS::Parser::String2Int(std::string str, int &val, bool send_error)
         ((!is_neg) && (endptr[0] != '\0')) ||
         (longValue > INT_MAX))
     {
-        if (send_error)
-            cc_error("Literal value %s is too high (max. is %d)", str.c_str(), INT_MAX);
+        cc_error("Literal value %s is too high (max. is %d)", str.c_str(), INT_MAX);
         return -1;
     }
 
     val = static_cast<int>(longValue);
     return 0;
 }
+
+int AGS::Parser::String2Float(std::string const &float_as_string, float &f)
+{
+    char *endptr;
+    char const *instring = float_as_string.c_str();
+    double const d = strtod(instring, &endptr);
+    if (endptr != instring + float_as_string.length())
+    {
+        cc_error("Illegal floating point literal '%s'", instring);
+        return -1;
+    }
+    if (HUGE_VAL == d)
+    {
+        cc_error("Floating point literal '%s' is out of range", instring);
+        return -1;
+    }
+    f = static_cast<float>(d);
+    return 0;
+}
+
+
 
 AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbol component)
 {
@@ -602,6 +621,8 @@ void AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript
 AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)
     : _fcm(symt, scrip)
     , _fim(symt, scrip)
+    , _lastEmittedSectionId(0)
+    , _lastEmittedLineno(0)
     , _scrip(scrip)
     , _pp(kPP_PreAnalyze)
     , _sym(symt)
@@ -982,24 +1003,24 @@ int AGS::Parser::HandleEndOfSwitch(AGS::Parser::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol symb, int &theValue, bool isNegative, std::string errorMsg)
+int AGS::Parser::ParseIntLiteralOrConstvalue(AGS::Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value)
 {
     SymbolType const stype = _sym.GetSymbolType(symb);
     if (kSYM_Constant == stype)
     {
-        theValue = _sym[symb].SOffset;
-        if (isNegative)
-            theValue = -theValue;
+        the_value = _sym[symb].SOffset;
+        if (is_negative)
+            the_value = -the_value;
         return 0;
     }
 
     if (kSYM_LiteralInt == stype)
     {
-        std::string literalStrValue = _sym.GetName(symb);
-        if (isNegative)
-            literalStrValue = '-' + literalStrValue;
+        std::string literal = _sym.GetName(symb);
+        if (is_negative)
+            literal = '-' + literal;
 
-        return String2Int(literalStrValue, theValue, true);
+        return String2Int(literal, the_value);
     }
 
     if (!errorMsg.empty())
@@ -1007,35 +1028,82 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol symb, int &theValue, bool 
     return -1;
 }
 
+int AGS::Parser::ParseFloatLiteral(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value)
+{
+    SymbolType const stype = _sym.GetSymbolType(symb);
+    if (kSYM_LiteralFloat == stype)
+    {
+        std::string literal = _sym.GetName(symb);
+        if (is_negative)
+            literal = '-' + literal;
+
+        return String2Float(literal, the_value);
+    }
+
+    if (!errorMsg.empty())
+        cc_error(errorMsg.c_str());
+    return -1;
+}
 
 // We're parsing a parameter list and we have accepted something like "(...int i"
 // We accept a default value clause like "= 15" if it follows at this point.
-int AGS::Parser::ParseParamlist_Param_DefaultValue(bool &has_default_int, int &default_int_value)
+int AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, SymbolTableEntry::ParamDefault &default_value)
 {
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_Assign)
-    {
-        has_default_int = false;
+    if (kSYM_Assign != _sym.GetSymbolType(_src.PeekNext()))
+    {   
+        default_value.Type = SymbolTableEntry::kDT_None; // No default value given
         return 0;
     }
 
-    has_default_int = true;
-
-    // parameter has default value
     _src.GetNext();   // Eat '='
 
+    Symbol default_value_symbol = _src.GetNext(); // can also be "-"
     bool default_is_negative = false;
-    AGS::Symbol default_value_symbol = _src.GetNext(); // may be '-', too
-    if (default_value_symbol == _sym.Find("-"))
+    if (_sym.Find("-") == default_value_symbol)
     {
         default_is_negative = true;
         default_value_symbol = _src.GetNext();
     }
 
-    // extract the default value
-    int retval = ParseLiteralOrConstvalue(default_value_symbol, default_int_value, default_is_negative, "Parameter default value must be literal");
-    if (retval < 0) return retval;
+    if (_sym.IsDyn(param_type))
+    {
+        default_value.Type = SymbolTableEntry::kDT_Dyn;
+        default_value.DynDefault = nullptr;
 
-    return 0;
+        if (!default_is_negative  && _sym.Find("0") == default_value_symbol || _sym.GetNullSym() == default_value_symbol)
+            return 0;
+        cc_error("Expected the parameter default 'null'");
+        return -1;
+    }
+
+    if (_sym.GetIntSym() == param_type || (_sym.IsAtomic(param_type) && _sym.GetIntSym() == _sym[param_type].vartype))
+    {
+        default_value.Type = SymbolTableEntry::kDT_Int;
+        return ParseIntLiteralOrConstvalue(
+            default_value_symbol,
+            default_is_negative,
+            "Expected an integer literal or constant as parameter default",
+            default_value.IntDefault);
+    }
+
+    if (!_sym.GetFloatSym() == param_type && (!_sym.IsAtomic(param_type) || _sym.GetFloatSym() != _sym[param_type].vartype))
+    {
+        cc_error("Parameter cannot have any default value");
+        return -1;
+    }
+
+    default_value.Type = SymbolTableEntry::kDT_Float;
+    if (_sym.Find("0") == default_value_symbol)
+    {
+        default_value.FloatDefault = 0.0f;
+        return 0;
+    }
+
+    return ParseFloatLiteral(
+        default_value_symbol,
+        default_is_negative,
+        "Expected a float literal as a parameter default",
+        default_value.FloatDefault);
 }
 
 int AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
@@ -1064,10 +1132,10 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
     
     // Kill the defaults so we can check whether this defn replicates them exactly.
     size_t const num_of_params = entry.GetNumOfFuncParams();
-    entry.FuncParamHasDefaultValues.assign(num_of_params + 1, false);
-    // -77 is an arbitrary value that is easy to spot in the debugger; 
-    // don't use for anything in code
-    entry.FuncParamDefaultValues.assign(num_of_params + 1, -77);
+
+    SymbolTableEntry::ParamDefault deflt{};
+    deflt.Type = SymbolTableEntry::kDT_None;
+    entry.FuncParamDefaultValues.assign(num_of_params + 1, deflt);
     return 0;
 }
 
@@ -1210,14 +1278,13 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     _sym.SetDeclared(param_name, _src.GetSectionId(), _src.GetLineno());
 }
 
-void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_vartype, bool param_is_const, bool param_has_int_default, int param_int_default)
+void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_vartype, bool param_is_const, AGS::SymbolTableEntry::ParamDefault const &param_default)
 {
     SymbolTableEntry &func_entry = _sym[name_of_func];
     size_t const minsize = param_idx + 1;
     if (func_entry.FuncParamTypes.size() < minsize)
     {
         func_entry.FuncParamTypes.resize(minsize);
-        func_entry.FuncParamHasDefaultValues.resize(minsize);
         func_entry.FuncParamDefaultValues.resize(minsize);
     }
 
@@ -1226,11 +1293,7 @@ void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int pa
         func_entry.FuncParamTypes[param_idx] =
             _sym.VartypeWith(kVTT_Const, func_entry.FuncParamTypes[param_idx]);    
 
-    if (param_has_int_default)
-    {
-        func_entry.FuncParamHasDefaultValues[param_idx] = param_has_int_default;
-        func_entry.FuncParamDefaultValues[param_idx] = param_int_default;
-    }
+    func_entry.FuncParamDefaultValues[param_idx] = SymbolTableEntry::ParamDefault(param_default);
 }
 
 // process a parameter decl in a function parameter list, something like int foo(INT BAR
@@ -1247,13 +1310,13 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     retval = ParseDynArrayMarkerIfPresent(vartype);
     if (retval < 0) return retval;
 
-    bool param_has_int_default = false;
-    int param_int_default;
-    retval = ParseParamlist_Param_DefaultValue(param_has_int_default, param_int_default);
+    // If parameter has a default, get it
+    SymbolTableEntry::ParamDefault param_default;
+    retval = ParseParamlist_Param_DefaultValue(vartype, param_default);
     if (retval < 0) return retval;
 
     // Augment the function type in the symbol table  
-    ParseParamlist_Param_Add2Func(name_of_func, param_idx, vartype, param_is_const, param_has_int_default, param_int_default);
+    ParseParamlist_Param_Add2Func(name_of_func, param_idx, vartype, param_is_const, param_default);
 
     if (kPP_Main != _pp || !body_follows)
         return 0;
@@ -1348,11 +1411,10 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
 {
     if (body_follows)
     {
-        // If none of the parameters have a default,
-        // we'll let this through for backward compatibility.
+        // If none of the parameters have a default, we'll let this through.
         bool has_default = false;
         for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); ++param_idx)
-            if (this_entry.FuncParamHasDefaultValues[param_idx])
+            if (this_entry.HasParamDefault(param_idx))
             {
                 has_default = true;
                 break;
@@ -1364,27 +1426,26 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const
     // this is 1 .. GetNumOfFuncArgs(), INCLUSIVE, because param 0 is the return type
     for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); ++param_idx)
     {
-        if ((this_entry.FuncParamHasDefaultValues[param_idx] ==
-            known_info.FuncParamHasDefaultValues[param_idx]) &&
-            (this_entry.FuncParamHasDefaultValues[param_idx] == false ||
+        if ((this_entry.HasParamDefault(param_idx) == known_info.HasParamDefault(param_idx)) &&
+            (this_entry.HasParamDefault(param_idx) == false ||
                 this_entry.FuncParamDefaultValues[param_idx] ==
                 known_info.FuncParamDefaultValues[param_idx]))
             continue;
 
         std::string errstr1 = "In this declaration, parameter #<1> <2>; ";
         errstr1.replace(errstr1.find("<1>"), 3, std::to_string(param_idx));
-        if (!this_entry.FuncParamHasDefaultValues[param_idx])
-            errstr1.replace(errstr1.find("<2>"), 3, "doesn't have a default value");
+        if (!this_entry.HasParamDefault(param_idx))
+            errstr1.replace(errstr1.find("<2>"), 3, "doesn't have any default value");
         else
             errstr1.replace(errstr1.find("<2>"), 3, "has the default "
-                + std::to_string(this_entry.FuncParamDefaultValues[param_idx]));
+                + this_entry.FuncParamDefaultValues[param_idx].ToString());
 
         std::string errstr2 = "in a declaration elsewhere, that parameter <2>.";
-        if (!known_info.FuncParamHasDefaultValues[param_idx])
-            errstr2.replace(errstr2.find("<2>"), 3, "doesn't have a default value");
+        if (!known_info.HasParamDefault(param_idx))
+            errstr2.replace(errstr2.find("<2>"), 3, "doesn't have any default value");
         else
             errstr2.replace(errstr2.find("<2>"), 3, "has the default "
-                + std::to_string(known_info.FuncParamDefaultValues[param_idx]));
+                + known_info.FuncParamDefaultValues[param_idx].ToString());
         errstr1 += errstr2;
         errstr1 = ReferenceMsg(
             errstr1,
@@ -1495,7 +1556,7 @@ int AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(AGS::Symbol name_of_func, boo
     {
         if (func_is_import)
         {
-            cc_error("Imported functions cannot have a body");
+            cc_error("Imported functions cannot have any body");
             return -1;
         }
         // Index of the function in the ccCompiledScript::functions[] array
@@ -1629,14 +1690,9 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
 
     // copy the default values from the function prototype
     if (known_info.SType != kSYM_NoType)
-    {
-        _sym[name_of_func].FuncParamHasDefaultValues.assign(
-            known_info.FuncParamHasDefaultValues.begin(),
-            known_info.FuncParamHasDefaultValues.end());
         _sym[name_of_func].FuncParamDefaultValues.assign(
             known_info.FuncParamDefaultValues.begin(),
             known_info.FuncParamDefaultValues.end());
-    }
 
     _sym.SetDeclared(name_of_func, _src.GetSectionId(), _src.GetLineno());
 
@@ -1686,6 +1742,7 @@ int AGS::Parser::InterpretFloatAsInt(float floatval)
     int *intptr = reinterpret_cast<int *>(floatptr); // pretend that it points to an int
     return *intptr; // return the int that the pointer points to
 }
+
 
 int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t slist_len, int &idx)
 {
@@ -2463,14 +2520,17 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
 {
     for (size_t arg_idx = num_func_args; arg_idx > num_supplied_args; arg_idx--)
     {
-        if (!_sym[funcSymbol].FuncParamHasDefaultValues[arg_idx])
+        if (!_sym[funcSymbol].HasParamDefault(arg_idx))
         {
-            cc_error("Function call parameter # %d isn't provided and does not have a default value", arg_idx);
+            cc_error("Function call parameter # %d isn't provided and doesn't have any default value", arg_idx);
             return -1;
         }
 
         // push the default value onto the stack
-        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[funcSymbol].FuncParamDefaultValues[arg_idx]);
+        WriteCmd(
+            SCMD_LITTOREG,
+            SREG_AX,
+            _sym[funcSymbol].FuncParamDefaultValues[arg_idx].ToInt32());
 
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
@@ -3031,7 +3091,7 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::Parser::Memory
 int AGS::Parser::AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, size_t num_array_elements, size_t element_size, AGS::Parser::MemoryLocation &mloc)
 {
     int array_index = -1;
-    int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
+    int retval = ParseIntLiteralOrConstvalue(index_symbol, false, "Error parsing array index", array_index);
     if (retval < 0) return retval;
     if (array_index < 0)
     {
@@ -3219,21 +3279,12 @@ int AGS::Parser::AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_l
 
 int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
 {
-    char *endptr;
-    std::string float_as_string = _sym.GetName(symlist[0]);
-    char const *instring = float_as_string.c_str();
-    double const d = strtod(instring, &endptr);
-    if (endptr != instring + _sym.GetName(symlist[0]).length())
-    {
-        cc_error("Illegal floating point literal '%s'", instring);
-        return -1;
-    }
-    if (HUGE_VAL == d)
-    {
-        cc_error("Floating point literal '%s' is out of range", instring);
-        return -1;
-    }
-    float const f = static_cast<float>(d * (negate ? -1 : 1));
+    float f;
+    int retval = String2Float(_sym.GetName(symlist[0]), f);
+    if (retval < 0) return retval;
+
+    if (negate)
+        f = -f;
     int const i = InterpretFloatAsInt(f);
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, i);
@@ -3246,13 +3297,13 @@ int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, si
 
 int AGS::Parser::AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
 {
-    int varSymValue;
-    int retval = ParseLiteralOrConstvalue(symlist[0], varSymValue, negateLiteral, "Error parsing integer value");
+    int literal;
+    int retval = ParseIntLiteralOrConstvalue(symlist[0], negateLiteral, "Error parsing integer value", literal);
     if (retval < 0) return retval;
     symlist++;
     symlist_len--;
 
-    WriteCmd(SCMD_LITTOREG, SREG_AX, varSymValue);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, literal);
     _scrip.ax_vartype = vartype = _sym.GetIntSym();
     _scrip.ax_val_scope = kSYM_GlobalVar;
 
@@ -4093,7 +4144,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment_Inttype(bool is_neg, void *&i
 {
     // Initializer for an integer value
     int int_init_val;
-    int retval = ParseLiteralOrConstvalue(_src.GetNext(), int_init_val, is_neg, "Expected integer value after '='");
+    int retval = ParseIntLiteralOrConstvalue(_src.GetNext(), is_neg, "Expected integer value after '='", int_init_val);
     if (retval < 0) return retval;
 
     // Allocate space for one long value
@@ -4227,7 +4278,7 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
 {
     if (has_initial_assignment)
     {
-        cc_error("Imported variables cannot have an initial assignment");
+        cc_error("Imported variables cannot have any initial assignment");
         return -1;
     }
 
@@ -4701,8 +4752,9 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(AGS::Symbol func, bool is_setter
         entry.FuncParamTypes[p_idx++] = _sym.GetIntSym();
     if (is_setter)
         entry.FuncParamTypes[p_idx] = vartype;
-    entry.FuncParamHasDefaultValues.assign(entry.FuncParamTypes.size(), false);
-    entry.FuncParamDefaultValues.assign(entry.FuncParamTypes.size(), 0);
+    SymbolTableEntry::ParamDefault deflt;
+    deflt.Type = SymbolTableEntry::kDT_None;
+    entry.FuncParamDefaultValues.assign(entry.FuncParamTypes.size(), deflt);
     return 0;
 }
 
@@ -4817,7 +4869,7 @@ int AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
         AGS::Symbol const dim_symbol = _src.GetNext();
 
         int dimension_as_int;
-        int retval = ParseLiteralOrConstvalue(dim_symbol, dimension_as_int, false, "Array size must be constant value");
+        int retval = ParseIntLiteralOrConstvalue(dim_symbol, false, "Expected a constant integer value for array dimension", dimension_as_int);
         if (retval < 0) return retval;
 
         if (dimension_as_int < 1)
@@ -5120,7 +5172,7 @@ int AGS::Parser::ParseEnum_AssignedValue(int &currentValue)
         item_value = _src.GetNext();
     }
 
-    return ParseLiteralOrConstvalue(item_value, currentValue, is_neg, "Expected integer or integer constant after '='");
+    return ParseIntLiteralOrConstvalue(item_value, is_neg, "Expected integer or integer constant after '='", currentValue);
 }
 
 void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int currentValue)

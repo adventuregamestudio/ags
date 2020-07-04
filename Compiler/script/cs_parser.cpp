@@ -737,7 +737,7 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
             WriteCmd(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.SOffset;
 
-        if (_sym.IsDyn(entry.vartype))
+        if (_sym.IsDyn(entry.Vartype))
         {
             WriteCmd(SCMD_MEMZEROPTR);
             continue;
@@ -748,7 +748,7 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
         if (entry.IsArray(_sym))
             FreeDynpointersOfStdArray(*compo_it, clobbers_ax);
         else if (entry.IsStruct(_sym))
-            FreeDynpointersOfStruct(entry.vartype, clobbers_ax);
+            FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
         if (compo_list.back() != *compo_it)
             _scrip.pop_reg(SREG_MAR);
     }
@@ -818,12 +818,12 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
             continue;
         if (_sym.GetThisSym() == entries_idx)
             continue; // don't touch the this pointer
-        if (!ContainsReleasableDynpointers(entry.vartype))
+        if (!ContainsReleasableDynpointers(entry.Vartype))
             continue;
 
         clobbers_mar = true;
         int const sp_offset = _scrip.cur_sp - entry.SOffset;
-        if (_sym.IsDyn(entry.vartype))
+        if (_sym.IsDyn(entry.Vartype))
         {
             WriteCmd(SCMD_LOADSPOFFS, sp_offset);
             WriteCmd(SCMD_MEMZEROPTR);
@@ -836,7 +836,7 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
         if (entry.IsArray(_sym))
             FreeDynpointersOfStdArray(entries_idx, clobbers_ax);
         else if (entry.IsStruct(_sym))
-            FreeDynpointersOfStruct(entry.vartype, clobbers_ax);
+            FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
     }
 }
 
@@ -1076,7 +1076,7 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, Symb
         return -1;
     }
 
-    if (_sym.GetIntSym() == param_type || (_sym.IsAtomic(param_type) && _sym.GetIntSym() == _sym[param_type].vartype))
+    if (_sym.GetIntSym() == param_type || (_sym.IsAtomic(param_type) && _sym.GetIntSym() == _sym[param_type].Vartype))
     {
         default_value.Type = SymbolTableEntry::kDT_Int;
         return ParseIntLiteralOrConstvalue(
@@ -1086,7 +1086,7 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, Symb
             default_value.IntDefault);
     }
 
-    if (!_sym.GetFloatSym() == param_type && (!_sym.IsAtomic(param_type) || _sym.GetFloatSym() != _sym[param_type].vartype))
+    if (!_sym.GetFloatSym() == param_type && (!_sym.IsAtomic(param_type) || _sym.GetFloatSym() != _sym[param_type].Vartype))
     {
         cc_error("Parameter cannot have any default value");
         return -1;
@@ -1263,13 +1263,13 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     SymbolTableEntry &param_entry = _sym[param_name];
     param_entry.SType = kSYM_LocalVar;
     param_entry.Extends = false;
-    param_entry.vartype = param_vartype;
+    param_entry.Vartype = param_vartype;
     param_entry.SScope = 1;
     SetFlag(param_entry.Flags, kSFLG_Parameter, true);
     if (param_is_const)
     {
         SetFlag(param_entry.Flags, kSFLG_Readonly, true);
-        param_entry.vartype = _sym.VartypeWith(kVTT_Const, param_entry.vartype);
+        param_entry.Vartype = _sym.VartypeWith(kVTT_Const, param_entry.Vartype);
     }
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The +1 is because the
@@ -3184,7 +3184,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, si
         return -1;
     }
 
-    AGS::Vartype const element_vartype = _sym[vartype].vartype;
+    AGS::Vartype const element_vartype = _sym[vartype].Vartype;
     size_t const element_size = _sym.GetSize(element_vartype);
     std::vector<size_t> dim_sizes;
     std::vector<size_t> dynarray_dims = { 0, };
@@ -4201,7 +4201,7 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartyp
 {
     SymbolTableEntry &entry = _sym[var_name];
     entry.SType = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
-    entry.vartype = vartype;
+    entry.Vartype = vartype;
     _sym.SetDeclared(var_name, _src.GetSectionId(), _src.GetLineno());
 }
 
@@ -4245,7 +4245,7 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
         return -1;
     }
 
-    if (known_info->vartype != this_entry->vartype)
+    if (known_info->Vartype != this_entry->Vartype)
     {
         // This will check the array lengths, too
         std::string msg = ReferenceMsg(
@@ -4254,8 +4254,8 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
             known_info->DeclLine);
         cc_error(
             msg.c_str(),
-            _sym.GetName(this_entry->vartype).c_str(),
-            _sym.GetName(known_info->vartype).c_str());
+            _sym.GetName(this_entry->Vartype).c_str(),
+            _sym.GetName(known_info->Vartype).c_str());
         return -1;
     }
 
@@ -4304,7 +4304,7 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Vartype 
         if (retval < 0) return retval;
     }
     SymbolTableEntry &entry = _sym[var_name];
-    entry.vartype = vartype;
+    entry.Vartype = vartype;
     size_t const var_size = _sym.GetSize(vartype);
     entry.SOffset = _scrip.add_global(var_size, initial_val_ptr);
     if (entry.SOffset < 0)
@@ -4467,13 +4467,13 @@ int AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, Symbol 
     }
 
     SymbolTableEntry &this_entry = _sym[_sym.GetThisSym()];
-    this_entry.vartype = 0;
+    this_entry.Vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(_sym.GetFlags(name_of_func), kSFLG_Static))
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.SType = kSYM_LocalVar;
         // Don't declare this as dynpointer to prevent it from being dereferenced twice.
-        this_entry.vartype = struct_of_func;
+        this_entry.Vartype = struct_of_func;
         this_entry.SScope = nesting_stack->Depth() - 1;
         this_entry.Flags = kSFLG_Readonly | kSFLG_Accessed;
         // Allocate unused space on stack for the "this" pointer
@@ -4740,7 +4740,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(AGS::Symbol func, bool is_setter
                     : (is_indexed ? "^1" : "^0");
     strcat(_scrip.imports[entry.SOffset], num_param_suffix);
 
-    entry.FuncParamTypes[0] = entry.vartype = 
+    entry.FuncParamTypes[0] = entry.Vartype = 
         is_setter ? _sym.GetVoidSym() : vartype;
     entry.SScope = 0;
     size_t const num_param = is_indexed + is_setter;
@@ -4800,11 +4800,11 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
 
     bool attrib_is_static = FlagIsSet(tqs, kTQ_Static);
 
-    Vartype const coretype = _sym[vname].vartype;
+    Vartype const coretype = _sym[vname].Vartype;
 
     _sym[vname].SType = kSYM_Attribute;
     if (attrib_is_indexed)
-        _sym[vname].vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].vartype);
+        _sym[vname].Vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].Vartype);
 
     // Declare attribute get func, e.g. get_ATTRIB()
     AGS::Symbol attrib_func = -1;
@@ -4920,7 +4920,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
         entry.SType = kSYM_StructComponent;
         entry.Extends = stname;  // save which struct it belongs to
         entry.SOffset = size_so_far;
-        entry.vartype = vartype;
+        entry.Vartype = vartype;
         if (FlagIsSet(tqs, kTQ_Readonly))
             SetFlag(entry.Flags, kSFLG_Readonly, true);
         if (FlagIsSet(tqs, kTQ_Attribute))
@@ -4938,10 +4938,10 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
 
     if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_OpenBracket)
     {
-        Vartype vartype = _sym[vname].vartype;
+        Vartype vartype = _sym[vname].Vartype;
         int retval = ParseArray(vname, vartype);
         if (retval < 0) return retval;
-        _sym[vname].vartype = vartype;
+        _sym[vname].Vartype = vartype;
     }
 
     size_so_far += _sym.GetSize(vname);
@@ -5180,7 +5180,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     SymbolTableEntry &entry = _sym[item_name];
 
     entry.SType = kSYM_Constant;
-    entry.vartype = enum_name;
+    entry.Vartype = enum_name;
     entry.SScope = 0;
     entry.Flags = kSFLG_Readonly;
     // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
@@ -5205,7 +5205,7 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     entry.SType = kSYM_Vartype;
     entry.SSize = SIZE_OF_INT;
-    entry.vartype = _sym.GetIntSym();
+    entry.Vartype = _sym.GetIntSym();
 
     return 0;
 }

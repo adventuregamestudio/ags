@@ -1957,7 +1957,6 @@ TEST(Compile, NewForwardDeclStruct)
     ccCompiledScript *scrip = newScriptFixture();
 
     // "new" on a forward-declared struct mustn't work
-
     char *inpl = "\
         managed struct Bang;        \n\
         int main()                  \n\

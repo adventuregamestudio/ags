@@ -62,7 +62,7 @@ public:
     CodeLoc SOffset; // multiple use
 
     // Variables only
-    Vartype vartype; // may contain typeflags
+    AGS::Vartype Vartype; // may contain typeflags
 
     // Variables, structs, struct members, and vartypes only
     size_t SSize;      // Size in bytes
@@ -210,7 +210,7 @@ public:
     inline SymbolType GetSymbolType(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).vartype : -1; }
+    inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).Vartype : -1; }
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry

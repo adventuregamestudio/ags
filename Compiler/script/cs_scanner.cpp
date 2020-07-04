@@ -564,7 +564,7 @@ void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_ty
 
     case  Scanner::kSct_StringLiteral:
         _sym[symb].SType = kSYM_LiteralString;
-        _sym[symb].vartype = _sym.GetOldStringSym();
+        _sym[symb].Vartype = _sym.GetOldStringSym();
         _sym[symb].SOffset = _stringCollector.add_string(symstring.c_str());
         return;
 

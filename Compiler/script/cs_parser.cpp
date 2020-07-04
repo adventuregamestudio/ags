@@ -1799,7 +1799,7 @@ int AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size_t sli
         {
             cc_error(
                 "'%s' cannot be used as %s operator",
-                _sym.GetName(this_op),
+                _sym.GetName(this_op).c_str(),
                 is_binary ? "binary" : "unary");
             return -1;
         }

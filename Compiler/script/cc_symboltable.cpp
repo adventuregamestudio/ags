@@ -150,8 +150,10 @@ void AGS::SymbolTable::reset()
         Add("float", kSYM_Vartype, 4);
     _intSym =
         Add("int", kSYM_Vartype, SIZE_OF_INT);
-    Add("long", kSYM_Vartype, SIZE_OF_INT);
-    Add("short", kSYM_Vartype, 2);
+    _longSym = 
+        Add("long", kSYM_Vartype, SIZE_OF_INT);
+    _shortSym = 
+        Add("short", kSYM_Vartype, 2);
     _oldStringSym =
         Add("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
     _voidSym =
@@ -242,6 +244,16 @@ void AGS::SymbolTable::reset()
     Add("while", kSYM_While);
     _lastPredefSym =
         Add("writeprotected", kSYM_WriteProtected); 
+}
+
+bool AGS::SymbolTable::IsAnyIntType(Symbol s) const
+{
+    if (s >= _charSym && s <= _shortSym && s != _floatSym)
+        return true;
+    if (!IsAtomic(s))
+        return false;
+    s = entries[s].Vartype;
+    return (s >= _charSym && s <= _shortSym && s != _floatSym);
 }
 
 std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const

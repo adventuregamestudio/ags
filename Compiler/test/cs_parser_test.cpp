@@ -1972,6 +1972,29 @@ TEST(Compile, NewForwardDeclStruct)
     ASSERT_NE(std::string::npos, lsce.find("Bang"));
 }
 
+TEST(Compile, NewEnumArray)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // dynamic array of enum should work
+    char *inpl = "\
+        enum bool                               \n\
+        {                                       \n\
+            false = 0,                          \n\
+            true,                               \n\
+        };                                      \n\
+                                                \n\
+        void Foo()                          \n\
+        {                                       \n\
+            bool Test[] = new bool[7];          \n\
+        }                                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
 TEST(Compile, Attributes07) {
     ccCompiledScript *scrip = newScriptFixture();
 

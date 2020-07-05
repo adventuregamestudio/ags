@@ -128,13 +128,15 @@ private:
     Symbol _charSym;      // the symbol that corresponds to "char"
     Symbol _floatSym;     // the symbol that corresponds to "float"
     Symbol _intSym;       // the symbol that corresponds to "int"
+    Symbol _longSym;      // the symbol that corresponds to "long"
+    Symbol _shortSym;     // the symbol that corresponds to "short"
     Symbol _nullSym;      // the symbol that corresponds to "null"
     Symbol _dynpointerSym;   // the symbol that corresponds to "*"
     Symbol _oldStringSym;    // the symbol that corresponds to "string"
-    Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
+    Symbol _stringStructSym; // the symbol that corresponds to "String" or whatever the stringstruct is
     Symbol _thisSym;      // the symbol that corresponds to "this"
     Symbol _voidSym;      // the symbol that corresponds to "void"
-    Symbol _lastPredefSym;      // last predefined symbol
+    Symbol _lastPredefSym;   // last predefined symbol
 
     AGS::Vartype _stringStructPtrVartype;
 
@@ -168,6 +170,8 @@ public:
 
     inline size_t GetSize(Symbol s) const { return IsInBounds(s) ? entries[s].GetSize(*this) : 0; };
 
+    // int, long, char, an enum etc.
+    bool IsAnyIntType(Symbol s) const;
     inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; };
     inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; };
     inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; };

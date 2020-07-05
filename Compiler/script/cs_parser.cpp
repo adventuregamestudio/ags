@@ -1076,7 +1076,7 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, Symb
         return -1;
     }
 
-    if (_sym.GetIntSym() == param_type || (_sym.IsAtomic(param_type) && _sym.GetIntSym() == _sym[param_type].Vartype))
+    if (_sym.IsAnyIntType(param_type))
     {
         default_value.Type = SymbolTableEntry::kDT_Int;
         return ParseIntLiteralOrConstvalue(
@@ -1086,7 +1086,7 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, Symb
             default_value.IntDefault);
     }
 
-    if (!_sym.GetFloatSym() == param_type && (!_sym.IsAtomic(param_type) || _sym.GetFloatSym() != _sym[param_type].Vartype))
+    if (!_sym.GetFloatSym() == param_type)
     {
         cc_error("Parameter cannot have any default value");
         return -1;
@@ -1939,6 +1939,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     // floats cannot mingle with other types
     if ((vartype_is == _sym.GetFloatSym()) != (vartype_wants_to_be == _sym.GetFloatSym()))
         return true;
+
+    // Can convert short, char etc. into int
+    if (_sym.IsAnyIntType(vartype_is) && _sym.GetIntSym() == vartype_wants_to_be)
+        return false;
 
     // Checks to do if at least one is dynarray
     if (_sym.IsDynarray(vartype_is) || _sym.IsDynarray(vartype_wants_to_be))
@@ -4852,9 +4856,9 @@ int AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
             cc_error("Dynamic arrays of old-style strings are not supported");
             return -1;
         }
-        if (!_sym.IsPrimitive(vartype) && !_sym.IsManaged(vartype))
+        if (!_sym.IsAnyIntType(vartype) && !_sym.IsManaged(vartype) && _sym.GetFloatSym() != vartype)
         {
-            cc_error("'%s' is a non-managed struct; dynamic arrays of such types are not supported", _sym.GetName(vartype).c_str());
+            cc_error("Can only have dynamic arrays of integer types, float or managed structs. '%s' isn't any of this.", _sym.GetName(vartype).c_str());
             return -1;
         }
         vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
@@ -5725,7 +5729,7 @@ int AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_cu
             return -1;
         }
     }
-    else if (_sym.GetIntSym() == functionReturnType)
+    else if (_sym.IsAnyIntType(functionReturnType))
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     }

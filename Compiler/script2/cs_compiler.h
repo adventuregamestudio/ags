@@ -19,14 +19,9 @@
 // add a script that will be compiled as a header into every compilation
 // 'name' is the name of the header, used in error reports
 // (only the pointer is stored so don't free the memory)
-extern int ccAddDefaultHeader(char *script, char *name);
+extern int ccAddDefaultHeader(char *hd_content, char *hd_name);
 // don't compile any headers into the compilation
 extern void ccRemoveDefaultHeaders(void);
-
-// define a macro which will affect all compilations
-extern void ccDefineMacro(const char *macro, const char *definition);
-// clear all predefined macros
-extern void ccClearAllMacros();
 
 // set version for use with #ifversion macros
 extern void ccSetSoftwareVersion(const char *version);

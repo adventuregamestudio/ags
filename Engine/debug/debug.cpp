@@ -104,7 +104,7 @@ void init_debug(bool stderr_only)
     {
         PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
         std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_Errors);
-        AGSPlatformDriver::SetOutputToErr(true);
+        platform->SetOutputToErr(true);
         return;
     }
     DebugMsgBuff.reset(new MessageBuffer());

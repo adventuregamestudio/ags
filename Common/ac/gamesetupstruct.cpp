@@ -96,7 +96,7 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
-        if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
+        if (clip_name.Compare(game.audioClips[i].scriptName.GetCStr()) == 0)
             return &game.audioClips[i];
     }
     return nullptr;

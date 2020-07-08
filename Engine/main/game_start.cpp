@@ -141,8 +141,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
         if (override_start_room)
             playerchar->room = override_start_room;
 
-        Debug::Printf(kDbgMsg_Init, "Engine initialization complete");
-        Debug::Printf(kDbgMsg_Init, "Starting game");
+        Debug::Printf(kDbgMsg_Info, "Engine initialization complete");
+        Debug::Printf(kDbgMsg_Info, "Starting game");
 
         start_game_init_editor_debugging();
 

@@ -441,7 +441,7 @@ int ags_entry_point(int argc, char *argv[]) {
         platform->SetGUIMode(true);
 
     init_debug(justTellInfo);
-    Debug::Printf(kDbgMsg_Init, get_engine_string());
+    Debug::Printf(kDbgMsg_Alert, get_engine_string());
 
     main_set_gamedir(argc, argv);    
 

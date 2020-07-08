@@ -35,18 +35,15 @@
 // distinct them from reports on the internal engine's problems and make
 // verbosity configuration flexible.
 //
-// kDbgMsg_Init - is a type for startup initialization notifications; use them
-// when declaring that certain component got initialized (or not initialized),
-// optionally noting working mode, where applicable. Such messages are intended
-// for core engine components and plugin startup only, not work modes and game
-// states that are normally changing during gameplay.
-//
-// kDbgMsg_Debug - is the most common type of message (if the printing function
+// kDbgMsg_Debug - is the most mundane type of message (if the printing function
 // argument list does not specify message type, it is probably kDbgMsg_Debug).
 // You can use it for almost anything, from noting some process steps to
 // displaying current object state. If certain messages are meant to be printed
 // very often, consider using another distinct debug group so that it may be
 // disabled to reduce log verbosity.
+//
+// kDbgMsg_Info - is a type for important notifications, such as initialization
+// and stopping of engine components.
 //
 // kDbgMsg_Warn - this is suggested for more significant cases, when you find
 // out that something is not right, but is not immediately affecting engine
@@ -80,7 +77,10 @@ namespace Common
 enum MessageType
 {
     kDbgMsg_None                = 0,
-    // Fatal errors are ones that make program abort immediately
+    // Alerts may be informative messages with topmost level of importance,
+    // such as reporting engine startup and shutdown.
+    kDbgMsg_Alert               ,
+    // Fatal errors are ones that make program abort immediately.
     kDbgMsg_Fatal               ,
     // Error messages are about engine not being able to perform requested
     // operation in a situation when that will affect game playability and
@@ -90,9 +90,8 @@ enum MessageType
     // is detected in program, which is not immediately critical,
     // but may be a symptom of a bigger problem.
     kDbgMsg_Warn                ,
-    // Initialization messages, notify about certain engine components
-    // being created and important modes initialized.
-    kDbgMsg_Init                ,
+    // General information messages.
+    kDbgMsg_Info                ,
     // Debug reason is for arbitrary information about events and current
     // game state.
     kDbgMsg_Debug               ,

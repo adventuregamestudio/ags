@@ -336,7 +336,7 @@ void OGLGraphicsDriver::FirstTimeInit()
 #else
   ogl_v_str = (const char*)glGetString(GL_VERSION);
 #endif
-  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
+  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);

@@ -103,14 +103,14 @@ void init_debug(bool stderr_only)
     if (stderr_only)
     {
         PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
-        std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_Errors);
+        std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_Error);
         platform->SetOutputToErr(true);
         return;
     }
     DebugMsgBuff.reset(new MessageBuffer());
-    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
+    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All);
     PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
-    std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_InitAndErrors);
+    std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_Init);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -118,17 +118,17 @@ void apply_debug_config(const ConfigTree &cfg)
     if (INIreadint(cfg, "misc", "log", 0) != 0)
     {
         DebugLogFile.reset(new LogFile());
-        PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+        PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_All);
 #ifdef DEBUG_SPRITECACHE
-        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_All);
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_All);
 #else
-        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_InitAndErrors);
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_Init);
 #endif
-        file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_InitAndErrors);
+        file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Init);
 #ifdef DEBUG_MANAGED_OBJECTS
-        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_All);
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_All);
 #else
-        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_InitAndErrors);
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_Init);
 #endif
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
@@ -180,9 +180,9 @@ void debug_set_console(bool enable)
     if (enable && DebugConsole.get() == nullptr)
     {
         DebugConsole.reset(new ConsoleOutputTarget());
-        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_InitAndErrors);
-        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
-        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_Init);
+        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_All);
         if (DebugMsgBuff.get())
             DebugMsgBuff->Send(OutputGameConsoleID);
     }

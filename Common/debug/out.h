@@ -80,30 +80,27 @@ namespace Common
 enum MessageType
 {
     kDbgMsg_None                = 0,
-    // Initialization messages, notify about certain engine components
-    // being created and important modes initialized.
-    kDbgMsg_Init                = 0x0001,
-    // Debug reason is for arbitrary information about events and current
-    // game state
-    kDbgMsg_Debug               = 0x0002,
-    // Warnings are made when unexpected or non-standart behavior
-    // is detected in program, which is not immediately critical,
-    // but may be a symptom of a bigger problem.
-    kDbgMsg_Warn                = 0x0004,
+    // Fatal errors are ones that make program abort immediately
+    kDbgMsg_Fatal               ,
     // Error messages are about engine not being able to perform requested
     // operation in a situation when that will affect game playability and
     // further execution.
-    kDbgMsg_Error               = 0x0008,
-    // Fatal errors are ones that make program abort immediately
-    kDbgMsg_Fatal               = 0x0010,
+    kDbgMsg_Error               ,
+    // Warnings are made when unexpected or non-standart behavior
+    // is detected in program, which is not immediately critical,
+    // but may be a symptom of a bigger problem.
+    kDbgMsg_Warn                ,
+    // Initialization messages, notify about certain engine components
+    // being created and important modes initialized.
+    kDbgMsg_Init                ,
+    // Debug reason is for arbitrary information about events and current
+    // game state.
+    kDbgMsg_Debug               ,
+
 
     // Convenient aliases
     kDbgMsg_Default             = kDbgMsg_Debug,
-    kDbgMsgSet_NoDebug          = 0x001D,
-    kDbgMsgSet_Errors           = 0x0018,
-    kDbgMsgSet_InitAndErrors    = 0x0019,
-    // Output everything
-    kDbgMsgSet_All              = 0xFFFF
+    kDbgMsg_All                 = kDbgMsg_Debug
 };
 
 // This enumeration is a list of common hard-coded groups, but more could

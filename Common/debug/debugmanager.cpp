@@ -82,7 +82,7 @@ bool DebugOutput::TestGroup(DebugGroupID id,  MessageType mt) const
     DebugGroupID real_id = DbgMgr.GetGroup(id).UID;
     if (real_id.ID == kDbgGroup_None || real_id.ID >= _groupFilter.size())
         return false;
-    return (_groupFilter[real_id.ID] & mt) != 0;
+    return (_groupFilter[real_id.ID] >= mt) != 0;
 }
 
 DebugManager::DebugManager()

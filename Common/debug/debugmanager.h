@@ -64,7 +64,7 @@ struct DebugGroup
 class DebugOutput
 {
 public:
-    DebugOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsgSet_All, bool enabled = true);
+    DebugOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsg_All, bool enabled = true);
 
     String          GetID() const;
     IOutputHandler *GetHandler() const;
@@ -110,7 +110,7 @@ public:
     DebugGroup RegisterGroup(const String &id, const String &out_name);
     // Registers output delegate for passing debug messages to;
     // if the output with such id already exists, replaces the old one
-    PDebugOutput RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsgSet_All, bool enabled = true);
+    PDebugOutput RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsg_All, bool enabled = true);
     // Unregisters all groups and all targets
     void UnregisterAll();
     // Unregisters debugging group with the given ID

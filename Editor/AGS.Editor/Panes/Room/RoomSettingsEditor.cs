@@ -53,6 +53,8 @@ namespace AGS.Editor
         /// </summary>
         public IAddressNode CurrentNode { get { return _editAddressBar.CurrentNode; } }
 
+        internal static Cursor LockedCursor { get; private set; }
+
         /// <summary>
         /// Tells if the design-time properties of the room were modified since last save.
         /// </summary>
@@ -80,7 +82,12 @@ namespace AGS.Editor
 
         public RoomSettingsEditor(Room room)
         {
-			this.SetStyle(ControlStyles.Selectable, true);
+            if (LockedCursor == null)
+            {
+                LockedCursor = Resources.ResourceManager.GetCursor("lock_cur.cur");
+            }
+
+            this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
@@ -682,7 +689,14 @@ namespace AGS.Editor
 
         private void SelectCursor(int x, int y, RoomEditorState state)
         {
-            state.CurrentCursor = _layer != null ? _layer.GetCursor(x, y, state) : Cursors.Default;
+            if (_layer != null)
+            {
+                state.CurrentCursor = _layer.Locked ? LockedCursor : _layer.GetCursor(x, y, state);
+            }
+            else
+            {
+                state.CurrentCursor = Cursors.Default;
+            }
             bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 

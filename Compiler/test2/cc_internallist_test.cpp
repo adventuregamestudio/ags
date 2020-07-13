@@ -72,11 +72,11 @@ TEST(SrcList, AppendLineno) {
     src.NewLine(11); // overwrites the previous NewLine()
     src.Append(9);
 
-    EXPECT_EQ(0, src.GetLineno(0));
-    EXPECT_EQ(0, src.GetLineno(1));
-    EXPECT_EQ(4711, src.GetLineno(2));
-    EXPECT_EQ(11, src.GetLineno(5)); // last linenum is valid "forever"
-    EXPECT_EQ(0, src.GetLineno(1));
+    EXPECT_EQ(0, src.GetLinenoAt(0));
+    EXPECT_EQ(0, src.GetLinenoAt(1));
+    EXPECT_EQ(4711, src.GetLinenoAt(2));
+    EXPECT_EQ(11, src.GetLinenoAt(5)); // last linenum is valid "forever"
+    EXPECT_EQ(0, src.GetLinenoAt(1));
     src.SetCursor(4);
     EXPECT_EQ(11, src.GetLineno());
 }
@@ -94,13 +94,13 @@ TEST(SrcList, AppendSections) {
     src.NewSection("Cherry"); // overwrites the previous NewSection()
     src.Append(9);
 
-    EXPECT_EQ(10, src.GetLineno(0));
-    EXPECT_EQ(10, src.GetLineno(1));
-    EXPECT_EQ(10, src.GetLineno(2)); // NewSection doesn't automatically reset the line counter
-    EXPECT_STREQ("Apple", src.Id2Section(src.GetSectionId(2)).c_str());
-    EXPECT_STREQ("Cherry", src.Id2Section(src.GetSectionId(9)).c_str());
+    EXPECT_EQ(10, src.GetLinenoAt(0));
+    EXPECT_EQ(10, src.GetLinenoAt(1));
+    EXPECT_EQ(10, src.GetLinenoAt(2)); // NewSection doesn't automatically reset the line counter
+    EXPECT_STREQ("Apple", src.SectionId2Section(src.GetSectionIdAt(2)).c_str());
+    EXPECT_STREQ("Cherry", src.SectionId2Section(src.GetSectionIdAt(9)).c_str());
     src.SetCursor(0);
-    EXPECT_STREQ("", src.Id2Section(src.GetSectionId()).c_str());
+    EXPECT_STREQ("", src.SectionId2Section(src.GetSectionId()).c_str());
 }
 
 TEST(SrcList, PartCopy) {
@@ -129,10 +129,10 @@ TEST(SrcList, PartCopy) {
     EXPECT_EQ(9, part.GetNext());
     EXPECT_EQ(AGS::SrcList::kEOF, part.GetNext());
     EXPECT_TRUE(part.ReachedEOF());
-    EXPECT_EQ(10, part.GetLineno(0));
-    EXPECT_STREQ("Apple", part.Id2Section(part.GetSectionId(0)).c_str());
-    EXPECT_EQ(77, part.GetLineno(1));
-    EXPECT_STREQ("Cherry", part.Id2Section(part.GetSectionId(1)).c_str());
+    EXPECT_EQ(10, part.GetLinenoAt(0));
+    EXPECT_STREQ("Apple", part.SectionId2Section(part.GetSectionIdAt(0)).c_str());
+    EXPECT_EQ(77, part.GetLinenoAt(1));
+    EXPECT_STREQ("Cherry", part.SectionId2Section(part.GetSectionIdAt(1)).c_str());
 }
 
 TEST(InternalList, Constructor) {

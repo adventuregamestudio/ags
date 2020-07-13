@@ -8,80 +8,40 @@
 // TODO Throw me away as soon as internallist has died!
 static int currentline;  
 
-AGS::LineHandler::SectionMap::SectionMap()
-    : _cacheSection("")
-    , _cacheId(0)
-    , _section({ "" })
-{
-}
-
-size_t AGS::LineHandler::SectionMap::Section2Id(std::string const &section)
-{
-    if (section == _cacheSection)
-        return _cacheId;
-    _cacheSection = section;
-    auto const it = std::find(_section.begin(), _section.end(), section);
-    _cacheId = it - _section.begin();
-    if (_cacheId == _section.size()) // hasn't been entered in the table yet
-        _section.push_back(section); 
-    return _cacheId;
-}
-
 AGS::LineHandler::LineHandler()
-    : _cacheLineStart(0)
-    , _cacheLineEnd (0)
-    , _cacheLineNo(0)
-    , _cacheSectionIdStart(0)
-    , _cacheSectionIdEnd(0)
-    , _cacheSectionId(0)
+    : _cacheLineStart(1) // Invalidate the cache
+    , _cacheLineEnd (0) // Invalidate the cache
 {
+    _sections = { "" };
+    _lineStartTable.clear();
+
     // Add sentinels to the table for simpler lookup algorithms
     size_t const maxsize = std::numeric_limits<size_t>::max();
-    _lineStartTable[0] = 0;
-    _lineStartTable[maxsize] = maxsize;
-    _sectionIdTable[0] = 0;
-    _sectionIdTable[maxsize] = maxsize;
+    _lineStartTable[0] = SectionLine{ 0, 0 };
+    _lineStartTable[maxsize] = SectionLine{ 0, maxsize };
 }
 
-void AGS::LineHandler::AddSectionAt(size_t offset, std::string const & section)
+void AGS::LineHandler::UpdateCacheIfNecessary(size_t pos) const
 {
-    _sectionIdTable[offset] = Section2Id(section);
-    // This makes the cache invalid, so
-    _cacheSectionIdStart = _cacheSectionIdEnd = _cacheSectionId = 0;
-}
+    if (_cacheLineStart <= pos && pos < _cacheLineEnd)
+        return;
 
-size_t AGS::LineHandler::GetLineAt(size_t offset) const
-{
-    if (_cacheLineStart <= offset && offset < _cacheLineEnd)
-        return _cacheLineNo;
-
-    auto it = _lineStartTable.upper_bound(offset);
+    // Cache miss
+    // We've entered a record for the largest possible line number at object creation time,
+    // so we know that upper_bound(offset) will find a record.
+    auto it = _lineStartTable.upper_bound(pos);
     _cacheLineEnd = it->first;
-    it--;
-    _cacheLineStart = it->first;
-    _cacheLineNo = it->second;
-    return _cacheLineNo;
-}
-
-size_t AGS::LineHandler::GetSectionIdAt(size_t offset) const
-{
-    if (_cacheSectionIdStart <= offset && offset < _cacheSectionIdEnd)
-        return _cacheSectionId;
-
-    auto it = _sectionIdTable.upper_bound(offset);
-    _cacheSectionIdEnd = it->first;
-    _cacheSectionIdStart = _cacheSectionId = 0;
-    it--;
-    _cacheSectionIdStart = it->first;
-    _cacheSectionId = it->second;
-    return _cacheSectionId;
+    _cacheLineStart = (--it)->first;
+    _cacheSectionLine = SectionLine{ it->second.SectionId, it->second.Lineno };
 }
 
 void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
 {
-    _lineStartTable[offset] = lineno;
-    // This makes the cache invalid, so
-    _cacheLineStart = _cacheLineEnd = _cacheLineNo = 0;
+    _lineStartTable[offset].SectionId = _sections.size() - 1;
+    _lineStartTable[offset].Lineno = lineno;
+    // The cache may no longer be correct, so invalidate it
+    _cacheLineStart = 1;
+    _cacheLineEnd = 0;
 }
 
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
@@ -96,9 +56,9 @@ AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
 AGS::SrcList::SrcList(SrcList const &src_list, size_t offset, size_t len)
     : _script(src_list._script)
     , _lineHandler(src_list._lineHandler)
-    , _offset(offset)
+    , _offset(offset + src_list._offset)
     , _len(len)
-    , _cursor(_offset)
+    , _cursor(offset + src_list._offset)
 {
     size_t const maxlen = std::max<int>(_script.size() - _offset, 0);
     _len = std::min<size_t>(_len, maxlen);

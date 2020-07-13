@@ -2554,7 +2554,7 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 
 std::string AGS::Parser::ReferenceMsg(std::string const &msg, int section_id, int line)
 {
-    std::string const section = _src.Id2Section(section_id);
+    std::string const section = _src.SectionId2Section(section_id);
 
     if (line <= 0 || (!section.empty() && section[0] == '_'))
         return msg;
@@ -6350,7 +6350,7 @@ void AGS::Parser::HandleSrcSectionChange()
     if (src_section_id == _lastEmittedSectionId)
         return;
 
-    std::string const script_name = _src.Id2Section(src_section_id);
+    std::string const script_name = _src.SectionId2Section(src_section_id);
     if (kPP_Main == _pp)
         _scrip.start_new_section(script_name.c_str());
     _lastEmittedSectionId = src_section_id;

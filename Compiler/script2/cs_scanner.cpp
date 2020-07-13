@@ -592,14 +592,14 @@ AGS::Scanner::OpenCloseMatcher::OpenCloseMatcher(SrcList &sectionIdConverter)
 }
 
 
-void AGS::Scanner::OpenCloseMatcher::Push(std::string const &opener, std::string const &expected_closer, int section_id, int lineno)
+void AGS::Scanner::OpenCloseMatcher::Push(std::string const &opener, std::string const &expected_closer, size_t opener_pos)
 {
-    struct OpenInfo oi = { opener, expected_closer, section_id, lineno };
+    struct OpenInfo oi = { opener, expected_closer, opener_pos };
     _openInfoStack.push_back(oi);
 }
 
 
-void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, int section_id, int lineno, bool &error_encountered)
+void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, size_t closer_pos, bool &error_encountered)
 {
     if (_openInfoStack.empty())
     {
@@ -615,18 +615,24 @@ void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, int 
         return;
 
     error_encountered = true;
-    _lastError = "Found '&1', this does not match the '&2' in &4, line &3";
-    if (section_id == oi.SectionId)
-        _lastError = "Found '&1', this does not match the '&2' on line &3";
-    if (oi.Lineno == lineno)
-        _lastError = "Found '&1', this does not match the '&2' on this line";
-    _lastError.replace(_lastError.find("&1"), 2, closer.c_str());
-    _lastError.replace(_lastError.find("&2"), 2, oi.Opener.c_str());
-    int idx;
-    if (_lastError.npos != (idx = _lastError.find("&3")))
-        _lastError.replace(idx, 2, std::to_string(oi.Lineno));
-    if (_lastError.npos != (idx = _lastError.find("&4")))
-        _lastError.replace(idx, 2, _sectionIdConverter.Id2Section(oi.SectionId).c_str());
+    size_t const opener_section_id = _sectionIdConverter.GetSectionIdAt(oi.Pos);
+    std::string const &opener_section = _sectionIdConverter.SectionId2Section(opener_section_id);
+    size_t const opener_lineno = _sectionIdConverter.GetLinenoAt(oi.Pos);
+    size_t const closer_section_id = _sectionIdConverter.GetSectionIdAt(oi.Pos);
+    std::string const &closer_section = _sectionIdConverter.SectionId2Section(opener_section_id);
+    size_t const closer_lineno = _sectionIdConverter.GetLinenoAt(closer_pos);
+
+    _lastError = "Found '&closer&', this does not match the '&opener&' in &section&, line &lineno&";
+    if (0 == closer_section.compare(opener_section))
+        _lastError = "Found '&closer&', this does not match the '&opener&' on line &lineno&";
+    if (closer_lineno == opener_lineno)
+        _lastError = "Found '&closer&', this does not match the '&opener&' on this line";
+    ReplaceToken(_lastError, "&closer&", closer);
+    ReplaceToken(_lastError, "&opener&", oi.Opener);
+    if (_lastError.npos != _lastError.find("&lineno&"))
+        ReplaceToken(_lastError, "&lineno&", std::to_string(opener_lineno));
+    if (_lastError.npos != _lastError.find("&section&"))
+        ReplaceToken(_lastError, "&section&", opener_section);
 }
 
 // Check the nesting of () [] {}, error if mismatch
@@ -638,33 +644,23 @@ void AGS::Scanner::CheckMatcherNesting(Symbol token, bool &error_encountered)
         return;
 
     case kSYM_CloseBrace:
-        _ocMatcher.PopAndCheck("}", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
-        if (error_encountered)
-            _lastError = _ocMatcher.GetLastError();
-        return;
-
     case kSYM_CloseBracket:
-        _ocMatcher.PopAndCheck("]", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
-        if (error_encountered)
-            _lastError = _ocMatcher.GetLastError();
-        return;
-
     case kSYM_CloseParenthesis:
-        _ocMatcher.PopAndCheck(")", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1), error_encountered);
+        _ocMatcher.PopAndCheck(_sym[token].SName, _tokenList.GetSize(), error_encountered);
         if (error_encountered)
             _lastError = _ocMatcher.GetLastError();
         return;
 
     case kSYM_OpenBrace:
-        _ocMatcher.Push("{", "}", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        _ocMatcher.Push("{", "}", _tokenList.GetSize());
         return;
 
     case kSYM_OpenBracket:
-        _ocMatcher.Push("[", "]", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        _ocMatcher.Push("[", "]", _tokenList.GetSize());
         return;
 
     case kSYM_OpenParenthesis:
-        _ocMatcher.Push("(", ")", _tokenList.GetSectionId(), _tokenList.GetLineno(_tokenList.GetSize() - 1));
+        _ocMatcher.Push("(", ")", _tokenList.GetSize());
         return;
     }
 }

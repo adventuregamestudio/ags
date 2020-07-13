@@ -422,8 +422,9 @@ TEST_F(Scan, MatchBraceParen1)
     scanner.Scan(errore);
     ASSERT_TRUE(errore);
 
+    std::string err = scanner.GetLastError();
     EXPECT_EQ(5, scanner.GetLineno());
-    EXPECT_NE(std::string::npos, scanner.GetLastError().find("ine 2"));
+    EXPECT_NE(std::string::npos, err.find("ine 2"));
 }
 
 TEST_F(Scan, MatchBraceParen2)

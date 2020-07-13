@@ -44,8 +44,7 @@ private:
         {
             std::string const Opener;
             std::string const Closer;
-            int SectionId; // of the Opener symbol
-            int Lineno;  // of the Opener symbol
+            size_t Pos;  // of the Opener symbol in the token list
         };
         std::vector<OpenInfo> _openInfoStack;
         std::string _lastError;
@@ -55,11 +54,11 @@ private:
         OpenCloseMatcher(SrcList &sectionIdConverter);
 
         // We've encountered an opening symbol; push it and the expected closer onto a stack
-        void Push(std::string const &opener, std::string const &expected_closer, int section_id, int lineno);
+        void Push(std::string const &opener, std::string const &expected_closer, size_t opener_pos);
 
         // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
         // If they don't match, generate error. Otherwise, pop from stack
-        void PopAndCheck(std::string const &closer, int section_id, int lineno, bool &error_encountered);
+        void PopAndCheck(std::string const &closer, size_t closer_pos, bool &error_encountered);
 
         std::string GetLastError() const { return _lastError; };
 
@@ -132,12 +131,16 @@ private:
 
     void CheckMatcherNesting(Symbol token, bool &error_encountered);
 
+    
 protected:
     // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
     inline static bool IsUpper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
     inline static bool IsLower(int ch) { return (ch >= 'a' && ch <= 'z'); }
     inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
+
+    // Change where: replace the first occurrence of token in where by replacement.
+    inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
 
 public:
     Scanner(std::string const &input, SrcList &token_list, struct ::ccCompiledScript &string_collector, SymbolTable &symt);

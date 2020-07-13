@@ -11,45 +11,39 @@ namespace AGS
 {
 class LineHandler
 {
-    // maps sections to IDs
-    class SectionMap
-    {
-    private:
-        std::string _cacheSection = "";
-        size_t _cacheId;
-        std::vector <std::string> _section;
+    // stores section names as strings
+    std::vector <std::string> _sections;
 
-    public:
-        size_t Section2Id(std::string const &section);
-        std::string const Id2Section(size_t id) const { return id < _section.size() ? _section[id] : ""; }
-        SectionMap();
-    } _sectionMap;
+    struct SectionLine
+    {
+        size_t SectionId, Lineno;
+    };
 
     // maps srclist indexes to lines of the program source
-    std::map<size_t, size_t> _lineStartTable;
-    mutable size_t _cacheLineStart, _cacheLineEnd, _cacheLineNo;
+    std::map<size_t, SectionLine> _lineStartTable;
+    mutable size_t _cacheLineStart, _cacheLineEnd;
+    mutable SectionLine _cacheSectionLine;
 
-    // maps srclist indexes to sections of the program source
-    std::map<size_t, size_t> _sectionIdTable;
-    mutable size_t _cacheSectionIdStart, _cacheSectionIdEnd, _cacheSectionId;
+    void UpdateCacheIfNecessary(size_t pos) const;
     
 public:
-    inline int Section2Id(std::string const &section) { return _sectionMap.Section2Id(section); }
-    inline std::string const Id2Section(int id) const { return _sectionMap.Id2Section(id); }
 
     LineHandler();
 
-    // Record that the named section begins at the offset of the SymbolList, 
-    void AddSectionAt(size_t offset, std::string const &section);
+    // Start a new section. From now on, all AddLineAt() will refer to that section.
+    inline int NewSection(std::string const &section) { _sections.push_back(section); return 0; }
 
     // Get the section number that corresponds to the offset
-    size_t GetSectionIdAt(size_t offset) const;
+    inline size_t GetSectionIdAt(size_t offset) const { UpdateCacheIfNecessary(offset); return _cacheSectionLine.SectionId; }
+
+    // Convert section IDs to sections
+    std::string const &SectionId2Section(size_t id) const { return (id < 0 || id >= _sections.size()) ? _sections[0] : _sections[id]; }
 
     // Record that the code line lineno begins at the offset of the SymbolList, 
     void AddLineAt(size_t offset, size_t lineno);
         
     // Get the code line that corresponds to the offset
-    size_t GetLineAt(size_t offset) const;
+    inline size_t GetLinenoAt(size_t offset) const {  UpdateCacheIfNecessary(offset); return _cacheSectionLine.Lineno; }
 };
 
 // A list of input tokens. Only _len tokens, beginning at _offset, are taken into
@@ -63,14 +57,17 @@ public:
 private:
     std::vector<Symbol> &_script;
     LineHandler &_lineHandler;
-    size_t _offset;
-    size_t _len;
-    size_t _cursor; // note: cursor has the actual position. Don't add _offset to cursor.
+    size_t _offset; 
+    size_t _len;    // note: _len has the length relative to [0], not relative to [_offset]
+    size_t _cursor; // note: _cursor has the position relative to [0], not relative to [_offset]
 
     int lineAtEnd;
 
 public:
     SrcList(std::vector<Symbol> &script, LineHandler &line_handler);
+
+    // This references the symbol list of src_list but makes it look as if it would start at [offset].
+    // Note: src_list must live at least as long as "this" or else "this" will have a dangling reference. 
     SrcList(SrcList const &src_list, size_t offset, size_t len);
 
     inline size_t GetCursor() const { return _cursor - _offset; }
@@ -89,22 +86,22 @@ public:
 
     // Note that when this is a sub-list of an original list, the line numbers
     // will still be relative to the original list. This is intentional.
-    inline size_t GetLineno(size_t idx) { return _lineHandler.GetLineAt(idx + _offset); }
-    inline size_t GetSectionId(size_t idx) { return _lineHandler.GetSectionIdAt(idx + _offset); }
+    inline size_t GetLinenoAt(size_t pos) const { return _lineHandler.GetLinenoAt(pos + _offset); }
+    inline size_t GetSectionIdAt (size_t pos) const { return _lineHandler.GetSectionIdAt(pos + _offset); }
+    // Get the data to the current position.
     // Note: The cursor points at the symbol that will be read next, but we need the data
     // of the symbol that has just been read. That's the symbol in front of the cursor.
-    inline size_t GetLineno() { return _lineHandler.GetLineAt(std::max<size_t>(1u, _cursor) - 1); }
-    inline size_t GetSectionId() { return _lineHandler.GetSectionIdAt(std::max<size_t>(1u, _cursor) - 1); }
+    inline size_t GetLineno() const { return GetLinenoAt(std::max<size_t>(1u, _cursor) - 1); }
+    inline size_t GetSectionId() const { return GetSectionIdAt(std::max<size_t>(1u, _cursor) - 1); }
 
-    inline int Section2Id(std::string const &section) { return _lineHandler.Section2Id(section); }
-    inline std::string const Id2Section(int id) const { return _lineHandler.Id2Section(id); }
+    inline std::string const &SectionId2Section(size_t id) const { return _lineHandler.SectionId2Section(id); }
 
     //
     // Used for building the srclist, not for processing the srclist
     //
     inline void Append(Symbol symb) { _script.push_back(symb); _len++; }
     inline void NewLine(size_t lineno) { _lineHandler.AddLineAt(_script.size(), lineno); }
-    inline void NewSection(std::string const &section) { _lineHandler.AddSectionAt(_script.size(), section); }
+    inline void NewSection(std::string const &section) { _lineHandler.NewSection(section); }
 };
 } // namespace AGS
 

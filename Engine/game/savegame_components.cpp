@@ -375,7 +375,7 @@ HSaveError WriteAudio(PStream out)
 
     // Game content assertion
     out->WriteInt32(game.audioClipTypes.size());
-    out->WriteInt32(game.audioClips.size());
+    out->WriteInt32(game.audioClips.size()); // [ivan-mogilko] not necessary, kept only to avoid changing save format
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
@@ -423,8 +423,10 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
     // Game content assertion
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
         return err;
+    in->ReadInt32(); // audio clip count
+    /* [ivan-mogilko] looks like it's not necessary to assert, as there's no data serialized for clips
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClips.size(), "Audio Clips"))
-        return err;
+        return err;*/
 
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)

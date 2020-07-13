@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         where FolderType : BaseFolderCollection<ItemType,FolderType>
     {
         protected abstract FolderType GetRootFolder();
+        protected abstract IList<ItemType> GetFlatList();
         protected abstract ProjectTreeItem CreateTreeItemForItem(ItemType item);
         protected abstract void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);
         protected abstract void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);

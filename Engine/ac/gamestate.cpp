@@ -299,6 +299,9 @@ void GameState::DeleteRoomViewport(int index)
     auto scobj = _scViewportRefs[index];
     scobj.first->Invalidate();
     ccReleaseObjectReference(scobj.second);
+    auto cam = _roomViewports[index]->GetCamera();
+    if (cam)
+        cam->UnlinkFromViewport(index);
     _roomViewports.erase(_roomViewports.begin() + index);
     _scViewportRefs.erase(_scViewportRefs.begin() + index);
     for (size_t i = index; i < _roomViewports.size(); ++i)
@@ -361,6 +364,12 @@ void GameState::DeleteRoomCamera(int index)
     auto scobj = _scCameraRefs[index];
     scobj.first->Invalidate();
     ccReleaseObjectReference(scobj.second);
+    for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
+    {
+        auto view = viewref.lock();
+        if (view)
+            view->LinkCamera(nullptr);
+    }
     _roomCameras.erase(_roomCameras.begin() + index);
     _scCameraRefs.erase(_scCameraRefs.begin() + index);
     for (size_t i = index; i < _roomCameras.size(); ++i)

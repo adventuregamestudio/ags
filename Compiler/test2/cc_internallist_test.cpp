@@ -82,16 +82,20 @@ TEST(SrcList, AppendLineno) {
 }
 
 TEST(SrcList, AppendSections) {
+    // A section change will only "stick" when it is followed by a NewLine();
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script;
     AGS::SrcList src(script, lh);
     src.NewLine(10);
     src.Append(1);
     src.NewSection("Apple");
+    src.NewLine(10);
     src.Append(1);
     src.Append(3);
     src.NewSection("Banana");
-    src.NewSection("Cherry"); // overwrites the previous NewSection()
+    src.NewLine(10);
+    src.NewSection("Cherry");
+    src.NewLine(10);
     src.Append(9);
 
     EXPECT_EQ(10, src.GetLinenoAt(0));
@@ -110,10 +114,11 @@ TEST(SrcList, PartCopy) {
     src.NewLine(10);
     src.Append(1);
     src.NewSection("Apple");
+    src.NewLine(10);
     src.Append(1);
     src.Append(3);
-    src.NewSection("Banana");
-    src.NewSection("Cherry"); // overwrites the previous NewSection()
+    src.NewSection("Cherry");
+    src.NewLine(10);
     src.NewLine(77);
     src.Append(9);
     AGS::SrcList part = AGS::SrcList(src, 2, 7);

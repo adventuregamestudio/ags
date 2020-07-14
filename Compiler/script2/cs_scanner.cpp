@@ -136,9 +136,9 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
 
     // Here when we don't know how to process the next char to be read
     error_encountered = true;
-    _lastError = "The character '&1' is not legal in this context";
+    _lastError = "The character '&char&' is not legal in this context";
     std::string chstring(1, next_char);
-    _lastError.replace(_lastError.find("&1"), 2, chstring);
+    ReplaceToken(_lastError, "&char&", chstring);
     return;
 }
 
@@ -299,9 +299,9 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
         if (ch != '\'')
         {
             error_encountered = true;
-            std::string wrong_letter_as_string(1, ch);
-            _lastError = "Expected apostrophe, but found '&1' instead";
-            _lastError.replace(_lastError.find("&1"), 2, wrong_letter_as_string);
+            std::string wrong_char_as_string(1, ch);
+            _lastError = "Expected apostrophe, but found '&char&' instead";
+            ReplaceToken(_lastError, "&char&", wrong_char_as_string);
             return;
         }
         // Convert the char literal to an int literal
@@ -364,8 +364,8 @@ int AGS::Scanner::EscapedChar2Char(int ch, bool &error_encountered)
     {
     default:
         error_encountered = true;
-        _lastError = "Found unknown escape sequence '\\&' in string.";
-        _lastError.replace(_lastError.find_first_of('&'), 1, 1, ch);
+        _lastError = "Found unknown escape sequence '\\&char&' in string.";
+        ReplaceToken(_lastError, "&char&", std::string{ 1, static_cast<char>(ch) });
         return 0;
     case '\'':
     case '\"':
@@ -604,8 +604,8 @@ void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, size
     if (_openInfoStack.empty())
     {
         error_encountered = true;
-        _lastError = "There isn't any opening symbol that matches the closing '&1'";
-        _lastError.replace(_lastError.find("&1"), 2, closer);
+        _lastError = "There isn't any opening symbol that matches the closing '&closer&'";
+        ReplaceToken(_lastError, "&closer&", closer);
         return;
     }
 

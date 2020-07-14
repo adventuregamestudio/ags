@@ -9,12 +9,12 @@
 static int currentline;  
 
 AGS::LineHandler::LineHandler()
-    : _cacheLineStart(1) // Invalidate the cache
+    : _sections()
+    , _lineStartTable()
+    , _cacheLineStart(1) // Invalidate the cache
     , _cacheLineEnd (0) // Invalidate the cache
 {
-    _sections = { "" };
-    _lineStartTable.clear();
-
+    _sections.push_back("");
     // Add sentinels to the table for simpler lookup algorithms
     size_t const maxsize = std::numeric_limits<size_t>::max();
     _lineStartTable[0] = SectionLine{ 0, 0 };

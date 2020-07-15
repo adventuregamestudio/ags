@@ -1398,7 +1398,7 @@ void ReadOverlays_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < numscreenover; ++i)
     {
-        screenover[i].ReadFromFile(&align_s);
+        screenover[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }

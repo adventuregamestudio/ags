@@ -170,6 +170,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     // inform draw_text_window to free the old bitmap
     const bool wantFreeScreenop = true;
 
+    // may later change if usingGUI, needed to avoid changing original coordinates
+    int adjustedXX = xx;
+    int adjustedYY = yy;
+
     if ((strlen (todis) < 1) || (strcmp (todis, "  ") == 0) || (wii == 0)) ;
     // if it's an empty speech line, don't draw anything
     else if (asspch) { //text_color = ds->GetCompatibleColor(12);
@@ -188,7 +192,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
         if (drawBackground)
         {
-            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
+            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
             if (usingGui > 0)
             {
                 alphaChannel = guis[usingGui].HasAlphaChannel();
@@ -240,6 +244,13 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
     int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
+
+
+    // uses an internal offset since we prevented draw_text_window_and_bar from changing
+    // the original values
+    screenover[nse]._offsetX = adjustedXX - xx;
+    screenover[nse]._offsetY = adjustedYY - yy;
+
 
     if (blocking>=2) {
         return screenover[nse].type;

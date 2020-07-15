@@ -245,8 +245,10 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
         }
     }
     else {
-        tdxp = over.x;
-        tdyp = over.y;
+        // Note: the internal offset is only needed when x,y coordinates are specified
+        // and only in the case where the overlay is using a GUI. See issue #1098
+        tdxp = over.x + over._offsetX;
+        tdyp = over.y + over._offsetY;
 
         if (!over.positionRelativeToScreen)
         {

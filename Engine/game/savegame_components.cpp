@@ -853,7 +853,7 @@ HSaveError ReadOverlays(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
     numscreenover = over_count;
     for (int i = 0; i < numscreenover; ++i)
     {
-        screenover[i].ReadFromFile(in.get());
+        screenover[i].ReadFromFile(in.get(), cmp_ver);
         if (screenover[i].hasSerializedBitmap)
             screenover[i].pic = read_serialized_bitmap(in.get());
     }
@@ -1201,7 +1201,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        0,
+        1,
         0,
         WriteOverlays,
         ReadOverlays

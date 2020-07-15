@@ -4,6 +4,7 @@
 #include "script2/cs_parser.h"
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"
+#include "script/cc_error.h"
 #include "script/cc_options.h"
 #include "script/script_common.h"
 
@@ -2085,4 +2086,23 @@ TEST(Compile, Ternary02) {
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("int"));
     EXPECT_NE(std::string::npos, res.find("float"));
+}
+
+TEST(Compile, Sections)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Errors in globalscript must be reported for globalscript
+
+    char *inpl = "\
+        \"__NEWSCRIPTSTART_globalscript.ash\"   \n\
+        int main()                              \n\
+        {                                       \n\
+            return 2 < 1 ? ;                    \n\
+                    break;                      \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("globalscript.ash", ccCurScriptName);
 }

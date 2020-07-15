@@ -157,6 +157,7 @@ AGS::Symbol AGS::Scanner::GetNextSymbol(bool &eof_encountered, bool &error_encou
         if (kSct_SectionChange != scan_type)
             break;
         NewSection(symstring);
+        NewLine(1);
     }
 
     SymstringToSym(symstring, scan_type, symbol, eof_encountered, error_encountered);

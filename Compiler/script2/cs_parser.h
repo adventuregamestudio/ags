@@ -42,6 +42,7 @@ The result is:
 #include <vector>
 #include <string>
 #include <map>
+#include <cstdarg>
 
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"
@@ -177,6 +178,12 @@ public:
         // Gives an error message and returns a value < 0 iff there are still callpoints
         // without a location
         int CheckForUnresolvedFuncs();
+    };
+
+    struct Warning
+    {
+        size_t Pos;
+        std::string Message;
     };
 
 private:
@@ -401,6 +408,9 @@ private:
     // Receives the parsing results
     ::ccCompiledScript &_scrip;
 
+    // Receives the warnings
+    std::vector<Warning> _warnings;
+
     // Manage a map of all the functions that have bodies (in the current source).
     FuncCallpointMgr _fcm;
 
@@ -421,8 +431,10 @@ private:
 
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
 
-    static int String2Int(std::string const &str, int &val);
-    static int String2Float(std::string const &str, float &val);
+    // These two need to be non-static because they can yield errors,
+    // and errors need the parser object's line number information.
+    int String2Int(std::string const &str, int &val);
+    int String2Float(std::string const &str, float &val);
 
     bool IsIdentifier(Symbol symb);
 
@@ -942,6 +954,13 @@ private:
     // Blank out all imports that haven't been referenced
     int Parse_BlankOutUnusedImports();
 
+    // Cast around cc_error()
+    // This is a dying message. After the function has been called,
+    // the compiler needs to exit immediately with a negative return value
+    void Error(char const *descr, ...);
+
+    // Record a warning for the current source position
+    void Warning(char const *descr, ...);
 
 public:
     // interpret the float as if it were an int (without converting it really);
@@ -952,6 +971,8 @@ public:
     Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip);
 
     int Parse();
+
+    inline std::vector<struct Warning> const &GetWarnings() const { return _warnings; }
 
 }; // class Parser
 } // namespace AGS

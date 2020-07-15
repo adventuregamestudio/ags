@@ -113,5 +113,12 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
 };
 
+enum ErrorType
+{
+    kERR_None = 0,
+    kERR_UserError = -1,
+    kERR_InternalError = -99,
+};
+
 } // namespace AGS
 #endif // __CS_PARSER_COMMON_H

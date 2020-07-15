@@ -602,6 +602,9 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${E
 # -----------------------------------------------------------------------------
 
 add_executable(ags)
+if (LINUX)
+    install(TARGETS ags RUNTIME DESTINATION bin)
+endif ()
 
 set_target_properties(ags PROPERTIES
     CXX_STANDARD 11

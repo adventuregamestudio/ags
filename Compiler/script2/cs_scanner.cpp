@@ -66,6 +66,7 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     // Integer or float literal
     if (IsDigit(next_char))
     {
+        symstring = ""; 
         ReadInNumberLit(symstring, scan_type, eof_encountered, error_encountered);
         return;
     }
@@ -115,7 +116,8 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     case '+': ReadIn1or2Char("+=", symstring, eof_encountered, error_encountered); return;
     case ',': ReadIn1Char(symstring); return;
     case '-': ReadIn1or2Char("-=>", symstring, eof_encountered, error_encountered); return;
-    case '.': ReadInDotCombi(symstring, eof_encountered, error_encountered); return;
+        // Note, this can overwrite scan_type.
+    case '.': ReadInDotCombi(symstring, scan_type, eof_encountered, error_encountered); return;
         // Note that the input is pre-processed,
         // so it cannot contain comments of the form //...EOL or /*...*/
     case '/': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
@@ -198,10 +200,12 @@ void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered
 
 void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered)
 {
-    bool decimal_point_encountered = false;
+    bool decimal_point_encountered = (std::string::npos != symstring.find('.'));
+    bool e_encountered = false;
+    bool eminus_encountered = false;
 
-    scan_type = kSct_IntLiteral;
-    symstring.assign(1, _inputStream.get());
+    scan_type = (decimal_point_encountered)? kSct_FloatLiteral : kSct_IntLiteral;
+    symstring.push_back(_inputStream.get());
 
     while (true)
     {
@@ -223,7 +227,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
             symstring.push_back(ch);
             continue;
         }
-        if (ch == '.')
+        if ('.' == ch)
         {
             if (!decimal_point_encountered)
             {
@@ -232,6 +236,27 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
                 symstring.push_back(ch);
                 continue;
             }
+        }
+        if ('e' == ch || 'E' == ch)
+        {
+            if (!e_encountered)
+            {
+                decimal_point_encountered = true;
+                e_encountered = true;
+                scan_type = kSct_FloatLiteral;
+                symstring.push_back(ch);
+                continue;
+            }
+        }
+        if ('-' == ch)
+        {
+            if (e_encountered && !eminus_encountered)
+            {
+                eminus_encountered = true;
+                symstring.push_back(ch);
+                continue;
+            }
+
         }
         _inputStream.putback(ch); // no longer part of the number literal, so put it back
         break;
@@ -491,7 +516,7 @@ void AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std:
     eof_encountered = _inputStream.eof();
     error_encountered = _inputStream.fail();
     if (error_encountered)
-        _lastError = "Unexpected error in input (file corrupt?";
+        _lastError = "Unexpected error in input (file corrupt)?";
     if (eof_encountered || error_encountered)
         return;
 
@@ -507,23 +532,35 @@ void AGS::Scanner::ReadIn1Char(std::string &symstring)
     symstring.assign(1, _inputStream.get());
 }
 
-void AGS::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
+void AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered)
 {
-    ReadIn1or2Char(".", symstring, eof_encountered, error_encountered);
+    symstring.assign(1, _inputStream.get());
+    int const second_char = _inputStream.peek();
+    eof_encountered = _inputStream.eof();
+    error_encountered = _inputStream.fail();
+    if (error_encountered)
+        _lastError = "Unexpected error in input (file corrupt)?";
     if (eof_encountered || error_encountered)
         return;
 
-    if (symstring == ".")
-        return;
-
-    if (_inputStream.peek() == '.')
+    if (IsDigit(second_char))
     {
-        symstring.push_back(_inputStream.get());
+        ReadInNumberLit(symstring, scan_type, eof_encountered, error_encountered);
         return;
     }
 
-    _lastError = "Must either use '.' or '...'";
-    error_encountered = true;
+    if ('.' != second_char)
+        return;
+
+    symstring.push_back(_inputStream.get());
+
+    if ('.' != _inputStream.get())
+    {
+        _lastError = "Must either use '.' or '...'";
+        error_encountered = true;
+    }
+
+    symstring.push_back('.');
 }
 
 void AGS::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)

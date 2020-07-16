@@ -2212,9 +2212,11 @@ ErrorType AGS::Parser::ParseExpression_UnaryMinus(AGS::SymbolScript symlist, siz
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _sym.GetIntSym(), cpuOp);
+    retval = GetOperatorValidForVartype(_scrip.ax_vartype, _scrip.ax_vartype, cpuOp);
     if (retval < 0) return retval;
 
+    // The binary representation of 0.0 is identical to the binary representation of 0
+    // so this will work for floats as well as for ints.
     WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
     WriteCmd(cpuOp, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);

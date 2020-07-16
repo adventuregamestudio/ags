@@ -850,6 +850,207 @@ TEST(Bytecode, IntFunctionGlobalV) {
 
 }
 
+TEST(Bytecode, Float1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Float values
+
+    char inpl[] = "\
+        float Test0 = -9.9;                 \n\
+        float main()                        \n\
+        {                                   \n\
+            float Test1 = -7.0;             \n\
+            float Test2 = 7E2;              \n\
+            float Test3 = -7E-2;            \n\
+            float Test4 = -7.7E-0;          \n\
+            float Test5 = 7.;               \n\
+            float Test6 = 7.e-7;            \n\
+            float Test7 = 007.e-07;         \n\
+            float Test8 = .77;              \n\
+            return Test1 + Test2 + Test3 +  \n\
+                Test4 + Test5 + Test6 +     \n\
+                Test7 + Test8;              \n\
+        }                                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Float1", scrip);
+    const size_t codesize = 183;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,         1088421888,    6,    4,    0,    // 7
+      58,    4,    3,    3,            4,    3,   29,    3,    // 15
+       6,    3, 1143930880,   29,            3,    6,    3, 1032805417,    // 23
+       6,    4,    0,   58,            4,    3,    3,    4,    // 31
+       3,   29,    3,    6,            3, 1089889894,    6,    4,    // 39
+       0,   58,    4,    3,            3,    4,    3,   29,    // 47
+       3,    6,    3, 1088421888,           29,    3,    6,    3,    // 55
+    893118370,   29,    3,    6,            3, 893118370,   29,    3,    // 63
+       6,    3, 1061494456,   29,            3,   51,   32,    7,    // 71
+       3,   29,    3,   51,           32,    7,    3,   30,    // 79
+       4,   57,    4,    3,            3,    4,    3,   29,    // 87
+       3,   51,   28,    7,            3,   30,    4,   57,    // 95
+       4,    3,    3,    4,            3,   29,    3,   51,    // 103
+      24,    7,    3,   30,            4,   57,    4,    3,    // 111
+       3,    4,    3,   29,            3,   51,   20,    7,    // 119
+       3,   30,    4,   57,            4,    3,    3,    4,    // 127
+       3,   29,    3,   51,           16,    7,    3,   30,    // 135
+       4,   57,    4,    3,            3,    4,    3,   29,    // 143
+       3,   51,   12,    7,            3,   30,    4,   57,    // 151
+       4,    3,    3,    4,            3,   29,    3,   51,    // 159
+       8,    7,    3,   30,            4,   57,    4,    3,    // 167
+       3,    4,    3,    2,            1,   32,   31,    6,    // 175
+       2,    1,   32,    6,            3,    0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Float2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Positive and negative float parameter defaults
+
+    char inpl[] = "\
+        float sub (float p1 = 7.2,          \n\
+                   float p2 = -2.7)         \n\
+        {                                   \n\
+            return -7.0 + p1 - p2;          \n\
+        }                                   \n\
+        float main()                        \n\
+        {                                   \n\
+            return sub();                   \n\
+        }                                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Float2", scrip);
+    const size_t codesize = 74;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,         1088421888,    6,    4,    0,    // 7
+      58,    4,    3,    3,            4,    3,   29,    3,    // 15
+      51,   12,    7,    3,           30,    4,   57,    4,    // 23
+       3,    3,    4,    3,           29,    3,   51,   16,    // 31
+       7,    3,   30,    4,           58,    4,    3,    3,    // 39
+       4,    3,   31,    3,            6,    3,    0,    5,    // 47
+      38,   48,    6,    3,         -1070805811,   29,    3,    6,    // 55
+       3, 1088841318,   29,    3,            6,    3,    0,   23,    // 63
+       3,    2,    1,    8,           31,    3,    6,    3,    // 71
+       0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      62,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
 TEST(Bytecode, FloatExpr1) {
     ccCompiledScript *scrip = newScriptFixture();
 

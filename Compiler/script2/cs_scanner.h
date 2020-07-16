@@ -84,6 +84,7 @@ private:
     void NewSection(std::string const section);
 
     //  Read in either an int literal or a float literal
+    // Note: appends to symstring, doesn't clear it first.
     void ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
     // Translate a '\\' combination into a character, backslash is already read in
@@ -119,7 +120,7 @@ private:
         bool &error_encountered);
 
     // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
-    void ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    void ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
     // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
     void ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);

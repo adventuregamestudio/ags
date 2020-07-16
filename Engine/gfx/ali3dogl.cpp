@@ -1078,7 +1078,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
 {
   (void)at_native_res; // TODO: support this at some point
 
-  // TODO: follow implementation currently only reads GL pixels in 32-bit RGBA.
+  // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
   // this **should** work regardless of actual display mode because OpenGL is
   // responsible to convert and fill pixel buffer correctly.
   // If you like to support writing directly into 16-bit bitmap, please take
@@ -1116,27 +1116,19 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
     glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
-    unsigned char* surfaceData = buffer;
-    unsigned char* sourcePtr;
-    unsigned char* destPtr;
-    
-	for (int y = destination->GetHeight() - 1; y >= 0; y--)
+    unsigned char* sourcePtr = buffer;
+    for (int y = destination->GetHeight() - 1; y >= 0; y--)
     {
-        sourcePtr = surfaceData;
-        destPtr = &destination->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < destination->GetWidth() * bpp; x += bpp)
+        unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
+        for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
         {
-            // TODO: find out if it's possible to retrieve pixels in the matching format
-            destPtr[x]     = sourcePtr[x + 2];
-            destPtr[x + 1] = sourcePtr[x + 1];
-            destPtr[x + 2] = sourcePtr[x];
-            destPtr[x + 3] = sourcePtr[x + 3];
+            destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
         }
-        surfaceData += retr_rect.GetWidth() * bpp;
+        sourcePtr += retr_rect.GetWidth() * bpp;
     }
 
     if (_pollingCallback)
-        _pollingCallback();
+      _pollingCallback();
 
     delete [] buffer;
   }

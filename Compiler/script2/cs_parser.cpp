@@ -6733,7 +6733,7 @@ void AGS::Parser::Error(char const *descr, ...)
     // static character array that contains the section of the error. 
     char const *current_section = _src.SectionId2Section(_src.GetSectionId()).c_str();
     strncpy(SectionNameBuffer, current_section, sizeof(SectionNameBuffer) / sizeof(char) - 1);
-    ccCurScriptName = current_section;
+    ccCurScriptName = SectionNameBuffer;
     cc_error("%s", message);
     delete[] message;
 }

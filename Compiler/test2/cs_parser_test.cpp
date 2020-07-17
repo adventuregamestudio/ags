@@ -2093,6 +2093,8 @@ TEST(Compile, Sections)
     ccCompiledScript *scrip = newScriptFixture();
 
     // Errors in globalscript must be reported for globalscript
+    // "__NEWSCRIPTSTART..." begins a line #0,
+    // so the error must be reported on line 3.
 
     char *inpl = "\
         \"__NEWSCRIPTSTART_globalscript.ash\"   \n\
@@ -2104,5 +2106,7 @@ TEST(Compile, Sections)
         ";
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GE(0, compileResult);
+    EXPECT_EQ(3, currentline);
     ASSERT_STREQ("globalscript.ash", ccCurScriptName);
 }

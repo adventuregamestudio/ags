@@ -136,6 +136,22 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     return nullptr;
 }
 
+// Parses a string where each character defines a single log group; returns list of real group names.
+std::vector<String> parse_log_multigroup(const String &group_str)
+{
+    std::vector<String> grplist;
+    for (size_t i = 0; i < group_str.GetLength(); ++i)
+    {
+        switch (group_str[i])
+        {
+        case 'm': grplist.push_back("main"); break;
+        case 's': grplist.push_back("script"); break;
+        case 'c': grplist.push_back("sprcache"); break;
+        case 'o': grplist.push_back("manobj"); break;
+        }
+    }
+    return grplist;
+}
 
 MessageType get_messagetype_from_string(const String &mt)
 {
@@ -191,10 +207,20 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
                     msgtype = get_messagetype_from_string(msglevel);
             }
             groupname.Trim();
-            if (groupname.CompareNoCase("all") == 0)
+            if (groupname.CompareNoCase("all") == 0 || groupname.IsEmpty())
+            {
                 dbgout->SetAllGroupFilters(msgtype);
-            else
+            }
+            else if (groupname[0u] != '+')
+            {
                 dbgout->SetGroupFilter(groupname, msgtype);
+            }
+            else
+            {
+                const auto groups = parse_log_multigroup(groupname);
+                for (const auto &g : groups)
+                    dbgout->SetGroupFilter(g, msgtype);
+            }
         }
     }
 

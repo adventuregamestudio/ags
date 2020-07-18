@@ -587,7 +587,7 @@ TEST(Compile, Protected1) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GE(0, compileResult);
+    ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
@@ -645,28 +645,36 @@ TEST(Compile, Protected3) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    std::string message = last_seen_cc_error();
-    ASSERT_EQ(0, compileResult);
-
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, Protected4) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Should fail; protected isn't allowed for non-struct functions.
+    // Should succeed
 
     char *inpl = "\
-        protected void Func()                       \n\
+        managed struct VectorF                      \n\
+        {                                           \n\
+            float x, y;                             \n\
+        };                                          \n\
+                                                    \n\
+        managed struct VehicleBase                  \n\
+        {                                           \n\
+            protected void ResetBase(               \n\
+                VectorF *, VectorF *);              \n\
+        };                                          \n\
+                                                    \n\
+        protected void VehicleBase::ResetBase(      \n\
+            VectorF *pos, VectorF *dir)             \n\
         {                                           \n\
         }                                           \n\
         ";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
-    std::string message = last_seen_cc_error();
-    // Error message should mention the "protected" keyword
-    ASSERT_NE(std::string::npos, message.find("protected"));
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
 }
 
 TEST(Compile, Protected5) {
@@ -687,8 +695,7 @@ TEST(Compile, Protected5) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
-    std::string message = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, Do1Wrong) {
@@ -1010,6 +1017,27 @@ TEST(Compile, DoubleNonExtenderFunc) {
     ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("already been def"));
+}
+
+TEST(Compile, UndeclaredStructFunc) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should fail, Struct doesn't have Func
+
+    char *inpl = "\
+        managed struct Struct                       \n\
+        {                                           \n\
+        }                                           \n\
+                                                    \n\
+        void Struct::Func(int Param)                \n\
+        {                                           \n\
+        }                                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    std::string message = last_seen_cc_error();
 }
 
 TEST(Compile, ParamVoid) {

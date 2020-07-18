@@ -87,13 +87,10 @@ FPSDisplayMode display_fps = kFPS_Hide;
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;
-// warnings.log for the games compiled in debug mode
-std::unique_ptr<LogFile> DebugWarningsFile;
 std::unique_ptr<ConsoleOutputTarget> DebugConsole;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "logfile";
-const String WarningFileID = "warnfile";
 const String OutputSystemID = "stderr";
 const String OutputGameConsoleID = "console";
 
@@ -143,23 +140,27 @@ void apply_debug_config(const ConfigTree &cfg)
         }
     }
 
+    // Init game console if the game was compiled in Debug mode
     if (game.options[OPT_DEBUGMODE] != 0)
     {
-        // Game console
         debug_set_console(true);
+    }
 
-        // "Warnings.log" for printing script warnings in debug mode
-        DebugWarningsFile.reset(new LogFile());
-        PDebugOutput warn_out = DbgMgr.RegisterOutput(WarningFileID, DebugWarningsFile.get(), kDbgMsg_None);
+    // If the game was compiled in Debug mode *and* there's no regular file log,
+    // then open "warnings.log" for printing script warnings.
+    if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
+    {
+        DebugLogFile.reset(new LogFile());
+        PDebugOutput warn_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
         warn_out->SetGroupFilter(kDbgGroup_Script, (MessageType)(kDbgMsg_Warn | kDbgMsg_Error | kDbgMsg_Fatal));
-        if (DebugWarningsFile->OpenFile("warnings.log", LogFile::kLogFile_OpenOverwrite, true))
+        if (DebugLogFile->OpenFile("warnings.log", LogFile::kLogFile_OpenOverwrite, true))
         {
             platform->WriteStdOut("Logging scipt to \"warnings.log\"");
-            DebugMsgBuff->Send(WarningFileID);
+            DebugMsgBuff->Send(OutputFileID);
         }
         else
         {
-            DbgMgr.UnregisterOutput(WarningFileID);
+            DbgMgr.UnregisterOutput(OutputFileID);
         }
     }
     DbgMgr.UnregisterOutput(OutputMsgBufID);

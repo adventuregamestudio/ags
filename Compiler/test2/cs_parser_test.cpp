@@ -567,6 +567,8 @@ TEST(Compile, Protected1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Directly taken from the doc on protected, simplified.
+    // Should fail, no modifying of protected components from the outside.
+
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -584,7 +586,6 @@ TEST(Compile, Protected1) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    // Should fail, no modifying of protected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
@@ -595,6 +596,8 @@ TEST(Compile, Protected2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Directly taken from the doc on protected, simplified.
+    // Should fail, no modifying of protected components from the outside.
+
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -611,14 +614,82 @@ TEST(Compile, Protected2) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    // Should fail, no modifying of protected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
 
+TEST(Compile, Protected3) {
+    ccCompiledScript *scrip = newScriptFixture();
 
+    // Should succeed; protected is allowed for struct component functions.
+
+    char *inpl = "\
+        managed struct VectorF                      \n\
+        {                                           \n\
+            float x, y;                             \n\
+        };                                          \n\
+                                                    \n\
+        managed struct VehicleBase                  \n\
+        {                                           \n\
+            protected void ResetBase(               \n\
+                VectorF *, VectorF *);              \n\
+        };                                          \n\
+                                                    \n\
+        protected void VehicleBase::ResetBase(      \n\
+            VectorF *pos, VectorF *dir)             \n\
+        {                                           \n\
+        }                                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string message = last_seen_cc_error();
+    ASSERT_EQ(0, compileResult);
+
+}
+
+TEST(Compile, Protected4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should fail; protected isn't allowed for non-struct functions.
+
+    char *inpl = "\
+        protected void Func()                       \n\
+        {                                           \n\
+        }                                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GT(0, compileResult);
+    std::string message = last_seen_cc_error();
+    // Error message should mention the "protected" keyword
+    ASSERT_NE(std::string::npos, message.find("protected"));
+}
+
+TEST(Compile, Protected5) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should succeed; protected is allowed for extender functions.
+
+    char *inpl = "\
+        managed struct VectorF                      \n\
+        {                                           \n\
+            float x, y;                             \n\
+        };                                          \n\
+                                                    \n\
+        protected void Func(this VectorF *)         \n\
+        {                                           \n\
+        }                                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+    std::string message = last_seen_cc_error();
+}
 
 TEST(Compile, Do1Wrong) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -749,7 +820,7 @@ TEST(Compile, FuncHeader1) {
     int compileResult = cc_compile(inpl, scrip);
  
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GE(0, compileResult);
+    ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rray size"));
 }

@@ -539,7 +539,7 @@ private:
     ErrorType ParseFuncdecl_GetSymbolAfterParmlist(Symbol &symbol);
 
     // We're in a func decl. Check whether it is valid here.
-    ErrorType ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, Vartype return_vartype, bool body_follows);
+    ErrorType ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn

@@ -1607,7 +1607,7 @@ ErrorType AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, AGS::Vartype return_vartype, bool body_follows)
+ErrorType AGS::Parser::ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows)
 {
     SymbolType const stype = _sym[name_of_func].SType;
     if (kSYM_Function != stype && kSYM_NoType != stype)
@@ -1659,6 +1659,12 @@ ErrorType AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype ret
     {
         ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_of_func, name_of_func);
         if (retval < 0) return retval;
+    }
+
+    if (0 == struct_of_func && FlagIsSet(tqs, kTQ_Protected))
+    {
+        Error("Cannot use 'protected' with this function; it isn't a struct component");
+        return kERR_UserError;
     }
 
     ErrorType retval = ParseFuncdecl_CheckValidHere(name_of_func, return_vartype, body_follows);
@@ -5434,15 +5440,14 @@ ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::Ty
 {
     if (FlagIsSet(tqs, kTQ_Static) && !is_function)
     {
-        Error("'static' only applies to member functions");
+        Error("'static' can only be applied to functions that are members of a struct");
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Protected) && is_function)
-    {
-        Error("'protected' not valid for functions");
-        return kERR_UserError;
-    }
+    // Note: 'protected' is valid for struct functions; those can be defined directly,
+    // as in int strct::function(){} or extender, as int function(this strct){}
+    // We can't know at this point whether the function is extender, so we can't
+    // check  at this point whether 'protected' is allowed.
 
     if (FlagIsSet(tqs, kTQ_Readonly) && is_function)
     {
@@ -5452,7 +5457,7 @@ ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::Ty
 
     if (FlagIsSet(tqs, kTQ_Writeprotected) && is_function)
     {
-        Error("'writeprotected' not valid for functions");
+        Error("'writeprotected' cannot be applied to a functions");
         return kERR_UserError;
     }
 
@@ -6393,6 +6398,12 @@ ErrorType AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
 // Check whether the qualifiers that accumulated for this decl go together
 ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 {
+    if (FlagIsSet(tqs, kTQ_Writeprotected))
+    {
+        Error("'attribute ' is only valid for struct fields");
+        return kERR_UserError;
+    }
+
     if (FlagIsSet(tqs, kTQ_Autoptr))
     {
         if (!FlagIsSet(tqs, kTQ_Managed) || !FlagIsSet(tqs, kTQ_Builtin))
@@ -6414,7 +6425,15 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Import) && 0 != (tqs & ~kTQ_Readonly &~kTQ_Import))
+    if (FlagIsSet(tqs, kTQ_ImportStd) && FlagIsSet(tqs, kTQ_ImportTry))
+    {
+        Error("Cannot combine 'import' and '_tryimport'");
+        return kERR_UserError;
+
+    }
+
+    // The only flag allowed with imports is readonly
+    if (FlagIsSet(tqs, kTQ_Import) && 0 != (tqs & ~kTQ_Readonly & ~kTQ_Import))
     {
         Parse_TQCombiError((tqs & ~kTQ_Readonly));
         return kERR_UserError;
@@ -6426,7 +6445,8 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Protected) && 0 != (tqs & ~kTQ_Static & ~kTQ_Readonly))
+    // Only at most one of these flags is allowed
+    if (1 < FlagIsSet(tqs, kTQ_Protected) + FlagIsSet(tqs, kTQ_Readonly) + FlagIsSet(tqs, kTQ_Static))
     {
         Parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
         return kERR_UserError;
@@ -6434,19 +6454,13 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type
 
     if (FlagIsSet(tqs, kTQ_Readonly) && kSYM_Vartype != decl_type)
     {
-        Error("'readonly' can only be used in a type declaration");
+        Error("'readonly' can only be used in a variable declaration");
         return kERR_UserError;
     }
 
     if (FlagIsSet(tqs, kTQ_Static) && kSYM_Vartype != decl_type)
     {
-        Error("'static' can only be used in a type declaration");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Static) && 0 != (tqs & ~kTQ_Static & ~kTQ_Protected & ~kTQ_Readonly))
-    {
-        Parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
+        Error("'static' can only be used in a variable declaration");
         return kERR_UserError;
     }
 
@@ -6467,6 +6481,7 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type
         Parse_TQCombiError(tqs);
         return kERR_UserError;
     }
+
     return kERR_None;
 }
 

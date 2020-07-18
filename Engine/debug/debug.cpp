@@ -95,21 +95,6 @@ const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
 const String OutputGameConsoleID = "console";
 
-void init_debug(bool stderr_only)
-{
-    // Register outputs
-    if (stderr_only)
-    {
-        PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
-        std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_Error);
-        platform->SetOutputToErr(true);
-        return;
-    }
-    DebugMsgBuff.reset(new MessageBuffer());
-    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All);
-    PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
-    std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_Info);
-}
 
 
 PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
@@ -232,6 +217,20 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
     // Delegate buffered messages to this new output
     if (DebugMsgBuff && !was_created_earlier)
         DebugMsgBuff->Send(log_id);
+}
+
+void init_debug(const ConfigTree &cfg, bool stderr_only)
+{
+    // Register outputs
+    apply_debug_config(cfg);
+    platform->SetOutputToErr(stderr_only);
+
+    if (stderr_only)
+        return;
+
+    // Message buffer to save all messages in case we read different log settings from config file
+    DebugMsgBuff.reset(new MessageBuffer());
+    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All);
 }
 
 void apply_debug_config(const ConfigTree &cfg)

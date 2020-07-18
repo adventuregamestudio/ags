@@ -328,8 +328,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
         else if (ags_stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
-        else if (ags_stricmp(arg, "--log") == 0) INIwriteint(cfg, "misc", "log", 1);
-        else if (ags_stricmp(arg, "--no-log") == 0) INIwriteint(cfg, "misc", "log", 0);
+        else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
+        {
+            String logarg = arg + 6;
+            size_t split_at = logarg.FindChar('=');
+            if (split_at >= 0)
+                cfg["log"][logarg.Left(split_at)] = logarg.Mid(split_at + 1);
+            else
+                cfg["log"][logarg] = "";
+        }
         else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
         //
@@ -440,7 +447,7 @@ int ags_entry_point(int argc, char *argv[]) {
     if (!justTellInfo && !hideMessageBoxes)
         platform->SetGUIMode(true);
 
-    init_debug(justTellInfo);
+    init_debug(startup_opts, justTellInfo);
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
 
     main_set_gamedir(argc, argv);    

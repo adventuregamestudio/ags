@@ -18,6 +18,7 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
+#include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/debugmanager.h"
@@ -27,13 +28,13 @@
 #include "debug/messagebuffer.h"
 #include "main/config.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
+#include "util/string_utils.h"
 #include "util/textstreamwriter.h"
-#include "platform/base/agsplatformdriver.h"
-#include "debug/agseditordebugger.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <winalleg.h>
@@ -155,6 +156,10 @@ std::vector<String> parse_log_multigroup(const String &group_str)
 
 MessageType get_messagetype_from_string(const String &mt)
 {
+    int mtype;
+    if (StrUtil::StringToInt(mt, mtype, 0) == StrUtil::kNoError)
+        return (MessageType)mtype;
+
     if (mt.CompareNoCase("alert") == 0) return kDbgMsg_Alert;
     else if (mt.CompareNoCase("fatal") == 0) return kDbgMsg_Fatal;
     else if (mt.CompareNoCase("error") == 0) return kDbgMsg_Error;

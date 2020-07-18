@@ -73,6 +73,10 @@ public:
     void            SetEnabled(bool enable);
     // Setup group filter: either allow or disallow a group with the given ID
     void            SetGroupFilter(DebugGroupID id, MessageType verbosity);
+    // Assign same verbosity level to all known groups
+    void            SetAllGroupFilters(MessageType verbosity);
+    // Clear all group filters; this efficiently disables everything
+    void            ClearGroupFilters();
     // Try to resolve group filter unknown IDs
     void            ResolveGroupID(DebugGroupID id);
     // Test if given group id is permitted

@@ -58,6 +58,21 @@ void DebugOutput::SetGroupFilter(DebugGroupID id, MessageType verbosity)
         _unresolvedGroups.insert(std::make_pair(id.SID, verbosity));
 }
 
+void DebugOutput::SetAllGroupFilters(MessageType verbosity)
+{
+    for (auto &group : _groupFilter)
+        group = verbosity;
+    for (auto &group : _unresolvedGroups)
+        group.second = verbosity;
+}
+
+void DebugOutput::ClearGroupFilters()
+{
+    for (auto &gf : _groupFilter)
+        gf = kDbgMsg_None;
+    _unresolvedGroups.clear();
+}
+
 void DebugOutput::ResolveGroupID(DebugGroupID id)
 {
     if (!id.IsValid())

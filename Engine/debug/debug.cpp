@@ -90,8 +90,8 @@ std::unique_ptr<LogFile> DebugLogFile;
 std::unique_ptr<ConsoleOutputTarget> DebugConsole;
 
 const String OutputMsgBufID = "buffer";
-const String OutputFileID = "logfile";
-const String OutputSystemID = "stderr";
+const String OutputFileID = "file";
+const String OutputSystemID = "stdout";
 const String OutputGameConsoleID = "console";
 
 void init_debug(bool stderr_only)
@@ -110,39 +110,129 @@ void init_debug(bool stderr_only)
     std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_Info);
 }
 
-void apply_debug_config(const ConfigTree &cfg)
+
+PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
-    if (INIreadint(cfg, "misc", "log", 0) != 0)
+    // Else create new one, if we know this ID
+    if (name.CompareNoCase(OutputSystemID) == 0)
+    {
+        return DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
+    }
+    else if (name.CompareNoCase(OutputFileID) == 0)
     {
         DebugLogFile.reset(new LogFile());
-        PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_All);
-#ifdef DEBUG_SPRITECACHE
-        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_All);
-#else
-        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_Info);
-#endif
-        file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Info);
-#ifdef DEBUG_MANAGED_OBJECTS
-        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_All);
-#else
-        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_Info);
-#endif
-        String logfile_path = platform->GetAppOutputDirectory();
-        logfile_path.Append("/ags.log");
-        if (DebugLogFile->OpenFile(logfile_path))
+        String logfile_path = !path.IsEmpty() ? path : String::FromFormat("%s/ags.log", platform->GetAppOutputDirectory());
+        if (!DebugLogFile->OpenFile(logfile_path, open_mode))
+            return nullptr;
+        platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
+        auto dbgout = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
+        return dbgout;
+    }
+    else if (name.CompareNoCase(OutputGameConsoleID) == 0)
+    {
+        DebugConsole.reset(new ConsoleOutputTarget());
+        return DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_None);
+    }
+    return nullptr;
+}
+
+
+MessageType get_messagetype_from_string(const String &mt)
+{
+    if (mt.CompareNoCase("alert") == 0) return kDbgMsg_Alert;
+    else if (mt.CompareNoCase("fatal") == 0) return kDbgMsg_Fatal;
+    else if (mt.CompareNoCase("error") == 0) return kDbgMsg_Error;
+    else if (mt.CompareNoCase("warn") == 0) return kDbgMsg_Warn;
+    else if (mt.CompareNoCase("info") == 0) return kDbgMsg_Info;
+    else if (mt.CompareNoCase("debug") == 0) return kDbgMsg_Debug;
+    else if (mt.CompareNoCase("all") == 0) return kDbgMsg_All;
+    return kDbgMsg_None;
+}
+
+typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
+
+void apply_log_config(const ConfigTree &cfg, const String &log_id,
+                      bool def_enabled,
+                      std::initializer_list<DbgGroupOption> def_opts)
+{
+    String value = INIreadstring(cfg, "log", log_id);
+    if (value.IsEmpty() && !def_enabled)
+        return;
+
+    // First test if already registered, if not then try create it
+    auto dbgout = DbgMgr.GetOutput(log_id);
+    const bool was_created_earlier = dbgout != nullptr;
+    if (!dbgout)
+    {
+        String path = INIreadstring(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
+        dbgout = create_log_output(log_id, path);
+        if (!dbgout)
+            return; // unknown output type
+    }
+    dbgout->ClearGroupFilters();
+
+    if (value.IsEmpty() || value.CompareNoCase("default") == 0)
+    {
+        for (const auto opt : def_opts)
+            dbgout->SetGroupFilter(opt.first, opt.second);
+    }
+    else
+    {
+        const auto options = value.Split(',');
+        for (const auto &opt : options)
         {
-            platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
-            DebugMsgBuff->Send(OutputFileID);
-        }
-        else
-        {
-            DbgMgr.UnregisterOutput(OutputFileID);
+            String groupname = opt.LeftSection(':');
+            MessageType msgtype = kDbgMsg_All;
+            if (opt.GetLength() >= groupname.GetLength() + 1)
+            {
+                String msglevel = opt.Mid(groupname.GetLength() + 1);
+                msglevel.Trim();
+                if (msglevel.GetLength() > 0)
+                    msgtype = get_messagetype_from_string(msglevel);
+            }
+            groupname.Trim();
+            if (groupname.CompareNoCase("all") == 0)
+                dbgout->SetAllGroupFilters(msgtype);
+            else
+                dbgout->SetGroupFilter(groupname, msgtype);
         }
     }
+
+    // Delegate buffered messages to this new output
+    if (DebugMsgBuff && !was_created_earlier)
+        DebugMsgBuff->Send(log_id);
+}
+
+void apply_debug_config(const ConfigTree &cfg)
+{
+    apply_log_config(cfg, OutputSystemID, /* defaults */ true, { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info) });
+    bool legacy_log_enabled = INIreadint(cfg, "misc", "log", 0) != 0;
+    apply_log_config(cfg, OutputFileID,
+        /* defaults */
+        legacy_log_enabled,
+        { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+          DbgGroupOption(kDbgGroup_Script, kDbgMsg_Info),
+#ifdef DEBUG_SPRITECACHE
+          DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_All),
+#else
+          DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_Info),
+#endif
+#ifdef DEBUG_MANAGED_OBJECTS
+          DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_All),
+#else
+          DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_Info),
+#endif
+        });
 
     // Init game console if the game was compiled in Debug mode
     if (game.options[OPT_DEBUGMODE] != 0)
     {
+        apply_log_config(cfg, OutputGameConsoleID,
+            /* defaults */
+            true,
+            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
+            });
         debug_set_console(true);
     }
 
@@ -150,19 +240,12 @@ void apply_debug_config(const ConfigTree &cfg)
     // then open "warnings.log" for printing script warnings.
     if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
     {
-        DebugLogFile.reset(new LogFile());
-        PDebugOutput warn_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
-        warn_out->SetGroupFilter(kDbgGroup_Script, (MessageType)(kDbgMsg_Warn | kDbgMsg_Error | kDbgMsg_Fatal));
-        if (DebugLogFile->OpenFile("warnings.log", LogFile::kLogFile_OpenOverwrite, true))
-        {
-            platform->WriteStdOut("Logging scipt to \"warnings.log\"");
-            DebugMsgBuff->Send(OutputFileID);
-        }
-        else
-        {
-            DbgMgr.UnregisterOutput(OutputFileID);
-        }
+        auto dbgout = create_log_output(OutputFileID);
+        if (dbgout)
+            dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
     }
+
+    // We don't need message buffer beyond this point
     DbgMgr.UnregisterOutput(OutputMsgBufID);
     DebugMsgBuff.reset();
 }
@@ -172,26 +255,15 @@ void shutdown_debug()
     // Shutdown output subsystem
     DbgMgr.UnregisterAll();
 
+    DebugMsgBuff.reset();
     DebugLogFile.reset();
     DebugConsole.reset();
 }
 
 void debug_set_console(bool enable)
 {
-    if (enable && DebugConsole.get() == nullptr)
-    {
-        DebugConsole.reset(new ConsoleOutputTarget());
-        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_Info);
-        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsg_All);
-        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_All);
-        if (DebugMsgBuff.get())
-            DebugMsgBuff->Send(OutputGameConsoleID);
-    }
-    else if (!enable && DebugConsole.get() != nullptr)
-    {
-        DbgMgr.UnregisterOutput(OutputGameConsoleID);
-        DebugConsole.reset();
-    }
+    if (DebugConsole)
+        DbgMgr.GetOutput(OutputGameConsoleID)->SetEnabled(enable);
 }
 
 // Prepends message text with current room number and running script info, then logs result

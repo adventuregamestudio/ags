@@ -26,7 +26,7 @@ namespace Engine
 using namespace Common;
 
 LogFile::LogFile()
-    : _openMode(kLogFile_OpenOverwrite)
+    : _openMode(kLogFile_Overwrite)
 {
 }
 
@@ -59,19 +59,19 @@ void LogFile::PrintMessage(const DebugMessage &msg)
     _file->Flush();
 }
 
-bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode, bool open_at_first_msg)
+bool LogFile::OpenFile(const String &file_path, OpenMode open_mode)
 {
     CloseFile();
 
     _filePath = file_path;
     _openMode = open_mode;
-    if (!open_at_first_msg)
+    if (open_mode != OpenMode::kLogFile_OverwriteAtFirstMessage)
     {
         _file.reset(File::OpenFile(file_path,
-                           open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
+                           open_mode == kLogFile_Append ? Common::kFile_Create : Common::kFile_CreateAlways,
                            Common::kFile_Write));
     }
-    return _file.get() != nullptr || open_at_first_msg;
+    return _file.get() != nullptr || open_mode == OpenMode::kLogFile_OverwriteAtFirstMessage;
 }
 
 void LogFile::CloseFile()

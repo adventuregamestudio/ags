@@ -42,10 +42,11 @@ using Common::String;
 class LogFile : public AGS::Common::IOutputHandler
 {
 public:
-    enum LogFileOpenMode
+    enum OpenMode
     {
-        kLogFile_OpenOverwrite,
-        kLogFile_OpenAppend
+        kLogFile_Overwrite,
+        kLogFile_OverwriteAtFirstMessage,
+        kLogFile_Append
     };
 
 public:
@@ -61,15 +62,14 @@ public:
     // useful information. Whether this is to be determined here or on
     // high-level side remains a question.
     //
-    bool         OpenFile(const String &file_path, LogFileOpenMode open_mode = kLogFile_OpenOverwrite,
-                          bool open_at_first_msg = false);
+    bool         OpenFile(const String &file_path, OpenMode open_mode = kLogFile_Overwrite);
         // Close file
     void         CloseFile();
 
 private:
         std::unique_ptr<Stream> _file;
         String                _filePath;
-        LogFileOpenMode       _openMode;
+        OpenMode              _openMode;
 };
 
 }   // namespace Engine

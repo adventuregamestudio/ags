@@ -782,7 +782,7 @@ private:
 
     ErrorType ParseStruct_Function(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname, Symbol name_of_current_func);
 
-    ErrorType ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
+    ErrorType ParseStruct_CheckAttributeFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
     ErrorType ParseStruct_EnterAttributeFunc(Symbol func, bool is_setter, bool is_indexed, bool is_static, Vartype vartype);
 

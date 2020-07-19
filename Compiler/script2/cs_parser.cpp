@@ -4703,43 +4703,51 @@ ErrorType AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vart
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype)
+ErrorType AGS::Parser::ParseStruct_CheckAttributeFunc(Symbol name_of_func, bool is_setter, bool is_indexed, AGS::Vartype vartype)
 {
+    SymbolTableEntry &entry = _sym[name_of_func];
     size_t const num_parameters_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
     if (num_parameters_wanted != entry.GetNumOfFuncParams())
     {
-        Error(
+        std::string const msg = ReferenceMsgSym(
             "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
-            entry.SName.c_str(), num_parameters_wanted, entry.SScope);
+            name_of_func);
+        Error(msg.c_str(), entry.SName.c_str(), num_parameters_wanted, entry.GetNumOfFuncParams());
         return kERR_UserError;
     }
-    AGS::Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
+
+    Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
     if (entry.FuncParamTypes[0] != ret_vartype)
     {
-        Error(
+        std::string const msg = ReferenceMsgSym(
             "The attribute function '%s' must return type '%s' but returns '%s' instead",
-            entry.SName.c_str(),
+            name_of_func);
+        Error(msg.c_str(), entry.SName.c_str(),
             _sym.GetName(ret_vartype).c_str(),
             _sym.GetName(entry.FuncParamTypes[0]).c_str());
         return kERR_UserError;
     }
+
     size_t p_idx = 1;
     if (is_indexed)
     {
         if (entry.FuncParamTypes[p_idx] != _sym.GetIntSym())
         {
-            Error(
+            std::string const msg = ReferenceMsgSym(
                 "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
-                p_idx, entry.SName.c_str());
+                name_of_func);
+            Error(msg.c_str(), p_idx, entry.SName.c_str());
             return kERR_UserError;
         }
         p_idx++;
     }
+
     if (is_setter && entry.FuncParamTypes[p_idx] != vartype)
     {
-        Error(
+        std::string const msg = ReferenceMsgSym(
             "Parameter #d of attribute function '%s' must have type '%s'",
-            p_idx, entry.SName.c_str(), _sym.GetName(vartype).c_str());
+            name_of_func);
+        Error(msg.c_str(), p_idx, entry.SName.c_str(), _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
 
@@ -4792,7 +4800,7 @@ ErrorType AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool i
     }
 
     if (kSYM_Function == stype) // func has already been declared
-        return ParseStruct_CheckAttributeFunc(_sym[func], is_setter, is_indexed, vartype);
+        return ParseStruct_CheckAttributeFunc(func, is_setter, is_indexed, vartype);
 
     ErrorType retval = ParseStruct_EnterAttributeFunc(func, is_setter, is_indexed, is_static, vartype);
     if (retval < 0) return retval;

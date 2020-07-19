@@ -109,10 +109,12 @@ enum CommonDebugGroup
     kDbgGroup_None = -1,
     // Main debug group is for reporting general engine status and issues
     kDbgGroup_Main = 0,
+    // Game group is for logging game logic state and issues
+    kDbgGroup_Game,
+    // Log from the game script
+    kDbgGroup_Script,
     // Sprite cache logging
     kDbgGroup_SprCache,
-    // Script group is for reporting script (commands) execution
-    kDbgGroup_Script,
     // Group for debugging managed object state (can slow engine down!)
     kDbgGroup_ManObj
 };

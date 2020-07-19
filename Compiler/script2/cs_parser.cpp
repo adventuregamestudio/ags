@@ -1471,30 +1471,30 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
     if (known_info.SType != this_entry.SType)
     {
         std::string msg = ReferenceMsg(
-            "This is declared as a function here but differently elsewhere",
+            "'%s' is declared as a function here but differently elsewhere",
             known_info.DeclSectionId,
             known_info.DeclLine);
-        Error(msg.c_str());
+        Error(msg.c_str(), this_entry.SName.c_str());
         return kERR_UserError;
     }
 
     if ((known_info.Flags & ~kSFLG_Imported) != (this_entry.Flags & ~kSFLG_Imported))
     {
         std::string msg = ReferenceMsg(
-            "The qualifiers of this function are different here than elsewhere",
+            "The qualifiers of '%s' are different here than elsewhere",
             known_info.DeclSectionId,
             known_info.DeclLine);
-        Error(msg.c_str());
+        Error(msg.c_str(), this_entry.SName.c_str());
         return kERR_UserError;
     }
 
     if (known_info.GetNumOfFuncParams() != this_entry.GetNumOfFuncParams())
     {
         std::string msg = ReferenceMsg(
-            "Function is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
+            "Function '%s' is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
             known_info.DeclSectionId,
             known_info.DeclLine);
-        Error(msg.c_str(), this_entry.GetNumOfFuncParams(), known_info.GetNumOfFuncParams());
+        Error(msg.c_str(), this_entry.SName.c_str(), this_entry.GetNumOfFuncParams(), known_info.GetNumOfFuncParams());
         return kERR_UserError;
     }
     if (known_info.IsVarargsFunc() != this_entry.IsVarargsFunc())
@@ -1509,37 +1509,39 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
             "to not accept additional arguments elsewhere";
         std::string const msg =
             ReferenceMsg(
-            "Function %s, %s.",
-            known_info.DeclSectionId,
-            known_info.DeclLine);
-        Error(msg.c_str(), te.c_str(), ki.c_str());
+                "Function '%s' %s, %s.",
+                known_info.DeclSectionId,
+                known_info.DeclLine);
+        Error(msg.c_str(), this_entry.SName.c_str(), te.c_str(), ki.c_str());
         return kERR_UserError;
     }
 
     if (known_info.FuncParamTypes.at(0) != this_entry.FuncParamTypes.at(0))
     {
         std::string msg = ReferenceMsg(
-            "Return type is declared as %s here, as %s elsewhere",
+            "Return type of '%s' is declared as %s here, as %s elsewhere",
             known_info.DeclSectionId,
             known_info.DeclLine);
         Error(
             msg.c_str(),
+            this_entry.SName.c_str(),
             _sym.GetName(this_entry.FuncParamTypes.at(0)).c_str(),
             _sym.GetName(known_info.FuncParamTypes.at(0)).c_str());
 
         return kERR_UserError;
     }
 
-        for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); param_idx++)
+    for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); param_idx++)
     {
         if (known_info.FuncParamTypes.at(param_idx) != this_entry.FuncParamTypes.at(param_idx))
         {
             std::string msg = ReferenceMsg(
-                "Type of parameter #%d is %s here, %s in a declaration elsewhere",
+                "For function '%s': Type of parameter #%d is %s here, %s in a declaration elsewhere",
                 known_info.DeclSectionId,
                 known_info.DeclLine);
             Error(
                 msg.c_str(),
+                this_entry.SName.c_str(),
                 param_idx,
                 _sym.GetName(this_entry.FuncParamTypes.at(param_idx)).c_str(),
                 _sym.GetName(known_info.FuncParamTypes.at(param_idx)).c_str());

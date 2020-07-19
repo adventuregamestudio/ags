@@ -184,7 +184,7 @@ CVMR9Graph::CVMR9Graph(HWND MediaWindow, IDirect3DDevice9 *device, int NumberOfS
 	}
 
   //m_pD3DDevice = device;
-  m_oldWndProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
+  m_oldWndProc = GetWindowLongPtr(m_hMediaWindow, GWLP_WNDPROC);
 }
 
 // Function name	: CVMR9Graph::~CVMR9Graph
@@ -193,7 +193,7 @@ CVMR9Graph::CVMR9Graph(HWND MediaWindow, IDirect3DDevice9 *device, int NumberOfS
 CVMR9Graph::~CVMR9Graph()
 {
 	ReleaseAllInterfaces();
-  long newProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
+  long newProc = GetWindowLongPtr(m_hMediaWindow, GWLP_WNDPROC);
 }
 
 

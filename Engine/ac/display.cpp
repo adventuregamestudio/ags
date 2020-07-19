@@ -243,14 +243,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     if (blocking == 2) ovrtype=OVER_CUSTOM;
     else if (blocking >= OVER_CUSTOM) ovrtype=blocking;
 
-    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
+    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
-
-
-    // uses an internal offset since we prevented draw_text_window_and_bar from changing
-    // the original values
-    screenover[nse]._offsetX = adjustedXX - xx;
-    screenover[nse]._offsetY = adjustedYY - yy;
 
 
     if (blocking>=2) {

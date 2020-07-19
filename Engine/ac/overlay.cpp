@@ -189,7 +189,13 @@ int find_overlay_of_type(int type)
     return -1;
 }
 
-size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
+size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChannel)
+{
+    return add_screen_overlay(x, y, type, piccy, 0, 0, alphaChannel);
+}
+
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
+{
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {
@@ -203,6 +209,8 @@ size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel)
     over.bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     over.x=x;
     over.y=y;
+    over._offsetX = pic_offx;
+    over._offsetY = pic_offy;
     over.type=type;
     over.timeout=0;
     over.bgSpeechForChar = -1;

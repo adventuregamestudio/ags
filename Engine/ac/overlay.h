@@ -39,6 +39,7 @@ void remove_screen_overlay(int type);
 // Calculates overlay position in screen coordinates
 void get_overlay_position(const ScreenOverlay &over, int *x, int *y);
 size_t add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel = false);
 void remove_screen_overlay_index(size_t over_idx);
 void recreate_overlay_ddbs();
 

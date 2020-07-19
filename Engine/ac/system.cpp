@@ -19,11 +19,13 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_debug.h"
+#include "ac/global_translation.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/graphics_mode.h"
@@ -33,6 +35,7 @@
 #include "media/audio/audio_system.h"
 #include "util/string_compat.h"
 
+using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
@@ -378,6 +381,12 @@ RuntimeScriptValue Sc_System_SaveConfigToFile(const RuntimeScriptValue *params, 
     API_SCALL_VOID(save_config_file);
 }
 
+RuntimeScriptValue Sc_System_Log(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_SCRIPT_SPRINTF(Sc_System_Log, 2);
+    Debug::Printf(kDbgGroup_Script, (MessageType)params[0].IValue, "%s", scsf_buffer);
+    return RuntimeScriptValue((int32_t)0);
+}
 
 
 
@@ -412,6 +421,7 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::set_Windowed",             Sc_System_SetWindowed);
 
     ccAddExternalStaticFunction("System::SaveConfigToFile",         Sc_System_SaveConfigToFile);
+    ccAddExternalStaticFunction("System::Log^102",                  Sc_System_Log);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

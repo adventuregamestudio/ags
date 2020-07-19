@@ -6692,16 +6692,16 @@ ErrorType AGS::Parser::ParseInput()
 }
 
 // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
-ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &tokenize_res)
+ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning)
 {
-    size_t const tokenize_res_size = tokenize_res.entries.size();
+    size_t const sym_after_scanning_size = sym_after_scanning.entries.size();
     SymbolTableEntry empty;
     empty.SType = kSYM_NoType;
 
     for (size_t sym_idx = 0; sym_idx < _sym.entries.size(); sym_idx++)
     {
         SymbolTableEntry &s_entry = _sym[sym_idx];
-        if (s_entry.SType == kSYM_Function)
+        if (kSYM_Function == s_entry.SType)
         {
             SetFlag(s_entry.Flags, kSFLG_Imported, (kFT_Import == s_entry.SOffset));
             s_entry.SOffset = 0;
@@ -6709,7 +6709,7 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &tokenize_res)
         }
         std::string const sname = s_entry.SName;
         s_entry =
-            (sym_idx < tokenize_res_size) ? tokenize_res.entries[sym_idx] : empty;
+            (sym_idx < sym_after_scanning_size) ? sym_after_scanning.entries[sym_idx] : empty;
         s_entry.SName = sname;
     }
 
@@ -6798,7 +6798,7 @@ void AGS::Parser::Warning(char const *descr, ...)
 ErrorType AGS::Parser::Parse_PreAnalyzePhase()
 {
     // Needed to partially reset the symbol table later on
-    SymbolTable const tokenize_res(_sym);
+    SymbolTable const sym_after_scanning(_sym);
 
     _pp = kPP_PreAnalyze;
     ErrorType retval = ParseInput();
@@ -6810,7 +6810,7 @@ ErrorType AGS::Parser::Parse_PreAnalyzePhase()
     // Reset everything else in the symbol table,
     // but keep the entries so that they are guaranteed to have
     // the same index when parsed in phase 2
-    return Parse_ReinitSymTable(tokenize_res);
+    return Parse_ReinitSymTable(sym_after_scanning);
     
 }
 

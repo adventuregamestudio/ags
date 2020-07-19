@@ -953,9 +953,12 @@ private:
     // Blank out all imports that haven't been referenced
     ErrorType Parse_BlankOutUnusedImports();
 
-    // Cast around cc_error()
+    // Casts around cc_error()
     // This is a dying message. After the function has been called,
     // the compiler needs to exit immediately with a negative return value
+    // Report the error for the section and lineno specified.
+    void ErrorWithPosition(int section_id, int lineno, char const *descr, ...);
+    // Report the error for the section and lineno that _src currently is at.
     void Error(char const *descr, ...);
 
     // Record a warning for the current source position

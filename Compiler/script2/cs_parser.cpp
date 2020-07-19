@@ -6730,7 +6730,7 @@ ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
     return kERR_None;
 }
 
-void AGS::Parser::Error(char const *descr, ...)
+void AGS::Parser::ErrorWithPosition(int section_id, int lineno, char const *descr, ...)
 {
     // cc_error() can't be called with a va_list and doesn't have a variadic variant,
     // so convert all the parameters into a single C string here
@@ -6743,13 +6743,30 @@ void AGS::Parser::Error(char const *descr, ...)
     va_end(vlist1);
 
     // Set line; this is an implicit parameter of cc_error()
-    currentline = _src.GetLineno();
+    currentline = lineno;
+
     // If an error occurs, then ccCurScriptName is supposed to point to a
     // static character array that contains the section of the error. 
-    char const *current_section = _src.SectionId2Section(_src.GetSectionId()).c_str();
+    char const *current_section = _src.SectionId2Section(section_id).c_str();
     strncpy(SectionNameBuffer, current_section, sizeof(SectionNameBuffer) / sizeof(char) - 1);
     ccCurScriptName = SectionNameBuffer;
     cc_error("%s", message);
+    delete[] message;
+}
+
+void AGS::Parser::Error(char const *descr, ...)
+{
+    // ErrorWithPosition() can't be called with a va_list and doesn't have a variadic variant,
+    // so convert all the parameters into a single C string here
+    va_list vlist1, vlist2;
+    va_start(vlist1, descr);
+    va_copy(vlist2, vlist1);
+    char *message = new char[vsnprintf(nullptr, 0, descr, vlist1) + 1];
+    vsprintf(message, descr, vlist2);
+    va_end(vlist2);
+    va_end(vlist1);
+
+    ErrorWithPosition(_src.GetSectionId(), _src.GetLineno(), message);
     delete[] message;
 }
 

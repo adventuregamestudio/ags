@@ -825,7 +825,7 @@ TEST(Compile, FuncHeader1) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
- 
+
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
@@ -1019,7 +1019,7 @@ TEST(Compile, DoubleNonExtenderFunc) {
     ASSERT_NE(std::string::npos, err.find("already been def"));
 }
 
-TEST(Compile, UndeclaredStructFunc) {
+TEST(Compile, UndeclaredStructFunc1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Should fail, Struct doesn't have Func
@@ -1027,7 +1027,8 @@ TEST(Compile, UndeclaredStructFunc) {
     char *inpl = "\
         managed struct Struct                       \n\
         {                                           \n\
-        }                                           \n\
+            int Component;                          \n\
+        };                                          \n\
                                                     \n\
         void Struct::Func(int Param)                \n\
         {                                           \n\
@@ -1038,6 +1039,27 @@ TEST(Compile, UndeclaredStructFunc) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GT(0, compileResult);
     std::string message = last_seen_cc_error();
+}
+
+TEST(Compile, UndeclaredStructFunc2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should succeed, Struct has Func
+
+    char *inpl = "\
+        void Struct::Func(int Param)                \n\
+        {                                           \n\
+        }                                           \n\
+                                                    \n\
+        managed struct Struct                       \n\
+        {                                           \n\
+            void Func(int);                         \n\
+        };                                          \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, ParamVoid) {

@@ -6327,7 +6327,7 @@ TEST(Bytecode, Attributes01) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Attributes01", scrip);
+    WriteOutput("Attributes01", scrip);
     const size_t codesize = 167;
     EXPECT_EQ(codesize, scrip->codesize);
 
@@ -6428,15 +6428,15 @@ TEST(Bytecode, Attributes02) {
 
     // The getter and setter functions are defined locally, so
     // they ought to be exported instead of imported.
-    // Assigning the attribute should generate the same call
+    // Assigning to the attribute should generate the same call
     // as calling the setter; reading the same as calling the getter.
     // Armor:: functions should be allowed to access _damage.
 
     char *inpl = "\
         managed struct Armor {                          \n\
             attribute int Damage;                       \n\
-            writeprotected short _aura;                 \n\
-            protected int _damage;                      \n\
+            writeprotected short _Aura;                 \n\
+            protected int _Damage;                      \n\
         };                                              \n\
                                                         \n\
         int main()                                      \n\
@@ -6449,12 +6449,12 @@ TEST(Bytecode, Attributes02) {
         void Armor::set_Damage(int damage)              \n\
         {                                               \n\
             if (damage >= 0)                            \n\
-                _damage = damage;                       \n\
+                _Damage = damage;                       \n\
         }                                               \n\
                                                         \n\
         int Armor::get_Damage()                         \n\
         {                                               \n\
-            return _damage;                             \n\
+            return _Damage;                             \n\
         }                                               \n\
         ";
 
@@ -6463,7 +6463,7 @@ TEST(Bytecode, Attributes02) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Attributes02", scrip);
+    WriteOutput("Attributes02", scrip);
     const size_t codesize = 164;
     EXPECT_EQ(codesize, scrip->codesize);
 

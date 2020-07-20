@@ -101,9 +101,9 @@ public:
 
     enum Globalness
     {
-        kGl_Local = 0,            
-        kGl_GlobalNoImport = 1,   
-        kGl_GlobalImport = 2,     
+        kGl_Local = 0,
+        kGl_GlobalNoImport = 1,
+        kGl_GlobalImport = 2,
     };
 
     enum TypeQualifier
@@ -263,7 +263,7 @@ private:
         struct NestingInfo
         {
             SymbolType Type; // Type of the compound statement of this level
-            BackwardJumpDest Start; 
+            BackwardJumpDest Start;
             ForwardJump JumpOut; // First byte after the statement
             Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
             BackwardJumpDest SwitchDefault; // when switch: Default label
@@ -300,7 +300,7 @@ private:
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
         inline Vartype SwitchExprVartype() { return _stack.back().SwitchExprVartype; };
-        inline void SetSwitchExprVartype(Vartype vt) { _stack.back().SwitchExprVartype = vt;  }
+        inline void SetSwitchExprVartype(Vartype vt) { _stack.back().SwitchExprVartype = vt; }
 
         // If the innermost nesting is a SWITCH, the location of the "default:" code
         inline BackwardJumpDest &SwitchDefault() { return _stack.back().SwitchDefault; }
@@ -428,7 +428,7 @@ private:
 
     // Augment the message with a "See ..." indication
     std::string ReferenceMsg(std::string const &msg, int section_id, int line);
-
+    // Augment the message with a "See ..." indication pointing to the declaration of sym
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
 
     // These two need to be non-static because they can yield errors,
@@ -540,6 +540,8 @@ private:
 
     // We're in a func decl. Check whether it is valid here.
     ErrorType ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows);
+
+    AGS::ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
@@ -673,7 +675,8 @@ private:
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the struct that the component is defined in
-    AGS::Symbol AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component);
+    // Return 0 if such a struct doesn't exist 
+    Symbol FindStructOfComponent(Vartype strct, Symbol component);
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the "real" component name
@@ -748,7 +751,7 @@ private:
 
     // we have accepted something like "int a" and we're expecting "["
     ErrorType ParseArray(Symbol var_name, Vartype &vartype);
-    
+
     ErrorType ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
 
     // there was a forward declaration -- check that the real declaration matches it
@@ -765,7 +768,7 @@ private:
     ErrorType ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
     ErrorType ParseFuncBody(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
-  
+
     ErrorType HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
@@ -780,18 +783,18 @@ private:
     // check that we haven't extended a struct that already contains a member with the same name
     ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
 
-    ErrorType ParseStruct_Function(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname, Symbol name_of_current_func);
+    ErrorType ParseStruct_Function(TypeQualifierSet tqs, Vartype vartype, Symbol struct_of_func, Symbol name_of_func);
 
-    ErrorType ParseStruct_CheckAttributeFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
+    ErrorType ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
-    ErrorType ParseStruct_EnterAttributeFunc(Symbol func, bool is_setter, bool is_indexed, bool is_static, Vartype vartype);
+    ErrorType ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    ErrorType ParseStruct_DeclareAttributeFunc(Symbol func, bool is_setter, bool is_indexed, bool is_static, Vartype vartype);
+    ErrorType ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, TypeQualifierSet tqs, Vartype vartype);
 
-    // We're in a struct declaration, parsing a struct attribute
-    ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname);
+    // We're in a struct declaration. Parse an attribute declaration.
+    ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype);
 
     // We're inside a struct decl, processing a member variable
     ErrorType ParseStruct_VariableOrAttribute(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);
@@ -898,7 +901,7 @@ private:
     // Handle the end of a "while" body
     // (Will also handle the outer "for" nesting)
     ErrorType HandleEndOfWhile(NestingStack *nesting_stack);
-    
+
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     ErrorType ParseAssignmentOrFunccall(Symbol cursym);
@@ -936,7 +939,7 @@ private:
 
     void Parse_SkipToEndingBrace();
 
-    
+
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis
     ErrorType Parse_PreAnalyzePhase();
@@ -945,6 +948,9 @@ private:
     ErrorType Parse_MainPhase();
 
     ErrorType ParseInput();
+
+    // Check that all struct functions have a declaration in the struct
+    ErrorType Parse_CheckStructFuncs();
 
     // Only certain info should be carried over from the pre phase into the main phase.
     // Discard all the rest so that the main phase can start with a clean slate.

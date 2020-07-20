@@ -539,6 +539,33 @@ TEST(Compile, FuncDeclWrong2) {
 
 }
 
+TEST(Compile, FuncDeclReturnVartype) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should compile.
+    char *inpl = "\
+    managed struct DynamicSprite                                    \n\
+    {                                                               \n\
+    };                                                              \n\
+                                                                    \n\
+    struct RotatedView                                              \n\
+    {                                                               \n\
+        import static DynamicSprite *[]                             \n\
+            CreateLoop(int view, int loop, int base_loop = 7);      \n\
+    };                                                              \n\
+                                                                    \n\
+    static DynamicSprite *[]                                        \n\
+        RotatedView::CreateLoop(int view, int loop, int base_loop)  \n\
+    {                                                               \n\
+    }                                                               \n\
+   ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
 
 TEST(Compile, Writeprotected) {
     ccCompiledScript *scrip = newScriptFixture();

@@ -502,7 +502,7 @@ AGS::Parser::BackwardJumpDest::BackwardJumpDest(::ccCompiledScript &scrip)
 
 void AGS::Parser::BackwardJumpDest::Set(CodeLoc cl)
 {
-    _dest = (cl >= 0)? cl : _scrip.codesize;
+    _dest = (cl >= 0) ? cl : _scrip.codesize;
     _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
 }
 
@@ -660,7 +660,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
             continue;
 
         totalsub +=
-            (_sym.GetThisSym() == entries_idx)? SIZE_OF_DYNPOINTER : _sym.GetSize(entries_idx);
+            (_sym.GetThisSym() == entries_idx) ? SIZE_OF_DYNPOINTER : _sym.GetSize(entries_idx);
     }
     return totalsub;
 }
@@ -1181,7 +1181,7 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
         SetFlag(entry.Flags, kSFLG_Static, true);
 
     _src.GetNext();
-    if (_sym.GetDynpointerSym() ==_src.PeekNext())
+    if (_sym.GetDynpointerSym() == _src.PeekNext())
     {
         if (is_static_extender)
         {
@@ -1843,7 +1843,7 @@ ErrorType AGS::Parser::IndexOfLeastBondingOperator(AGS::SymbolScript slist, size
     // turns out to be unary and not in first position, it must be
     // a chain of unary operators and the first should be evaluated
     // first
-    idx = largest_is_binary? index_of_largest_prio : 0;
+    idx = largest_is_binary ? index_of_largest_prio : 0;
     return kERR_None;
 }
 
@@ -1884,7 +1884,7 @@ ErrorType AGS::Parser::GetOperatorValidForVartype(AGS::Vartype vartype1, AGS::Va
 
     if (iatos1 || iatos2)
     {
-        if (_sym.GetNullSym() == vartype1 || _sym.GetNullSym() ==vartype2)
+        if (_sym.GetNullSym() == vartype1 || _sym.GetNullSym() == vartype2)
             return kERR_None;
 
         if (iatos1 != iatos2)
@@ -1939,7 +1939,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return false;
 
     // cannot convert const to non-const
-    if (_sym.IsConst(vartype_is)  && !_sym.IsConst(vartype_wants_to_be))
+    if (_sym.IsConst(vartype_is) && !_sym.IsConst(vartype_wants_to_be))
         return true;
 
     // Can convert null to dynpointer or dynarray
@@ -2337,7 +2337,7 @@ ErrorType AGS::Parser::ParseExpression_Tern(size_t op_idx, AGS::SymbolScript sym
     // random number that's easy to spot in debugging outputs (where it's a clue
     // that it probably hasn't been replaced by a proper value). Don't use for anything.
     WriteCmd(
-        (term2list_len > 0)? SCMD_JZ : SCMD_JNZ,
+        (term2list_len > 0) ? SCMD_JZ : SCMD_JNZ,
         -77);
     ForwardJump test_jumpdest(_scrip);
     test_jumpdest.AddParam();
@@ -2577,7 +2577,7 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
-        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo) )
+        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo))
         WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
 
@@ -3720,7 +3720,7 @@ ErrorType AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::Symbol
         // For this to work, the caller must know the type of the struct
         // in which the attribute resides
         vartype = _sym.VartypeWithout(
-            kVTT_Const|kVTT_Dynarray|kVTT_Dynpointer,
+            kVTT_Const | kVTT_Dynarray | kVTT_Dynpointer,
             outer_vartype);
         return kERR_None;
     }
@@ -4588,7 +4588,7 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol
         Error("Must extend a struct type");
         return kERR_UserError;
     }
-    if (!_sym.IsManaged(parent)&& _sym.IsManaged(stname))
+    if (!_sym.IsManaged(parent) && _sym.IsManaged(stname))
     {
         Error("Managed struct cannot extend the unmanaged struct '%s'", _sym.GetName(parent).c_str());
         return kERR_UserError;
@@ -5476,7 +5476,7 @@ ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext(AGS::Parser::NestingS
         return kERR_UserError;
     }
 
-    if (kSYM_OpenBrace == ns_type || kSYM_Function == ns_type  || kSYM_NoType == ns_type)
+    if (kSYM_OpenBrace == ns_type || kSYM_Function == ns_type || kSYM_NoType == ns_type)
         return kERR_None;
 
     Error("A declaration cannot be the sole body of an 'if', 'else' or loop clause");

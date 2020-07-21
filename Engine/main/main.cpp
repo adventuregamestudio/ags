@@ -175,6 +175,7 @@ extern char return_to_room[150];
 void main_print_help() {
     platform->WriteStdOut(
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+          //--------------------------------------------------------------------------------|
            "Options:\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
@@ -187,15 +188,33 @@ void main_print_help() {
 #else
            "                                 ogl, software\n"
 #endif
-           "  --gfxfilter <filter> [<scaling>]\n"
+           "  --gfxfilter FILTER [SCALING]\n"
            "                               Request graphics filter. Available options:\n"           
            "                                 hqx, linear, none, stdscale\n"
            "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"
-           "  --log                        Enable program output to the log file\n"
-           "  --no-log                     Disable program output to the log file,\n"
-           "                                 overriding configuration file setting\n"
+           "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
+           "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
+           "                               Setup logging to the chosen OUTPUT with given\n"
+           "                               log groups and verbosity levels. Groups may\n"
+           "                               be also defined by a LIST of one-letter IDs,\n"
+           "                               preceded by '+', e.g. +ABCD:LEVEL. Verbosity may\n"
+           "                               be also defined by a numberic ID.\n"
+           "                               OUTPUTs are\n"
+           "                                 stdout, file, console\n"
+           "                               (where \"console\" is internal engine's console)\n"
+           "                               GROUPs are:\n"
+           "                                 all, main (m), script (s), sprcache (c),\n"
+           "                                 manobj (o)\n"
+           "                               LEVELs are:\n"
+           "                                 all, alert (1), fatal (2), error (3), warn (4),\n"
+           "                                 info (5), debug (6)\n"
+           "                               Examples:\n"
+           "                                 --log-stdout=+msco:debug\n"
+           "                                 --log-file=all:warn\n"
+           "  --log-file-path=PATH         Define custom path for the log file\n"
+          //--------------------------------------------------------------------------------|
 #if AGS_PLATFORM_OS_WINDOWS
            "  --no-message-box             Disable reporting of alerts to message boxes\n"
            "  --setup                      Run setup application\n"
@@ -215,6 +234,7 @@ void main_print_help() {
            "  /dir/path/game/              Launch the game in specified directory\n"
            "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
            "  [nothing]                    Launch the game in the current directory\n"
+          //--------------------------------------------------------------------------------|
     );
 }
 

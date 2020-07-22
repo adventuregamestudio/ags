@@ -6597,7 +6597,7 @@ void AGS::Parser::HandleSrcSectionChange()
     _lastEmittedSectionId = src_section_id;
 }
 
-ErrorType AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
+ErrorType AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs, std::string const &keyword)
 {
     std::map<TypeQualifier, std::string> const tq2String =
     {
@@ -6611,7 +6611,7 @@ ErrorType AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
         { kTQ_Static, "static" },
         { kTQ_Stringstruct, "stringstruct" },
     };
-    std::string kw2 = "[sentinel]", kw1;
+    std::string kw2 = keyword, kw1;
     for (auto tq_it = tq2String.begin(); tq_it != tq2String.end(); ++tq_it)
     {
         if (!FlagIsSet(tqs, tq_it->first))

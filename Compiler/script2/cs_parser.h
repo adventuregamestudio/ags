@@ -913,7 +913,8 @@ private:
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2, p3); }
 
-    ErrorType Parse_TQCombiError(TypeQualifierSet tqs);
+    // Output a "Cannot use keywords together" message
+    ErrorType Parse_TQCombiError(TypeQualifierSet tqs, std::string const &keyword = "");
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, Symbol decl_type = kSYM_NoType);

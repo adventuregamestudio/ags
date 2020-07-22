@@ -6757,12 +6757,12 @@ ErrorType AGS::Parser::ParseInput()
 
         case kSYM_Protected:
         {
-            SetFlag(tqs, kTQ_Protected, true);
             if (name_of_current_func > 0)
             {
                 Error("'protected' not allowed inside a function body");
                 return kERR_UserError;
             }
+            SetFlag(tqs, kTQ_Protected, true);
             continue;
         }
 
@@ -6774,12 +6774,12 @@ ErrorType AGS::Parser::ParseInput()
 
         case kSYM_Static:
         {
-            SetFlag(tqs, kTQ_Static, true);
             if (name_of_current_func >= 0)
             {
                 Error("'static' not allowed inside function body");
                 return kERR_UserError;
             }
+            SetFlag(tqs, kTQ_Static, true);
             continue;
         }
 

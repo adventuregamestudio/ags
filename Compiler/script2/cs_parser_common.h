@@ -107,10 +107,9 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_Protected = 1 << 8, // protected member func/var
     kSFLG_Readonly = 1 << 9, // user cannot change
     kSFLG_Static = 1 << 10, // static member func/var
-    kSFLG_StrBuffer = 1 << 11, // was allocated a string buffer
-    kSFLG_StructMember = 1 << 12, // set for member vars & funcs
-    kSFLG_StructVartype = 1 << 13, // is a struct vartype (type will be kSYM_Vartype)
-    kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
+    kSFLG_StructMember = 1 << 11, // set for member vars & funcs
+    kSFLG_StructVartype = 1 << 12, // is a struct vartype (type will be kSYM_Vartype)
+    kSFLG_WriteProtected = 1 << 13,  // only the this pointer can write the var
 };
 
 enum ErrorType

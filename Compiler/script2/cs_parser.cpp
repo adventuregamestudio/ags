@@ -4373,6 +4373,19 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
     ErrorType retval = ParseExpression();
     if (retval < 0) return retval;
 
+    // Vartypes must match. This is true even if the lhs is readonly.
+    Vartype const lhsvartype = vartype;
+    Vartype const rhsvartype = _scrip.ax_vartype;
+
+    if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
+    {
+        Error(
+            "Cannot assign a type '%s' value to a type '%s' variable",
+            _sym.GetName(rhsvartype).c_str(),
+            _sym.GetName(lhsvartype).c_str());
+        return kERR_UserError;
+    }
+
     bool const is_dyn = _sym.IsDyn(vartype);
 
     if (SIZE_OF_INT == var_size && !is_dyn)

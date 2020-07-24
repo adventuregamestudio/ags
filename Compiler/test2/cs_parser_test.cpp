@@ -1711,7 +1711,7 @@ TEST(Compile, DynamicAndNull) {
 TEST(Compile, AssignPtr2ArrayOfPtr) {
 
     std::string agscode = "\
-        builtin managed struct DynamicSprite    \n\
+        managed struct DynamicSprite            \n\
         {                                       \n\
             import static DynamicSprite         \n\
                 *Create(int width, int height, bool hasAlphaChannel = false);   \n\

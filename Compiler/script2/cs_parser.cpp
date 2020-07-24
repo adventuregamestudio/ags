@@ -2133,27 +2133,32 @@ ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, 
     if (symlist_len >= 2)
     {
         Vartype const new_vartype = symlist[1];
-        if (_sym.GetSymbolType(new_vartype) == kSYM_Vartype)
-            return kERR_None;
-
-        if (_sym.GetSymbolType(new_vartype) == kSYM_UndefinedStruct)
+        if (kSYM_Vartype != _sym.GetSymbolType(new_vartype))
         {
             Error(
-                "The struct %s hasn't been completely defined yet",
+                "Expected a type after 'new'; '%s' is not a type",
                 _sym.GetName(new_vartype).c_str());
             return kERR_UserError;
         }
 
-        if (!_sym.IsPrimitive(new_vartype) && !_sym.IsManaged(new_vartype))
+        if (kSYM_UndefinedStruct == _sym.GetSymbolType(new_vartype))
         {
-            Error("Can only use primitive or managed types with 'new'");
+            Error(
+                "The struct '%s' hasn't been completely defined yet",
+                _sym.GetName(new_vartype).c_str());
+            return kERR_UserError;
+        }
+
+        if (!_sym.IsAnyIntType(new_vartype) && !_sym.IsManaged(new_vartype))
+        {
+            Error("Can only use integer or managed types with 'new'");
             return kERR_UserError;
         }
 
         if (_sym.IsBuiltin(new_vartype))
         {
             Error(
-                "Built-in type '%s' cannot be instantiated directly",
+                "Cannot use 'new' for the built-in type '%s'",
                 _sym.GetName(new_vartype).c_str());
             return kERR_UserError;
         }

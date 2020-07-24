@@ -1938,9 +1938,6 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     if (vartype_is == vartype_wants_to_be)
         return false;
 
-    // cannot convert const to non-const
-    if (_sym.IsConst(vartype_is) && !_sym.IsConst(vartype_wants_to_be))
-        return true;
 
     // Can convert null to dynpointer or dynarray
     if (_sym.GetNullSym() == vartype_is)
@@ -1948,14 +1945,29 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         !_sym.IsDynpointer(vartype_wants_to_be) &&
         !_sym.IsDynarray(vartype_wants_to_be);
 
-    // can convert String* to const string
+    // can convert String * to const string
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
         _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
     {
         return false;
     }
+
+    // can convert string or const string to String *
+    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_is) &&
+        _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_wants_to_be))
+    {
+        return false;
+    }
+
     if (_sym.IsOldstring(vartype_is) != _sym.IsOldstring(vartype_wants_to_be))
         return true;
+
+    // Note: the position of this test is important.
+    // Don't "group" string tests "together" and move this test above or below them.
+    // cannot convert const to non-const
+    if (_sym.IsConst(vartype_is) && !_sym.IsConst(vartype_wants_to_be))
+        return true;
+
     if (_sym.IsOldstring(vartype_is))
         return false;
 

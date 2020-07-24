@@ -2191,7 +2191,7 @@ ErrorType AGS::Parser::ParseExpression_New(AGS::SymbolScript symlist, size_t sym
     // new VARTYPE[...]
     if (kSYM_OpenBracket == _sym.GetSymbolType(symlist[2]) && kSYM_CloseBracket == _sym.GetSymbolType(symlist[symlist_len - 1]))
     {
-        bool const is_managed = !_sym.IsPrimitive(new_vartype);
+        bool const is_managed = !_sym.IsAnyIntType(new_vartype);
         int const element_size = _sym.GetSize(new_vartype);
 
         // Expression for length of array begins after "[", ends before "]"

@@ -63,7 +63,7 @@ int initialize_engine_with_exception_handling(
 {
     __try
     {
-        Debug::Printf(kDbgMsg_Init, "Installing exception handler");
+        Debug::Printf(kDbgMsg_Info, "Installing exception handler");
         return initialize_engine(startup_opts);
     }
     __except (CustomExceptionHandler(GetExceptionInformation()))

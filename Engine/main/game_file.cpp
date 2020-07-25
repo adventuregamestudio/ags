@@ -89,13 +89,13 @@ HGameFileError game_file_first_open(MainGameSource &src)
         err->Code() == kMGFErr_FormatVersionNotSupported)
     {
         // Log data description for debugging
-        Debug::Printf(kDbgMsg_Init, "Opened game data file: %s", src.Filename.GetCStr());
-        Debug::Printf(kDbgMsg_Init, "Game data version: %d", src.DataVersion);
-        Debug::Printf(kDbgMsg_Init, "Compiled with: %s", src.CompiledWith.GetCStr());
+        Debug::Printf(kDbgMsg_Info, "Opened game data file: %s", src.Filename.GetCStr());
+        Debug::Printf(kDbgMsg_Info, "Game data version: %d", src.DataVersion);
+        Debug::Printf(kDbgMsg_Info, "Compiled with: %s", src.CompiledWith.GetCStr());
         if (src.Caps.size() > 0)
         {
             String caps_list = get_caps_list(src.Caps);
-            Debug::Printf(kDbgMsg_Init, "Requested engine caps: %s", caps_list.GetCStr());
+            Debug::Printf(kDbgMsg_Info, "Requested engine caps: %s", caps_list.GetCStr());
         }
     }
     // Quit in case of error

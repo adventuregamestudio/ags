@@ -739,7 +739,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
         return new Error("ReadGUI: unknown format or file is corrupt");
 
     GameGuiVersion = (GuiVersion)in->ReadInt32();
-    Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
+    Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
     size_t gui_count;
     if (GameGuiVersion < kGuiVersion_214)
     {

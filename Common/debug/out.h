@@ -35,18 +35,15 @@
 // distinct them from reports on the internal engine's problems and make
 // verbosity configuration flexible.
 //
-// kDbgMsg_Init - is a type for startup initialization notifications; use them
-// when declaring that certain component got initialized (or not initialized),
-// optionally noting working mode, where applicable. Such messages are intended
-// for core engine components and plugin startup only, not work modes and game
-// states that are normally changing during gameplay.
-//
-// kDbgMsg_Debug - is the most common type of message (if the printing function
+// kDbgMsg_Debug - is the most mundane type of message (if the printing function
 // argument list does not specify message type, it is probably kDbgMsg_Debug).
 // You can use it for almost anything, from noting some process steps to
 // displaying current object state. If certain messages are meant to be printed
 // very often, consider using another distinct debug group so that it may be
 // disabled to reduce log verbosity.
+//
+// kDbgMsg_Info - is a type for important notifications, such as initialization
+// and stopping of engine components.
 //
 // kDbgMsg_Warn - this is suggested for more significant cases, when you find
 // out that something is not right, but is not immediately affecting engine
@@ -80,30 +77,29 @@ namespace Common
 enum MessageType
 {
     kDbgMsg_None                = 0,
-    // Initialization messages, notify about certain engine components
-    // being created and important modes initialized.
-    kDbgMsg_Init                = 0x0001,
-    // Debug reason is for arbitrary information about events and current
-    // game state
-    kDbgMsg_Debug               = 0x0002,
-    // Warnings are made when unexpected or non-standart behavior
-    // is detected in program, which is not immediately critical,
-    // but may be a symptom of a bigger problem.
-    kDbgMsg_Warn                = 0x0004,
+    // Alerts may be informative messages with topmost level of importance,
+    // such as reporting engine startup and shutdown.
+    kDbgMsg_Alert               ,
+    // Fatal errors are ones that make program abort immediately.
+    kDbgMsg_Fatal               ,
     // Error messages are about engine not being able to perform requested
     // operation in a situation when that will affect game playability and
     // further execution.
-    kDbgMsg_Error               = 0x0008,
-    // Fatal errors are ones that make program abort immediately
-    kDbgMsg_Fatal               = 0x0010,
+    kDbgMsg_Error               ,
+    // Warnings are made when unexpected or non-standart behavior
+    // is detected in program, which is not immediately critical,
+    // but may be a symptom of a bigger problem.
+    kDbgMsg_Warn                ,
+    // General information messages.
+    kDbgMsg_Info                ,
+    // Debug reason is for arbitrary information about events and current
+    // game state.
+    kDbgMsg_Debug               ,
+
 
     // Convenient aliases
     kDbgMsg_Default             = kDbgMsg_Debug,
-    kDbgMsgSet_NoDebug          = 0x001D,
-    kDbgMsgSet_Errors           = 0x0018,
-    kDbgMsgSet_InitAndErrors    = 0x0019,
-    // Output everything
-    kDbgMsgSet_All              = 0xFFFF
+    kDbgMsg_All                 = kDbgMsg_Debug
 };
 
 // This enumeration is a list of common hard-coded groups, but more could

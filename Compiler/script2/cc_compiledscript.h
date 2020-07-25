@@ -28,7 +28,7 @@ struct ccCompiledScript : public ccScript {
     AGS::Vartype ax_vartype;
 
     // kSYM_LocalVar or kSYM_GlobalVar, needed to prevent a return of a local string
-    AGS::SType  ax_val_scope;  
+    SymbolTypeType ax_val_scope;  
 
     void init();
     void shutdown();

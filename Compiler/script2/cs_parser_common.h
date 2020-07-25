@@ -7,16 +7,16 @@ namespace AGS
 {
 typedef int Symbol; // A symbol (result of scanner preprocessing)
 typedef Symbol *SymbolScript; // A buffer of symbols 
-typedef long Flags; // Collection of bits that are set and reset TODO convert to std::bitset
+typedef long FlagSet; // Collection of bits that are set and reset
 typedef long Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
-typedef short SType; // e.g. kSYM_Global
+typedef short SymbolTypeType;
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode
 typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository
 typedef int32_t GlobalLoc; // An offset into the global space
 typedef char FixupType; // the type of a fixup
-
+typedef FlagSet TypeQualifierSet;
 
 constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
@@ -25,12 +25,12 @@ constexpr size_t VARARGS_INDICATOR = 100;
 constexpr size_t SIZE_OF_DYNPOINTER = 4;
 constexpr size_t SIZE_OF_INT = 4;
 
-inline static bool FlagIsSet(AGS::Flags fl_set, long flag) { return 0 != (fl_set & flag); }
-inline static void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
+inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
+inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
 
-enum SymbolType : AGS::SType
+enum SymbolType : SymbolTypeType
 {
-    kSYM_NoType,
+    kSYM_NoType = 0,
 
     // Types below can appear in expressions
     kSYM_CloseBracket,
@@ -92,24 +92,36 @@ enum SymbolType : AGS::SType
     kSYM_While,
     kSYM_WriteProtected,    // write-protected member
 };
-constexpr AGS::SType NOTEXPRESSION = kSYM_Assign; // STypes starting (numerically) with this aren't part of expressions
+constexpr SymbolTypeType NOTEXPRESSION = kSYM_Assign; // Types starting (numerically) with this aren't part of expressions
 
-enum SymbolTableFlag : AGS::Flags
+enum TypeQualifier
 {
-    kSFLG_Accessed = 1 << 0, // if not set, the variable is never used
-    kSFLG_Attribute = 1 << 1, // is an attribute variable
-    kSFLG_Autoptr = 1 << 2, // automatically convert definition to pointer
-    kSFLG_Builtin = 1 << 3, // direct instantiation/extension not allowed
-    kSFLG_Imported = 1 << 4, // this is an import variable
-    kSFLG_NoLoopCheck = 1 << 5, // A function that does not check for long-running loops
-    kSFLG_Managed = 1 << 6, // managed struct (kSYM_Vartype)
-    kSFLG_Parameter = 1 << 7,
-    kSFLG_Protected = 1 << 8, // protected member func/var
-    kSFLG_Readonly = 1 << 9, // user cannot change
-    kSFLG_Static = 1 << 10, // static member func/var
-    kSFLG_StructMember = 1 << 11, // set for member vars & funcs
-    kSFLG_StructVartype = 1 << 12, // is a struct vartype (type will be kSYM_Vartype)
-    kSFLG_WriteProtected = 1 << 13,  // only the this pointer can write the var
+    kTQ_Attribute = 1 << 0,
+    kTQ_Autoptr = 1 << 1,
+    kTQ_Builtin = 1 << 2,
+    kTQ_Const = 1 << 3,
+    kTQ_ImportStd = 1 << 4,
+    kTQ_ImportTry = 1 << 5,
+    kTQ_Managed = 1 << 6,
+    kTQ_Protected = 1 << 7,
+    kTQ_Readonly = 1 << 8,
+    kTQ_Static = 1 << 9,
+    kTQ_Stringstruct = 1 << 10,
+    kTQ_Writeprotected = 1 << 11,
+    kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
+};
+
+enum SymbolTableFlag : FlagSet
+{
+    kSFLG_Accessed = 1 << 0, // If not set, the variable is never used
+    kSFLG_NoLoopCheck = 1 << 1, // A function that does not check for long-running loops
+    kSFLG_Parameter = 1 << 2, // A parameter
+    kSFLG_StrBuffer = 1 << 3, // Was allocated a string buffer
+    kSFLG_StructAutoPtr = 1 << 4, // "*" is implied
+    kSFLG_StructBuiltin = 1 << 5, // is a member variable or member function
+    kSFLG_StructMember = 1 << 6, // is a member variable or member function
+    kSFLG_StructManaged = 1 << 7, // is a member variable or member function
+    kSFLG_StructVartype = 1 << 8, // is a struct vartype (type will be kSYM_Vartype)
 };
 
 enum ErrorType

@@ -12,6 +12,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , DeclSectionId(0)
     , DeclLine(0)
     , Flags(0)
+    , TypeQualifiers(0)
     , SOffset(0)
     , Vartype(0)
     , SSize(0)
@@ -33,6 +34,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , DeclSectionId(0)
     , DeclLine(0)
     , Flags(0)
+    , TypeQualifiers(0)
     , SOffset(0)
     , Vartype(0)
     , SSize(sizee)
@@ -79,15 +81,15 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
     return num;
 }
 
-bool AGS::SymbolTableEntry::IsVTF(AGS::Flags f, SymbolTable const &symt) const
+bool AGS::SymbolTableEntry::IsVTF(SymbolTableFlag flag, SymbolTable const &symt) const
 {
     if (kSYM_Vartype != SType && kSYM_UndefinedStruct != SType)
-        return symt.IsVTF(Vartype, f);
+        return symt.IsVTF(Vartype, flag);
 
     // Recursively get to the innermost symbol; read that symbol's flags
     if (kVTT_Atomic == VartypeType)
-        return FlagIsSet(Flags, f);
-    return symt.IsVTF(Vartype, f);
+        return FlagIsSet(Flags, flag);
+    return symt.IsVTF(Vartype, flag);
 }
 
 bool AGS::SymbolTableEntry::ParamDefault::operator==(const ParamDefault &other) const
@@ -295,7 +297,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, AGS::Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype)
 {
     // Return cached result if existent 
     std::pair<Vartype, enum VartypeType> const arg = { vartype, vtt };
@@ -312,7 +314,12 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, AGS::Vartype va
     {
     default: pre = "QUAL" + std::to_string(vtt) + " "; break;
     case kVTT_Const: pre = "const "; break;
-    case kVTT_Dynpointer: post = " *"; break;
+        // Note: Even if we have an autoptr and suppress the '*', we still need to add _something_ to the name.
+        // The name for the pointered type must be different from the name of the unpointered type.
+        // (If this turns out to be too ugly, then we need two fields for vartypes:
+        // one field that is output to the user, another field that is guaranteed to have different values
+        // for different vartypes.)
+    case kVTT_Dynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr)? " " : " *"; break;
     case kVTT_Dynarray: post = "[]"; break;
     }
     std::string const conv_name = (pre + entries[vartype].SName) + post;

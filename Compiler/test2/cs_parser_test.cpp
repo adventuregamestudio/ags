@@ -1196,6 +1196,7 @@ TEST(Compile, StructExtend4) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GT(0, compileResult);
+    std::string err = last_seen_cc_error();
 }
 
 TEST(Compile, StructStaticFunc) {
@@ -2229,4 +2230,25 @@ TEST(Compile, Sections)
     ASSERT_GT(0, compileResult);
     EXPECT_EQ(3, currentline);
     ASSERT_STREQ("globalscript.ash", ccCurScriptName);
+}
+
+TEST(Compile, Autoptr)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // String is autoptr so should not print as "String *"
+
+    char *inpl = "\
+        managed autoptr builtin struct String   \n\
+        {};                                     \n\
+        int main()                              \n\
+        {                                       \n\
+            String var = 15;                    \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_EQ(std::string::npos, msg.find("String *"));
 }

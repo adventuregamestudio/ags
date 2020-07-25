@@ -52,9 +52,6 @@ The result is:
 namespace AGS
 {
 
-typedef long TypeQualifierSet;
-
-
 class Parser
 {
 public:
@@ -104,23 +101,6 @@ public:
         kGl_Local = 0,
         kGl_GlobalNoImport = 1,
         kGl_GlobalImport = 2,
-    };
-
-    enum TypeQualifier
-    {
-        kTQ_Attribute = 1 << 0,
-        kTQ_Autoptr = 1 << 1,
-        kTQ_Builtin = 1 << 2,
-        kTQ_Const = 1 << 3,
-        kTQ_ImportStd = 1 << 4,
-        kTQ_ImportTry = 1 << 5,
-        kTQ_Managed = 1 << 6,
-        kTQ_Protected = 1 << 7,
-        kTQ_Readonly = 1 << 8,
-        kTQ_Static = 1 << 9,
-        kTQ_Stringstruct = 1 << 10,
-        kTQ_Writeprotected = 1 << 11,
-        kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
     };
 
     typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
@@ -455,7 +435,7 @@ private:
     ErrorType SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
 
     // Mark the symbol as "accessed" in the symbol table
-    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); };
+    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
 
     // Return number of bytes to remove from stack to unallocate local vars
     // of levels that are above from_level
@@ -506,7 +486,7 @@ private:
     // Extender function, eg. function GoAway(this Character *someone)
     // We've just accepted something like "int func("
     // We'll accept something like "this Character *" --OR-- "static Character"
-    ErrorType ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func);
+    ErrorType ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func, TypeQualifierSet &tqs);
 
     // In a parameter list, process the vartype of a parameter declaration
     ErrorType ParseParamlist_ParamType(Vartype &vartype);
@@ -524,7 +504,7 @@ private:
 
     ErrorType ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
-    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, bool func_is_static, bool func_is_protected);
+    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, TypeQualifierSet tqs);
 
     ErrorType ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const &this_entry, bool body_follows, SymbolTableEntry const &known_info);
 
@@ -541,7 +521,7 @@ private:
     // We're in a func decl. Check whether it is valid here.
     ErrorType ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows);
 
-    AGS::ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, bool body_follows);
+    ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
@@ -839,7 +819,7 @@ private:
 
     ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness, bool & another_var_follows);
 
-    ErrorType ParseVartype_VarDecl(Symbol &var_name, Globalness globalness, int nested_level, bool is_readonly, Vartype vartype, SymbolType next_type, bool &another_var_follows);
+    ErrorType ParseVartype_VarDecl(Symbol &var_name, Globalness globalness, int nested_level, TypeQualifierSet tqs, Vartype vartype, SymbolType next_type, bool &another_var_follows);
 
     // We accepted a variable type such as "int", so what follows is a function or variable definition
     ErrorType ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);

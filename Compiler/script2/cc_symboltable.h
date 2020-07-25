@@ -13,10 +13,10 @@ namespace AGS
 enum VartypeType
 {
     kVTT_Atomic = 0,
-    kVTT_Array = 2 << 0,
-    kVTT_Const = 2 << 1,
-    kVTT_Dynarray = 2 << 2,
-    kVTT_Dynpointer = 2 << 3,
+    kVTT_Array = 1 << 1,
+    kVTT_Const = 1 << 2,
+    kVTT_Dynarray = 1 << 3,
+    kVTT_Dynpointer = 1 << 4,
 };
 
 struct SymbolTable;
@@ -24,8 +24,8 @@ struct SymbolTable;
 struct SymbolTableEntry {
     friend SymbolTable;
 protected:
-    // Is (or has)  a vartype that can be recognized by a flag
-    bool IsVTF(Flags f, SymbolTable const &symt) const;
+    // Is (or has) a vartype that can be recognized by a flag
+    bool IsVTF(SymbolTableFlag flag, SymbolTable const &symt) const;
     // Is (or has)  a vartype that can be recognized by a vartype type
     bool IsVTT(enum VartypeType vtt, SymbolTable const &symt) const;
 
@@ -49,7 +49,7 @@ public:
             void *DynDefault;
         };
 
-        inline ParamDefault() { Type = kDT_None; }
+        inline ParamDefault() : Type(kDT_None) { }
         bool operator== (const ParamDefault &other) const;
         std::string ToString() const;
         int32_t ToInt32() const;
@@ -58,7 +58,8 @@ public:
     std::string SName;
     SymbolType SType; // e.g., kSYM_GlobalVar
     int DeclSectionId, DeclLine; // where this was declared
-    AGS::Flags Flags;
+    FlagSet Flags;
+    TypeQualifierSet TypeQualifiers;
     CodeLoc SOffset; // multiple use
 
     // Variables only
@@ -88,16 +89,17 @@ public:
 
 public:
     // General
-    inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); };
-    inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); };
-    inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); };
-    inline bool IsBuiltin(SymbolTable const &symt) const { return IsVTF(kSFLG_Builtin, symt); };
-    inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); };
-    inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); };
-    inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); };
-    inline bool IsDyn(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); };
-    inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_Managed, symt); };
-    inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); };
+    inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); }
+    inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); }
+    inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); }
+    inline bool IsBuiltin(SymbolTable const &symt) const { return IsVTF(kSFLG_StructBuiltin, symt); }
+    inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); }
+    inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); }
+    inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); }
+    inline bool IsDyn(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); }
+    inline bool IsImport() const { return FlagIsSet(TypeQualifiers, kTQ_Import); }
+    inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
+    inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
     inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
 
     // Array or Dynarray
@@ -144,7 +146,7 @@ private:
     mutable std::unordered_map<std::pair<Vartype, enum VartypeType>, Vartype, VVTTHash> _vartypesCache;
 
     inline bool IsVTT(Symbol s, enum VartypeType vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
-    inline bool IsVTF(Symbol s, Flags f) const { return IsInBounds(s) ? entries[s].IsVTF(f, *this) : false; }
+    inline bool IsVTF(Symbol s, SymbolTableFlag f) const { return IsInBounds(s) ? entries[s].IsVTF(f, *this) : false; }
 
 public:
     std::vector<SymbolTableEntry> entries;
@@ -172,17 +174,18 @@ public:
 
     // int, long, char, an enum etc.
     bool IsAnyIntType(Symbol s) const;
-    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; };
-    inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; };
-    inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; };
-    inline bool IsBuiltin(Symbol s) const { return IsInBounds(s) ? entries[s].IsBuiltin(*this) : false; };
-    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsConst(*this) : false; };
-    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarray(*this) : false; };
-    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointer(*this) : false; };
+    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; }
+    inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; }
+    inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; }
+    inline bool IsBuiltin(Symbol s) const { return IsInBounds(s) ? entries[s].IsBuiltin(*this) : false; }
+    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsConst(*this) : false; }
+    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarray(*this) : false; }
+    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointer(*this) : false; }
     // Dynpointer or Dynarray
-    inline bool IsDyn(Symbol s) const { return IsInBounds(s) ? entries[s].IsDyn(*this) : false; };
-    inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_Managed, *this) : false; };
-    inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsVTF(kSFLG_StructVartype, *this) : false; };
+    inline bool IsDyn(Symbol s) const { return IsInBounds(s) ? entries[s].IsDyn(*this) : false; }
+    inline bool IsImport(Symbol s) const { return IsInBounds(s) ? entries[s].IsImport() : false; }
+    inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsManaged(*this) : false; }
+    inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsStruct(*this) : false; }
     // A predefined atomic vartype such as int and float.
     inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= GetVoidSym()); };
 
@@ -215,10 +218,6 @@ public:
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).Vartype : -1; }
-
-    // the flags of a vartype, as given by the symbol table entry to its core type
-    // -or- the flags of a symbol, as given by its symbol table entry
-    inline Flags GetFlags(Symbol vt) const { return IsInBounds(vt) ? entries[vt].Flags : 0; }
 
     // Set/get section and line where the item is declared
     void SetDeclared(int idx, int section_id, int line);

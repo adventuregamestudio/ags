@@ -223,21 +223,6 @@ namespace AGS.Editor
             File.SetAttributes(destFileName, FileAttributes.Archive);
         }
 
-        public static bool DoesFileNameContainOnlyValidCharacters(string fileName)
-        {
-            foreach (char c in fileName)
-            {
-                foreach (char invalidChar in Path.GetInvalidFileNameChars())
-                {
-                    if (invalidChar == c)
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
         public static void CopyFont(int fromSlot, int toSlot)
         {
             if (fromSlot == toSlot)

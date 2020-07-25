@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Utils;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
 
@@ -523,7 +524,7 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            if (!Utilities.DoesFileNameContainOnlyValidCharacters(renamedScript.FileName))
+            if (!Validation.FilenameIsValid(renamedScript.FileName))
             {
                 _guiController.ShowMessage("The file name '" + renamedScript.FileName + "' contains some invalid characters. You cannot use some characters like : and / in script file names.", MessageBoxIcon.Warning);
                 renamedScript.FileName = oldScriptName;

@@ -406,6 +406,19 @@ enum SortStyle
 };
 #endif
 
+#ifdef SCRIPT_API_v351
+enum LogLevel
+{
+	eLogAlert = 1,
+	eLogFatal = 2,
+	eLogError = 3,
+	eLogWarn = 4,
+	eLogInfo = 5,
+	eLogDebug = 6
+};
+#endif
+
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -2116,6 +2129,10 @@ builtin struct System {
 #ifdef SCRIPT_API_v341
   /// Gets/sets whether sprites are rendered at screen resolution or native game resolution.
   import static attribute bool RenderAtScreenResolution;
+#endif
+#ifdef SCRIPT_API_v351
+  /// Prints message
+  import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
 #endif
 };
 

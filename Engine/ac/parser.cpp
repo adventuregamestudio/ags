@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <cctype> //isalnum()
+#include <cstdio>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

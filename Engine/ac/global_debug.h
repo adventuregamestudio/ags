@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALDEBUG_H
 #define __AGS_EE_AC__GLOBALDEBUG_H
 
+#include <cstdio>
 #include "util/string.h"
 
 AGS::Common::String GetRuntimeInfo();

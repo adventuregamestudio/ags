@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <cstdio>
 #include <string.h>
 #include "ac/common.h"
 #include "ac/dynobj/cc_dynamicarray.h"

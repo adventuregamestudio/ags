@@ -2034,7 +2034,8 @@ TEST(Compile, Attributes06) {
 TEST(Compile, Decl) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Should complain about not being: , or ; or =
+    // Should complain about the "+="
+    // Note, there are many more legal possibilites than just "," ";" "=".
 
     char *inpl = "\
         int main()          \n\
@@ -2048,9 +2049,7 @@ TEST(Compile, Decl) {
 
     std::string lsce = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : lsce.c_str());
-    ASSERT_NE(std::string::npos, lsce.find_first_of(','));
-    ASSERT_NE(std::string::npos, lsce.find_first_of(';'));
-    ASSERT_NE(std::string::npos, lsce.find_first_of('='));
+    EXPECT_NE(std::string::npos, lsce.find("+="));
 }
 
 TEST(Compile, DynamicArrayCompare)

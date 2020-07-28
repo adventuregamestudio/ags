@@ -167,6 +167,7 @@ public:
     };
 
 private:
+
     // Remember a code generation point.
     // If at some later time, Restore() is called,
     // then all bytecode that has been generated in the meantime is discarded.
@@ -685,6 +686,9 @@ private:
     // Stop when encountering a 0
     void AccessData_StrCpy();
 
+    // A "*" is allowed here. If it is here, gobble it.
+    ErrorType EatDynpointerSymbolIfPresent(Vartype vartype);
+
     // We are typically in an assignment LHS = RHS; the RHS has already been
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
@@ -746,9 +750,9 @@ private:
 
     ErrorType ParseVardecl_Local(Symbol var_name, Vartype vartype, bool has_initial_assignment);
 
-    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
+    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, Globalness globalness);
 
-    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
+    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, Globalness globalness);
 
     ErrorType ParseFuncBody(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
 
@@ -757,16 +761,16 @@ private:
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
 
     // We have accepted something like "struct foo" and are waiting for "extends"
-    ErrorType ParseStruct_ExtendsClause(Symbol stname, Symbol &parent, size_t &size_so_far);
+    ErrorType ParseStruct_ExtendsClause(Symbol stname, size_t &size_so_far);
 
-    void ParseStruct_MemberQualifiers(TypeQualifierSet &tqs);
+    void ParseQualifiers(TypeQualifierSet &tqs);
 
     ErrorType ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype, bool member_is_import);
 
     // check that we haven't extended a struct that already contains a member with the same name
     ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
 
-    ErrorType ParseStruct_Function(TypeQualifierSet tqs, Vartype vartype, Symbol struct_of_func, Symbol name_of_func);
+    ErrorType ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
 
     ErrorType ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
@@ -780,17 +784,14 @@ private:
     ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype);
 
     // We're inside a struct decl, processing a member variable
-    ErrorType ParseStruct_VariableOrAttribute(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);
+    ErrorType ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);
 
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
-    ErrorType ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+    ErrorType ParseStruct_MemberDefn(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
-    // A "*" is allowed here. If it is here, gobble it.
-    ErrorType EatDynpointerSymbolIfPresent(Vartype vartype);
-
-    // We've accepted, e.g., "struct foo {". Now we're parsing, e.g., "int P, Q, R;
-    ErrorType ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
+    // We've accepted, e.g., "struct foo {". Now we're parsing a variable declaration or a function declaration
+    ErrorType ParseStruct_Vartype(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
     // Handle a "struct" definition clause
     ErrorType ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);
@@ -812,20 +813,20 @@ private:
 
     ErrorType ParseReturn(NestingStack *nesting_stack, Symbol name_of_current_func);
 
-    ErrorType ParseVartype_GetVarName(Symbol &struct_of_member_fct, Symbol &varname);
+    ErrorType ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname);
 
-    ErrorType ParseVartype_CheckForIllegalContext(NestingStack *nesting_stack);
+    ErrorType ParseVartype_CheckForIllegalContext(NestingStack const &nesting_stack);
 
     ErrorType ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
-    ErrorType ParseVartype_FuncDef(Symbol &func_name, Vartype vartype, TypeQualifierSet tqs, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    ErrorType ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet tqs, Vartype vartype, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness, bool & another_var_follows);
+    ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness);
 
-    ErrorType ParseVartype_VarDecl(Symbol &var_name, Globalness globalness, int nested_level, TypeQualifierSet tqs, Vartype vartype, SymbolType next_type, bool &another_var_follows);
+    ErrorType ParseVartype_VarDecl(Symbol var_name, Globalness globalness, int nested_level, TypeQualifierSet tqs, Vartype vartype);
 
-    // We accepted a variable type such as "int", so what follows is a function or variable definition
-    ErrorType ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
+    // We accepted a variable type such as "int", so what follows is a variable or function declaration
+    ErrorType ParseVartype(Vartype vartype, NestingStack const &nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command statement. This command might be the end of sequences such as
     // "if (...) while (...) stmt;"
@@ -899,9 +900,9 @@ private:
 
     ErrorType ParseCommand(Symbol cursym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
 
-    // If a new section has begun, tell _scrip to deal with that.
+    // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName
-    void HandleSrcSectionChange();
+    void HandleSrcSectionChangeAt(size_t pos);
 
 
     inline void WriteCmd(CodeCell op)
@@ -913,13 +914,8 @@ private:
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op, p1, p2, p3); }
 
-    // Output a "Cannot use keywords together" message
-    ErrorType Parse_TQCombiError(TypeQualifierSet tqs, std::string const &keyword = "");
-
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, Symbol decl_type = kSYM_NoType);
-
-    ErrorType ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void Parse_SkipToEndingBrace();
 

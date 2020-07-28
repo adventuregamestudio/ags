@@ -401,6 +401,9 @@ private:
     size_t _lastEmittedSectionId;
     size_t _lastEmittedLineno;
 
+    // Map type qualifiers to strings so that they can be output
+    static std::map<TypeQualifier, std::string> _tq2String;
+
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
 
@@ -913,7 +916,7 @@ private:
     ErrorType Parse_TQCombiError(TypeQualifierSet tqs);
 
     // Check whether the qualifiers that accumulated for this decl go together
-    ErrorType Parse_CheckTQ(TypeQualifierSet tqs, Symbol decl_type);
+    ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, Symbol decl_type = kSYM_NoType);
 
     ErrorType ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 

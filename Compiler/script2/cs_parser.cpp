@@ -120,6 +120,8 @@ char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris 
 // Receives the section name in case of errors
 static char SectionNameBuffer[256];
 
+std::map<TypeQualifier, std::string> AGS::Parser::_tq2String;
+
 bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
     if (symb <= _sym.GetLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
@@ -635,6 +637,22 @@ AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip
 {
     _importMgr.Init(&scrip);
     _givm.clear();
+    if (_tq2String.empty())
+        _tq2String =
+            {
+                { kTQ_Attribute, "attribute", },
+                { kTQ_Autoptr, "autoptr", },
+                { kTQ_Builtin, "builtin", },
+                { kTQ_Const, "const", },
+                { kTQ_ImportStd, "import", },
+                { kTQ_ImportTry, "_tryimport", },
+                { kTQ_Managed, "managed", },
+                { kTQ_Protected, "protected", },
+                { kTQ_Readonly, "readonly", },
+                { kTQ_Static, "static", },
+                { kTQ_Stringstruct, "stringstruct", },
+                { kTQ_Writeprotected, "writeprotected", },
+            };
 }
 
 void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
@@ -4634,6 +4652,152 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, AGS::Symbol
     return kERR_None;
 }
 
+// Check whether the qualifiers that accumulated for this decl go together
+ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, AGS::Symbol decl_type)
+{
+    if (in_struct_decl)
+    {
+        TypeQualifier error_tq = kTQ_None;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
+        {
+            Error("'%s' is illegal in a struct declaration", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+    else // !in_struct_decl
+    {
+        TypeQualifier error_tq = kTQ_None;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Protected)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
+        {
+            Error("'%s' is only legal in a struct declaration", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+
+    if (in_func_body)
+    {
+        TypeQualifier error_tq = kTQ_None;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
+        {
+            Error("'%s' is illegal in a function body", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+
+    // Keywords that never go together
+    if (1 < FlagIsSet(tqs, kTQ_Protected) + FlagIsSet(tqs, kTQ_Writeprotected) + FlagIsSet(tqs, kTQ_Readonly))
+    {
+        Error("Can only use one out of 'protected', 'readonly', and 'writeprotected'");
+        return kERR_UserError;
+    }
+
+    if (1 < FlagIsSet(tqs, kTQ_ImportStd) + FlagIsSet(tqs, kTQ_ImportTry))
+    {
+        Error("Cannot combine 'import' and '_tryimport'");
+        return kERR_UserError;
+    }
+
+    // Will fire for all commands
+    if (kSYM_OpenBrace == decl_type && 0 != tqs)
+    {
+        TypeQualifier error_tq = kTQ_None;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Const)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Protected)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Readonly)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
+        {
+            Error("Unexpected '%s' before a command", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+
+
+    if (FlagIsSet(tqs, kTQ_Autoptr))
+    {
+        if (!FlagIsSet(tqs, kTQ_Builtin) || !FlagIsSet(tqs, kTQ_Managed))
+        {
+            Error("'autoptr' must be combined with 'builtin' and 'managed'");
+            return kERR_UserError;
+        }
+    }
+
+    if (FlagIsSet(tqs, kTQ_Builtin) && kSYM_Struct != decl_type)
+    {
+        Error("'builtin' can only be used in a struct definition");
+        return kERR_UserError;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Const))
+    {
+        Error("'const' can only be used for a function parameter (use 'readonly' instead)");
+        return kERR_UserError;
+    }
+
+    if (kSYM_Export == decl_type && 0 != tqs)
+    {
+        TypeQualifier error_tq = kTQ_None;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)) ||
+            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
+        {
+            Error("Cannot combine 'export' and '%s'", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+
+    if (FlagIsSet(tqs, kTQ_Import))
+    {
+        TypeQualifier error_tq;
+        if (FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
+        {
+            Error("Cannot combine 'import' and '%s'", _tq2String[error_tq].c_str());
+            return kERR_UserError;
+        }
+    }
+
+    if (FlagIsSet(tqs, kTQ_Readonly) && kSYM_Vartype != decl_type)
+    {
+        Error("'readonly' can only be used in a variable declaration");
+        return kERR_UserError;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Static) && kSYM_Vartype != decl_type)
+    {
+        Error("'static' cannot be used in a variable declaration");
+        return kERR_UserError;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
+    {
+        Error("'stringstruct' must be combined with 'autoptr'");
+        return kERR_UserError;
+    }
+
+    return kERR_None;
+}
 
 void AGS::Parser::ParseStruct_MemberQualifiers(TypeQualifierSet &tqs)
 {
@@ -5618,6 +5782,9 @@ ErrorType AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness gl
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype.
     _sym[var_name].TypeQualifiers = tqs & ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
 
+    ErrorType retval = Parse_CheckTQ(tqs, (nested_level >= 2), std::string::npos != _sym.GetName(var_name).rfind(':'), kSYM_Vartype);
+    if (retval < 0) return retval;
+
     // parse the definition
     return ParseVardecl(var_name, vartype, next_type, globalness, another_var_follows);
 }
@@ -6457,100 +6624,10 @@ ErrorType AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
     return kERR_UserError;
 }
 
-// Check whether the qualifiers that accumulated for this decl go together
-ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
-{
-    if (FlagIsSet(tqs, kTQ_Writeprotected))
-    {
-        Error("'attribute ' is only valid for struct fields");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Autoptr))
-    {
-        if (!FlagIsSet(tqs, kTQ_Managed) || !FlagIsSet(tqs, kTQ_Builtin))
-        {
-            Error("'autoptr' must be used with 'managed' and 'builtin'");
-            return kERR_UserError;
-        }
-    }
-
-    if (FlagIsSet(tqs, kTQ_Builtin) && kSYM_Struct != decl_type)
-    {
-        Error("'builtin' can only be used with structs");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Const))
-    {
-        Error("'const' is only valid for function parameters (use 'readonly' instead)");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_ImportStd) && FlagIsSet(tqs, kTQ_ImportTry))
-    {
-        Error("Cannot combine 'import' and '_tryimport'");
-        return kERR_UserError;
-
-    }
-
-    // The only flag allowed with imports is readonly
-    if (FlagIsSet(tqs, kTQ_Import) && 0 != (tqs & ~kTQ_Readonly & ~kTQ_Import))
-    {
-        Parse_TQCombiError((tqs & ~kTQ_Readonly));
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Managed) && kSYM_Struct != decl_type)
-    {
-        Error("'managed' can only be used with structs");
-        return kERR_UserError;
-    }
-
-    // Only at most one of these flags is allowed
-    if (1 < FlagIsSet(tqs, kTQ_Protected) + FlagIsSet(tqs, kTQ_Readonly) + FlagIsSet(tqs, kTQ_Static))
-    {
-        Parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Readonly) && kSYM_Vartype != decl_type)
-    {
-        Error("'readonly' can only be used in a variable declaration");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Static) && kSYM_Vartype != decl_type)
-    {
-        Error("'static' can only be used in a variable declaration");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
-    {
-        Error("'stringstruct' must be used in combination with 'autoptr'");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Writeprotected))
-    {
-        Error("'writeprotected' is only valid for struct fields");
-        return kERR_UserError;
-    }
-
-    if (kSYM_Export == decl_type && 0 != tqs)
-    {
-        Parse_TQCombiError(tqs);
-        return kERR_UserError;
-    }
-
-    return kERR_None;
-}
-
 ErrorType AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::Parser::NestingStack &nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     // func or variable definition
-    ErrorType retval = Parse_CheckTQ(tqs, kSYM_Vartype);
+    ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), (struct_of_current_func > 0),  kSYM_Vartype);
     if (retval < 0) return retval;
     Vartype const vartype = cursym;
     return ParseVartype0(vartype, &nesting_stack, tqs, struct_of_current_func, name_of_current_func);
@@ -6622,7 +6699,7 @@ ErrorType AGS::Parser::ParseInput()
 
         case kSYM_Enum:
         {
-            retval = Parse_CheckTQ(tqs, kSYM_Export);
+            ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Enum);
             if (retval < 0) return retval;
             retval = ParseEnum(name_of_current_func);
             if (retval < 0) return retval;
@@ -6632,7 +6709,7 @@ ErrorType AGS::Parser::ParseInput()
 
         case kSYM_Export:
         {
-            retval = Parse_CheckTQ(tqs, kSYM_Export);
+            ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
@@ -6708,7 +6785,7 @@ ErrorType AGS::Parser::ParseInput()
 
         case  kSYM_Struct:
         {
-            retval = Parse_CheckTQ(tqs, kSYM_Struct);
+            retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Struct);
             if (retval < 0) return retval;
             retval = ParseStruct(tqs, nesting_stack, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;

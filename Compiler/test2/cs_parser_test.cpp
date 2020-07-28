@@ -47,6 +47,7 @@ ccCompiledScript *newScriptFixture() {
 }
 
 char g_Input_String[] = "\
+\"__NEWSCRIPTSTART_StringDefn\"                             \n\
 internalstring autoptr builtin managed struct String        \n\
 {                                                           \n\
 	import static String Format(const string format, ...);  \n\
@@ -75,11 +76,11 @@ internalstring autoptr builtin managed struct String        \n\
 	readonly import attribute char Chars[];                 \n\
 	readonly import attribute int Length;                   \n\
 };                                                          \n\
-                                                            \n\
-"; // 30 Zeilen
+";
 
 char g_Input_Bool[] = "\
-    enum bool { false = 0, true = 1 };"; // 1 Zeile
+\"__NEWSCRIPTSTART_BoolDefn\"             \n\
+    enum bool { false = 0, true = 1 };";
 
 TEST(Compile, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -122,12 +123,16 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
 TEST(Compile, StructMemberQualifierOrder) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        struct BothOrders { \
-            protected readonly import _tryimport static attribute int something; \
-            attribute static _tryimport import readonly writeprotected int another; \
-            readonly import attribute int MyAttrib; \
-            import readonly attribute int YourAttrib; \
+    // The order of qualifiers shouldn't matter.
+    // Note, "_tryimport" isn't legal for struct components.
+    // Can only use one of "protected", "writeprotected" and "readonly".
+
+    char *inpl = "                                                          \n\
+        struct BothOrders {                                                 \n\
+            protected import static attribute int something;                \n\
+            attribute static import readonly int another;                   \n\
+            readonly import attribute int MyAttrib;                         \n\
+            import readonly attribute int YourAttrib;                       \n\
         };\
         ";
 

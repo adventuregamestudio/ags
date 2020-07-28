@@ -115,7 +115,7 @@ Oldstyle strings, string literals, string buffers:
 // Defined in Common/script/script_common.cpp
 extern int currentline;
 
-char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2019 others";
+char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
 
 // Receives the section name in case of errors
 static char SectionNameBuffer[256];

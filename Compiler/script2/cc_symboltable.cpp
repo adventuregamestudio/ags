@@ -226,8 +226,8 @@ void AGS::SymbolTable::reset()
     Add("extends", kSYM_Extends);
     Add("for", kSYM_For);
     Add("if", kSYM_If);
-    Add("import", kSYM_Import);
-    Add("_tryimport", kSYM_Import);
+    Add("import", kSYM_Import);     // NOTE: Different keywords, same symbol
+    Add("_tryimport", kSYM_Import); // NOTE: Different keywords, same symbol
     Add("internalstring", kSYM_InternalString);
     Add(":", kSYM_Label);
     Add("noloopcheck", kSYM_NoLoopCheck);

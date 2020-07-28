@@ -96,6 +96,7 @@ constexpr SymbolTypeType NOTEXPRESSION = kSYM_Assign; // Types starting (numeric
 
 enum TypeQualifier
 {
+    kTQ_None = 0,
     kTQ_Attribute = 1 << 0,
     kTQ_Autoptr = 1 << 1,
     kTQ_Builtin = 1 << 2,

@@ -270,7 +270,7 @@ void apply_debug_config(const ConfigTree &cfg)
     // then open "warnings.log" for printing script warnings.
     if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
     {
-        auto dbgout = create_log_output(OutputFileID);
+        auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
             dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
     }

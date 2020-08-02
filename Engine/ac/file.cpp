@@ -376,7 +376,7 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
     return true;
 }
 
-bool LocateAsset(const AssetPath &path, AssetLocation &loc)
+Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
 {
     String assetlib = path.first;
     String assetname = path.second;
@@ -389,23 +389,85 @@ bool LocateAsset(const AssetPath &path, AssetLocation &loc)
         AssetManager::SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
-    bool res = AssetManager::GetAssetLocation(assetname, loc);
+    Stream *asset_stream = AssetManager::OpenAsset(assetname);
+    asset_size = AssetManager::GetLastAssetSize();
     if (needsetback)
         AssetManager::SetDataFile(ResPaths.GamePak.Path);
-    return res;
+    return asset_stream;
 }
+
+//
+// AGS custom PACKFILE callbacks, that use our own Stream object
+//
+static int ags_pf_fclose(void *userdata)
+{
+    delete (Stream*)userdata;
+    return 0;
+}
+
+static int ags_pf_getc(void *userdata)
+{
+    return ((Stream*)userdata)->ReadByte();
+}
+
+static int ags_pf_ungetc(int c, void *userdata)
+{
+    return -1; // we do not want to support this
+}
+
+static long ags_pf_fread(void *p, long n, void *userdata)
+{
+    return ((Stream*)userdata)->Read(p, n);
+}
+
+static int ags_pf_putc(int c, void *userdata)
+{
+    return -1;  // don't support write
+}
+
+static long ags_pf_fwrite(AL_CONST void *p, long n, void *userdata)
+{
+    return -1; // don't support write
+}
+
+static int ags_pf_fseek(void *userdata, int offset)
+{
+    return ((Stream*)userdata)->Seek(offset) ? 0 : -1;
+}
+
+static int ags_pf_feof(void *userdata)
+{
+    return ((Stream*)userdata)->EOS() ? 1 : 0;
+}
+
+static int ags_pf_ferror(void *userdata)
+{
+    return ((Stream*)userdata)->HasErrors() ? 1 : 0;
+}
+
+// Custom AGS PACKFILE callback table
+static PACKFILE_VTABLE ags_packfile_vtable = {
+    ags_pf_fclose,
+    ags_pf_getc,
+    ags_pf_ungetc,
+    ags_pf_fread,
+    ags_pf_putc,
+    ags_pf_fwrite,
+    ags_pf_fseek,
+    ags_pf_feof,
+    ags_pf_ferror
+};
+//
 
 PACKFILE *PackfileFromAsset(const AssetPath &path)
 {
-    AssetLocation loc;
-    if (LocateAsset(path, loc))
+    size_t asset_size = 0;
+    Stream *asset_stream = LocateAsset(path, asset_size);
+    if (asset_stream && asset_size > 0)
     {
-        PACKFILE *pf = pack_fopen(loc.FileName, File::GetCMode(kFile_Open, kFile_Read));
-        if (pf)
-        {
-            pack_fseek(pf, loc.Offset);
-            pf->normal.todo = loc.Size;
-        }
+        PACKFILE *pf = pack_fopen_vtable(&ags_packfile_vtable, asset_stream);
+        if (pf) // We still must set normal.todo, because some of the AGS code relies on it
+            pf->normal.todo = asset_size;
         return pf;
     }
     return nullptr;

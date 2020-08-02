@@ -33,7 +33,6 @@ namespace AGS.Editor
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
         private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
-        private int _lastX, _lastY;
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
@@ -612,6 +611,7 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
+            if (bufferedPanel1.IsPanning) return;
             if (_layer != null && !IsLocked(_layer))
                 _layer.MouseDown(e, _state);
             _mouseIsDown = true;
@@ -655,14 +655,7 @@ namespace AGS.Editor
 
 		private void bufferedPanel1_MouseMove(object sender, MouseEventArgs e)
         {
-            if ((e.X == _lastX) && (e.Y == _lastY))
-            {
-                return;
-            }
-
-            _lastX = e.X;
-            _lastY = e.Y;            
-
+            if (bufferedPanel1.IsPanning) return;
             int mouseXPos = _state.WindowXToRoom(e.X);
             int mouseYPos = _state.WindowYToRoom(e.Y);
             string xPosText = mouseXPos.ToString();

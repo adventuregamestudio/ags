@@ -51,7 +51,8 @@ Locations of two latter files differ between running platforms:
 * **\[sound\]** - sound options
   * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
-	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA.
+	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA;
+	  * SDL2 - if alleg-sdl2digi.so is present.
 	* For Windows:
 	  * DXA - pure DirectSound driver;
 	  * AXA - Allegro mixer to DirectSound;

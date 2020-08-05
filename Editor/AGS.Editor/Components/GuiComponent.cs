@@ -201,7 +201,7 @@ namespace AGS.Editor.Components
             foreach (ContentDocument doc in _documents.Values)
             {
                 var docItem = ((GUIEditor)doc.Control).GuiToEdit;
-                doc.Name = item.WindowTitle;
+                doc.Name = docItem.WindowTitle;
                 _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }

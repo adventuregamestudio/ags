@@ -25,6 +25,9 @@
 #include "util/lzw.h"
 #include "util/misc.h"
 #include "util/stream.h"
+#if AGS_PLATFORM_ENDIAN_BIG
+#include "util/bbop.h"
+#endif
 
 using namespace AGS::Common;
 

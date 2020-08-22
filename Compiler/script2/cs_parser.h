@@ -25,7 +25,6 @@ The result is:
     and has the following key components (amongst many other components):
         functions - all the functions defined (i.e. they have a body) in the current inputstring
         imports - all the functions declared (i.e. without body) in the current inputstring
-            NOTE: This includes "forward" declarations where a func definition will arrive later after all.
         exports - all the functions that are made available to other entities
         code, fixups - the Bytecode that is generated.
 
@@ -429,14 +428,11 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
-    // Eat symbols until either reaching an unopened close symbol or a symbol whose type is in the stop list.
-    // Don't eat the symbol that stopped the scan.
-    ErrorType SkipTo(const SymbolType stoplist[], size_t stoplist_len);
-
-    ErrorType SkipToScript0(Symbol *end_sym_ptr, const SymbolType stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
-
-    // Like SkipTo, but for symbol scripts
-    ErrorType SkipToScript(const SymbolType stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
+    // Skim through source, ignoring delimited content completely. Stop in the following cases:
+    // .  A symbol is encountered whose type is in stoplist[]
+    // .  A closing symbol is encountered that hasn't been opened.
+    // Don't consume the symbol that stops the scan.
+    ErrorType SkipTo(SrcList &source, SymbolType const stoplist[], size_t stoplist_len);
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
@@ -472,8 +468,8 @@ private:
 
     ErrorType RemoveLocalsFromSymtable(int from_level);
 
-    ErrorType ParseIntLiteralOrConstvalue(Symbol symb, bool isNegative, std::string const &errorMsg, int &theValue);
-    ErrorType ParseFloatLiteral(Symbol symb, bool isNegative, std::string const &errorMsg, float &theValue);
+    ErrorType IntLiteralOrConst2Value(Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value);
+    ErrorType FloatLiteral2Value(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value);
 
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
@@ -531,13 +527,13 @@ private:
     // This might or might not be within a struct defn
     ErrorType ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
 
-    // finds the index of the operator in the list that binds the least
+    // Find the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. -1 if no operator was found
-    ErrorType IndexOfLeastBondingOperator(SymbolScript slist, size_t slist_len, int &idx);
+    ErrorType IndexOfLeastBondingOperator(SrcList &slist, int &idx);
 
-    // Change the generic operator vcpuOp to the one that is correct for the vartypes
+    // Change the generic opcode to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
-    ErrorType GetOperatorValidForVartype(Vartype type1, Vartype type2, CodeCell &vcpuOp);
+    ErrorType GetOpcodeValidForVartype(Vartype type1, Vartype type2, CodeCell &opcode);
 
     // Check for a type mismatch in one direction only
     bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be);
@@ -545,8 +541,8 @@ private:
     // Check whether there is a type mismatch; if so, give an error
     ErrorType IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters);
 
-    // Whether this operator's val type is always bool
-    static bool IsBooleanVCPUOperator(int scmdtype);
+    // Whether this operator's vartype is always bool
+    static bool IsBooleanOpcode(CodeCell opcode);
 
     // If we need a StringStruct but AX contains a string, 
     // then convert AX into a String object and set its type accordingly
@@ -562,33 +558,14 @@ private:
     // If the result isn't in AX, move it there. Dereferences a pointer
     ErrorType ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // Checks on the type following "new"
-    ErrorType ParseExpression_CheckArgOfNew(AGS::SymbolScript symlist, size_t symlist_len);
-
-    ErrorType ParseExpression_New(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // We're parsing an expression that starts with '-' (unary minus)
-    ErrorType ParseExpression_UnaryMinus(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    // We're parsing an expression that starts with '!' (boolean NOT)
-    ErrorType ParseExpression_Not(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    ErrorType ParseExpression_Unary(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    ErrorType ParseExpression_Tern(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
-
-    ErrorType ParseExpression_Binary(size_t op_idx, SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
-    ErrorType ParseExpression_OpenParenthesis(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
-
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
     ErrorType AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
 
-    ErrorType AccessData_FunctionCall_PushParams(const SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+    ErrorType AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
-    ErrorType AccessData_FunctionCall_CountAndCheckParm(const SymbolScript &paramList, size_t paramListLen, Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
+    ErrorType AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol funcSymbol, size_t &index_of_close_paren, size_t &num_supplied_args);
 
     // We are processing a function call. General the actual function call
     void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
@@ -596,27 +573,69 @@ private:
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
-    ErrorType AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args);
+    ErrorType AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args);
 
-    ErrorType AccessData_FunctionCall(Symbol name_of_func, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &rettype);
+    // Process a function call. The parameter list begins with expression[1].
+    ErrorType AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype);
 
-    ErrorType ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+    // Check the vartype following "new"
+    ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
-    // Parse an expression; if RETURN_PTR, will return a pointer, else dereference it.
-    ErrorType ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+    // Parse the term given in EXPRESSION. The lowest-binding operator is unary NEW
+    ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    // Read from the symlist
-    ErrorType AccessData_ReadIntExpression(SymbolScript symlist, size_t symlist_len);
+    // Parse the term given in EXPRESSION. The lowest-binding operator is unary '-'
+    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
+    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. The lowest-binding operator is a unary operator
+    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
+    ErrorType ParseExpression_Ternary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. The lowest-binding operator a binary operator.
+    ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. The lowest-binding operator is '?' or a binary operator.
+    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. Expression begins with '('
+    // Leaves the cursor pointing after the last token that was processed
+    ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // Parse the term given in EXPRESSION. Expression does not contain operators
+    // Leaves the cursor pointing after the last token that was processed
+    ErrorType ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    // Parse the term given in EXPRESSION.
+    // Leaves the cursor pointing after the last token that was processed
+    ErrorType ParseExpression_Term(SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+
+    // Parse expression in parentheses
+    // leaves src pointing after last token in expression, so do getnext() to get the following ; or whatever
+    ErrorType ParseParenthesizedExpression();
+
+    // Evaluate the supplied expression, putting the result into AX
+    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
+    ErrorType ParseExpression();
+
+    ErrorType AccessData_ReadBracketedIntExpression(SrcList &expression);
+
+    ErrorType AccessData_ReadIntExpression(SrcList &expression);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
-    ErrorType AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
     // Get the symbol for the get or set function corresponding to the attribute given.
     ErrorType ConstructAttributeFuncName(Symbol attribsym, bool writing, bool indexed, Symbol &func);
 
     // We call the getter or setter of an attribute
-    ErrorType AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+    // The next symbol read is the attribute (the part after the '.')
+    ErrorType AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype &vartype);
 
     // Location contains a pointer to another address. Get that address.
     ErrorType AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
@@ -624,38 +643,35 @@ private:
     ErrorType AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
     // Process one index in a sequence of array indexes
-    ErrorType AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc);
+    ErrorType AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
-    ErrorType AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, size_t num_array_elements, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
-    ErrorType AccessData_GlobalOrLocalVar(bool is_global, bool writing, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_GlobalOrLocalVar(bool is_global, bool writing, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
-    ErrorType AccessData_Static(SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_Static(SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
-    ErrorType AccessData_LitFloat(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+    ErrorType AccessData_FloatLiteral(bool negate, SrcList &expression, Vartype &vartype);
 
-    ErrorType AccessData_LitOrConst(bool negateLiteral, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+    ErrorType AccessData_IntLiteralOrConst(bool negate, SrcList &expression, Vartype &vartype);
 
-    ErrorType AccessData_Null(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
+    ErrorType AccessData_Null(SrcList &expression, Vartype &vartype);
 
-    ErrorType AccessData_String(bool negate, SymbolScript &symlist, size_t &symlist_len, Vartype &vartype);
-
-    // Negates the value; this clobbers AX and BX
-    void AccessData_Negate(ValueLocation vloc);
+    ErrorType AccessData_StringLiteral(SrcList &expression, Vartype &vartype);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
-    // This moves symlist in all cases except for the cascade to the end of what is parsed,
+    // This moves the cursor in all cases except for the cascade to the end of what is parsed,
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
     // to the position of the '.'. 
-    ErrorType AccessData_FirstClause(bool writing, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
+    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the struct that the component is defined in
@@ -668,7 +684,7 @@ private:
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot
-    ErrorType AccessData_IsClauseLast(SymbolScript symlist, size_t symlist_len, bool &is_last);
+    ErrorType AccessData_IsClauseLast(SrcList &expression, bool &is_last);
 
     // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
     // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
@@ -676,10 +692,10 @@ private:
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
     // _not_ be called and symlist[0] will be the attribute.
-    ErrorType AccessData(bool writing, bool need_to_negate, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType AccessData(bool writing, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
 
     // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
-    bool AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len);
+    bool AccessData_MayAccessClobberAX(SrcList &expression);
 
     // Insert Bytecode for:
     // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
@@ -693,36 +709,25 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    ErrorType AccessData_Assign(SymbolScript symlist, size_t symlist_len);
+    ErrorType AccessData_AssignTo(SrcList &expression);
 
-    // Read the symbols of an expression and buffer them into expr_script
-    // At end of routine, the cursor will be positioned in such a way
-    // that src->getnext() will get the symbol after the expression
-    ErrorType BufferExpression(ccInternalList &expr_script);
-
-    // Parse expression in parentheses
-    ErrorType ParseParenthesizedExpression();
-
-    // evaluate the supplied expression, putting the result into AX
-    // returns 0 on success or -1 if compile error
-    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
-    ErrorType ParseExpression();
+    ErrorType SkipToEndOfExpression();
 
     // We are parsing the left hand side of a += or similar statement.
-    ErrorType ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, Vartype &lhstype);
+    ErrorType ParseAssignment_ReadLHSForModification(SrcList &lhs, ValueLocation &vloc, Vartype &lhstype);
 
     // "var = expression"; lhs is the variable
-    ErrorType ParseAssignment_Assign(ccInternalList const *lhs);
+    ErrorType ParseAssignment_Assign(SrcList &lhs);
 
     // We compile something like "var += expression"
-    ErrorType ParseAssignment_MAssign(Symbol ass_symbol, ccInternalList const *lhs);
+    ErrorType ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs);
 
     // "var++" or "var--"
-    ErrorType ParseAssignment_SAssign(Symbol ass_symbol, ccInternalList const *lhs);
+    ErrorType ParseAssignment_SAssign(Symbol ass_symbol, SrcList &lhs);
 
     // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
     // An assignment symbol is following. Compile the assignment.
-    ErrorType ParseAssignment(Symbol ass_symbol, ccInternalList const *lhs);
+    ErrorType ParseAssignment(Symbol ass_symbol, SrcList &lhs);
 
     ErrorType ParseVardecl_InitialValAssignment_Float(bool is_neg, void *&initial_val_ptr);
 
@@ -888,7 +893,7 @@ private:
 
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
-    ErrorType ParseAssignmentOrFunccall(Symbol cursym);
+    ErrorType ParseAssignmentOrExpression(Symbol cursym);
 
     ErrorType ExitNesting(size_t loop_level);
 

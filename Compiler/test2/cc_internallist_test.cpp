@@ -9,7 +9,8 @@ extern int currentline;
 TEST(SrcList, GetNext) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
 
     EXPECT_EQ(1, src.GetNext());
     EXPECT_EQ(2, src.GetNext());
@@ -29,7 +30,8 @@ TEST(SrcList, GetNext) {
 TEST(SrcList, PeekNext) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
 
     src.SetCursor(1);
     EXPECT_EQ(2, src.PeekNext());
@@ -43,7 +45,8 @@ TEST(SrcList, PeekNext) {
 TEST(SrcList, InRange) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
 
     EXPECT_TRUE(src.InRange(3));
     EXPECT_FALSE(src.InRange(5));
@@ -52,7 +55,8 @@ TEST(SrcList, InRange) {
 TEST(SrcList, Brackets) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
 
     EXPECT_EQ(1, src[0]);
     EXPECT_EQ(4, src[3]);
@@ -63,7 +67,8 @@ TEST(SrcList, Brackets) {
 TEST(SrcList, AppendLineno) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script;
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
     src.Append(1);
     src.Append(1);
     src.NewLine(4711);
@@ -85,7 +90,8 @@ TEST(SrcList, AppendSections) {
     // A section change will only "stick" when it is followed by a NewLine();
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script;
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
     src.NewLine(10);
     src.Append(1);
     src.NewSection("Apple");
@@ -107,10 +113,11 @@ TEST(SrcList, AppendSections) {
     EXPECT_STREQ("", src.SectionId2Section(src.GetSectionId()).c_str());
 }
 
-TEST(SrcList, PartCopy) {
+TEST(SrcList, Reference0) {
     AGS::LineHandler lh = AGS::LineHandler();
     std::vector<AGS::Symbol> script;
-    AGS::SrcList src(script, lh);
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
     src.NewLine(10);
     src.Append(1);
     src.NewSection("Apple");
@@ -128,6 +135,8 @@ TEST(SrcList, PartCopy) {
     EXPECT_TRUE(part.InRange(1));
     EXPECT_FALSE(part.InRange(2));
     src.SetCursor(0);
+    EXPECT_EQ(AGS::SrcList::kEOF, part.GetNext());
+    part.StartRead();
     EXPECT_EQ(3, part.GetNext());
     EXPECT_EQ(9, part.PeekNext());
     EXPECT_EQ(9, part.PeekNext());
@@ -140,124 +149,52 @@ TEST(SrcList, PartCopy) {
     EXPECT_STREQ("Cherry", part.SectionId2Section(part.GetSectionIdAt(1)).c_str());
 }
 
-TEST(InternalList, Constructor) {
-    ccInternalList tlist;
-    ASSERT_TRUE(tlist.pos == -1);
-    ASSERT_TRUE(tlist.length == 0);
-    ASSERT_TRUE(tlist.cancelCurrentLine == 1);
-    ASSERT_TRUE(tlist.lineAtEnd == -1);
+TEST(SrcList, Reference1) {
+
+    // cpy is set up as an excerpt of src.
+    // GetCursor() should give the cursor position relative to the respective SrcList.
+    // Moving the cursor in one SrcList should move the cursor in the other, too.
+
+    AGS::LineHandler lh = AGS::LineHandler();
+    std::vector<AGS::Symbol> script;
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
+    for (AGS::Symbol i = 0; i < 10; i++)
+        src.Append(i);
+    AGS::SrcList cpy(src, 3, 3);
+    cpy.StartRead();
+    EXPECT_EQ(3, src.GetCursor());
+    EXPECT_EQ(0, cpy.GetCursor());
+
+    EXPECT_EQ(3, cpy.GetNext());
+    EXPECT_EQ(4, src.GetNext());
+    EXPECT_EQ(2, cpy.GetCursor());
+
+    EXPECT_EQ(5, cpy.GetNext());
+    EXPECT_EQ(6, src.GetNext());
+    EXPECT_EQ(true, cpy.ReachedEOF());
+    EXPECT_EQ(false, src.ReachedEOF());
 }
 
-TEST(InternalList, Write) {
-    ccInternalList tlist;
+TEST(SrcList, Reference2) {
 
-    tlist.write(1);
-    ASSERT_TRUE(tlist.length == 1);
-    ASSERT_TRUE(tlist.script[0] == 1);
+    // cpy is set up as an excerpt of src.
+    // Line numbers for a symbol should be the same
+    // no matter the way the symbol is referenced.
 
-    tlist.write(1000);
-    ASSERT_TRUE(tlist.length == 2);
-    ASSERT_TRUE(tlist.script[1] == 1000);
+    AGS::LineHandler lh = AGS::LineHandler();
+    std::vector<AGS::Symbol> script;
+    size_t cursor = 0;
+    AGS::SrcList src(script, lh, cursor);
+    src.NewLine(5);
+    for (AGS::Symbol i = 0; i < 5; i++)
+        src.Append(i);
+    src.NewLine(10);
+    for (AGS::Symbol i = 5; i < 10; i++)
+        src.Append(i);
+    AGS::SrcList cpy(src, 3, 3);
+    EXPECT_EQ(5, src.GetLinenoAt(4));
+    EXPECT_EQ(5, cpy.GetLinenoAt(1));
+    EXPECT_EQ(10, src.GetLinenoAt(5));
+    EXPECT_EQ(10, cpy.GetLinenoAt(2));
 }
-
-
-TEST(InternalList, WriteMeta) {
-    ccInternalList tlist;
-
-    tlist.write_meta(1, 2);
-    ASSERT_TRUE(tlist.length == 3);
-    ASSERT_TRUE(tlist.script[0] == SCODE_META);
-    ASSERT_TRUE(tlist.script[1] == 1);
-    ASSERT_TRUE(tlist.script[2] == 2);
-
-    tlist.write_meta(1000, 2000);
-    ASSERT_TRUE(tlist.length == 6);
-    ASSERT_TRUE(tlist.script[3] == SCODE_META);
-    ASSERT_TRUE(tlist.script[4] == 1000);
-    ASSERT_TRUE(tlist.script[5] == 2000);
-}
-
-TEST(InternalList, StartRead) {
-    ccInternalList tlist;
-
-    tlist.startread();
-    ASSERT_TRUE(tlist.pos == 0);
-}
-
-TEST(InternalList, PeekNext) {
-
-    // normal usage
-    {
-        ccInternalList tlist;
-
-        tlist.write(1);
-        tlist.write(2);
-        tlist.write(3);
-
-        tlist.startread();
-        ASSERT_TRUE(tlist.peeknext() == 1);
-        ASSERT_TRUE(tlist.getnext() == 1);
-        ASSERT_TRUE(tlist.peeknext() == 2);
-        ASSERT_TRUE(tlist.getnext() == 2);
-        ASSERT_TRUE(tlist.peeknext() == 3);
-        ASSERT_TRUE(tlist.getnext() == 3);
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-    }
-
-    // empty
-    {
-        ccInternalList tlist;
-
-        tlist.startread();
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-    }
-
-    // no startread
-    {
-        ccInternalList tlist;
-        tlist.write(1);
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-    }
-
-    // skip meta
-    {
-        ccInternalList tlist;
-
-        tlist.write_meta(1000, 2000);
-        tlist.write_meta(1001, 2002);
-        tlist.write(200);
-
-        tlist.startread();
-        ASSERT_TRUE(tlist.peeknext() == 200);
-    }
-
-    // skip meta to eof
-    {
-        ccInternalList tlist;
-
-        tlist.write_meta(1000, 2000);
-        tlist.write_meta(1001, 2001);
-
-        tlist.startread();
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-    }
-
-    // skip truncated meta
-    {
-        ccInternalList tlist;
-        tlist.startread();
-
-        tlist.write(SCODE_META);
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-
-        tlist.write(1);
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-
-        tlist.write(2);
-        ASSERT_TRUE(tlist.peeknext() == SCODE_INVALID);
-
-        tlist.write(9000);
-        ASSERT_TRUE(tlist.peeknext() == 9000);
-    }
-}
-

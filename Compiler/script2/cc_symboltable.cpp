@@ -170,7 +170,8 @@ void AGS::SymbolTable::reset()
     Add("[", kSYM_OpenBracket);
     Add("(", kSYM_OpenParenthesis);
 
-    AddOp("!", kSYM_Operator,  SCMD_NOTREG, -1, 101);
+    AddOp("!", kSYM_Operator,  SCMD_NOTREG, -1, 101); // boolean NOT
+    AddOp("~", kSYM_Operator,  SCMD_NOTREG, -1, 101); // bitwise NOT
     _dynpointerSym =
         AddOp("*", kSYM_Operator, SCMD_MULREG, 103);
     AddOp("/", kSYM_Operator, SCMD_DIVREG, 103);

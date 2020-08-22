@@ -683,21 +683,21 @@ void AGS::Scanner::CheckMatcherNesting(Symbol token, bool &error_encountered)
     case kSYM_CloseBrace:
     case kSYM_CloseBracket:
     case kSYM_CloseParenthesis:
-        _ocMatcher.PopAndCheck(_sym[token].SName, _tokenList.GetSize(), error_encountered);
+        _ocMatcher.PopAndCheck(_sym[token].SName, _tokenList.Length(), error_encountered);
         if (error_encountered)
             _lastError = _ocMatcher.GetLastError();
         return;
 
     case kSYM_OpenBrace:
-        _ocMatcher.Push("{", "}", _tokenList.GetSize());
+        _ocMatcher.Push("{", "}", _tokenList.Length());
         return;
 
     case kSYM_OpenBracket:
-        _ocMatcher.Push("[", "]", _tokenList.GetSize());
+        _ocMatcher.Push("[", "]", _tokenList.Length());
         return;
 
     case kSYM_OpenParenthesis:
-        _ocMatcher.Push("(", ")", _tokenList.GetSize());
+        _ocMatcher.Push("(", ")", _tokenList.Length());
         return;
     }
 }

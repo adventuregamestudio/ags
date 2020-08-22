@@ -17,7 +17,8 @@ protected:
     SymbolTable sym;
     std::vector<Symbol> script;
     AGS::LineHandler lh;
-    AGS::SrcList token_list = { script, lh };
+    size_t cursor = 0;
+    AGS::SrcList token_list = AGS::SrcList(script, lh, cursor);
     struct ::ccCompiledScript string_collector;
     AGS::Scanner::ScanType sct;
     std::string symstring;

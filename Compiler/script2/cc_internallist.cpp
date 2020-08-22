@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include "cc_internallist.h"
 
-// TODO Throw me away as soon as internallist has died!
 static int currentline;  
 
 AGS::LineHandler::LineHandler()
@@ -44,12 +43,12 @@ void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
     _cacheLineEnd = 0;
 }
 
-AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler)
+AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor)
     : _script(script)
     , _lineHandler(line_handler)
     , _offset(0)
-    , _len (script.size())
-    , _cursor(0)
+    , _len(script.size())
+    , _cursor(cursor)
 {
 }
 
@@ -57,11 +56,21 @@ AGS::SrcList::SrcList(SrcList const &src_list, size_t offset, size_t len)
     : _script(src_list._script)
     , _lineHandler(src_list._lineHandler)
     , _offset(offset + src_list._offset)
-    , _len(len)
-    , _cursor(offset + src_list._offset)
+    , _cursor(src_list._cursor)
 {
-    size_t const maxlen = std::max<int>(_script.size() - _offset, 0);
-    _len = std::min<size_t>(_len, maxlen);
+    _len = len;
+    // _len mustn't be so high that the number of bytes left in the underlying script
+    // are exceeded
+    size_t const script_size = _script.size();
+    size_t const rest_of_script_size = (script_size < offset) ? 0 : script_size - offset;
+    if (_len > rest_of_script_size)
+        _len = rest_of_script_size;
+
+    // _len mustn't be so high that the number of bytes left in the SrcList are exceeded
+    size_t const src_len = src_list._len;
+    size_t const rest_of_src_len = (src_len < offset) ? 0 : src_len - offset;
+    if (_len > rest_of_src_len)
+        _len = rest_of_src_len;
 }
 
 AGS::Symbol AGS::SrcList::GetNext()
@@ -72,121 +81,12 @@ AGS::Symbol AGS::SrcList::GetNext()
     return p;
 }
 
-void ccInternalList::startread()
+void AGS::SrcList::EatFirstSymbols(size_t num)
 {
-    pos = 0;
-}
-
-bool ccInternalList::isPosValid(int pos)
-{
-    return pos >= 0 && pos < length;
-}
-
-AGS::Symbol ccInternalList::peeknext()
-{
-    int tpos = pos;
-    // this should work even if 3 bytes aren't remaining
-    while (isPosValid(tpos) && (script[tpos] == SCODE_META))
-        tpos += 3;
-
-    if (isPosValid(tpos))
-        return script[tpos];
-    else
-        return static_cast<AGS::Symbol>(SCODE_INVALID);
-}
-
-
-AGS::Symbol ccInternalList::getnext() {
-    // process line numbers internally
-    while (isPosValid(pos) && script[pos] == SCODE_META)
-    {
-        long bytesRemaining = length - pos;
-        if (bytesRemaining >= 3)
-        {
-            if (script[pos + 1] == SMETA_LINENUM)
-            {
-                currentline = script[pos + 2];
-            }
-            else if (script[pos + 1] == SMETA_END)
-            {
-                lineAtEnd = currentline;
-                if (cancelCurrentLine)
-                {
-                    currentline = -10;
-                }
-                // TODO DEFECT?: If we break, we return SCODE_META *and* increase pos, so next getnext will return SMETA_END.
-                break;
-            }
-        }
-        pos += 3;
-    }
-    if (pos >= length)
-    {
-        if (cancelCurrentLine)
-            currentline = -10;
-        return static_cast<AGS::Symbol>(SCODE_INVALID);
-    }
-
-    if (isPosValid(pos))
-        return script[pos++];
-    else
-        return static_cast<AGS::Symbol>(SCODE_INVALID);
-}
-
-
-void ccInternalList::write(AGS::Symbol value) {
-    if ((length + 1) * sizeof(AGS::Symbol) >= (unsigned long)allocated)
-    {
-
-        if (allocated < 64)
-            allocated += 64;
-        else
-            allocated *= 2;
-
-        script = static_cast<AGS::SymbolScript>(realloc(script, allocated));
-    }
-    script[length] = value;
-    length++;
-}
-
-// write a meta symbol (ie. non-code thingy)
-void ccInternalList::write_meta(AGS::Symbol type, int param) {
-    write(SCODE_META);
-    write(type);
-    write(param);
-}
-
-void ccInternalList::shutdown() {
-    if (script != NULL) { free(script); }
-    script = NULL;
-    length = 0;
-    allocated = 0;
-}
-
-void ccInternalList::init() {
-    allocated = 0;
-    length = 0;
-    script = NULL;
-    pos = -1;
-    lineAtEnd = -1;
-    cancelCurrentLine = 1;
-}
-
-ccInternalList::~ccInternalList() {
-    shutdown();
-}
-
-ccInternalList::ccInternalList() {
-    init();
-}
-
-bool ccInternalList::reached_eof()
-{
-    if (peeknext() != SCODE_INVALID)
-        return false;
-
-    // We are past the last symbol in the file
-    getnext();
-    currentline = lineAtEnd;
-    return true;
+    if (_len < num)
+        num = _len;
+    _len -= num;
+    _offset += num;
+    if (_cursor < _offset)
+        _cursor = _offset;
 }

@@ -240,7 +240,8 @@ TEST(Compile, ParsingNegIntOverflow) {
 TEST(Compile, EnumNegative) {
     ccCompiledScript *scrip = newScriptFixture();
     std::vector<Symbol> tokens; AGS::LineHandler lh;
-    AGS::SrcList targ = { tokens, lh };
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
@@ -289,7 +290,8 @@ TEST(Compile, EnumNegative) {
 TEST(Compile, DefaultParametersLargeInts) {
     ccCompiledScript *scrip = newScriptFixture();
     std::vector<Symbol> tokens; AGS::LineHandler lh;
-    AGS::SrcList targ = { tokens, lh };
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
@@ -355,7 +357,8 @@ TEST(Compile, DefaultParametersLargeInts) {
 TEST(Compile, ImportFunctionReturningDynamicArray) {
     ccCompiledScript *scrip = newScriptFixture();
     std::vector<Symbol> tokens; AGS::LineHandler lh;
-    AGS::SrcList targ = { tokens, lh };
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
@@ -1619,7 +1622,8 @@ TEST(Compile, Import2GlobalAllocation)
 {
     ccCompiledScript *scrip = newScriptFixture();
     std::vector<Symbol> tokens; AGS::LineHandler lh;
-    AGS::SrcList targ = { tokens, lh };
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     // Imported var I becomes a global var; must be allocated only once.

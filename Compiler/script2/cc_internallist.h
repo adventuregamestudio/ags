@@ -33,13 +33,13 @@ public:
     // Start a new section. From now on, all AddLineAt() will refer to that section.
     inline int NewSection(std::string const &section) { _sections.push_back(section); return 0; }
 
-    // Get the section number that corresponds to the offset
+    // Get the section id that corresponds to the offset
     inline size_t GetSectionIdAt(size_t offset) const { UpdateCacheIfNecessary(offset); return _cacheSectionLine.SectionId; }
 
     // Convert section IDs to sections
     std::string const &SectionId2Section(size_t id) const { return (id < 0 || id >= _sections.size()) ? _sections[0] : _sections[id]; }
 
-    // Record that the code line lineno begins at the offset of the SymbolList, 
+    // Record that the code line lineno begins at this offset.
     void AddLineAt(size_t offset, size_t lineno);
         
     // Get the code line that corresponds to the offset
@@ -59,36 +59,52 @@ private:
     LineHandler &_lineHandler;
     size_t _offset; 
     size_t _len;    // note: _len has the length relative to [0], not relative to [_offset]
-    size_t _cursor; // note: _cursor has the position relative to [0], not relative to [_offset]
-
+    size_t &_cursor; // note: _cursor has the position relative to [0], not relative to [_offset]
     int lineAtEnd;
 
 public:
-    SrcList(std::vector<Symbol> &script, LineHandler &line_handler);
+    SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor);
 
-    // This references the symbol list of src_list but makes it look as if it would start at [offset].
-    // Note: src_list must live at least as long as "this" or else "this" will have a dangling reference. 
+    // This uses the same symbols and the same cursor variable that src_list does;
+    // but the resulting SrcList starts at [offset] and has the length len.
+    // No symbols are actually copied.
+    // NOTE: If you move the cursor of the new list then the cursor of the original list
+    // moves by the same amount because the cursor variable is shared. This is intentional.
     SrcList(SrcList const &src_list, size_t offset, size_t len);
 
     inline size_t GetCursor() const { return _cursor - _offset; }
     inline void SetCursor(size_t idx) { _cursor = idx + _offset; }
-
-    inline size_t GetSize() const { return _len - _offset; };
     
+    inline size_t Length() const { return _len; };
     inline bool ReachedEOF() const { return _cursor - _offset >= _len  || _cursor >= _script.size(); }
-    inline Symbol PeekNext() const { return ReachedEOF() ? kEOF : _script[_cursor]; }
+
+    // Set the cursor to the start of the list
+    inline void StartRead() { SetCursor(0); }
+    // Read the next symbol
     Symbol GetNext();
+    // Look at the symbol that will be read next, but don't read it yet
+    inline Symbol PeekNext() const { return ReachedEOF() ? kEOF : _script[_cursor]; }
+    // Move the cursor back by 1 space.
+    inline void BackUp() { size_t c = GetCursor(); SetCursor((c > 0u) ? c - 1u : 0u); }
 
-    inline bool InRange(size_t idx) const { return idx < _len && idx + _offset < _script.size(); }
-
+    // Get symbol at idx. Moves the cursor, too.
     // Note: Can't assign through this operator, this is intentional.
-    inline Symbol operator[](size_t idx) const { return InRange(idx) ? _script[idx + _offset] : kEOF; }
+    Symbol operator[](size_t idx) { SetCursor(idx); return GetNext(); }
 
-    // Note that when this is a sub-list of an original list, the line numbers
+    // Whether the index is within the list
+    inline bool InRange(size_t idx) const { return idx < _len; }
+    
+    // Drop the first n symbols (so that this now starts with the (n+1)st one).
+    void EatFirstSymbols(size_t num);
+    inline void EatFirstSymbol() { EatFirstSymbols(1); }
+
+    // Note that when this is a sub-list of an original list, the line numbers and sections
     // will still be relative to the original list. This is intentional.
+    // (When the user gets an error, they want to know the "real" line where the error is,
+    // not a line reference that is relative to an excerpt of their program.)
     inline size_t GetLinenoAt(size_t pos) const { return _lineHandler.GetLinenoAt(pos + _offset); }
     inline size_t GetSectionIdAt (size_t pos) const { return _lineHandler.GetSectionIdAt(pos + _offset); }
-    // Get the data to the current position.
+    // Get the data for the symbol that has been read last.
     // Note: The cursor points at the symbol that will be read next, but we need the data
     // of the symbol that has just been read. That's the symbol in front of the cursor.
     inline size_t GetLineno() const { return GetLinenoAt(std::max<size_t>(1u, _cursor) - 1); }
@@ -104,50 +120,5 @@ public:
     inline void NewSection(std::string const &section) { _lineHandler.NewSection(section); }
 };
 } // namespace AGS
-
-#define SCODE_META    (-2)   // meta tag follows
-#define SCODE_INVALID (-1)   // this should never get added, so it's a fault
-#define SMETA_LINENUM (1)
-#define SMETA_END (2)
-
-
-struct ccInternalList {
-    int length;    // size of array, in ints
-    int allocated; // memory allocated for array, in bytes
-    AGS::SymbolScript script;
-    int pos;
-    int lineAtEnd;
-    int cancelCurrentLine;  // whether to set currentline=-10 if end reached
-
-    // Reset the cursor to the start of the list
-    void startread();
-
-    // Have a look at the next symbol without eating it
-    AGS::Symbol peeknext();
-
-    // Eat and get the next symbol, update global current_line
-    AGS::Symbol getnext();  // and update global current_line
-
-    // Append the value
-    void write(AGS::Symbol value);
-
-    // Append the meta command
-    void write_meta(AGS::Symbol type, int param);
-
-    // Free internal memory allocated
-    void shutdown();
-
-    void init();
-
-    ~ccInternalList();
-
-    ccInternalList();
-
-    // Whether input exhausted
-    bool reached_eof();
-
-private:
-    bool isPosValid(int pos);
-};
 
 #endif // __CC_INTERNALLIST_H

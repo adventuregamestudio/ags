@@ -640,10 +640,10 @@ private:
     // Location contains a pointer to another address. Get that address.
     ErrorType AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
 
-    ErrorType AccessData_ProcessArrayIndexConstant(Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
+    ErrorType AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, bool negate, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
     // Process one index in a sequence of array indexes
-    ErrorType AccessData_ProcessCurrentArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc);
+    ErrorType AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly

@@ -2284,6 +2284,652 @@ TEST(Compile, Autoptr)
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     ASSERT_EQ(std::string::npos, msg.find("String *"));
 }
+
+TEST(Compile, BinaryNot)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // '!' can't be binary
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int Var = 15 ! 2;                   \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("inary op"));
+}
+
+TEST(Compile, UnaryDivideBy)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // '/' can't be unary
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int Var = (/ 2);                    \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("unary op"));
+}
+
+TEST(Compile, FloatInt1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't mix float and int
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int Var = 4 / 2.0;                  \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+}
+
+TEST(Compile, FloatInt2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't negate float
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int Var = !2.0;                     \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("after '!'"));
+}
+
+TEST(Compile, StringInt1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't mix string and int
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int Var = (\"Holzschuh\" == 2);     \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+}
+
+TEST(Compile, ExpressionVoid)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't mix void
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var = 1 + Func() * 3;           \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+}
+
+TEST(Compile, ExpressionLoneUnary1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Unary -, nothing following
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var;                            \n\
+            Var = -;                            \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("xpected a term"));
+}
+
+TEST(Compile, ExpressionLoneUnary2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Unary ~, nothing following
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var;                            \n\
+            Var = ~;                            \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("xpected a term"));
+}
+
+TEST(Compile, ExpressionBinaryWithoutRHS)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Binary %, nothing following
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var;                            \n\
+            Var = 5 %;                          \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("right hand side"));
+}
+
+TEST(Compile, StaticArrayIndex1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Constant array index, is out ouf bounds
+
+    char *inpl = "\
+        enum E                          \n\
+        {                               \n\
+            MinusFive = -5,             \n\
+        };                              \n\
+        int main()                      \n\
+        {                               \n\
+            int Var[5];                 \n\
+            Var[-MinusFive];            \n\
+        }                               \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+}
+
+TEST(Compile, StaticArrayIndex2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Constant array index, is out ouf bounds
+
+    char *inpl = "\
+        enum E                          \n\
+        {                               \n\
+            MinusFive = -5,             \n\
+        };                              \n\
+        int main()                      \n\
+        {                               \n\
+            int Var[5];                 \n\
+            Var[MinusFive];            \n\
+        }                               \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+}
+
+TEST(Compile, ExpressionArray1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't mix void
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var[8];                         \n\
+            Var++;                              \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+}
+
+TEST(Compile, ExpressionArray2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't mix void
+
+    char *inpl = "\
+        import void Func();                     \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var[8];                         \n\
+            Var;                                \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("array as a whole"));
+}
+
+TEST(Compile, FuncTypeClash1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't use func except in a func call
+
+    char *inpl = "\
+        int Func()                              \n\
+        {                                       \n\
+        }                                       \n\
+                                                \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var = Func;                     \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'('"));
+}
+
+TEST(Compile, FloatOutOfRange)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Too small
+
+    char *inpl = "\
+        int Func()                              \n\
+        {                                       \n\
+        }                                       \n\
+                                                \n\
+        int main()                              \n\
+        {                                       \n\
+            int Var = -77E7777;                 \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ut of range"));
+}
+
+TEST(Compile, DoWhileSemicolon)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // ';' missing
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int I = 1;                          \n\
+            do {                                \n\
+                I *= 2;                         \n\
+            } while (I < 10)                    \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("';'"));
+}
+
+TEST(Compile, ExtenderExtender)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // No extending a struct with a compound function
+
+    char *inpl = "\
+        struct Struct1                      \n\
+        {                                   \n\
+        };                                  \n\
+        struct Struct2                      \n\
+        {                                   \n\
+        };                                  \n\
+        void Struct1::Func(static Struct2)  \n\
+        {                                   \n\
+        }                                   \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("xtender"));
+}
+
+TEST(Compile, NonManagedStructParameter)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't pass a non-managed struct as a function parameter
+
+    char *inpl = "\
+        struct Struct                           \n\
+        {                                       \n\
+        };                                      \n\
+        int Func(Struct S)                      \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("non-managed"));
+}
+
+TEST(Compile, StrangeParameterName)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't use keyword as parameter name
+
+    char *inpl = "\
+        void Func(int while)                    \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("while"));
+}
+
+TEST(Compile, DoubleParameterName)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't use keyword as parameter name
+
+    char *inpl = "\
+        void Func(int PI, float PI)             \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("PI"));
+}
+
+TEST(Compile, FuncParamDefaults1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't give a parameter a default here, not a default there
+
+    char *inpl = "\
+        void Func(int i = 5, float j = 6.0);    \n\
+        void Func(int i = 5, float j)           \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("#2"));
+}
+
+TEST(Compile, FuncParamDefaults2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't give a parameter a default here, not a default there
+
+    char *inpl = "\
+        void Func(int i, float j);          \n\
+        void Func(int i, float j = 6.0)     \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("#2"));
+}
+
+TEST(Compile, FuncParamDefaults3)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't give a parameter differing defaults
+
+    char *inpl = "\
+        void Func(float J = -6.0);              \n\
+        void Func(float J = 6.0)                \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("#1"));
+}
+
+TEST(Compile, FuncParamNumber)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Differing number of parameters
+
+    char *inpl = "\
+        void Func(int, float);                  \n\
+        void Func(int I, float J, short K)      \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("parameters"));
+}
+
+TEST(Compile, FuncVarargsCollision)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Varargs / non-Varargs
+
+    char *inpl = "\
+        void Func(int, float, short, ...);      \n\
+        void Func(int I, float J, short K)      \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("additional"));
+}
+
+TEST(Compile, FuncReturnTypes)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Return types
+
+    char *inpl = "\
+        int Func(int, float, short);            \n\
+        short Func(int I, float J, short K)     \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("eturn"));
+}
+
+TEST(Compile, FuncReturnStruct1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Return vartype must be managed when it is a struct
+
+    char *inpl = "\
+        struct Struct {  };                     \n\
+        Struct Func()                           \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("managed"));
+}
+
+TEST(Compile, FuncReturnStruct2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should work -- Compiler will imply the '*'
+
+    char *inpl = "\
+        managed struct Struct {  };             \n\
+        Struct Func()                           \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST(Compile, FuncReturnStruct3)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should work
+
+    char *inpl = "\
+        managed struct Struct {  };             \n\
+        Struct[] Func()                         \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST(Compile, FuncDouble)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // No two equally-named functions with body
+
+    char *inpl = "\
+        void Func()                             \n\
+        {                                       \n\
+        }                                       \n\
+        void Func()                             \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("with a body"));
+}
+
+TEST(Compile, FuncProtected)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Protected functions must be part of a struct
+
+    char *inpl = "\
+        int Func;                               \n\
+        protected void Func(int I = 6)          \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("protected"));
+}
+
+TEST(Compile, FuncNameClash1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't give a parameter differing defaults
+
+    char *inpl = "\
+        int Func;                               \n\
+        void Func(int I = 6)                    \n\
+        {                                       \n\
+        }                                       \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("declared as function"));
+}
+

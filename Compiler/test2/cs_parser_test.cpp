@@ -1,4 +1,6 @@
 #include <string>
+#include <fstream>
+#include <streambuf>
 
 #include "gtest/gtest.h"
 #include "script2/cs_parser.h"
@@ -2933,3 +2935,24 @@ TEST(Compile, FuncNameClash1)
     EXPECT_NE(std::string::npos, msg.find("declared as function"));
 }
 
+TEST(Compile, TypeEqComponent)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // A struct component may have the same name as a type.
+
+    char *inpl = "\
+        builtin managed struct Room             \n\
+        {                                       \n\
+        };                                      \n\
+                                                \n\
+        builtin managed struct Character        \n\
+        {                                       \n\
+            readonly import attribute int Room; \n\
+        };                                      \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}

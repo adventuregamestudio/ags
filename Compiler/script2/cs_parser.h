@@ -793,10 +793,10 @@ private:
 
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
-    ErrorType ParseStruct_MemberDefn(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+    ErrorType ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
     // We've accepted, e.g., "struct foo {". Now we're parsing a variable declaration or a function declaration
-    ErrorType ParseStruct_Vartype(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+    ErrorType ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
     // Handle a "struct" definition clause
     ErrorType ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);

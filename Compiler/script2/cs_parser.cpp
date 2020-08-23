@@ -1176,6 +1176,56 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
     return kERR_None;
 }
 
+ErrorType AGS::Parser::ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname)
+{
+    varname = _src.GetNext();
+    if (varname <= _sym.GetLastPredefSym())
+    {
+        Error("Unexpected '%s'", _sym.GetName(varname).c_str());
+        return kERR_UserError;
+    }
+
+    if (!accept_member_access)
+    {
+        if (0 != structname)
+            return kERR_None;
+
+        if (kSYM_Vartype == _sym.GetSymbolType(varname))
+        {
+            std::string msg =
+                ReferenceMsgSym("'%s' is already in use as a type name", varname);
+            Error(msg.c_str(), _sym.GetName(varname).c_str());
+            return kERR_UserError;
+        }
+        return kERR_None;
+    }
+
+    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_MemberAccess)
+        return kERR_None; // done
+
+    if (!accept_member_access)
+    {
+        Error("Cannot use '::' here");
+        return kERR_UserError;
+    }
+
+    // We are accepting "struct::member"; so varname isn't the var name yet: it's the struct name.
+    structname = varname;
+    _src.GetNext(); // Eat "::"
+    Symbol membername = _src.GetNext();
+
+    // change varname to be the full function name
+    varname = MangleStructAndComponent(structname, membername);
+    if (varname < 0)
+    {
+        Error("'%s' does not contain a function '%s'",
+            _sym.GetName(structname).c_str(),
+            _sym.GetName(membername).c_str());
+        return kERR_UserError;
+    }
+
+    return kERR_None;
+}
 
 ErrorType AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
 {
@@ -1206,32 +1256,30 @@ ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol 
     if (kPP_PreAnalyze == _pp || !body_follows)
     {
         // Ignore the parameter name when present, it won't be used later on (in this phase)
-        param_name = -1;
         Symbol const nextsym = _src.PeekNext();
         if (IsIdentifier(nextsym))
             _src.GetNext();
         return kERR_None;
     }
 
-    Symbol const nextsym = _src.PeekNext();
-    if (_sym.GetSymbolType(nextsym) == kSYM_GlobalVar)
+    Symbol no_struct = 0;
+    ErrorType retval = ParseVarname(false, no_struct, param_name);
+    if (kSYM_GlobalVar == _sym.GetSymbolType(param_name))
     {
         // This is a definition -- so the parameter name must not be a global variable
-        std::string msg =
-            ReferenceMsgSym("The name '%s' is already used for a global variable", nextsym);
-        Error(msg.c_str(), _sym.GetName(_src.PeekNext()).c_str());
-        return kERR_UserError;
-    }
-
-    if (_sym.GetSymbolType(_src.PeekNext()) != 0)
-    {
-        Symbol const param_name = _src.PeekNext();
-        Error(ReferenceMsgSym("Parameter '%s' is already in use", param_name).c_str(),
+        Error(
+            ReferenceMsgSym("The name '%s' is already used for a global variable", param_name).c_str(),
             _sym.GetName(param_name).c_str());
         return kERR_UserError;
     }
 
-    param_name = _src.GetNext(); // get and gobble the parameter name
+    if (kSYM_NoType != _sym.GetSymbolType(param_name))
+    {
+       Error(
+           ReferenceMsgSym("Parameter '%s' is already in use", param_name).c_str(),
+            _sym.GetName(param_name).c_str());
+        return kERR_UserError;
+    }
 
     return kERR_None;
 }
@@ -5169,22 +5217,20 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
 
 // We have accepted something like "struct foo extends bar { readonly int".
 // We're waiting for the name of the member.
-ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
+ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
 {
     // Get the variable or function name.
     Symbol component;
-    bool const accept_member_access = false;
-    Symbol struct_dummy;
-    ErrorType retval = ParseVarname(accept_member_access, struct_dummy, component);
+    ErrorType retval = ParseVarname(false, name_of_struct, component);
     if (retval < 0) return retval;
 
-    Symbol const var_or_func_name = MangleStructAndComponent(stname, component);
+    Symbol const var_or_func_name = MangleStructAndComponent(name_of_struct, component);
     // All struct members get this flag, even functions
     SetFlag(_sym[var_or_func_name].Flags, kSFLG_StructMember, true);
     bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
 
     if (is_function)
-        return ParseStruct_FuncDecl(stname, var_or_func_name, tqs, vartype);
+        return ParseStruct_FuncDecl(name_of_struct, var_or_func_name, tqs, vartype);
 
     size_t const declaration_start = _src.GetCursor();
     if (_sym.IsDynarray(vartype)) // e.g., int [] zonk;
@@ -5204,11 +5250,11 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol stname, TypeQualifierSet tq
         }
 
         // Mustn't be in any ancester
-        retval = ParseStruct_CheckForCompoInAncester(stname, component, _sym[stname].Extends);
+        retval = ParseStruct_CheckForCompoInAncester(name_of_struct, component, _sym[name_of_struct].Extends);
         if (retval < 0) return retval;
     }
 
-    retval =  ParseStruct_VariableOrAttributeDefn(tqs, vartype, stname, var_or_func_name, size_so_far);
+    retval =  ParseStruct_VariableOrAttributeDefn(tqs, vartype, name_of_struct, var_or_func_name, size_so_far);
     if (retval < 0) return retval;
 
     _sym.SetDeclared(var_or_func_name, _src.GetSectionIdAt(declaration_start), _src.GetLinenoAt(declaration_start));
@@ -5230,12 +5276,12 @@ ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
     return kERR_UserError;
 }
 
-ErrorType AGS::Parser::ParseStruct_Vartype(Symbol stname, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
+ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
 {
     // Check for illegal struct member types
     if (kPP_Main == _pp)
     {
-        ErrorType retval = ParseStruct_CheckComponentVartype(stname, vartype, FlagIsSet(tqs, kTQ_Import));
+        ErrorType retval = ParseStruct_CheckComponentVartype(name_of_struct, vartype, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
     }
 
@@ -5257,7 +5303,7 @@ ErrorType AGS::Parser::ParseStruct_Vartype(Symbol stname, TypeQualifierSet tqs, 
     // We've accepted a type expression and are now reading vars or one func that should have this type.
     while (true)
     {
-        retval = ParseStruct_MemberDefn(stname, tqs, vartype, size_so_far);
+        retval = ParseStruct_MemberDefn(name_of_struct, tqs, vartype, size_so_far);
         if (retval < 0) return retval;
 
         SymbolType const next_type = _sym.GetSymbolType(_src.PeekNext());
@@ -5582,58 +5628,6 @@ ErrorType AGS::Parser::ParseExport()
 
     return kERR_None;
 }
-
-ErrorType AGS::Parser::ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname)
-{
-    structname = 0;
-
-    varname = _src.GetNext();
-    SymbolType const varname_type = _sym.GetSymbolType(varname);
-    if (kSYM_NoType != varname_type &&
-        kSYM_Function != varname_type &&
-        kSYM_GlobalVar != varname_type &&
-        kSYM_LocalVar != varname_type &&
-        kSYM_Vartype != varname_type)
-    {
-        Error("Unexpected '%s'", _sym.GetName(varname_type).c_str());
-        return kERR_UserError;
-    }
-
-    if (!accept_member_access && kSYM_Vartype == varname_type)
-    {
-        std::string msg =
-            ReferenceMsgSym("'%s' is already in use as a type name", varname);
-        Error(msg.c_str(), _sym.GetName(varname).c_str());
-        return kERR_UserError;
-    }
-
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_MemberAccess)
-        return kERR_None; // done
-
-    if (!accept_member_access)
-    {
-        Error("Cannot use '::' here");
-        return kERR_UserError;
-    }
-
-    // We are accepting "struct::member"; so varname isn't the var name yet: it's the struct name.
-    structname = varname;
-    _src.GetNext(); // gobble "::"
-    Symbol membername = _src.GetNext();
-
-    // change varname to be the full function name
-    varname = MangleStructAndComponent(structname, membername);
-    if (varname < 0)
-    {
-        Error("'%s' does not contain a function '%s'",
-            _sym.GetName(structname).c_str(),
-            _sym.GetName(membername).c_str());
-        return kERR_UserError;
-    }
-
-    return kERR_None;
-}
-
 ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext(NestingStack const &nesting_stack)
 {
     SymbolType const ns_type = nesting_stack.Type();
@@ -5770,7 +5764,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, NestingStack const &nesting
 {
     if (_src.ReachedEOF())
     {
-        Error("Unexpected end of input");
+        Error("Unexpected end of input (did you forget ';'?)");
         return kERR_UserError;
     }
 

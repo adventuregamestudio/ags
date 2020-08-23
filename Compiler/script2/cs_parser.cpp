@@ -1696,7 +1696,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(Symbol str
 
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
-ErrorType AGS::Parser::ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows)
+ErrorType AGS::Parser::ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tqs, Symbol &name_of_func, Symbol &struct_of_func, bool &body_follows)
 {
     size_t const declaration_start = _src.GetCursor();
     _src.GetNext(); // Eat '('
@@ -1717,7 +1717,7 @@ ErrorType AGS::Parser::ParseFuncdecl(Symbol &name_of_func, Vartype return_vartyp
         if (retval < 0) return retval;
     }
 
-    if (0 == struct_of_func && FlagIsSet(tqs, kTQ_Protected))
+    if (0 >= struct_of_func && FlagIsSet(tqs, kTQ_Protected))
     {
         Error(
             "Function '%s' isn't a struct component and so cannot be 'protected'",
@@ -4911,7 +4911,7 @@ ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_o
     }
 
     bool body_follows;
-    ErrorType retval = ParseFuncdecl(name_of_func, vartype, tqs, struct_of_func, body_follows);
+    ErrorType retval = ParseFuncdecl(vartype, tqs, name_of_func, struct_of_func, body_follows);
     if (retval < 0) return retval;
     if (body_follows)
     {
@@ -5676,13 +5676,13 @@ ErrorType AGS::Parser::ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet 
 {
     bool body_follows;
 
-    // In the case of extender functions, this will alter func_name
-    ErrorType retval = ParseFuncdecl(func_name, vartype, tqs, struct_of_current_func, body_follows);
+    Symbol struct_name = -1;
+    // In the case of extender functions, this will alter func_name and struct_name
+    ErrorType retval = ParseFuncdecl(vartype, tqs, func_name, struct_name, body_follows);
     if (retval < 0) return retval;
 
-    SymbolTableEntry &entry = _sym[func_name];
-    if (struct_of_current_func > 0)
-        SetFlag(entry.Flags, kSFLG_StructMember, true);
+    if (struct_name > 0)
+        SetFlag(_sym[func_name].Flags, kSFLG_StructMember, true);
 
     if (kPP_PreAnalyze == _pp)
     {
@@ -5692,8 +5692,8 @@ ErrorType AGS::Parser::ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet 
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
-        if (entry.SOffset < ft)
-            entry.SOffset = ft;
+        if (_sym[func_name].SOffset < ft)
+            _sym[func_name].SOffset = ft;
     }
 
     if (!body_follows)
@@ -5713,9 +5713,11 @@ ErrorType AGS::Parser::ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet 
     }
 
     if (no_loop_check)
-        SetFlag(entry.Flags, kSFLG_NoLoopCheck, true);
+        SetFlag(_sym[func_name].Flags, kSFLG_NoLoopCheck, true);
+
     // We've started a function, remember what it is.
     name_of_current_func = func_name;
+    struct_of_current_func = struct_name;
     return kERR_None;
 }
 

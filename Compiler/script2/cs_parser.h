@@ -525,7 +525,7 @@ private:
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
-    ErrorType ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
+    ErrorType ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tqs, Symbol &name_of_func, Symbol &struct_of_func, bool &body_follows);
 
     // Find the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. -1 if no operator was found

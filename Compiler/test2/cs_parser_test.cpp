@@ -2904,7 +2904,6 @@ TEST(Compile, FuncProtected)
     // Protected functions must be part of a struct
 
     char *inpl = "\
-        int Func;                               \n\
         protected void Func(int I = 6)          \n\
         {                                       \n\
         }                                       \n\
@@ -2950,6 +2949,25 @@ TEST(Compile, TypeEqComponent)
         {                                       \n\
             readonly import attribute int Room; \n\
         };                                      \n\
+        ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST(Compile, ExtenderFuncClash)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Don't remember the struct of extender functions past their definition (and body, if applicable)
+
+    char *inpl = "\
+        builtin struct Maths 							\n\
+        { 												\n\
+        }; 												\n\
+        import int Abs(static Maths, int value);		\n\
+        import int Max(static Maths, int a, int b);		\n\
         ";
     clear_error();
     int compileResult = cc_compile(inpl, scrip);

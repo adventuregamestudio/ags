@@ -81,7 +81,7 @@ private:
     void NewLine(size_t lineno);
 
     // We encountered a section start; process it
-    void NewSection(std::string const section);
+    void NewSection(std::string const &section);
 
     //  Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.

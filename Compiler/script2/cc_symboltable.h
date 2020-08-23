@@ -198,20 +198,20 @@ public:
     bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize
-    Symbol Add(std::string const name, SymbolType stype = kSYM_NoType, int ssize = 0);
+    Symbol Add(std::string const &name, SymbolType stype = kSYM_NoType, int ssize = 0);
 
     // add the operator opname to the symbol table
     // Priorities: lower value = higher prio; negative value means no priority
-    AGS::Symbol AddOp(char const *opname, SymbolType sty, CodeCell opcode, int binary_prio = -1, int unary_prio = -1);
+    AGS::Symbol AddOp(std::string const &opname, SymbolType sty, CodeCell opcode, int binary_prio = -1, int unary_prio = -1);
 
     // Return the symbol to the name, or -1 if not found
-    inline Symbol Find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
+    inline Symbol Find(std::string const &name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
 
     // Add to the symbol table if not in there already; in any case return the symbol
-    inline Symbol FindOrAdd(char const *name) { Symbol ret = Find(name); return (ret >= 0) ? ret : Add(name); }
+    inline Symbol FindOrAdd(std::string const &name) { Symbol ret = Find(name); return (ret >= 0) ? ret : Add(name); }
 
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
-    std::string const SymbolTable::GetName(Symbol sym) const;
+    std::string const SymbolTable::GetName(Symbol symbl) const;
 
     // The symbol type, as given by the kSYM_... constants
     inline SymbolType GetSymbolType(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };

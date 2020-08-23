@@ -28,7 +28,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
 { }
 
 
-AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType stype, size_t sizee)
+AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType stype, size_t ssize)
     : SName(name)
     , SType(stype)
     , DeclSectionId(0)
@@ -37,7 +37,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , TypeQualifiers(0)
     , SOffset(0)
     , Vartype(0)
-    , SSize(sizee)
+    , SSize(ssize)
     , SScope(0)
     , VartypeType(kVTT_Atomic)
     , Dims({})
@@ -289,7 +289,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += std::to_string(dims[dims_idx]);
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
-    Vartype const array_vartype = FindOrAdd(conv_name.c_str());
+    Vartype const array_vartype = FindOrAdd(conv_name);
     entries[array_vartype].SType = kSYM_Vartype;
     entries[array_vartype].VartypeType = kVTT_Array;
     entries[array_vartype].Vartype = vartype;
@@ -324,7 +324,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
     case kVTT_Dynarray: post = "[]"; break;
     }
     std::string const conv_name = (pre + entries[vartype].SName) + post;
-    valref = FindOrAdd(conv_name.c_str());
+    valref = FindOrAdd(conv_name);
     SymbolTableEntry &entry = entries[valref];
     entry.SType = kSYM_Vartype;
     entry.VartypeType = vtt;
@@ -411,7 +411,7 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
 }
 
 
-AGS::Symbol AGS::SymbolTable::Add(std::string const name, SymbolType stype, int ssize)
+AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int ssize)
 {
     if (0 != _findCache.count(name))
         return -1;
@@ -423,7 +423,7 @@ AGS::Symbol AGS::SymbolTable::Add(std::string const name, SymbolType stype, int 
     return idx_of_new_entry;
 }
 
-AGS::Symbol AGS::SymbolTable::AddOp(char const *opname, SymbolType sty, CodeCell opcode, int binary_prio, int unary_prio)
+AGS::Symbol AGS::SymbolTable::AddOp(std::string const &opname, SymbolType sty, CodeCell opcode, int binary_prio, int unary_prio)
 {
     Symbol symbol_idx = Add(opname, sty);
     if (symbol_idx < 0)

@@ -180,7 +180,7 @@ private:
     public:
         RestorePoint(::ccCompiledScript &scrip);
         void Restore();
-        inline bool IsEmpty() { return _scrip.codesize == _restoreLoc; }
+        inline bool IsEmpty() const { return _scrip.codesize == _restoreLoc; }
     };
 
     // Remember a point of the bytecode that is going to be the destination
@@ -412,12 +412,12 @@ private:
     // Augment the message with a "See ..." indication
     std::string ReferenceMsg(std::string const &msg, int section_id, int line);
     // Augment the message with a "See ..." indication pointing to the declaration of sym
-    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
+    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
 
     // These two need to be non-static because they can yield errors,
     // and errors need the parser object's line number information.
     ErrorType String2Int(std::string const &str, int &val);
-    ErrorType String2Float(std::string const &str, float &val);
+    ErrorType String2Float(std::string const &float_as_string, float &val);
 
     bool IsIdentifier(Symbol symb);
 
@@ -443,7 +443,7 @@ private:
 
     // Does vartype v contain releasable pointers?
     // Also determines whether vartype contains standard (non-dynamic) arrays.
-    bool ContainsReleasableDynpointers(Vartype v);
+    bool ContainsReleasableDynpointers(Vartype vartype);
 
     // We're at the end of a block and releasing a standard array of pointers.
     // MAR points to the array start. Release each array element (pointer).
@@ -495,9 +495,9 @@ private:
     // We accept a param name such as "i" if present
     ErrorType ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
 
-    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_type, bool param_is_const, int param_idx);
+    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
 
-    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_type, bool param_is_const, SymbolTableEntry::ParamDefault const &param_default);
+    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_vartype, bool param_is_const, SymbolTableEntry::ParamDefault const &param_default);
 
     // process a parameter decl in a function parameter list, something like int foo(INT BAR
     ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, int param_idx);
@@ -529,14 +529,14 @@ private:
 
     // Find the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. -1 if no operator was found
-    ErrorType IndexOfLeastBondingOperator(SrcList &slist, int &idx);
+    ErrorType IndexOfLeastBondingOperator(SrcList &expression, int &idx);
 
     // Change the generic opcode to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
-    ErrorType GetOpcodeValidForVartype(Vartype type1, Vartype type2, CodeCell &opcode);
+    ErrorType GetOpcodeValidForVartype(Vartype vartype1, Vartype vartype2, CodeCell &opcode);
 
     // Check for a type mismatch in one direction only
-    bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be);
+    bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const;
 
     // Check whether there is a type mismatch; if so, give an error
     ErrorType IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters);
@@ -565,7 +565,7 @@ private:
     ErrorType AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
-    ErrorType AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol funcSymbol, size_t &index_of_close_paren, size_t &num_supplied_args);
+    ErrorType AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &num_supplied_args);
 
     // We are processing a function call. General the actual function call
     void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
@@ -594,7 +594,7 @@ private:
     ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
-    ErrorType ParseExpression_Ternary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator a binary operator.
     ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
@@ -773,7 +773,7 @@ private:
     ErrorType ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype, bool member_is_import);
 
     // check that we haven't extended a struct that already contains a member with the same name
-    ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
+    ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol current_struct);
 
     ErrorType ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
 
@@ -895,7 +895,7 @@ private:
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     ErrorType ParseAssignmentOrExpression(Symbol cursym);
 
-    ErrorType ExitNesting(size_t loop_level);
+    ErrorType ExitNesting(size_t nesting_level);
 
     ErrorType ParseBreak(NestingStack *nesting_stack);
 
@@ -903,7 +903,7 @@ private:
 
     ErrorType ParseCloseBrace(AGS::Parser::NestingStack *nesting_stack);
 
-    ErrorType ParseCommand(Symbol cursym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
+    ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
 
     // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName
@@ -939,7 +939,7 @@ private:
 
     // Only certain info should be carried over from the pre phase into the main phase.
     // Discard all the rest so that the main phase can start with a clean slate.
-    ErrorType Parse_ReinitSymTable(const ::SymbolTable &tokenize_res);
+    ErrorType Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning);
 
     // Blank out all imports that haven't been referenced
     ErrorType Parse_BlankOutUnusedImports();

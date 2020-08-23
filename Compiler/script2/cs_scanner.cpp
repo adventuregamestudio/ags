@@ -39,7 +39,7 @@ void AGS::Scanner::NewLine(size_t lineno)
     _tokenList.NewLine(_lineno);
 }
 
-void AGS::Scanner::NewSection(std::string const section)
+void AGS::Scanner::NewSection(std::string const &section)
 {
     _section = section;
     _tokenList.NewSection(section);
@@ -655,7 +655,6 @@ void AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, size
     size_t const opener_section_id = _sectionIdConverter.GetSectionIdAt(oi.Pos);
     std::string const &opener_section = _sectionIdConverter.SectionId2Section(opener_section_id);
     size_t const opener_lineno = _sectionIdConverter.GetLinenoAt(oi.Pos);
-    size_t const closer_section_id = _sectionIdConverter.GetSectionIdAt(oi.Pos);
     std::string const &closer_section = _sectionIdConverter.SectionId2Section(opener_section_id);
     size_t const closer_lineno = _sectionIdConverter.GetLinenoAt(closer_pos);
 

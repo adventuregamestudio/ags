@@ -37,7 +37,7 @@ public:
     inline size_t GetSectionIdAt(size_t offset) const { UpdateCacheIfNecessary(offset); return _cacheSectionLine.SectionId; }
 
     // Convert section IDs to sections
-    std::string const &SectionId2Section(size_t id) const { return (id < 0 || id >= _sections.size()) ? _sections[0] : _sections[id]; }
+    std::string const &SectionId2Section(size_t id) const { return id >= _sections.size() ? _sections[0] : _sections[id]; }
 
     // Record that the code line lineno begins at this offset.
     void AddLineAt(size_t offset, size_t lineno);
@@ -60,7 +60,6 @@ private:
     size_t _offset; 
     size_t _len;    // note: _len has the length relative to [0], not relative to [_offset]
     size_t &_cursor; // note: _cursor has the position relative to [0], not relative to [_offset]
-    int lineAtEnd;
 
 public:
     SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor);

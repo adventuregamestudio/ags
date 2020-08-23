@@ -1907,7 +1907,7 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
 }
 
 // Check for a type mismatch in one direction only
-bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be)
+bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be) const
 {
     // cannot convert 'void' to anything
     if (_sym.GetVoidSym() == vartype_is || _sym.GetVoidSym() == vartype_wants_to_be)
@@ -2573,9 +2573,9 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 
 std::string AGS::Parser::ReferenceMsg(std::string const &msg, int section_id, int line)
 {
-    std::string const section = _src.SectionId2Section(section_id);
+    std::string const &section = _src.SectionId2Section(section_id);
 
-    if (line <= 0 || (!section.empty() && section[0] == '_'))
+    if (line <= 0 || (!section.empty() && '_' == section[0]))
         return msg;
 
     std::string tpl;
@@ -3331,11 +3331,11 @@ ErrorType AGS::Parser::AccessData_FloatLiteral(bool negate, SrcList &expression,
     return kERR_None;
 }
 
-ErrorType AGS::Parser::AccessData_IntLiteralOrConst(bool negateLiteral, SrcList &expression, AGS::Vartype &vartype)
+ErrorType AGS::Parser::AccessData_IntLiteralOrConst(bool negate, SrcList &expression, AGS::Vartype &vartype)
 {
     int literal;
     
-    ErrorType retval = IntLiteralOrConst2Value(expression.GetNext(), negateLiteral, "Error parsing integer value", literal);
+    ErrorType retval = IntLiteralOrConst2Value(expression.GetNext(), negate, "Error parsing integer value", literal);
     if (retval < 0) return retval;
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, literal);
@@ -5204,7 +5204,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol stname, TypeQualifierSet tq
         }
 
         // Mustn't be in any ancester
-        ErrorType retval = ParseStruct_CheckForCompoInAncester(stname, component, _sym[stname].Extends);
+        retval = ParseStruct_CheckForCompoInAncester(stname, component, _sym[stname].Extends);
         if (retval < 0) return retval;
     }
 
@@ -5300,9 +5300,6 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingSta
     }
 
     size_t size_so_far = 0; // Will sum up the size of the struct
-
-    // If the struct extends another struct, the token of the other struct's name
-    Symbol parent = 0;
 
     if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Extends)
     {
@@ -6556,9 +6553,8 @@ void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
     if (src_section_id == _lastEmittedSectionId)
         return;
 
-    std::string const script_name = _src.SectionId2Section(src_section_id);
     if (kPP_Main == _pp)
-        _scrip.start_new_section(script_name.c_str());
+        _scrip.start_new_section(_src.SectionId2Section(src_section_id));
     _lastEmittedSectionId = src_section_id;
 }
 
@@ -6884,9 +6880,9 @@ int cc_scan(char const *inpl, SrcList *src, ccCompiledScript *scrip, SymbolTable
     return kERR_UserError;
 }
 
-int cc_parse(AGS::SrcList *src, ccCompiledScript *scrip, SymbolTable *sym)
+int cc_parse(AGS::SrcList *src, ccCompiledScript *scrip, SymbolTable *symt)
 {
-    AGS::Parser parser = { *sym, *src, *scrip };
+    AGS::Parser parser = { *symt, *src, *scrip };
     return parser.Parse();
 }
 

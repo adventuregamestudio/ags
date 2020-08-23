@@ -10,8 +10,9 @@ static int currentline;
 AGS::LineHandler::LineHandler()
     : _sections()
     , _lineStartTable()
-    , _cacheLineStart(1) // Invalidate the cache
-    , _cacheLineEnd (0) // Invalidate the cache
+    , _cacheLineStart(1)    // Invalidate the cache
+    , _cacheLineEnd(0)      // Invalidate the cache
+    , _cacheSectionLine({})
 {
     _sections.push_back("");
     // Add sentinels to the table for simpler lookup algorithms

@@ -5232,7 +5232,8 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
     Symbol const var_or_func_name = MangleStructAndComponent(name_of_struct, component);
     bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
 
-    // All struct members get this flag here, functions included
+    // In here, all struct members get this flag, functions included
+    // This flag shows that the respective member has been declared within a struct xx {  }
     SetFlag(_sym[var_or_func_name].Flags, kSFLG_StructMember, true);
     _sym[var_or_func_name].Extends = name_of_struct;
 

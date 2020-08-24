@@ -515,16 +515,17 @@ private:
     ErrorType ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, CodeLoc &function_soffs, int &function_idx);
 
     // We're at something like "int foo(", directly before the "("
-    // Get the symbol after the corresponding ")"
+    // Find out whether the symbol that follows the corresponding ")" is "{"
     ErrorType ParseFuncdecl_DoesBodyFollow(bool &body_follows);
 
-    // We're in a func decl. Checks whether the declaration is valid.
+    // We're in a func decl. Check whether the declaration is valid.
     ErrorType ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check);
 
     ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
     // If this is an extender function, we've already resolved that.
+    // Parse the function declaration
     // This might or might not be within a struct defn
     ErrorType ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
 

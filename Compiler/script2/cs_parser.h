@@ -504,28 +504,29 @@ private:
 
     ErrorType ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
-    void ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, TypeQualifierSet tqs);
+    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows);
 
-    ErrorType ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const &this_entry, bool body_follows, SymbolTableEntry const &known_info);
+    ErrorType ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry const &this_entry, SymbolTableEntry const &known_info, bool body_follows);
 
     // there was a forward declaration -- check that the real declaration matches it
-    ErrorType ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, bool body_follows, SymbolTableEntry const &known_info);
+    ErrorType ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, SymbolTableEntry const &known_info, bool body_follows);
 
     // Enter the function in the imports[] or functions[] array; get its index   
     ErrorType ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, CodeLoc &function_soffs, int &function_idx);
 
     // We're at something like "int foo(", directly before the "("
     // Get the symbol after the corresponding ")"
-    ErrorType ParseFuncdecl_GetSymbolAfterParmlist(Symbol &symbol);
+    ErrorType ParseFuncdecl_DoesBodyFollow(bool &body_follows);
 
-    // We're in a func decl. Check whether it is valid here.
-    ErrorType ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows);
+    // We're in a func decl. Checks whether the declaration is valid.
+    ErrorType ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check);
 
-    ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, bool body_follows);
+    ErrorType ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
     // We're at something like "int foo(", directly before the "("
+    // If this is an extender function, we've already resolved that.
     // This might or might not be within a struct defn
-    ErrorType ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tqs, Symbol &name_of_func, Symbol &struct_of_func, bool &body_follows);
+    ErrorType ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
 
     // Find the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. -1 if no operator was found
@@ -747,7 +748,7 @@ private:
     ErrorType ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
 
     // there was a forward declaration -- check that the real declaration matches it
-    ErrorType ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info);
+    ErrorType ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
 
     ErrorType ParseVardecl_GlobalImport(Symbol var_name, bool has_initial_assignment);
 
@@ -824,7 +825,7 @@ private:
 
     ErrorType ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
-    ErrorType ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet tqs, Vartype vartype, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    ErrorType ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func, bool &body_follows);
 
     ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness);
 
@@ -933,9 +934,6 @@ private:
     ErrorType Parse_MainPhase();
 
     ErrorType ParseInput();
-
-    // Check that all struct functions have a declaration in the struct
-    ErrorType Parse_CheckStructFuncs();
 
     // Only certain info should be carried over from the pre phase into the main phase.
     // Discard all the rest so that the main phase can start with a clean slate.

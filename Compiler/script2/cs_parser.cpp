@@ -1123,36 +1123,19 @@ ErrorType AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntr
 // We'll accept something like "this Character *"
 ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS::Symbol &struct_of_func, AGS::Symbol &name_of_func, TypeQualifierSet &tqs)
 {
-    if (struct_of_func > 0)
-    {
-        Error("A struct component function cannot be an extender function");
-        return kERR_UserError;
-    }
+    if (is_static_extender)
+        SetFlag(tqs, kTQ_Static, true);
 
     _src.GetNext(); // Eat "this" or "static"
-    struct_of_func = _src.PeekNext();
-    SymbolTableEntry &struct_entry = _sym[struct_of_func];
-    if (!struct_entry.IsStruct(_sym))
+    struct_of_func = _src.GetNext();
+    if (!_sym.IsStruct(struct_of_func))
     {
         Error("Expected a struct type instead of '%s'", _sym.GetName(struct_of_func).c_str());
         return kERR_UserError;
     }
 
-    if (std::string::npos != _sym.GetName(name_of_func).find_first_of(':'))
-    {   // [fw] Can't be reached IMO. 
-        Error("Extender functions cannot be part of a struct");
-        return kERR_UserError;
-    }
-
     name_of_func = MangleStructAndComponent(struct_of_func, name_of_func);
-    SymbolTableEntry &entry = _sym[name_of_func];
-    entry.Extends = struct_of_func;
 
-    SetFlag(entry.Flags, kSFLG_StructMember, true);
-    if (is_static_extender)
-        SetFlag(tqs, kTQ_Static, true);
-
-    _src.GetNext();
     if (_sym.GetDynpointerSym() == _src.PeekNext())
     {
         if (is_static_extender)
@@ -1163,14 +1146,19 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
         _src.GetNext(); // Eat '*'
     }
 
-    if ((_sym.GetSymbolType(_src.PeekNext()) != kSYM_Comma) &&
-        (_sym.GetSymbolType(_src.PeekNext()) != kSYM_CloseParenthesis))
+    // If a function is defined with the Extender mechanism, it needn't have a declaration
+    // in the struct defn. So pretend that this declaration has happened.
+    _sym[name_of_func].Extends = struct_of_func;
+    SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
+
+    SymbolType const punctuation = _sym.GetSymbolType(_src.PeekNext());
+    if (kSYM_Comma != punctuation && kSYM_CloseParenthesis != punctuation)
     {
-        Error("Parameter name cannot be defined for extender type");
+        Error("Expected ',' or ')' (cannot specify a parameter name for an extender parameter)");
         return kERR_UserError;
     }
 
-    if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Comma)
+    if (kSYM_Comma == punctuation)
         _src.GetNext();
 
     return kERR_None;
@@ -1289,7 +1277,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
 {
     SymbolTableEntry &param_entry = _sym[param_name];
     param_entry.SType = kSYM_LocalVar;
-    param_entry.Extends = false;
+    param_entry.Extends = 0;
     param_entry.Vartype = param_vartype;
     param_entry.SScope = 1;
     SetFlag(param_entry.Flags, kSFLG_Parameter, true);
@@ -1397,6 +1385,12 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
 
         case kSYM_Vartype:
         {
+            if (param_idx == 0 && _sym.GetVoidSym() == cursym && kSYM_CloseParenthesis == _sym.GetSymbolType(_src.PeekNext()))
+            {   // explicitly empty parameter list, "(void)"
+                _src.GetNext(); // Eat ')'
+                return kERR_None;
+            }
+
             if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
             {
                 Error("Too many parameters defined for function (max. allowed: %d)", static_cast<int>(MAX_FUNCTION_PARAMETERS) - 1);
@@ -1420,22 +1414,36 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
         }
         } // switch
     } // while
-    Error("End of input when processing parameter list");
-    return kERR_UserError;
+    Error("!End of input when processing parameter list");
+    return kERR_InternalError;
 }
-
-void AGS::Parser::ParseFuncdecl_SetFunctype(Symbol name_of_function, Vartype return_vartype, TypeQualifierSet tqs)
+void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows)
 {
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.SType = kSYM_Function;
     entry.FuncParamTypes[0] = return_vartype;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the entity returned.
     entry.TypeQualifiers = tqs &  ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
+
+    // Do not set Extends and the component flag here.
+    // They are used to denote functions that were either declared in a struct defn or as extender
+
+    if (kPP_PreAnalyze == _pp)
+    {
+        // Encode in entry.SOffset the type of function declaration
+        FunctionType ft = kFT_PureForward;
+        if (FlagIsSet(tqs, kTQ_Import))
+            ft = kFT_Import;
+        if (body_follows)
+            ft = kFT_LocalBody;
+        if (_sym[name_of_function].SOffset < ft)
+            _sym[name_of_function].SOffset = ft;
+    }
     return;
 }
 
 
-ErrorType AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry const &this_entry, bool body_follows, SymbolTableEntry const &known_info)
+ErrorType AGS::Parser::ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry const &this_entry, SymbolTableEntry const &known_info, bool body_follows)
 {
     if (body_follows)
     {
@@ -1482,7 +1490,7 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry
 }
 
 // there was a forward declaration -- check that the real declaration matches it
-ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, bool body_follows, SymbolTableEntry const &known_info)
+ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, SymbolTableEntry const &known_info, bool body_follows)
 {
     if (kSYM_NoType == known_info.SType)
         return kERR_None; // We don't have any known info
@@ -1569,7 +1577,7 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
     }
 
     // Check that the defaults match
-    ErrorType retval = ParseFuncdecl_CheckThatFDM_CheckDefaults(this_entry, body_follows, known_info);
+    ErrorType retval = ParseFuncdecl_CheckThatKIM_CheckDefaults(this_entry, known_info, body_follows);
     if (retval < 0) return retval;
 
     return kERR_None;
@@ -1605,12 +1613,12 @@ ErrorType AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(AGS::Symbol name_of_fun
 
 // We're at something like "int foo(", directly before the "("
 // Get the symbol after the corresponding ")"
-ErrorType AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
+ErrorType AGS::Parser::ParseFuncdecl_DoesBodyFollow(bool &body_follows)
 {
     int const cursor = _src.GetCursor();
 
     SymbolType const stoplist[] = { kSYM_NoType };
-    SkipTo(_src, stoplist, 0); // Skim to matching ')'
+    SkipTo(_src, stoplist, 0);
 
     if (kSYM_CloseParenthesis != _sym.GetSymbolType(_src.GetNext()))
     {
@@ -1618,44 +1626,65 @@ ErrorType AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
         return kERR_InternalError;
     }
 
-    symbol = _src.PeekNext();
+    body_follows = kSYM_OpenBrace == _sym.GetSymbolType(_src.PeekNext());
     _src.SetCursor(cursor);
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseFuncdecl_CheckValidHere(Symbol name_of_func, Vartype return_vartype, bool body_follows)
+ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check)
 {
+    if (0 >= struct_of_func && FlagIsSet(tqs, kTQ_Protected))
+    {
+        Error(
+            "Function '%s' isn't a struct component and so cannot be 'protected'",
+            _sym.GetName(name_of_func).c_str());
+        return kERR_UserError;
+    }
+
+    if (!body_follows && no_loop_check)
+    {
+        Error("Can only use 'noloopcheck' when a function body follows the definition");
+        return kERR_UserError;
+    }
+
     SymbolType const stype = _sym[name_of_func].SType;
     if (kSYM_Function != stype && kSYM_NoType != stype)
     {
-        std::string msg = ReferenceMsg(
-            "'%s' is already defined",
-            _sym[name_of_func].DeclSectionId,
-            _sym[name_of_func].DeclLine);
-        Error(msg.c_str(), _sym.GetName(name_of_func).c_str());
+        Error(
+            ReferenceMsgSym("'%s' is defined elsewhere as a non-function", name_of_func).c_str(),
+            _sym.GetName(name_of_func).c_str());
         return kERR_UserError;
     }
 
     if (!_sym.IsManaged(return_vartype) && _sym.IsStruct(return_vartype))
     {
-        Error("Can only return a managed struct from function");
+        Error("Can only return a struct when it is 'managed'");
         return kERR_UserError;
     }
 
-    if (body_follows && kPP_Main == _pp)
+    if (kPP_PreAnalyze == _pp && body_follows && kFT_LocalBody == _sym[name_of_func].SOffset)
     {
-        if (_fcm.HasFuncCallpoint(name_of_func))
-        {
-            std::string msg =
-                ReferenceMsgSym("This function has already been defined with body", name_of_func);
-            Error(msg.c_str());
-            return kERR_UserError;
-        }
+        Error(
+            ReferenceMsgSym("Function '%s' has already been defined with body elsewhere", name_of_func).c_str(),
+            _sym.GetName(name_of_func).c_str());
+        return kERR_UserError;
     }
+
+    if (kPP_Main == _pp && 0 < struct_of_func && struct_of_func != _sym[name_of_func].Extends)
+    {
+        // Functions only get this if they are declared in a struct or as extender
+        std::string component = _sym.GetName(name_of_func);
+        component.erase(0, component.rfind(':') + 1);
+        Error(
+            ReferenceMsgSym("Function '%s' has not been declared within struct '%s' as a component", struct_of_func).c_str(),
+            component.c_str(), _sym.GetName(struct_of_func).c_str());
+        return kERR_UserError;
+    }
+
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, bool body_follows)
+AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
     if (kPP_Main == _pp)
     {
@@ -1696,44 +1725,21 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(Symbol str
 
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
-ErrorType AGS::Parser::ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tqs, Symbol &name_of_func, Symbol &struct_of_func, bool &body_follows)
+// An extender func param, if any, has already been resolved
+ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows)
 {
-    size_t const declaration_start = _src.GetCursor();
-    _src.GetNext(); // Eat '('
-    {
-        Symbol symbol;
-        ErrorType retval = ParseFuncdecl_GetSymbolAfterParmlist(symbol);
-        if (retval < 0) return retval;
-        body_follows = (kSYM_OpenBrace == _sym.GetSymbolType(symbol));
-    }
-
-    bool const func_is_static_extender = (kSYM_Static == _sym.GetSymbolType(_src.PeekNext()));
-    bool const func_is_extender = (func_is_static_extender) || (_sym.GetThisSym() == _src.PeekNext());
-
-    if (func_is_extender)
-    {
-        // Rewrite extender function as a component function of the corresponding struct.
-        ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_of_func, name_of_func, tqs);
-        if (retval < 0) return retval;
-    }
-
-    if (0 >= struct_of_func && FlagIsSet(tqs, kTQ_Protected))
-    {
-        Error(
-            "Function '%s' isn't a struct component and so cannot be 'protected'",
-            _sym.GetName(name_of_func).c_str());
-        return kERR_UserError;
-    }
-
-    ErrorType retval = ParseFuncdecl_CheckValidHere(name_of_func, return_vartype, body_follows);
+    ErrorType retval = ParseFuncdecl_DoesBodyFollow(body_follows);
     if (retval < 0) return retval;
 
+    retval = ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
+    if (retval < 0) return retval;
+   
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
-    if (FlagIsSet(tqs, kTQ_Import) &&
+    if (FlagIsSet(tqs, kTQ_Import) &&   // This declaration has 'import'
         kSYM_Function == _sym.GetSymbolType(name_of_func) &&
-        !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import))
+        !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import)) // but symbol table hasn't 'import'
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
@@ -1746,19 +1752,12 @@ ErrorType AGS::Parser::ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tq
         SetFlag(tqs, kTQ_Import, false);
     }
 
-    if (body_follows)
+    if (kPP_Main == _pp && body_follows)
     {
-        if (kPP_Main == _pp)
-            _scrip.cur_sp += 4;  // the return address will be pushed
-
-        // We need to check this here before the old definition is clobbered
-        if (kPP_PreAnalyze == _pp && kFT_LocalBody == _sym[name_of_func].SOffset)
-        {
-            Error(
-                ReferenceMsgSym("Function '%s' has already been defined with a body", name_of_func).c_str(),
-                _sym.GetName(name_of_func).c_str());
-            return kERR_UserError;
-        }
+        // When this function is called, first all the parameters are pushed on the stack
+        // and then the address to which the function should return after it has finished.
+        // So the first parameter isn't on top of the stack but one address below that
+        _scrip.cur_sp += 4;
     }
 
     // Copy all known info about the function so that we can check whether this declaration is compatible
@@ -1766,21 +1765,21 @@ ErrorType AGS::Parser::ParseFuncdecl(Vartype return_vartype, TypeQualifierSet tq
     retval = CopyKnownSymInfo(_sym[name_of_func], known_info);
     if (retval < 0) return retval;
 
+    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
+
     retval = ParseFuncdecl_Paramlist(name_of_func, body_follows);
     if (retval < 0) return retval;
 
-    ParseFuncdecl_SetFunctype(name_of_func, return_vartype, tqs);
-
-    retval = ParseFuncdecl_CheckThatKnownInfoMatches(_sym[name_of_func], body_follows, known_info);
+   retval = ParseFuncdecl_CheckThatKnownInfoMatches(_sym[name_of_func], known_info, body_follows);
     if (retval < 0) return retval;
 
-    // copy the default values from the function prototype
+    // copy the default values from the function prototype into the symbol table
     if (known_info.SType != kSYM_NoType)
         _sym[name_of_func].FuncParamDefaultValues.assign(
             known_info.FuncParamDefaultValues.begin(),
             known_info.FuncParamDefaultValues.end());
 
-    retval = ParseFuncdecl_HandleFunctionOrImportIndex(struct_of_func, name_of_func, tqs, body_follows);
+    retval = ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
     if (retval < 0) return retval;
 
     _sym.SetDeclared(name_of_func, _src.GetSectionIdAt(declaration_start), _src.GetLinenoAt(declaration_start));
@@ -4248,7 +4247,6 @@ ErrorType AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, vo
 
     if (_sym.IsManaged(varname))
     {
-        // TODO Initialize String
         Error("Cannot assign an initial value to a managed type or String");
         return kERR_UserError;
     }
@@ -4310,7 +4308,7 @@ ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Glo
 }
 
 // there was a forward declaration -- check that the real declaration matches it
-ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info)
+ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows)
 {
     if (0 == known_info->SType)
         return kERR_None; // We don't have any known info
@@ -4517,7 +4515,7 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
     retval = ParseVardecl0(var_name, vartype, globalness);
     if (retval < 0) return retval;
 
-    return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info);
+    return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info, false);
 }
 
 ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, Symbol struct_of_func, AGS::Symbol name_of_func)
@@ -4910,12 +4908,18 @@ ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_o
         return kERR_UserError;
     }
 
+    size_t const declaration_start = _src.GetCursor();
+    _src.GetNext(); // Eat '('
+
+    SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
+    _sym[name_of_func].Extends = struct_of_func;
+
     bool body_follows;
-    ErrorType retval = ParseFuncdecl(vartype, tqs, name_of_func, struct_of_func, body_follows);
+    ErrorType retval = ParseFuncdecl(declaration_start, tqs, vartype, struct_of_func, name_of_func, false, body_follows);
     if (retval < 0) return retval;
     if (body_follows)
     {
-        Error("Cannot declare a function body within a struct definition");
+        Error("Cannot code a function body within a struct definition");
         return kERR_UserError;
     }
     if (kSYM_Semicolon != _sym.GetSymbolType(_src.PeekNext()))
@@ -4923,7 +4927,6 @@ ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_o
         Error("Expected ';'");
         return kERR_UserError;
     }
-    _sym[name_of_func].Extends = struct_of_func;
     return kERR_None;
 }
 
@@ -4981,10 +4984,6 @@ ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool
 ErrorType AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype)
 {
     SymbolTableEntry &entry = _sym[name_of_func];
-    entry.Extends = struct_of_func; // function is implicitly a struct component
-    entry.SType = kSYM_Function;
-
-    entry.SScope = 0;
     size_t const num_param = is_indexed + is_setter;
 
     entry.FuncParamTypes.resize(num_param + 1);
@@ -4994,8 +4993,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Sy
         entry.FuncParamTypes[p_idx++] = _sym.GetIntSym();
     if (is_setter)
         entry.FuncParamTypes[p_idx] = vartype;
-    SymbolTableEntry::ParamDefault deflt;
-    deflt.Type = SymbolTableEntry::kDT_None;
+    SymbolTableEntry::ParamDefault deflt = {};
     entry.FuncParamDefaultValues.assign(entry.FuncParamTypes.size(), deflt);
     return kERR_None;
 }
@@ -5036,15 +5034,21 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, 
         SetFlag(tqs, kTQ_Import, false);
     }
 
+    // Store the fact that this function has been declared within the struct declaration
+    _sym[name_of_func].Extends = struct_of_func;
+    SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
+
+    ParseFuncdecl_MasterData2Sym(tqs & ~kTQ_Attribute, is_setter? _sym.GetVoidSym() : vartype, struct_of_func, name_of_func, false);
+
     ErrorType retval = ParseStruct_Attribute_ParamList(struct_of_func, name_of_func, is_setter, is_indexed, vartype);
     if (retval < 0) return retval;
 
     Vartype const return_vartype = is_setter ? _sym.GetVoidSym() : vartype;
     // When the function is defined, it won't have "attribute" set so don't set "attribute" here
-    ParseFuncdecl_SetFunctype(name_of_func, return_vartype, tqs & ~kTQ_Attribute);
+   
 
     bool const body_follows = false; // we are within a struct definition
-    return ParseFuncdecl_HandleFunctionOrImportIndex(struct_of_func, name_of_func, tqs, body_follows);
+    return ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
 }
 
 // We're in a struct declaration, parsing a struct attribute
@@ -5225,13 +5229,15 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
     if (retval < 0) return retval;
 
     Symbol const var_or_func_name = MangleStructAndComponent(name_of_struct, component);
-    // All struct members get this flag, even functions
-    SetFlag(_sym[var_or_func_name].Flags, kSFLG_StructMember, true);
     bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
+
+    // All struct members get this flag here, functions included
+    SetFlag(_sym[var_or_func_name].Flags, kSFLG_StructMember, true);
+    _sym[var_or_func_name].Extends = name_of_struct;
 
     if (is_function)
         return ParseStruct_FuncDecl(name_of_struct, var_or_func_name, tqs, vartype);
-
+    
     size_t const declaration_start = _src.GetCursor();
     if (_sym.IsDynarray(vartype)) // e.g., int [] zonk;
     {
@@ -5306,14 +5312,14 @@ ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierS
         retval = ParseStruct_MemberDefn(name_of_struct, tqs, vartype, size_so_far);
         if (retval < 0) return retval;
 
-        SymbolType const next_type = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_Comma != next_type && kSYM_Semicolon != next_type)
+        Symbol const punctuation = _src.GetNext();
+        SymbolType const punct_type = _sym.GetSymbolType(punctuation);
+        if (kSYM_Comma != punct_type && kSYM_Semicolon != punct_type)
         {
-            Error("Unexpected '%s'", _sym.GetName(_src.PeekNext()).c_str());
+            Error("Expected ',' or ';', found '%s' instead", _sym.GetName(punctuation).c_str());
             return kERR_UserError;
         }
-        _src.GetNext();  // Eat ',' or ';'
-        if (kSYM_Semicolon == next_type)
+        if (kSYM_Semicolon == punct_type)
             return kERR_None;
     }
 }
@@ -5672,44 +5678,40 @@ ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::Ty
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseVartype_FuncDecl(Symbol func_name, TypeQualifierSet tqs, Vartype vartype, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func)
+ErrorType AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func, bool &body_follows)
 {
-    bool body_follows;
+    size_t const declaration_start = _src.GetCursor();
+    _src.GetNext(); // Eat '('
 
-    Symbol struct_name = -1;
-    // In the case of extender functions, this will alter func_name and struct_name
-    ErrorType retval = ParseFuncdecl(vartype, tqs, func_name, struct_name, body_follows);
-    if (retval < 0) return retval;
-
-    if (struct_name > 0)
-        SetFlag(_sym[func_name].Flags, kSFLG_StructMember, true);
-
-    if (kPP_PreAnalyze == _pp)
+    if (0 >= struct_name)
     {
-        // Encode in entry.SOffset the type of function declaration
-        FunctionType ft = kFT_PureForward;
-        if (FlagIsSet(tqs, kTQ_Import))
-            ft = kFT_Import;
-        if (body_follows)
-            ft = kFT_LocalBody;
-        if (_sym[func_name].SOffset < ft)
-            _sym[func_name].SOffset = ft;
+        bool const func_is_static_extender = (kSYM_Static == _sym.GetSymbolType(_src.PeekNext()));
+        bool const func_is_extender = (func_is_static_extender) || (_sym.GetThisSym() == _src.PeekNext());
+
+        if (func_is_extender)
+        {
+            // Rewrite extender function as a component function of the corresponding struct.
+            ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, tqs);
+            if (retval < 0) return retval;
+        }
+
     }
 
-    if (!body_follows)
-    {
-        if (no_loop_check)
-        {
-            Error("Can only use 'noloopcheck' when function body follows definition");
-            return kERR_UserError;
-        }
+    // Do not set .Extends or the StructComponent flag here. These denote that the
+    // func has been either declared within the struct definition or as extender.
 
-        if (kSYM_Semicolon != _sym.GetSymbolType(_src.GetNext()))
-        {
-            Error("Expected ';'");
-            return kERR_UserError;
-        }
+    ErrorType retval = ParseFuncdecl(declaration_start, tqs, vartype, struct_name, func_name, false, body_follows);
+    if (retval < 0) return retval;
+        
+    if (!body_follows)
         return kERR_None;
+
+    if (0 < name_of_current_func)
+    {
+        Error(
+            ReferenceMsgSym("Function bodies cannot nest, but the body of function %s is still open. (Did you forget a '}'?)", func_name).c_str(),
+            _sym.GetName(name_of_current_func).c_str());
+        return kERR_UserError;
     }
 
     if (no_loop_check)
@@ -5803,44 +5805,51 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, NestingStack const &nesting
     {
         // Get the variable or function name.
         Symbol var_or_func_name = -1;
-        bool const accept_member_access = true;
-        retval = ParseVarname(accept_member_access, struct_of_current_func, var_or_func_name);
+        Symbol struct_name = -1;
+        retval = ParseVarname(true, struct_name, var_or_func_name);
         if (retval < 0) return retval;
 
         bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
+
         // certain qualifiers, such as "static" only go with certain kinds of definitions.
-
-
         retval = ParseVartype_CheckIllegalCombis(is_function, tqs);
         if (retval < 0) return retval;
 
         if (is_function)
         {
-            if ((name_of_current_func >= 0) || (nesting_stack.Depth() > 1))
-            {
-                Error("Nested functions not supported (you may have forgotten a closing brace)");
-                return kERR_UserError;
-            }
-            return ParseVartype_FuncDecl(var_or_func_name, tqs, vartype, no_loop_check, struct_of_current_func, name_of_current_func);
+            // Do not set .Extends or the StructComponent flag here. These denote that the
+            // func has been either declared within the struct definition or as extender,
+            // so they are NOT set unconditionally
+            bool body_follows = false;
+            retval = ParseVartype_FuncDecl(tqs, vartype, struct_name, var_or_func_name, no_loop_check, struct_of_current_func, name_of_current_func, body_follows);
+            if (retval < 0) return retval;
+            if (body_follows)
+                return kERR_None;
         }
-
-        if (_sym.IsDynarray(vartype) || no_loop_check) // e.g., int [] zonk;
+        else if (_sym.IsDynarray(vartype) || no_loop_check) // e.g., int [] zonk;
         {
             Error("Expected '('");
             return kERR_UserError;
         }
-
-        retval = ParseVartype_VarDecl(var_or_func_name, globalness, nesting_stack.Depth() - 1, tqs, vartype);
-        if (retval < 0) return retval;
-
-        SymbolType const next_type = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_Comma != next_type && kSYM_Semicolon != next_type)
+        else
         {
-            Error("Unexpected '%s'", _sym.GetName(_src.PeekNext()).c_str());
+            if (0 < struct_name)
+            {
+                Error("Variable may not contain '::'");
+                return kERR_UserError;
+            }
+            retval = ParseVartype_VarDecl(var_or_func_name, globalness, nesting_stack.Depth() - 1, tqs, vartype);
+            if (retval < 0) return retval;
+        }
+
+        SymbolType const punctuation = _sym.GetSymbolType(_src.PeekNext());
+        if (kSYM_Comma != punctuation && kSYM_Semicolon != punctuation)
+        {
+            Error("Expected ',' or ';', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
             return kERR_UserError;
         }
         _src.GetNext();  // Eat ',' or ';'
-        if (kSYM_Semicolon == next_type)
+        if (kSYM_Semicolon == punctuation)
             return kERR_None;
     }
 }
@@ -6672,36 +6681,6 @@ ErrorType AGS::Parser::ParseInput()
     return kERR_None;
 }
 
-ErrorType AGS::Parser::Parse_CheckStructFuncs()
-{
-    for (size_t sym_idx = 0; sym_idx < _sym.entries.size(); sym_idx++)
-    {
-        if (kSYM_Function != _sym[sym_idx].SType)
-            continue;
-
-        std::string const &mangled_name = _sym.GetName(sym_idx);
-        size_t const pos_of_last_colon = mangled_name.rfind(':');
-        if (std::string::npos == pos_of_last_colon)
-            continue; // not a struct component func
-
-        std::string const structname = mangled_name.substr(0, pos_of_last_colon - 1);
-        Symbol const name_of_struct = _sym.Find(structname.c_str());
-        if (name_of_struct == _sym[sym_idx].Extends)
-            continue; // either has proper declaration or is extender 
-
-        std::string const funcname =
-            mangled_name.substr(pos_of_last_colon + 1);
-        std::string const msg = ReferenceMsgSym(
-            "Function '%s' isn't a component of struct '%s'",
-            name_of_struct);
-        ErrorWithPosition(
-            _sym[sym_idx].DeclSectionId, _sym[sym_idx].DeclLine,
-            msg.c_str(), funcname.c_str(), structname.c_str());
-        return kERR_UserError;
-    }
-    return kERR_None;
-}
-
 // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
 ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning)
 {
@@ -6813,10 +6792,6 @@ ErrorType AGS::Parser::Parse_PreAnalyzePhase()
 
     _pp = kPP_PreAnalyze;
     ErrorType retval = ParseInput();
-    if (retval < 0) return retval;
-
-    // Check that struct component funcs have a declaration in the struct (or are extender funcs)
-    retval = Parse_CheckStructFuncs();
     if (retval < 0) return retval;
 
     _fcm.Reset();

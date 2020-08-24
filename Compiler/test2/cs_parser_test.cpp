@@ -1010,18 +1010,19 @@ TEST(Compile, DoubleExtenderFunc) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        struct Weapon {                        \n\
-            int Damage;                        \n\
-        };                                     \n\
-                                               \n\
-        int Foo(this Weapon *)                 \n\
-        {                                      \n\
-            return 1;                          \n\
-        }                                      \n\
-        int Foo(this Weapon *)                 \n\
-        {                                      \n\
-            return 2;                          \n\
-        }                                      \n\
+        struct Weapon {                         \n\
+            int Damage;                         \n\
+        };                                      \n\
+                                                \n\
+        int Weapon::Foo(void)                   \n\
+        {                                       \n\
+            return 1;                           \n\
+        }                                       \n\
+                                                \n\
+        int Foo(this Weapon *)                  \n\
+        {                                       \n\
+            return 2;                           \n\
+        }                                       \n\
         ";
 
     clear_error();
@@ -1053,7 +1054,7 @@ TEST(Compile, DoubleNonExtenderFunc) {
     EXPECT_NE((char *)0, last_seen_cc_error());
     ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("already been def"));
+    EXPECT_NE(std::string::npos, err.find("already been def"));
 }
 
 TEST(Compile, UndeclaredStructFunc1) {
@@ -1076,6 +1077,7 @@ TEST(Compile, UndeclaredStructFunc1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GT(0, compileResult);
     std::string message = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, message.find("Func"));
 }
 
 TEST(Compile, UndeclaredStructFunc2) {
@@ -2626,7 +2628,7 @@ TEST(Compile, DoWhileSemicolon)
     EXPECT_NE(std::string::npos, msg.find("';'"));
 }
 
-TEST(Compile, ExtenderExtender)
+TEST(Compile, ExtenderExtender1)
 {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -2647,7 +2649,30 @@ TEST(Compile, ExtenderExtender)
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("xtender"));
+    EXPECT_NE(std::string::npos, msg.find("static"));
+}
+
+TEST(Compile, ExtenderExtender2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // No extending a struct with a compound function
+
+    char *inpl = "\
+        struct Struct1                      \n\
+        {                                   \n\
+        };                                  \n\
+        struct Struct2                      \n\
+        {                                   \n\
+            void Struct1::Func(short i);    \n\
+        };                                  \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'::'"));
 }
 
 TEST(Compile, NonManagedStructParameter)
@@ -2894,7 +2919,7 @@ TEST(Compile, FuncDouble)
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("with a body"));
+    EXPECT_NE(std::string::npos, msg.find("with body"));
 }
 
 TEST(Compile, FuncProtected)

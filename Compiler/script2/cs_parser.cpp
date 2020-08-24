@@ -1252,6 +1252,7 @@ ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol 
 
     Symbol no_struct = 0;
     ErrorType retval = ParseVarname(false, no_struct, param_name);
+    if (retval < 0) return retval;
     if (kSYM_GlobalVar == _sym.GetSymbolType(param_name))
     {
         // This is a definition -- so the parameter name must not be a global variable
@@ -5038,12 +5039,12 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, 
     _sym[name_of_func].Extends = struct_of_func;
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
-    ParseFuncdecl_MasterData2Sym(tqs & ~kTQ_Attribute, is_setter? _sym.GetVoidSym() : vartype, struct_of_func, name_of_func, false);
+    Vartype const return_vartype = is_setter ? _sym.GetVoidSym() : vartype;
+    ParseFuncdecl_MasterData2Sym(tqs & ~kTQ_Attribute, return_vartype, struct_of_func, name_of_func, false);
 
     ErrorType retval = ParseStruct_Attribute_ParamList(struct_of_func, name_of_func, is_setter, is_indexed, vartype);
     if (retval < 0) return retval;
 
-    Vartype const return_vartype = is_setter ? _sym.GetVoidSym() : vartype;
     // When the function is defined, it won't have "attribute" set so don't set "attribute" here
    
 

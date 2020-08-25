@@ -2764,8 +2764,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             facetalkBlinkLoop = speakingChar->loop;
 
-            if ((speakingChar->loop >= views[speakingChar->view].numLoops) ||
-                (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1))
+            if (speakingChar->on && // don't bother checking if character is not visible (also fixes 'Trilby's Notes' legacy game)
+                ((speakingChar->loop >= views[speakingChar->view].numLoops) ||
+                (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)))
             {
                 quitprintf("!Unable to display speech because the character %s has an invalid speech view (View %d, loop %d, frame %d)", speakingChar->scrname, speakingChar->view + 1, speakingChar->loop, speakingChar->frame);
             }

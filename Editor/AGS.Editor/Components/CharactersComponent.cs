@@ -186,6 +186,7 @@ namespace AGS.Editor.Components
                 else
                 {
                     OnItemIDChanged(itemBeingEdited);
+                    OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(itemBeingEdited, itemBeingEdited.ID));
                 }
             }
             else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)

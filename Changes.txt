@@ -1,5 +1,19 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 4, August 2020
+
+Editor:
+ - Fixed room editor crashing after user changes script name of a character present in opened room.
+ - Fixed modifying any item's name will make a new name assigned to all opened tabs.
+
+Engine:
+ - Fixed OpenGL was taking screenshots incorrectly on certain systems with different alignment
+   of color components in video memory (OSX, iOS).
+
+WinSetup:
+ - Fixed "Use voice pak" option was reset if no speech.vox found.
+
+
 VERSION 3.5.0 - Patch 3, July 2020
 
 Editor:

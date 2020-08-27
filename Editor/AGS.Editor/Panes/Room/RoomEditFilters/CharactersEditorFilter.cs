@@ -533,6 +533,8 @@ namespace AGS.Editor
             if (!RoomItemRefs.ContainsKey(oldID))
                 return;
             string newID = GetItemID(c);
+            if (newID == oldID)
+                return;
             // If the new key is also present that means we are swapping two items
             if (RoomItemRefs.ContainsKey(newID))
             {

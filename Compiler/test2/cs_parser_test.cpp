@@ -3077,3 +3077,62 @@ TEST(Compile, AttributeGet2)
     EXPECT_NE(std::string::npos, msg.find("static"));
 }
 
+TEST(Compile, NewBuiltin1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Cannot do "new X;" when X is a builtin type
+
+    char *inpl = "\
+        builtin managed struct DynamicSprite            \n\
+        {                                               \n\
+        };                                              \n\
+                                                        \n\
+        struct SpriteFont                               \n\
+        {                                               \n\
+            DynamicSprite *Glyph;                       \n\
+            import void    CreateFromSprite();          \n\
+        };                                              \n\
+                                                        \n\
+        void SpriteFont::CreateFromSprite()             \n\
+        {                                               \n\
+            this.Glyph = new DynamicSprite;             \n\
+        }                                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("built-in"));
+}
+
+TEST(Compile, NewArrayBuiltin1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can do "new X[77];" when X is a builtin type because this will only
+    // allocate a dynarray of pointers, not of X chunks
+
+    char *inpl = "\
+        builtin managed struct DynamicSprite            \n\
+        {                                               \n\
+        };                                              \n\
+                                                        \n\
+        struct SpriteFont                               \n\
+        {                                               \n\
+            DynamicSprite *Glyphs[];                    \n\
+            import void    CreateFromSprite();          \n\
+        };                                              \n\
+                                                        \n\
+        void SpriteFont::CreateFromSprite()             \n\
+        {                                               \n\
+            this.Glyphs = new DynamicSprite[77];        \n\
+        }                                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}

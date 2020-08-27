@@ -2196,14 +2196,8 @@ ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype new_vartype)
         return kERR_UserError;
     }
 
-    if (_sym.IsBuiltin(new_vartype))
-    {
-        Error(
-            "Cannot use 'new' with the built-in type '%s'",
-            _sym.GetName(new_vartype).c_str());
-        return kERR_UserError;
-    }
-
+    // Note: While it is an error to use a built-in type with new, it is
+    // allowed to use a built-in type with new[].
     return kERR_None;
 }
 
@@ -2222,6 +2216,14 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
 
     if (expression.ReachedEOF()) // "new VARTYPE", nothing following
     {
+        if (_sym.IsBuiltin(new_vartype))
+        {
+            Error(
+                "Cannot use 'new' with the built-in type '%s'",
+                _sym.GetName(new_vartype).c_str());
+            return kERR_UserError;
+        }
+
         vartype = _sym.VartypeWith(kVTT_Dynpointer, new_vartype);
         const size_t size = _sym.GetSize(new_vartype);
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, size);

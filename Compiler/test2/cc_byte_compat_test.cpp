@@ -1,7 +1,6 @@
-#include <iostream>  
-#include <fstream>
 #include <string>
 #include <map>
+#include <iostream>  
 #include <fstream>
 #include <streambuf>
 
@@ -71,7 +70,7 @@ extern void clear_error();
 extern const char *last_seen_cc_error();
 extern ccCompiledScript *newScriptFixture();
 
-// from cs_parser_test.cpp, provide "ready-made" code chunks to be included in tests
+// from cs_parser1_test.cpp, provide "ready-made" code chunks to be included in tests
 extern char g_Input_Bool[], g_Input_String[];
 
 std::string Esc(const char ch)

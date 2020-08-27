@@ -421,6 +421,8 @@ private:
 
     bool IsIdentifier(Symbol symb);
 
+    std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
+
     inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
 
     void SetDynpointerInManagedVartype(Vartype &vartype);
@@ -785,7 +787,7 @@ private:
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    ErrorType ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, TypeQualifierSet tqs, Vartype vartype);
+    ErrorType ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
     // We're in a struct declaration. Parse an attribute declaration.
     ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype);

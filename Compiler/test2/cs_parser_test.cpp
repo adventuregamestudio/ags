@@ -2999,3 +2999,81 @@ TEST(Compile, ExtenderFuncClash)
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST(Compile, MissingSemicolonAfterStruct1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Missing ";" after struct declaration; isn't a var decl either
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };      \n\
+        struct CameraEx                         \n\
+        {                                       \n\
+            import static readonly attribute bool StaticTarget;  \n\
+        }                                       \n\
+                                                \n\
+        bool get_StaticTarget(static CameraEx)  \n\
+        {                                       \n\
+            return 0;                           \n\
+        }                                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("orget a"));
+}
+
+TEST(Compile, AttributeGet1)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Accept a readonly attribute and a non-readonly getter
+    
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };      \n\
+        struct CameraEx                         \n\
+        {                                       \n\
+            import static readonly attribute bool StaticTarget;  \n\
+        };                                      \n\
+                                                \n\
+        bool get_StaticTarget(static CameraEx)  \n\
+        {                                       \n\
+            return 0;                           \n\
+        }                                       \n\
+        ";
+        
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST(Compile, AttributeGet2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Do not accept a static attribute and a non-static getter
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };      \n\
+        struct CameraEx                         \n\
+        {                                       \n\
+            import static readonly attribute bool StaticTarget;  \n\
+        };                                      \n\
+                                                \n\
+        bool get_StaticTarget(this CameraEx *)  \n\
+        {                                       \n\
+            return 0;                           \n\
+        }                                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("static"));
+}
+

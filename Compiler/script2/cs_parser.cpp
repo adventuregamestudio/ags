@@ -144,6 +144,18 @@ bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
     return true;
 }
 
+std::string const AGS::Parser::TypeQualifierSet2String(TypeQualifierSet tqs) const
+{
+    std::string ret;
+
+    for (auto tq_it = _tq2String.begin(); _tq2String.end() != tq_it; tq_it++)
+        if (FlagIsSet(tqs, tq_it->first))
+            ret += tq_it->second + " ";
+    if (ret.length() > 0)
+        ret.pop_back();
+    return ret;
+}
+
 ErrorType AGS::Parser::String2Int(std::string const &str, int &val)
 {
     const bool is_neg = (0 == str.length() || '-' == str.at(0));
@@ -1508,11 +1520,13 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
 
     if ((known_info.TypeQualifiers & ~kTQ_Import) != (this_entry.TypeQualifiers & ~kTQ_Import))
     {
+        std::string const ki_tq = TypeQualifierSet2String(known_info.TypeQualifiers & ~kTQ_Import);
+        std::string const te_tq = TypeQualifierSet2String(this_entry.TypeQualifiers & ~kTQ_Import);
         std::string msg = ReferenceMsg(
-            "The qualifiers of '%s' are different here than elsewhere",
+            "'%s' has the qualifiers '%s' here but '%s' elsewhere",
             known_info.DeclSectionId,
             known_info.DeclLine);
-        Error(msg.c_str(), this_entry.SName.c_str());
+        Error(msg.c_str(), this_entry.SName.c_str(), te_tq.c_str(), ki_tq.c_str());
         return kERR_UserError;
     }
 
@@ -4328,11 +4342,13 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
 
     if ((known_info->TypeQualifiers & ~kTQ_Import) != (this_entry->TypeQualifiers & ~kTQ_Import))
     {
+        std::string const ki_tq = TypeQualifierSet2String(known_info->TypeQualifiers & ~kTQ_Import);
+        std::string const te_tq = TypeQualifierSet2String(this_entry->TypeQualifiers & ~kTQ_Import);
         std::string msg = ReferenceMsg(
-            "Qualifiers of this variable do not match prototype",
+            "The variable '%s' has the qualifiers '%s' here, but '%s' elsewhere",
             known_info->DeclSectionId,
             known_info->DeclLine);
-        Error(msg.c_str());
+        Error(msg.c_str(), te_tq.c_str(), ki_tq.c_str());
         return kERR_UserError;
     }
 
@@ -5001,7 +5017,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Sy
 
 // We are processing an attribute.
 // This corresponds to a getter func and a setter func, declare one of them
-ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, TypeQualifierSet tqs, Vartype vartype)
+ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype)
 {
     // If this symbol has been defined before, check whether the definitions clash
     SymbolType const stype = _sym[name_of_func].SType;
@@ -5056,6 +5072,10 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(Symbol struct_of_func, 
 ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype)
 {
     size_t const declaration_start = _src.GetCursor();
+    // "readonly" means that there isn't a setter function. The individual vartypes are not readonly.
+    bool const attrib_is_readonly = FlagIsSet(tqs, kTQ_Readonly);
+    SetFlag(tqs, kTQ_Readonly, false);
+
     bool attrib_is_indexed = false;
 
     if (kSYM_OpenBracket == _sym.GetSymbolType(_src.PeekNext()))
@@ -5073,28 +5093,28 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
     if (attrib_is_indexed)
         _sym[vname].Vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].Vartype);
 
-    // Declare attribute get func, e.g. get_ATTRIB()
+    // Declare attribute getter, e.g. get_ATTRIB()
     Symbol attrib_func = -1;
-    bool func_is_setter = false;
-    ErrorType retval = ConstructAttributeFuncName(vname, func_is_setter, attrib_is_indexed, attrib_func);
+    bool const get_func_is_setter = false;
+    ErrorType retval = ConstructAttributeFuncName(vname, get_func_is_setter, attrib_is_indexed, attrib_func);
     if (retval < 0) return retval;
     Symbol const get_func_name = MangleStructAndComponent(stname, attrib_func);
-    retval = ParseStruct_Attribute_DeclareFunc(stname, get_func_name, func_is_setter, attrib_is_indexed, tqs, vartype);
+    retval = ParseStruct_Attribute_DeclareFunc(tqs, stname, get_func_name, get_func_is_setter, attrib_is_indexed, vartype);
     if (retval < 0) return retval;
     _sym.SetDeclared(
         get_func_name,
         _src.GetSectionIdAt(declaration_start),
         _src.GetLinenoAt(declaration_start));
 
-    if (FlagIsSet(tqs, kTQ_Readonly))
+    if (attrib_is_readonly)
         return kERR_None;
 
-    // Declare attribute set func, e.g. set_ATTRIB(value)
-    func_is_setter = true;
-    retval = ConstructAttributeFuncName(vname, func_is_setter, attrib_is_indexed, attrib_func);
+    // Declare attribute setter, e.g. set_ATTRIB(value)
+    bool const set_func_is_setter = true;
+    retval = ConstructAttributeFuncName(vname, set_func_is_setter, attrib_is_indexed, attrib_func);
     if (retval < 0) return retval;
     Symbol const set_func_name = MangleStructAndComponent(stname, attrib_func);
-    retval = ParseStruct_Attribute_DeclareFunc(stname, set_func_name, func_is_setter, attrib_is_indexed, tqs, vartype);
+    retval = ParseStruct_Attribute_DeclareFunc(tqs, stname, set_func_name, set_func_is_setter, attrib_is_indexed, vartype);
     if (retval < 0) return retval;
     _sym.SetDeclared(
         set_func_name,
@@ -5426,7 +5446,6 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingSta
         kSYM_GlobalVar != type_of_next &&
         kSYM_LocalVar != type_of_next &&
         kSYM_NoLoopCheck != type_of_next && 
-        kSYM_Vartype != type_of_next &&
         _sym.GetDynpointerSym() != nextsym)
     {
         Error("Unexpected '%s' (did you forget a ';' ?)", _sym.GetName(nextsym).c_str());

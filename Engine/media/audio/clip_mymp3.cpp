@@ -19,6 +19,7 @@
 #include "media/audio/clip_mymp3.h"
 #include "media/audio/audiointernaldefs.h"
 #include "ac/common.h"               // quit()
+#include "ac/asset_helper.h"
 #include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
@@ -36,9 +37,10 @@ void MYMP3::poll()
     }
 
     if (tempbuf != nullptr) {
+        AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)in->userdata;
         int free_val = -1;
-        if (chunksize >= in->normal.todo) {
-            chunksize = in->normal.todo;
+        if (chunksize >= obj->remains) {
+            chunksize = obj->remains;
             free_val = chunksize;
         }
         pack_fread(tempbuf, chunksize, in);

@@ -64,8 +64,8 @@ MYWAVE *thiswave;
 SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, int loop)
 {
     // Load via soundcache.
-    long dummy;
-    SAMPLE *new_sample = (SAMPLE*)get_cached_sound(asset_name, true, &dummy);
+    size_t dummy;
+    SAMPLE *new_sample = (SAMPLE*)get_cached_sound(asset_name, true, dummy);
 
     if (new_sample == nullptr)
         return nullptr;
@@ -85,7 +85,8 @@ PACKFILE *mp3in;
 MYMP3 *thistune;
 SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 {
-    mp3in = PackfileFromAsset(asset_name);
+    size_t asset_size;
+    mp3in = PackfileFromAsset(asset_name, asset_size);
     if (mp3in == nullptr)
         return nullptr;
 
@@ -97,11 +98,11 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
     thistune = new MYMP3();
     thistune->in = mp3in;
     thistune->chunksize = MP3CHUNKSIZE;
-    thistune->filesize = mp3in->normal.todo;
+    thistune->filesize = asset_size;
     thistune->vol = voll;
 
-    if (thistune->chunksize > mp3in->normal.todo)
-        thistune->chunksize = mp3in->normal.todo;
+    if (thistune->chunksize > thistune->filesize)
+        thistune->chunksize = thistune->filesize;
 
     pack_fread(tmpbuffer, thistune->chunksize, mp3in);
 
@@ -109,7 +110,7 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 
     {
         AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->normal.todo < 1));
+        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (thistune->filesize < 1));
     }
 
     if (thistune->stream == nullptr) {
@@ -128,8 +129,8 @@ MYSTATICMP3 *thismp3;
 SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
 {
     // Load via soundcache.
-    long muslen = 0;
-    char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
+    size_t muslen = 0;
+    char* mp3buffer = get_cached_sound(asset_name, false, muslen);
     if (mp3buffer == nullptr)
         return nullptr;
 
@@ -179,8 +180,8 @@ MYSTATICOGG *thissogg;
 SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
 {
     // Load via soundcache.
-    long muslen = 0;
-    char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
+    size_t muslen = 0;
+    char* mp3buffer = get_cached_sound(asset_name, false, muslen);
     if (mp3buffer == nullptr)
         return nullptr;
 
@@ -205,7 +206,8 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
 MYOGG *thisogg;
 SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
 {
-    mp3in = PackfileFromAsset(asset_name);
+    size_t asset_size;
+    mp3in = PackfileFromAsset(asset_name, asset_size);
     if (mp3in == nullptr)
         return nullptr;
 
@@ -223,13 +225,13 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     thisogg->last_ms_offs = 0;
     thisogg->last_but_one_but_one = 0;
 
-    if (thisogg->chunksize > mp3in->normal.todo)
-        thisogg->chunksize = mp3in->normal.todo;
+    if (thisogg->chunksize > asset_size)
+        thisogg->chunksize = asset_size;
 
     pack_fread(tmpbuffer, thisogg->chunksize, mp3in);
 
     thisogg->buffer = (char *)tmpbuffer;
-    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (mp3in->normal.todo < 1));
+    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (asset_size < 1));
 
     if (thisogg->stream == nullptr) {
         free(tmpbuffer);
@@ -250,7 +252,8 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
     if (!thismidi && psp_midi_preload_patches)
         load_midi_patches();
 
-    PACKFILE *pf = PackfileFromAsset(asset_name);
+    size_t asset_size;
+    PACKFILE *pf = PackfileFromAsset(asset_name, asset_size);
     if (!pf)
         return nullptr;
 
@@ -299,7 +302,8 @@ void remove_mod_player() {
 MYMOD *thismod = nullptr;
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
 {
-    DUMBFILE *df = DUMBfileFromAsset(asset_name);
+    size_t asset_size;
+    DUMBFILE *df = DUMBfileFromAsset(asset_name, asset_size);
     if (!df)
         return nullptr;
 

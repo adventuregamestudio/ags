@@ -24,7 +24,7 @@ struct MYMP3:public SOUNDCLIP
 {
     ALMP3_MP3STREAM *stream;
     PACKFILE *in;
-    long  filesize;
+    size_t filesize;
     char *buffer;
     int chunksize;
 

@@ -401,13 +401,19 @@ Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
 //
 static int ags_pf_fclose(void *userdata)
 {
-    delete (Stream*)userdata;
+    delete (AGS_PACKFILE_OBJ*)userdata;
     return 0;
 }
 
 static int ags_pf_getc(void *userdata)
 {
-    return ((Stream*)userdata)->ReadByte();
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)userdata;
+    if (obj->remains > 0)
+    {
+        obj->remains--;
+        return obj->stream->ReadByte();
+    }
+    return -1;
 }
 
 static int ags_pf_ungetc(int c, void *userdata)
@@ -417,7 +423,14 @@ static int ags_pf_ungetc(int c, void *userdata)
 
 static long ags_pf_fread(void *p, long n, void *userdata)
 {
-    return ((Stream*)userdata)->Read(p, n);
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)userdata;
+    if (obj->remains > 0)
+    {
+        size_t read = Math::Min(obj->remains, (size_t)n);
+        obj->remains -= read;
+        return obj->stream->Read(p, read);
+    }
+    return -1;
 }
 
 static int ags_pf_putc(int c, void *userdata)
@@ -432,20 +445,20 @@ static long ags_pf_fwrite(AL_CONST void *p, long n, void *userdata)
 
 static int ags_pf_fseek(void *userdata, int offset)
 {
-    return ((Stream*)userdata)->Seek(offset) ? 0 : -1;
+    return -1; // don't support seek
 }
 
 static int ags_pf_feof(void *userdata)
 {
-    return ((Stream*)userdata)->EOS() ? 1 : 0;
+    return ((AGS_PACKFILE_OBJ*)userdata)->remains == 0;
 }
 
 static int ags_pf_ferror(void *userdata)
 {
-    return ((Stream*)userdata)->HasErrors() ? 1 : 0;
+    return ((AGS_PACKFILE_OBJ*)userdata)->stream->HasErrors() ? 1 : 0;
 }
 
-// Custom AGS PACKFILE callback table
+// Custom PACKFILE callback table
 static PACKFILE_VTABLE ags_packfile_vtable = {
     ags_pf_fclose,
     ags_pf_getc,
@@ -459,23 +472,23 @@ static PACKFILE_VTABLE ags_packfile_vtable = {
 };
 //
 
-PACKFILE *PackfileFromAsset(const AssetPath &path)
+PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
 {
-    size_t asset_size = 0;
     Stream *asset_stream = LocateAsset(path, asset_size);
     if (asset_stream && asset_size > 0)
     {
-        PACKFILE *pf = pack_fopen_vtable(&ags_packfile_vtable, asset_stream);
-        if (pf) // We still must set normal.todo, because some of the AGS code relies on it
-            pf->normal.todo = asset_size;
-        return pf;
+        AGS_PACKFILE_OBJ* obj = new AGS_PACKFILE_OBJ;
+        obj->stream.reset(asset_stream);
+        obj->asset_size = asset_size;
+        obj->remains = asset_size;
+        return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
     return nullptr;
 }
 
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
+DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
 {
-    PACKFILE *pf = PackfileFromAsset(path);
+    PACKFILE *pf = PackfileFromAsset(path, asset_size);
     if (pf)
         return dumbfile_open_packfile(pf);
     return nullptr;

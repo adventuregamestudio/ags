@@ -94,7 +94,7 @@ void sound_cache_free(char* buffer, bool is_wave)
 }
 
 
-char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
+char* get_cached_sound(const AssetPath &asset_name, bool is_wave, size_t &size)
 {
 	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
@@ -102,7 +102,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
     Debug::Printf("get_cached_sound(%s %d)\n", asset_name.first.GetCStr(), (unsigned int)is_wave);
 #endif
 
-    *size = 0;
+    size = 0;
 
     int i;
     for (i = 0; i < psp_audio_cachesize; i++)
@@ -117,7 +117,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 #endif
             sound_cache_entries[i].reference++;
             sound_cache_entries[i].last_used = sound_cache_counter++;
-            *size = sound_cache_entries[i].size;
+            size = sound_cache_entries[i].size;
 
             return sound_cache_entries[i].data;
         }
@@ -129,7 +129,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 
     if (is_wave)
     {
-        PACKFILE *wavin = PackfileFromAsset(asset_name);
+        PACKFILE *wavin = PackfileFromAsset(asset_name, size);
         if (wavin != nullptr)
         {
             wave = load_wav_pf(wavin);
@@ -138,7 +138,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
     }  
     else
     {
-        mp3in = PackfileFromAsset(asset_name);
+        mp3in = PackfileFromAsset(asset_name, size);
         if (mp3in == nullptr)
         {
             return nullptr;
@@ -178,13 +178,12 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 
     if (is_wave)
     {
-        *size = 0;
+        size = 0; // ??? CHECKME
         newdata = (char*)wave;
     }
     else
     {
-        *size = mp3in->normal.todo;
-        newdata = (char *)malloc(*size);
+        newdata = (char *)malloc(size);
 
         if (newdata == nullptr)
         {
@@ -192,7 +191,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
             return nullptr;
         }
 
-        pack_fread(newdata, *size, mp3in);
+        pack_fread(newdata, size, mp3in);
         pack_fclose(mp3in);
     }
 
@@ -218,7 +217,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
                 free(sound_cache_entries[i].data);
 	}
 	
-        sound_cache_entries[i].size = *size;
+        sound_cache_entries[i].size = size;
         sound_cache_entries[i].data = newdata;
 
         if (sound_cache_entries[i].file_name)

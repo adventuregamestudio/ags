@@ -16,6 +16,7 @@
 #include "media/audio/clip_myogg.h"
 #include "media/audio/audiointernaldefs.h"
 #include "ac/common.h"               // quit()
+#include "ac/asset_helper.h"
 #include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
@@ -31,16 +32,17 @@ void MYOGG::poll()
 {
     if (state_ != SoundClipPlaying) { return; }
 
-    if (in->normal.todo > 0)
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)in->userdata;
+    if (obj->remains > 0)
     {
         // update the buffer
         char *tempbuf = (char *)alogg_get_oggstream_buffer(stream);
         if (tempbuf != nullptr)
         {
             int free_val = -1;
-            if (chunksize >= in->normal.todo)
+            if (chunksize >= obj->remains)
             {
-                chunksize = in->normal.todo;
+                chunksize = obj->remains;
                 free_val = chunksize;
             }
             pack_fread(tempbuf, chunksize, in);

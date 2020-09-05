@@ -106,12 +106,30 @@ void SetMouseBounds(int x1, int y1, int x2, int y2)
 // mouse cursor functions:
 // set_mouse_cursor: changes visual appearance to specified cursor
 void set_mouse_cursor(int newcurs) {
-    int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
+    const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
+    msethotspot(hotspotx, hotspoty);
 
+    // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
+    if (newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 &&
+        (mouse_frame > 0 || mouse_delay > 0))
+    {
+        return;
+    }
+
+    // reset animation timing only if it's another cursor
+    if (newcurs != cur_cursor)
+    {
+        cur_cursor = newcurs;
+        mouse_frame = 0;
+        mouse_delay = 0;
+    }
+
+    // Assign new pic
     set_new_cursor_graphic(game.mcurs[newcurs].pic);
     delete dotted_mouse_cursor;
     dotted_mouse_cursor = nullptr;
 
+    // If it's inventory cursor, draw hotspot crosshair sprite upon it
     if ((newcurs == MODE_USE) && (game.mcurs[newcurs].pic > 0) &&
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
             // If necessary, create a copy of the cursor and put the hotspot
@@ -139,13 +157,6 @@ void set_mouse_cursor(int newcurs) {
             }
             mousecurs[0] = dotted_mouse_cursor;
             update_cached_mouse_cursor();
-    }
-    msethotspot(hotspotx, hotspoty);
-    if (newcurs != cur_cursor)
-    {
-        cur_cursor = newcurs;
-        mouse_frame=0;
-        mouse_delay=0;
     }
 }
 

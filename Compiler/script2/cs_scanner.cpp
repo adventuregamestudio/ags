@@ -380,21 +380,21 @@ int AGS::Scanner::HexChar2Char()
     return ret;
 }
 
-int AGS::Scanner::EscapedChar2Char(int ch, bool &error_encountered)
+int AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, bool &error_encountered)
 {
-    if (IsDigit(ch))
-        return OctChar2Char(ch);
+    if (IsDigit(first_char_after_backslash))
+        return OctChar2Char(first_char_after_backslash);
 
-    switch (ch)
+    switch (first_char_after_backslash)
     {
     default:
         error_encountered = true;
         _lastError = "Found unknown escape sequence '\\&char&' in string.";
-        ReplaceToken(_lastError, "&char&", std::string{ 1, static_cast<char>(ch) });
+        ReplaceToken(_lastError, "&char&", std::string{ 1, static_cast<char>(first_char_after_backslash) });
         return 0;
     case '\'':
     case '\"':
-        return ch;
+        return first_char_after_backslash;
     case 'a':
         return '\a';
     case 'b':

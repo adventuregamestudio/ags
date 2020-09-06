@@ -37,13 +37,13 @@ void ccRemoveDefaultHeaders()
     defaultHeaders.clear();
 }
 
-void ccSetSoftwareVersion(const char *versionNumber)
+void ccSetSoftwareVersion(const char *version)
 {
-    ccSoftwareVersion = versionNumber;
+    ccSoftwareVersion = version;
 }
 
 
-ccScript *ccCompileText(const char *texo, const char *scriptName)
+ccScript *ccCompileText(const char *script, const char *scriptName)
 {
     ccCompiledScript *compiled_script = new ccCompiledScript();
     compiled_script->init();
@@ -67,7 +67,7 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
     // sources start with a __NEWSCRIPTSTART_ token
     for (size_t header = 0; header < num_of_headers; header++)
         sourcecode += defaultHeaders[header].Content;
-    sourcecode += texo;
+    sourcecode += script;
     ccCurScriptName = scriptName;
     compiled_script->start_new_section(ccCurScriptName);
     cc_compile(sourcecode.c_str(), compiled_script);

@@ -502,7 +502,7 @@ private:
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
 
     // process a parameter decl in a function parameter list
-    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, size_t param_idx);
+    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype param_vartype, bool param_is_const, size_t param_idx);
 
     ErrorType ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
@@ -746,7 +746,7 @@ private:
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
     // we have accepted something like "int a" and we're expecting "["
-    ErrorType ParseArray(Symbol var_name, Vartype &vartype);
+    ErrorType ParseArray(Symbol vname, Vartype &vartype);
 
     ErrorType ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 

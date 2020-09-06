@@ -77,7 +77,7 @@ AGS::StringsLoc ccCompiledScript::add_string(std::string const &literal)
     // because the scanner must deal with '\\' anyway.
     size_t const literal_len = literal.size() + 1; // length including the terminating '\0'
 
-    strings = (char *)realloc(strings, stringssize + literal_len);
+    strings = (char *) realloc(strings, stringssize + literal_len);
     size_t const start_of_new_string = stringssize;
 
     memcpy(&strings[start_of_new_string], literal.c_str(), literal_len);
@@ -85,26 +85,26 @@ AGS::StringsLoc ccCompiledScript::add_string(std::string const &literal)
     return start_of_new_string;
 }
 
-void ccCompiledScript::add_fixup(AGS::CodeLoc locc, AGS::FixupType ftype)
+void ccCompiledScript::add_fixup(AGS::CodeLoc where, AGS::FixupType ftype)
 {
-    fixuptypes = (char *)realloc(fixuptypes, numfixups + 5);
+    fixuptypes = (char *) realloc(fixuptypes, numfixups + 5);
     fixups = static_cast<AGS::CodeLoc *>(realloc(
         fixups,
         (numfixups * sizeof(AGS::CodeLoc)) + 10));
     fixuptypes[numfixups] = ftype;
-    fixups[numfixups] = locc;
+    fixups[numfixups] = where;
     numfixups++;
 }
 
-AGS::CodeLoc ccCompiledScript::add_new_function(std::string const &func_name, int *idx)
+AGS::CodeLoc ccCompiledScript::add_new_function(std::string const &func_name, int *index_allocated)
 {
     FuncProps fp;
     fp.Name = func_name;
     fp.CodeOffs = codesize;
     fp.NumOfParams = 0;
     functions.push_back(fp);
-    if (idx)
-        *idx = functions.size() - 1;
+    if (index_allocated)
+        *index_allocated = functions.size() - 1;
     return codesize;
 }
 
@@ -122,7 +122,7 @@ int ccCompiledScript::add_new_import(std::string const &import_name)
 }
 
 
-int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype etype, AGS::CodeLoc eoffs, size_t num_of_args)
+int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype etype, AGS::CodeLoc location, size_t num_of_arguments)
 {
     // add_new_export(std::string const &name, AGS::Vartype vartype, AGS::CodeLoc location, size_t num_of_arguments = 0);
     if (numexports >= exportsCapacity)
@@ -131,7 +131,7 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
         exports = static_cast<char **>(realloc(exports, sizeof(char *) * exportsCapacity));
         export_addr = static_cast<int32_t *>(realloc(export_addr, sizeof(int32_t) * exportsCapacity));
     }
-    if (eoffs >= 0x00ffffff)
+    if (location >= 0x00ffffff)
     {
         cc_error("export offset too high; script data size too large?");
         return -1;
@@ -140,7 +140,7 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     // mangle the name for functions to record parameters
     std::string new_name(name);
     if (etype == EXPORT_FUNCTION)
-        new_name.append("$").append(std::to_string(num_of_args));
+        new_name.append("$").append(std::to_string(num_of_arguments));
  
     // Check if it's already exported
     for (int exports_idx = 0; exports_idx < numexports; exports_idx++)
@@ -150,18 +150,18 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     size_t const new_name_size = new_name.size() + 1;
     exports[numexports] = static_cast<char *>(malloc(new_name_size));
     strncpy(exports[numexports], new_name.c_str(), new_name_size);
-    export_addr[numexports] = eoffs | (static_cast<long>(etype) << 24L);
+    export_addr[numexports] = location | (static_cast<long>(etype) << 24L);
     return numexports++;
 }
 
-void ccCompiledScript::write_code(AGS::CodeCell byy)
+void ccCompiledScript::write_code(AGS::CodeCell cell)
 {
     if (codesize >= codeallocated - 2)
     {
         codeallocated += 500;
         code = static_cast<int32_t *>(realloc(code, codeallocated * sizeof(int32_t)));
     }
-    code[codesize] = byy;
+    code[codesize] = cell;
     codesize++;
 }
 

@@ -49,12 +49,12 @@ struct ccCompiledScript : public ccScript {
     // Set a fixup to the last code cell written
     inline void fixup_previous(AGS::FixupType ftype) { add_fixup(codesize - 1, ftype); };
 
-    // Add a function named 'name' to the functions repository; if set, index_allocated gets where it is stored
+    // Add a function named 'func_name' to the functions repository; if set, index_allocated gets where it is stored
     // Returns the offset of the function start in the code[] space
-    AGS::CodeLoc add_new_function(std::string const &name, int *index_allocated = nullptr);
+    AGS::CodeLoc add_new_function(std::string const &func_name, int *index_allocated = nullptr);
 
     // Add an import to the import repository; return the index of the import
-    int add_new_import(std::string const &name);
+    int add_new_import(std::string const &import_name);
 
     // Add an exported entity to the export repository;
     // it has type vartype, resides at location; if it is a function
@@ -65,7 +65,7 @@ struct ccCompiledScript : public ccScript {
     std::string start_new_section(std::string const &name);
 
     // Write one Bytecode byte    
-    void write_code(AGS::CodeCell code);
+    void write_code(AGS::CodeCell cell);
 
     // Write a command
     inline void write_cmd(AGS::CodeCell op)

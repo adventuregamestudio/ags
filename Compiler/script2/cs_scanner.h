@@ -90,7 +90,7 @@ private:
     // Translate a '\\' combination into a character, backslash is already read in
     int EscapedChar2Char(int first_char_after_backslash, bool &error_encountered);
 
-    std::string MakeStringPrintable(std::string const &inp);
+    static std::string MakeStringPrintable(std::string const &inp);
 
     // Read oct combination \777; backslash is already read in
     int OctChar2Char(int first_digit_char);

@@ -4619,18 +4619,16 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
         SetFlag(entry.Flags, kSFLG_NoLoopCheck, false);
     }
 
-    // loop through all parameters
-    // the first entry is the return address, so skip that
+    // If there are dynpointer parameters, then the caller has simply "pushed" them onto the stack.
+    // We catch up here by reading each dynpointer and writing it again using MEMWRITEPTR
+    // to declare that the respective cells are used for dynpointers.
     size_t const num_args = _sym[name_of_func].GetNumOfFuncParams();
-    for (size_t pa = 1; pa <= num_args; pa++)
+    for (size_t pa = 1; pa <= num_args; pa++) // skip return value pa == 0
     {
         Vartype const param_vartype = _sym[name_of_func].FuncParamTypes[pa];
         if (!_sym.IsManaged(param_vartype))
             continue;
 
-        // For each managed parameter, an address is pushed where the parameter 
-        // is stored, i.e. a value MAR (!!!)  where m[MAR] (!!!) contains the value. 
-        // We need to convert this to the value itself.
         WriteCmd(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
         WriteCmd(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
         // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
@@ -4641,19 +4639,13 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
     this_entry.Vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static))
     {
-        // Declare the "this" pointer (allocated memory for it will never be used)
+        // Declare "this" but do not allocate memory for it
         this_entry.SType = kSYM_LocalVar;
-        // Don't declare this as dynpointer to prevent it from being dereferenced twice.
-        this_entry.Vartype = struct_of_func;
-        this_entry.SScope = nesting_stack->Depth();
+        this_entry.Vartype = struct_of_func; // Don't declare this as dynpointer
+        this_entry.SScope = 0;
         this_entry.TypeQualifiers = kTQ_Readonly;
         this_entry.Flags = kSFLG_Accessed | kSFLG_StructVartype;
-        // Allocate unused space on stack for the "this" pointer
-        this_entry.SOffset = _scrip.offset_to_local_var_block;
-        WriteCmd(SCMD_LOADSPOFFS, 0);
-        WriteCmd(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);
-        _scrip.offset_to_local_var_block += SIZE_OF_DYNPOINTER;
-        WriteCmd(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
+        this_entry.SOffset = 0;
     }
     return kERR_None;
 }

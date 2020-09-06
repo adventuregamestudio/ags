@@ -549,7 +549,58 @@ TEST(Bytecode, UnaryMinus2) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("UnaryMinus2", scrip);
+    // WriteOutput("UnaryMinus2", scrip);
+    const size_t codesize = 60;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            5,   29,    3,    6,    // 7
+       3,    7,   29,    3,           51,    8,    7,    3,    // 15
+       6,    4,    0,   12,            4,    3,    3,    4,    // 23
+       3,   29,    3,   51,            8,    7,    3,    6,    // 31
+       4,    0,   12,    4,            3,    3,    4,    3,    // 39
+      30,    4,    9,    4,            3,    3,    4,    3,    // 47
+       2,    1,    8,   31,            6,    2,    1,    8,    // 55
+       6,    3,    0,    5,          -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
 TEST(Bytecode, NotNot) {
@@ -560,7 +611,7 @@ TEST(Bytecode, NotNot) {
         int main()                  \n\
         {                           \n\
             int five = 5;           \n\
-            return !!(!5);          \n\
+            return !!(!five);       \n\
         }";
 
     clear_error();
@@ -568,7 +619,54 @@ TEST(Bytecode, NotNot) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Notnot", scrip);
+    // WriteOutput("Notnot", scrip);
+    const size_t codesize = 29;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            5,   29,    3,   51,    // 7
+       4,    7,    3,   42,            3,   42,    3,   42,    // 15
+       3,    2,    1,    4,           31,    6,    2,    1,    // 23
+       4,    6,    3,    0,            5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
 TEST(Bytecode, SimpleIntFunction) {

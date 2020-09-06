@@ -39,6 +39,8 @@ public:
         kDT_Dyn,
     };
 
+    static int const ParameterSScope = 1;
+
     struct ParamDefault
     {
         ParamDefaultType Type;
@@ -101,6 +103,7 @@ public:
     inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
     inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
     inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
+    inline bool IsParameter() const { return ParameterSScope == SScope; };
 
     // Array or Dynarray
     size_t NumArrayElements(SymbolTable const &symt) const;

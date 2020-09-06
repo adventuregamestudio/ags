@@ -24,6 +24,7 @@ constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 constexpr size_t VARARGS_INDICATOR = 100;
 constexpr size_t SIZE_OF_DYNPOINTER = 4;
 constexpr size_t SIZE_OF_INT = 4;
+constexpr size_t SIZE_OF_STACK_CELL = 4;
 
 inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
 inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
@@ -116,13 +117,11 @@ enum SymbolTableFlag : FlagSet
 {
     kSFLG_Accessed = 1 << 0, // If not set, the variable is never used
     kSFLG_NoLoopCheck = 1 << 1, // A function that does not check for long-running loops
-    kSFLG_Parameter = 1 << 2, // A parameter
-    kSFLG_StrBuffer = 1 << 3, // Was allocated a string buffer
-    kSFLG_StructAutoPtr = 1 << 4, // "*" is implied
-    kSFLG_StructBuiltin = 1 << 5, // is a member variable or member function
-    kSFLG_StructMember = 1 << 6, // is a member variable or member function
-    kSFLG_StructManaged = 1 << 7, // is a member variable or member function
-    kSFLG_StructVartype = 1 << 8, // is a struct vartype (type will be kSYM_Vartype)
+    kSFLG_StructAutoPtr = 1 << 2, // "*" is implied
+    kSFLG_StructBuiltin = 1 << 3, // is built in (can't use "new")
+    kSFLG_StructMember = 1 << 4, // is a member 
+    kSFLG_StructManaged = 1 << 5, // is managed
+    kSFLG_StructVartype = 1 << 6, // is a struct 
 };
 
 

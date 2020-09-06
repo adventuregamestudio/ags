@@ -1413,6 +1413,99 @@ TEST(Compile, ImportOverride3) {
     ASSERT_GT(0, compileResult);
 }
 
+TEST(Compile, LocalSeq1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The  { ... } must NOT invalidate Var1 but they MUST invalidate Var2.
+
+    char *inpl = "\
+    void Func()                     \n\
+    {                               \n\
+        int Var1 = 0;               \n\
+        { short Var2 = 5; }         \n\
+        float Var2 = 7.7;           \n\
+        Var1 = 3;                   \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, LocalSeq2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The  while() { ... } must NOT invalidate Var1 but MUST invalidate Var2.
+
+    char *inpl = "\
+    void Func()                     \n\
+    {                               \n\
+        int Var1 = 0;               \n\
+        while (Var1 > 0) { short Var2 = 5; } \n\
+        float Var2 = 7.7;           \n\
+        Var1 = 3;                   \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, LocalSeq3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The  do { ... } while() must NOT invalidate Var1 but MUST invalidate Var2.
+
+    char *inpl = "\
+    void Func()                     \n\
+    {                               \n\
+        int Var1 = 0;               \n\
+        do { short Var2 = 5; } while (Var1 > 0); \n\
+        float Var2 = 7.7;           \n\
+        Var1 = 3;                   \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, LocalSeq4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The  for() { ... } must NOT invalidate Var1 but MUST invalidate Var2 and Var3.
+
+    char *inpl = "\
+    void Func()                     \n\
+    {                               \n\
+        int Var1 = 0;               \n\
+        for (int Var2 = 0; Var2 != Var2; Var2 = 1)  \n\
+        {                           \n\
+            short Var3 = 5;         \n\
+        }                           \n\
+        float Var2 = 7.7;           \n\
+        float Var3 = 8.88;          \n\
+        Var1 = 3;                   \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+
 TEST(Compile, LocalGlobalSeq1) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -2789,7 +2882,7 @@ TEST(Compile, FuncParamDefaults3)
     EXPECT_NE(std::string::npos, msg.find("#1"));
 }
 
-TEST(Compile, FuncParamNumber)
+TEST(Compile, FuncParamNumber1)
 {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -2806,6 +2899,27 @@ TEST(Compile, FuncParamNumber)
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("parameters"));
+}
+
+TEST(Compile, FuncParamNumber2)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Test                                         \n\
+        {                                                   \n\
+            import void Func(int a, int b, int c, int d);   \n\
+        };                                                  \n\
+                                                            \n\
+        void Test::Func(int a)                              \n\
+        {                                                   \n\
+        }                                                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
 
 TEST(Compile, FuncVarargsCollision)

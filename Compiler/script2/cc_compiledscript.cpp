@@ -17,13 +17,13 @@ void ccCompiledScript::write_lineno(size_t lno)
 void ccCompiledScript::push_reg(AGS::CodeCell regg)
 {
     write_cmd(SCMD_PUSHREG, regg);
-    cur_sp += 4;
+    offset_to_local_var_block += SIZE_OF_STACK_CELL;
 }
 
 void ccCompiledScript::pop_reg(AGS::CodeCell regg)
 {
     write_cmd(SCMD_POPREG, regg);
-    cur_sp -= 4;
+    offset_to_local_var_block -= SIZE_OF_STACK_CELL;
 }
 
 ccCompiledScript::ccCompiledScript()
@@ -202,7 +202,7 @@ void ccCompiledScript::init()
     codeallocated = 0;
     strings = NULL;
     stringssize = 0;
-    cur_sp = 0;
+    offset_to_local_var_block = 0;
     fixups = NULL;
     fixuptypes = NULL;
     numfixups = 0;

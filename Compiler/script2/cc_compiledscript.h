@@ -8,7 +8,7 @@
 
 
 struct ccCompiledScript : public ccScript {
-    struct FuncProps
+   struct FuncProps
     {
         std::string Name;
         size_t NumOfParams;
@@ -17,10 +17,9 @@ struct ccCompiledScript : public ccScript {
     std::vector<FuncProps> functions;
 
     long codeallocated; // [fw] Misplaced. Should be in ccScript.
-    
-    // Number of bytes that have been PUSHED onto the stack.
-    // Local variables begin below that
-    size_t cur_sp; 
+
+     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
+    size_t offset_to_local_var_block;
 
     int last_emitted_lineno;
 

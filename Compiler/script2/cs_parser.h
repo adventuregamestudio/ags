@@ -442,19 +442,18 @@ private:
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
 
-    // Return number of bytes to remove from stack to unallocate local vars
-    // of levels that are above from_level
-    int StacksizeOfLocals(size_t from_level);
+    // The size of all local variables that have been allocated at a level higher than from_level
+    size_t StacksizeOfLocals(size_t from_level);
 
     // Does vartype v contain releasable pointers?
     // Also determines whether vartype contains standard (non-dynamic) arrays.
     bool ContainsReleasableDynpointers(Vartype vartype);
 
-    // We're at the end of a block and releasing a standard array of pointers.
-    // MAR points to the array start. Release each array element (pointer).
+    // We're at the end of a block and releasing a standard array of dynpointers.
+    // MAR points to the array start. Release each array element (dynpointer).
     ErrorType FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax);
 
-    // We're at the end of a block and releasing all the pointers in a struct.
+    // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
     void FreeDynpointersOfStruct(Symbol struct_vtype, bool &clobbers_ax);
 
@@ -502,10 +501,8 @@ private:
 
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
 
-    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_vartype, bool param_is_const, SymbolTableEntry::ParamDefault const &param_default);
-
-    // process a parameter decl in a function parameter list, something like int foo(INT BAR
-    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, int param_idx);
+    // process a parameter decl in a function parameter list
+    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, size_t param_idx);
 
     ErrorType ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
@@ -845,9 +842,6 @@ private:
     //  Find out what surrounding compound statements have ended and handle these endings.
     ErrorType HandleEndOfCompoundStmts(NestingStack *nesting_stack);
 
-    // Parse start of a brace command
-    ErrorType ParseBraceCommandStart(NestingStack *nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);
-
     // Handle the end of a {...} command
     ErrorType HandleEndOfBraceCommand(NestingStack *nesting_stack);
 
@@ -861,10 +855,10 @@ private:
     ErrorType HandleEndOfElse(NestingStack *nesting_stack);
 
     // The first clause of "for (I; W; C);" when it is a declaration
-    ErrorType ParseFor_InitClauseVardecl(size_t nested_level);
+    ErrorType ParseFor_InitClauseVardecl(size_t nesting_level);
 
     // The first clause of "for (I; W; C);"
-    ErrorType ParseFor_InitClause(Symbol peeksym, size_t nested_level);
+    ErrorType ParseFor_InitClause(Symbol peeksym, size_t nesting_level);
 
     // The middle clause of "for (I; W; C);"
     ErrorType ParseFor_WhileClause();

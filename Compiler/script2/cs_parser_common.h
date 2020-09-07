@@ -125,6 +125,18 @@ enum SymbolTableFlag : FlagSet
     kSFLG_StructVartype = 1 << 8, // is a struct vartype (type will be kSYM_Vartype)
 };
 
+
+// ax_scope_type -> ax_scope_type (global or local)
+// Check for kSYM_GLOBALVAR and KSYM_LOCALVAR whether they are flags;
+// if they are, reword to ScopeType
+
+enum ScopeType
+{
+    kScT_Global = 0,
+    kScT_Import = 1,
+    kScT_Local = 2,
+};
+
 enum ErrorType
 {
     kERR_None = 0,

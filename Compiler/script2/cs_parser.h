@@ -95,13 +95,6 @@ public:
         kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
     };
 
-    enum Globalness
-    {
-        kGl_Local = 0,
-        kGl_GlobalNoImport = 1,
-        kGl_GlobalImport = 2,
-    };
-
     typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
 
     // Needs to be public because the manager is initialized outside of Parser
@@ -321,19 +314,29 @@ private:
     // encapsulates the stashed operations that haven't been done on MAR yet.
     class MemoryLocation
     {
+    public:
+        enum LocationType
+        {
+            kLT_None = 0,
+            kLT_Global,
+            kLT_Import,
+            kLT_Local,
+            kLT_Strings,
+        };
+
     private:
-        SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
+        LocationType _Type;
         size_t _StartOffs;
         size_t _ComponentOffs;
 
     public:
         MemoryLocation()
-            : _Type(kSYM_NoType)
+            : _Type(kLT_None)
             , _StartOffs(0)
             , _ComponentOffs(0) {};
 
         // Set the type and the offset of the MAR register
-        void SetStart(SymbolType type, size_t offset);
+        void SetStart(LocationType type, size_t offset);
 
         // Add an offset
         inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
@@ -343,7 +346,7 @@ private:
 
         inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
 
-        inline void Reset() { SetStart(kSYM_NoType, 0); };
+        inline void Reset() { SetStart(kLT_None, 0); };
     };
 
     // Measurements show that the checks whether imports already exist take up
@@ -560,7 +563,7 @@ private:
     ErrorType HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
-    ErrorType ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
@@ -586,37 +589,37 @@ private:
     ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary NEW
-    ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary '-'
-    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
-    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is a unary operator
-    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
-    ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator a binary operator.
-    ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is '?' or a binary operator.
-    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression begins with '('
     // Leaves the cursor pointing after the last token that was processed
-    ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression does not contain operators
     // Leaves the cursor pointing after the last token that was processed
-    ErrorType ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION.
     // Leaves the cursor pointing after the last token that was processed
-    ErrorType ParseExpression_Term(SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse expression in parentheses
     // leaves src pointing after last token in expression, so do getnext() to get the following ; or whatever
@@ -670,12 +673,12 @@ private:
     // This moves the cursor in all cases except for the cascade to the end of what is parsed,
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
     // to the position of the '.'. 
-    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
+    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, MemoryLocation &mloc, Vartype &vartype);
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the struct that the component is defined in
@@ -696,7 +699,7 @@ private:
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
     // _not_ be called and symlist[0] will be the attribute.
-    ErrorType AccessData(bool writing, SrcList &expression, ValueLocation &vloc, int &scope, Vartype &vartype);
+    ErrorType AccessData(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
     bool AccessData_MayAccessClobberAX(SrcList &expression);
@@ -743,12 +746,12 @@ private:
     ErrorType ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness globalness);
+    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
     // we have accepted something like "int a" and we're expecting "["
     ErrorType ParseArray(Symbol var_name, Vartype &vartype);
 
-    ErrorType ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
+    ErrorType ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 
     // there was a forward declaration -- check that the real declaration matches it
     ErrorType ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
@@ -759,9 +762,9 @@ private:
 
     ErrorType ParseVardecl_Local(Symbol var_name, Vartype vartype, bool has_initial_assignment);
 
-    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, Globalness globalness);
+    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
-    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, Globalness globalness);
+    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
     ErrorType ParseFuncBody(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
 
@@ -830,9 +833,9 @@ private:
 
     ErrorType ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func, bool &body_follows);
 
-    ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness);
+    ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, ScopeType scope_type);
 
-    ErrorType ParseVartype_VarDecl(Symbol var_name, Globalness globalness, int nested_level, TypeQualifierSet tqs, Vartype vartype);
+    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, int nested_level, TypeQualifierSet tqs, Vartype vartype);
 
     // We accepted a variable type such as "int", so what follows is a variable or function declaration
     ErrorType ParseVartype(Vartype vartype, NestingStack const &nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);

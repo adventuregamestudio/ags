@@ -30,7 +30,7 @@ ccCompiledScript::ccCompiledScript()
 {
     init();
     ax_vartype = 0;
-    ax_val_scope = 0;
+    ax_scope_type = kScT_Global;
 }
 
 ccCompiledScript::~ccCompiledScript()
@@ -219,7 +219,7 @@ void ccCompiledScript::init()
     sectionOffsets = NULL;
     last_emitted_lineno = 0;
     ax_vartype = 0;
-    ax_val_scope = 0;
+    ax_scope_type = kScT_Global;
 }
 
 // free the extra bits that ccScript doesn't have

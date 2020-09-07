@@ -6915,7 +6915,9 @@ ErrorType AGS::Parser::Parse()
     // If the following functions generate errors, they pertain to the source
     // as a whole. So let's generate them for the last source char. 
     size_t const last_pos = _src.Length() - 1;
-    ccCurScriptName = _src.SectionId2Section(_src.GetSectionIdAt(last_pos)).c_str();
+    char const *current_section = _src.SectionId2Section(_src.GetSectionIdAt(last_pos)).c_str();
+    strncpy(SectionNameBuffer, current_section, sizeof(SectionNameBuffer) / sizeof(char) - 1);
+    ccCurScriptName = SectionNameBuffer;
     currentline = _src.GetLinenoAt(last_pos);
 
     retval = _fcm.CheckForUnresolvedFuncs();

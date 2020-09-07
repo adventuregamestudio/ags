@@ -3250,3 +3250,27 @@ TEST(Compile, NewArrayBuiltin1)
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST(Compile, MissingFunc)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Must either import or define a function with body if you want to call it.
+    // Also, check that the section is set correctly.
+
+    char *inpl = "\
+\"__NEWSCRIPTSTART_HauntedHouse\"                       \n\
+        int main()                                      \n\
+        {                                               \n\
+            return GhostFunc();                         \n\
+        }                                               \n\
+                                                        \n\
+        int GhostFunc(float f = 0.0);                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_STREQ("HauntedHouse", ccCurScriptName);
+}

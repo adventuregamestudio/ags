@@ -2992,8 +2992,11 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
         if (0 != _sym.GetVartype(_sym.GetThisSym()))
             _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
 
-        // Get address of outer into MAR; that's what the func will use as its "this"
+        // MAR contains the address of "outer"; this is what will be used for "this" in the function.
         mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+
+        // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
+        // So we can't emit SCMD_CALLOBJ here, before parameters have been processed. Save MAR instead. 
         _scrip.push_reg(SREG_MAR);
     }
 
@@ -3004,15 +3007,16 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     if (func_uses_this)
     {
         if (0 == num_args)
-        {   // Undo unneeded PUSH
+        {   // MAR is still current, so undo the unneeded PUSH above.
             _scrip.offset_to_local_var_block -= SIZE_OF_STACK_CELL;
             _scrip.codesize -= 2;
         }
         else
-        {
+        {   // Recover the value of MAR from the stack. It's in front of the parameters.
             WriteCmd(
                 SCMD_LOADSPOFFS,
-                (func_uses_normal_stack ? num_args : 0) * 4 + 4);
+                (1 + (func_uses_normal_stack ? num_args : 0)) * SIZE_OF_STACK_CELL);
+            WriteCmd(SCMD_MEMREAD, SREG_MAR);
         }
         WriteCmd(SCMD_CALLOBJ, SREG_MAR);
     }
@@ -3023,14 +3027,12 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamTypes[0];
     _scrip.ax_scope_type = kScT_Local;
 
-    // At runtime, we have returned from the func call,
-    // so we must continue with the object pointer that was in use before the call
     if (func_uses_this)
     {
         if (0 < num_args)
             _scrip.pop_reg(SREG_MAR);
         if (0 != _sym.GetVartype(_sym.GetThisSym()))
-            _scrip.pop_reg(SREG_OP);
+            _scrip.pop_reg(SREG_OP); // Recover the current "this"
     }
 
     MarkAcessed(name_of_func);

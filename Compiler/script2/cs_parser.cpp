@@ -634,50 +634,61 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
     return idx;
 }
 
-void AGS::Parser::MemoryLocation::SetStart(LocationType type, size_t offset)
+void AGS::Parser::MemoryLocation::SetStart(ScopeType type, size_t offset)
 {
-    _Type = type;
-    _StartOffs = offset;
-    _ComponentOffs = 0;
+    ScType = type;
+    _startOffs = offset;
+    _componentOffs = 0;
 }
 
 void AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript &scrip)
 {
-    switch (_Type)
+    switch (_startOffsProcessed? kScT_None : ScType)
     {
-    default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
-        if (_ComponentOffs > 0)
+    default: // The scope type and base address are up-to-date, but an offset might have accumulated 
+        if (_componentOffs > 0)
         {
             scrip.refresh_lineno(lineno);
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
+            _codeEmitted = true;
         }
         break;
 
-    case kLT_Global:
+    case kScT_Global:
         scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.fixup_previous(Parser::kFx_GlobalData);
+        _codeEmitted = true;
         break;
 
-    case kLT_Import:
+    case kScT_Import:
         // Have to convert the import number into a code offset first.
         // Can only then add the offset to it.
         scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _StartOffs);
+        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
         scrip.fixup_previous(Parser::kFx_Import);
-        if (_ComponentOffs != 0)
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _ComponentOffs);
+        if (_componentOffs != 0)
+            scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
+        _codeEmitted = true;
         break;
 
-    case kLT_Local:
+    case kScT_Local:
         scrip.refresh_lineno(lineno);
         scrip.write_cmd(
             SCMD_LOADSPOFFS,
-            scrip.offset_to_local_var_block - _StartOffs - _ComponentOffs);
+            scrip.offset_to_local_var_block - _startOffs - _componentOffs);
+        _codeEmitted = true;
         break;
     }
     Reset();
     return;
+}
+
+void AGS::Parser::MemoryLocation::Reset()
+{
+    _startOffs = 0u;
+    _componentOffs = 0u;
+    _startOffsProcessed = true;
 }
 
 AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)
@@ -3427,9 +3438,9 @@ ErrorType AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing,
     }
 
     if (FlagIsSet(entry.TypeQualifiers, kTQ_Import))
-        mloc.SetStart(MemoryLocation::kLT_Import, soffs);
+        mloc.SetStart(kScT_Import, soffs);
     else
-        mloc.SetStart(is_global ? MemoryLocation::kLT_Global : MemoryLocation::kLT_Local, soffs);
+        mloc.SetStart(is_global ? kScT_Global : kScT_Local, soffs);
 
     vartype = _sym.GetVartype(varname);
 
@@ -3495,12 +3506,7 @@ ErrorType AGS::Parser::AccessData_StringLiteral(SrcList &expression, AGS::Vartyp
     return kERR_None;
 }
 
-// We're getting a variable, literal, constant, func call or the first element
-// of a STRUCT.STRUCT.STRUCT... cascade.
-// This moves symlist in all cases except for the cascade to the end of what is parsed,
-// and in case of a cascade, to the end of the first element of the cascade, i.e.,
-// to the position of the '.'. 
-ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access)
+ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access)
 {
     if (expression.Length() < 1)
     {
@@ -3556,13 +3562,13 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_Constant:
         if (writing) break; // to error msg
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case kSYM_Function:
     {
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
         if (retval < 0) return retval;
@@ -3573,7 +3579,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_GlobalVar:
     {
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = true;
         MarkAcessed(first_sym);
@@ -3582,25 +3588,27 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_LiteralFloat:
         if (writing) break; // to error msg
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_FloatLiteral(false, expression, vartype);
 
     case kSYM_LiteralInt:
         if (writing) break; // to error msg
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case kSYM_LiteralString:
         if (writing) break; // to error msg
-        scope_type = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_StringLiteral(expression, vartype);
 
     case kSYM_LocalVar:
     {
-        scope_type = _sym[first_sym].IsParameter() ? kScT_Global : kScT_Local;
+        // Parameters can be returned although they are local because they are allocated
+        // outside of the function proper. The return scope type for them is global.
+        return_scope_type = _sym[first_sym].IsParameter() ? kScT_Global : kScT_Local;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = false;
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
@@ -3608,12 +3616,12 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_Null:
         if (writing) break; // to error msg
-        scope_type = kScT_Global;
+        mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_Null(expression, vartype);
 
     case kSYM_Vartype:
-        scope_type = kScT_Global;
+        mloc.ScType = kScT_Global;
         static_access = true;
         return AccessData_Static(expression, mloc, vartype);
     }
@@ -3625,7 +3633,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, MemoryLocation &mloc, AGS::Vartype &vartype)
+ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     Symbol const next_sym = expression.PeekNext();
 
@@ -3667,7 +3675,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     case kSYM_Function:
     {
         vloc = kVL_ax_is_value;
-        scope_type = kScT_Local;
+        mloc.ScType = kScT_Local;
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         retval = AccessData_FunctionCall(component, start_of_funccall, mloc, vartype);
         if (retval < 0) return retval;
@@ -3793,7 +3801,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, expression, vloc, scope_type, mloc, vartype);
+        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, expression, vloc, mloc, vartype);
         if (retval < 0) return retval;
 
         // Only the _immediate_ access via 'this.' counts for this flag.

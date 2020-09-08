@@ -125,15 +125,14 @@ enum SymbolTableFlag : FlagSet
 };
 
 
-// ax_scope_type -> ax_scope_type (global or local)
-// Check for kSYM_GLOBALVAR and KSYM_LOCALVAR whether they are flags;
-// if they are, reword to ScopeType
-
+// In what type of memory the variable is allocated
 enum ScopeType
 {
-    kScT_Global = 0,
-    kScT_Import = 1,
-    kScT_Local = 2,
+    kScT_None = 0,
+    kScT_Global,
+    kScT_Import,
+    kScT_Local,
+    kScT_Strings,
 };
 
 enum ErrorType

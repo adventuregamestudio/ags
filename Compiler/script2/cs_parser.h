@@ -314,39 +314,37 @@ private:
     // encapsulates the stashed operations that haven't been done on MAR yet.
     class MemoryLocation
     {
-    public:
-        enum LocationType
-        {
-            kLT_None = 0,
-            kLT_Global,
-            kLT_Import,
-            kLT_Local,
-            kLT_Strings,
-        };
-
     private:
-        LocationType _Type;
-        size_t _StartOffs;
-        size_t _ComponentOffs;
+        size_t _startOffs;
+        size_t _componentOffs;
+        bool _codeEmitted;
+        bool _startOffsProcessed;
 
     public:
-        MemoryLocation()
-            : _Type(kLT_None)
-            , _StartOffs(0)
-            , _ComponentOffs(0) {};
+        ScopeType ScType;
+
+        inline MemoryLocation()
+            : ScType(kScT_None)
+            , _startOffs(0u)
+            , _componentOffs(0u)
+            , _codeEmitted(false)
+            , _startOffsProcessed(false)
+        {
+        }
 
         // Set the type and the offset of the MAR register
-        void SetStart(LocationType type, size_t offset);
+        void SetStart(ScopeType type, size_t offset);
 
-        // Add an offset
-        inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
+        inline ScopeType GetScopeType() const { return ScType; }
+
+        inline void AddComponentOffset(size_t offset) { _componentOffs += offset; };
 
         // Write out the Bytecode necessary to bring MAR up-to-date
         void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
 
-        inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
+        inline bool NothingDoneYet() const { return !_codeEmitted; };
 
-        inline void Reset() { SetStart(kLT_None, 0); };
+        void Reset();
     };
 
     // Measurements show that the checks whether imports already exist take up
@@ -669,13 +667,14 @@ private:
     // of a STRUCT.STRUCT.STRUCT... cascade.
     // This moves the cursor in all cases except for the cascade to the end of what is parsed,
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
-    // to the position of the '.'. 
-    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
+    // to the position of the '.'.
+    // The "return_scope_type" is used for deciding what values can be returned from a function.
+    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the struct that the component is defined in

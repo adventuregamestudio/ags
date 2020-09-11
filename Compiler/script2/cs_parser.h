@@ -67,7 +67,7 @@ public:
         kFT_LocalBody = 2,
     };
 
-    // This indicates where a value is stored.
+    // This indicates where a value is delivered.
     // When reading, we need the value itself.
     // - It can be in AX (kVL_ax_is_value)
     // - or in m(MAR) (kVL_mar_pointsto_value).
@@ -139,8 +139,9 @@ public:
         // Update list of calls to forward declared functions
         ErrorType UpdateCallListOnWriting(CodeLoc start, int id);
 
-        // Set the callpoint for a function. 
+        // Set the address that must be called to call the function.
         // Patch all the function calls of the given function to point to dest
+        // These codecells contained a dummy value before, now they get the proper address
         ErrorType SetFuncCallpoint(Symbol func, CodeLoc dest);
 
         inline bool HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
@@ -163,6 +164,7 @@ private:
     // Remember a code generation point.
     // If at some later time, Restore() is called,
     // then all bytecode that has been generated in the meantime is discarded.
+    // This is useful if code is generated and it turns out later that it was in vain.
     // Currently only undoes the bytecode, not the fixups.
     class RestorePoint
     {
@@ -198,7 +200,7 @@ private:
 
     // A storage for parameters of forward jumps. When at some later time,
     // Patch() is called, then all the jumps will be patched to point to the current
-    // point in code; if appropriate, the last emitted src line will be invalidated.
+    // point in code. If appropriate, the last emitted src line will be invalidated, too.
     class ForwardJump
     {
     private:
@@ -235,7 +237,7 @@ private:
         // All data that is associated with a nesting level of compound statements
         struct NestingInfo
         {
-            SymbolType Type; // Type of the compound statement of this level
+            SymbolType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
             BackwardJumpDest Start;
             ForwardJump JumpOut; // First byte after the statement
             Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
@@ -272,7 +274,7 @@ private:
         inline ForwardJump &JumpOut(size_t level) { return _stack.at(level).JumpOut; }
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
-        inline Vartype SwitchExprVartype() { return _stack.back().SwitchExprVartype; };
+        inline Vartype SwitchExprVartype() const { return _stack.back().SwitchExprVartype; };
         inline void SetSwitchExprVartype(Vartype vt) { _stack.back().SwitchExprVartype = vt; }
 
         // If the innermost nesting is a SWITCH, the location of the "default:" code
@@ -287,8 +289,8 @@ private:
 
         // If the innermost nesting contains code chunks that must be moved around
         // (e.g., in FOR loops), then this is true, else false
-        inline bool ChunksExist() { return !_stack.back().Chunks.empty(); }
-        inline bool ChunksExist(size_t level) { return !_stack.at(level).Chunks.empty(); }
+        inline bool ChunksExist() const { return !_stack.back().Chunks.empty(); }
+        inline bool ChunksExist(size_t level) const { return !_stack.at(level).Chunks.empty(); }
 
         // Code chunks that must be moved around (e.g., in FOR, DO loops)
         inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
@@ -415,7 +417,7 @@ private:
     // Augment the message with a "See ..." indication pointing to the declaration of sym
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
 
-    // These two need to be non-static because they can yield errors,
+    // These two need to be non-static because they can yield errors
     // and errors need the parser object's line number information.
     ErrorType String2Int(std::string const &str, int &val);
     ErrorType String2Float(std::string const &float_as_string, float &val);

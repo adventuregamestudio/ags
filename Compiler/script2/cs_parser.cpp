@@ -3618,12 +3618,12 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_Null:
         if (writing) break; // to error msg
-        mloc.ScType = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_Null(expression, vartype);
 
     case kSYM_Vartype:
-        mloc.ScType = kScT_Global;
+        return_scope_type = mloc.ScType = kScT_Global;
         static_access = true;
         return AccessData_Static(expression, mloc, vartype);
     }

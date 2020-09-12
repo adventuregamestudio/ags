@@ -952,7 +952,7 @@ ErrorType AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_
         // Allocate a local dynamic pointer to hold the return value.
         _scrip.push_reg(SREG_AX);
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
+        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
 
         RestorePoint rp_before_freeing(_scrip);
         bool dummy_bool;

@@ -20,7 +20,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , FuncParamTypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
     , OperatorBinaryPrio(-1)
@@ -42,7 +42,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , VartypeType(kVTT_Atomic)
     , Dims({})
     , Extends(0)
-    , FuncParamTypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
+    , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
     , OperatorBinaryPrio(-1)

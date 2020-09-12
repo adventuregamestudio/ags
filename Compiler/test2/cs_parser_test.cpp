@@ -380,7 +380,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).FuncParamTypes[0]));
+    EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).FuncParamVartypes[0]));
 }
 
 TEST(Compile, DoubleNegatedConstant) {

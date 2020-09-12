@@ -938,7 +938,7 @@ ErrorType AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_
     }
 
     // We're ending the current function; AX is containing the result of the func call.
-    Vartype const func_return_vartype = _sym[name_of_current_func].FuncParamTypes.at(0);
+    Vartype const func_return_vartype = _sym[name_of_current_func].FuncParamVartypes.at(0);
     bool const function_returns_void = _sym.GetVoidSym() == func_return_vartype;
 
     if (_sym.IsDyn(func_return_vartype) && !ax_irrelevant)
@@ -1421,7 +1421,7 @@ ErrorType AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_
     retval = ParseParamlist_Param_DefaultValue(param_vartype, param_default);
     if (retval < 0) return retval;
 
-    _sym[name_of_func].FuncParamTypes.push_back(param_vartype);
+    _sym[name_of_func].FuncParamVartypes.push_back(param_vartype);
     _sym[name_of_func].FuncParamDefaultValues.push_back(param_default);
     
     if (kPP_Main != _pp || !body_follows)
@@ -1437,7 +1437,7 @@ ErrorType AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_
 ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows)
 {
     _sym[funcsym].SScope = false;
-    _sym[funcsym].FuncParamTypes.resize(1u); // [0] is the return type; leave that
+    _sym[funcsym].FuncParamVartypes.resize(1u); // [0] is the return type; leave that
     _sym[funcsym].FuncParamDefaultValues.resize(1u);
     bool param_is_const = false;
     size_t param_idx = 0;
@@ -1490,7 +1490,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
                 return kERR_UserError;
             }
 
-            ErrorType retval = ParseParamlist_Param(funcsym, body_follows, cursym, param_is_const, _sym[funcsym].FuncParamTypes.size());
+            ErrorType retval = ParseParamlist_Param(funcsym, body_follows, cursym, param_is_const, _sym[funcsym].FuncParamVartypes.size());
             if (retval < 0) return retval;
 
             param_is_const = false; // modifier has been used up
@@ -1514,7 +1514,7 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
 {
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.SType = kSYM_Function;
-    entry.FuncParamTypes[0] = return_vartype;
+    entry.FuncParamVartypes[0] = return_vartype;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the entity returned.
     entry.TypeQualifiers = tqs &  ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
 
@@ -1638,7 +1638,7 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
         return kERR_UserError;
     }
 
-    if (known_info.FuncParamTypes.at(0) != this_entry.FuncParamTypes.at(0))
+    if (known_info.FuncParamVartypes.at(0) != this_entry.FuncParamVartypes.at(0))
     {
         std::string msg = ReferenceMsg(
             "Return type of '%s' is declared as '%s' here, as '%s' elsewhere",
@@ -1647,15 +1647,15 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
         Error(
             msg.c_str(),
             this_entry.SName.c_str(),
-            _sym.GetName(this_entry.FuncParamTypes.at(0)).c_str(),
-            _sym.GetName(known_info.FuncParamTypes.at(0)).c_str());
+            _sym.GetName(this_entry.FuncParamVartypes.at(0)).c_str(),
+            _sym.GetName(known_info.FuncParamVartypes.at(0)).c_str());
 
         return kERR_UserError;
     }
 
     for (size_t param_idx = 1; param_idx <= this_entry.GetNumOfFuncParams(); param_idx++)
     {
-        if (known_info.FuncParamTypes.at(param_idx) != this_entry.FuncParamTypes.at(param_idx))
+        if (known_info.FuncParamVartypes.at(param_idx) != this_entry.FuncParamVartypes.at(param_idx))
         {
             std::string msg = ReferenceMsg(
                 "For function '%s': Type of parameter #%d is %s here, %s in a declaration elsewhere",
@@ -1665,8 +1665,8 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
                 msg.c_str(),
                 this_entry.SName.c_str(),
                 param_idx,
-                _sym.GetName(this_entry.FuncParamTypes.at(param_idx)).c_str(),
-                _sym.GetName(known_info.FuncParamTypes.at(param_idx)).c_str());
+                _sym.GetName(this_entry.FuncParamVartypes.at(param_idx)).c_str(),
+                _sym.GetName(known_info.FuncParamVartypes.at(param_idx)).c_str());
             return kERR_UserError;
         }
     }
@@ -2795,7 +2795,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, s
         if (param_num <= num_func_args) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
-            Vartype const param_vartype = _sym[funcSymbol].FuncParamTypes[param_num];
+            Vartype const param_vartype = _sym[funcSymbol].FuncParamVartypes[param_num];
             ConvertAXStringToStringObject(param_vartype);
             vartype = _scrip.ax_vartype;
             // If we need a normal string but AX contains a string object ptr, 
@@ -3024,7 +3024,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
 
     // function return type
-    rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamTypes[0];
+    rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamVartypes[0];
     _scrip.ax_scope_type = kScT_Local;
 
     if (func_uses_this)
@@ -3234,7 +3234,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
 
     // attribute return type
     _scrip.ax_scope_type = kScT_Local;
-    _scrip.ax_vartype = vartype = _sym[name_of_func].FuncParamTypes[0];
+    _scrip.ax_vartype = vartype = _sym[name_of_func].FuncParamVartypes[0];
 
     MarkAcessed(name_of_func);
     return kERR_None;
@@ -4635,7 +4635,7 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
     size_t const num_args = _sym[name_of_func].GetNumOfFuncParams();
     for (size_t pa = 1; pa <= num_args; pa++) // skip return value pa == 0
     {
-        Vartype const param_vartype = _sym[name_of_func].FuncParamTypes[pa];
+        Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[pa];
         if (!_sym.IsManaged(param_vartype))
             continue;
 
@@ -4670,7 +4670,7 @@ ErrorType AGS::Parser::HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &
     RemoveLocalsFromSymtable(0);
 
     // Function has ended. Set AX to 0 unless the function doesn't return any value.
-    if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamTypes.at(0))
+    if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamVartypes.at(0))
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
 
     // We've just finished the body of the current function.
@@ -5032,21 +5032,21 @@ ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool
     }
 
     Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
-    if (entry.FuncParamTypes[0] != ret_vartype)
+    if (entry.FuncParamVartypes[0] != ret_vartype)
     {
         std::string const msg = ReferenceMsgSym(
             "The attribute function '%s' must return type '%s' but returns '%s' instead",
             name_of_func);
         Error(msg.c_str(), entry.SName.c_str(),
             _sym.GetName(ret_vartype).c_str(),
-            _sym.GetName(entry.FuncParamTypes[0]).c_str());
+            _sym.GetName(entry.FuncParamVartypes[0]).c_str());
         return kERR_UserError;
     }
 
     size_t p_idx = 1;
     if (is_indexed)
     {
-        if (entry.FuncParamTypes[p_idx] != _sym.GetIntSym())
+        if (entry.FuncParamVartypes[p_idx] != _sym.GetIntSym())
         {
             std::string const msg = ReferenceMsgSym(
                 "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
@@ -5057,7 +5057,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool
         p_idx++;
     }
 
-    if (is_setter && entry.FuncParamTypes[p_idx] != vartype)
+    if (is_setter && entry.FuncParamVartypes[p_idx] != vartype)
     {
         std::string const msg = ReferenceMsgSym(
             "Parameter #d of attribute function '%s' must have type '%s'",
@@ -5074,15 +5074,15 @@ ErrorType AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Sy
     SymbolTableEntry &entry = _sym[name_of_func];
     size_t const num_param = is_indexed + is_setter;
 
-    entry.FuncParamTypes.resize(num_param + 1);
+    entry.FuncParamVartypes.resize(num_param + 1);
 
     size_t p_idx = 1;
     if (is_indexed)
-        entry.FuncParamTypes[p_idx++] = _sym.GetIntSym();
+        entry.FuncParamVartypes[p_idx++] = _sym.GetIntSym();
     if (is_setter)
-        entry.FuncParamTypes[p_idx] = vartype;
+        entry.FuncParamVartypes[p_idx] = vartype;
     SymbolTableEntry::ParamDefault deflt = {};
-    entry.FuncParamDefaultValues.assign(entry.FuncParamTypes.size(), deflt);
+    entry.FuncParamDefaultValues.assign(entry.FuncParamVartypes.size(), deflt);
     return kERR_None;
 }
 
@@ -5992,7 +5992,7 @@ ErrorType AGS::Parser::HandleEndOfCompoundStmts(AGS::Parser::NestingStack *nesti
 
 ErrorType AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name_of_current_func)
 {
-    Symbol const functionReturnType = _sym[name_of_current_func].FuncParamTypes[0];
+    Symbol const functionReturnType = _sym[name_of_current_func].FuncParamVartypes[0];
 
     if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_Semicolon)
     {

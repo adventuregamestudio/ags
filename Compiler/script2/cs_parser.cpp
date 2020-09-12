@@ -908,19 +908,14 @@ void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bo
         if (!ContainsReleasableDynpointers(entry.Vartype))
             continue;
 
-        clobbers_mar = true;
-        int const sp_offset = _scrip.offset_to_local_var_block - entry.SOffset;
-        if (_sym.IsDyn(entry.Vartype))
-        {
-            WriteCmd(SCMD_LOADSPOFFS, sp_offset);
-            WriteCmd(SCMD_MEMZEROPTR);
-            continue;
-        }
-
+        
         // Set MAR to the start of the construct that contains releasable pointers
+        int const sp_offset = _scrip.offset_to_local_var_block - entry.SOffset;
         WriteCmd(SCMD_LOADSPOFFS, sp_offset);
-
-        if (entry.IsArray(_sym))
+        clobbers_mar = true;
+        if (_sym.IsDyn(entry.Vartype))
+            WriteCmd(SCMD_MEMZEROPTR);
+        else if (entry.IsArray(_sym))
             FreeDynpointersOfStdArray(entries_idx, clobbers_ax);
         else if (entry.IsStruct(_sym))
             FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
@@ -1397,9 +1392,9 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
         param_entry.Vartype = _sym.VartypeWith(kVTT_Const, param_entry.Vartype);
     }
     // the parameters are pushed backwards, so the top of the
-    // stack has the first parameter. The +1 is because the
+    // stack has the first parameter. The + 1 is because the
     // call will push the return address onto the stack as well
-    param_entry.SOffset = _scrip.offset_to_local_var_block - (param_idx + 1) * 4;
+    param_entry.SOffset = _scrip.offset_to_local_var_block - (param_idx + 1) * SIZE_OF_STACK_CELL;
     _sym.SetDeclared(param_name, _src.GetSectionId(), _src.GetLineno());
 }
 
@@ -2986,18 +2981,25 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     bool const func_uses_this =
         std::string::npos != _sym.GetName(name_of_func).find("::") &&
         !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static);
+    bool mar_pushed = false;
+    bool op_pushed = false;
 
     if (func_uses_this)
     {
-        if (0 != _sym.GetVartype(_sym.GetThisSym()))
-            _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
+        if (0 != _sym.GetVartype(_sym.GetThisSym())) // the calling function uses "this"
+        {   // Save OP since we must restore it after the func call
+            _scrip.push_reg(SREG_OP); 
+            op_pushed = true;
+        }
 
-        // MAR contains the address of "outer"; this is what will be used for "this" in the function.
+        // MAR contains the address of "outer"; this is what will be used for "this" in the called function.
         mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
 
         // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
-        // So we can't emit SCMD_CALLOBJ here, before parameters have been processed. Save MAR instead. 
+        // So we can't emit SCMD_CALLOBJ here, before parameters have been processed.
+        // Save MAR because parameter processing might clobber it 
         _scrip.push_reg(SREG_MAR);
+        mar_pushed = true;
     }
 
     size_t num_args = 0;
@@ -3010,6 +3012,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
         {   // MAR is still current, so undo the unneeded PUSH above.
             _scrip.offset_to_local_var_block -= SIZE_OF_STACK_CELL;
             _scrip.codesize -= 2;
+            mar_pushed = false;
         }
         else
         {   // Recover the value of MAR from the stack. It's in front of the parameters.
@@ -3027,13 +3030,10 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamVartypes[0];
     _scrip.ax_scope_type = kScT_Local;
 
-    if (func_uses_this)
-    {
-        if (0 < num_args)
-            _scrip.pop_reg(SREG_MAR);
-        if (0 != _sym.GetVartype(_sym.GetThisSym()))
-            _scrip.pop_reg(SREG_OP); // Recover the current "this"
-    }
+    if (mar_pushed)
+        _scrip.pop_reg(SREG_MAR);
+    if (op_pushed)
+        _scrip.pop_reg(SREG_OP); // Recover the current "this"
 
     MarkAcessed(name_of_func);
     return kERR_None;
@@ -4632,14 +4632,15 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
     // If there are dynpointer parameters, then the caller has simply "pushed" them onto the stack.
     // We catch up here by reading each dynpointer and writing it again using MEMWRITEPTR
     // to declare that the respective cells are used for dynpointers.
-    size_t const num_args = _sym[name_of_func].GetNumOfFuncParams();
-    for (size_t pa = 1; pa <= num_args; pa++) // skip return value pa == 0
+    size_t const num_params = _sym[name_of_func].GetNumOfFuncParams();
+    for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value pa == 0
     {
-        Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[pa];
+        Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[param_idx];
         if (!_sym.IsManaged(param_vartype))
             continue;
 
-        WriteCmd(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
+        // The return address is on top of the stack, so the nth param is at (n+1)th position
+        WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_STACK_CELL * (param_idx + 1));
         WriteCmd(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
         // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
         WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
@@ -5493,10 +5494,9 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingSta
 
     if (kPP_Main == _pp)
     {
-        // align struct on 4-byte boundary in keeping with compiler
-        int const blocksize = 4;
-        if (0 != (size_so_far % blocksize))
-            size_so_far += blocksize - (size_so_far % blocksize);
+        // round up size to nearest multiple of STRUCT_ALIGNTO
+        if (0 != (size_so_far % STRUCT_ALIGNTO))
+            size_so_far += STRUCT_ALIGNTO - (size_so_far % STRUCT_ALIGNTO);
         _sym[stname].SSize = size_so_far;
     }
 

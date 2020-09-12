@@ -21,10 +21,10 @@ typedef FlagSet TypeQualifierSet;
 constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
 constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
-constexpr size_t VARARGS_INDICATOR = 100;
 constexpr size_t SIZE_OF_DYNPOINTER = 4;
 constexpr size_t SIZE_OF_INT = 4;
 constexpr size_t SIZE_OF_STACK_CELL = 4;
+constexpr size_t STRUCT_ALIGNTO = 4;
 
 inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
 inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
@@ -93,7 +93,9 @@ enum SymbolType : SymbolTypeType
     kSYM_While,
     kSYM_WriteProtected,    // write-protected member
 };
-constexpr SymbolTypeType NOTEXPRESSION = kSYM_Assign; // Types starting (numerically) with this aren't part of expressions
+
+// Types starting (numerically) with this aren't part of expressions
+constexpr SymbolTypeType NOTEXPRESSION = kSYM_Assign; 
 
 enum TypeQualifier
 {

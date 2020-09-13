@@ -317,37 +317,28 @@ private:
     class MemoryLocation
     {
     private:
+        AGS::Parser &_parser;
+        ScopeType _ScType;
         size_t _startOffs;
         size_t _componentOffs;
-        bool _codeEmitted;
-        bool _startOffsProcessed;
+        bool _isSet;
 
     public:
-        ScopeType ScType;
+        MemoryLocation(AGS::Parser &parser);
 
-        inline MemoryLocation()
-            : ScType(kScT_None)
-            , _startOffs(0u)
-            , _componentOffs(0u)
-            , _codeEmitted(false)
-            , _startOffsProcessed(false)
-        {
-        }
+        // Set the type and the start offset of the MAR register
+        ErrorType SetStart(ScopeType type, size_t offset);
 
-        // Set the type and the offset of the MAR register
-        void SetStart(ScopeType type, size_t offset);
+        inline void AddComponentOffset(size_t offset) { _componentOffs += offset; _isSet = true; };
 
-        inline ScopeType GetScopeType() const { return ScType; }
+        // Write out the Bytecode necessary to bring MAR up-to-date; reset the object
+        ErrorType MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
 
-        inline void AddComponentOffset(size_t offset) { _componentOffs += offset; };
-
-        // Write out the Bytecode necessary to bring MAR up-to-date
-        void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
-
-        inline bool NothingDoneYet() const { return !_codeEmitted; };
+        inline bool OpsPending() const { return kScT_None != _ScType || 0u < _startOffs || 0u < _componentOffs; };
 
         void Reset();
     };
+    friend MemoryLocation;  // for Error()
 
     // Measurements show that the checks whether imports already exist take up
     // considerable time. The Import Manager speeds this up by caching the lookups.
@@ -676,7 +667,7 @@ private:
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype);
 
     // Find the component of a struct (in the struct or in the ancestors of the struct)
     // and return the struct that the component is defined in
@@ -953,6 +944,7 @@ private:
 
     // Record a warning for the current source position
     void Warning(char const *descr, ...);
+    
 
 public:
     // interpret the float as if it were an int (without converting it really);

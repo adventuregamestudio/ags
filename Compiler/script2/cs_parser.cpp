@@ -634,31 +634,44 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
     return idx;
 }
 
-void AGS::Parser::MemoryLocation::SetStart(ScopeType type, size_t offset)
+AGS::Parser::MemoryLocation::MemoryLocation(AGS::Parser &parser)
+    : _parser(parser)
+    , _ScType (kScT_None)
+    , _startOffs(0u)
+    , _componentOffs (0u)
+    , _isSet(false)
 {
-    ScType = type;
-    _startOffs = offset;
-    _componentOffs = 0;
 }
 
-void AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript &scrip)
+ErrorType AGS::Parser::MemoryLocation::SetStart(ScopeType type, size_t offset)
 {
-    switch (_startOffsProcessed? kScT_None : ScType)
+    if (kScT_None != _ScType)
     {
-    default: // The scope type and base address are up-to-date, but an offset might have accumulated 
+        _parser.Error("!Memory location object doubly initialized ");
+        return kERR_InternalError;
+    }
+    _ScType = type;
+    _startOffs = offset;
+    _componentOffs = 0;
+    _isSet = true;
+    return kERR_None;
+}
+
+ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript &scrip)
+{
+    switch (_ScType)
+    {
+    default:
+        // The start offset is already reached (e.g., when a Dynpointer chain is dereferenced) 
+        // but the component offset may need to be processed.
         if (_componentOffs > 0)
-        {
-            scrip.refresh_lineno(lineno);
             scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
-            _codeEmitted = true;
-        }
         break;
 
     case kScT_Global:
         scrip.refresh_lineno(lineno);
         scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.fixup_previous(Parser::kFx_GlobalData);
-        _codeEmitted = true;
         break;
 
     case kScT_Import:
@@ -669,26 +682,30 @@ void AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledScript
         scrip.fixup_previous(Parser::kFx_Import);
         if (_componentOffs != 0)
             scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
-        _codeEmitted = true;
         break;
 
     case kScT_Local:
         scrip.refresh_lineno(lineno);
-        scrip.write_cmd(
-            SCMD_LOADSPOFFS,
-            scrip.offset_to_local_var_block - _startOffs - _componentOffs);
-        _codeEmitted = true;
+        CodeCell const offset = scrip.offset_to_local_var_block - _startOffs - _componentOffs;
+        if (offset < 0)
+        {
+            _parser.Error("!Trying to emit a negative offset to the top-of-stack");
+            return kERR_InternalError;
+        }
+
+        scrip.write_cmd(SCMD_LOADSPOFFS, offset);
         break;
     }
     Reset();
-    return;
+    return kERR_None;
 }
 
 void AGS::Parser::MemoryLocation::Reset()
 {
+    _ScType = kScT_None;
     _startOffs = 0u;
     _componentOffs = 0u;
-    _startOffsProcessed = true;
+    _isSet = false;
 }
 
 AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)
@@ -2993,7 +3010,8 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
         }
 
         // MAR contains the address of "outer"; this is what will be used for "this" in the called function.
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        if (retval < 0) return retval;
 
         // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
         // So we can't emit SCMD_CALLOBJ here, before parameters have been processed.
@@ -3253,7 +3271,8 @@ ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::Parser::
     }
     else
     {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        if (retval < 0) return retval;
         // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
         // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
         WriteCmd(SCMD_MEMREADPTR, SREG_MAR);
@@ -3323,22 +3342,15 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
             return AccessData_ProcessArrayIndexConstant(idx, index_sym, true, dim, factor, mloc);
     }
 
-    // Save MAR from being clobbered if it may contain something important
-    // If nothing has been done, MAR can't have been set yet, so no need to remember it
-    bool mar_pushed = false;
-    if (!mloc.NothingDoneYet())
-    {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-        _scrip.push_reg(SREG_MAR);
-        mar_pushed = true;
-    }
-
-    ErrorType retval = AccessData_ReadIntExpression(current_index);
+    ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+    if (retval < 0) return retval;
+    _scrip.push_reg(SREG_MAR);
+    
+    retval = AccessData_ReadIntExpression(current_index);
     if (retval < 0) return retval;
 
-    if (mar_pushed)
-        _scrip.pop_reg(SREG_MAR);
-    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+    _scrip.pop_reg(SREG_MAR);
+    
 
     // Note: DYNAMICBOUNDS compares the offset into the memory block;
     // it mustn't be larger than the size of the allocated memory. 
@@ -3564,13 +3576,13 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_Constant:
         if (writing) break; // to error msg
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case kSYM_Function:
     {
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
         if (retval < 0) return retval;
@@ -3581,7 +3593,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_GlobalVar:
     {
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = true;
         MarkAcessed(first_sym);
@@ -3590,19 +3602,19 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_LiteralFloat:
         if (writing) break; // to error msg
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_FloatLiteral(false, expression, vartype);
 
     case kSYM_LiteralInt:
         if (writing) break; // to error msg
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case kSYM_LiteralString:
         if (writing) break; // to error msg
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_StringLiteral(expression, vartype);
 
@@ -3618,12 +3630,12 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case kSYM_Null:
         if (writing) break; // to error msg
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_Null(expression, vartype);
 
     case kSYM_Vartype:
-        return_scope_type = mloc.ScType = kScT_Global;
+        return_scope_type = kScT_Global;
         static_access = true;
         return AccessData_Static(expression, mloc, vartype);
     }
@@ -3635,7 +3647,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, AGS::Vartype &vartype)
+ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     Symbol const next_sym = expression.PeekNext();
 
@@ -3659,8 +3671,9 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
         return kERR_UserError;
 
     case kSYM_Attribute:
-    {
-        mloc.MakeMARCurrent(_src.GetLineno(), _scrip); // make MAR point to the struct of the attribute
+    {   // make MAR point to the struct of the attribute
+        retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+        if (retval < 0) return retval;
         if (writing)
         {
             // We cannot process the attribute here so return to the assignment that
@@ -3677,7 +3690,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     case kSYM_Function:
     {
         vloc = kVL_ax_is_value;
-        mloc.ScType = kScT_Local;
+        return_scope_type = kScT_Local;
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         retval = AccessData_FunctionCall(component, start_of_funccall, mloc, vartype);
         if (retval < 0) return retval;
@@ -3751,7 +3764,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
     // For memory accesses, we set the MAR register lazily so that we can
     // accumulate offsets at runtime instead of compile time.
     // This struct tracks what we will need to do to set the MAR register.
-    MemoryLocation mloc = MemoryLocation();
+    MemoryLocation mloc = MemoryLocation(*this);
 
     bool clause_is_last = false;
     ErrorType retval = AccessData_IsClauseLast(expression, clause_is_last);
@@ -3803,7 +3816,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, expression, vloc, mloc, vartype);
+        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, expression, vloc, scope_type, mloc, vartype);
         if (retval < 0) return retval;
 
         // Only the _immediate_ access via 'this.' counts for this flag.
@@ -3830,8 +3843,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         return kERR_None;
     }
 
-    mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
-    return kERR_None;
+    return mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
 }
 
 // In order to avoid push AX/pop AX, find out common cases that don't clobber AX

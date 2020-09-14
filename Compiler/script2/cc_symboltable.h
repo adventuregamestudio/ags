@@ -209,6 +209,7 @@ public:
 
     // Return the symbol to the name, or -1 if not found
     inline Symbol Find(std::string const &name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
+    inline Symbol FindCString(char *name) { return Find(name); } // for usage in the debugger
 
     // Add to the symbol table if not in there already; in any case return the symbol
     inline Symbol FindOrAdd(std::string const &name) { Symbol ret = Find(name); return (ret >= 0) ? ret : Add(name); }

@@ -2133,8 +2133,8 @@ TEST(Bytecode, For4) {
     char *inpl = "\
     void main()                     \n\
     {                               \n\
-        for (int loop = 0; loop < 10; loop++)  \n\
-            if (loop == 5)          \n\
+        for (int Loop = 0; Loop < 10; Loop++)  \n\
+            if (Loop == 5)          \n\
                 continue;           \n\
     }                               \n\
     ";
@@ -2568,6 +2568,95 @@ TEST(Bytecode, For7) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 
+}
+
+TEST(Bytecode, Continue1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Locals only become invalid at the end of their nesting; below a "continue", they
+    // remain valid so the offset to start of the local block
+    // must not be reduced.
+
+    char *inpl = "\
+        int main()                      \n\
+        {                               \n\
+            int I;                      \n\
+            for(I = -1; I < 1; I++)     \n\
+            {                           \n\
+                int A = 7;              \n\
+                int B = 77;             \n\
+                if (I >= 0)             \n\
+                    continue;           \n\
+                int C = A;              \n\
+            }                           \n\
+            return I;                   \n\
+        }                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Continue1", scrip);
+    const size_t codesize = 114;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    0,           63,    4,    1,    1,    // 7
+       4,    6,    3,   -1,           51,    4,    8,    3,    // 15
+      51,    4,    7,    3,           29,    3,    6,    3,    // 23
+       1,   30,    4,   18,            4,    3,    3,    4,    // 31
+       3,   28,   63,    6,            3,    7,   29,    3,    // 39
+       6,    3,   77,   29,            3,   51,   12,    7,    // 47
+       3,   29,    3,    6,            3,    0,   30,    4,    // 55
+      19,    4,    3,    3,            4,    3,   28,   14,    // 63
+       2,    1,    8,   51,            4,    7,    3,    1,    // 71
+       3,    1,    8,    3,           31,  -62,   51,    8,    // 79
+       7,    3,   29,    3,            2,    1,   12,   51,    // 87
+       4,    7,    3,    1,            3,    1,    8,    3,    // 95
+      31,  -82,   51,    4,            7,    3,    2,    1,    // 103
+       4,   31,    6,    2,            1,    4,    6,    3,    // 111
+       0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
 TEST(Bytecode, IfDoWhile) {
@@ -9505,4 +9594,17 @@ TEST(Bytecode, AssignToString) {
         std::string test_val = prefix + std::to_string(scrip->strings[idx]);
         ASSERT_EQ(is_val, test_val);
     }
+}
+
+TEST(Bytecode, StackMisalign) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    std::ifstream t("C:/TEMP/SetLastnFurious/Vehicle.asc");
+    std::string input((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+
+    clear_error();
+    int compileResult = cc_compile(input.c_str(), scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("StackMisalign", scrip);
 }

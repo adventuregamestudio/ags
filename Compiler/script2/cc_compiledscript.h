@@ -82,9 +82,9 @@ struct ccCompiledScript : public ccScript {
     // Only write Bytecode for source line no if it differs from the last emitted
     inline void refresh_lineno(size_t lno) { if (last_emitted_lineno != lno) write_lineno(lno); }
 
-    // write a PUSH command; track in cur_sp the number of bytes pushed to the stack
+    // write a PUSH command; track in offset_to_local_var_block the number of bytes pushed to the stack
     void push_reg(AGS::CodeCell regg);
-    // write a POP command; track in cur_sp the number of bytes pushed to the stack
+    // write a POP command; track in offset_to_local_var_block the number of bytes pushed to the stack
     void pop_reg(AGS::CodeCell regg);
 
     // Returns the relative distance in a jump instruction

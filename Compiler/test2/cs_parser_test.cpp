@@ -84,6 +84,20 @@ char g_Input_Bool[] = "\
 \"__NEWSCRIPTSTART_BoolDefn\"             \n\
     enum bool { false = 0, true = 1 };";
 
+TEST(_TestIt, _TestIt) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    std::ifstream t("C:/TEMP/SetLastnFurious/Vehicle.asc");
+    std::string input((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+
+    clear_error();
+
+    int compileResult = cc_compile(input.c_str(), scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+
 TEST(Compile, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
 

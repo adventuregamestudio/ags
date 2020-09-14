@@ -888,6 +888,7 @@ private:
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     ErrorType ParseAssignmentOrExpression(Symbol cursym);
 
+    // Exit all the nestings in level nesting_level or higher
     ErrorType ExitNesting(size_t nesting_level);
 
     ErrorType ParseBreak(NestingStack *nesting_stack);

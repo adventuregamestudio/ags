@@ -433,4 +433,3 @@ AGS::Symbol AGS::SymbolTable::AddOp(std::string const &opname, SymbolType sty, C
     entries[symbol_idx].OperatorUnaryPrio = unary_prio;
     return symbol_idx;
 }
-

@@ -689,7 +689,7 @@ ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledS
         CodeCell const offset = scrip.offset_to_local_var_block - _startOffs - _componentOffs;
         if (offset < 0)
         {
-            _parser.Error("!Trying to emit a negative offset to the top-of-stack");
+            _parser.Error("!Trying to emit the negative offset %d to the top-of-stack", (int) offset);
             return kERR_InternalError;
         }
 
@@ -6492,16 +6492,16 @@ ErrorType AGS::Parser::ExitNesting(size_t nesting_level)
 
 ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 {
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
+    Symbol const semicolon = _src.GetNext();
+    if (_sym.GetSymbolType(semicolon) != kSYM_Semicolon)
     {
-        Error("Expected ';'");
+        Error("Expected ';', found '%s' instead", _sym.GetName(semicolon));
         return kERR_UserError;
     }
 
-    size_t nesting_level;
-
     // Find the (level of the) looping construct to which the break applies
-    // Note that this is similar, but _different_ from "continue"!
+    // Note that this is similar, but _different_ from "continue".
+    size_t nesting_level;
     for (nesting_level = nesting_stack->Depth() - 1; nesting_level > 0; nesting_level--)
     {
         SymbolType ltype = nesting_stack->Type(nesting_level);
@@ -6511,12 +6511,17 @@ ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 
     if (nesting_level == 0)
     {
-        Error("'break' only valid inside a loop or switch statement block");
+        Error("'break' is only valid inside a loop or a switch statement block");
         return kERR_UserError;
     }
-    ExitNesting(nesting_level);
 
-    // Jump out of the loop
+    // The locals stay valid here, below the "break" statement.
+    // So offset_to_local_var_block must not be reduced here.
+    size_t const save_offset = _scrip.offset_to_local_var_block;
+    ExitNesting(nesting_level);
+    _scrip.offset_to_local_var_block = save_offset;
+
+    // Jump out of the loop or switch
     WriteCmd(SCMD_JMP, -77);
     nesting_stack->JumpOut(nesting_level).AddParam();
 
@@ -6525,16 +6530,16 @@ ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 
 ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 {
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
+    Symbol const semicolon = _src.GetNext();
+    if (_sym.GetSymbolType(semicolon) != kSYM_Semicolon)
     {
-        Error("Expected ';'");
+        Error("Expected ';', found '%s' instead", _sym.GetName(semicolon));
         return kERR_UserError;
     }
 
+    // Find the level of the looping construct to which the break applies
+    // Note that this is similar, but _different_ from "break".
     size_t nesting_level;
-
-    // Find the (level of the) looping construct to which the break applies
-    // Note that this is similar, but _different_ from "break"!
     for (nesting_level = nesting_stack->Depth() - 1; nesting_level > 0; nesting_level--)
     {
         SymbolType ltype = nesting_stack->Type(nesting_level);
@@ -6544,13 +6549,17 @@ ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 
     if (nesting_level == 0)
     {
-        Error("'continue' is only valid inside a loop or switch statement block");
+        Error("'continue' is only valid inside a loop");
         return kERR_UserError;
     }
 
+    // The locals stay valid here, below the "continue" statement.
+    // So offset_to_local_var_block must not be reduced here.
+    size_t const save_offset = _scrip.offset_to_local_var_block;
     ExitNesting(nesting_level);
+    _scrip.offset_to_local_var_block = save_offset;
 
-    // if it's a for loop, drop the yanked chunk (loop increment) back in
+    // if it's a for loop, drop the yanked loop increment chunk in
     if (nesting_stack->ChunksExist(nesting_level))
     {
         int id;

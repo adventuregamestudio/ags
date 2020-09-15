@@ -4678,7 +4678,7 @@ ErrorType AGS::Parser::HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
-    ExitNesting(SymbolTableEntry::ParameterSScope);
+    RemoveLocalsFromStack(SymbolTableEntry::ParameterSScope);
     // All the function variables, _including_ the parameters (!), become invalid.
     RemoveLocalsFromSymtable(0);
 
@@ -6169,7 +6169,7 @@ ErrorType AGS::Parser::ParseDo(AGS::Parser::NestingStack *nesting_stack)
 ErrorType AGS::Parser::HandleEndOfBraceCommand(NestingStack *nesting_stack)
 {
     nesting_stack->Pop();
-    ExitNesting(nesting_stack->Depth());
+    RemoveLocalsFromStack(nesting_stack->Depth());
     RemoveLocalsFromSymtable(nesting_stack->Depth());
 
     return kERR_None;
@@ -6475,7 +6475,7 @@ ErrorType AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::Parser::Nesting
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ExitNesting(size_t nesting_level)
+ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
 {
     // If locals contain pointers, free them
     FreeDynpointersOfLocals(nesting_level);
@@ -6515,10 +6515,11 @@ ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
         return kERR_UserError;
     }
 
-    // The locals stay valid here, below the "break" statement.
-    // So offset_to_local_var_block must not be reduced here.
     size_t const save_offset = _scrip.offset_to_local_var_block;
-    ExitNesting(nesting_level);
+    RemoveLocalsFromStack(nesting_level);
+    // The locals only disappear if control flow actually follows the "break"
+    // statement. Otherwise, below the statement, the locals remain on the stack.
+    // So restore the offset_to_local_var_block.
     _scrip.offset_to_local_var_block = save_offset;
 
     // Jump out of the loop or switch
@@ -6553,10 +6554,11 @@ ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
         return kERR_UserError;
     }
 
-    // The locals stay valid here, below the "continue" statement.
-    // So offset_to_local_var_block must not be reduced here.
     size_t const save_offset = _scrip.offset_to_local_var_block;
-    ExitNesting(nesting_level);
+    RemoveLocalsFromStack(nesting_level);
+    // The locals only disappear if control flow actually follows the "continue"
+    // statement. Otherwise, below the statement, the locals remain on the stack.
+     // So restore the offset_to_local_var_block.
     _scrip.offset_to_local_var_block = save_offset;
 
     // if it's a for loop, drop the yanked loop increment chunk in

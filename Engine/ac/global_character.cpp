@@ -558,7 +558,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
     }
 
     int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.GetUIViewport().GetWidth()/2,FONT_SPEECH,
-        -game.chars[charid].talkcolor, get_translation(speel));
+        -game.chars[charid].talkcolor, get_translation(speel), DISPLAYTEXT_NORMALOVERLAY);
 
     int scid = find_overlay_of_type(ovrl);
     screenover[scid].bgSpeechForChar = charid;

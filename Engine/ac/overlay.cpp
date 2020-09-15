@@ -17,6 +17,7 @@
 #include "ac/view.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -44,13 +45,12 @@ extern IGraphicsDriver *gfxDriver;
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 int numscreenover=0;
 int is_complete_overlay=0,is_text_overlay=0;
-int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text) {
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int text_color, const char *text) {
     int ovri=find_overlay_of_type(scover->overlayId);
     if (ovri<0)
         quit("!Overlay.SetText: invalid overlay ID specified");
@@ -58,9 +58,9 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     int yy = game_to_data_coord(screenover[ovri].y) - scover->borderHeight;
 
     RemoveOverlay(scover->overlayId);
-    crovr_id = scover->overlayId;
+    const int disp_type = scover->overlayId;
 
-    if (CreateTextOverlay(xx,yy,wii,fontid,clr,get_translation(text)) != scover->overlayId)
+    if (CreateTextOverlay(xx, yy, wii, fontid, text_color, get_translation(text), disp_type) != scover->overlayId)
         quit("SetTextOverlay internal error: inconsistent type ids");
 }
 
@@ -131,7 +131,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
 
-    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, 0);
+    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
 
     int ovri = find_overlay_of_type(sco->overlayId);
     sco->borderWidth = game_to_data_coord(screenover[ovri].x - x);

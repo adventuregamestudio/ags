@@ -2297,47 +2297,58 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
 {
     expression.StartRead();
     expression.GetNext(); // Eat "new"
+
     if (expression.ReachedEOF())
     {
         Error("Expected a type after 'new' but didn't find any");
         return kERR_UserError;
     }
-    Vartype const new_vartype = expression.GetNext();
-    ErrorType retval = ParseExpression_CheckArgOfNew(new_vartype);
-    if (retval < 0) return retval;       
+    Vartype const argument_vartype = expression.GetNext();
 
-    if (expression.ReachedEOF()) // "new VARTYPE", nothing following
-    {
-        if (_sym.IsBuiltin(new_vartype))
-        {
-            Error(
-                "Cannot use 'new' with the built-in type '%s'",
-                _sym.GetName(new_vartype).c_str());
-            return kERR_UserError;
-        }
-
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, new_vartype);
-        const size_t size = _sym.GetSize(new_vartype);
-        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, size);
-        _scrip.ax_scope_type = scope_type = kScT_Global;
-        _scrip.ax_vartype = vartype;
-        vloc = kVL_ax_is_value;
-        return kERR_None;
-    }
-
-    // new VARTYPE[...]
-    bool const is_managed = !_sym.IsAnyIntegerVartype(new_vartype);
-    int const element_size = _sym.GetSize(new_vartype);
-
-    retval = AccessData_ReadBracketedIntExpression(expression);
+    ErrorType retval = ParseExpression_CheckArgOfNew(argument_vartype);
     if (retval < 0) return retval;
 
-    WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+    bool const is_managed = !_sym.IsAnyIntegerVartype(argument_vartype);
+    bool const with_bracket_expr = !expression.ReachedEOF(); // "new FOO[BAR]"
 
-    vartype = new_vartype;
-    if (is_managed)
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
-    vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
+    if (with_bracket_expr)
+    {
+        // Note that in AGS, you can write "new Struct[]" but what you mean then is "new Struct*[]".
+        retval = EatDynpointerSymbolIfPresent(argument_vartype);
+        if (retval < 0) return retval;
+
+        retval = AccessData_ReadBracketedIntExpression(expression);
+        if (retval < 0) return retval;
+    }
+    else
+    {
+        if (_sym.IsBuiltin(argument_vartype))
+        {   
+            Error("Expected '[' after the built-in type '%s'", _sym.GetName(argument_vartype).c_str());
+            return kERR_UserError;
+        }
+        if (!is_managed)
+        {
+            Error("Expected '[' after the integer type '%s'", _sym.GetName(argument_vartype).c_str());
+            return kERR_UserError;
+        }
+    }
+
+    // Note that in AGS, you can write "new Struct[]" but what you mean then is "new Struct*[]".
+    vartype = is_managed ? _sym.VartypeWith(kVTT_Dynpointer, argument_vartype) : argument_vartype;
+    size_t const element_size = _sym.GetSize(vartype);
+
+    if (0 == element_size)
+    {   // The Engine really doesn't like that (division by zero error)
+        Error("!Trying to emit allocation of zero dynamic memory");
+        return kERR_InternalError;
+    }
+
+    if (with_bracket_expr)
+        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+    else
+        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
+
     _scrip.ax_scope_type = scope_type = kScT_Global;
     _scrip.ax_vartype = vartype;
     vloc = kVL_ax_is_value;
@@ -6517,15 +6528,15 @@ ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
 
     size_t const save_offset = _scrip.offset_to_local_var_block;
     RemoveLocalsFromStack(nesting_level);
-    // The locals only disappear if control flow actually follows the "break"
-    // statement. Otherwise, below the statement, the locals remain on the stack.
-    // So restore the offset_to_local_var_block.
-    _scrip.offset_to_local_var_block = save_offset;
-
+    
     // Jump out of the loop or switch
     WriteCmd(SCMD_JMP, -77);
     nesting_stack->JumpOut(nesting_level).AddParam();
 
+    // The locals only disappear if control flow actually follows the "break"
+    // statement. Otherwise, below the statement, the locals remain on the stack.
+    // So restore the offset_to_local_var_block.
+    _scrip.offset_to_local_var_block = save_offset;
     return kERR_None;
 }
 
@@ -6556,10 +6567,6 @@ ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 
     size_t const save_offset = _scrip.offset_to_local_var_block;
     RemoveLocalsFromStack(nesting_level);
-    // The locals only disappear if control flow actually follows the "continue"
-    // statement. Otherwise, below the statement, the locals remain on the stack.
-     // So restore the offset_to_local_var_block.
-    _scrip.offset_to_local_var_block = save_offset;
 
     // if it's a for loop, drop the yanked loop increment chunk in
     if (nesting_stack->ChunksExist(nesting_level))
@@ -6573,6 +6580,11 @@ ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
 
     // Jump to the start of the loop
     nesting_stack->Start(nesting_level).WriteJump(SCMD_JMP, _src.GetLineno());
+
+    // The locals only disappear if control flow actually follows the "continue"
+    // statement. Otherwise, below the statement, the locals remain on the stack.
+     // So restore the offset_to_local_var_block.
+    _scrip.offset_to_local_var_block = save_offset;
     return kERR_None;
 }
 

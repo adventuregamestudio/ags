@@ -1176,7 +1176,7 @@ ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type
         return kERR_UserError;
     }
 
-    if (_sym.IsAnyIntType(param_type))
+    if (_sym.IsAnyIntegerVartype(param_type))
     {
         default_value.Type = SymbolTableEntry::kDT_Int;
         return IntLiteralOrConst2Value(
@@ -2113,7 +2113,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return true;
 
     // Can convert short, char etc. into int
-    if (_sym.IsAnyIntType(vartype_is) && _sym.GetIntSym() == vartype_wants_to_be)
+    if (_sym.IsAnyIntegerVartype(vartype_is) && _sym.GetIntSym() == vartype_wants_to_be)
         return false;
 
     // Checks to do if at least one is dynarray
@@ -2282,7 +2282,7 @@ ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype new_vartype)
         return kERR_UserError;
     }
 
-    if (!_sym.IsAnyIntType(new_vartype) && !_sym.IsManaged(new_vartype))
+    if (!_sym.IsAnyIntegerVartype(new_vartype) && !_sym.IsManaged(new_vartype))
     {
         Error("Can only use integer or managed types with 'new'");
         return kERR_UserError;
@@ -2326,7 +2326,7 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
     }
 
     // new VARTYPE[...]
-    bool const is_managed = !_sym.IsAnyIntType(new_vartype);
+    bool const is_managed = !_sym.IsAnyIntegerVartype(new_vartype);
     int const element_size = _sym.GetSize(new_vartype);
 
     retval = AccessData_ReadBracketedIntExpression(expression);
@@ -2404,7 +2404,7 @@ ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation
     retval = ResultToAX(vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    if (!_sym.IsAnyIntType(_scrip.ax_vartype))
+    if (!_sym.IsAnyIntegerVartype(_scrip.ax_vartype))
     {
         Error(
             "Expected an integer expression after '%s' but found type %s",
@@ -5236,7 +5236,7 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
             Error("Dynamic arrays of old-style strings are not supported");
             return kERR_UserError;
         }
-        if (!_sym.IsAnyIntType(vartype) && !_sym.IsManaged(vartype) && _sym.GetFloatSym() != vartype)
+        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManaged(vartype) && _sym.GetFloatSym() != vartype)
         {
             Error("Can only have dynamic arrays of integer types, float or managed structs. '%s' isn't any of this.", _sym.GetName(vartype).c_str());
             return kERR_UserError;
@@ -6032,7 +6032,7 @@ ErrorType AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name
             return kERR_UserError;
         }
     }
-    else if (_sym.IsAnyIntType(functionReturnType))
+    else if (_sym.IsAnyIntegerVartype(functionReturnType))
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     }

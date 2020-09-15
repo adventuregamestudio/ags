@@ -176,7 +176,7 @@ public:
     inline size_t GetSize(Symbol s) const { return IsInBounds(s) ? entries[s].GetSize(*this) : 0; };
 
     // int, long, char, an enum etc.
-    bool IsAnyIntType(Symbol s) const;
+    bool IsAnyIntegerVartype(Symbol s) const;
     inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; }
     inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; }
     inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; }

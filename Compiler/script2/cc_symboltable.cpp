@@ -249,7 +249,7 @@ void AGS::SymbolTable::reset()
         Add("writeprotected", kSYM_WriteProtected); 
 }
 
-bool AGS::SymbolTable::IsAnyIntType(Symbol s) const
+bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
 {
     if (s >= _charSym && s <= _shortSym && s != _floatSym)
         return true;

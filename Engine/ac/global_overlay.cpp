@@ -33,7 +33,6 @@ using namespace Engine;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
-extern int crovr_id;  // whether using SetTextOverlay or CreateTextOvelay
 
 
 void RemoveOverlay(int ovrid) {
@@ -51,16 +50,14 @@ int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     return screenover[nse].type;
 }
 
-int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int clr, const char *tex, int allowShrink) {
+int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int text_color, const char *text, int disp_type, int allowShrink) {
     if (wii<8) wii=play.GetUIViewport().GetWidth()/2;
     if (xx<0) xx=play.GetUIViewport().GetWidth()/2-wii/2;
-    if (clr==0) clr=16;
-    int blcode = crovr_id;
-    crovr_id = 2;
-    return _display_main(xx,yy,wii, (char*)tex, blcode,fontid,-clr, 0, allowShrink, false);
+    if (text_color ==0) text_color =16;
+    return _display_main(xx,yy,wii, text, disp_type, fontid, -text_color, 0, allowShrink, false);
 }
 
-int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr, const char* text) {
+int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
     int allowShrink = 0;
 
     if (xx != OVR_AUTOPLACE) {
@@ -70,13 +67,13 @@ int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr, const char* text
     else  // allow DisplaySpeechBackground to be shrunk
         allowShrink = 1;
 
-    return CreateTextOverlayCore(xx, yy, wii, fontid, clr, text, allowShrink);
+    return CreateTextOverlayCore(xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
 }
 
-void SetTextOverlay(int ovrid,int xx,int yy,int wii,int fontid,int clr, const char *text) {
+void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_color, const char *text) {
     RemoveOverlay(ovrid);
-    crovr_id=ovrid;
-    if (CreateTextOverlay(xx,yy,wii,fontid,clr,text)!=ovrid)
+    const int disp_type = ovrid;
+    if (CreateTextOverlay(xx, yy, wii, fontid, text_color, text, disp_type) !=ovrid)
         quit("SetTextOverlay internal error: inconsistent type ids");
 }
 

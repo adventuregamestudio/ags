@@ -148,7 +148,7 @@ void DisplayAt(int xxp,int yyp,int widd, const char* text) {
 
     if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
     if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
-    _display_at(xxp,yyp,widd,text,1,0, 0, 0, false);
+    _display_at(xxp, yyp, widd, text, DISPLAYTEXT_MESSAGEBOX, 0, 0, 0, false);
 }
 
 void DisplayAtY (int ypos, const char *texx) {
@@ -175,7 +175,8 @@ void DisplayAtY (int ypos, const char *texx) {
             play.disabled_user_interface --;
         }
 
-        _display_at(-1,ypos,ui_view.GetWidth()/2+ui_view.GetWidth()/4,get_translation(texx),1,0, 0, 0, false);
+        _display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4,
+            get_translation(texx), DISPLAYTEXT_MESSAGEBOX, 0, 0, 0, false);
     }
 }
 

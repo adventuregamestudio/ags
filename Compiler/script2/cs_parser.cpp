@@ -952,10 +952,10 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     // We only need these precautions if there are local dynamic objects.
     RestorePoint rp_before_precautions(_scrip);
 
-    // Allocate a local dynamic pointer to hold the return value.
-    _scrip.push_reg(SREG_AX);
-    WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-    WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
+        // Allocate a local dynamic pointer to hold the return value.
+        _scrip.push_reg(SREG_AX);
+        WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
 
     RestorePoint rp_before_freeing(_scrip);
     bool dummy_bool;
@@ -4652,8 +4652,8 @@ ErrorType AGS::Parser::ParseFuncBodyStart(AGS::Parser::NestingStack *nesting_sta
     }
 
     // If there are dynpointer parameters, then the caller has simply "pushed" them onto the stack.
-    // We catch up here by reading each dynpointer and writing it again using MEMWRITEPTR
-    // to declare that the respective cells are used for dynpointers.
+    // We catch up here by reading each dynpointer and writing it again using MEMINITPTR
+    // to declare that the respective cells will from now on be used for dynpointers.
     size_t const num_params = _sym[name_of_func].GetNumOfFuncParams();
     for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value pa == 0
     {
@@ -4665,7 +4665,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(AGS::Parser::NestingStack *nesting_sta
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_STACK_CELL * (param_idx + 1));
         WriteCmd(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
         // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
-        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
+        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
     }
 
     SymbolTableEntry &this_entry = _sym[_sym.GetThisSym()];

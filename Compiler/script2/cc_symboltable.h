@@ -67,7 +67,7 @@ public:
     // Variables only
     AGS::Vartype Vartype; // may contain typeflags
 
-    // Variables, structs, struct members, and vartypes only
+    // Structs and vartypes only
     size_t SSize;      // Size in bytes
 
     // Variables and functions only

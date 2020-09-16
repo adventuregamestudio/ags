@@ -688,7 +688,7 @@ ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledS
         scrip.refresh_lineno(lineno);
         CodeCell const offset = scrip.offset_to_local_var_block - _startOffs - _componentOffs;
         if (offset < 0)
-        {
+        {   // Must be a bug: That memory is unused.
             _parser.Error("!Trying to emit the negative offset %d to the top-of-stack", (int) offset);
             return kERR_InternalError;
         }
@@ -952,10 +952,10 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     // We only need these precautions if there are local dynamic objects.
     RestorePoint rp_before_precautions(_scrip);
 
-        // Allocate a local dynamic pointer to hold the return value.
-        _scrip.push_reg(SREG_AX);
-        WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        WriteCmd(SCMD_MEMINITPTR, SREG_AX);
+    // Allocate a local dynamic pointer to hold the return value.
+    _scrip.push_reg(SREG_AX);
+    WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+    WriteCmd(SCMD_MEMINITPTR, SREG_AX);
 
     RestorePoint rp_before_freeing(_scrip);
     bool dummy_bool;
@@ -3306,7 +3306,7 @@ ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Symbol i
     {
         Error(
             "Array index #%u is %d, thus out of bounds (minimum is 0)",
-            idx + 1,
+            idx + 1u,
             array_index);
         return kERR_UserError;
     }
@@ -3314,9 +3314,9 @@ ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Symbol i
     {
         Error(
             "Array index #%u is %d, thus out of bounds (maximum is %u)",
-           idx + 1,
+            idx + 1u,
             array_index,
-            num_array_elements - 1);
+            num_array_elements - 1u);
         return kERR_UserError;
     }
 
@@ -4659,7 +4659,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(AGS::Parser::NestingStack *nesting_sta
     // We catch up here by reading each dynpointer and writing it again using MEMINITPTR
     // to declare that the respective cells will from now on be used for dynpointers.
     size_t const num_params = _sym[name_of_func].GetNumOfFuncParams();
-    for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value pa == 0
+    for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value param_idx == 0
     {
         Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[param_idx];
         if (!_sym.IsDyn(param_vartype))

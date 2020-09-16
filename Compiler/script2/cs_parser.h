@@ -456,10 +456,18 @@ private:
     // Release the pointers that the array contains.
     void FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax);
 
-    void FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar);
+    ErrorType FreeDynpointersOfLocals0(size_t from_level, bool &clobbers_ax, bool &clobbers_mar);
 
     // Free the pointers of any locals in level from_level or higher
-    ErrorType FreeDynpointersOfLocals(int from_level, Symbol name_of_current_func = 0, bool ax_irrelevant = false);
+    ErrorType FreeDynpointersOfLocals(size_t from_level);
+
+    // Free the pointers of all locals at the end of a function. This function
+    // returns a Dynarray or Dynpointer, so the result must be protected from
+    // dropping its last reference, which could mean the pointer is released prematurely.
+    ErrorType FreeDynpointersOfAllLocals_DynResult(void);
+
+    // Free the pointers of all locals at the end of a function. Do not clobber AX.
+    ErrorType FreeDynpointersOfAllLocals_KeepAX(void);
 
     ErrorType RemoveLocalsFromSymtable(int from_level);
 
@@ -755,7 +763,7 @@ private:
 
     ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
-    ErrorType ParseFuncBody(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
+    ErrorType ParseFuncBodyStart(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
 
     ErrorType HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
@@ -888,7 +896,6 @@ private:
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     ErrorType ParseAssignmentOrExpression(Symbol cursym);
 
-    // Discard local variables in nestings of level nesting_level or higher
     ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
     ErrorType ParseBreak(NestingStack *nesting_stack);

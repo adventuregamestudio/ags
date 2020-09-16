@@ -911,90 +911,87 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
 // other and so have a reference count of 1; the reference count will never reach 0).
 
 // Free the pointers of any locals that have a nesting depth higher than from_level
-void AGS::Parser::FreeDynpointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar)
+ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &clobbers_ax, bool &clobbers_mar)
 {
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
         SymbolTableEntry &entry = _sym[entries_idx];
         if (entry.SScope <= from_level)
             continue;
-        if (kSYM_LocalVar != entry.SType)
-            continue;
         if (_sym.GetThisSym() == entries_idx)
             continue; // don't touch the this pointer
         if (!ContainsReleasableDynpointers(entry.Vartype))
             continue;
 
-        
         // Set MAR to the start of the construct that contains releasable pointers
-        int const sp_offset = _scrip.offset_to_local_var_block - entry.SOffset;
-        WriteCmd(SCMD_LOADSPOFFS, sp_offset);
+        WriteCmd(SCMD_LOADSPOFFS, _scrip.offset_to_local_var_block - entry.SOffset);
         clobbers_mar = true;
         if (_sym.IsDyn(entry.Vartype))
             WriteCmd(SCMD_MEMZEROPTR);
-        else if (entry.IsArray(_sym))
+        else if (_sym.IsArray(entry.Vartype))
             FreeDynpointersOfStdArray(entries_idx, clobbers_ax);
-        else if (entry.IsStruct(_sym))
+        else if (_sym.IsStruct(entry.Vartype))
             FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
     }
+    return kERR_None;
 }
 
 // Free the pointers of any locals that have a nesting depth higher than from_level
-ErrorType AGS::Parser::FreeDynpointersOfLocals(int from_level, AGS::Symbol name_of_current_func, bool ax_irrelevant)
+ErrorType AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
 {
-    if (0 != from_level)
-    {
-        bool dummy_bool;
-        FreeDynpointersOfLocals0(from_level, dummy_bool, dummy_bool);
-        return kERR_None;
-    }
+    bool dummy_bool;
+    return FreeDynpointersOfLocals0(from_level, dummy_bool, dummy_bool);
+}
 
-    // We're ending the current function; AX is containing the result of the func call.
-    Vartype const func_return_vartype = _sym[name_of_current_func].FuncParamVartypes.at(0);
-    bool const function_returns_void = _sym.GetVoidSym() == func_return_vartype;
+ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
+{
+    // The return value AX might point to a local dynamic object. So if we
+    // now free the dynamic references and we don't take precautions,
+    // this dynamic memory might drop its last reference and get
+    // garbage collected in consequence. AX would have a dangling pointer.
+    // We only need these precautions if there are local dynamic objects.
+    RestorePoint rp_before_precautions(_scrip);
 
-    if (_sym.IsDyn(func_return_vartype) && !ax_irrelevant)
-    {
-        // The return value AX might point to a local dynamic object. So if we
-        // now free the dynamic references and we don't take precautions,
-        // this dynamic memory will get killed so our AX value is useless.
-        // We only need these precautions if there are local dynamic objects.
-        RestorePoint rp_before_precautions(_scrip);
+    // Allocate a local dynamic pointer to hold the return value.
+    _scrip.push_reg(SREG_AX);
+    WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+    WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
 
-        // Allocate a local dynamic pointer to hold the return value.
-        _scrip.push_reg(SREG_AX);
+    RestorePoint rp_before_freeing(_scrip);
+    bool dummy_bool;
+    bool mar_may_be_clobbered = false;
+    ErrorType retval = FreeDynpointersOfLocals0(0u, dummy_bool, mar_may_be_clobbered);
+    if (retval < 0) return retval;
+    bool const no_precautions_were_necessary = rp_before_freeing.IsEmpty();
+
+    // Now release the dynamic pointer with a special opcode that prevents 
+    // memory de-allocation as long as AX still has this pointer, too
+    if (mar_may_be_clobbered)
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        WriteCmd(SCMD_MEMWRITEPTR, SREG_AX);
+    WriteCmd(SCMD_MEMREADPTR, SREG_AX);
+    WriteCmd(SCMD_MEMZEROPTRND); // special opcode
+    _scrip.pop_reg(SREG_BX); // do NOT pop AX here
+    if (no_precautions_were_necessary)
+        rp_before_precautions.Restore();
+    return kERR_None;
+}
 
-        RestorePoint rp_before_freeing(_scrip);
-        bool dummy_bool;
-        bool mar_may_be_clobbered = false;
-        FreeDynpointersOfLocals0(from_level, dummy_bool, mar_may_be_clobbered);
-        bool const no_precautions_were_necessary = rp_before_freeing.IsEmpty();
-
-        // Now release the dynamic pointer with a special opcode that prevents 
-        // memory de-allocation as long as AX still has this pointer, too
-        if (mar_may_be_clobbered)
-            WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
-        WriteCmd(SCMD_MEMREADPTR, SREG_AX);
-        WriteCmd(SCMD_MEMZEROPTRND); // special opcode
-        _scrip.pop_reg(SREG_BX); // do NOT pop AX here
-        if (no_precautions_were_necessary)
-            rp_before_precautions.Restore();
-        return kERR_None;
-    }
-
+// Free all local Dynpointers taking care to not clobber AX
+ErrorType AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
+{
     RestorePoint rp_before_free(_scrip);
     bool clobbers_ax = false;
     bool dummy_bool;
-    FreeDynpointersOfLocals0(from_level, clobbers_ax, dummy_bool);
-    if (!clobbers_ax || function_returns_void)
+    ErrorType retval = FreeDynpointersOfLocals0(0u, clobbers_ax, dummy_bool);
+    if (retval < 0) return retval;
+    if (!clobbers_ax)
         return kERR_None;
-    // Oops. AX was carrying our return value and shouldn't have been clobbered.
-    // So we have to redo this and this time save AX before freeing.
+
+    // We should have saved AX, so redo this
     rp_before_free.Restore();
     _scrip.push_reg(SREG_AX);
-    FreeDynpointersOfLocals0(from_level, clobbers_ax, dummy_bool);
+    retval = FreeDynpointersOfLocals0(0u, clobbers_ax, dummy_bool);
+    if (retval < 0) return retval;
     _scrip.pop_reg(SREG_AX);
 
     return kERR_None;
@@ -2311,6 +2308,7 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
     bool const is_managed = !_sym.IsAnyIntegerVartype(argument_vartype);
     bool const with_bracket_expr = !expression.ReachedEOF(); // "new FOO[BAR]"
 
+    Vartype element_vartype = 0;
     if (with_bracket_expr)
     {
         // Note that in AGS, you can write "new Struct[]" but what you mean then is "new Struct*[]".
@@ -2319,6 +2317,8 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
 
         retval = AccessData_ReadBracketedIntExpression(expression);
         if (retval < 0) return retval;
+        element_vartype = is_managed ? _sym.VartypeWith(kVTT_Dynpointer, argument_vartype) : argument_vartype;
+        vartype = _sym.VartypeWith(kVTT_Dynarray, element_vartype);
     }
     else
     {
@@ -2332,12 +2332,11 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
             Error("Expected '[' after the integer type '%s'", _sym.GetName(argument_vartype).c_str());
             return kERR_UserError;
         }
+        element_vartype = argument_vartype;
+        vartype = _sym.VartypeWith(kVTT_Dynpointer, argument_vartype);
     }
 
-    // Note that in AGS, you can write "new Struct[]" but what you mean then is "new Struct*[]".
-    vartype = is_managed ? _sym.VartypeWith(kVTT_Dynpointer, argument_vartype) : argument_vartype;
-    size_t const element_size = _sym.GetSize(vartype);
-
+    size_t const element_size = _sym.GetSize(element_vartype);
     if (0 == element_size)
     {   // The Engine really doesn't like that (division by zero error)
         Error("!Trying to emit allocation of zero dynamic memory");
@@ -4639,7 +4638,7 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
     return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info, false);
 }
 
-ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, Symbol struct_of_func, AGS::Symbol name_of_func)
+ErrorType AGS::Parser::ParseFuncBodyStart(AGS::Parser::NestingStack *nesting_stack, Symbol struct_of_func, AGS::Symbol name_of_func)
 {
     nesting_stack->Push(kSYM_Function);
 
@@ -4659,7 +4658,7 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
     for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value pa == 0
     {
         Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[param_idx];
-        if (!_sym.IsManaged(param_vartype))
+        if (!_sym.IsDyn(param_vartype))
             continue;
 
         // The return address is on top of the stack, so the nth param is at (n+1)th position
@@ -4686,6 +4685,8 @@ ErrorType AGS::Parser::ParseFuncBody(AGS::Parser::NestingStack *nesting_stack, S
 
 ErrorType AGS::Parser::HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
+    // Free all the dynpointers in parameters and locals. 
+    FreeDynpointersOfLocals(0u);
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
@@ -6026,7 +6027,7 @@ ErrorType AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name
         }
 
         // parse what is being returned
-       ErrorType retval = ParseExpression();
+        ErrorType retval = ParseExpression();
         if (retval < 0) return retval;
 
         // If we need a string object ptr but AX contains a normal string, convert AX
@@ -6061,17 +6062,27 @@ ErrorType AGS::Parser::ParseReturn(NestingStack *nesting_stack, AGS::Symbol name
     }
 
     // If locals contain pointers, free them
-    FreeDynpointersOfLocals(0, name_of_current_func);
-    size_t const size_of_locals = StacksizeOfLocals(SymbolTableEntry::ParameterSScope);
-    // Pop local variables from the stack, but don't adjust _scrip.offset_to_local_var_block
-    // because that is done as part of the end-of-function bookkeeping (?)
-    if (size_of_locals > 0)
-        WriteCmd(SCMD_SUB, SREG_SP, size_of_locals);
+    if (_sym.IsDyn(functionReturnType))
+        FreeDynpointersOfAllLocals_DynResult(); // Special protection for result needed
+    else if (_sym.GetVoidSym() != functionReturnType)
+        FreeDynpointersOfAllLocals_KeepAX();
+    else 
+        FreeDynpointersOfLocals(0u);
 
+    size_t const save_offset = _scrip.offset_to_local_var_block;
+    // Pop the local variables proper from the stack but leave the parameters.
+    // This is important because the return address is directly above the parameters;
+    // we need the return address to return. (The caller will pop the parameters later.)
+    RemoveLocalsFromStack(SymbolTableEntry::ParameterSScope);
+  
     // Jump to the exit point of the function
     WriteCmd(SCMD_JMP, 0);
     nesting_stack->JumpOut(1).AddParam();
 
+    // The locals only disappear if control flow actually follows the "return"
+    // statement. Otherwise, below the statement, the locals remain on the stack.
+    // So restore the offset_to_local_var_block.
+    _scrip.offset_to_local_var_block = save_offset;
     return kERR_None;
 }
 
@@ -6180,8 +6191,10 @@ ErrorType AGS::Parser::ParseDo(AGS::Parser::NestingStack *nesting_stack)
 ErrorType AGS::Parser::HandleEndOfBraceCommand(NestingStack *nesting_stack)
 {
     nesting_stack->Pop();
-    RemoveLocalsFromStack(nesting_stack->Depth());
-    RemoveLocalsFromSymtable(nesting_stack->Depth());
+    size_t const depth = nesting_stack->Depth();
+    FreeDynpointersOfLocals(depth);
+    RemoveLocalsFromStack(depth);
+    RemoveLocalsFromSymtable(depth);
 
     return kERR_None;
 }
@@ -6488,9 +6501,6 @@ ErrorType AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::Parser::Nesting
 
 ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
 {
-    // If locals contain pointers, free them
-    FreeDynpointersOfLocals(nesting_level);
-
     // Pop local variables from the stack
     int const size_of_local_vars = StacksizeOfLocals(nesting_level);
     if (size_of_local_vars > 0)
@@ -6527,6 +6537,7 @@ ErrorType AGS::Parser::ParseBreak(AGS::Parser::NestingStack *nesting_stack)
     }
 
     size_t const save_offset = _scrip.offset_to_local_var_block;
+    FreeDynpointersOfLocals(nesting_level);
     RemoveLocalsFromStack(nesting_level);
     
     // Jump out of the loop or switch
@@ -6566,6 +6577,7 @@ ErrorType AGS::Parser::ParseContinue(AGS::Parser::NestingStack *nesting_stack)
     }
 
     size_t const save_offset = _scrip.offset_to_local_var_block;
+    FreeDynpointersOfLocals(nesting_level);
     RemoveLocalsFromStack(nesting_level);
 
     // if it's a for loop, drop the yanked loop increment chunk in
@@ -6662,7 +6674,7 @@ ErrorType AGS::Parser::ParseCommand(AGS::Symbol leading_sym, AGS::Symbol &struct
 
     case kSYM_OpenBrace:
         if (2 > nesting_stack->Depth())
-             return ParseFuncBody(nesting_stack, struct_of_current_func, name_of_current_func);
+             return ParseFuncBodyStart(nesting_stack, struct_of_current_func, name_of_current_func);
         return nesting_stack->Push(kSYM_OpenBrace);
 
     case kSYM_Return:

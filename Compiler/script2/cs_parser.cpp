@@ -214,7 +214,7 @@ std::map<TypeQualifier, std::string> AGS::Parser::_tq2String;
 
 bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= _sym.GetLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
+    if (symb <= _sym.GetLastPredefSym() || symb > static_cast<decltype(symb)>(_sym.entries.size()))
         return false;
     std::string name = _sym.GetName(symb);
     if (name.size() == 0)
@@ -460,7 +460,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc ch
             PatchInfo &patch_info = pl[pl_idx];
             if (patch_info.ChunkId != CodeBaseId)
                 continue;
-            if (patch_info.Offset < chunk_start || patch_info.Offset >= static_cast<int>(chunk_end))
+            if (patch_info.Offset < chunk_start || patch_info.Offset >= static_cast<decltype(patch_info.Offset)>(chunk_end))
                 continue; // This address isn't yanked
 
             patch_info.ChunkId = id;
@@ -1495,7 +1495,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
 
             if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
             {
-                Error("Too many parameters defined for function (max. allowed: %d)", static_cast<int>(MAX_FUNCTION_PARAMETERS) - 1);
+                Error("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
                 return kERR_UserError;
             }
 
@@ -3305,18 +3305,18 @@ ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Symbol i
     if (array_index < 0)
     {
         Error(
-            "Array index #%d is %d, thus out of bounds (minimum is 0)",
-            static_cast<int>(idx + 1),
+            "Array index #%u is %d, thus out of bounds (minimum is 0)",
+            idx + 1,
             array_index);
         return kERR_UserError;
     }
     if (num_array_elements > 0 && static_cast<size_t>(array_index) >= num_array_elements)
     {
         Error(
-            "Array index #%d is %d, thus out of bounds (maximum is %d)",
-            static_cast<int>(idx + 1),
+            "Array index #%u is %d, thus out of bounds (maximum is %u)",
+           idx + 1,
             array_index,
-            static_cast<int>(num_array_elements - 1));
+            num_array_elements - 1);
         return kERR_UserError;
     }
 

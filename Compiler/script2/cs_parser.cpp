@@ -3005,20 +3005,24 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     bool const func_is_import = FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import);
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
-    bool const func_uses_this =
+    bool const called_func_uses_this =
         std::string::npos != _sym.GetName(name_of_func).find("::") &&
         !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static);
+    bool const calling_func_uses_this = (0 != _sym.GetVartype(_sym.GetThisSym()));
     bool mar_pushed = false;
     bool op_pushed = false;
 
-    if (func_uses_this)
+    if (calling_func_uses_this)
     {
-        if (0 != _sym.GetVartype(_sym.GetThisSym())) // the calling function uses "this"
-        {   // Save OP since we must restore it after the func call
-            _scrip.push_reg(SREG_OP); 
-            op_pushed = true;
-        }
+        // Save OP since we need it after the func call
+        // We must do this no matter whether the callED function itself uses "this"
+        // because a called function that doesn't might call a function that does.
+        _scrip.push_reg(SREG_OP);
+        op_pushed = true;
+    }
 
+    if (called_func_uses_this)
+    {
         // MAR contains the address of "outer"; this is what will be used for "this" in the called function.
         ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
@@ -3034,10 +3038,10 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     ErrorType retval = AccessData_PushFunctionCallParams(name_of_func, func_is_import, expression, num_args);
     if (retval < 0) return retval;
 
-    if (func_uses_this)
+    if (called_func_uses_this)
     {
         if (0 == num_args)
-        {   // MAR is still current, so undo the unneeded PUSH above.
+        {   // MAR must still be current, so undo the unneeded PUSH above.
             _scrip.offset_to_local_var_block -= SIZE_OF_STACK_CELL;
             _scrip.codesize -= 2;
             mar_pushed = false;
@@ -3061,7 +3065,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     if (mar_pushed)
         _scrip.pop_reg(SREG_MAR);
     if (op_pushed)
-        _scrip.pop_reg(SREG_OP); // Recover the current "this"
+        _scrip.pop_reg(SREG_OP);
 
     MarkAcessed(name_of_func);
     return kERR_None;

@@ -42,7 +42,6 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
-    _userInputOn = true;
 }
 
 void GameState::Free()
@@ -399,24 +398,20 @@ ScriptCamera *GameState::GetScriptCamera(int index)
     return _scCameraRefs[index].first;
 }
 
-bool GameState::IsUserInputEnabled() const
-{ // TODO: toggle _userInputOn in the update routine instead, and only rely on its value here
-    return _userInputOn && (AGS_Clock::now() >= _ignoreUserInputUntilTime);
-}
-
-void GameState::SetUserInputEnabled(bool on)
+bool GameState::IsIgnoringInput() const
 {
-    _userInputOn = on;
-    if (on)
-    {
-        _ignoreUserInputUntilTime = AGS_Clock::now();
-    }
+    return AGS_Clock::now() < _ignoreUserInputUntilTime;
 }
 
 void GameState::SetIgnoreInput(int timeout_ms)
 {
     if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
         _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+}
+
+void GameState::ClearIgnoreInput()
+{
+    _ignoreUserInputUntilTime = AGS_Clock::now();
 }
 
 bool GameState::IsBlockingVoiceSpeech() const

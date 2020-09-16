@@ -652,7 +652,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     RestoreViewportsAndCameras(r_data);
 
-    play.SetUserInputEnabled(true); // don't keep ignored input after save restore
+    play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff_if_runtime();
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);

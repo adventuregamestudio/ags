@@ -2673,10 +2673,6 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
-#ifdef SCRIPT_API_v351
-  /// Gets/sets whether user input is enabled in game
-  import static attribute bool UserInputEnabled;
-#endif
 };
 
 builtin struct GameState {

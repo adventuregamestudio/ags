@@ -951,16 +951,6 @@ void Game_SimulateKeyPress(int key)
     }
 }
 
-bool Game_IsUserInputEnabled()
-{
-    return play.IsUserInputEnabled();
-}
-
-void Game_SetUserInputEnabled(bool on)
-{
-    return play.SetUserInputEnabled(on);
-}
-
 //=============================================================================
 
 // save game functions
@@ -2435,16 +2425,6 @@ RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, in
     API_SCALL_VOID_PINT(Game_SimulateKeyPress);
 }
 
-RuntimeScriptValue Sc_Game_GetUserInputEnabled(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_BOOL(Game_IsUserInputEnabled);
-}
-
-RuntimeScriptValue Sc_Game_SetUserInputEnabled(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PBOOL(Game_SetUserInputEnabled);
-}
-
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2498,8 +2478,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
     ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
     ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
-    ccAddExternalStaticFunction("Game::get_UserInputEnabled",                   Sc_Game_GetUserInputEnabled);
-    ccAddExternalStaticFunction("Game::set_UserInputEnabled",                   Sc_Game_SetUserInputEnabled);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

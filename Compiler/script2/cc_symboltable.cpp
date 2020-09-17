@@ -58,7 +58,7 @@ bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt)
     // so if this is constant and we're checking for something else,
     // then look for the info one level down.
     if (kVTT_Const == VartypeType)
-        return (kVTT_Const == vtt) ? true: symt.IsVTT(Vartype, vtt);
+        return (kVTT_Const == vtt) ? true : symt.IsVTT(Vartype, vtt);
     return vtt == VartypeType;
 }
 
@@ -140,6 +140,7 @@ void AGS::SymbolTable::reset()
     _vartypesCache.clear();
 
     entries.clear();
+    entries.reserve(300);
 
     SetStringStructSym(0);
 
@@ -152,9 +153,9 @@ void AGS::SymbolTable::reset()
         Add("float", kSYM_Vartype, 4);
     _intSym =
         Add("int", kSYM_Vartype, SIZE_OF_INT);
-    _longSym = 
+    _longSym =
         Add("long", kSYM_Vartype, SIZE_OF_INT);
-    _shortSym = 
+    _shortSym =
         Add("short", kSYM_Vartype, 2);
     _oldStringSym =
         Add("string", kSYM_Vartype, STRINGBUFFER_LENGTH);
@@ -170,8 +171,8 @@ void AGS::SymbolTable::reset()
     Add("[", kSYM_OpenBracket);
     Add("(", kSYM_OpenParenthesis);
 
-    AddOp("!", kSYM_Operator,  SCMD_NOTREG, -1, 101); // boolean NOT
-    AddOp("~", kSYM_Operator,  SCMD_NOTREG, -1, 101); // bitwise NOT
+    AddOp("!", kSYM_Operator, SCMD_NOTREG, -1, 101); // boolean NOT
+    AddOp("~", kSYM_Operator, SCMD_NOTREG, -1, 101); // bitwise NOT
     _dynpointerSym =
         AddOp("*", kSYM_Operator, SCMD_MULREG, 103);
     AddOp("/", kSYM_Operator, SCMD_DIVREG, 103);
@@ -246,7 +247,7 @@ void AGS::SymbolTable::reset()
     Add("...", kSYM_Varargs);
     Add("while", kSYM_While);
     _lastPredefSym =
-        Add("writeprotected", kSYM_WriteProtected); 
+        Add("writeprotected", kSYM_WriteProtected);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
@@ -303,10 +304,10 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
     // Return cached result if existent 
     std::pair<Vartype, enum VartypeType> const arg = { vartype, vtt };
     Vartype &valref(_vartypesCache[arg]);
-    if (valref) 
+    if (valref)
         return valref;
 
-    if (IsVTT(vartype, vtt))     
+    if (IsVTT(vartype, vtt))
         return (valref = vartype); // Nothing to be done
 
     std::string pre = "";
@@ -320,7 +321,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
         // (If this turns out to be too ugly, then we need two fields for vartypes:
         // one field that is output to the user, another field that is guaranteed to have different values
         // for different vartypes.)
-    case kVTT_Dynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr)? " " : " *"; break;
+    case kVTT_Dynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr) ? " " : " *"; break;
     case kVTT_Dynarray: post = "[]"; break;
     }
     std::string const conv_name = (pre + entries[vartype].SName) + post;
@@ -338,7 +339,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
     while (
         IsInBounds(vartype) &&
         kSYM_Vartype == entries[vartype].SType &&
-        FlagIsSet (entries[vartype].VartypeType, vtt))
+        FlagIsSet(entries[vartype].VartypeType, vtt))
         vartype = entries[vartype].Vartype;
     return vartype;
 }
@@ -346,7 +347,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
 int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& compo_list) const
 {
     compo_list.clear();
-    while(true)
+    while (true)
     {
         for (size_t compo = 1; compo < entries.size(); compo++)
         {
@@ -405,20 +406,25 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
     // string and const string are oldstrings
     if (GetOldStringSym() == s_without_const)
         return true;
-    
+
     // const char[..] and char[..] are considered oldstrings, too
     return (IsArray(s) && GetCharSym() == VartypeWithout(kVTT_Array, s_without_const));
 }
 
-
 AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int ssize)
 {
+    // Note: A very significant portion of computing is spent in this function.
     if (0 != _findCache.count(name))
         return -1;
 
-    SymbolTableEntry entry(name, stype, ssize);
+    if (entries.size() == entries.capacity())
+    {
+        size_t const new_size1 = entries.capacity() * 2;
+        size_t const new_size2 = entries.capacity() + 1000;
+        entries.reserve((new_size1 < new_size2) ? new_size1 : new_size2);
+    }
     int const idx_of_new_entry = entries.size();
-    entries.push_back(entry);
+    entries.emplace_back(name, stype, ssize);
     _findCache[name] = idx_of_new_entry;
     return idx_of_new_entry;
 }

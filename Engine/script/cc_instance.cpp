@@ -855,8 +855,15 @@ int ccInstance::Run(int32_t curpc)
               if ((reg1.IValue < 0) ||
                   (reg1.IValue >= upperBoundInBytes)) {
                       int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
-                      int elementSize = (upperBoundInBytes / upperBound);
-                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
+                      if (upperBound <= 0)
+                      {
+                          cc_error("!Array has an invalid size (%d) and cannot be accessed", upperBound);
+                      }
+                      else
+                      {
+                          int elementSize = (upperBoundInBytes / upperBound);
+                          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
+                      }
                       return -1;
               }
               break;

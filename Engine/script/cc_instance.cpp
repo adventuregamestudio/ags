@@ -1183,9 +1183,9 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_NEWARRAY:
           {
               int numElements = reg1.IValue;
-              if ((numElements < 1) || (numElements > 1000000))
+              if (numElements < 1)
               {
-                  cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
+                  cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", numElements, INT32_MAX);
                   return -1;
               }
               DynObjectRef ref = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());

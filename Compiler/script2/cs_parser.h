@@ -219,7 +219,7 @@ private:
             std::vector<CodeCell> Code;
             std::vector<CodeLoc> Fixups;
             std::vector<char> FixupTypes;
-            int CodeOffset;
+           int CodeOffset;
             int FixupOffset;
             size_t SrcLine;
             int Id;
@@ -229,12 +229,15 @@ private:
         struct NestingInfo
         {
             SymbolType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
+            std::vector<Symbol> Symbols;
             BackwardJumpDest Start;
             ForwardJump JumpOut; // First byte after the statement
             Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
             BackwardJumpDest SwitchDefault; // when switch: Default label
             ForwardJump SwitchJumptable; // when switch: Jumptable
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+
+            NestingInfo(SymbolType stype, ::ccCompiledScript &scrip);
         };
 
         std::vector<NestingInfo> _stack;
@@ -251,6 +254,9 @@ private:
         inline void SetType(SymbolType nt) { _stack.back().Type = nt; }
         // Type of the nesting at the given nesting level
         inline SymbolType Type(size_t level) const { return _stack.at(level).Type; }
+
+        // Add a symbol to the innermost nesting.
+        inline void AddSymbol(Symbol s) { _stack.back().Symbols.push_back(s); }
 
         // If the innermost nesting is a loop that has a jump back to the start,
         // then this gives the location to jump to
@@ -287,10 +293,7 @@ private:
         inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
         inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
 
-        // Push a new nesting level
-        ErrorType Push(SymbolType type);
-
-        // Pop a nesting level
+        inline void Push(SymbolType type) { _stack.emplace_back(type, _scrip); }
         inline void Pop() { _stack.pop_back(); };
 
         // Rip a generated chunk of code out of the codebase and stash it away for later 
@@ -301,7 +304,7 @@ private:
         void WriteChunk(size_t level, size_t index, int &id);
         // Write chunk of code back into the codebase stashed in the innermost level, at index
         inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
-    };
+    } _nest;
 
     enum ParsingPhase
     {
@@ -762,9 +765,9 @@ private:
 
     ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
-    ErrorType ParseFuncBodyStart(NestingStack *nesting_stack, Symbol struct_of_func, Symbol name_of_func);
+    ErrorType ParseFuncBodyStart(Symbol struct_of_func, Symbol name_of_func);
 
-    ErrorType HandleEndOfFuncBody(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    ErrorType HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
 
@@ -802,7 +805,7 @@ private:
     ErrorType ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
     // Handle a "struct" definition clause
-    ErrorType ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol struct_of_current_func, Symbol name_of_current_func);
+    ErrorType ParseStruct(TypeQualifierSet tqs, Symbol struct_of_current_func, Symbol name_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
     ErrorType ParseEnum_AssignedValue(int &currentValue);
@@ -819,11 +822,11 @@ private:
 
     ErrorType ParseExport();
 
-    ErrorType ParseReturn(NestingStack *nesting_stack, Symbol name_of_current_func);
+    ErrorType ParseReturn(Symbol name_of_current_func);
 
     ErrorType ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname);
 
-    ErrorType ParseVartype_CheckForIllegalContext(NestingStack const &nesting_stack);
+    ErrorType ParseVartype_CheckForIllegalContext();
 
     ErrorType ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
@@ -834,24 +837,24 @@ private:
     ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, int nested_level, TypeQualifierSet tqs, Vartype vartype);
 
     // We accepted a variable type such as "int", so what follows is a variable or function declaration
-    ErrorType ParseVartype(Vartype vartype, NestingStack const &nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
+    ErrorType ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command statement. This command might be the end of sequences such as
     // "if (...) while (...) stmt;"
     //  Find out what surrounding compound statements have ended and handle these endings.
-    ErrorType HandleEndOfCompoundStmts(NestingStack *nesting_stack);
+    ErrorType HandleEndOfCompoundStmts();
 
     // Handle the end of a {...} command
-    ErrorType HandleEndOfBraceCommand(NestingStack *nesting_stack);
+    ErrorType HandleEndOfBraceCommand();
 
     // Parse the head of a "do ... while(...)" clause
-    ErrorType ParseDo(NestingStack *nesting_stack);
+    ErrorType ParseDo();
 
     // Handle the end of a "do" body and the "while" clause following it
-    ErrorType HandleEndOfDo(NestingStack *nesting_stack);
+    ErrorType HandleEndOfDo();
 
     // Handle the end of an "else" body
-    ErrorType HandleEndOfElse(NestingStack *nesting_stack);
+    ErrorType HandleEndOfElse();
 
     // The first clause of "for (I; W; C);" when it is a declaration
     ErrorType ParseFor_InitClauseVardecl(size_t nesting_level);
@@ -866,30 +869,30 @@ private:
     ErrorType ParseFor_IterateClause();
 
     // Handle the head of "for (I; W; C);"
-    ErrorType ParseFor(NestingStack *nesting_stack);
+    ErrorType ParseFor();
 
     // Evaluate an "if" clause, e.g. "if (i < 0)".
-    ErrorType ParseIf(NestingStack *nesting_stack);
+    ErrorType ParseIf();
 
     // Handle the end of an "if" body
-    ErrorType HandleEndOfIf(NestingStack *nesting_stack, bool &else_follows);
+    ErrorType HandleEndOfIf(bool &else_follows);
 
     // Parse, e.g., "switch (bar)"
-    ErrorType ParseSwitch(NestingStack *nesting_stack);
+    ErrorType ParseSwitch();
 
     // Parse "case foo:" or "default:"
-    ErrorType ParseSwitchLabel(Symbol cursym, NestingStack *nesting_stack);
+    ErrorType ParseSwitchLabel(Symbol case_or_default);
 
     // Handle the end of a "switch" body
-    ErrorType HandleEndOfSwitch(NestingStack *nesting_stack);
+    ErrorType HandleEndOfSwitch();
 
     // Parse, e.g., "while (i < 0)"
     // Is NOT responsible for handling the "while" in a "do ... while" clause
-    ErrorType ParseWhile(NestingStack *nesting_stack);
+    ErrorType ParseWhile();
 
     // Handle the end of a "while" body
     // (Will also handle the outer "for" nesting)
-    ErrorType HandleEndOfWhile(NestingStack *nesting_stack);
+    ErrorType HandleEndOfWhile();
 
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
@@ -897,18 +900,18 @@ private:
 
     ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
-    ErrorType ParseBreak(NestingStack *nesting_stack);
+    ErrorType ParseBreak();
 
-    ErrorType ParseContinue(NestingStack *nesting_stack);
+    ErrorType ParseContinue();
 
-    ErrorType ParseCloseBrace(AGS::Parser::NestingStack *nesting_stack);
+    ErrorType ParseCloseBrace();
 
-    ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func, NestingStack *nesting_stack);
+    // Parse a command. The leading symbol has already been eaten
+    ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName
     void HandleSrcSectionChangeAt(size_t pos);
-
 
     inline void WriteCmd(CodeCell op)
         { _scrip.refresh_lineno(_src.GetLineno()); _scrip.write_cmd(op); }

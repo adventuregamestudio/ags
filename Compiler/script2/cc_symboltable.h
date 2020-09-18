@@ -39,7 +39,7 @@ public:
         kDT_Dyn,
     };
 
-    static int const ParameterSScope = 1;
+    static size_t const ParameterSScope = 1;
 
     struct ParamDefault
     {
@@ -111,7 +111,7 @@ public:
     
     // Functions
     inline size_t GetNumOfFuncParams() const { return FuncParamVartypes.size() - 1; }
-    inline bool IsVarargsFunc() const { return (SScope > 0); }
+    inline bool IsVarargsFunc() const { return (SScope > 0u); }
     inline bool HasParamDefault(size_t param) const { return kDT_None != FuncParamDefaultValues[param].Type; }
 
     SymbolTableEntry();

@@ -739,10 +739,9 @@ void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
 size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
 {
     size_t total_size = 0;
-    int const from_scope = static_cast<int>(from_level);
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
-        if (_sym[entries_idx].SScope <= from_scope)
+        if (_sym[entries_idx].SScope <= from_level)
             continue;
         if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
@@ -988,7 +987,7 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
 }
 
 // Remove defns from the _sym table that have a nesting level higher than from_level
-ErrorType AGS::Parser::RemoveLocalsFromSymtable(int from_level)
+ErrorType AGS::Parser::RemoveLocalsFromSymtable(size_t from_level)
 {
     SymbolTableEntry const empty = {};
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
@@ -4657,7 +4656,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol nam
         // Declare "this" but do not allocate memory for it
         this_entry.SType = kSYM_LocalVar;
         this_entry.Vartype = struct_of_func; // Don't declare this as dynpointer
-        this_entry.SScope = 0;
+        this_entry.SScope = 0u;
         this_entry.TypeQualifiers = kTQ_Readonly;
         this_entry.Flags = kSFLG_Accessed | kSFLG_StructVartype;
         this_entry.SOffset = 0;
@@ -5550,7 +5549,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
 
     entry.SType = kSYM_Constant;
     entry.Vartype = enum_name;
-    entry.SScope = 0;
+    entry.SScope = 0u;
     entry.TypeQualifiers = kTQ_Readonly;
     // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = current_constant_value;
@@ -5839,7 +5838,7 @@ ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Sco
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, int nesting_level, TypeQualifierSet tqs, Vartype vartype)
+ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, size_t nesting_level, TypeQualifierSet tqs, Vartype vartype)
 {
     if (kPP_PreAnalyze == _pp)
         return ParseVartype_VarDecl_PreAnalyze(var_name, scope_type);

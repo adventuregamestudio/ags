@@ -471,7 +471,7 @@ private:
     // Free the pointers of all locals at the end of a function. Do not clobber AX.
     ErrorType FreeDynpointersOfAllLocals_KeepAX(void);
 
-    ErrorType RemoveLocalsFromSymtable(int from_level);
+    ErrorType RemoveLocalsFromSymtable(size_t from_level);
 
     ErrorType IntLiteralOrConst2Value(Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value);
     ErrorType FloatLiteral2Value(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value);
@@ -834,7 +834,7 @@ private:
 
     ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, ScopeType scope_type);
 
-    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, int nested_level, TypeQualifierSet tqs, Vartype vartype);
+    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, size_t nested_level, TypeQualifierSet tqs, Vartype vartype);
 
     // We accepted a variable type such as "int", so what follows is a variable or function declaration
     ErrorType ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);

@@ -71,7 +71,7 @@ public:
     size_t SSize;      // Size in bytes
 
     // Variables and functions only
-    int SScope;     // for funcs, whether the func is variadic
+    size_t SScope;     // for funcs, whether the func is variadic
 
     // Vartypes only
     enum VartypeType VartypeType;

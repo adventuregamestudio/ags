@@ -74,7 +74,7 @@ TEST(SymbolTable, AddExDefaultValues) {
     EXPECT_EQ(0, testSym.entries.at(a_sym).Vartype);
     EXPECT_EQ(0, testSym.entries.at(a_sym).SOffset);
     EXPECT_EQ(ssize, testSym.entries.at(a_sym).SSize);
-    EXPECT_EQ(0, testSym.entries.at(a_sym).SScope);
+    EXPECT_EQ(0u, testSym.entries.at(a_sym).SScope);
     EXPECT_EQ(0, testSym.entries.at(a_sym).GetNumOfFuncParams());
 }
 

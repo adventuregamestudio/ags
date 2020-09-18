@@ -277,18 +277,17 @@ namespace AGS.Editor
 
         private bool IsCursorOnVerticalEdge(int cursorX, int edgeX, SelectedEdge edge)
         {
-            if (!IsMoveable(edge)) return false;
             return ((cursorX >= edgeX - 1) && (cursorX <= edgeX + 1));
         }
 
         private bool IsCursorOnHorizontalEdge(int cursorY, int edgeY, SelectedEdge edge)
         {
-            if (!IsMoveable(edge)) return false;
             return ((cursorY >= edgeY - 1) && (cursorY <= edgeY + 1));
         }
 
         private bool IsMoveable(SelectedEdge edge)
         {
+            if (Locked) return false;
             DesignTimeProperties p = DesignItems[GetItemID(edge)];
             if (!p.Visible || p.Locked) return false;
             return true;
@@ -353,25 +352,25 @@ namespace AGS.Editor
             if (draggingEdge == SelectedEdge.Left ||
                 IsCursorOnVerticalEdge(roomX, _room.LeftEdgeX, SelectedEdge.Left))
             {
-                cursor = Cursors.VSplit;
+                cursor = IsMoveable(SelectedEdge.Left) ? Cursors.VSplit : RoomSettingsEditor.LockedCursor;
                 toolTipText = "Left edge";
             }
             else if (draggingEdge == SelectedEdge.Right || 
                 IsCursorOnVerticalEdge(roomX, _room.RightEdgeX, SelectedEdge.Right))
             {
-                cursor = Cursors.VSplit;
+                cursor = IsMoveable(SelectedEdge.Right) ? Cursors.VSplit : RoomSettingsEditor.LockedCursor;
                 toolTipText = "Right edge";
             }
             else if (draggingEdge == SelectedEdge.Top || 
                 IsCursorOnHorizontalEdge(roomY, _room.TopEdgeY, SelectedEdge.Top))
             {
-                cursor = Cursors.HSplit;
+                cursor = IsMoveable(SelectedEdge.Top) ? Cursors.HSplit : RoomSettingsEditor.LockedCursor;
                 toolTipText = "Top edge";
             }
             else if (draggingEdge == SelectedEdge.Bottom || 
                 IsCursorOnHorizontalEdge(roomY, _room.BottomEdgeY, SelectedEdge.Bottom))
             {
-                cursor = Cursors.HSplit;
+                cursor = IsMoveable(SelectedEdge.Bottom) ? Cursors.HSplit : RoomSettingsEditor.LockedCursor;
                 toolTipText = "Bottom edge";
             }
             else

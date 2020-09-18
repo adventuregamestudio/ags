@@ -327,6 +327,20 @@ namespace AGS.Editor
             height = info.Height;
         }
 
+        /// <summary>
+        /// Gets the size at which the sprite will be rendered in the game.
+        /// This will be the sprite size, but doubled if it is a 320-res sprite
+        /// in a 640-res game.
+        /// </summary>
+        /// <param name="spriteSlot">The sprite to get the size for.</param>
+        /// <returns>A size instance for the sprite. Will be doubled if 320-res sprite.</returns>
+        public static Size GetSizeSpriteWillBeRenderedInGame(int spriteSlot)
+        {
+            int width, height;
+            GetSizeSpriteWillBeRenderedInGame(spriteSlot, out width, out height);
+            return new Size { Width = width, Height = height };
+        }
+
         public static void CheckLabelWidthsOnForm(Control parentControl)
         {
             foreach (Control child in parentControl.Controls)

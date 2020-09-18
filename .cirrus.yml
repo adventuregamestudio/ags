@@ -302,8 +302,22 @@ pdb_packaging_task:
   archive_artifacts:
     path: AGS-*-pdb.zip
 
+compiler_tests_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    BUILD_CONFIG: Release
+  get_submodule_script: git submodule update --init Common/libsrc/googletest
+  build_test_runner_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Compiler.Lib.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+  run_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+
 make_release_task:
   depends_on:
+    - compiler_tests
     - build_android
     - build_linux_debian
     - editor_packaging

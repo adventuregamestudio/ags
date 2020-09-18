@@ -22,8 +22,14 @@
 
 using AGS::Common::GUIMain;
 
-int  _display_main(int xx,int yy,int wii,const char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
-void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
+// options for 'disp_type' parameter
+#define DISPLAYTEXT_SPEECH        0
+#define DISPLAYTEXT_MESSAGEBOX    1
+#define DISPLAYTEXT_NORMALOVERLAY 2
+// also accepts explicit overlay ID >= OVER_CUSTOM
+
+int  _display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont, int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
+void _display_at(int xx, int yy, int wii, const char *text, int disp_type, int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 // Tests the given string for the voice-over tags and plays cue clip for the given character;
 // will assign replacement string, which will be blank string if game is in "voice-only" mode
 // and clip was started, or string cleaned from voice-over tags which is safe to display on screen.

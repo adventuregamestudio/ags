@@ -184,7 +184,7 @@ namespace AGS.Editor
                 ExceptionDialog dialog = new ExceptionDialog(ex, screenShot);
                 dialog.ShowDialog();
                 dialog.Dispose();
-                screenShot.Dispose();
+                // screenShot.Dispose();
             }
             catch
             {

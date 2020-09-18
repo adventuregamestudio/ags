@@ -1052,9 +1052,9 @@ namespace AGS.Editor.Components
 			{
 				int numberRequested = _loadedRoom.Number;
 				_loadedRoom.Number = Convert.ToInt32(oldValue);
-
-				RenameRoom(_loadedRoom.Number, numberRequested);
-			}
+                RenameRoom(_loadedRoom.Number, numberRequested);
+                RoomListTypeConverter.RefreshRoomList();
+            }
 
             if ((propertyName == Room.PROPERTY_NAME_MASKRESOLUTION) && (_loadedRoom != null))
             {
@@ -1551,5 +1551,10 @@ namespace AGS.Editor.Components
         {
             return _agsEditor.CurrentGame.RootRoomFolder;
         }
-	}
+
+        protected override IList<IRoom> GetFlatList()
+        {
+            return null;
+        }
+    }
 }

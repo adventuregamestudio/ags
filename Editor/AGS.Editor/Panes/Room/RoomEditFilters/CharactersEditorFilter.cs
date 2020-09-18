@@ -498,6 +498,8 @@ namespace AGS.Editor
         {
             UpdateCharacterRef(e.Character, GetItemID(e.OldID));
             OnItemsChanged(this, null);
+            if (Enabled)
+                SetPropertyGridList();
         }
 
         private void OnCharacterRoomChanged(object sender, CharacterRoomChangedEventArgs e)
@@ -530,11 +532,32 @@ namespace AGS.Editor
             if (!RoomItemRefs.ContainsKey(oldID))
                 return;
             string newID = GetItemID(c);
-            RoomItemRefs.Remove(oldID);
-            RoomItemRefs.Add(newID, c);
-            // We must keep DesignTimeProperties!
-            DesignItems.Add(newID, DesignItems[oldID]);
-            DesignItems.Remove(oldID);
+            if (newID == oldID)
+                return;
+            // If the new key is also present that means we are swapping two items
+            if (RoomItemRefs.ContainsKey(newID))
+            {
+                var char2 = RoomItemRefs[newID];
+                RoomItemRefs.Remove(newID);
+                RoomItemRefs.Remove(oldID);
+                RoomItemRefs.Add(newID, c);
+                RoomItemRefs.Add(oldID, char2);
+                // We must keep DesignTimeProperties!
+                var char1Item = DesignItems[oldID];
+                var char2Item = DesignItems[newID];
+                DesignItems.Remove(newID);
+                DesignItems.Remove(oldID);
+                DesignItems.Add(newID, char1Item);
+                DesignItems.Add(oldID, char2Item);
+            }
+            else
+            {
+                RoomItemRefs.Remove(oldID);
+                RoomItemRefs.Add(newID, c);
+                // We must keep DesignTimeProperties!
+                DesignItems.Add(newID, DesignItems[oldID]);
+                DesignItems.Remove(oldID);
+            }
         }
     }
 }

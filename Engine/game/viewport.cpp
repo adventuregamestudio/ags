@@ -186,3 +186,31 @@ void Viewport::LinkCamera(PCamera cam)
     _camera = cam;
     AdjustTransformation();
 }
+
+VpPoint Viewport::RoomToScreen(int roomx, int roomy, bool clip) const
+{
+    auto cam = _camera.lock();
+    if (!cam)
+        return std::make_pair(Point(), -1);
+    const Rect &camr = cam->GetRect();
+    Point screen_pt = _transform.Scale(Point(roomx - camr.Left, roomy - camr.Top));
+    if (clip && !_position.IsInside(screen_pt))
+        return std::make_pair(Point(), -1);
+    return std::make_pair(screen_pt, _id);
+}
+
+VpPoint Viewport::ScreenToRoom(int scrx, int scry, bool clip) const
+{
+    Point screen_pt(scrx, scry);
+    if (clip && !_position.IsInside(screen_pt))
+        return std::make_pair(Point(), -1);
+    auto cam = _camera.lock();
+    if (!cam)
+        return std::make_pair(Point(), -1);
+
+    const Rect &camr = cam->GetRect();
+    Point p = _transform.UnScale(screen_pt);
+    p.X += camr.Left;
+    p.Y += camr.Top;
+    return std::make_pair(p, _id);
+}

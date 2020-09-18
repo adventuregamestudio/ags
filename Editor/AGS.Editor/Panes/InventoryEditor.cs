@@ -57,7 +57,8 @@ namespace AGS.Editor
                 IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
 
                 IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.DrawSprite(hdc, 0, 0, _item.CursorImage);
+                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.CursorImage);
+                Factory.NativeProxy.DrawSprite(hdc, 0, 0, spriteSize.Width * IMAGE_SCALE_FACTOR, spriteSize.Height * IMAGE_SCALE_FACTOR, _item.CursorImage);
                 e.Graphics.ReleaseHdc();
                 if ((_item.HotspotX > 0) && (_item.HotspotY > 0))
                 {
@@ -92,8 +93,11 @@ namespace AGS.Editor
         {
             if (_item != null)
             {
+                IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
+
                 IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.DrawSprite(hdc, 0, 0, _item.Image);
+                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.Image);
+                Factory.NativeProxy.DrawSprite(hdc, 0, 0, spriteSize.Width * IMAGE_SCALE_FACTOR, spriteSize.Height * IMAGE_SCALE_FACTOR, _item.Image);
                 e.Graphics.ReleaseHdc();
             }
         }

@@ -376,7 +376,7 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
     return true;
 }
 
-bool LocateAsset(const AssetPath &path, AssetLocation &loc)
+Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
 {
     String assetlib = path.first;
     String assetname = path.second;
@@ -389,31 +389,106 @@ bool LocateAsset(const AssetPath &path, AssetLocation &loc)
         AssetManager::SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
-    bool res = AssetManager::GetAssetLocation(assetname, loc);
+    Stream *asset_stream = AssetManager::OpenAsset(assetname);
+    asset_size = AssetManager::GetLastAssetSize();
     if (needsetback)
         AssetManager::SetDataFile(ResPaths.GamePak.Path);
-    return res;
+    return asset_stream;
 }
 
-PACKFILE *PackfileFromAsset(const AssetPath &path)
+//
+// AGS custom PACKFILE callbacks, that use our own Stream object
+//
+static int ags_pf_fclose(void *userdata)
 {
-    AssetLocation loc;
-    if (LocateAsset(path, loc))
+    delete (AGS_PACKFILE_OBJ*)userdata;
+    return 0;
+}
+
+static int ags_pf_getc(void *userdata)
+{
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)userdata;
+    if (obj->remains > 0)
     {
-        PACKFILE *pf = pack_fopen(loc.FileName, File::GetCMode(kFile_Open, kFile_Read));
-        if (pf)
-        {
-            pack_fseek(pf, loc.Offset);
-            pf->normal.todo = loc.Size;
-        }
-        return pf;
+        obj->remains--;
+        return obj->stream->ReadByte();
+    }
+    return -1;
+}
+
+static int ags_pf_ungetc(int c, void *userdata)
+{
+    return -1; // we do not want to support this
+}
+
+static long ags_pf_fread(void *p, long n, void *userdata)
+{
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)userdata;
+    if (obj->remains > 0)
+    {
+        size_t read = Math::Min(obj->remains, (size_t)n);
+        obj->remains -= read;
+        return obj->stream->Read(p, read);
+    }
+    return -1;
+}
+
+static int ags_pf_putc(int c, void *userdata)
+{
+    return -1;  // don't support write
+}
+
+static long ags_pf_fwrite(AL_CONST void *p, long n, void *userdata)
+{
+    return -1; // don't support write
+}
+
+static int ags_pf_fseek(void *userdata, int offset)
+{
+    return -1; // don't support seek
+}
+
+static int ags_pf_feof(void *userdata)
+{
+    return ((AGS_PACKFILE_OBJ*)userdata)->remains == 0;
+}
+
+static int ags_pf_ferror(void *userdata)
+{
+    return ((AGS_PACKFILE_OBJ*)userdata)->stream->HasErrors() ? 1 : 0;
+}
+
+// Custom PACKFILE callback table
+static PACKFILE_VTABLE ags_packfile_vtable = {
+    ags_pf_fclose,
+    ags_pf_getc,
+    ags_pf_ungetc,
+    ags_pf_fread,
+    ags_pf_putc,
+    ags_pf_fwrite,
+    ags_pf_fseek,
+    ags_pf_feof,
+    ags_pf_ferror
+};
+//
+
+PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
+{
+    Stream *asset_stream = LocateAsset(path, asset_size);
+    if (asset_stream && asset_size > 0)
+    {
+        AGS_PACKFILE_OBJ* obj = new AGS_PACKFILE_OBJ;
+        obj->stream.reset(asset_stream);
+        obj->asset_size = asset_size;
+        obj->remains = asset_size;
+        return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
     return nullptr;
 }
 
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
+DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
 {
-    PACKFILE *pf = PackfileFromAsset(path);
+    PACKFILE *pf = PackfileFromAsset(path, asset_size);
     if (pf)
         return dumbfile_open_packfile(pf);
     return nullptr;

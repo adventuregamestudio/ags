@@ -37,14 +37,13 @@ using namespace AGS::Engine;
 const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
 
 AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
-bool AGSPlatformDriver::_logToStdErr = false;
-bool AGSPlatformDriver::_guiMode = false;
 AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
+void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
 void AGSPlatformDriver::DisplaySwitchIn() { }
 void AGSPlatformDriver::PauseApplication() { }
@@ -53,7 +52,7 @@ void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
 bool AGSPlatformDriver::EnterFullscreenMode(const DisplayMode &dm) { return true; }
 bool AGSPlatformDriver::ExitFullscreenMode() { return true; }
 void AGSPlatformDriver::AdjustWindowStyleForFullscreen() { }
-void AGSPlatformDriver::RestoreWindowStyle() { }
+void AGSPlatformDriver::AdjustWindowStyleForWindowed() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::PlayVideo(const char* name, int skip, int flags) {}

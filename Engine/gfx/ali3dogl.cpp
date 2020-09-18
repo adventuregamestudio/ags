@@ -336,7 +336,7 @@ void OGLGraphicsDriver::FirstTimeInit()
 #else
   ogl_v_str = (const char*)glGetString(GL_VERSION);
 #endif
-  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
+  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
@@ -366,11 +366,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   ios_create_screen();
   ios_select_buffer();
 #elif AGS_PLATFORM_OS_WINDOWS
-  if (!mode.Windowed)
+  if (mode.Windowed)
+  {
+    platform->AdjustWindowStyleForWindowed();
+  }
+  else
   {
     if (platform->EnterFullscreenMode(mode))
       platform->AdjustWindowStyleForFullscreen();
   }
+
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
   if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
   {
@@ -1048,8 +1053,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = nullptr;
 
-  if (platform->ExitFullscreenMode())
-    platform->RestoreWindowStyle();
+  platform->ExitFullscreenMode();
 }
 
 void OGLGraphicsDriver::UnInit() 
@@ -1081,7 +1085,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
 {
   (void)at_native_res; // TODO: support this at some point
 
-  // TODO: follow implementation currently only reads GL pixels in 32-bit RGBA.
+  // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
   // this **should** work regardless of actual display mode because OpenGL is
   // responsible to convert and fill pixel buffer correctly.
   // If you like to support writing directly into 16-bit bitmap, please take
@@ -1119,27 +1123,19 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
     glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
-    unsigned char* surfaceData = buffer;
-    unsigned char* sourcePtr;
-    unsigned char* destPtr;
-    
-	for (int y = destination->GetHeight() - 1; y >= 0; y--)
+    unsigned char* sourcePtr = buffer;
+    for (int y = destination->GetHeight() - 1; y >= 0; y--)
     {
-        sourcePtr = surfaceData;
-        destPtr = &destination->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < destination->GetWidth() * bpp; x += bpp)
+        unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
+        for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
         {
-            // TODO: find out if it's possible to retrieve pixels in the matching format
-            destPtr[x]     = sourcePtr[x + 2];
-            destPtr[x + 1] = sourcePtr[x + 1];
-            destPtr[x + 2] = sourcePtr[x];
-            destPtr[x + 3] = sourcePtr[x + 3];
+            destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
         }
-        surfaceData += retr_rect.GetWidth() * bpp;
+        sourcePtr += retr_rect.GetWidth() * bpp;
     }
 
     if (_pollingCallback)
-        _pollingCallback();
+      _pollingCallback();
 
     delete [] buffer;
   }

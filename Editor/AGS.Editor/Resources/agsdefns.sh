@@ -389,6 +389,19 @@ enum SortStyle
 };
 #endif
 
+#ifdef SCRIPT_API_v351
+enum LogLevel
+{
+	eLogAlert = 1,
+	eLogFatal = 2,
+	eLogError = 3,
+	eLogWarn = 4,
+	eLogInfo = 5,
+	eLogDebug = 6
+};
+#endif
+
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -525,8 +538,15 @@ builtin managed struct DrawingSurface {
   import DrawingSurface* CreateCopy();
   /// Draws a circle onto the surface with its centre at (x,y).
   import void DrawCircle(int x, int y, int radius);
+#ifdef SCRIPT_API_v351
+  /// Draws a sprite onto the surface with its top-left corner at (x,y).
+  import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+#endif
+#ifndef SCRIPT_API_v351
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
+#endif
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
   /// Draws a message from the Room Message Editor, wrapping at the specified width.
@@ -545,8 +565,15 @@ builtin managed struct DrawingSurface {
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif
+#ifdef SCRIPT_API_v351
+  /// Draws the specified surface onto this surface.
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+#endif
+#ifndef SCRIPT_API_v351
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
+#endif
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
   /// Gets the colour of a single pixel on the surface.
@@ -1001,9 +1028,15 @@ import void UnPauseGame();
 /// Blocks the script for the specified number of game loops.
 import void Wait(int waitLoops);
 /// Blocks the script for the specified number of game loops, unless a key is pressed.
-import int  WaitKey(int waitLoops);
+import int  WaitKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless a key is pressed or the mouse is clicked.
-import int  WaitMouseKey(int waitLoops);
+import int  WaitMouseKey(int waitLoops = -1);
+#ifdef SCRIPT_API_v351
+/// Blocks the script for the specified number of game loops, unless the mouse is clicked.
+import int  WaitMouse(int waitLoops = -1);
+/// Cancels current Wait function, regardless of its type, if one was active at the moment.
+import void SkipWait();
+#endif
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);
 import void SetGlobalInt(int globalInt, int value);
@@ -1610,6 +1643,10 @@ builtin struct System {
 #ifdef SCRIPT_API_v341
   /// Gets/sets whether sprites are rendered at screen resolution or native game resolution.
   import static attribute bool RenderAtScreenResolution;
+#endif
+#ifdef SCRIPT_API_v351
+  /// Prints message
+  import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
 #endif
 };
 

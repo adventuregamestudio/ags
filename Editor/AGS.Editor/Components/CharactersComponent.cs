@@ -106,7 +106,9 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
+                OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
@@ -156,11 +158,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((CharacterEditor)doc.Control).ItemToEdit.WindowTitle;
+                var docItem = ((CharacterEditor)doc.Control).ItemToEdit;
+                doc.Name = docItem.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }
 
@@ -183,6 +186,7 @@ namespace AGS.Editor.Components
                 else
                 {
                     OnItemIDChanged(itemBeingEdited);
+                    OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(itemBeingEdited, itemBeingEdited.ID));
                 }
             }
             else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
@@ -209,6 +213,15 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));
             }
             return menu;
+        }
+
+        // Synchronize open character documents with Views
+        public void UpdateCharacterViews()
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                ((CharacterEditor)doc.Control).UpdateViewPreview();
+            }
         }
 
         public override void RefreshDataFromGame()
@@ -279,6 +292,11 @@ namespace AGS.Editor.Components
         protected override CharacterFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootCharacterFolder;
+        }
+
+        protected override IList<Character> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.CharacterFlatList;
         }
 
         protected override ProjectTreeItem CreateTreeItemForItem(Character item)

@@ -114,12 +114,12 @@ void init_pathfinder(GameDataVersion game_file_version)
 {
     if (game_file_version >= kGameVersion_350) 
     {
-        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Init, "Initialize path finder library");
+        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize path finder library");
         route_finder_impl = new AGSRouteFinder();
     } 
     else 
     {
-        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Init, "Initialize legacy path finder library");
+        AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize legacy path finder library");
         route_finder_impl = new AGSLegacyRouteFinder();
     }
 

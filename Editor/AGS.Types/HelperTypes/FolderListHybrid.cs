@@ -32,6 +32,7 @@ namespace AGS.Types
         }
 
         public TFolder RootFolder { get { return _folder; } }
+        public IList<TFolderItem> FlatList { get { return _items; } }
 
         public void ToXml(XmlTextWriter writer)
         {

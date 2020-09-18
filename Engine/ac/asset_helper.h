@@ -17,7 +17,7 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__ASSETHELPER_H
 #define __AGS_EE_AC__ASSETHELPER_H
-
+#include <memory>
 #include <utility>
 #include "util/string.h"
 
@@ -47,12 +47,21 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
 // Returns the path to the voice-over asset
 AssetPath get_voice_over_assetpath(const String &filename);
 
+// Custom AGS PACKFILE user object
+// TODO: it is preferrable to let our Stream define custom readable window instead,
+// keeping this as simple as possible for now (we may require a stream classes overhaul).
+struct AGS_PACKFILE_OBJ
+{
+    std::unique_ptr<Stream> stream;
+    size_t asset_size = 0u;
+    size_t remains = 0u;
+};
 // Creates PACKFILE stream from AGS asset.
 // This function is supposed to be used only when you have to create Allegro
 // object, passing PACKFILE stream to constructor.
-PACKFILE *PackfileFromAsset(const AssetPath &path);
+PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size);
 // Creates DUMBFILE stream from AGS asset. Used for creating DUMB objects
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path);
+DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size);
 bool DoesAssetExistInLib(const AssetPath &assetname);
 
 #endif // __AGS_EE_AC__ASSETHELPER_H

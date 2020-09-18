@@ -10,6 +10,16 @@ namespace AGS.Types
 {
     public static class Utilities
     {
+        public static void Swap<T>(this IList<T> list, int index1, int index2)
+        {
+            if (index1 == index2)
+                return;
+
+            var temp = list[index1];
+            list[index1] = list[index2];
+            list[index2] = temp;
+        }
+
         public static T GetDefaultValue<T>(Type type, string propertyName, T defaultValue)
         {
             PropertyInfo property = type.GetProperty(propertyName);
@@ -106,6 +116,35 @@ namespace AGS.Types
         public static string ResolutionToUserString(Size size)
         {
             return String.Format("{0} x {1}", size.Width, size.Height);
+        }
+
+        public static string ResolutionToAspectRatio(Size size)
+        {
+            int gcd = GreatestCommonDivisor(size.Width, size.Height);
+            int w = size.Width / gcd;
+            int h = size.Height / gcd;
+            int scale = 1;
+
+            if (w == 8 && h == 5)
+            {
+                scale = 2;
+            }
+
+            return String.Format("{0}:{1}", w * scale, h * scale);
+        }
+
+        public static int GreatestCommonDivisor(int a, int b)
+        {
+            int remainder;
+
+            while (b != 0)
+            {
+                remainder = a % b;
+                a = b;
+                b = remainder;
+            }
+
+            return a;
         }
 
         /// <summary>

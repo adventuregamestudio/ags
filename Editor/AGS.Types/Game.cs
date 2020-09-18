@@ -218,15 +218,30 @@ namespace AGS.Types
             get { return _characters.RootFolder; }
         }
 
+        public IList<Character> CharacterFlatList
+        {
+            get { return _characters.FlatList; }
+        }
+
         public DialogFolder RootDialogFolder
         {
             get { return _dialogs.RootFolder; }
+        }
+
+        public IList<Dialog> DialogFlatList
+        {
+            get { return _dialogs.FlatList; }
         }
 
         public ViewFolder RootViewFolder
         {
             get { return _views.RootFolder; }
             set { _views = new ViewFolders(value); }
+        }
+
+        public IList<View> ViewFlatList
+        {
+            get { return _views.FlatList; }
         }
 
         public ScriptFolder RootScriptFolder
@@ -239,9 +254,19 @@ namespace AGS.Types
             get { return _inventoryItems.RootFolder; }
         }
 
+        public IList<InventoryItem> InventoryFlatList
+        {
+            get { return _inventoryItems.FlatList; }
+        }
+
         public GUIFolder RootGUIFolder
         {
             get { return _guis.RootFolder; }
+        }
+
+        public IList<GUI> GUIFlatList
+        {
+            get { return _guis.FlatList; }
         }
 
         public UnloadedRoomFolder RootRoomFolder
@@ -252,6 +277,11 @@ namespace AGS.Types
         public AudioClipFolder RootAudioClipFolder
         {
             get { return _audioClips.RootFolder; }
+        }
+
+        public IList<AudioClip> AudioClipFlatList
+        {
+            get { return _audioClips.FlatList; }
         }
 
         public IList<AudioClipType> AudioClipTypes

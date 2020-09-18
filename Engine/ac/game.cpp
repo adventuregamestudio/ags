@@ -544,8 +544,11 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
+// TODO: call this when exiting the game (currently only called in RunAGSGame)
 void unload_game_file()
 {
+    close_translation();
+
     play.FreeViewportsAndCameras();
 
     characterScriptObjNames.clear();
@@ -895,19 +898,23 @@ int Game_ChangeTranslation(const char *newFilename)
     {
         close_translation();
         strcpy(transFileName, "");
+        usetup.translation = "";
         return 1;
     }
 
     String oldTransFileName;
     oldTransFileName = transFileName;
 
-    if (!init_translation(newFilename, oldTransFileName.LeftSection('.'), false))
+    if (init_translation(newFilename, oldTransFileName.LeftSection('.'), false))
+    {
+        usetup.translation = newFilename;
+        return 1;
+    }
+    else
     {
         strcpy(transFileName, oldTransFileName);
         return 0;
     }
-
-    return 1;
 }
 
 ScriptAudioClip *Game_GetAudioClip(int index)
@@ -1388,7 +1395,7 @@ void ReadOverlays_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (auto &over : screenover)
     {
-        over.ReadFromFile(&align_s);
+        over.ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }
@@ -1778,14 +1785,28 @@ void start_skipping_cutscene () {
 
 }
 
-void check_skip_cutscene_keypress (int kgn) {
+bool check_skip_cutscene_keypress (int kgn) {
 
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
         (kgn == 27 && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
     {
         start_skipping_cutscene();
+        return true;
     }
+    return false;
+}
+
+bool check_skip_cutscene_mclick(int mbut)
+{
+    CutsceneSkipStyle skip = get_cutscene_skipstyle();
+    if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
+        (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
+    {
+        start_skipping_cutscene();
+        return true;
+    }
+    return false;
 }
 
 // Helper functions used by StartCutscene/EndCutscene, but also

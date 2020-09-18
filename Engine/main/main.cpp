@@ -84,6 +84,8 @@ bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 bool justTellInfo = false;
+bool attachToParentConsole = false;
+bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 const char *loadSaveGameOnStartup = nullptr;
 
@@ -173,26 +175,49 @@ extern char return_to_room[150];
 
 void main_print_help() {
     platform->WriteStdOut(
-           "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+        "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+          //--------------------------------------------------------------------------------|
            "Options:\n"
+#if AGS_PLATFORM_OS_WINDOWS
+           "  --console-attach             Write output to the parent process's console\n"
+#endif
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
 #if AGS_PLATFORM_OS_WINDOWS
-           "                                 d3d9, dx5, ogl, software\n"
+           "                                 d3d9, ogl, software\n"
 #else
            "                                 ogl, software\n"
 #endif
-           "  --gfxfilter <filter> [<scaling>]\n"
+           "  --gfxfilter FILTER [SCALING]\n"
            "                               Request graphics filter. Available options:\n"           
            "                                 hqx, linear, none, stdscale\n"
            "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"
-           "  --log                        Enable program output to the log file\n"
-           "  --no-log                     Disable program output to the log file,\n"
-           "                                 overriding configuration file setting\n"
+           "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
+           "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
+           "                               Setup logging to the chosen OUTPUT with given\n"
+           "                               log groups and verbosity levels. Groups may\n"
+           "                               be also defined by a LIST of one-letter IDs,\n"
+           "                               preceded by '+', e.g. +ABCD:LEVEL. Verbosity may\n"
+           "                               be also defined by a numberic ID.\n"
+           "                               OUTPUTs are\n"
+           "                                 stdout, file, console\n"
+           "                               (where \"console\" is internal engine's console)\n"
+           "                               GROUPs are:\n"
+           "                                 all, main (m), game (g), manobj (o),\n"
+           "                                 script (s), sprcache (c)\n"
+           "                               LEVELs are:\n"
+           "                                 all, alert (1), fatal (2), error (3), warn (4),\n"
+           "                                 info (5), debug (6)\n"
+           "                               Examples:\n"
+           "                                 --log-stdout=+mgs:debug\n"
+           "                                 --log-file=all:warn\n"
+           "  --log-file-path=PATH         Define custom path for the log file\n"
+          //--------------------------------------------------------------------------------|
 #if AGS_PLATFORM_OS_WINDOWS
+           "  --no-message-box             Disable reporting of alerts to message boxes\n"
            "  --setup                      Run setup application\n"
 #endif
            "  --tell                       Print various information concerning engine\n"
@@ -210,6 +235,7 @@ void main_print_help() {
            "  /dir/path/game/              Launch the game in specified directory\n"
            "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
            "  [nothing]                    Launch the game in the current directory\n"
+          //--------------------------------------------------------------------------------|
     );
 }
 
@@ -323,8 +349,17 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
         else if (ags_stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
-        else if (ags_stricmp(arg, "--log") == 0) INIwriteint(cfg, "misc", "log", 1);
-        else if (ags_stricmp(arg, "--no-log") == 0) INIwriteint(cfg, "misc", "log", 0);
+        else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
+        {
+            String logarg = arg + 6;
+            size_t split_at = logarg.FindChar('=');
+            if (split_at >= 0)
+                cfg["log"][logarg.Left(split_at)] = logarg.Mid(split_at + 1);
+            else
+                cfg["log"][logarg] = "";
+        }
+        else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
+        else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
         //
         // Special case: data file location
         //
@@ -415,6 +450,9 @@ int ags_entry_point(int argc, char *argv[]) {
     if (res != 0)
         return res;
 
+    if (attachToParentConsole)
+        platform->AttachToParentConsole();
+
     if (justDisplayVersion)
     {
         platform->WriteStdOut(get_engine_string());
@@ -427,10 +465,11 @@ int ags_entry_point(int argc, char *argv[]) {
         return EXIT_NORMAL;
     }
 
-    if (!justTellInfo)
+    if (!justTellInfo && !hideMessageBoxes)
         platform->SetGUIMode(true);
-    init_debug(justTellInfo);
-    Debug::Printf(kDbgMsg_Init, get_engine_string());
+
+    init_debug(startup_opts, justTellInfo);
+    Debug::Printf(kDbgMsg_Alert, get_engine_string());
 
     main_set_gamedir(argc, argv);    
 

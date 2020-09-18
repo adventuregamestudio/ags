@@ -411,18 +411,16 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 }
 
 extern void domouse(int);
-extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
-    int mbut = mgetbutton();
-    if (mbut > NONE)
+    int mbut, mwheelz;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput())
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
-
     int kp;
-    if (run_service_key_controls(kp)) {
+    if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
         pl_run_plugin_hooks (AGSE_KEYPRESS, kp);
     }
 
@@ -1042,7 +1040,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         String expect_filename = apl->library.GetFilenameForLib(apl->filename);
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Debug::Printf(kDbgMsg_Init, "Plugin '%s' loaded as '%s', resolving imports...", apl->filename, expect_filename.GetCStr());
+          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded as '%s', resolving imports...", apl->filename, expect_filename.GetCStr());
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
@@ -1059,19 +1057,19 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         }
         else
         {
-          AGS::Common::Debug::Printf(kDbgMsg_Init, "Plugin '%s' could not be loaded (expected '%s'), trying built-in plugins...",
+          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' could not be loaded (expected '%s'), trying built-in plugins...",
               apl->filename, expect_filename.GetCStr());
           if (pl_use_builtin_plugin(apl))
           {
-            AGS::Common::Debug::Printf(kDbgMsg_Init, "Build-in plugin '%s' found and being used.", apl->filename);
+            AGS::Common::Debug::Printf(kDbgMsg_Info, "Build-in plugin '%s' found and being used.", apl->filename);
           }
           else
           {
             // Plugin loading has failed at this point, try using built-in plugin function stubs
             if (RegisterPluginStubs((const char*)apl->filename))
-              AGS::Common::Debug::Printf(kDbgMsg_Init, "Placeholder functions for the plugin '%s' found.", apl->filename);
+              AGS::Common::Debug::Printf(kDbgMsg_Info, "Placeholder functions for the plugin '%s' found.", apl->filename);
             else
-              AGS::Common::Debug::Printf(kDbgMsg_Init, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename);
+              AGS::Common::Debug::Printf(kDbgMsg_Info, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename);
             continue;
           }
         }

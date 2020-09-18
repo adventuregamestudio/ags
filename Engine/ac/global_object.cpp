@@ -151,9 +151,18 @@ void SetObjectView(int obn,int vii) {
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
     viw--;
-    if (viw < 0 || viw >= game.numviews) quit("!SetObjectFrame: invalid view number used");
-    if (lop < 0 || lop >= views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
-    if (fra < 0 || fra >= views[viw].loops[lop].numFrames) quit("!SetObjectFrame: invalid frame number used");
+    if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
+    if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used (%d, range is 0 - %d)", lop, views[viw].numLoops - 1);
+    // AGS < 3.5.1 let user to pass literally any positive invalid frame value by silently reassigning it to zero...
+    if (loaded_game_file_version < kGameVersion_351)
+    {
+        if (fra >= views[viw].loops[lop].numFrames)
+        {
+            debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d), set to 0", fra, views[viw].loops[lop].numFrames - 1);
+            fra = 0;
+        }
+    }
+    if (fra < 0 || fra >= views[viw].loops[lop].numFrames) quitprintf("!SetObjectFrame: invalid frame number used (%d, range is 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
     // NOTE: pre-3.2.0 games are converting views from ViewStruct272 struct, always has at least 1 frame
     if (views[viw].loops[lop].numFrames == 0)
         quit("!SetObjectFrame: specified loop has no frames");

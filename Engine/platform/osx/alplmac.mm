@@ -4,7 +4,7 @@
 
 void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX])
 {
-  strcpy(gamename, "ac2game.dat");
+  strcpy(gamename, "game.ags");
     
   @autoreleasepool {
   NSBundle *bundle = [NSBundle mainBundle];

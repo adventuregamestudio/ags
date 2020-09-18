@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <cstdio>
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                    // filelength()
 #include "util/stream.h"

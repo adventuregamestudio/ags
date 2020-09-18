@@ -33,10 +33,10 @@ namespace AGS.Editor
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
         private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
-        private int _lastX, _lastY;
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
+        private object _startNode; // track breadcrumbs path so that it can be compared when saving
 
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;
@@ -52,6 +52,8 @@ namespace AGS.Editor
         /// </summary>
         public IAddressNode CurrentNode { get { return _editAddressBar.CurrentNode; } }
 
+        internal static Cursor LockedCursor { get; private set; }
+
         /// <summary>
         /// Tells if the design-time properties of the room were modified since last save.
         /// </summary>
@@ -61,19 +63,30 @@ namespace AGS.Editor
             {
                 foreach (IRoomEditorFilter layer in _layers)
                     if (layer.Modified) return true;
+
+                if (_startNode != _editAddressBar.CurrentNode.UniqueID)
+                    return true;
+
                 return false;
             }
             set
             { // Kind of ugly, I know...
                 foreach (IRoomEditorFilter layer in _layers)
                     layer.Modified = value;
+
+                _startNode = _editAddressBar.CurrentNode.UniqueID;
             }
         }
 
 
         public RoomSettingsEditor(Room room)
         {
-			this.SetStyle(ControlStyles.Selectable, true);
+            if (LockedCursor == null)
+            {
+                LockedCursor = Resources.ResourceManager.GetCursor("lock_cur.cur");
+            }
+
+            this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
@@ -101,6 +114,7 @@ namespace AGS.Editor
             
             RefreshLayersTree();
             _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
+            _startNode = _editAddressBar.CurrentNode.UniqueID;
 
             RepopulateBackgroundList(0);
             UpdateScrollableWindowSize();
@@ -579,6 +593,7 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
+            if (bufferedPanel1.IsPanning) return;
             if (_layer != null && !IsLocked(_layer))
                 _layer.MouseDown(e, _state);
             _mouseIsDown = true;
@@ -622,14 +637,7 @@ namespace AGS.Editor
 
 		private void bufferedPanel1_MouseMove(object sender, MouseEventArgs e)
         {
-            if ((e.X == _lastX) && (e.Y == _lastY))
-            {
-                return;
-            }
-
-            _lastX = e.X;
-            _lastY = e.Y;            
-
+            if (bufferedPanel1.IsPanning) return;
             int mouseXPos = _state.WindowXToRoom(e.X);
             int mouseYPos = _state.WindowYToRoom(e.Y);
             string xPosText = mouseXPos.ToString();
@@ -642,7 +650,7 @@ namespace AGS.Editor
             {
                 yPosText = "?";
             }
-            lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
+            lblMousePos.Text = $"{xPosText}, {yPosText}";
 
             SelectCursor(e.X, e.Y, _state);
             if (_layer != null && !IsLocked(_layer))
@@ -656,7 +664,14 @@ namespace AGS.Editor
 
         private void SelectCursor(int x, int y, RoomEditorState state)
         {
-            state.CurrentCursor = _layer != null ? _layer.GetCursor(x, y, state) : Cursors.Default;
+            if (_layer != null)
+            {
+                state.CurrentCursor = _layer.Locked ? LockedCursor : _layer.GetCursor(x, y, state);
+            }
+            else
+            {
+                state.CurrentCursor = Cursors.Default;
+            }
             bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 

@@ -56,6 +56,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
+#include "main/config.h"
 #include "main/game_file.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
@@ -229,6 +230,7 @@ void GetGlobalString (int index, char *strval) {
     strcpy (strval, play.globalstrings[index]);
 }
 */
+// TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
 int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
@@ -266,7 +268,11 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     unload_old_room();
     displayed_room = -10;
 
+    save_config_file(); // save current user config in case engine fails to run new game
     unload_game_file();
+
+    // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
+    usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
@@ -904,40 +910,45 @@ void SetGraphicalVariable (const char *varName, int p_value) {
         theVar->Value = p_value;
 }
 
-void scrWait(int nloops) {
-    if (nloops < 1)
-        quit("!Wait: must wait at least 1 loop");
-
+int WaitImpl(int skip_type, int nloops)
+{
     play.wait_counter = nloops;
-    play.key_skip_wait = 0;
+    play.wait_skipped_by = SKIP_AUTOTIMER; // we set timer flag by default to simplify that case
+    play.wait_skipped_by_data = 0;
+    play.key_skip_wait = skip_type;
 
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
+    GameLoopUntilValueIsZero(&play.wait_counter);
+
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v351)
+    {
+        // < 3.5.1 return 1 is skipped by user input, otherwise 0
+        return (play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK) != 0) ? 1 : 0;
+    }
+    // >= 3.5.1 return positive keycode, negative mouse button code, or 0 as time-out
+    switch (play.wait_skipped_by)
+    {
+    case SKIP_KEYPRESS: return play.wait_skipped_by_data;
+    case SKIP_MOUSECLICK: return -(play.wait_skipped_by_data + 1); // convert to 1-based code and negate
+    default: return 0;
+    }
+}
+
+void scrWait(int nloops) {
+    WaitImpl(SKIP_AUTOTIMER, nloops);
 }
 
 int WaitKey(int nloops) {
-    if (nloops < 1)
-        quit("!WaitKey: must wait at least 1 loop");
+    return WaitImpl(SKIP_KEYPRESS | SKIP_AUTOTIMER, nloops);
+}
 
-    play.wait_counter = nloops;
-    play.key_skip_wait = 1;
-
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
-
-    if (play.wait_counter < 0)
-        return 1;
-    return 0;
+int WaitMouse(int nloops) {
+    return WaitImpl(SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
 }
 
 int WaitMouseKey(int nloops) {
-    if (nloops < 1)
-        quit("!WaitMouseKey: must wait at least 1 loop");
+    return WaitImpl(SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
+}
 
-    play.wait_counter = nloops;
-    play.key_skip_wait = 3;
-
-    GameLoopUntilValueIsZeroOrLess(&play.wait_counter);
-
-    if (play.wait_counter < 0)
-        return 1;
-    return 0;
+void SkipWait() {
+    play.wait_counter = 0;
 }

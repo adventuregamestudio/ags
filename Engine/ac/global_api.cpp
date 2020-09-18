@@ -20,6 +20,7 @@
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+#include "ac/display.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -189,7 +190,7 @@ RuntimeScriptValue Sc_CreateTextOverlay(const RuntimeScriptValue *params, int32_
     API_SCALL_SCRIPT_SPRINTF(CreateTextOverlay, 6);
     return RuntimeScriptValue().SetInt32(
         CreateTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue,
-            params[3].IValue, params[4].IValue, scsf_buffer));
+            params[3].IValue, params[4].IValue, scsf_buffer, DISPLAYTEXT_NORMALOVERLAY));
 }
 
 // void (int strt,int eend)
@@ -2221,10 +2222,20 @@ RuntimeScriptValue Sc_WaitKey(const RuntimeScriptValue *params, int32_t param_co
     API_SCALL_INT_PINT(WaitKey);
 }
 
+RuntimeScriptValue Sc_WaitMouse(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(WaitMouse);
+}
+
 // int (int nloops)
 RuntimeScriptValue Sc_WaitMouseKey(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(WaitMouseKey);
+}
+
+RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SkipWait);
 }
 
 //=============================================================================
@@ -2244,7 +2255,7 @@ void ScPl_sc_AbortGame(const char *texx, ...)
 int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    return CreateTextOverlay(xx, yy, wii, fontid, clr, scsf_buffer);
+    return CreateTextOverlay(xx, yy, wii, fontid, clr, scsf_buffer, DISPLAYTEXT_NORMALOVERLAY);
 }
 
 // void (char*texx, ...)
@@ -2678,7 +2689,9 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("UpdatePalette",            Sc_UpdatePalette);
 	ccAddExternalStaticFunction("Wait",                     Sc_scrWait);
 	ccAddExternalStaticFunction("WaitKey",                  Sc_WaitKey);
+	ccAddExternalStaticFunction("WaitMouse",                Sc_WaitMouse);
 	ccAddExternalStaticFunction("WaitMouseKey",             Sc_WaitMouseKey);
+	ccAddExternalStaticFunction("SkipWait",                 Sc_SkipWait);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

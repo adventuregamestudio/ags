@@ -15,7 +15,9 @@
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"
+#include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -42,13 +44,12 @@ extern IGraphicsDriver *gfxDriver;
 
 std::vector<ScreenOverlay> screenover;
 int is_complete_overlay=0,is_text_overlay=0;
-int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text) {
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int text_color, const char *text) {
     int ovri=find_overlay_of_type(scover->overlayId);
     if (ovri<0)
         quit("!Overlay.SetText: invalid overlay ID specified");
@@ -56,9 +57,9 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     int yy = screenover[ovri].y - scover->borderHeight;
 
     RemoveOverlay(scover->overlayId);
-    crovr_id = scover->overlayId;
+    const int disp_type = scover->overlayId;
 
-    if (CreateTextOverlay(xx,yy,wii,fontid,clr,get_translation(text)) != scover->overlayId)
+    if (CreateTextOverlay(xx, yy, wii, fontid, text_color, get_translation(text), disp_type) != scover->overlayId)
         quit("SetTextOverlay internal error: inconsistent type ids");
 }
 
@@ -126,7 +127,7 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
     ScriptOverlay *sco = new ScriptOverlay();
 
-    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, 0);
+    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
 
     int ovri = find_overlay_of_type(sco->overlayId);
     sco->borderWidth = screenover[ovri].x - x;
@@ -185,7 +186,13 @@ int find_overlay_of_type(int type)
     return -1;
 }
 
-size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
+size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChannel)
+{
+    return add_screen_overlay(x, y, type, piccy, 0, 0, alphaChannel);
+}
+
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
+{
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {
@@ -199,6 +206,8 @@ size_t add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel)
     over.bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     over.x=x;
     over.y=y;
+    over._offsetX = pic_offx;
+    over._offsetY = pic_offy;
     over.type=type;
     over.timeout=0;
     over.bgSpeechForChar = -1;
@@ -218,18 +227,18 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
     if (over.x == OVR_AUTOPLACE) {
         // auto place on character
         int charid = over.y;
-        int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
 
-        tdyp = play.RoomToScreenY(game.chars[charid].get_effective_y()) - 5;
-        if (charextra[charid].height<1)
-            tdyp -= game.SpriteInfos[charpic].Height;
-        else
-            tdyp -= charextra[charid].height;
-
+        auto view = FindNearestViewport(charid);
+        const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
+        const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
+        Point screenpt = view->RoomToScreen(
+            game.chars[charid].x,
+            game.chars[charid].get_effective_y() - height).first;
+        tdxp = screenpt.X - over.pic->GetWidth() / 2;
+        if (tdxp < 0) tdxp = 0;
+        tdyp = screenpt.Y - 5;
         tdyp -= over.pic->GetHeight();
-        if (tdyp < 5) tdyp=5;
-        tdxp = play.RoomToScreenX(game.chars[charid].x - over.pic->GetWidth()/2);
-        if (tdxp < 0) tdxp=0;
+        if (tdyp < 5) tdyp = 5;
 
         if ((tdxp + over.pic->GetWidth()) >= ui_view.GetWidth())
             tdxp = (ui_view.GetWidth() - over.pic->GetWidth()) - 1;
@@ -239,8 +248,10 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
         }
     }
     else {
-        tdxp = over.x;
-        tdyp = over.y;
+        // Note: the internal offset is only needed when x,y coordinates are specified
+        // and only in the case where the overlay is using a GUI. See issue #1098
+        tdxp = over.x + over._offsetX;
+        tdyp = over.y + over._offsetY;
 
         if (!over.positionRelativeToScreen)
         {

@@ -58,6 +58,21 @@ void DebugOutput::SetGroupFilter(DebugGroupID id, MessageType verbosity)
         _unresolvedGroups.insert(std::make_pair(id.SID, verbosity));
 }
 
+void DebugOutput::SetAllGroupFilters(MessageType verbosity)
+{
+    for (auto &group : _groupFilter)
+        group = verbosity;
+    for (auto &group : _unresolvedGroups)
+        group.second = verbosity;
+}
+
+void DebugOutput::ClearGroupFilters()
+{
+    for (auto &gf : _groupFilter)
+        gf = kDbgMsg_None;
+    _unresolvedGroups.clear();
+}
+
 void DebugOutput::ResolveGroupID(DebugGroupID id)
 {
     if (!id.IsValid())
@@ -82,15 +97,16 @@ bool DebugOutput::TestGroup(DebugGroupID id,  MessageType mt) const
     DebugGroupID real_id = DbgMgr.GetGroup(id).UID;
     if (real_id.ID == kDbgGroup_None || real_id.ID >= _groupFilter.size())
         return false;
-    return (_groupFilter[real_id.ID] & mt) != 0;
+    return (_groupFilter[real_id.ID] >= mt) != 0;
 }
 
 DebugManager::DebugManager()
 {
     // Add hardcoded groups
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Main, "main"), ""));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache"));
+    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Game, "game"), "Game"));
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Script, "script"), "Script"));
+    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache"));
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj"));
     _firstFreeGroupID = _groups.size();
     _lastGroupID = _firstFreeGroupID;

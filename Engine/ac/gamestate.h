@@ -55,9 +55,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_3510      = 3,
 };
 
-// A result of coordinate conversion between screen and the room,
-// tells which viewport was used to pass the "touch" through.
-typedef std::pair<Point, int> VpPoint;
+
 
 struct GameState {
     int  score;      // player's current score
@@ -146,6 +144,8 @@ struct GameState {
     int   bg_frame,bg_anim_delay;  // for animating backgrounds
     int   music_vol_was;  // before the volume drop
     short wait_counter;
+    char  wait_skipped_by; // tells how last wait was skipped [not serialized]
+    int   wait_skipped_by_data; // extended data telling how last wait was skipped [not serialized]
     short mboundx1,mboundx2,mboundy1,mboundy2;
     int   fade_effect;
     int   bg_frame_locked;
@@ -214,7 +214,6 @@ struct GameState {
     std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
-    AGS_Clock::time_point ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
     // Dynamic custom property values for characters and items
@@ -288,8 +287,6 @@ struct GameState {
     // Try to find if there is any viewport at the given coords and result in failure if there is none.
     VpPoint ScreenToRoom(int scrx, int scry);
     // Check for the particular viewport only, and optonally "clip" coordinates with its bounds,
-    // which means that they would fail if coordinates lie outside.
-    VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
 
     // Makes sure primary viewport and camera are created and linked together
     void CreatePrimaryViewportAndCamera();
@@ -315,6 +312,18 @@ struct GameState {
     // Gets script camera reference; does NOT increment refcount
     // because script interpreter does this when acquiring managed pointer.
     ScriptCamera *GetScriptCamera(int index);
+
+    //
+    // User input management
+    //
+    // Tells if game should ignore user input right now. Note that some of the parent states
+    // may not ignore it at the same time, such as cutscene state, which may still be skipped
+    // with a key press or a mouse button.
+    bool IsIgnoringInput() const;
+    // Sets ignore input state, for the given time; if there's one already, chooses max timeout
+    void SetIgnoreInput(int timeout_ms);
+    // Clears ignore input state
+    void ClearIgnoreInput();
 
     //
     // Voice speech management
@@ -365,6 +374,8 @@ private:
     bool  _mainViewportHasChanged;
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged;
+
+    AGS_Clock::time_point _ignoreUserInputUntilTime;
 };
 
 // Converts legacy alignment type used in script API

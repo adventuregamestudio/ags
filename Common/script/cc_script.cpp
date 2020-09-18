@@ -45,6 +45,15 @@ void freadstring(char **strptr, Stream *in)
     strcpy(strptr[0], ibuffer);
 }
 
+void fwritestring(const char *strptr, Stream *out)
+{
+    if(strptr == nullptr){
+        out->WriteByte(0);
+    } else {
+        out->Write(strptr, strlen(strptr) + 1);
+    }
+}
+
 ccScript *ccScript::CreateFromStream(Stream *in)
 {
     ccScript *scri = new ccScript();
@@ -208,15 +217,15 @@ void ccScript::Write(Stream *out) {
     }
     out->WriteInt32(numimports);
     for (n=0;n<numimports;n++)
-        out->WriteArray(imports[n],strlen(imports[n])+1,1);
+        fwritestring(imports[n], out);
     out->WriteInt32(numexports);
     for (n=0;n<numexports;n++) {
-        out->WriteArray(exports[n],strlen(exports[n])+1,1);
+        fwritestring(exports[n], out);
         out->WriteInt32(export_addr[n]);
     }
     out->WriteInt32(numSections);
     for (n = 0; n < numSections; n++) {
-        out->WriteArray(sectionNames[n], strlen(sectionNames[n]) + 1, 1);
+        fwritestring(sectionNames[n], out);
         out->WriteInt32(sectionOffsets[n]);
     }
     out->WriteInt32(ENDFILESIG);

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <cstdio>
 #include <string.h>
 #include "ac/common.h"
 #include "ac/dynobj/cc_dynamicarray.h"
@@ -844,8 +845,15 @@ int ccInstance::Run(int32_t curpc)
               if ((reg1.IValue < 0) ||
                   (reg1.IValue >= upperBoundInBytes)) {
                       int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
-                      int elementSize = (upperBoundInBytes / upperBound);
-                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
+                      if (upperBound <= 0)
+                      {
+                          cc_error("!Array has an invalid size (%d) and cannot be accessed", upperBound);
+                      }
+                      else
+                      {
+                          int elementSize = (upperBoundInBytes / upperBound);
+                          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
+                      }
                       return -1;
               }
               break;
@@ -1175,9 +1183,9 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_NEWARRAY:
           {
               int numElements = reg1.IValue;
-              if ((numElements < 1) || (numElements > 1000000))
+              if (numElements < 1)
               {
-                  cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
+                  cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", numElements, INT32_MAX);
                   return -1;
               }
               DynObjectRef ref = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());

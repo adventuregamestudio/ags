@@ -71,7 +71,7 @@ struct DisplayVars
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
-int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
+int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont, int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
 {
     const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
     const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
@@ -98,7 +98,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
     // is drawn on top of it
-    if ((play.skip_until_char_stops >= 0) && (blocking == 1))
+    // TODO: is this really necessary anymore?
+    if ((play.skip_until_char_stops >= 0) && (disp_type == DISPLAYTEXT_MESSAGEBOX))
         render_graphics();
 
     EndSkippingUntilCharStops();
@@ -111,7 +112,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (longestline < topBarWid)
             longestline = topBarWid;
         // the top bar should behave like DisplaySpeech wrt blocking
-        blocking = 0;
+        disp_type = DISPLAYTEXT_SPEECH;
     }
 
     if (asspch > 0) {
@@ -160,13 +161,20 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
     int extraHeight = paddingDoubledScaled;
     color_t text_color = MakeColor(15);
-    if (blocking < 2)
-        remove_screen_overlay(OVER_TEXTMSG);
+    if (disp_type < DISPLAYTEXT_NORMALOVERLAY)
+        remove_screen_overlay(OVER_TEXTMSG); // remove any previous blocking texts
 
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, game.GetColorDepth());
 
     // inform draw_text_window to free the old bitmap
     const bool wantFreeScreenop = true;
+
+    //
+    // Creating displayed graphic
+    //
+    // may later change if usingGUI, needed to avoid changing original coordinates
+    int adjustedXX = xx;
+    int adjustedYY = yy;
 
     if ((strlen (todis) < 1) || (strcmp (todis, "  ") == 0) || (wii == 0)) ;
     // if it's an empty speech line, don't draw anything
@@ -186,7 +194,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
         if (drawBackground)
         {
-            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
+            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
             if (usingGui > 0)
             {
                 alphaChannel = guis[usingGui].HasAlphaChannel();
@@ -216,7 +224,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         }
     }
     else {
-		
         int xoffs,yoffs, oriwid = wii - padding * 2;
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
@@ -232,54 +239,49 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     }
 
     int ovrtype = OVER_TEXTMSG;
-    if (blocking == 2) ovrtype=OVER_CUSTOM;
-    else if (blocking >= OVER_CUSTOM) ovrtype=blocking;
+    if (disp_type == DISPLAYTEXT_NORMALOVERLAY) ovrtype=OVER_CUSTOM;
+    else if (disp_type >= OVER_CUSTOM) ovrtype = disp_type;
 
-    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
+    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
-    if (blocking>=2) {
+    if (disp_type >= DISPLAYTEXT_NORMALOVERLAY) {
         return screenover[nse].type;
     }
 
-    if (blocking) {
+    //
+    // Wait for the blocking text to timeout or until skipped by another command
+    //
+    if (disp_type == DISPLAYTEXT_MESSAGEBOX) {
+        // If fast-forwarding, then skip immediately
         if (play.fast_forward) {
             remove_screen_overlay(OVER_TEXTMSG);
             play.messagetime=-1;
             return 0;
         }
 
-        /*    wputblock(xx,yy,screenop,1);
-        remove_screen_overlay(OVER_TEXTMSG);*/
-
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_ENABLE);
-        // play.skip_display has same values as SetSkipSpeech:
-        // 0 = click mouse or key to skip
-        // 1 = key only
-        // 2 = can't skip at all
-        // 3 = only on keypress, no auto timer
-        // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        while (1) {
-
+        // Loop until skipped
+        while (true) {
             update_audio_system_on_game_loop();
             render_graphics();
-
-            if (ags_mgetbutton()>NONE) {
-                // If we're allowed, skip with mouse
-                if (skip_setting & SKIP_MOUSECLICK)
+            int mbut, mwheelz;
+            if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
+                check_skip_cutscene_mclick(mbut);
+                if (play.fast_forward)
+                    break;
+                if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
                     break;
             }
             int kp;
             if (run_service_key_controls(kp)) {
-                // let them press ESC to skip the cutscene
                 check_skip_cutscene_keypress (kp);
                 if (play.fast_forward)
                     break;
-
-                if (skip_setting & SKIP_KEYPRESS)
+                if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
                     break;
             }
             
@@ -292,6 +294,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             countdown--;
 
+            // Special behavior when coupled with a voice-over
             if (play.speech_has_voice) {
                 // extend life of text if the voice hasn't finished yet
                 if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
@@ -301,14 +304,13 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 else  // if the voice has finished, remove the speech
                     countdown = 0;
             }
-
+            // Test for the timed auto-skip
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
+                play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
                 break;
             }
-            // if skipping cutscene, don't get stuck on No Auto Remove
-            // text boxes
+            // if skipping cutscene, don't get stuck on No Auto Remove text boxes
             if ((countdown < 1) && (play.fast_forward))
                 break;
         }
@@ -326,7 +328,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!overlayPositionFixed)
         {
             screenover[nse].positionRelativeToScreen = false;
-            VpPoint vpt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y, 0, false);
+            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
             screenover[nse].x = vpt.first.X;
             screenover[nse].y = vpt.first.Y;
         }
@@ -338,7 +340,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     return 0;
 }
 
-void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
+void _display_at(int xx, int yy, int wii, const char *text, int disp_type, int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
     int usingfont=FONT_NORMAL;
     if (asspch) usingfont=FONT_SPEECH;
     // TODO: _display_at may be called from _displayspeech, which can start
@@ -348,11 +350,11 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
 
     EndSkippingUntilCharStops();
 
-    if (try_auto_play_speech(todis, todis, play.narrator_speech, true))
+    if (try_auto_play_speech(text, text, play.narrator_speech, true))
     {// TODO: is there any need for this flag?
         need_stop_speech = true;
     }
-    _display_main(xx,yy,wii,todis,blocking,usingfont,asspch, isThought, allowShrink, overlayPositionFixed);
+    _display_main(xx, yy, wii, text, disp_type, usingfont, asspch, isThought, allowShrink, overlayPositionFixed);
 
     if (need_stop_speech)
         stop_voice_speech();

@@ -30,7 +30,7 @@ namespace AGS
 			void GameSettingsChanged(Game^ game);
 			void PaletteColoursUpdated(Game ^game);
 			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
-			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum);
+			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
 			// Draws font char sheet on the provided context and returns the height of drawn object;
 			// may be called with hDC = 0 to get required height without drawing anything

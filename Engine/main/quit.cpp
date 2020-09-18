@@ -292,7 +292,7 @@ void quit(const char *quitmsg)
 
     proper_exit=1;
 
-    Debug::Printf(kDbgMsg_Init, "***** ENGINE HAS SHUTDOWN");
+    Debug::Printf(kDbgMsg_Alert, "***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug();
 

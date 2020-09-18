@@ -61,7 +61,7 @@ void engine_init_resolution_settings(const Size game_size)
     Debug::Printf("Initializing resolution settings");
     usetup.textheight = getfontheight_outlined(0) + 1;
 
-    Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
+    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
     Rect viewport = RectWH(game_size);
@@ -218,7 +218,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     }
 
     Mouse_EnableControl(usetup.mouse_ctrl_enabled);
-    Debug::Printf(kDbgMsg_Init, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
+    Debug::Printf(kDbgMsg_Info, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
     on_coordinates_scaling_changed();

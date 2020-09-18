@@ -35,7 +35,7 @@ extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(int hdc, int x,int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
 extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
-extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum);
+extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
 extern void SetNewSpriteFromHBitmap(int slot, int hBmp);
@@ -203,9 +203,9 @@ namespace AGS
 			return drawFontAt(hDC, fontNum, x, y, width);
 		}
 
-		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum)
+		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
 		{
-			drawSpriteStretch(hDC, x, y, width, height, spriteNum);
+			drawSpriteStretch(hDC, x, y, width, height, spriteNum, flipImage);
 		}
 
 		void NativeMethods::DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum)

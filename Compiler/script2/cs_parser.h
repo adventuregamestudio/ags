@@ -424,6 +424,11 @@ private:
     // Don't consume the symbol that stops the scan.
     ErrorType SkipTo(SrcList &source, SymbolType const stoplist[], size_t stoplist_len);
 
+    // Skim through source, ignoring delimited content completely.
+    // Stop when a closing symbol is encountered that hasn't been opened.
+    // Eat that symbol and if it doesn't have the type closer, report an _internal_ error.
+    ErrorType SkipToClose(SymbolType closer);
+
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
 
@@ -916,9 +921,6 @@ private:
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, Symbol decl_type = kSYM_NoType);
-
-    void Parse_SkipToEndingBrace();
-
 
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis

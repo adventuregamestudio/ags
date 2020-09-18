@@ -299,11 +299,6 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbo
     return _sym.FindOrAdd(fullname_str.c_str());
 }
 
-// Skim through source, ignoring delimited content completely.
-// Stop in the following cases:
-//   A symbol is encountered whose type is in stoplist[]
-//   A closing symbol is encountered that hasn't been opened.
-// Don't consume the symbol that stops the scan.
 ErrorType AGS::Parser::SkipTo(SrcList &source, const AGS::SymbolType stoplist[], size_t stoplist_len)
 {
     int delimeter_nesting_depth = 0;
@@ -336,6 +331,18 @@ ErrorType AGS::Parser::SkipTo(SrcList &source, const AGS::SymbolType stoplist[],
                 return kERR_None;
     }
     return kERR_UserError;
+}
+
+ErrorType AGS::Parser::SkipToClose(SymbolType closer)
+{
+    SymbolType const stoplist[] = { kSYM_NoType, };
+    SkipTo(_src, stoplist, 0); // pass empty list
+    if (closer != _sym.GetSymbolType(_src.GetNext()))
+    {
+        Error("!Unexpected closing symbol");
+        return kERR_InternalError;
+    }
+    return kERR_None;
 }
 
 // For assigning unique IDs to chunks
@@ -1717,16 +1724,10 @@ ErrorType AGS::Parser::ParseFuncdecl_DoesBodyFollow(bool &body_follows)
 {
     int const cursor = _src.GetCursor();
 
-    SymbolType const stoplist[] = { kSYM_NoType };
-    SkipTo(_src, stoplist, 0);
-
-    if (kSYM_CloseParenthesis != _sym.GetSymbolType(_src.GetNext()))
-    {
-        Error("!Unclosed parameter list of function");
-        return kERR_InternalError;
-    }
-
+    ErrorType retval = SkipToClose(kSYM_CloseParenthesis);
+    if (retval < 0) return retval;
     body_follows = kSYM_OpenBrace == _sym.GetSymbolType(_src.PeekNext());
+
     _src.SetCursor(cursor);
     return kERR_None;
 }
@@ -5228,9 +5229,8 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
         // Skip the sequence of [...]
         while (true)
         {
-            const SymbolType stoplist[] = { kSYM_NoType, };
-            SkipTo(_src, stoplist, 0);
-            _src.GetNext(); // Eat ']'
+            ErrorType retval = SkipToClose(kSYM_CloseBracket);
+            if (retval < 0) return retval;
             if (kSYM_OpenBracket != _src.PeekNext())
                 return kERR_None;
             _src.GetNext(); // Eat '['
@@ -6707,14 +6707,6 @@ void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
     _lastEmittedSectionId = src_section_id;
 }
 
-void AGS::Parser::Parse_SkipToEndingBrace()
-{
-    // Skip to matching '}'
-    SymbolType const stoplist[] = { kSYM_NoType, };
-    SkipTo(_src, stoplist, 0); // pass empty list
-    _src.GetNext(); // Eat '}'
-}
-
 ErrorType AGS::Parser::ParseInput()
 {
     Parser::NestingStack nesting_stack(_scrip);
@@ -6777,7 +6769,7 @@ ErrorType AGS::Parser::ParseInput()
             if (kPP_Main == _pp)
                 break; // treat as a command, below the switch
 
-            Parse_SkipToEndingBrace();
+            SkipToClose(kSYM_CloseBrace);
             name_of_current_func = -1;
             struct_of_current_func = -1;
             continue;

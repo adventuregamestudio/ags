@@ -17,7 +17,7 @@ AGS::LineHandler::LineHandler()
     _sections.push_back("");
     // Add sentinels to the table for simpler lookup algorithms
     size_t const maxsize = std::numeric_limits<size_t>::max();
-    _lineStartTable[0] = SectionLine{ 0, 0 };
+    _lineStartTable[0] = SectionLine{ 0, 1 };
     _lineStartTable[maxsize] = SectionLine{ 0, maxsize };
 }
 

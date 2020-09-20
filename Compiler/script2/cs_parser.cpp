@@ -639,7 +639,6 @@ AGS::Parser::MemoryLocation::MemoryLocation(AGS::Parser &parser)
     , _ScType (kScT_None)
     , _startOffs(0u)
     , _componentOffs (0u)
-    , _isSet(false)
 {
 }
 
@@ -653,7 +652,6 @@ ErrorType AGS::Parser::MemoryLocation::SetStart(ScopeType type, size_t offset)
     _ScType = type;
     _startOffs = offset;
     _componentOffs = 0;
-    _isSet = true;
     return kERR_None;
 }
 
@@ -705,7 +703,6 @@ void AGS::Parser::MemoryLocation::Reset()
     _ScType = kScT_None;
     _startOffs = 0u;
     _componentOffs = 0u;
-    _isSet = false;
 }
 
 AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip)

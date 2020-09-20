@@ -321,7 +321,6 @@ private:
         ScopeType _ScType;
         size_t _startOffs;
         size_t _componentOffs;
-        bool _isSet;
 
     public:
         MemoryLocation(AGS::Parser &parser);
@@ -329,7 +328,7 @@ private:
         // Set the type and the start offset of the MAR register
         ErrorType SetStart(ScopeType type, size_t offset);
 
-        inline void AddComponentOffset(size_t offset) { _componentOffs += offset; _isSet = true; };
+        inline void AddComponentOffset(size_t offset) { _componentOffs += offset; };
 
         // Write out the Bytecode necessary to bring MAR up-to-date; reset the object
         ErrorType MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);

@@ -54,49 +54,6 @@ namespace AGS
 class Parser
 {
 public:
-    enum ParsingPhase
-    {
-        kPP_PreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
-        kPP_Main,           // The main phase that generates the bytecode.
-    };
-
-    enum FunctionType
-    {
-        kFT_PureForward = 0,
-        kFT_Import = 1,
-        kFT_LocalBody = 2,
-    };
-
-    // This indicates where a value is delivered.
-    // When reading, we need the value itself.
-    // - It can be in AX (kVL_ax_is_value)
-    // - or in m(MAR) (kVL_mar_pointsto_value).
-    // When writing, we need a pointer to the adress that has to be modified.
-    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
-    // - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
-    // - attributes must be modified by calling their setter function (kVL_attribute)
-    enum ValueLocation
-    {
-        kVL_ax_is_value,         // The value is in register AX
-        kVL_mar_pointsto_value,  // The value is in m(MAR)
-        kVL_attribute            // The value must be modified by calling an attribute setter
-    };
-
-    // This ought to replace the #defines in script_common.h
-    // but we can't touch them since the engine uses them, too
-    enum FxFixupType : AGS::FixupType // see script_common.h
-    {
-        kFx_NoFixup = 0,
-        kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
-        kFx_Code = FIXUP_FUNCTION,         // code[fixup] += &code[0]
-        kFx_GlobalData = FIXUP_GLOBALDATA, // code[fixup] += &globaldata[0]
-        kFx_Import = FIXUP_IMPORT,         // code[fixup] = &imported_thing[code[fixup]]
-        kFx_Stack = FIXUP_STACK,           // code[fixup] += &stack[0]
-        kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
-    };
-
-    typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
-
     // Needs to be public because the manager is initialized outside of Parser
     class FuncCallpointMgr
     {
@@ -160,6 +117,40 @@ public:
     };
 
 private:
+    enum FunctionType
+    {
+        kFT_PureForward = 0,
+        kFT_Import = 1,
+        kFT_LocalBody = 2,
+    };
+
+    // This indicates where a value is delivered.
+    // When reading, we need the value itself.
+    // - It can be in AX (kVL_ax_is_value)
+    // - or in m(MAR) (kVL_mar_pointsto_value).
+    // When writing, we need a pointer to the adress that has to be modified.
+    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
+    // - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
+    // - attributes must be modified by calling their setter function (kVL_attribute)
+    enum ValueLocation
+    {
+        kVL_ax_is_value,         // The value is in register AX
+        kVL_mar_pointsto_value,  // The value is in m(MAR)
+        kVL_attribute            // The value must be modified by calling an attribute setter
+    };
+
+    // This ought to replace the #defines in script_common.h
+    // but we can't touch them since the engine uses them, too
+    enum FxFixupType : AGS::FixupType // see script_common.h
+    {
+        kFx_NoFixup = 0,
+        kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
+        kFx_Code = FIXUP_FUNCTION,         // code[fixup] += &code[0]
+        kFx_GlobalData = FIXUP_GLOBALDATA, // code[fixup] += &globaldata[0]
+        kFx_Import = FIXUP_IMPORT,         // code[fixup] = &imported_thing[code[fixup]]
+        kFx_Stack = FIXUP_STACK,           // code[fixup] += &stack[0]
+        kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
+    };
 
     // Remember a code generation point.
     // If at some later time, Restore() is called,
@@ -312,6 +303,12 @@ private:
         inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
     };
 
+    enum ParsingPhase
+    {
+        kPP_PreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
+        kPP_Main,           // The main phase that generates the bytecode.
+    } _pp;
+
     // We set the MAR register lazily to save on runtime computation. This object
     // encapsulates the stashed operations that haven't been done on MAR yet.
     class MemoryLocation
@@ -367,10 +364,8 @@ private:
     // Only a global import may be re-defined as a global non-import
     //    (that must be identical except for the "import" declarator),
     //    and this may only happen if the options don't forbid this.
+    typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
     TGIVM _givm; // Global Import Variable Manager
-
-    // Track the phase the parser is in.
-    ParsingPhase _pp;
 
     // Main symbol table
     SymbolTable &_sym;

@@ -110,8 +110,9 @@ public:
         ErrorType CheckForUnresolvedFuncs();
     };
 
-    struct Warning
+    struct WarningEntry
     {
+        size_t Severity; // 0 == note, >0 == warning;
         size_t Pos; // in scanned source
         std::string Message;
     };
@@ -219,23 +220,24 @@ private:
             std::vector<CodeCell> Code;
             std::vector<CodeLoc> Fixups;
             std::vector<char> FixupTypes;
-           int CodeOffset;
+            int CodeOffset;
             int FixupOffset;
             size_t SrcLine;
             int Id;
         };
 
-        // All data that is associated with a nesting level of compound statements
+        // All data that is associated with a level of the nested compound statements
         struct NestingInfo
         {
             SymbolType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
-            std::vector<Symbol> Symbols;
-            BackwardJumpDest Start;
-            ForwardJump JumpOut; // First byte after the statement
+            BackwardJumpDest Start; // of the construct
+            ForwardJump JumpOut; // First byte after the construct
             Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
             BackwardJumpDest SwitchDefault; // when switch: Default label
             ForwardJump SwitchJumptable; // when switch: Jumptable
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+            // Symbols defined on the current level, if applicable together with the respective old definition they hide
+            std::map<Symbol, SymbolTableEntry> OldDefinitions;
 
             NestingInfo(SymbolType stype, ::ccCompiledScript &scrip);
         };
@@ -246,28 +248,25 @@ private:
     public:
         NestingStack(::ccCompiledScript &scrip);
 
-        // Depth of the nesting == index of the innermost nesting level
-        inline size_t Depth() const { return _stack.size(); };
+        // Index of the innermost nesting level
+        inline size_t TopLevel() const { return _stack.size() - 1; };
 
         // Type of the innermost nesting
         inline SymbolType Type() const { return _stack.back().Type; }
-        inline void SetType(SymbolType nt) { _stack.back().Type = nt; }
-        // Type of the nesting at the given nesting level
         inline SymbolType Type(size_t level) const { return _stack.at(level).Type; }
-
-        // Add a symbol to the innermost nesting.
-        inline void AddSymbol(Symbol s) { _stack.back().Symbols.push_back(s); }
-
+        inline void SetType(SymbolType nt) { _stack.back().Type = nt; }
+        
+        inline std::map<Symbol, SymbolTableEntry> const &GetOldDefinitions(size_t level) const { return _stack.at(level).OldDefinitions; }
+        // Add an old symbol table entry to the innermost nesting; return true if there is one already.
+        bool AddOldDefinition(Symbol s, SymbolTableEntry const &entry);
+        
         // If the innermost nesting is a loop that has a jump back to the start,
         // then this gives the location to jump to
         inline BackwardJumpDest &Start() { return _stack.back().Start; }
-        // If the nesting at the given level has a jump back to the start,
-        // then this gives the location to jump to
         inline BackwardJumpDest &Start(size_t level) { return _stack.at(level).Start; }
 
         // Collects the jumps to the Bytecode byte after the construct
         inline ForwardJump &JumpOut() { return _stack.back().JumpOut; }
-        // Collects the jumps to the Bytecode byte after the construct
         inline ForwardJump &JumpOut(size_t level) { return _stack.at(level).JumpOut; }
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
@@ -284,8 +283,7 @@ private:
         // If the nesting at the given level is a SWITCH, the location of the  jump table
         inline ForwardJump &SwitchJumptable(size_t level) { return _stack.at(level).SwitchJumptable; }
 
-        // If the innermost nesting contains code chunks that must be moved around
-        // (e.g., in FOR loops), then this is true, else false
+        // Whether the innermost nesting contains code chunks that must be moved around (e.g., in FOR loops)
         inline bool ChunksExist() const { return !_stack.back().Chunks.empty(); }
         inline bool ChunksExist(size_t level) const { return !_stack.at(level).Chunks.empty(); }
 
@@ -297,15 +295,16 @@ private:
         inline void Pop() { _stack.pop_back(); };
 
         // Rip a generated chunk of code out of the codebase and stash it away for later 
-        // Returns the unique ID of this code in id
+        // At end of function call, id will contain the unique ID of this code
         void YankChunk(size_t src_line, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
 
         // Write chunk of code back into the codebase that has been stashed in level given, at index
         void WriteChunk(size_t level, size_t index, int &id);
         // Write chunk of code back into the codebase stashed in the innermost level, at index
-        inline void WriteChunk(size_t index, int &id) { WriteChunk(Depth() - 1, index, id); };
+        inline void WriteChunk(size_t index, int &id) { WriteChunk(TopLevel(), index, id); };
     } _nest;
 
+    // Track the phase the parser is in.
     enum ParsingPhase
     {
         kPP_PreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
@@ -380,7 +379,7 @@ private:
     ::ccCompiledScript &_scrip;
 
     // Receives the warnings
-    std::vector<Warning> _warnings;
+    std::vector<WarningEntry> &_warnings;
 
     // Manage a map of all the functions that have bodies (in the current source).
     FuncCallpointMgr _fcm;
@@ -471,7 +470,12 @@ private:
     // Free the pointers of all locals at the end of a function. Do not clobber AX.
     ErrorType FreeDynpointersOfAllLocals_KeepAX(void);
 
+    // Remove defns from the _sym table that have a nesting level of from_level or higher
+    // Also restores old definitions if they have been shadowed by local definitions
     ErrorType RemoveLocalsFromSymtable(size_t from_level);
+
+    // Remove at nesting_level or higher.
+    ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
     ErrorType IntLiteralOrConst2Value(Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value);
     ErrorType FloatLiteral2Value(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value);
@@ -486,7 +490,7 @@ private:
     ErrorType ParseDynArrayMarkerIfPresent(Vartype &vartype);
 
     // Copy so that the forward decl can be compared afterwards to the real one     
-    ErrorType CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
+    void CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
 
     // Extender function, eg. function GoAway(this Character *someone)
     // We've just accepted something like "int func("
@@ -500,7 +504,8 @@ private:
     // We accept a param name such as "i" if present
     ErrorType ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
 
-    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
+    // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
+    ErrorType ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
 
     // process a parameter decl in a function parameter list
     ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype param_vartype, bool param_is_const, size_t param_idx);
@@ -745,7 +750,7 @@ private:
     ErrorType ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
+    ErrorType ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
 
     // we have accepted something like "int a" and we're expecting "["
     ErrorType ParseArray(Symbol vname, Vartype &vartype);
@@ -834,7 +839,7 @@ private:
 
     ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, ScopeType scope_type);
 
-    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, size_t nested_level, TypeQualifierSet tqs, Vartype vartype);
+    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype);
 
     // We accepted a variable type such as "int", so what follows is a variable or function declaration
     ErrorType ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
@@ -857,10 +862,10 @@ private:
     ErrorType HandleEndOfElse();
 
     // The first clause of "for (I; W; C);" when it is a declaration
-    ErrorType ParseFor_InitClauseVardecl(size_t nesting_level);
+    ErrorType ParseFor_InitClauseVardecl();
 
     // The first clause of "for (I; W; C);"
-    ErrorType ParseFor_InitClause(Symbol peeksym, size_t nesting_level);
+    ErrorType ParseFor_InitClause(Symbol peeksym);
 
     // The middle clause of "for (I; W; C);"
     ErrorType ParseFor_WhileClause();
@@ -897,8 +902,6 @@ private:
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
     ErrorType ParseAssignmentOrExpression(Symbol cursym);
-
-    ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
     ErrorType ParseBreak();
 
@@ -959,11 +962,9 @@ public:
     // This should be moved somewhere. It isn't Parser functionality
     static int InterpretFloatAsInt(float floatval);
 
-    Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip);
+    Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip, std::vector<WarningEntry> &warnings);
 
     ErrorType Parse();
-
-    inline std::vector<struct Warning> const &GetWarnings() const { return _warnings; }
 
 }; // class Parser
 } // namespace AGS
@@ -979,7 +980,8 @@ extern int cc_scan(
 extern int cc_parse(
     AGS::SrcList *src,          // tokenized text
     ccCompiledScript *scrip,    // result of the compilation
-    SymbolTable *symt);         // symbol table
+    SymbolTable *symt,          // symbol table
+    std::vector<AGS::Parser::WarningEntry> *warnings);      // warnings   
 
 // Compile the input.
 extern int cc_compile(

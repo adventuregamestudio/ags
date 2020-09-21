@@ -40,6 +40,7 @@ public:
     };
 
     static size_t const ParameterSScope = 1;
+    static size_t const FunctionSScope = 2;
 
     struct ParamDefault
     {

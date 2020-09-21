@@ -7771,8 +7771,7 @@ TEST(Bytecode, AccessStructAsPointer02)
     // Such structs can be assigned to a variable that is a pointered struct
 
     char *inpl = "\
-        builtin managed struct Object {                 \n\
-        };                                              \n\
+        builtin managed struct Object { };              \n\
         import Object oCleaningCabinetDoor;             \n\
                                                         \n\
         builtin managed struct Character                \n\
@@ -7792,7 +7791,7 @@ TEST(Bytecode, AccessStructAsPointer02)
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // WriteOutput("AccessStructAsPointer02", scrip);
+    WriteOutput("AccessStructAsPointer02", scrip);
     const size_t codesize = 56;
     EXPECT_EQ(codesize, scrip->codesize);
 

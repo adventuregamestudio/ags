@@ -265,7 +265,8 @@ TEST(Compile, EnumNegative) {
 
     clear_error();
     ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
-    int compileResult = cc_parse(&targ, scrip, &sym);
+    std::vector<AGS::Parser::WarningEntry> warnings;
+    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
@@ -312,7 +313,9 @@ TEST(Compile, DefaultParametersLargeInts) {
 
     clear_error();
     ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
-    int compileResult = cc_parse(&targ, scrip, &sym);
+
+    std::vector<AGS::Parser::WarningEntry> warnings;
+    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -371,8 +374,10 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
         ";
 
     clear_error();
+
     ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
-    int compileResult = cc_parse(&targ, scrip, &sym);
+    std::vector<AGS::Parser::WarningEntry> warnings;
+    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -759,21 +764,20 @@ TEST(Compile, Do1Wrong) {
 TEST(Compile, Do2Wrong) {
     ccCompiledScript *scrip = newScriptFixture();
 
+    // Should balk because the "while" clause is missing.
+
     char *inpl = "\
     void main()                     \n\
     {                               \n\
-        int i;                      \n\
+        int I;                      \n\
         do                          \n\
-            i = 10;                 \n\
+            I = 10;                 \n\
     }                               \n\
    ";
-
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GT(0, compileResult);
-    // Offer some leeway in the error message
-    // Should balk because the "while" clause is missing.
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("while"));
 }
@@ -1009,6 +1013,8 @@ TEST(Compile, ExtenderFuncHeaderFault2) {
 TEST(Compile, DoubleExtenderFunc) {
     ccCompiledScript *scrip = newScriptFixture();
 
+    // Must not define a function with body twice.
+
     char *inpl = "\
         struct Weapon {                         \n\
             int Damage;                         \n\
@@ -1031,7 +1037,7 @@ TEST(Compile, DoubleExtenderFunc) {
     EXPECT_NE((char *)0, last_seen_cc_error());
     ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("already been def"));
+    ASSERT_NE(std::string::npos, err.find("defined"));
 }
 
 TEST(Compile, DoubleNonExtenderFunc) {
@@ -1054,7 +1060,7 @@ TEST(Compile, DoubleNonExtenderFunc) {
     EXPECT_NE((char *)0, last_seen_cc_error());
     ASSERT_GT(0, compileResult);
     std::string err = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, err.find("already been def"));
+    EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
 TEST(Compile, UndeclaredStructFunc1) {
@@ -1120,24 +1126,39 @@ TEST(Compile, ParamVoid) {
     ASSERT_NE(std::string::npos, err.find("void"));
 }
 
-TEST(Compile, ParamGlobal) {
+TEST(Compile, LocalGlobalSeq2) {
     ccCompiledScript *scrip = newScriptFixture();
 
+    // Should garner a warning for line 7 because the re-definition hides the func
+
     char *inpl = "\
-        short Bermudas;                        \n\
-        int Foo(int Bermudas)                  \n\
-        {                                      \n\
-            return 1;                          \n\
-        }                                      \n\
+        float Func(void) { return 7.7; }    \n\
+        int Foo(void)                       \n\
+        {                                   \n\
+            float F1 = Func();              \n\
+            {                               \n\
+                float F2 = Func();          \n\
+                int Func = 7;               \n\
+                Func += Func;               \n\
+            }                               \n\
+            float F3 = Func();              \n\
+        }                                   \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    std::vector<Symbol> tokens;
+    AGS::LineHandler lh;
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
+    SymbolTable sym;
+    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
 
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
-    std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Bermudas"));
+    std::vector<AGS::Parser::WarningEntry> warnings;
+    clear_error();
+    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_EQ(1u, warnings.size());
+    EXPECT_EQ(7, warnings[0].Pos);
 }
 
 TEST(Compile, StructExtend1) {
@@ -1525,25 +1546,6 @@ TEST(Compile, LocalGlobalSeq1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile, LocalGlobalSeq2) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    char *inpl = "\
-    int Var;                        \n\
-    void Func()                     \n\
-    {                               \n\
-        short Var = 5;              \n\
-        return;                     \n\
-    }                               \n\
-    ";
-
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_GT(0, compileResult);
-}
-
 TEST(Compile, Void1) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1718,7 +1720,8 @@ TEST(Compile, StaticFuncCall)
 TEST(Compile, Import2GlobalAllocation)
 {
     ccCompiledScript *scrip = newScriptFixture();
-    std::vector<Symbol> tokens; AGS::LineHandler lh;
+    std::vector<Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
     AGS::SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
@@ -1733,7 +1736,9 @@ TEST(Compile, Import2GlobalAllocation)
     ";
 
     ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
-    int compileResult = cc_parse(&targ, scrip, &sym);
+
+    std::vector<AGS::Parser::WarningEntry> warnings;
+    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     int idx = sym.Find("J");
     ASSERT_LE(0, idx);
@@ -2185,25 +2190,27 @@ TEST(Compile, DoubleLocalDecl)
 {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Even within { ... } a local definition must not re-define another
-    // local definition
+    // A local definition may hide an outer local definition or a global definition;
+    // those will be uncovered when the scope of the local definition ends.
 
     char *inpl = "\
+        float Bang1 = 7.7;                              \n\
         int room_AfterFadeIn()                          \n\
         {                                               \n\
-            int Bang = 24;                              \n\
-            for (int Loop = 0; Loop < 10; Loop += 3)    \n\
+            float Bang2 = 24.0;                         \n\
+            float Bang3 = 4.2;                          \n\
+            for (int Bang3 = 0; Bang3 < 10; Bang3 += 3) \n\
             {                                           \n\
-                int Bang = Loop - 4;                    \n\
+                int Bang1 = Bang3 + 1;                  \n\
+                int Bang2 = Bang1;                      \n\
             }                                           \n\
+            return (0.0 + Bang1 + Bang2 + Bang3) > 0.0; \n\
         }                                               \n\
     ";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_NE(compileResult, 0);
-    std::string lsce = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, lsce.find("Bang"));
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, NewForwardDeclStruct)

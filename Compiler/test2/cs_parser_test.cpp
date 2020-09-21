@@ -1526,6 +1526,43 @@ TEST(Compile, LocalSeq4) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
+TEST(Compile, LocalParameterSeq1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Must fail because definitions of I collide
+
+    char *inpl = "\
+    void Func(int I)                \n\
+    {                               \n\
+        int I;                      \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, LocalParameterSeq2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Fine
+
+    char *inpl = "\
+    void Func(int I)                \n\
+    {                               \n\
+        { int I; }                  \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
 
 TEST(Compile, LocalGlobalSeq1) {
     ccCompiledScript *scrip = newScriptFixture();

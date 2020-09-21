@@ -4429,6 +4429,13 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
                 _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
+        if (SymbolTableEntry::ParameterSScope == var_entry.SScope && SymbolTableEntry::FunctionSScope == _nest.TopLevel())
+        {
+            Error(
+                ReferenceMsgSym("'%s' has already been defined as a parameter", var_name).c_str(),
+                _sym.GetName(var_name).c_str());
+            return kERR_UserError;
+        }
         if (_nest.AddOldDefinition(var_name, var_entry))
         {
             Error("!AddOldDefinition: Storage place occupied");

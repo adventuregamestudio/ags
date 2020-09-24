@@ -82,7 +82,7 @@ namespace AGS.Types
             return false;
         }
 
-        public static string ValidateScriptName(string name, int truncateToLength)
+        public static string ValidateScriptName(string name, int lengthLimit)
         {
             for (int i = 0; i < name.Length; i++)
             {
@@ -95,16 +95,16 @@ namespace AGS.Types
                     throw new InvalidDataException("Invalid script name; name must only include letters, numbers and underscores: " + name);
                 }
             }
-            if (name.Length > truncateToLength)
+            if (lengthLimit >= 0 && name.Length > lengthLimit)
             {
-                return name.Substring(0, truncateToLength);
+                return name.Substring(0, lengthLimit);
             }
             return name;
         }
 
         public static string ValidateScriptName(string name)
         {
-            return ValidateScriptName(name, 99999);
+            return ValidateScriptName(name, -1);
         }
 
         public static Size UserStringToResolution(string s)

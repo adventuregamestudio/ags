@@ -369,84 +369,89 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   return 1;
 }
 
-int extract_room_template_files(const char *templateFileName, int newRoomNumber) 
+HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber)
 {
-    if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
+  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  if (err != Common::kAssetNoError) 
   {
-    return 0;
+    return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
   }
   if (Common::AssetManager::GetAssetOffset(ROOM_TEMPLATE_ID_FILE) < 1)
   {
     Common::AssetManager::SetDataFile(NULL);
-    return 0;
+    return new AGSError("Template file does not contain necessary metadata.");
   }
 
   int numFile = Common::AssetManager::GetAssetCount();
 
   for (int a = 0; a < numFile; a++) {
-      const char *thisFile = Common::AssetManager::GetAssetFileByIndex(a);
-    if (thisFile == NULL) {
-      Common::AssetManager::SetDataFile(NULL);
-      return 0;
-    }
+    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+    if (thisFile.IsEmpty())
+      continue; // should not normally happen
 
     // don't extract the template metadata file
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    if (!readin)
+    {
+      Common::AssetManager::SetDataFile(NULL);
+      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+    }
     char outputName[MAX_PATH];
     const char *extension = strchr(thisFile, '.');
     sprintf(outputName, "room%d%s", newRoomNumber, extension);
     Stream *wrout = Common::File::CreateFile(outputName);
-    if ((readin == NULL) || (wrout == NULL)) 
+    if (!wrout) 
     {
-      delete wrout;
       delete readin;
       Common::AssetManager::SetDataFile(NULL);
-      return 0;
+      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
-    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
-    char *membuff = (char*)malloc (size);
+    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
+    char *membuff = new char[size];
     readin->Read(membuff, size);
-    wrout->Write (membuff, size );
+    wrout->Write(membuff, size);
     delete readin;
     delete wrout;
-    free (membuff);
+    delete[] membuff;
   }
 
   Common::AssetManager::SetDataFile(NULL);
-  return 1;
+  return HAGSError::None();
 }
 
-int extract_template_files(const char *templateFileName) 
+HAGSError extract_template_files(const char *templateFileName)
 {
-  if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
+  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  if (err != Common::kAssetNoError) 
   {
-    return 0;
+    return new AGSError("Failed to read the template file", Common::GetAssetErrorText(err));
   }
-  
-  if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) < 1))
+  if ((Common::AssetManager::GetAssetOffset(old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset(new_editor_data_file) < 1))
   {
     Common::AssetManager::SetDataFile(NULL);
-    return 0;
+    return new AGSError("Template file does not contain main project data.");
   }
 
   int numFile = Common::AssetManager::GetAssetCount();
-
   for (int a = 0; a < numFile; a++) {
-    const char *thisFile = Common::AssetManager::GetAssetFileByIndex (a);
-    if (thisFile == NULL) {
-      Common::AssetManager::SetDataFile(NULL);
-      return 0;
-    }
+    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+    if (thisFile.IsEmpty())
+      continue; // should not normally happen
 
     // don't extract the dummy template lock file
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
-    Stream *wrout = Common::File::CreateFile (thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    if (!readin)
+    {
+      Common::AssetManager::SetDataFile(NULL);
+      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+    }
+    Stream *wrout = Common::File::CreateFile(thisFile);
     if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
     {
       // an old template with Music/Sound folder, create the folder
@@ -456,22 +461,23 @@ int extract_template_files(const char *templateFileName)
       mkdir(folderName);
       wrout = Common::File::CreateFile(thisFile);
     }
-    if ((readin == NULL) || (wrout == NULL)) 
+    if (!wrout)
     {
+      delete readin;
       Common::AssetManager::SetDataFile(NULL);
-      return 0;
+      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
-    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
-    char *membuff = (char*)malloc (size);
-    readin->Read (membuff, size);
-    wrout->Write (membuff, size);
+    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
+    char *membuff = new char[size];
+    readin->Read(membuff, size);
+    wrout->Write(membuff, size);
     delete readin;
     delete wrout;
-    free (membuff);
+    delete[] membuff;
   }
 
   Common::AssetManager::SetDataFile(NULL);
-  return 1;
+  return HAGSError::None();
 }
 
 void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)

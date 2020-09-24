@@ -57,8 +57,8 @@ extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
 extern int GetCurrentlyLoadedRoomNumber();
 extern int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
-extern int extract_template_files(const char *templateFileName);
-extern int extract_room_template_files(const char *templateFileName, int newRoomNumber);
+extern HAGSError extract_template_files(const char *templateFileName);
+extern HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
 extern void SaveGame(bool compressSprites);
@@ -600,19 +600,20 @@ namespace AGS
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
 			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
-			if (!extract_template_files(fileNameAnsi))
+            HAGSError err = extract_template_files(fileNameAnsi);
+			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.");
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
 			}
 		}
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
 			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
-
-			if (!extract_room_template_files(fileNameAnsi, newRoomNumber))
+            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
+			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.");
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
 			}
 		}
 				

@@ -643,6 +643,10 @@ builtin struct Room {
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
 #endif
+#ifdef SCRIPT_API_v360
+  /// Checks if the specified room exists
+  import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
+#endif
 };
 
 builtin struct Parser {

@@ -214,6 +214,12 @@ const char* Room_GetMessages(int index) {
     return CreateNewScriptString(buffer);
 }
 
+bool Room_Exists(int room)
+{
+    String room_filename;
+    room_filename.Format("room%d.crm", room);
+    return Common::AssetManager::DoesAssetExist(room_filename);
+}
 
 //=============================================================================
 
@@ -1095,6 +1101,11 @@ RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(RoomProcessClick);
 }
 
+// bool (int room)
+RuntimeScriptValue Sc_Room_Exists(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL_PINT(Room_Exists);
+}
 
 void RegisterRoomAPI()
 {
@@ -1115,6 +1126,7 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
+    ccAddExternalStaticFunction("Room::Exists",                             Sc_Room_Exists);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
@@ -1131,4 +1143,5 @@ void RegisterRoomAPI()
     ccAddExternalFunctionForPlugin("Room::get_RightEdge",                      (void*)Room_GetRightEdge);
     ccAddExternalFunctionForPlugin("Room::get_TopEdge",                        (void*)Room_GetTopEdge);
     ccAddExternalFunctionForPlugin("Room::get_Width",                          (void*)Room_GetWidth);
+    ccAddExternalFunctionForPlugin("Room::Exists",                             (void*)Room_Exists);
 }

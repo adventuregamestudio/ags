@@ -133,8 +133,10 @@ namespace AGS.Editor
         private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
 
-        private static readonly string[] _scriptAPIVersionMacros;
-        private static readonly string[] _scriptCompatLevelMacros;
+        private static readonly IDictionary<ScriptAPIVersion, string> _scriptAPIVersionMacros =
+            new SortedDictionary<ScriptAPIVersion, string>();
+        private static readonly IDictionary<ScriptAPIVersion, string> _scriptCompatLevelMacros =
+            new SortedDictionary<ScriptAPIVersion, string>();
 
         private static AGSEditor _instance;
 
@@ -157,19 +159,17 @@ namespace AGS.Editor
 
         static AGSEditor()
         {
-            _scriptAPIVersionMacros = new string[Enum.GetNames(typeof(ScriptAPIVersion)).Length];
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
                 if (v == ScriptAPIVersion.Highest)
                     continue; // don't enlist "Highest" constant
-                _scriptAPIVersionMacros[(int)v] = "SCRIPT_API_" + v.ToString();
+                _scriptAPIVersionMacros[v] = "SCRIPT_API_" + v.ToString();
             }
-            _scriptCompatLevelMacros = new string[Enum.GetNames(typeof(ScriptAPIVersion)).Length];
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
                 if (v == ScriptAPIVersion.Highest)
                     continue; // don't enlist "Highest" constant
-                _scriptCompatLevelMacros[(int)v] = "SCRIPT_COMPAT_" + v.ToString();
+                _scriptCompatLevelMacros[v] = "SCRIPT_COMPAT_" + v.ToString();
             }
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
@@ -882,7 +882,7 @@ namespace AGS.Editor
                     continue; // skip Highest constant
                 if (v > _game.Settings.ScriptAPIVersionReal)
                     continue;
-                preprocessor.DefineMacro(_scriptAPIVersionMacros[(int)v], "1");
+                preprocessor.DefineMacro(_scriptAPIVersionMacros[v], "1");
             }
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
@@ -890,7 +890,7 @@ namespace AGS.Editor
                     continue; // skip Highest constant
                 if (v < _game.Settings.ScriptCompatLevelReal)
                     continue;
-                preprocessor.DefineMacro(_scriptCompatLevelMacros[(int)v], "1");
+                preprocessor.DefineMacro(_scriptCompatLevelMacros[v], "1");
             }
         }
 

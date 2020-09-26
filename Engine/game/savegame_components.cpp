@@ -399,6 +399,10 @@ HSaveError WriteAudio(PStream out)
             out->WriteInt32(ch->volAsPercentage);
             out->WriteInt32(ch->panningAsPercentage);
             out->WriteInt32(ch->get_speed());
+            // since version 1
+            out->WriteInt32(ch->xSource);
+            out->WriteInt32(ch->ySource);
+            out->WriteInt32(ch->maximumPossibleDistanceAway);
         }
         else
         {
@@ -455,6 +459,12 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
             chan_info.PanAsPercent = in->ReadInt32();
             chan_info.Speed = 1000;
             chan_info.Speed = in->ReadInt32();
+            if (cmp_ver >= 1)
+            {
+                chan_info.XSource = in->ReadInt32();
+                chan_info.YSource = in->ReadInt32();
+                chan_info.MaxDist = in->ReadInt32();
+            }
         }
     }
     crossFading = in->ReadInt32();
@@ -1136,7 +1146,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        0,
+        1,
         0,
         WriteAudio,
         ReadAudio

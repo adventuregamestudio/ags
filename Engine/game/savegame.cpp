@@ -612,6 +612,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             ch->set_speed(chan_info.Speed);
             ch->set_panning(chan_info.Pan);
             ch->panningAsPercentage = chan_info.PanAsPercent;
+            ch->xSource = chan_info.XSource;
+            ch->ySource = chan_info.YSource;
+            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
         }
     }
     if ((cf_in_chan > 0) && (lock.GetChannel(cf_in_chan) != nullptr))

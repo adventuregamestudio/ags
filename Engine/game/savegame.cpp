@@ -642,6 +642,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
+    update_directional_sound_vol();
 
     for (int i = 0; i < game.numgui; ++i)
     {

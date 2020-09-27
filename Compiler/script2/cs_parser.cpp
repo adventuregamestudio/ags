@@ -4975,12 +4975,10 @@ ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Var
     }
     if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
     {
-        std::string msg = ReferenceMsgSym(
-            "'%s' should be a typename but is already in use differently",
+        std::string const msg = ReferenceMsgSym(
+            "'%s' should be a typename but is in use differently",
             Vartype2Symbol(vartype));
-        Error(
-            msg.c_str(),
-            _sym.GetName(vartype).c_str());
+        Error(msg.c_str(), _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
 
@@ -5337,8 +5335,6 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
     return kERR_None;
 }
 
-// We have accepted something like "struct foo extends bar { readonly int".
-// We're waiting for the name of the member.
 ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
 {
     // Get the variable or function name.
@@ -5403,9 +5399,8 @@ ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
 
 ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
 {
-    // Check for illegal struct member types
     if (kPP_Main == _pp)
-    {
+    {   // Check for illegal struct member types
         ErrorType retval = ParseStruct_CheckComponentVartype(name_of_struct, vartype, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
     }
@@ -5553,7 +5548,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::Parser::NestingSta
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows
-ErrorType AGS::Parser::ParseEnum_AssignedValue(int &currentValue)
+ErrorType AGS::Parser::ParseEnum_AssignedValue(int &current_constant_value)
 {
     _src.GetNext(); // eat "="
 
@@ -5566,10 +5561,10 @@ ErrorType AGS::Parser::ParseEnum_AssignedValue(int &currentValue)
         item_value = _src.GetNext();
     }
 
-    return IntLiteralOrConst2Value(item_value, is_neg, "Expected integer or integer constant after '='", currentValue);
+    return IntLiteralOrConst2Value(item_value, is_neg, "Expected integer or integer constant after '='", current_constant_value);
 }
 
-void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int currentValue)
+void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int current_constant_value)
 {
     SymbolTableEntry &entry = _sym[item_name];
 
@@ -5577,8 +5572,8 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.Vartype = enum_name;
     entry.SScope = 0;
     entry.TypeQualifiers = kTQ_Readonly;
-    // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
-    entry.SOffset = currentValue;
+    // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
+    entry.SOffset = current_constant_value;
     if (kPP_Main == _pp)
         _sym.SetDeclared(item_name, _src.GetSectionId(), _src.GetLineno());
 }
@@ -5612,13 +5607,14 @@ ErrorType AGS::Parser::ParseEnum0()
     ErrorType retval = ParseEnum_Name2Symtable(enum_name);
     if (retval < 0) return retval;
 
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenBrace)
+    Symbol const semicolon = _src.GetNext();
+    if (kSYM_OpenBrace != _sym.GetSymbolType(semicolon))
     {
-        Error("Expected '{'");
+        Error("Expected '{', found '%s' instead", _sym.GetName(semicolon).c_str());
         return kERR_UserError;
     }
 
-    int currentValue = 0;
+    int current_constant_value = 0;
 
     while (true)
     {
@@ -5630,7 +5626,7 @@ ErrorType AGS::Parser::ParseEnum0()
         {
             if (_sym.GetSymbolType(item_name) == kSYM_Const)
             {
-                std::string msg =
+                std::string const msg =
                     ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name);
                 Error(msg.c_str(), _sym.GetName(item_name).c_str());
                 return kERR_UserError;
@@ -5642,33 +5638,33 @@ ErrorType AGS::Parser::ParseEnum0()
             }
         }
 
-        // increment the value of the enum entry
-        currentValue++;
+        current_constant_value++;
 
-        SymbolType type_of_next = _sym.GetSymbolType(_src.PeekNext());
-        if (type_of_next != kSYM_Assign && type_of_next != kSYM_Comma && type_of_next != kSYM_CloseBrace)
+        Symbol const punctuation = _src.PeekNext();
+        SymbolType const type_of_punct = _sym.GetSymbolType(punctuation);
+        if (kSYM_Assign != type_of_punct && kSYM_Comma != type_of_punct && kSYM_CloseBrace != type_of_punct)
         {
-            Error("Expected '=' or ',' or '}'");
+            Error("Expected '=' or ',' or '}', found '%s' instead", _sym.GetName(punctuation).c_str());
             return kERR_UserError;
         }
 
-        if (type_of_next == kSYM_Assign)
+        if (type_of_punct == kSYM_Assign)
         {
             // the value of this entry is specified explicitly
-            retval = ParseEnum_AssignedValue(currentValue);
+            retval = ParseEnum_AssignedValue(current_constant_value);
             if (retval < 0) return retval;
         }
 
         // Enter this enum item as a constant int into the _sym table
-        ParseEnum_Item2Symtable(enum_name, item_name, currentValue);
+        ParseEnum_Item2Symtable(enum_name, item_name, current_constant_value);
 
-        Symbol comma_or_brace = _src.GetNext();
-        if (_sym.GetSymbolType(comma_or_brace) == kSYM_CloseBrace)
+        Symbol const comma_or_brace = _src.GetNext();
+        if (kSYM_CloseBrace == _sym.GetSymbolType(comma_or_brace))
             break;
-        if (_sym.GetSymbolType(comma_or_brace) == kSYM_Comma)
+        if (kSYM_Comma == _sym.GetSymbolType(comma_or_brace))
             continue;
 
-        Error("Expected ',' or '}'");
+        Error("Expected ',' or '}', found '%s' instead", _sym.GetName(comma_or_brace).c_str());
         return kERR_UserError;
     }
     return kERR_None;

@@ -1299,7 +1299,7 @@ void ReadCharacterExtras_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromFile(&align_s);
+        charextra[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }

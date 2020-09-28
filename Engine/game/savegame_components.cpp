@@ -496,7 +496,7 @@ HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].ReadFromFile(in.get());
-        charextra[i].ReadFromFile(in.get());
+        charextra[i].ReadFromFile(in.get(), cmp_ver);
         Properties::ReadValues(play.charProps[i], in.get());
         // character movement path cache
         err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
@@ -1092,7 +1092,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        1,
+        2,
         0,
         WriteCharacters,
         ReadCharacters

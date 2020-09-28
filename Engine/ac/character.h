@@ -154,6 +154,8 @@ void    Character_SetY(CharacterInfo *chaa, int newval);
 int     Character_GetZ(CharacterInfo *chaa);
 void    Character_SetZ(CharacterInfo *chaa, int newval);
 int     Character_GetSpeakingFrame(CharacterInfo *chaa);
+int     Character_GetBlendMode(CharacterInfo *chaa);
+void    Character_SetBlendMode(CharacterInfo *chaa, int blendMode);
 
 //=============================================================================
 

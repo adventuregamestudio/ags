@@ -931,7 +931,7 @@ void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, boo
 void clear_sprite_list() {
     sprlist.clear();
 }
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind) {
+void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind, int blendMode) {
 
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
@@ -950,6 +950,7 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
     sprite.x=xx;
     sprite.y=yy;
     sprite.transparent=trans;
+    sprite.blendMode = blendMode;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
@@ -1863,7 +1864,7 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, sppic);
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, sppic, false, charextra[chin->index_id].blend_mode);
     }
 }
 
@@ -2132,6 +2133,8 @@ void put_sprite_list_on_screen(bool in_room)
             {
                 thisThing->bmp->SetTransparency(thisThing->transparent);
             }
+
+            thisThing->bmp->SetBlendMode(thisThing->blendMode);
 
             gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
         }

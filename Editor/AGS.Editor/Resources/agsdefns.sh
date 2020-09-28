@@ -2002,6 +2002,10 @@ builtin managed struct Character {
   /// Returns the character at the specified position within this room.
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the character's current blend mode.
+  import attribute int  BlendMode;
+#endif
   /// The character's current X-position.
   import attribute int  x;
   /// The character's current Y-position.

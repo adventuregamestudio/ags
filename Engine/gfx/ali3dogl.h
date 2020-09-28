@@ -80,6 +80,7 @@ public:
         _blue = blue;
         _tintSaturation = tintSaturation;
     }
+    virtual void SetBlendMode(int blendMode) { _blendMode = blendMode; }
 
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
@@ -92,6 +93,7 @@ public:
     OGLCUSTOMVERTEX* _vertex;
     OGLTextureTile *_tiles;
     int _numTiles;
+    int _blendMode;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
@@ -111,6 +113,7 @@ public:
         _vertex = nullptr;
         _tiles = nullptr;
         _numTiles = 0;
+        _blendMode = 0;
     }
 
     int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }

@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void CharacterExtras::ReadFromFile(Stream *in)
+void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -34,6 +34,17 @@ void CharacterExtras::ReadFromFile(Stream *in)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    if (cmp_ver >= 2)
+    {
+        blend_mode = in->ReadInt32();
+        // TODO future implementations
+        in->ReadInt32(); // transform scale
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+    }
 }
 
 void CharacterExtras::WriteToFile(Stream *out)
@@ -53,4 +64,13 @@ void CharacterExtras::WriteToFile(Stream *out)
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
+    // since version 2
+    out->WriteInt32(blend_mode);
+    // TODO future implementations
+    out->WriteInt32(0); // transform scale
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
 }

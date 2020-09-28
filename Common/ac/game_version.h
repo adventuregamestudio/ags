@@ -104,6 +104,10 @@ Option to allow legacy relative asset resolutions.
 51 :
 Fonts have adjustable outline
 
+60 :
+Room.Exists
+BlendModes
+
 */
 
 enum GameDataVersion
@@ -138,7 +142,8 @@ enum GameDataVersion
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
     kGameVersion_351            = 51,
-    kGameVersion_Current        = kGameVersion_351
+    kGameVersion_399            = 60,
+    kGameVersion_Current        = kGameVersion_399
 };
 
 extern GameDataVersion loaded_game_file_version;

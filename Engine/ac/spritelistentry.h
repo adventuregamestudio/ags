@@ -29,6 +29,7 @@ struct SpriteListEntry
     int transparent;
     bool takesPriorityIfEqual;
     bool hasAlphaChannel;
+    int blendMode;
 
     SpriteListEntry();
 };

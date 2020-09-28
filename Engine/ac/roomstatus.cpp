@@ -108,12 +108,12 @@ void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
-        obj[i].ReadFromFile(&align_s);
+        obj[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }
 
-void RoomStatus::ReadFromSavegame(Stream *in)
+void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     FreeScriptData();
     FreeProperties();
@@ -122,7 +122,7 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     numobj = in->ReadInt32();
     for (int i = 0; i < numobj; ++i)
     {
-        obj[i].ReadFromFile(in);
+        obj[i].ReadFromFile(in, cmp_ver);
         Properties::ReadValues(objProps[i], in);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)

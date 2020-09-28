@@ -920,7 +920,7 @@ HSaveError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams &pp
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
-            roomstat->ReadFromSavegame(in.get());
+            roomstat->ReadFromSavegame(in.get(), cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;
         }
@@ -1023,7 +1023,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())
-        troom.ReadFromSavegame(in.get());
+        troom.ReadFromSavegame(in.get(), cmp_ver);
 
     return HSaveError::None();
 }
@@ -1162,7 +1162,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        0,
+        1,
         0,
         WriteRoomStates,
         ReadRoomStates

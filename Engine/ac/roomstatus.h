@@ -65,7 +65,7 @@ struct RoomStatus {
 
     void ReadFromFile_v321(Common::Stream *in);
     void ReadRoomObjects_Aligned(Common::Stream *in);
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

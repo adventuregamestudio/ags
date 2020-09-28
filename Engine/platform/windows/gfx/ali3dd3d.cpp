@@ -40,6 +40,11 @@ extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, 
 extern void dxmedia_shutdown_3d();
 #endif
 
+#define AGS_D3DBLENDOP(blend_op, src_blend, dest_blend) \
+  direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op); \
+  direct3ddevice->SetRenderState(D3DRS_SRCBLEND, src_blend); \
+  direct3ddevice->SetRenderState(D3DRS_DESTBLEND, dest_blend); \
+
 using namespace AGS::Common;
 
 // Necessary to update textures from 8-bit bitmaps
@@ -1314,12 +1319,69 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     direct3ddevice->SetTransform(D3DTS_WORLD, &matTransform);
     direct3ddevice->SetTexture(0, bmpToDraw->_tiles[ti].texture);
 
+    // Blend modes
+    switch (bmpToDraw->_blendMode) {
+        // blend mode is always NORMAL at this point
+        case kBlendMode_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
+        case kBlendMode_Add: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
+        case kBlendMode_Darken: AGS_D3DBLENDOP(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
+        case kBlendMode_Lighten: AGS_D3DBLENDOP(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
+        case kBlendMode_Multiply: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
+        case kBlendMode_Screen: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
+        case kBlendMode_Subtract: AGS_D3DBLENDOP(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
+        case kBlendMode_Exclusion: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
+        // APPROXIMATIONS (need pixel shaders)
+        case kBlendMode_Burn: AGS_D3DBLENDOP(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
+        case kBlendMode_Dodge: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+    }
+
+    // BLENDMODES WORKAROUNDS - BEGIN
+
+    // allow transparency with blending modes
+    // darken/lighten the base sprite so a higher transparency value makes it trasparent
+    if (bmpToDraw->_blendMode > 0) {
+        const int alpha = bmpToDraw->_transparency == 0 ? 255 : bmpToDraw->_transparency;
+        const int invalpha = 255 - alpha;
+        switch (bmpToDraw->_blendMode) {
+        case kBlendMode_Darken:
+        case kBlendMode_Multiply:
+        case kBlendMode_Burn: // FIXME burn is imperfect due to blend mode, darker than normal even when trasparent
+            // fade to white
+            direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADDSMOOTH);
+            direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(invalpha, invalpha, invalpha, invalpha));
+            break;
+        case kBlendMode_Lighten:
+        case kBlendMode_Screen:
+        case kBlendMode_Exclusion:
+        case kBlendMode_Dodge:
+            // fade to black
+            direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+            direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, alpha));
+            break;
+        }
+        direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+        direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+    }
+
+    // workaround: since the dodge is only half strength we can get a closer approx by drawing it twice
+    if (bmpToDraw->_blendMode == kBlendMode_Dodge)
+    {
+        hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
+        if (hr != D3D_OK)
+        {
+            throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
+        }
+    }
+    // BLENDMODES WORKAROUNDS - END
+
     hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
     if (hr != D3D_OK) 
     {
       throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
     }
 
+    // Restore default blending mode
+    AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
   }
 }
 

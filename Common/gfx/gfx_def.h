@@ -27,8 +27,15 @@ namespace Common
 enum BlendMode
 {
     kBlendMode_Normal,        // alpha-blend src to dest, combining src & dest alphas
-    // NOTE: add new modes here
-
+    kBlendMode_Add,
+    kBlendMode_Darken,
+    kBlendMode_Lighten,
+    kBlendMode_Multiply,
+    kBlendMode_Screen,
+    kBlendMode_Burn,
+    kBlendMode_Subtract,
+    kBlendMode_Exclusion,
+    kBlendMode_Dodge,
     kNumBlendModes
 };
 

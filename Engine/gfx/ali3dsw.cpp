@@ -525,28 +525,21 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
 
     if (bitmap->_transparency >= 255) {} // fully transparent, do nothing
     else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0)) {}
-    else if (bitmap->_opaque)
+    else if (bitmap->_opaque && bitmap->_blendMode == 0)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
         // TODO: we need to also support non-masked translucent blend, but...
         // Allegro 4 **does not have such function ready** :( (only masked blends, where it skips magenta pixels);
         // I am leaving this problem for the future, as coincidentally software mode does not need this atm.
     }
-    else if (bitmap->_hasAlpha)
-    {
-      if (bitmap->_transparency == 0) // no global transparency, simple alpha blend
-        set_alpha_blender();
-      else
-        // here _transparency is used as alpha (between 1 and 254)
-        set_blender_mode(nullptr, nullptr, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
-
-      surface->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
-    }
     else
     {
-      // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
-      GfxUtil::DrawSpriteWithTransparency(surface, bitmap->_bmp, drawAtX, drawAtY,
-          bitmap->_transparency ? bitmap->_transparency : 255);
+        Common::BlendMode al_blender_mode = (Common::BlendMode) bitmap->_blendMode;
+        if (al_blender_mode >= Common::kNumBlendModes || al_blender_mode < kBlendMode_Normal)
+            al_blender_mode = Common::kBlendMode_Normal;
+
+        // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, al_blender_mode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
     // NOTE: following is experimental tint code (currently unused)

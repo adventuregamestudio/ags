@@ -10,6 +10,7 @@ namespace AGS.Types
     {
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
+        public const int AUDIOCLIP_SCRIPTNAME_LENGTH = 30; // limited by compiled data format
 
         private int _id;
         private string _sourceFileName;
@@ -77,7 +78,7 @@ namespace AGS.Types
         public string ScriptName
         {
             get { return _scriptName; }
-            set { _scriptName = Utilities.ValidateScriptName(value); }
+            set { _scriptName = Utilities.ValidateScriptName(value, AUDIOCLIP_SCRIPTNAME_LENGTH); }
         }
 
         // This is a "Fixed Index" that is used as a stable reference the clip,

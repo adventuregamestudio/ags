@@ -914,7 +914,7 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 void clear_draw_list() {
     thingsToDrawList.clear();
 }
-void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, bool alphaChannel) {
+void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, bool alphaChannel, int blendMode = 0) {
     SpriteListEntry sprite;
     sprite.pic = nullptr;
     sprite.bmp = bmp;
@@ -922,6 +922,7 @@ void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, boo
     sprite.y = y;
     sprite.transparent = trans;
     sprite.hasAlphaChannel = alphaChannel;
+    sprite.blendMode = blendMode;
     thingsToDrawList.push_back(sprite);
 }
 
@@ -2083,7 +2084,7 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel());
+            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel(), guis[aa].BlendMode);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)

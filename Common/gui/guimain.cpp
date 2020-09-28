@@ -71,6 +71,8 @@ void GUIMain::InitDefaults()
     MouseWasAt.X  = -1;
     MouseWasAt.Y  = -1;
 
+    BlendMode     = 0;
+
     OnClickHandler.Empty();
 
     _controls.clear();
@@ -626,6 +628,18 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseDownCtrl = in->ReadInt32();
     MouseWasAt.X = in->ReadInt32();
     MouseWasAt.Y = in->ReadInt32();
+
+    if (svg_version >= kGuiSvgVersion_399)
+    {
+        BlendMode = in->ReadInt32();
+        // TODO future implementations
+        in->ReadInt32(); // transform scale
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+    }
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const
@@ -650,6 +664,15 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseDownCtrl);
     out->WriteInt32(MouseWasAt.X);
     out->WriteInt32(MouseWasAt.Y);
+    // since version 2 (kGuiSvgVersion_399)
+    out->WriteInt32(BlendMode);
+    // TODO future implementations
+    out->WriteInt32(0); // transform scale
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
 }
 
 

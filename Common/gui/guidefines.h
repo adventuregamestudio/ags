@@ -72,7 +72,8 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_Current     = kGuiVersion_350,
+    kGuiVersion_399         = 120,
+    kGuiVersion_Current     = kGuiVersion_399,
 };
 
 namespace AGS
@@ -174,7 +175,8 @@ enum GUITextBoxFlags
 enum GuiSvgVersion
 {
     kGuiSvgVersion_Initial  = 0,
-    kGuiSvgVersion_350      = 1
+    kGuiSvgVersion_350      = 1,
+    kGuiSvgVersion_399      = 2
 };
 
 } // namespace Common

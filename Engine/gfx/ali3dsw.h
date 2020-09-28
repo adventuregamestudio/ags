@@ -64,6 +64,7 @@ public:
     int GetColorDepth() override { return _colDepth; }
     void SetLightLevel(int lightLevel) override  { }
     void SetTint(int red, int green, int blue, int tintSaturation) override { }
+    void SetBlendMode(int blendMode) override { _blendMode = blendMode; }
 
     Bitmap *_bmp;
     int _width, _height;
@@ -73,6 +74,7 @@ public:
     bool _opaque; // no mask color
     bool _hasAlpha;
     int _transparency;
+    int _blendMode;
 
     ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
     {
@@ -86,6 +88,7 @@ public:
         _transparency = 0;
         _opaque = opaque;
         _hasAlpha = hasAlpha;
+        _blendMode = 0;
     }
 
     int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }

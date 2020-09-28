@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void CharacterExtras::ReadFromFile(Stream *in)
+void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -34,6 +34,10 @@ void CharacterExtras::ReadFromFile(Stream *in)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    if (cmp_ver >= 10)
+    {
+        blend_mode = in->ReadInt32();
+    }
 }
 
 void CharacterExtras::WriteToFile(Stream *out)
@@ -53,4 +57,6 @@ void CharacterExtras::WriteToFile(Stream *out)
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
+    // since version 10
+    out->WriteInt32(blend_mode);
 }

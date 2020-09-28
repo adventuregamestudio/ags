@@ -2008,6 +2008,10 @@ builtin managed struct Character {
   import attribute int  y;
   /// The character's current Z-position.
   import attribute int  z;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the character's current blend mode.
+  import attribute int  BlendMode;
+#endif
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
   readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$

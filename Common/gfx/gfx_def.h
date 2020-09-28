@@ -28,6 +28,15 @@ enum BlendMode
     // free blending (ARGB -> ARGB) modes
     kBlendMode_NoAlpha        = 0, // ignore alpha channel
     kBlendMode_Alpha,              // alpha-blend src to dest, combining src & dest alphas
+    kBlendMode_Add,
+    kBlendMode_Darken,
+    kBlendMode_Lighten,
+    kBlendMode_Multiply,
+    kBlendMode_Screen,
+    kBlendMode_Burn,
+    kBlendMode_Subtract,
+    kBlendMode_Exclusion,
+    kBlendMode_Dodge,
     // NOTE: add new modes here
 
     kNumBlendModes

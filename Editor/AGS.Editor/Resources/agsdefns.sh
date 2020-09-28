@@ -401,6 +401,21 @@ enum LogLevel
 };
 #endif
 
+#ifdef SCRIPT_API_v399
+enum BlendMode {
+    eBlendModeDefault = 0, //eBlendModeNoAlpha
+    eBlendModeAlpha,
+    eBlendModeAdd,
+    eBlendModeDarken,
+    eBlendModeLighten,
+    eBlendModeMultiply,
+    eBlendModeScreen,
+    eBlendModeBurn,
+    eBlendModeSubtract,
+    eBlendModeExclusion,
+    eBlendModeDodge
+};
+#endif
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -921,7 +936,7 @@ builtin managed struct Overlay {
   import attribute int Y;
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
-  import attribute int BlendMode;
+  import attribute BlendMode BlendMode;
 #endif
 };
 
@@ -1351,7 +1366,7 @@ builtin managed struct GUI {
 #endif
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
-  import attribute int  BlendMode;
+  import attribute BlendMode BlendMode;
 #endif
 };
 
@@ -1794,7 +1809,7 @@ builtin managed struct Object {
 #endif
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this object.
-  import attribute int  BlendMode;
+  import attribute BlendMode BlendMode;
 #endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2015,7 +2030,7 @@ builtin managed struct Character {
 #endif
 #ifdef SCRIPT_API_v399
   /// Gets/sets the character's current blend mode.
-  import attribute int  BlendMode;
+  import attribute BlendMode BlendMode;
 #endif
   /// The character's current X-position.
   import attribute int  x;

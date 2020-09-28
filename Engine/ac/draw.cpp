@@ -1567,7 +1567,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false, objs[aa].blend_mode);
     }
 }
 

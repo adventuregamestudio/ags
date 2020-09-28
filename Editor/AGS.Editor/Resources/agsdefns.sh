@@ -1784,7 +1784,10 @@ builtin managed struct Object {
   /// Gets/sets the object's current scaling level.
   import attribute int  Scaling;
 #endif
-
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode for this object.
+  import attribute int  BlendMode;
+#endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 

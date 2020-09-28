@@ -38,6 +38,17 @@ void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
         _offsetX = in->ReadInt32();
         _offsetY = in->ReadInt32();
     }
+    if (cmp_ver >= 2)
+    {
+        blendMode = in->ReadInt32();
+        // TODO future implementations
+        in->ReadInt32(); // transform scale
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+    }
 }
 
 void ScreenOverlay::WriteToFile(Stream *out) const
@@ -56,4 +67,13 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     // since cmp_ver = 1
     out->WriteInt32(_offsetX);
     out->WriteInt32(_offsetY);
+    // since cmp_ver = 2
+    out->WriteInt32(blendMode);
+    // TODO future implementations
+    out->WriteInt32(0); // transform scale
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
 }

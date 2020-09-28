@@ -2019,11 +2019,11 @@ void draw_gui_and_overlays()
     for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
-            add_thing_to_draw(over.bmp, over.x, over.y, TRANS_OPAQUE, false);
+            add_thing_to_draw(over.bmp, over.x, over.y, TRANS_OPAQUE, false, over.blendMode);
         else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.hasAlphaChannel);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.hasAlphaChannel, over.blendMode);
         }
     }
 

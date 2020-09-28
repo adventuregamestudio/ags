@@ -919,6 +919,10 @@ builtin managed struct Overlay {
   import attribute int X;
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode of this overlay.
+  import attribute int BlendMode;
+#endif
 };
 
 builtin managed struct DynamicSprite {

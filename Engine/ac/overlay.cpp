@@ -138,6 +138,22 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
     return sco;
 }
 
+int Overlay_GetBlendMode(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+
+    return screenover[ovri].blendMode;
+}
+
+void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+
+    screenover[ovri].blendMode = blendMode;
+}
+
 //=============================================================================
 
 void dispose_overlay(ScreenOverlay &over)
@@ -191,7 +207,7 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChann
     return add_screen_overlay(x, y, type, piccy, 0, 0, alphaChannel);
 }
 
-size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel, int blendMode)
 {
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
@@ -214,6 +230,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.associatedOverlayHandle = 0;
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
+    over.blendMode = blendMode;
     screenover.push_back(over);
     return screenover.size() - 1;
 }
@@ -346,6 +363,18 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
+// int (ScriptOverlay *scover)
+RuntimeScriptValue Sc_Overlay_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetBlendMode);
+}
+
+// void (ScriptOverlay *scover, int blendMode)
+RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
+}
+
 //=============================================================================
 //
 // Exclusive API for Plugins
@@ -378,6 +407,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
     ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
+    ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
+    ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

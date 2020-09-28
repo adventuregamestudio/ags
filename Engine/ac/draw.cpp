@@ -770,13 +770,14 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans)
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, int blendMode = 0)
 {
     SpriteListEntry sprite;
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
     sprite.transparent = trans;
+    sprite.blendMode = blendMode;
     thingsToDrawList.push_back(sprite);
 }
 
@@ -2098,7 +2099,7 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency);
+            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].BlendMode);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)

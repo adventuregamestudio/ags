@@ -1345,6 +1345,10 @@ builtin managed struct GUI {
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
 #endif
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode for this GUI.
+  import attribute int  BlendMode;
+#endif
 };
 
 #ifdef SCRIPT_API_v350

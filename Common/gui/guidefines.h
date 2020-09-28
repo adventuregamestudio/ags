@@ -45,6 +45,7 @@
 // 3.5.0      (119): Game data contains GUI properties that previously
 //                   could be set only at runtime.
 //
+// 3.9.9      (130): Blend modes.
 //=============================================================================
 
 enum GuiVersion
@@ -72,7 +73,8 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_Current     = kGuiVersion_350,
+    kGuiVersion_399         = 130,
+    kGuiVersion_Current     = kGuiVersion_399,
 };
 
 namespace AGS
@@ -174,7 +176,8 @@ enum GUITextBoxFlags
 enum GuiSvgVersion
 {
     kGuiSvgVersion_Initial  = 0,
-    kGuiSvgVersion_350      = 1
+    kGuiSvgVersion_350      = 1,
+    kGuiSvgVersion_399      = 10
 };
 
 } // namespace Common

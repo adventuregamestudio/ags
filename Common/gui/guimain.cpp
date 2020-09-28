@@ -71,6 +71,8 @@ void GUIMain::InitDefaults()
     MouseWasAt.X  = -1;
     MouseWasAt.Y  = -1;
 
+    BlendMode     = 0;
+
     OnClickHandler.Empty();
 
     _controls.clear();
@@ -626,6 +628,11 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseDownCtrl = in->ReadInt32();
     MouseWasAt.X = in->ReadInt32();
     MouseWasAt.Y = in->ReadInt32();
+
+    if (svg_version >= kGuiSvgVersion_399)
+    {
+        BlendMode = in->ReadInt32();
+    }
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const
@@ -650,6 +657,8 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseDownCtrl);
     out->WriteInt32(MouseWasAt.X);
     out->WriteInt32(MouseWasAt.Y);
+    // since version 10 (kGuiSvgVersion_399)
+    out->WriteInt32(BlendMode);
 }
 
 

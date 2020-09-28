@@ -1112,7 +1112,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        1,
+        10,
         0,
         WriteOverlays,
         ReadOverlays

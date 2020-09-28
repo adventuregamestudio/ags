@@ -2033,12 +2033,12 @@ void draw_gui_and_overlays()
     // draw overlays, except text boxes and portraits
     for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
-        if (over.type == OVER_COMPLETE)
-            add_thing_to_draw(over.bmp, over.x, over.y, 0);
-        else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
+        if (over.type == OVER_COMPLETE) {
+            add_thing_to_draw(over.bmp, over.x, over.y, 0, over.blendMode);
+        } else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, 0);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.blendMode);
         }
     }
 

@@ -37,6 +37,10 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
         _offsetX = in->ReadInt32();
         _offsetY = in->ReadInt32();
     }
+    if (cmp_ver >= 10)
+    {
+        blendMode = in->ReadInt32();
+    }
 }
 
 void ScreenOverlay::WriteToFile(Stream *out) const
@@ -54,4 +58,6 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     // since cmp_ver = 1
     out->WriteInt32(_offsetX);
     out->WriteInt32(_offsetY);
+    // since cmp_ver = 10
+    out->WriteInt32(blendMode);
 }

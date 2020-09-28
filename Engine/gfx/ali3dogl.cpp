@@ -1338,8 +1338,12 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
         // blend mode is always NORMAL at this point
         case kBlendMode_Alpha: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); break; // ALPHA
         case kBlendMode_Add: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
+#ifdef GL_MIN
         case kBlendMode_Darken: AGS_OGLBLENDOP(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
+#endif
+#ifdef GL_MAX
         case kBlendMode_Lighten: AGS_OGLBLENDOP(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
+#endif
         case kBlendMode_Multiply: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
         case kBlendMode_Screen: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
         case kBlendMode_Subtract: AGS_OGLBLENDOP(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)

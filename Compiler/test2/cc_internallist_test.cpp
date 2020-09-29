@@ -77,11 +77,11 @@ TEST(SrcList, AppendLineno) {
     src.NewLine(11); // overwrites the previous NewLine()
     src.Append(9);
 
-    EXPECT_EQ(0, src.GetLinenoAt(0));
-    EXPECT_EQ(0, src.GetLinenoAt(1));
+    EXPECT_EQ(1, src.GetLinenoAt(0));
+    EXPECT_EQ(1, src.GetLinenoAt(1));
     EXPECT_EQ(4711, src.GetLinenoAt(2));
     EXPECT_EQ(11, src.GetLinenoAt(5)); // last linenum is valid "forever"
-    EXPECT_EQ(0, src.GetLinenoAt(1));
+    EXPECT_EQ(1, src.GetLinenoAt(1));
     src.SetCursor(4);
     EXPECT_EQ(11, src.GetLineno());
 }

@@ -36,9 +36,9 @@ void LogFile::PrintMessage(const DebugMessage &msg)
     {
         if (_filePath.IsEmpty())
             return;
-        // Delayed file open
-        String fp = _filePath; // the file gets reset before reopening, so we need to save filepath in a local var
-        if (!OpenFile(fp, _openMode))
+        _file.reset(File::OpenFile(_filePath, _openMode == kLogFile_Append ? Common::kFile_Create : Common::kFile_CreateAlways,
+            Common::kFile_Write));
+        if (!_file)
         {
             Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
             _filePath = "";
@@ -65,13 +65,17 @@ bool LogFile::OpenFile(const String &file_path, OpenMode open_mode)
 
     _filePath = file_path;
     _openMode = open_mode;
-    if (open_mode != OpenMode::kLogFile_OverwriteAtFirstMessage)
+    if (open_mode == OpenMode::kLogFile_OverwriteAtFirstMessage)
+    {
+        return File::TestWriteFile(_filePath);
+    }
+    else
     {
         _file.reset(File::OpenFile(file_path,
                            open_mode == kLogFile_Append ? Common::kFile_Create : Common::kFile_CreateAlways,
                            Common::kFile_Write));
+        return _file.get() != nullptr;
     }
-    return _file.get() != nullptr || open_mode == OpenMode::kLogFile_OverwriteAtFirstMessage;
 }
 
 void LogFile::CloseFile()

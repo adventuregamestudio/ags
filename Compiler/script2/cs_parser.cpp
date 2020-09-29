@@ -997,7 +997,7 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
 // Remove defns from the _sym table that have a nesting level higher than from_level
 ErrorType AGS::Parser::RemoveLocalsFromSymtable(int from_level)
 {
-
+    SymbolTableEntry const empty = {};
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
         if (_sym[entries_idx].SScope <= from_level)
@@ -1005,10 +1005,9 @@ ErrorType AGS::Parser::RemoveLocalsFromSymtable(int from_level)
         if (_sym[entries_idx].SType != kSYM_LocalVar)
             continue;
 
-        _sym[entries_idx].SType = kSYM_NoType;
-        _sym[entries_idx].SScope = 0;
-        _sym[entries_idx].Flags = 0;
-        _sym[entries_idx].TypeQualifiers = 0;
+        std::string const sname = _sym[entries_idx].SName;
+        _sym[entries_idx] = empty;
+        _sym[entries_idx].SName = sname;
     }
     return kERR_None;
 }
@@ -6829,11 +6828,10 @@ ErrorType AGS::Parser::ParseInput()
 // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
 ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning)
 {
-    size_t const sym_after_scanning_size = sym_after_scanning.entries.size();
+    size_t const size_of_sym_after_scanning = sym_after_scanning.entries.size();
     SymbolTableEntry empty;
-    empty.SType = kSYM_NoType;
 
-    for (size_t sym_idx = 0; sym_idx < _sym.entries.size(); sym_idx++)
+    for (size_t sym_idx = _sym.GetLastPredefSym() + 1; sym_idx < _sym.entries.size(); sym_idx++)
     {
         SymbolTableEntry &s_entry = _sym[sym_idx];
         if (kSYM_Function == s_entry.SType)
@@ -6842,10 +6840,14 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scann
             s_entry.SOffset = 0;
             continue;
         }
-        std::string const sname = s_entry.SName;
-        s_entry =
-            (sym_idx < sym_after_scanning_size) ? sym_after_scanning.entries[sym_idx] : empty;
-        s_entry.SName = sname;
+        if (sym_idx < size_of_sym_after_scanning)
+        {
+            s_entry = sym_after_scanning.entries[sym_idx];
+            continue;
+        }
+
+        empty.SName = s_entry.SName;
+        s_entry = empty;
     }
 
     // This has invalidated the symbol table caches, so kill them

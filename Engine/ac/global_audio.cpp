@@ -171,23 +171,28 @@ void PlayMusicResetQueue(int newmus) {
 }
 
 void SeekMIDIPosition (int position) {
-    if (play.silent_midi)
-        midi_seek (position);
-    if (current_music_type == MUS_MIDI) {
-        midi_seek(position);
-        debug_script_log("Seek MIDI position to %d", position);
-    }
+    if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
+        return;
+
+    AudioChannelsLock lock;
+    auto *ch = lock.GetChannel(SCHAN_MUSIC);
+    ch->seek(position);
+    debug_script_log("Seek MIDI position to %d", position);
 }
 
 int GetMIDIPosition () {
-    if (play.silent_midi)
-        return midi_pos;
-    if (current_music_type != MUS_MIDI)
-        return -1;
     if (play.fast_forward)
         return 99999;
+    if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
+        return -1; // returns -1 on failure according to old manuals
+    
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    if (ch) {
+        return ch->get_pos();
+    }
 
-    return midi_pos;
+    return -1;
 }
 
 int IsMusicPlaying() {
@@ -262,6 +267,7 @@ void scr_StopMusic() {
 void SeekMODPattern(int patnum) {
     if (current_music_type != MUS_MOD)
         return;
+
     AudioChannelsLock lock;
     auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
     if (ch) {
@@ -269,8 +275,9 @@ void SeekMODPattern(int patnum) {
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
 }
+
 void SeekMP3PosMillis (int posn) {
-    if (current_music_type == 0)
+    if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return;
 
     AudioChannelsLock lock;
@@ -286,9 +293,8 @@ int GetMP3PosMillis () {
     // in case they have "while (GetMP3PosMillis() < 5000) "
     if (play.fast_forward)
         return 999999;
-
-    if (current_music_type == 0)
-        return 0;
+    if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
+        return 0;  // returns 0 on failure according to old manuals
 
     AudioChannelsLock lock;
     auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);

@@ -160,9 +160,11 @@ enum ScriptAPIVersion
     kScriptAPI_v350 = 6,
     kScriptAPI_v3507= 7,
     kScriptAPI_v351 = 8,
-    kScriptAPI_v399 = 9,
+    kScriptAPI_v399 = 99,
     kScriptAPI_Current = kScriptAPI_v399
 };
+
+const char *GetScriptAPIName(ScriptAPIVersion v);
 
 // Determines whether the graphics renderer should scale sprites at the final
 // screen resolution, as opposed to native resolution

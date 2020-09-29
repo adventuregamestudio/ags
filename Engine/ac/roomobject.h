@@ -42,7 +42,7 @@ struct RoomObject {
     char  on;
     char  flags;
     short blocking_width, blocking_height;
-    short blend_mode;
+    int blend_mode;
 
     RoomObject();
 

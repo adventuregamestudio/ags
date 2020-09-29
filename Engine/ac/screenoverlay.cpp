@@ -49,6 +49,8 @@ void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
     }
+    else
+        blendMode = 0;
 }
 
 void ScreenOverlay::WriteToFile(Stream *out) const

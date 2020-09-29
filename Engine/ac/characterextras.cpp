@@ -45,6 +45,8 @@ void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
     }
+    else
+        blend_mode = 0;
 }
 
 void CharacterExtras::WriteToFile(Stream *out)

@@ -168,7 +168,7 @@ public:
 
     String  OnClickHandler; // script function name
 
-    int32_t BlendMode;
+    int BlendMode;
 
 private:
     int32_t _flags;          // style and behavior flags

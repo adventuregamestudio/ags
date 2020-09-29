@@ -167,6 +167,8 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
     }
+    else
+        blend_mode = 0;
 }
 
 void RoomObject::WriteToFile(Stream *out) const

@@ -640,6 +640,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
     }
+    else
+        BlendMode = 0;
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const

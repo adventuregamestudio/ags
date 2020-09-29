@@ -3661,7 +3661,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
 {
     Symbol const next_sym = expression.PeekNext();
 
-    Symbol const component = AccessData_FindComponent(Vartype2Symbol(vartype), next_sym);
+    Symbol const component = FindComponentInStruct(Vartype2Symbol(vartype), next_sym);
     SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : kSYM_NoType;
 
     if (static_access && !FlagIsSet(_sym[component].TypeQualifiers, kTQ_Static))
@@ -3719,7 +3719,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     // Can't reach
 }
 
-AGS::Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol component)
+Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol component)
 {
     do
     {
@@ -3732,7 +3732,7 @@ AGS::Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol component)
     return 0;
 }
 
-AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbol component)
+Symbol AGS::Parser::FindComponentInStruct(AGS::Vartype strct, AGS::Symbol component)
 {
     do
     {

@@ -671,14 +671,14 @@ private:
     // Now we process a component of vartype.
     ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype);
 
-    // Find the component of a struct (in the struct or in the ancestors of the struct)
-    // and return the struct that the component is defined in
+    // Find the component of a struct in the struct or in the ancestors of the struct
+    // and return the name of the struct (!) that the component is defined in
     // Return 0 if such a struct doesn't exist 
     Symbol FindStructOfComponent(Vartype strct, Symbol component);
 
-    // Find the component of a struct (in the struct or in the ancestors of the struct)
-    // and return the "real" component name
-    Symbol AccessData_FindComponent(Vartype strct, Symbol component);
+    // Find the component of a struct in the struct or in the ancestors of the struct
+    // and return the name of the component(!), qualified by the struct that the component was defined in
+    Symbol FindComponentInStruct(Vartype strct, Symbol component);
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot

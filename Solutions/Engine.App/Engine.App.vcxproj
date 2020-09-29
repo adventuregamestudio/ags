@@ -483,6 +483,7 @@
     <ClCompile Include="..\..\Engine\main\update.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mydumbmod.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_myjgmod.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mymidi.cpp" />
@@ -491,6 +492,7 @@
     <ClCompile Include="..\..\Engine\media\audio\clip_mystaticmp3.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mystaticogg.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mywave.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\sound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\soundcache.cpp" />
@@ -773,6 +775,8 @@
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mydumbmod.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_myjgmod.h" />
@@ -782,6 +786,8 @@
     <ClInclude Include="..\..\Engine\media\audio\clip_mystaticmp3.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mystaticogg.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mywave.h" />
+    <ClInclude Include="..\..\Engine\media\audio\openal.h" />
+    <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h" />
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h" />
     <ClInclude Include="..\..\Engine\media\audio\sound.h" />
     <ClInclude Include="..\..\Engine\media\audio\soundcache.h" />

@@ -1161,6 +1161,48 @@ TEST(Compile, LocalGlobalSeq2) {
     EXPECT_EQ(7, warnings[0].Pos);
 }
 
+TEST(Compile, VartypeLocalSeq1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't redefine a vartype as a local variable
+
+    char *inpl = "\
+        enum bool { false = 0, true, };     \n\
+        int Foo(void)                       \n\
+        {                                   \n\
+            float bool;                     \n\
+        }                                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    std::string const err = last_seen_cc_error();
+    EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    EXPECT_NE(std::string::npos, err.find("in use"));
+}
+
+TEST(Compile, VartypeLocalSeq2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't redefine an enum constant as a local variable
+
+    char *inpl = "\
+        enum bool { false = 0, true };      \n\
+        int Foo(void)                       \n\
+        {                                   \n\
+            int false = 1;                  \n\
+        }                                   \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    std::string const err = last_seen_cc_error();
+    EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : err.c_str());
+    EXPECT_NE(std::string::npos, err.find("in use"));
+}
+
 TEST(Compile, StructExtend1) {
     ccCompiledScript *scrip = newScriptFixture();
 

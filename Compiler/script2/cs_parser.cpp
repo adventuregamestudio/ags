@@ -4698,10 +4698,10 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
             break;
 
         case kSYM_Vartype:
-            Warning(
-                ReferenceMsgSym("This hides the type '%s'", var_name).c_str(),
+            Error(
+                ReferenceMsgSym("'%s' is in use as a type elsewhere", var_name).c_str(),
                 _sym.GetName(var_name).c_str());
-            return kERR_None;
+            return kERR_UserError;
         }
     }
 

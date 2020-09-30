@@ -263,3 +263,18 @@ static void audio_core_entry()
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));
     }
 }
+
+
+// -------------------------------------------------------------------------------------------------
+// UTILITY
+// -------------------------------------------------------------------------------------------------
+// TODO: originally written by [sonneveld] for OpenAL sound impl,
+// investigate if it's possible to avoid using full sound data here,
+// maybe by letting decoder read a header from stream and find out format.
+float audio_core_get_sound_length_ms(const std::vector<char> &data, const char *extension_hint)
+{
+    auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((Uint8 *)data.data(), data.size(), extension_hint, nullptr, 32 * 1024));
+    if (sample == nullptr) { return -1; }
+
+    return Sound_GetDuration(sample.get());
+}

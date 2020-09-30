@@ -39,6 +39,16 @@ bool IsFileOrDir(const String &filename)
     return ags_path_exists(fixed_path.GetCStr()) != 0;
 }
 
+String GetFileExtension(const String &path)
+{
+    const auto pathComponents = path.Split('/');
+    if (pathComponents.size() <= 0) { return ""; }
+    const String baseName = pathComponents[pathComponents.size() - 1];
+    const int at = baseName.FindCharReverse('.');
+    if (at < 0) { return ""; }
+    return baseName.Mid(at + 1);
+}
+
 int ComparePaths(const String &path1, const String &path2)
 {
     // Make minimal absolute paths

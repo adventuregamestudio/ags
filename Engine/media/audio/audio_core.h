@@ -53,4 +53,8 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 AudioCorePlayState audio_core_slot_get_play_state(int slot_handle);
 float audio_core_slot_get_pos_ms(int slot_handle);
 
+// Utility methods
+// Calculate sound clip length in milliseconds
+float audio_core_get_sound_length_ms(const std::vector<char> &data, const char *extension_hint);
+
 #endif // __AGS_EE_MEDIA__AUDIOCORE_H

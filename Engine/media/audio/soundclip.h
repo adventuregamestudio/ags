@@ -71,7 +71,7 @@ struct SOUNDCLIP
     virtual void pause();
     virtual void resume();
 
-    inline bool is_playing() const { return state_ == SoundClipPlaying || state_ == SoundClipPaused; }
+    virtual bool is_playing() const { return state_ == SoundClipPlaying || state_ == SoundClipPaused; }
 
     inline int get_speed() const
     {

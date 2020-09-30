@@ -47,6 +47,8 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
 // Returns the path to the voice-over asset
 AssetPath get_voice_over_assetpath(const String &filename);
 
+// Locates asset among known locations, on success returns open stream and asset's size.
+Stream *LocateAsset(const AssetPath &path, size_t &asset_size);
 // Custom AGS PACKFILE user object
 // TODO: it is preferrable to let our Stream define custom readable window instead,
 // keeping this as simple as possible for now (we may require a stream classes overhaul).

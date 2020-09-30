@@ -492,6 +492,7 @@
     <ClCompile Include="..\..\Engine\media\audio\clip_mystaticmp3.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mystaticogg.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\clip_mywave.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\sound.cpp" />
@@ -786,6 +787,7 @@
     <ClInclude Include="..\..\Engine\media\audio\clip_mystaticmp3.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mystaticogg.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mywave.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_openal.h" />
     <ClInclude Include="..\..\Engine\media\audio\openal.h" />
     <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h" />
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h" />

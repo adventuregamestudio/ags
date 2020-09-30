@@ -1041,6 +1041,9 @@
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
       <Filter>Library Sources\MojoAL</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1924,6 +1927,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h">
       <Filter>Library Sources\MojoAL\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\clip_openal.h">
+      <Filter>Header Files\media\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

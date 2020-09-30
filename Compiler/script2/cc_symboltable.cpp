@@ -19,7 +19,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , SScope(0u)
     , VartypeType(kVTT_Atomic)
     , Dims({})
-    , Extends(0)
+    , Parent(0)
     , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
@@ -41,7 +41,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , SScope(0u)
     , VartypeType(kVTT_Atomic)
     , Dims({})
-    , Extends(0)
+    , Parent(0)
     , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , FuncParamDefaultValues(std::vector<ParamDefault>(1))
     , OperatorOpcode(0)
@@ -349,17 +349,12 @@ int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& c
     compo_list.clear();
     while (true)
     {
-        for (size_t compo = 1; compo < entries.size(); compo++)
-        {
-            SymbolTableEntry const &entry = entries[compo];
-            if (entry.Extends != strct || !FlagIsSet(entry.Flags, kSFLG_StructMember))
-                continue;
-
-            compo_list.push_back(compo);
-        }
-        if (entries[strct].Extends <= 0)
+        std::vector<Symbol> const &children = entries.at(strct).Children;
+        for (auto children_it = children.begin(); children_it != children.end(); children_it++)
+            compo_list.push_back(*children_it);
+        if (entries[strct].Parent <= 0)
             return 0;
-        strct = entries[strct].Extends;
+        strct = entries.at(strct).Parent;
     }
 }
 

@@ -30,7 +30,9 @@ protected:
     bool IsVTT(enum VartypeType vtt, SymbolTable const &symt) const;
 
 public:
-
+    static size_t const ParameterSScope = 1;
+    static size_t const FunctionSScope = 2;
+    
     enum ParamDefaultType
     {
         kDT_None = 0,
@@ -38,9 +40,6 @@ public:
         kDT_Float,
         kDT_Dyn,
     };
-
-    static size_t const ParameterSScope = 1;
-    static size_t const FunctionSScope = 2;
 
     struct ParamDefault
     {
@@ -66,20 +65,17 @@ public:
     CodeLoc SOffset; // multiple use
 
     // Variables only
-    AGS::Vartype Vartype; // may contain typeflags
-
-    // Structs and vartypes only
-    size_t SSize;      // Size in bytes
+    AGS::Vartype Vartype;   
+    AGS::Vartype Parent;    // struct and enum members
 
     // Variables and functions only
     size_t SScope;     // for funcs, whether the func is variadic
 
     // Vartypes only
+    size_t SSize;      // Size in bytes
     enum VartypeType VartypeType;
     std::vector<size_t> Dims; // number of elements in each dimension of static array
-    
-    // Structs and struct members only
-    AGS::Vartype Extends; // parent struct (for structs) / owning struct (for members)
+    std::vector<Symbol> Children; // of structs and enums
 
     // Functions only
     std::vector<AGS::Vartype> FuncParamVartypes;

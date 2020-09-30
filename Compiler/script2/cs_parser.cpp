@@ -1281,7 +1281,7 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
 
     // If a function is defined with the Extender mechanism, it needn't have a declaration
     // in the struct defn. So pretend that this declaration has happened.
-    _sym[name_of_func].Extends = struct_of_func;
+    _sym[name_of_func].Parent = struct_of_func;
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
     SymbolType const punctuation = _sym.GetSymbolType(_src.PeekNext());
@@ -1796,7 +1796,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
         return kERR_UserError;
     }
 
-    if (kPP_Main == _pp && 0 < struct_of_func && struct_of_func != _sym[name_of_func].Extends)
+    if (kPP_Main == _pp && 0 < struct_of_func && struct_of_func != _sym[name_of_func].Parent)
     {
         // Functions only get this if they are declared in a struct or as extender
         std::string component = _sym.GetName(name_of_func);
@@ -2163,7 +2163,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         Symbol current_core_vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype_is);
         while (current_core_vartype != target_core_vartype)
         {
-            current_core_vartype = _sym[current_core_vartype].Extends;
+            current_core_vartype = _sym[current_core_vartype].Parent;
             if (current_core_vartype == 0)
                 return true;
         }
@@ -3753,7 +3753,7 @@ Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol component)
         Symbol symb = MangleStructAndComponent(strct, component);
         if (kSYM_NoType != _sym.GetSymbolType(symb))
             return strct;
-        strct = _sym[strct].Extends;
+        strct = _sym[strct].Parent;
     }
     while (strct > 0);
     return 0;
@@ -3766,7 +3766,7 @@ Symbol AGS::Parser::FindComponentInStruct(AGS::Vartype strct, AGS::Symbol compon
         Symbol ret = MangleStructAndComponent(strct, component);
         if (kSYM_NoType != _sym.GetSymbolType(ret))
             return ret;
-        strct = _sym[strct].Extends;
+        strct = _sym[strct].Parent;
     }
     while (strct > 0);
     return 0;
@@ -4444,7 +4444,6 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
     }
 
     var_entry.SType = (scope_type == kScT_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
-    var_entry.Extends = 0;
     var_entry.Vartype = vartype;
     var_entry.SScope = _nest.TopLevel();
     _sym.SetDeclared(var_name, _src.GetSectionId(), _src.GetLineno());
@@ -4798,8 +4797,8 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
 {
     SymbolTableEntry &entry = _sym[stname];
 
-    entry.Extends = 0;
     entry.SType = kSYM_Vartype;
+    entry.Parent = 0;
     entry.SSize = 0;
 
     SetFlag(entry.Flags, kSFLG_StructVartype, true);
@@ -4848,7 +4847,7 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, size_t &siz
         return kERR_UserError;
     }
     size_so_far = _sym.GetSize(parent);
-    _sym[stname].Extends = parent;
+    _sym[stname].Parent = parent;
     return kERR_None;
 }
 
@@ -5073,18 +5072,17 @@ ErrorType AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS
     Symbol const member = MangleStructAndComponent(current_struct, compo);
     if (kSYM_NoType != _sym.GetSymbolType(member))
     {
-        std::string msg = ReferenceMsgSym(
-            "The struct '%s' extends '%s', and '%s' is already defined",
-            member);
         Error(
-            msg.c_str(),
+            ReferenceMsgSym(
+                "The struct '%s' extends '%s', and '%s' is already defined",
+                member).c_str(),
             _sym.GetName(orig).c_str(),
             _sym.GetName(current_struct).c_str(),
             _sym.GetName(member).c_str());
         return kERR_UserError;
     }
 
-    return ParseStruct_CheckForCompoInAncester(orig, compo, _sym[current_struct].Extends);
+    return ParseStruct_CheckForCompoInAncester(orig, compo, _sym[current_struct].Parent);
 }
 
 ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype)
@@ -5099,7 +5097,7 @@ ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_o
     _src.GetNext(); // Eat '('
 
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
-    _sym[name_of_func].Extends = struct_of_func;
+    _sym[name_of_func].Parent = struct_of_func;
 
     bool body_follows;
     ErrorType retval = ParseFuncdecl(declaration_start, tqs, vartype, struct_of_func, name_of_func, false, body_follows);
@@ -5222,7 +5220,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
     }
 
     // Store the fact that this function has been declared within the struct declaration
-    _sym[name_of_func].Extends = struct_of_func;
+    _sym[name_of_func].Parent = struct_of_func;
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
     Vartype const return_vartype = is_setter ? _sym.GetVoidSym() : vartype;
@@ -5387,7 +5385,7 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
 
         SymbolTableEntry &entry = _sym[vname];
         entry.SType = kSYM_StructComponent;
-        entry.Extends = stname;  // save which struct it belongs to
+        entry.Parent = stname;  // save which struct it belongs to
         entry.SOffset = size_so_far;
         entry.Vartype = vartype;
         // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype
@@ -5422,7 +5420,8 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
     // In here, all struct members get this flag, functions included
     // This flag shows that the respective member has been declared within a struct xx {  }
     SetFlag(_sym[var_or_func_name].Flags, kSFLG_StructMember, true);
-    _sym[var_or_func_name].Extends = name_of_struct;
+    _sym[var_or_func_name].Parent = name_of_struct;
+    _sym[name_of_struct].Children.push_back(var_or_func_name);
 
     if (is_function)
         return ParseStruct_FuncDecl(name_of_struct, var_or_func_name, tqs, vartype);
@@ -5445,7 +5444,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
         }
 
         // Mustn't be in any ancester
-        retval = ParseStruct_CheckForCompoInAncester(name_of_struct, component, _sym[name_of_struct].Extends);
+        retval = ParseStruct_CheckForCompoInAncester(name_of_struct, component, _sym[name_of_struct].Parent);
         if (retval < 0) return retval;
     }
 
@@ -5563,9 +5562,10 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol struct_of_curren
         return kERR_None;
     }
 
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_OpenBrace)
+    Symbol const semicolon = _src.GetNext();
+    if (_sym.GetSymbolType(semicolon) != kSYM_OpenBrace)
     {
-        Error("Expected '{'");
+        Error("Expected '{', found '%s' instead", _sym.GetName(semicolon).c_str());
         return kERR_UserError;
     }
 
@@ -5646,10 +5646,13 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.Vartype = enum_name;
     entry.SScope = 0u;
     entry.TypeQualifiers = kTQ_Readonly;
+    entry.Parent = enum_name;
     // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = current_constant_value;
     if (kPP_Main == _pp)
         _sym.SetDeclared(item_name, _src.GetSectionId(), _src.GetLineno());
+
+    _sym[enum_name].Children.push_back(item_name);
 }
 
 ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
@@ -5715,14 +5718,14 @@ ErrorType AGS::Parser::ParseEnum0()
         current_constant_value++;
 
         Symbol const punctuation = _src.PeekNext();
-        SymbolType const type_of_punct = _sym.GetSymbolType(punctuation);
+        SymbolType type_of_punct = _sym.GetSymbolType(punctuation);
         if (kSYM_Assign != type_of_punct && kSYM_Comma != type_of_punct && kSYM_CloseBrace != type_of_punct)
         {
             Error("Expected '=' or ',' or '}', found '%s' instead", _sym.GetName(punctuation).c_str());
             return kERR_UserError;
         }
 
-        if (type_of_punct == kSYM_Assign)
+        if (kSYM_Assign == type_of_punct)
         {
             // the value of this entry is specified explicitly
             retval = ParseEnum_AssignedValue(current_constant_value);

@@ -226,14 +226,16 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 float audio_core_slot_get_pos_ms(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    return g_acore.slots_[slot_handle]->decoder_.GetPositionMs();
+    auto pos = g_acore.slots_[slot_handle]->decoder_.GetPositionMs();
     g_acore.mixer_cv.notify_all();
+    return pos;
 }
 AudioCorePlayState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    return g_acore.slots_[slot_handle]->decoder_.GetPlayState();
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
     g_acore.mixer_cv.notify_all();
+    return state;
 }
 
 

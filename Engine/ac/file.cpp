@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "aldumb.h"
 #include "ac/asset_helper.h"
 #include "ac/audiocliptype.h"
 #include "ac/file.h"
@@ -483,14 +482,6 @@ PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
         obj->remains = asset_size;
         return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
-    return nullptr;
-}
-
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
-{
-    PACKFILE *pf = PackfileFromAsset(path, asset_size);
-    if (pf)
-        return dumbfile_open_packfile(pf);
     return nullptr;
 }
 

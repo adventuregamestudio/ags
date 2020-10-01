@@ -633,7 +633,10 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     {
         BlendMode = in->ReadInt32();
         // TODO future implementations
-        in->ReadInt32(); // transform scale
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
         in->ReadInt32(); // transform rotate
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
@@ -669,7 +672,10 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     // since version 2 (kGuiSvgVersion_399)
     out->WriteInt32(BlendMode);
     // TODO future implementations
-    out->WriteInt32(0); // transform scale
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
     out->WriteInt32(0); // transform rotate
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y

@@ -423,8 +423,6 @@ extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
-extern int psp_audio_enabled;
-extern int psp_midi_enabled;
 extern char psp_translation[];
 
 void override_config_ext(ConfigTree &cfg)
@@ -486,21 +484,8 @@ void apply_config(const ConfigTree &cfg)
         // Legacy settings has to be translated into new options;
         // they must be read first, to let newer options override them, if ones are present
         read_legacy_audio_config(cfg);
-        if (psp_audio_enabled)
-        {
-            usetup.digicard = read_driverid(cfg, "sound", "digiid", usetup.digicard);
-            if (psp_midi_enabled)
-                usetup.midicard = read_driverid(cfg, "sound", "midiid", usetup.midicard);
-            else
-                usetup.midicard = MIDI_NONE;
-        }
-        else
-        {
-            usetup.digicard = DIGI_NONE;
-            usetup.midicard = MIDI_NONE;
-        }
-
-        psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
+        usetup.digicard = read_driverid(cfg, "sound", "digiid", usetup.digicard);
+        usetup.midicard = read_driverid(cfg, "sound", "midiid", usetup.midicard);
 
         // Legacy graphics settings has to be translated into new options;
         // they must be read first, to let newer options override them, if ones are present

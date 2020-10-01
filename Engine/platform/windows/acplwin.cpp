@@ -946,9 +946,6 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
     useSound = false;
   }
   else {
-    // for some reason DirectSound can't be shared, so uninstall
-    // allegro sound before playing the video
-    shutdown_sound();
   }
 
   bool isError = false;
@@ -969,14 +966,6 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
     game.options[OPT_ALWAYSSPCH] = 0;
     Display("Video playing error: %s", lastError);
     game.options[OPT_ALWAYSSPCH] = oldalways;
-  }
-
-  if (useSound)
-  {
-    // Restore sound system
-    install_sound(usetup.digicard,usetup.midicard,NULL);
-    if (usetup.mod_player)
-      init_mod_player(NUM_MOD_DIGI_VOICES);
   }
 
   set_palette_range(palette, 0, 255, 0);

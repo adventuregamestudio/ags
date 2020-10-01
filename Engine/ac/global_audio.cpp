@@ -24,6 +24,7 @@
 #include "debug/debugger.h"
 #include "game/roomstruct.h"
 #include "main/engine.h"
+#include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
 #include "util/string_compat.h"
@@ -357,7 +358,8 @@ void SetDigitalMasterVolume (int newvol) {
     if ((newvol<0) | (newvol>100))
         quit("!SetDigitalMasterVolume: invalid volume - must be from 0-100");
     play.digital_master_volume = newvol;
-    set_volume ((newvol * 255) / 100, -1);
+    auto newvol_f = static_cast<float>(newvol) / 100.0;
+    audio_core_set_master_volume(newvol_f);
 }
 
 int GetCurrentMusic() {
@@ -432,7 +434,6 @@ void PlaySilentMIDI (int mnum) {
     if (current_music_type == MUS_MIDI)
         quit("!PlaySilentMIDI: proper midi music is in progress");
 
-    set_volume (-1, 0);
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);

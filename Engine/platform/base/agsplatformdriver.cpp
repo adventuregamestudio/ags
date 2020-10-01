@@ -230,7 +230,6 @@ void AGSPlatformDriver::Delay(int millis) {
 
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
-    update_polled_mp3();
     now = AGS_Clock::now(); // update now
   }
 }

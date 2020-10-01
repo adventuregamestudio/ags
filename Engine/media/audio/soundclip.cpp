@@ -18,48 +18,7 @@
 #include "media/audio/soundclip.h"
 #include "media/audio/audiointernaldefs.h"
 
-int SOUNDCLIP::play_from(int position) 
-{
-    int retVal = play();
-    if ((retVal != 0) && (position > 0))
-    {
-        seek(position);
-    }
-    return retVal;
-}
-
-void SOUNDCLIP::set_panning(int newPanning) {
-    if (!is_playing()) { return; }
-    
-    int voice = get_voice();
-    if (voice >= 0) {
-        voice_set_pan(voice, newPanning);
-        panning = newPanning;
-    }
-}
-
-void SOUNDCLIP::pause() {
-    if (state_ != SoundClipPlaying) { return; }
-
-    int voice = get_voice();
-    if (voice >= 0) {
-        voice_stop(voice);
-        state_ = SoundClipPaused;
-    }
-}
-
-void SOUNDCLIP::resume() {
-    if (state_ != SoundClipPaused) { return; }
-
-    int voice = get_voice();
-    if (voice >= 0) {
-        voice_start(voice);
-        state_ = SoundClipPlaying;
-    }
-}
-
 SOUNDCLIP::SOUNDCLIP() {
-    state_ = SoundClipInitial;
     priority = 50;
     panning = 128;
     panningAsPercentage = 0;

@@ -651,37 +651,10 @@
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mydumbmod.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_myjgmod.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mymidi.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mymp3.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_myogg.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mystaticmp3.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mystaticogg.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_mywave.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\sound.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\soundcache.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp">
@@ -1571,37 +1544,10 @@
     <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mydumbmod.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_myjgmod.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mymidi.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mymp3.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_myogg.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mystaticmp3.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mystaticogg.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_mywave.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\sound.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\soundcache.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\soundclip.h">

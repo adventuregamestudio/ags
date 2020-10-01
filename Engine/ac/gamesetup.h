@@ -48,7 +48,6 @@ using AGS::Common::String;
 struct GameSetup {
     int digicard;
     int midicard;
-    int mod_player;
     int textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
     bool  no_speech_pack;
     bool  enable_antialiasing;

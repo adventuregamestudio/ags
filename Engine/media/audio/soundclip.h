@@ -21,16 +21,11 @@
 
 #include "util/mutex.h"
 
-// JJS: This is needed for the derieved classes
-extern volatile int psp_audio_multithreaded;
-
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
 // each other, and does not shape a consistent interface.
 // Improving this situation is only possible with massive refactory of
 // sound clip use, taking backwards-compatible audio system in account.
-
-enum SoundClipState { SoundClipInitial, SoundClipPlaying, SoundClipPaused, SoundClipStopped };
 
 struct SOUNDCLIP
 {
@@ -62,16 +57,15 @@ struct SOUNDCLIP
     virtual int get_length_ms() = 0; // return total track length in ms (or 0)
     virtual int get_sound_type() = 0;
     virtual int play() = 0;
+    virtual int play_from(int position) = 0;
 
-    virtual int play_from(int position);
+    virtual void set_panning(int newPanning) = 0;
+    virtual void set_speed(int new_speed) = 0;
 
-    virtual void set_panning(int newPanning);
-    virtual void set_speed(int new_speed) { speed = new_speed; }
+    virtual void pause() = 0;
+    virtual void resume() = 0;
 
-    virtual void pause();
-    virtual void resume();
-
-    virtual bool is_playing() const { return state_ == SoundClipPlaying || state_ == SoundClipPaused; }
+    virtual bool is_playing() const = 0; // true if playing or paused. false if never played or stopped.
 
     inline int get_speed() const
     {
@@ -145,19 +139,12 @@ struct SOUNDCLIP
 
 
 protected:
-
-    SoundClipState state_;
-
     // mute mode overrides the volume; if set, any volume assigned is stored
     // in properties, but not applied to playback itself
     bool muted;
 
     // speed of playback, in clip ms per real second
-    int speed; 
-
-    // Return the allegro voice number (or -1 if none)
-    // Used by generic pause/resume functions.
-    virtual int get_voice() = 0;
+    int speed;
 
     // helper function for calculating volume with applied modifiers
     inline int get_final_volume() const

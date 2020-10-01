@@ -91,13 +91,9 @@ const char *loadSaveGameOnStartup = nullptr;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
-int psp_audio_enabled = 1;
-int psp_midi_enabled = 1;
 int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0;
+int psp_clear_cache_on_room_change = 0; // clear --sprite cache-- when room is unloaded
 
-int psp_midi_preload_patches = 0;
-int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "";
 char psp_translation[] = "default";
 

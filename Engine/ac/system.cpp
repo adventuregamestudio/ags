@@ -28,6 +28,7 @@
 #include "ac/dynobj/cc_audiochannel.h"
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
+#include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
 #include "util/string_compat.h"
 
@@ -190,21 +191,9 @@ void System_SetVolume(int newvol)
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
-    if (newvol == play.digital_master_volume)
-        return;
-
     play.digital_master_volume = newvol;
-    set_volume((newvol * 255) / 100, (newvol * 255) / 100);
-
-    // allegro's set_volume can lose the volumes of all the channels
-    // if it was previously set low; so restore them
-    AudioChannelsLock lock;
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
-    {
-        auto* ch = lock.GetChannelIfPlaying(i);
-        if (ch)
-            ch->adjust_volume();
-    }
+    auto newvol_f = static_cast<float>(newvol) / 100.0;
+    audio_core_set_master_volume(newvol_f);
 }
 
 const char* System_GetRuntimeInfo()

@@ -2391,7 +2391,6 @@ void construct_game_scene(bool full_redraw)
         if (displayed_room >= 0)
         {
             construct_room_view();
-            update_polled_mp3();
         }
         else if (!gfxDriver->RequiresFullRedrawEachFrame())
         {

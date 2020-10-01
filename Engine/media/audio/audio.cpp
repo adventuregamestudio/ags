@@ -38,6 +38,7 @@
 #include "core/assetmanager.h"
 #include "ac/timer.h"
 #include "main/game_run.h"
+#include "media/audio/audio_core.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -109,15 +110,9 @@ extern CharacterInfo*playerchar;
 
 extern volatile int switching_away_from_game;
 
-#if ! AGS_PLATFORM_OS_IOS && ! AGS_PLATFORM_OS_ANDROID
-volatile int psp_audio_multithreaded = 0;
-#endif
-
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
-
-AGS::Engine::Thread audioThread;
 
 void calculate_reserved_channel_count()
 {
@@ -269,11 +264,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
         soundClip = my_load_midi(asset_name, repeat);
         break;
     case eAudioFileMOD:
-#ifndef PSP_NO_MOD_PLAYBACK
         soundClip = my_load_mod(asset_name, repeat);
-#else
-        soundClip = NULL;
-#endif
         break;
     default:
         quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
@@ -394,8 +385,6 @@ static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int re
         play.new_music_queue[play.new_music_queue_size].cachedClip = cachedClip;
         play.new_music_queue_size++;
     }
-    
-    update_polled_mp3();
 }
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
@@ -604,12 +593,6 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 
 //=============================================================================
 
-void force_audiostream_include() {
-    // This should never happen, but the call is here to make it
-    // link the audiostream libraries
-    stop_audio_stream(nullptr);
-}
-
 // TODO: double check that ambient sounds array actually needs +1
 std::array<AmbientSound,MAX_SOUND_CHANNELS+1> ambient;
 
@@ -714,25 +697,19 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 
 void stop_all_sound_and_music() 
 {
-    int a;
     stopmusic();
     stop_voice_nonblocking();
     // make sure it doesn't start crossfading when it comes back
     crossFading = 0;
     // any ambient sound will be aborted
-    for (a = 0; a <= MAX_SOUND_CHANNELS; a++)
-        stop_and_destroy_channel(a);
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+        stop_and_destroy_channel(i);
 }
 
 void shutdown_sound() 
 {
-    stop_all_sound_and_music();
-
-#ifndef PSP_NO_MOD_PLAYBACK
-    if (usetup.mod_player)
-        remove_mod_player();
-#endif
-    remove_sound();
+    stop_all_sound_and_music(); // game logic
+    audio_core_shutdown(); // audio core system
 }
 
 // the sound will only be played if there is a free channel or
@@ -915,31 +892,6 @@ void apply_volume_drop_modifier(bool applyModifier)
 void update_volume_drop_if_voiceover()
 {
     apply_volume_drop_modifier(play.speech_has_voice);
-}
-
-extern volatile char want_exit;
-
-void update_mp3_thread()
-{
-	if (switching_away_from_game) { return; }
-
-    AudioChannelsLock lock;
-
-    for(int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
-    {
-        auto* ch = lock.GetChannel(i);
-        if (ch)
-            ch->poll();
-    }
-}
-
-//this is called at various points to give streaming logic a chance to update
-//it seems those calls have been littered around and points where it ameliorated skipping
-//a better solution would be to forcibly thread the streaming logic
-void update_polled_mp3()
-{
-	if (psp_audio_multithreaded) { return; }
-    update_mp3_thread();
 }
 
 // Update the music, and advance the crossfade on a step

@@ -60,7 +60,6 @@ public:
 
 protected:
     void adjust_volume() override;
-    int get_voice() override { return 0; } // only for Allegro-specific implementations
 
 private:
     void configure_slot();

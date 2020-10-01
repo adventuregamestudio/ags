@@ -48,13 +48,9 @@ extern bool justTellInfo;
 extern const char *loadSaveGameOnStartup;
 
 extern int psp_video_framedrop;
-extern int psp_audio_enabled;
-extern int psp_midi_enabled;
 extern int psp_ignore_acsetup_cfg_file;
-extern int psp_clear_cache_on_room_change;
+extern int psp_clear_cache_on_room_change; // clear --sprite cache-- when room is unloaded
 
-extern int psp_midi_preload_patches;
-extern int psp_audio_cachesize;
 extern char psp_game_file_name[];
 extern char psp_translation[];
 

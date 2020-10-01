@@ -2823,9 +2823,9 @@ ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, s
                 break; // Don't put this into the for header!
         }
 
-        if (end_of_current_param < static_cast<int>(start_of_current_param))
-        {
-            Error("!parameter length is negative");
+        if (end_of_current_param < 0 || static_cast<size_t>(end_of_current_param) < start_of_current_param)
+        {   
+            Error("!Parameter length is negative");
             return kERR_InternalError;
         }
 

@@ -88,7 +88,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
         if (code_idx < 0 || code_idx >= compiled_script->codesize)
         {
             cc_error(
-                "Internal error: Fixup #%d references non-existent code line #%d",
+                "!Fixup #%d references non-existent code offset #%d",
                 fixup_idx,
                 code_idx);
             compiled_script->shutdown();
@@ -100,7 +100,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
             '\0' == compiled_script->imports[cv][0])
         {
             cc_error(
-                "Internal error: Fixup #%d references non-existent import #%d",
+                "!Fixup #%d references non-existent import #%d",
                 fixup_idx,
                 cv);
             compiled_script->shutdown();

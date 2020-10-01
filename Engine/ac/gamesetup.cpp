@@ -17,8 +17,7 @@
 
 GameSetup::GameSetup()
 {
-    digicard=DIGI_AUTODETECT;
-    midicard=MIDI_AUTODETECT;
+    audio_backend = 1;
     no_speech_pack = false;
     textheight = 0;
     enable_antialiasing = false;

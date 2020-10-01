@@ -440,14 +440,16 @@ void engine_init_timer()
 
 void engine_init_audio()
 {
-    Debug::Printf("Initializing sound drivers");
-    audio_core_init(); // audio core system
+    if (usetup.audio_backend != 0)
+    {
+        Debug::Printf("Initializing audio");
+        audio_core_init(); // audio core system
+    }
     our_eip = -181;
 
-    if (digi_card == DIGI_NONE)
+    if (usetup.audio_backend == 0)
     {
-        // disable speech and music if no digital sound
-        // therefore the MIDI soundtrack will be used if present,
+        // all audio is disabled
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
         play.separate_music_lib = 0;

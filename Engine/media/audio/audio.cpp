@@ -233,8 +233,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
 
 bool is_audiotype_allowed_to_play(AudioFileType type)
 {
-    return (type == eAudioFileMIDI && usetup.midicard != MIDI_NONE) ||
-           (type != eAudioFileMIDI && usetup.digicard != DIGI_NONE);
+    return usetup.audio_backend != 0;
 }
 
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)

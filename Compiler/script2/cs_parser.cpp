@@ -2112,6 +2112,9 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return false;
     }
 
+    // Note: CanNOT convert String * or const string to string;
+    // a function that has a string parameter may modify it, but a String or const string may not be modified.
+
     if (_sym.IsOldstring(vartype_is) != _sym.IsOldstring(vartype_wants_to_be))
         return true;
 
@@ -3917,20 +3920,21 @@ void AGS::Parser::AccessData_StrCpy()
     WriteCmd(SCMD_MEMREAD, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
     WriteCmd(SCMD_MEMWRITE, SREG_AX);
-    WriteCmd(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
-    CodeLoc const jumpout1_pos = _scrip.codesize - 1;
+    WriteCmd(SCMD_JZ, -77);  // if (AX == 0) jumpto LOOP_END
+    CodeLoc const jumpout_pos = _scrip.codesize - 1;
     WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
     WriteCmd(SCMD_ADD, SREG_CX, 1);
     WriteCmd(SCMD_SUB, SREG_DX, 1);
-    WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX == 0) jumpto LOOP_END
-    WriteCmd(SCMD_JZ, 0);
-    CodeLoc const jumpout2_pos = _scrip.codesize - 1;
+    WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX != 0) jumpto LOOP_START
     WriteCmd(
-        SCMD_JMP,
-        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
+        SCMD_JNZ,
+        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    WriteCmd(SCMD_ADD, SREG_CX, 1); // Force a 0-terminated dest string
+    WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+    WriteCmd(SCMD_MEMWRITE, SREG_AX);
     CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
-    _scrip.code[jumpout1_pos] = ccCompiledScript::RelativeJumpDist(jumpout1_pos, loop_end);
-    _scrip.code[jumpout2_pos] = ccCompiledScript::RelativeJumpDist(jumpout2_pos, loop_end);
+    _scrip.code[jumpout_pos] = ccCompiledScript::RelativeJumpDist(jumpout_pos, loop_end);
 }
 
 // We are typically in an assignment LHS = RHS; the RHS has already been
@@ -4600,10 +4604,13 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
     if (retval < 0) return retval;
 
     // Vartypes must match. This is true even if the lhs is readonly.
+    // As a special case, a string may be assigned a const string because the const string will be copied, not modified.
     Vartype const lhsvartype = vartype;
     Vartype const rhsvartype = _scrip.ax_vartype;
 
-    if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
+    if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
+        !(_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype) &&
+          _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, lhsvartype)))
     {
         Error(
             "Cannot assign a type '%s' value to a type '%s' variable",
@@ -4622,9 +4629,12 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
 
     ConvertAXStringToStringObject(vartype);
     WriteCmd(SCMD_LOADSPOFFS, 0);
-    WriteCmd(
-        is_dyn ? SCMD_MEMWRITEPTR : GetWriteCommandForSize(var_size),
-        SREG_AX);
+    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, lhsvartype))
+        AccessData_StrCpy();
+    else
+        WriteCmd(
+            is_dyn ? SCMD_MEMWRITEPTR : GetWriteCommandForSize(var_size),
+            SREG_AX);
     WriteCmd(SCMD_ADD, SREG_SP, var_size);
     _scrip.offset_to_local_var_block += var_size;
     return kERR_None;

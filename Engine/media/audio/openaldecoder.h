@@ -69,6 +69,7 @@ private:
     static float buffer_duration_ms(ALuint bufferID);
     static ALenum openalFormatFromSample(const SoundSampleUniquePtr &sample);
     void DecoderUnqueueProcessedBuffers();
+    void PollBuffers();
 };
 
 

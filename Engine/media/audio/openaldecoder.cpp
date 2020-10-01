@@ -108,6 +108,55 @@ void OpenALDecoder::DecoderUnqueueProcessedBuffers()
     }
 }
 
+void OpenALDecoder::PollBuffers()
+{
+    // buffer management
+    DecoderUnqueueProcessedBuffers();
+
+    // generate extra buffers if none are free
+    if (g_oaldec.freeBuffers.size() < SourceMinimumQueuedBuffers) {
+        std::array<ALuint, SourceMinimumQueuedBuffers> genbufs;
+        alGenBuffers(genbufs.size(), genbufs.data());
+        dump_al_errors();
+        for (const auto &b : genbufs) {
+            g_oaldec.freeBuffers.push_back(b);
+        }
+    }
+
+    // decode and attach buffers
+    while (!EOS_) {
+        ALint buffersQueued = -1;
+        alGetSourcei(source_, AL_BUFFERS_QUEUED, &buffersQueued);
+        dump_al_errors();
+
+        if (buffersQueued >= SourceMinimumQueuedBuffers) { break; }
+
+        assert(g_oaldec.freeBuffers.size() > 0);
+        auto it = std::prev(g_oaldec.freeBuffers.end());
+        auto b = *it;
+
+        auto sz = Sound_Decode(sample_.get());
+
+        if (sz <= 0) {
+            EOS_ = true;
+            // if repeat, then seek to start.
+            if (repeat_) {
+                auto res = Sound_Rewind(sample_.get());
+                auto success = (res != 0);
+                EOS_ = !success;
+            }
+            continue;
+        }
+
+        alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
+        dump_al_errors();
+
+        alSourceQueueBuffers(source_, 1, &b);
+        dump_al_errors();
+
+        g_oaldec.freeBuffers.erase(it);
+    }
+}
 
 
 OpenALDecoder::OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat)
@@ -159,53 +208,7 @@ void OpenALDecoder::Poll()
 
     if (playState_ != PlayStatePlaying) { return; }
 
-    // buffer management
-    DecoderUnqueueProcessedBuffers();
-
-    // generate extra buffers if none are free
-    if (g_oaldec.freeBuffers.size() < SourceMinimumQueuedBuffers) {
-        std::array<ALuint, SourceMinimumQueuedBuffers> genbufs;
-        alGenBuffers(genbufs.size(), genbufs.data());
-        dump_al_errors();
-        for (const auto &b : genbufs) {
-            g_oaldec.freeBuffers.push_back(b);
-        }
-    }
-
-    // decode and attach buffers
-    while (!EOS_) {
-        ALint buffersQueued = -1;
-        alGetSourcei(source_, AL_BUFFERS_QUEUED, &buffersQueued);
-        dump_al_errors();
-
-        if (buffersQueued >= SourceMinimumQueuedBuffers) { break; }
-
-        assert(g_oaldec.freeBuffers.size() > 0);
-        auto it = std::prev(g_oaldec.freeBuffers.end());
-        auto b = *it;
-
-        auto sz = Sound_Decode(sample_.get());
-
-        if (sz <= 0) {
-            EOS_ = true;
-            // if repeat, then seek to start.
-            if (repeat_) {
-                auto res = Sound_Rewind(sample_.get());
-                auto success = (res != 0);
-                EOS_ = !success;
-            }
-            continue;
-        }
-
-        alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
-        dump_al_errors();
-
-        alSourceQueueBuffers(source_, 1, &b);
-        dump_al_errors();
-
-        g_oaldec.freeBuffers.erase(it);
-    }
-
+    PollBuffers();
 
     // setup play state
 
@@ -240,6 +243,10 @@ void OpenALDecoder::Play()
         Seek(0.0f);
     case PlayStatePaused:
         playState_ = AudioCorePlayState::PlayStatePlaying;
+        // we poll some data before alSourcePlay because mojoAL
+        // can drop a clip out of its slot if it is not initialized with something
+        // see mojoal.c mix_source
+        PollBuffers();
         alSourcePlay(source_);
         dump_al_errors();
         break;

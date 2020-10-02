@@ -237,7 +237,7 @@ void DrawingSurface_DrawImageEx(ScriptDrawingSurface* sds, int dst_x, int dst_y,
 
 void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height)
 {
-    DrawingSurface_DrawImageEx(sds, slot, xx, yy, trans, width, height, 0, 0, SCR_NO_VALUE, SCR_NO_VALUE);
+    DrawingSurface_DrawImageEx(sds, xx, yy, slot, trans, width, height, 0, 0, SCR_NO_VALUE, SCR_NO_VALUE);
 }
 
 void DrawingSurface_DrawSurfaceEx(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int trans,

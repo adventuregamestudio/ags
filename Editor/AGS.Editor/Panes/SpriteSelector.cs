@@ -581,6 +581,7 @@ namespace AGS.Editor
         {
             if (_spriteSizeMultiplier != multiplier)
             {
+                sliderPreviewSize.Value = multiplier;
                 _spriteSizeMultiplier = multiplier;
                 RefreshSpriteDisplay();
             }
@@ -1525,6 +1526,11 @@ namespace AGS.Editor
             folderList.BackColor = t.GetColor("sprite-selector/tree/background");
             folderList.ForeColor = t.GetColor("sprite-selector/tree/foreground");
             folderList.LineColor = t.GetColor("sprite-selector/tree/line");
+        }
+
+        private void sliderPreviewSize_ValueChanged(object sender, EventArgs e)
+        {
+            SetSpritePreviewMultiplier(sliderPreviewSize.Value);
         }
     }
 

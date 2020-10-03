@@ -1532,6 +1532,16 @@ namespace AGS.Editor
         {
             SetSpritePreviewMultiplier(sliderPreviewSize.Value);
         }
+
+        private void button_importNew_Click(object sender, EventArgs e)
+        {
+            string[] filenames = Factory.GUIController.ShowOpenFileDialogMultipleFiles("Import new sprites...", Constants.IMAGE_FILE_FILTER);
+
+            if (filenames.Length > 0)
+            {
+                ImportNewSprite(_currentFolder, filenames);
+            }
+        }
     }
 
     internal class SpriteManagerDragDropData

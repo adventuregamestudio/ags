@@ -231,7 +231,10 @@ namespace AGS.Editor
             {
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, 64, 64, false, true, Color.Pink);
+
+                int new_size = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), 64), 64* _spriteSizeMultiplier);
+
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, new_size, new_size, false, true, Color.Pink);
 
                 // we are already indexing from 0 and this ImageList was cleared,
                 // so just adding the image doesn't need a modified index

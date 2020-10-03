@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Linq;
 using AGS.Types;
 using AGS.Editor.Utils;
 
@@ -55,7 +56,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_PREVIEW_SIZE_3X = "PreviewSizeLarge";
         private const string MENU_ITEM_PREVIEW_SIZE_4X = "PreviewSizeExtraLarge";
         
-        private const int SPRITE_BASE_SIZE = 64;
+        private const int SPRITE_BASE_SIZE = 32;
 
         private static ImageList _spManagerIcons;
         private Dictionary<string, SpriteFolder> _folders;
@@ -234,9 +235,9 @@ namespace AGS.Editor
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
 
-                int new_size = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), 64), 64* _spriteSizeMultiplier);
+                int newSize = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), SPRITE_BASE_SIZE), SPRITE_BASE_SIZE * _spriteSizeMultiplier);
 
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, new_size, new_size, false, true, Color.Pink);
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, false, true, Color.Pink);
 
                 // we are already indexing from 0 and this ImageList was cleared,
                 // so just adding the image doesn't need a modified index
@@ -781,19 +782,19 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_1X)
             {
-                SetSpritePreviewMultiplier(1);
+                SetSpritePreviewMultiplier(2);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_2X)
             {
-                SetSpritePreviewMultiplier(2);
+                SetSpritePreviewMultiplier(4);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_3X)
             {
-                SetSpritePreviewMultiplier(3);
+                SetSpritePreviewMultiplier(6);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_4X)
             {
-                SetSpritePreviewMultiplier(4);
+                SetSpritePreviewMultiplier(8);
             }
         }
 
@@ -1361,26 +1362,49 @@ namespace AGS.Editor
 
         private void spriteList_DragDrop(object sender, DragEventArgs e)
         {
-            SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
-            Point locationInControl = spriteList.PointToClient(new Point(e.X, e.Y));
-            bool putSpritesBeforeSelection = true;
-            ListViewItem nearestItem = spriteList.HitTest(locationInControl).Item;
-            if (nearestItem == null)
+            if(e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
             {
-                putSpritesBeforeSelection = false;
-                nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Left, locationInControl);
-
+                // Moving a sprite already imported
+                SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
+                Point locationInControl = spriteList.PointToClient(new Point(e.X, e.Y));
+                bool putSpritesBeforeSelection = true;
+                ListViewItem nearestItem = spriteList.HitTest(locationInControl).Item;
                 if (nearestItem == null)
                 {
-                    putSpritesBeforeSelection = true;
-                    nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Right, locationInControl);
+                    putSpritesBeforeSelection = false;
+                    nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Left, locationInControl);
+
+                    if (nearestItem == null)
+                    {
+                        putSpritesBeforeSelection = true;
+                        nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Right, locationInControl);
+                    }
+                }
+                if (nearestItem != null)
+                {
+                    int nearestSprite = GetSpriteID(nearestItem);
+                    _currentFolder.Sprites = MoveSpritesIntoNewPositionInFolder(nearestSprite, putSpritesBeforeSelection, dragged);
+                    RefreshSpriteDisplay();
                 }
             }
-            if (nearestItem != null)
+            else if(e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                int nearestSprite = GetSpriteID(nearestItem);
-                _currentFolder.Sprites = MoveSpritesIntoNewPositionInFolder(nearestSprite, putSpritesBeforeSelection, dragged);
-                RefreshSpriteDisplay();
+                // it's a new file we need to import
+
+                string[] filePaths = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+                string[] possiblyValidFiles = filePaths.Where(a =>
+                   a.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                   a.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+                   a.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
+                   a.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   a.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+                if (possiblyValidFiles.Length > 0)
+                {
+                    ImportNewSprite(_currentFolder, possiblyValidFiles);
+                }
+
             }
         }
 
@@ -1545,6 +1569,23 @@ namespace AGS.Editor
                 ImportNewSprite(_currentFolder, filenames);
             }
         }
+
+        private void spriteList_DragEnter(object sender, DragEventArgs e)
+        {
+            if(e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            else if(e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
     }
 
     internal class SpriteManagerDragDropData

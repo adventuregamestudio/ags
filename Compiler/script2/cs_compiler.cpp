@@ -80,7 +80,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
     }
 
     // Sanity check for IMPORT fixups
-    for (int fixup_idx = 0; fixup_idx < compiled_script->numfixups; fixup_idx++)
+    for (size_t fixup_idx = 0; fixup_idx < compiled_script->numfixups; fixup_idx++)
     {
         if (FIXUP_IMPORT != compiled_script->fixuptypes[fixup_idx])
             continue;

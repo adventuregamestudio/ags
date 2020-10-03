@@ -378,50 +378,54 @@ bool AGS::Parser::NestingStack::AddOldDefinition(Symbol s, SymbolTableEntry cons
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void AGS::Parser::NestingStack::YankChunk(size_t src_line, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
+void AGS::Parser::NestingStack::YankChunk(size_t src_line, CodeLoc code_start, size_t fixups_start, int &id)
 {
     Chunk item;
     item.SrcLine = src_line;
 
-    size_t const codesize = std::max(0, _scrip.codesize);
-    for (size_t code_idx = codeoffset; code_idx < codesize; code_idx++)
+    size_t const codesize = std::max<int>(0, _scrip.codesize);
+    for (size_t code_idx = code_start; code_idx < codesize; code_idx++)
         item.Code.push_back(_scrip.code[code_idx]);
 
-    size_t numfixups = std::max(0, _scrip.numfixups);
-    for (size_t fixups_idx = fixupoffset; fixups_idx < numfixups; fixups_idx++)
+    size_t numfixups = std::max<int>(0, _scrip.numfixups);
+    for (size_t fixups_idx = fixups_start; fixups_idx < numfixups; fixups_idx++)
     {
-        item.Fixups.push_back(_scrip.fixups[fixups_idx]);
+        CodeLoc const code_idx = _scrip.fixups[fixups_idx];
+        item.Fixups.push_back(code_idx - code_start);
         item.FixupTypes.push_back(_scrip.fixuptypes[fixups_idx]);
     }
-    item.CodeOffset = codeoffset;
-    item.FixupOffset = fixupoffset;
     item.Id = id = ++_chunkIdCtr;
 
     _stack.back().Chunks.push_back(item);
 
     // Cut out the code that has been pushed
-    _scrip.codesize = codeoffset;
-    _scrip.numfixups = fixupoffset;
-
+    _scrip.codesize = code_start;
+    _scrip.numfixups = static_cast<decltype(_scrip.numfixups)>(fixups_start);
 }
 
 // Copy the code in the chunk to the end of the bytecode vector 
-void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t index, int &id)
+void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &id)
 {
-    Chunk const item = Chunks(level).at(index);
+    Chunk const item = Chunks(level).at(chunk_idx);
     id = item.Id;
 
-    CodeLoc const adjust = _scrip.codesize - item.CodeOffset;
-
-    size_t limit = item.Code.size();
-    if (0 < limit && SCMD_LINENUM != item.Code[0])
+    // Add a line number opcode so that runtime errors
+    // can show the correct originating source line.
+    if (0u < item.Code.size() && SCMD_LINENUM != item.Code[0u] && 0u < item.SrcLine)
         _scrip.write_lineno(item.SrcLine);
-    for (size_t index = 0; index < limit; index++)
-        _scrip.write_code(item.Code[index]);
 
-    limit = item.Fixups.size();
-    for (size_t index = 0; index < limit; index++)
-        _scrip.add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
+    // The fixups are stored relative to the start of the insertion,
+    // so remember what that is
+    size_t const start_of_insert = _scrip.codesize;
+    size_t const code_size = item.Code.size();
+    for (size_t code_idx = 0u; code_idx < code_size; code_idx++)
+        _scrip.write_code(item.Code[code_idx]);
+
+    size_t const fixups_size = item.Fixups.size();
+    for (size_t fixups_idx = 0u; fixups_idx < fixups_size; fixups_idx++)
+        _scrip.add_fixup(
+            item.Fixups[fixups_idx] + start_of_insert,
+            item.FixupTypes[fixups_idx]);
 
     // Make the last emitted source line number invalid so that the next command will
     // generate a line number opcode first
@@ -1076,7 +1080,6 @@ ErrorType AGS::Parser::HandleEndOfSwitch()
     CodeLoc const lastcmd_loc = _scrip.codesize - 2;
     if (SCMD_JMP != _scrip.code[lastcmd_loc])
     {
-        // The bytecode int that contains the relative jump is in codesize+1
         WriteCmd(SCMD_JMP, -77);
         _nest.JumpOut().AddParam();
     }
@@ -1085,27 +1088,23 @@ ErrorType AGS::Parser::HandleEndOfSwitch()
     _nest.SwitchJumptable().Patch(_src.GetLineno());
 
     // Get correct comparison operation: Don't compare strings as pointers but as strings
-    Vartype const noteq_op =
-        _sym.IsAnyTypeOfString(_nest.SwitchExprVartype()) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
+    CodeCell const eq_opcode =
+        _sym.IsAnyTypeOfString(_nest.SwitchExprVartype()) ? SCMD_STRINGSEQUAL : SCMD_ISEQUAL;
 
-    const size_t size_of_chunks = _nest.Chunks().size();
-    for (size_t index = 0; index < size_of_chunks; index++)
+    const size_t number_of_cases = _nest.Chunks().size();
+    for (size_t cases_idx = 0; cases_idx < number_of_cases; ++cases_idx)
     {
         int id;
         CodeLoc const codesize = _scrip.codesize;
-        // Put the result of the expression into AX
-        _nest.WriteChunk(index, id);
+        // Emit the code for the case expression of the current case. Result will be in AX
+        _nest.WriteChunk(cases_idx, id);
         _fcm.UpdateCallListOnWriting(codesize, id);
         _fim.UpdateCallListOnWriting(codesize, id);
-        // Do the comparison
-        WriteCmd(noteq_op, SREG_AX, SREG_BX);
-        // This command will be written to code[codesize] and code[codesize]+1
-        WriteCmd(
-            SCMD_JZ,
-            ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, _nest.Chunks().at(index).CodeOffset));
+        
+        WriteCmd(eq_opcode, SREG_AX, SREG_BX);
+        _nest.SwitchCases().at(cases_idx).WriteJump(SCMD_JNZ, _src.GetLineno());
     }
 
-    // Write the default jump if necessary
     if (INT_MAX != _nest.SwitchDefault().Get())
         _nest.SwitchDefault().WriteJump(SCMD_JMP, _src.GetLineno());
 
@@ -6429,8 +6428,8 @@ ErrorType AGS::Parser::ParseFor()
 
     // Remember where the code of the iterate clause starts.
     CodeLoc const iterate_clause_loc = _scrip.codesize;
+    size_t const iterate_clause_fixups_start = _scrip.numfixups;
     size_t const iterate_clause_lineno = _src.GetLineno();
-    size_t pre_fixup_count = _scrip.numfixups;
 
     retval = ParseFor_IterateClause();
     if (retval < 0) return retval;
@@ -6451,7 +6450,7 @@ ErrorType AGS::Parser::ParseFor()
      // So rip it out of the bytecode base and save it into our nesting stack.
     int id;
     size_t const yank_size = _scrip.codesize - iterate_clause_loc;
-    _nest.YankChunk(iterate_clause_lineno, iterate_clause_loc, pre_fixup_count, id);
+    _nest.YankChunk(iterate_clause_lineno, iterate_clause_loc, iterate_clause_fixups_start, id);
     _fcm.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
     _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
 
@@ -6474,15 +6473,16 @@ ErrorType AGS::Parser::ParseSwitch()
     // Copy the result to the BX register, ready for case statements
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
 
-    if (kSYM_OpenBrace != _sym.GetSymbolType(_src.GetNext()))
+    Symbol const obrace = _src.GetNext();
+    if (kSYM_OpenBrace != _sym.GetSymbolType(obrace))
     {
-        Error("Expected '{'");
+        Error("Expected '{', found '%s' instead", _sym.GetName(obrace).c_str());
         return kERR_UserError;
     }
 
     _nest.Push(kSYM_Switch);
     _nest.SetSwitchExprVartype(switch_expr_vartype);
-    _nest.SwitchDefault().Set(INT_MAX);
+    _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
 
     // Jump to the jump table
     _scrip.write_cmd(SCMD_JMP, -77);
@@ -6494,9 +6494,11 @@ ErrorType AGS::Parser::ParseSwitch()
         Error("Unexpected end of input");
         return kERR_UserError;
     }
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_Case && _sym.GetSymbolType(_src.PeekNext()) != kSYM_Default && _sym.GetSymbolType(_src.PeekNext()) != kSYM_CloseBrace)
+    Symbol const kword = _src.PeekNext();
+    SymbolType kword_type = _sym.GetSymbolType(kword);
+    if (kSYM_Case != kword_type && kSYM_Default != kword_type && kSYM_CloseBrace != kword_type)
     {
-        Error("Expected 'default' or 'case', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
+        Error("Expected 'default' or 'case' or '}', found '%s' instead", _sym.GetName(kword).c_str());
         return kERR_UserError;
     }
     return kERR_None;
@@ -6522,33 +6524,34 @@ ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     else // "case"
     {
         CodeLoc const start_of_code_loc = _scrip.codesize;
+        size_t const start_of_fixups = _scrip.numfixups;
         size_t const start_of_code_lineno = _src.GetLineno();
-        int const numfixups_at_start_of_code = _scrip.numfixups;
 
-        // Push the switch variable onto the stack
-        PushReg(SREG_BX);
+        PushReg(SREG_BX);   // Result of the switch expression
 
         ErrorType retval = ParseExpression(); // case n: label expression
         if (retval < 0) return retval;
 
-        // check that the types of the "case" expression and the "switch" expression match
+        // Vartypes of the "case" expression and the "switch" expression must match
         retval = IsVartypeMismatch(_scrip.ax_vartype, _nest.SwitchExprVartype(), false);
         if (retval < 0) return retval;
 
-        // Pop the switch variable, ready for comparison
         PopReg(SREG_BX);
 
         // rip out the already generated code for the case/switch and store it with the switch
         int id;
         size_t const yank_size = _scrip.codesize - start_of_code_loc;
-        _nest.YankChunk(start_of_code_lineno, start_of_code_loc, numfixups_at_start_of_code, id);
+        _nest.YankChunk(start_of_code_lineno, start_of_code_loc, start_of_fixups, id);
         _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
         _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
+
+        BackwardJumpDest case_code_start(_scrip);
+        case_code_start.Set();
+        _nest.SwitchCases().push_back(case_code_start);
     }
 
-    // expect and gobble the ':'
     Symbol const colon = _src.GetNext();
-    if (_sym.GetSymbolType(colon) != kSYM_Label)
+    if (kSYM_Label != _sym.GetSymbolType(colon))
     {
         Error("Expected ':', found '%s' instead", _sym.GetName(colon).c_str());
         return kERR_UserError;
@@ -6559,8 +6562,7 @@ ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 
 ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
 {
-    // Pop local variables from the stack
-    int const size_of_local_vars = StacksizeOfLocals(nesting_level);
+    size_t const size_of_local_vars = StacksizeOfLocals(nesting_level);
     if (size_of_local_vars > 0)
     {
         _scrip.offset_to_local_var_block -= size_of_local_vars;

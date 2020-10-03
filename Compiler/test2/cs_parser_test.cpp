@@ -3360,3 +3360,55 @@ TEST(Compile, MissingFunc)
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_STREQ("HauntedHouse", ccCurScriptName);
 }
+
+TEST(Compile, FixupMismatch)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Code cells that have an "import" fixup must point to the corresponding imports.
+    // (This used to fail in combination with linenumbers turned on)
+
+    char *inpl = "\
+        builtin managed struct InventoryItem    \n\
+        {                                       \n\
+            readonly int reserved[2];           \n\
+        };                                      \n\
+        import InventoryItem i400Mirror;        \n\
+        import InventoryItem i400Key;           \n\
+        import InventoryItem inventory[3];      \n\
+                                                \n\
+        int main()                              \n\
+        {                                       \n\
+            switch (inventory[1])               \n\
+            {                                   \n\
+            case i400Mirror:                    \n\
+                break;                          \n\
+            case i400Key:                       \n\
+                break;                          \n\
+            }                                   \n\
+        }                                       \n\
+        ";
+
+    ccSetOption(SCOPT_LINENUMBERS, true);
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+
+    // Sanity check for import fixups: The corresponding Bytecode must
+    // point into the imports[] array, and the corresponding slot must
+    // contain a non-empty string.
+    for (size_t fixup_idx = 0; fixup_idx < scrip->numfixups; fixup_idx++)
+    {
+        if (FIXUP_IMPORT != scrip->fixuptypes[fixup_idx])
+            continue;
+        int const code_idx = scrip->fixups[fixup_idx];
+        EXPECT_TRUE(code_idx < scrip->codesize);
+
+        int const cv = scrip->code[code_idx];
+        EXPECT_TRUE(cv >= 0);
+        EXPECT_TRUE(cv < scrip->numimports);
+        EXPECT_FALSE('\0' == scrip->imports[cv][0]);
+    }
+}

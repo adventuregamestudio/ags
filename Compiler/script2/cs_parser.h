@@ -204,7 +204,7 @@ private:
         ForwardJump(::ccCompiledScript &scrip);
         // Add the parameter of a forward jump 
         void AddParam(int offset = -1);
-        // Patch all the forward jump parameters
+        // Patch all the forward jump parameters to point to _scrip.codesize
         void Patch(size_t cur_line);
     };
 
@@ -220,8 +220,6 @@ private:
             std::vector<CodeCell> Code;
             std::vector<CodeLoc> Fixups;
             std::vector<char> FixupTypes;
-            int CodeOffset;
-            int FixupOffset;
             size_t SrcLine;
             int Id;
         };
@@ -232,9 +230,10 @@ private:
             SymbolType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
             BackwardJumpDest Start; // of the construct
             ForwardJump JumpOut; // First byte after the construct
-            Vartype SwitchExprVartype; // when switch: the Vartype of the switch expression
-            BackwardJumpDest SwitchDefault; // when switch: Default label
-            ForwardJump SwitchJumptable; // when switch: Jumptable
+            Vartype SwitchExprVartype; // when switch: the vartype of the switch expression
+            BackwardJumpDest SwitchDefault; // when switch: code location of the default: label
+            std::vector<BackwardJumpDest> SwitchCases; // when switch: code locations of the case labels
+            ForwardJump SwitchJumptable; // when switch: code location of the "jumptable"
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
             std::map<Symbol, SymbolTableEntry> OldDefinitions;
@@ -275,8 +274,9 @@ private:
 
         // If the innermost nesting is a SWITCH, the location of the "default:" code
         inline BackwardJumpDest &SwitchDefault() { return _stack.back().SwitchDefault; }
-        // If the nesting at the given level is a SWITCH, the location of the "default:" code
-        inline BackwardJumpDest &SwitchDefault(size_t level) { return _stack.at(level).SwitchDefault; }
+        
+        // If the innermost nesting is a SWITCH, the location of code of the cases
+        inline std::vector<BackwardJumpDest> &SwitchCases() { return _stack.back().SwitchCases; }
 
         // If the innermost nesting is a SWITCH, the location of the jump table
         inline ForwardJump &SwitchJumptable() { return _stack.back().SwitchJumptable; }
@@ -296,12 +296,12 @@ private:
 
         // Rip a generated chunk of code out of the codebase and stash it away for later 
         // At end of function call, id will contain the unique ID of this code
-        void YankChunk(size_t src_line, CodeLoc codeoffset, CodeLoc fixupoffset, int &id);
+        void YankChunk(size_t src_line, CodeLoc code_start, size_t fixups_start, int &id);
 
         // Write chunk of code back into the codebase that has been stashed in level given, at index
-        void WriteChunk(size_t level, size_t index, int &id);
+        void WriteChunk(size_t level, size_t chunk_idx, int &id);
         // Write chunk of code back into the codebase stashed in the innermost level, at index
-        inline void WriteChunk(size_t index, int &id) { WriteChunk(TopLevel(), index, id); };
+        inline void WriteChunk(size_t chunk_idx, int &id) { WriteChunk(TopLevel(), chunk_idx, id); };
     } _nest;
 
     // Track the phase the parser is in.

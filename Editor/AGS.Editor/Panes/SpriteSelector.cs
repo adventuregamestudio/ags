@@ -221,7 +221,7 @@ namespace AGS.Editor
             spriteList.Clear();
             _spriteImages.Images.Clear();
             _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
-            _spriteImages.ImageSize = new Size(64 * _spriteSizeMultiplier, 64 * _spriteSizeMultiplier);
+            _spriteImages.ImageSize = new Size(32 * _spriteSizeMultiplier, 32 * _spriteSizeMultiplier);
             _spriteImages.TransparentColor = Color.Pink;
             List<ListViewItem> itemsToAdd = new List<ListViewItem>();
 
@@ -233,7 +233,7 @@ namespace AGS.Editor
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
 
-                int new_size = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), 64), 64* _spriteSizeMultiplier);
+                int new_size = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), 32), 32 * _spriteSizeMultiplier);
 
                 Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, new_size, new_size, false, true, Color.Pink);
 
@@ -780,19 +780,19 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_1X)
             {
-                SetSpritePreviewMultiplier(1);
+                SetSpritePreviewMultiplier(2);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_2X)
             {
-                SetSpritePreviewMultiplier(2);
+                SetSpritePreviewMultiplier(4);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_3X)
             {
-                SetSpritePreviewMultiplier(3);
+                SetSpritePreviewMultiplier(6);
             }
             else if (item.Name == MENU_ITEM_PREVIEW_SIZE_4X)
             {
-                SetSpritePreviewMultiplier(4);
+                SetSpritePreviewMultiplier(8);
             }
         }
 
@@ -1581,6 +1581,29 @@ namespace AGS.Editor
             else
             {
                 e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void spriteList_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (ModifierKeys.HasFlag(Keys.Control))
+            {
+                int movement = e.Delta;
+                if (movement > 0)
+                {
+                    if (sliderPreviewSize.Value < sliderPreviewSize.Maximum)
+                    {
+                        sliderPreviewSize.Value++;
+                    }
+                }
+                else
+                {
+                    if (sliderPreviewSize.Value > sliderPreviewSize.Minimum)
+                    {
+                        sliderPreviewSize.Value--;
+                    }
+                }
+                SetSpritePreviewMultiplier(sliderPreviewSize.Value);
             }
         }
     }

@@ -35,6 +35,7 @@ namespace AGS.Editor
             this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
             this.spriteList = new System.Windows.Forms.ListView();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
             this.splitWindow.Panel2.SuspendLayout();
@@ -107,6 +108,7 @@ namespace AGS.Editor
             // panel1
             // 
             this.panel1.AutoSize = true;
+            this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.button_importNew);
             this.panel1.Controls.Add(this.sliderPreviewSize);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -132,9 +134,9 @@ namespace AGS.Editor
             // sliderPreviewSize
             // 
             this.sliderPreviewSize.Dock = System.Windows.Forms.DockStyle.Right;
-            this.sliderPreviewSize.LargeChange = 1;
+            this.sliderPreviewSize.LargeChange = 2;
             this.sliderPreviewSize.Location = new System.Drawing.Point(352, 0);
-            this.sliderPreviewSize.Maximum = 4;
+            this.sliderPreviewSize.Maximum = 8;
             this.sliderPreviewSize.Minimum = 1;
             this.sliderPreviewSize.Name = "sliderPreviewSize";
             this.sliderPreviewSize.Size = new System.Drawing.Size(104, 48);
@@ -159,6 +161,18 @@ namespace AGS.Editor
             this.spriteList.DragEnter += new System.Windows.Forms.DragEventHandler(this.spriteList_DragEnter);
             this.spriteList.DragOver += new System.Windows.Forms.DragEventHandler(this.spriteList_DragOver);
             this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
+            this.spriteList.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseWheel);
+            // 
+            // label1
+            // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(242, 18);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Scale sprite previews: ";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // SpriteSelector
             // 
@@ -192,5 +206,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TrackBar sliderPreviewSize;
         private System.Windows.Forms.Button button_importNew;
+        private System.Windows.Forms.Label label1;
     }
 }

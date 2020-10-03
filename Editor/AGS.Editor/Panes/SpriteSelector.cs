@@ -88,6 +88,7 @@ namespace AGS.Editor
                 _spManagerIcons.Images.Add("OpenFolder", Resources.ResourceManager.GetIcon("openfldr.ico"));
             }
             folderList.ImageList = _spManagerIcons;
+            SetSpritePreviewMultiplier(2); // default value for sprite multiplier
         }
 
         /// <summary>
@@ -203,6 +204,8 @@ namespace AGS.Editor
 
         private void DisplaySpritesForFolder(SpriteFolder folder)
         {
+            if (folder == null) return;
+
             if (OnSelectionChanged != null)
             {
                 // this means the previously selected sprite is un-selected

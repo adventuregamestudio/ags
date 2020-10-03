@@ -161,6 +161,7 @@ namespace AGS.Editor
             this.spriteList.DragEnter += new System.Windows.Forms.DragEventHandler(this.spriteList_DragEnter);
             this.spriteList.DragOver += new System.Windows.Forms.DragEventHandler(this.spriteList_DragOver);
             this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
+            this.spriteList.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseWheel);
             // 
             // label1
             // 

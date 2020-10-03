@@ -1586,6 +1586,28 @@ namespace AGS.Editor
             }
         }
 
+        private void spriteList_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (ModifierKeys.HasFlag(Keys.Control))
+            {
+                int movement = e.Delta;
+                if (movement > 0)
+                {
+                    if (sliderPreviewSize.Value < sliderPreviewSize.Maximum)
+                    {
+                        sliderPreviewSize.Value++;
+                    }
+                }
+                else
+                {
+                    if (sliderPreviewSize.Value > sliderPreviewSize.Minimum)
+                    {
+                        sliderPreviewSize.Value--;
+                    }
+                }
+                SetSpritePreviewMultiplier(sliderPreviewSize.Value);
+            }
+        }
     }
 
     internal class SpriteManagerDragDropData

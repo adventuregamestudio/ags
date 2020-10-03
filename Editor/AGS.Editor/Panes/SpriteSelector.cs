@@ -50,6 +50,13 @@ namespace AGS.Editor
         private const string MENU_ITEM_ASSIGN_TO_VIEW = "AssignToView";
         private const string MENU_ITEM_CHANGE_SPRITE_NUMBER = "ChangeSpriteNumber";
 
+        private const string MENU_ITEM_PREVIEW_SIZE_1X = "PreviewSizeSmall";
+        private const string MENU_ITEM_PREVIEW_SIZE_2X = "PreviewSizeMedium";
+        private const string MENU_ITEM_PREVIEW_SIZE_3X = "PreviewSizeLarge";
+        private const string MENU_ITEM_PREVIEW_SIZE_4X = "PreviewSizeExtraLarge";
+        
+        private const int SPRITE_BASE_SIZE = 64;
+
         private static ImageList _spManagerIcons;
         private Dictionary<string, SpriteFolder> _folders;
         private Dictionary<SpriteFolder, TreeNode> _folderNodeMapping;
@@ -63,6 +70,7 @@ namespace AGS.Editor
         private string[] _lastImportedFilenames = null;
         private Timer _timer;
         private TreeNode _dropHighlight;
+        private int _spriteSizeMultiplier = 1;
 
         public SpriteSelector()
         {
@@ -214,7 +222,7 @@ namespace AGS.Editor
             spriteList.Clear();
             _spriteImages.Images.Clear();
             _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
-            _spriteImages.ImageSize = new Size(64, 64);
+            _spriteImages.ImageSize = new Size(SPRITE_BASE_SIZE * _spriteSizeMultiplier, SPRITE_BASE_SIZE * _spriteSizeMultiplier);
             _spriteImages.TransparentColor = Color.Pink;
             List<ListViewItem> itemsToAdd = new List<ListViewItem>();
 
@@ -569,6 +577,15 @@ namespace AGS.Editor
             return 16;
         }
 
+        private void SetSpritePreviewMultiplier(int multiplier)
+        {
+            if (_spriteSizeMultiplier != multiplier)
+            {
+                _spriteSizeMultiplier = multiplier;
+                RefreshSpriteDisplay();
+            }
+        }
+
         private void SpriteContextMenuEventHandler(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
@@ -757,6 +774,22 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_REPLACE_FROM_SOURCE)
             {
                 ReplaceSpritesFromSource();
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_1X)
+            {
+                SetSpritePreviewMultiplier(1);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_2X)
+            {
+                SetSpritePreviewMultiplier(2);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_3X)
+            {
+                SetSpritePreviewMultiplier(3);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_4X)
+            {
+                SetSpritePreviewMultiplier(4);
             }
         }
 
@@ -1222,6 +1255,16 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));
+
+            ToolStripMenuItem viewMenu = new ToolStripMenuItem();
+            viewMenu.Text = "View";
+
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Small icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_1X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Medium icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_2X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Large icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_3X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Extra large icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_4X));
+
+            menu.Items.Add(viewMenu);
 
             menu.Show(spriteList, menuPosition);
         }

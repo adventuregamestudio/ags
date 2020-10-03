@@ -31,9 +31,10 @@ namespace AGS.Editor
             this.splitWindow = new System.Windows.Forms.SplitContainer();
             this.folderList = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.spriteList = new System.Windows.Forms.ListView();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
+            this.spriteList = new System.Windows.Forms.ListView();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
             this.splitWindow.Panel2.SuspendLayout();
@@ -103,20 +104,10 @@ namespace AGS.Editor
             this.splitContainer1.SplitterDistance = 48;
             this.splitContainer1.TabIndex = 0;
             // 
-            // spriteList
-            // 
-            this.spriteList.AllowDrop = true;
-            this.spriteList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spriteList.HideSelection = false;
-            this.spriteList.Location = new System.Drawing.Point(0, 0);
-            this.spriteList.Name = "spriteList";
-            this.spriteList.Size = new System.Drawing.Size(456, 432);
-            this.spriteList.TabIndex = 1;
-            this.spriteList.UseCompatibleStateImageBehavior = false;
-            // 
             // panel1
             // 
             this.panel1.AutoSize = true;
+            this.panel1.Controls.Add(this.button_importNew);
             this.panel1.Controls.Add(this.sliderPreviewSize);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
@@ -125,6 +116,18 @@ namespace AGS.Editor
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(456, 48);
             this.panel1.TabIndex = 0;
+            // 
+            // button_importNew
+            // 
+            this.button_importNew.Dock = System.Windows.Forms.DockStyle.Left;
+            this.button_importNew.Location = new System.Drawing.Point(0, 0);
+            this.button_importNew.MinimumSize = new System.Drawing.Size(128, 45);
+            this.button_importNew.Name = "button_importNew";
+            this.button_importNew.Size = new System.Drawing.Size(128, 48);
+            this.button_importNew.TabIndex = 1;
+            this.button_importNew.Text = "Import new sprite(s) from files..";
+            this.button_importNew.UseVisualStyleBackColor = true;
+            this.button_importNew.Click += new System.EventHandler(this.button_importNew_Click);
             // 
             // sliderPreviewSize
             // 
@@ -138,6 +141,23 @@ namespace AGS.Editor
             this.sliderPreviewSize.TabIndex = 0;
             this.sliderPreviewSize.Value = 1;
             this.sliderPreviewSize.ValueChanged += new System.EventHandler(this.sliderPreviewSize_ValueChanged);
+            // 
+            // spriteList
+            // 
+            this.spriteList.AllowDrop = true;
+            this.spriteList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spriteList.HideSelection = false;
+            this.spriteList.Location = new System.Drawing.Point(0, 0);
+            this.spriteList.Name = "spriteList";
+            this.spriteList.Size = new System.Drawing.Size(456, 432);
+            this.spriteList.TabIndex = 1;
+            this.spriteList.UseCompatibleStateImageBehavior = false;
+            this.spriteList.ItemActivate += new System.EventHandler(this.spriteList_ItemActivate);
+            this.spriteList.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.spriteList_ItemDrag);
+            this.spriteList.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.spriteList_ItemSelectionChanged);
+            this.spriteList.DragDrop += new System.Windows.Forms.DragEventHandler(this.spriteList_DragDrop);
+            this.spriteList.DragOver += new System.Windows.Forms.DragEventHandler(this.spriteList_DragOver);
+            this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
             // 
             // SpriteSelector
             // 
@@ -170,5 +190,6 @@ namespace AGS.Editor
         private System.Windows.Forms.ListView spriteList;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TrackBar sliderPreviewSize;
+        private System.Windows.Forms.Button button_importNew;
     }
 }

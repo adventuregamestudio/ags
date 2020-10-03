@@ -1609,6 +1609,16 @@ namespace AGS.Editor
                 SetSpritePreviewMultiplier(sliderPreviewSize.Value);
             }
         }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.D0))
+            {
+                SetSpritePreviewMultiplier(2);
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
     }
 
     internal class SpriteManagerDragDropData

@@ -32,10 +32,10 @@ namespace AGS.Editor
             this.folderList = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
             this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
             this.spriteList = new System.Windows.Forms.ListView();
-            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
             this.splitWindow.Panel2.SuspendLayout();
@@ -95,14 +95,12 @@ namespace AGS.Editor
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.panel1);
-            this.splitContainer1.Panel1MinSize = 48;
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.spriteList);
-            this.splitContainer1.Panel2MinSize = 48;
             this.splitContainer1.Size = new System.Drawing.Size(456, 484);
-            this.splitContainer1.SplitterDistance = 48;
+            this.splitContainer1.SplitterDistance = 25;
             this.splitContainer1.TabIndex = 0;
             // 
             // panel1
@@ -113,33 +111,45 @@ namespace AGS.Editor
             this.panel1.Controls.Add(this.sliderPreviewSize);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
-            this.panel1.MaximumSize = new System.Drawing.Size(0, 48);
-            this.panel1.MinimumSize = new System.Drawing.Size(0, 48);
+            this.panel1.MaximumSize = new System.Drawing.Size(0, 24);
+            this.panel1.MinimumSize = new System.Drawing.Size(0, 24);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(456, 48);
+            this.panel1.Size = new System.Drawing.Size(456, 24);
             this.panel1.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.label1.Location = new System.Drawing.Point(239, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Scale sprite previews: ";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // button_importNew
             // 
             this.button_importNew.Dock = System.Windows.Forms.DockStyle.Left;
             this.button_importNew.Location = new System.Drawing.Point(0, 0);
-            this.button_importNew.MinimumSize = new System.Drawing.Size(128, 45);
+            this.button_importNew.MinimumSize = new System.Drawing.Size(128, 24);
             this.button_importNew.Name = "button_importNew";
-            this.button_importNew.Size = new System.Drawing.Size(128, 48);
+            this.button_importNew.Size = new System.Drawing.Size(186, 24);
             this.button_importNew.TabIndex = 1;
-            this.button_importNew.Text = "Import new sprite(s) from files..";
+            this.button_importNew.Text = "Import new sprite(s) from files...";
             this.button_importNew.UseVisualStyleBackColor = true;
             this.button_importNew.Click += new System.EventHandler(this.button_importNew_Click);
             // 
             // sliderPreviewSize
             // 
+            this.sliderPreviewSize.AutoSize = false;
             this.sliderPreviewSize.Dock = System.Windows.Forms.DockStyle.Right;
             this.sliderPreviewSize.LargeChange = 2;
             this.sliderPreviewSize.Location = new System.Drawing.Point(352, 0);
             this.sliderPreviewSize.Maximum = 8;
             this.sliderPreviewSize.Minimum = 1;
             this.sliderPreviewSize.Name = "sliderPreviewSize";
-            this.sliderPreviewSize.Size = new System.Drawing.Size(104, 48);
+            this.sliderPreviewSize.Size = new System.Drawing.Size(104, 24);
             this.sliderPreviewSize.TabIndex = 0;
             this.sliderPreviewSize.Value = 1;
             this.sliderPreviewSize.ValueChanged += new System.EventHandler(this.sliderPreviewSize_ValueChanged);
@@ -151,7 +161,7 @@ namespace AGS.Editor
             this.spriteList.HideSelection = false;
             this.spriteList.Location = new System.Drawing.Point(0, 0);
             this.spriteList.Name = "spriteList";
-            this.spriteList.Size = new System.Drawing.Size(456, 432);
+            this.spriteList.Size = new System.Drawing.Size(456, 455);
             this.spriteList.TabIndex = 1;
             this.spriteList.UseCompatibleStateImageBehavior = false;
             this.spriteList.ItemActivate += new System.EventHandler(this.spriteList_ItemActivate);
@@ -162,17 +172,6 @@ namespace AGS.Editor
             this.spriteList.DragOver += new System.Windows.Forms.DragEventHandler(this.spriteList_DragOver);
             this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
             this.spriteList.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseWheel);
-            // 
-            // label1
-            // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(242, 18);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Scale sprite previews: ";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // SpriteSelector
             // 

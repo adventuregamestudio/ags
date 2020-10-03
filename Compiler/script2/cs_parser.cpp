@@ -857,13 +857,13 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
         }
 
         if (compo_list.back() != *compo_it)
-            _scrip.push_reg(SREG_MAR);
+            PushReg(SREG_MAR);
         if (entry.IsArray(_sym))
             FreeDynpointersOfStdArray(*compo_it, clobbers_ax);
         else if (entry.IsStruct(_sym))
             FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
         if (compo_list.back() != *compo_it)
-            _scrip.pop_reg(SREG_MAR);
+            PopReg(SREG_MAR);
     }
 }
 
@@ -878,11 +878,11 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Sy
 
     BackwardJumpDest loop_start(_scrip);
     loop_start.Set();
-    _scrip.push_reg(SREG_MAR);
-    _scrip.push_reg(SREG_AX); // FreeDynpointersOfStruct might call funcs that clobber AX
+    PushReg(SREG_MAR);
+    PushReg(SREG_AX); // FreeDynpointersOfStruct might call funcs that clobber AX
     FreeDynpointersOfStruct(struct_vtype, clobbers_ax);
-    _scrip.pop_reg(SREG_AX);
-    _scrip.pop_reg(SREG_MAR);
+    PopReg(SREG_AX);
+    PopReg(SREG_MAR);
     WriteCmd(SCMD_ADD, SREG_MAR, _sym.GetSize(struct_vtype));
     WriteCmd(SCMD_SUB, SREG_AX, 1);
     loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
@@ -963,7 +963,7 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     RestorePoint rp_before_precautions(_scrip);
 
     // Allocate a local dynamic pointer to hold the return value.
-    _scrip.push_reg(SREG_AX);
+    PushReg(SREG_AX);
     WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
     WriteCmd(SCMD_MEMINITPTR, SREG_AX);
 
@@ -980,7 +980,7 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
     WriteCmd(SCMD_MEMREADPTR, SREG_AX);
     WriteCmd(SCMD_MEMZEROPTRND); // special opcode
-    _scrip.pop_reg(SREG_BX); // do NOT pop AX here
+    PopReg(SREG_BX); // do NOT pop AX here
     if (no_precautions_were_necessary)
         rp_before_precautions.Restore();
     return kERR_None;
@@ -999,10 +999,10 @@ ErrorType AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
 
     // We should have saved AX, so redo this
     rp_before_free.Restore();
-    _scrip.push_reg(SREG_AX);
+    PushReg(SREG_AX);
     retval = FreeDynpointersOfLocals0(0u, clobbers_ax, dummy_bool);
     if (retval < 0) return retval;
-    _scrip.pop_reg(SREG_AX);
+    PopReg(SREG_AX);
 
     return kERR_None;
 }
@@ -2659,7 +2659,7 @@ ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression
         to_exit.AddParam();
     }
 
-    _scrip.push_reg(SREG_AX);
+    PushReg(SREG_AX);
     SrcList rhs = SrcList(expression, op_idx + 1, expression.Length());
     if (0 == rhs.Length())
     {
@@ -2673,7 +2673,7 @@ ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression
     retval = ResultToAX(vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    _scrip.pop_reg(SREG_BX); // Note, we pop to BX although we have pushed AX
+    PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
     // now the result of the left side is in BX, of the right side is in AX
 
     // Check whether the left side type and right side type match either way
@@ -2750,7 +2750,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(SREG_AX);
+            PushReg(SREG_AX);
     }
     return kERR_None;
 }
@@ -2865,7 +2865,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, s
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(SREG_AX);
+            PushReg(SREG_AX);
 
         end_of_current_param = start_of_current_param - 1;
     }
@@ -3043,7 +3043,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
         // Save OP since we need it after the func call
         // We must do this no matter whether the callED function itself uses "this"
         // because a called function that doesn't might call a function that does.
-        _scrip.push_reg(SREG_OP);
+        PushReg(SREG_OP);
         op_pushed = true;
     }
 
@@ -3056,7 +3056,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
         // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
         // So we can't emit SCMD_CALLOBJ here, before parameters have been processed.
         // Save MAR because parameter processing might clobber it 
-        _scrip.push_reg(SREG_MAR);
+        PushReg(SREG_MAR);
         mar_pushed = true;
     }
 
@@ -3089,9 +3089,9 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     _scrip.ax_scope_type = kScT_Local;
 
     if (mar_pushed)
-        _scrip.pop_reg(SREG_MAR);
+        PopReg(SREG_MAR);
     if (op_pushed)
-        _scrip.pop_reg(SREG_OP);
+        PopReg(SREG_OP);
 
     MarkAcessed(name_of_func);
     return kERR_None;
@@ -3252,7 +3252,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     bool const func_is_import = FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import);
 
     if (attrib_uses_this)
-        _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
+        PushReg(SREG_OP); // is the current this ptr, must be restored after call
 
     size_t num_of_args = 0;
     if (is_setter)
@@ -3260,7 +3260,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(SREG_AX);
+            PushReg(SREG_AX);
         ++num_of_args;
     }
 
@@ -3268,17 +3268,17 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     {
         // The index to be set is in the [...] clause; push it as the first parameter
         if (attrib_uses_this)
-            _scrip.push_reg(SREG_MAR); // must not be clobbered
+            PushReg(SREG_MAR); // must not be clobbered
         retval = AccessData_ReadBracketedIntExpression(expression);
         if (retval < 0) return retval;
 
         if (attrib_uses_this)
-            _scrip.pop_reg(SREG_MAR);
+            PopReg(SREG_MAR);
 
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(SREG_AX);
+            PushReg(SREG_AX);
         ++num_of_args;
     }
 
@@ -3288,7 +3288,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
 
     if (attrib_uses_this)
-        _scrip.pop_reg(SREG_OP); // restore old this ptr after the func call
+        PopReg(SREG_OP); // restore old this ptr after the func call
 
     // attribute return type
     _scrip.ax_scope_type = kScT_Local;
@@ -3384,12 +3384,12 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
 
     ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
     if (retval < 0) return retval;
-    _scrip.push_reg(SREG_MAR);
+    PushReg(SREG_MAR);
     
     retval = AccessData_ReadIntExpression(current_index);
     if (retval < 0) return retval;
 
-    _scrip.pop_reg(SREG_MAR);
+    PopReg(SREG_MAR);
     
 
     // Note: DYNAMICBOUNDS compares the offset into the memory block;
@@ -3954,7 +3954,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     // Save AX unless we are sure that it won't be clobbered
     bool const may_clobber = AccessData_MayAccessClobberAX(expression);
     if (may_clobber)
-        _scrip.push_reg(SREG_AX);
+        PushReg(SREG_AX);
 
     bool const writing = true;
     ValueLocation vloc;
@@ -3976,7 +3976,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     }
 
     if (may_clobber)
-        _scrip.pop_reg(SREG_AX);
+        PopReg(SREG_AX);
     _scrip.ax_vartype = rhsvartype;
     _scrip.ax_scope_type = rhs_scope_type;
 
@@ -4229,7 +4229,7 @@ ErrorType AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, SrcList &
     ErrorType retval = ParseExpression();
     if (retval < 0) return retval;
 
-    _scrip.push_reg(SREG_AX);
+    PushReg(SREG_AX);
     Vartype rhsvartype = _scrip.ax_vartype;
 
     // Parse LHS (moves the cursor to end of LHS, so save it and restore it afterwards)
@@ -4244,7 +4244,7 @@ ErrorType AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, SrcList &
     CodeCell opcode = _sym.GetOperatorOpcode(ass_symbol);
     retval = GetOpcodeValidForVartype(lhsvartype, rhsvartype, opcode);
     if (retval < 0) return retval;
-    _scrip.pop_reg(SREG_BX);
+    PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
 
     if (kVL_mar_pointsto_value == vloc)
@@ -4623,7 +4623,7 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
     {
         // This PUSH moves the result of the initializing expression into the
         // new variable and reserves space for this variable on the stack.
-        _scrip.push_reg(SREG_AX);
+        PushReg(SREG_AX);
         return kERR_None;
     }
 
@@ -6526,7 +6526,7 @@ ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         int const numfixups_at_start_of_code = _scrip.numfixups;
 
         // Push the switch variable onto the stack
-        _scrip.push_reg(SREG_BX);
+        PushReg(SREG_BX);
 
         ErrorType retval = ParseExpression(); // case n: label expression
         if (retval < 0) return retval;
@@ -6536,7 +6536,7 @@ ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         if (retval < 0) return retval;
 
         // Pop the switch variable, ready for comparison
-        _scrip.pop_reg(SREG_BX);
+        PopReg(SREG_BX);
 
         // rip out the already generated code for the case/switch and store it with the switch
         int id;

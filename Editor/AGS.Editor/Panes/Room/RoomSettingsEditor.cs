@@ -990,6 +990,64 @@ namespace AGS.Editor
             cmbBackgrounds.SelectedIndexChanged += cmbBackgrounds_SelectedIndexChanged;
             mainFrame.Controls.Add(cmbBackgrounds);
         }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            int number_down = -1;
+            if (keyData.HasFlag(Keys.Shift) || keyData.HasFlag(Keys.Alt)) return base.ProcessCmdKey(ref msg, keyData);
+
+            if (keyData.HasFlag(Keys.D0)) number_down = 0;
+            if (keyData.HasFlag(Keys.D1)) number_down = 1;
+            if (keyData.HasFlag(Keys.D2)) number_down = 2;
+            if (keyData.HasFlag(Keys.D3)) number_down = 3;
+            if (keyData.HasFlag(Keys.D4)) number_down = 4;
+            if (keyData.HasFlag(Keys.D5)) number_down = 5;
+            if (keyData.HasFlag(Keys.D6)) number_down = 6;
+            if (keyData.HasFlag(Keys.D7)) number_down = 7;
+            if (keyData.HasFlag(Keys.D8)) number_down = 8;
+            if (keyData.HasFlag(Keys.D9)) number_down = 9;
+
+            if (number_down < 0) return base.ProcessCmdKey(ref msg, keyData);
+
+            if(keyData.HasFlag(Keys.Control))
+            {
+                RoomEditNode layerNode = _editAddressBar.RootNode.GetChild(GetLayerItemUniqueID(_layer, null), true) as RoomEditNode;
+                // navigate nodes
+                if (number_down < layerNode.Children.Length)
+                {
+                    _editAddressBar.CurrentNode = layerNode.Children[number_down];
+
+                    RoomEditNode node = _editAddressBar.CurrentNode as RoomEditNode;
+                    if (node == null) { SelectLayer(null); return true; }
+            
+                    while (layerNode != null && layerNode.Layer == null)
+                    {
+                        layerNode = layerNode.Parent as RoomEditNode;
+                    }
+                    if (layerNode == null) { SelectLayer(null); return true; }
+
+                    layerNode.IsVisible = true;
+                    SelectLayer(layerNode.Layer);
+                    layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
+                }
+            }
+            else
+            {
+                // navigate layers
+                if (number_down < _layers.Count)
+                {
+                    var layer = _layers[number_down];
+                    IAddressNode node = _editAddressBar.RootNode.GetChild(GetLayerItemUniqueID(layer, null), true);
+                    if (node == null) { SelectLayer(null); return true; }
+                    _editAddressBar.CurrentNode = node;
+                    SelectLayer(_layers[number_down]);
+                    
+                }
+            }
+            return true;
+        }
+
+
     }
 
     // TODO: refactor this to make code shared with the GUI Editor

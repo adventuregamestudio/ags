@@ -23,7 +23,6 @@ const char *last_seen_cc_error()
 // It is being used in test and compared to hard-coded strings.
 std::pair<AGSString, AGSString> cc_error_at_line(const char *error_msg)
 {
-    // printf("error: %s\n", error_msg);
     last_cc_error_buf = _strdup(error_msg);
     return std::make_pair(AGSString::FromFormat("Error (line %d): %s", currentline, error_msg), AGSString());
 }
@@ -32,14 +31,6 @@ AGSString cc_error_without_line(const char *error_msg)
 {
     last_cc_error_buf = _strdup(error_msg);
     return AGSString::FromFormat("Error (line unknown): %s", error_msg);
-}
-
-ccCompiledScript *newScriptFixture() {
-    ccSetOption(SCOPT_NOIMPORTOVERRIDE, 0);
-    ccSetOption(SCOPT_LINENUMBERS, false);
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-    return scrip;
 }
 
 char g_Input_String[] = "\

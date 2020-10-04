@@ -47,25 +47,25 @@ std::string EscapeString(const char *in)
     return "\"" + ret + "\"";
 }
 
-void WriteOutputCode(std::ofstream &of, ccCompiledScript *scrip)
+void WriteOutputCode(std::ofstream &of, ccCompiledScript const &scrip)
 {
-    of << "const size_t codesize = " << scrip->codesize << ";" << std::endl;
-    of << "EXPECT_EQ(codesize, scrip->codesize);" << std::endl << std::endl;
+    of << "size_t const codesize = " << scrip.codesize << ";" << std::endl;
+    of << "EXPECT_EQ(codesize, scrip.codesize);" << std::endl << std::endl;
 
-    if (scrip->codesize == 0)
+    if (scrip.codesize == 0)
         return;
 
     of << "int32_t code[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->codesize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.codesize; idx++)
     {
         of.width(4);
-        of << scrip->code[idx] << ", ";
+        of << scrip.code[idx] << ", ";
         if (idx % 8 == 3) of << "        ";
         if (idx % 8 == 7) of << "   // " << idx << std::endl;
     }
     of << " -999 " << std::endl << "};" << std::endl;
 
-    of << "CompareCode(scrip, codesize, code[]);" << std::endl << std::endl;
+    of << "CompareCode(&scrip, codesize, code);" << std::endl << std::endl;
 }
 
 void CompareCode(ccCompiledScript *scrip, size_t codesize, int32_t code[])
@@ -81,36 +81,35 @@ void CompareCode(ccCompiledScript *scrip, size_t codesize, int32_t code[])
     }
 }
 
-void WriteOutputFixups(std::ofstream &of, ccCompiledScript *scrip)
+void WriteOutputFixups(std::ofstream &of, ccCompiledScript const &scrip)
 {
-    of << "const size_t numfixups = " << scrip->numfixups << ";" << std::endl;
-    of << "EXPECT_EQ(numfixups, scrip->numfixups);" << std::endl << std::endl;
+    of << "size_t const numfixups = " << scrip.numfixups << ";" << std::endl;
+    of << "EXPECT_EQ(numfixups, scrip.numfixups);" << std::endl << std::endl;
 
-    if (scrip->numfixups == 0)
+    if (scrip.numfixups == 0)
         return;
 
     of << "int32_t fixups[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numfixups; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numfixups; idx++)
     {
         of.width(4);
-        of << scrip->fixups[idx] << ", ";
+        of << scrip.fixups[idx] << ", ";
         if (idx % 8 == 3) of << "      ";
         if (idx % 8 == 7) of << "   // " << idx << std::endl;
     }
-    of << " -999 " << std::endl << "};" << std::endl << std::endl;
-
+    of << " -999 " << std::endl << "};" << std::endl;
     
     of << "char fixuptypes[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numfixups; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numfixups; idx++)
     {
         of.width(3);
-        of << static_cast<int>(scrip->fixuptypes[idx]) << ", ";
+        of << static_cast<int>(scrip.fixuptypes[idx]) << ", ";
         if (idx % 8 == 3) of << "   ";
         if (idx % 8 == 7) of << "   // " << idx << std::endl;
     }
     of << " '\\0' " << std::endl << "};" << std::endl;
 
-    of << "CompareFixups(scrip, numfixups, fixups, fixuptypes);" << std::endl << std::endl;
+    of << "CompareFixups(&scrip, numfixups, fixups, fixuptypes);" << std::endl << std::endl;
 }
 
 void CompareFixups(ccCompiledScript *scrip, size_t numfixups, int32_t fixups[], char fixuptypes[])
@@ -134,27 +133,27 @@ void CompareFixups(ccCompiledScript *scrip, size_t numfixups, int32_t fixups[], 
     }
 }
 
-void WriteOutputImports(std::ofstream &of, ccCompiledScript *scrip)
+void WriteOutputImports(std::ofstream &of, ccCompiledScript const &scrip)
 {
     // Unfortunately, imports can contain empty strings that
     // mustn't be counted. So we can't just believe numimports,
-    // and we can't check against scrip->numimports.
+    // and we can't check against scrip.numimports.
     size_t realNumImports = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
-        if (0 != strcmp(scrip->imports[idx], ""))
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
+        if (0 != strcmp(scrip.imports[idx], ""))
             ++realNumImports;
 
-    of << "const int numimports = " << realNumImports << ";" << std::endl;
+    of << "int const numimports = " << realNumImports << ";" << std::endl;
 
     of << "std::string imports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
     {
-        if (!strcmp(scrip->imports[idx], ""))
+        if (!strcmp(scrip.imports[idx], ""))
             continue;
 
-        std::string item = EscapeString(scrip->imports[idx]);
+        std::string item = EscapeString(scrip.imports[idx]);
         item += ",";
         item += std::string(15 - (item.length() % 15), ' ');
         of << item;
@@ -167,7 +166,7 @@ void WriteOutputImports(std::ofstream &of, ccCompiledScript *scrip)
     }
     of << " \"[[SENTINEL]]\" " << std::endl << "};" << std::endl;
 
-    of << "CompareImports(scrip, numimports, imports);" << std::endl << std::endl;
+    of << "CompareImports(&scrip, numimports, imports);" << std::endl << std::endl;
 }
 
 void CompareImports(ccCompiledScript *scrip, size_t numimports, std::string imports[])
@@ -186,20 +185,20 @@ void CompareImports(ccCompiledScript *scrip, size_t numimports, std::string impo
     }
 }
 
-void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
+void WriteOutputExports(std::ofstream &of, ccCompiledScript const &scrip)
 {
-    of << "const size_t numexports = " << scrip->numexports << ";" << std::endl;
-    of << "EXPECT_EQ(numexports, scrip->numexports);" << std::endl << std::endl;
+    of << "size_t const numexports = " << scrip.numexports << ";" << std::endl;
+    of << "EXPECT_EQ(numexports, scrip.numexports);" << std::endl << std::endl;
 
-    if (scrip->numexports == 0)
+    if (scrip.numexports == 0)
         return;
 
     of << "std::string exports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numexports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numexports; idx++)
     {
-        std::string item = EscapeString(scrip->exports[idx]);
+        std::string item = EscapeString(scrip.exports[idx]);
         item += ",";
         item += std::string(6 - (item.length() % 6), ' ');
         of << item;
@@ -214,12 +213,12 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "int32_t export_addr[] = {" << std::endl;
 
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numexports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numexports; idx++)
     {
         of.setf(std::ios::hex, std::ios::basefield);
         of.setf(std::ios::showbase);
         of.width(4);
-        of << scrip->export_addr[idx] << ", ";
+        of << scrip.export_addr[idx] << ", ";
         if (idx % 4 == 1) of << "   ";
         if (idx % 8 == 3)
         {
@@ -235,9 +234,9 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
     of.unsetf(std::ios::showbase);
     of.width(0);
 
-    of << " 0 " << std::endl << "};" << std::endl << std::endl;
+    of << " 0 " << std::endl << "};" << std::endl;
 
-    of << "CompareExports(scrip, numexports, exports, export_addr);" << std::endl << std::endl;
+    of << "CompareExports(&scrip, numexports, exports, export_addr);" << std::endl << std::endl;
 }
 
 void CompareExports(ccCompiledScript *scrip, size_t numexports, std::string exports[],  int32_t export_addr[])
@@ -263,29 +262,29 @@ void CompareExports(ccCompiledScript *scrip, size_t numexports, std::string expo
 }
 
 
-void WriteOutputStrings(std::ofstream &of, ccCompiledScript *scrip)
+void WriteOutputStrings(std::ofstream &of, ccCompiledScript const &scrip)
 {
-    of << "const size_t stringssize = " << scrip->stringssize << ";" << std::endl;
-    of << "EXPECT_EQ(stringssize, scrip->stringssize);" << std::endl << std::endl;
+    of << "size_t const stringssize = " << scrip.stringssize << ";" << std::endl;
+    of << "EXPECT_EQ(stringssize, scrip.stringssize);" << std::endl << std::endl;
 
-    if (scrip->stringssize == 0)
+    if (scrip.stringssize == 0)
         return;
 
     of << "char strings[] = {" << std::endl;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.stringssize; idx++)
     {
         std::string out = "";
-        if (scrip->strings[idx] == 0)
+        if (scrip.strings[idx] == 0)
             out = "  0";
         else
-            out += '\'' + Esc(scrip->strings[idx]) + '\'';
+            out += '\'' + Esc(scrip.strings[idx]) + '\'';
         of << out << ",  ";
         if (idx % 8 == 3) of << "        ";
         if (idx % 8 == 7) of << "   // " << idx << std::endl;
     }
     of << "'\\0'" << std::endl << "};" << std::endl;
 
-    of << " CompareStrings(scrip, stringssize, strings);" << std::endl << std::endl;
+    of << " CompareStrings(&scrip, stringssize, strings);" << std::endl << std::endl;
    }
 
 void CompareStrings(ccCompiledScript *scrip, size_t stringssize, char strings[])
@@ -301,7 +300,7 @@ void CompareStrings(ccCompiledScript *scrip, size_t stringssize, char strings[])
     }
 }
 
-void WriteOutput(char *fname, ccCompiledScript *scrip)
+void WriteOutput(char *fname, ccCompiledScript const &scrip)
 {
     std::string path = WRITE_PATH;
     std::ofstream of;

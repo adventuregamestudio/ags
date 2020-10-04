@@ -7,8 +7,6 @@ extern void clear_error(void);
 
 extern const char *last_seen_cc_error(void);
 
-extern ccCompiledScript *newScriptFixture(void);
-
 extern char g_Input_String[];
 
 extern char g_Input_Bool[];

@@ -12,26 +12,46 @@
 
 #include "cc_parser_test_lib.h"
 
-TEST(Compile0, UnknownKeywordAfterReadonly) {
-    ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "struct MyStruct \
-        {\
-          readonly int2 a; \
-          readonly int2 b; \
-        };";
+// The vars defined here are provided in each test that is in category "Compile0"
+class Compile0 : public ::testing::Test
+{
+protected:
+    ::ccCompiledScript scrip;
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    Compile0()
+    {
+        scrip.init();
+        ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
+        ccSetOption(SCOPT_LINENUMBERS, false);
+        clear_error();
+    }
+};
 
-    ASSERT_GT(0, compileResult);
+
+TEST_F(Compile0, UnknownVartypeAfterReadonly) {   
+
+    // Must have a know vartype in struct
+
+    char *inpl = "\
+        struct MyStruct     \n\
+        {                   \n\
+          readonly int2 a;  \n\
+          readonly int2 b;  \n\
+        };                  \n\
+        ";
+
+    int compileResult = cc_compile(inpl, &scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("int2"));
 }
 
-TEST(Compile0, DynamicArrayReturnValueErrorText) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
+
+    // Can't convert DynamicSprite[] to int[]
 
     char *inpl = "\
         managed struct DynamicSprite { };   \n\
@@ -43,15 +63,13 @@ TEST(Compile0, DynamicArrayReturnValueErrorText) {
         }                                   \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
-TEST(Compile0, StructMemberQualifierOrder) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructMemberQualifierOrder) {    
 
     // The order of qualifiers shouldn't matter.
     // Note, "_tryimport" isn't legal for struct components.
@@ -66,138 +84,124 @@ TEST(Compile0, StructMemberQualifierOrder) {
         };\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ParsingIntSuccess) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ParsingIntSuccess) {  
 
     char *inpl = "\
-        import  int  importedfunc(int data1 = 1, int data2=2, int data3=3);\
-        int testfunc(int x ) { int y = 42; } \
+        import  int  importedfunc(int data1 = 1, int data2=2, int data3=3); \n\
+        int testfunc(int x ) { int y = 42; } \n\
+        ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, ParsingIntLimits) {    
+
+    char *inpl = "\
+        import int int_limits(int param_min = -2147483648, int param_max = 2147483647); \n\
+        int int_limits(int param_min, int param_max)    \n\
+        {                                               \n\
+            int var_min = - 2147483648;                 \n\
+            int var_max = 2147483647;                   \n\
+        }\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ParsingIntLimits) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {    
 
     char *inpl = "\
-                 import int int_limits(int param_min = -2147483648, int param_max = 2147483647);\
-                 int int_limits(int param_min, int param_max)\
-                 {\
-                 int var_min = - 2147483648;\
-                 int var_max = 2147483647;\
-                 }\
-                 ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST(Compile0, ParsingIntDefaultOverflow) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    char *inpl = "\
-        import  int  importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);\
+        import int importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);    \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
-
 }
 
-TEST(Compile0, ParsingNegIntDefaultOverflow) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
 
     char *inpl = "\
-        import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);\
+        import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);   \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("-9999999999999999999999"));
 }
 
-TEST(Compile0, ParsingIntOverflow) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, ParsingIntOverflow) {
+    
     char *inpl = "\
-        int testfunc(int x ) { int y = 4200000000000000000000; } \
+        int testfunc(int x ) { int y = 4200000000000000000000; }    \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
 }
 
-TEST(Compile0, ParsingNegIntOverflow) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, ParsingNegIntOverflow) {
+    
     char *inpl = "\
-                 int testfunc(int x ) { int y = -4200000000000000000000; } \
-                 ";
+        int testfunc(int x ) { int y = -4200000000000000000000; }   \n\
+        ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("-4200000000000000000000"));
 }
 
 
-TEST(Compile0, EnumNegative) {
-    ccCompiledScript *scrip = newScriptFixture();
-    std::vector<Symbol> tokens; AGS::LineHandler lh;
+TEST_F(Compile0, EnumNegative) {
+    
+    std::vector<Symbol> tokens;
+    LineHandler lh;
     size_t cursor = 0;
-    AGS::SrcList targ(tokens, lh, cursor);
+    SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
-        enum TestMyEnums {\
-            cat,\
-            dog,\
-            fish,\
-            money=100,\
-            death,\
-            taxes,\
-            popularity=-3,\
-            x,\
-            y,\
-            z,\
-            intmin=-2147483648,\
-            intmax=2147483647\
+        enum TestMyEnums {      \n\
+            cat,                \n\
+            dog,                \n\
+            fish,               \n\
+            money=100,          \n\
+            death,              \n\
+            taxes,              \n\
+            popularity=-3,      \n\
+            x,                  \n\
+            y,                  \n\
+            z,                  \n\
+            intmin=-2147483648, \n\
+            intmax=2147483647   \n\
         };\
         ";
-
-    clear_error();
-    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    
+    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
     std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // C enums default to 0!
+    // C enums start with 0, but AGS enums with 1
     EXPECT_EQ(1, sym.entries.at(sym.Find("cat")).SOffset);
     EXPECT_EQ(2, sym.entries.at(sym.Find("dog")).SOffset);
     EXPECT_EQ(3, sym.entries.at(sym.Find("fish")).SOffset);
@@ -213,37 +217,38 @@ TEST(Compile0, EnumNegative) {
 
     // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
     // so it can't be used. Microsoft recomments using INT_MIN instead.
-    EXPECT_EQ((INT_MIN), sym.entries.at(sym.Find("intmin")).SOffset);
-    EXPECT_EQ((2147483647), sym.entries.at(sym.Find("intmax")).SOffset);
+    EXPECT_EQ(INT_MIN, sym.entries.at(sym.Find("intmin")).SOffset);
+    EXPECT_EQ(2147483647, sym.entries.at(sym.Find("intmax")).SOffset);
 }
 
 
-TEST(Compile0, DefaultParametersLargeInts) {
-    ccCompiledScript *scrip = newScriptFixture();
-    std::vector<Symbol> tokens; AGS::LineHandler lh;
+TEST_F(Compile0, DefaultParametersLargeInts) {
+    
+    std::vector<Symbol> tokens;
+    LineHandler lh;
     size_t cursor = 0;
-    AGS::SrcList targ(tokens, lh, cursor);
+    SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
-        import int importedfunc(\
-            int data0 = 0, \
-            int data1 = 1, \
-            int data2 = 2, \
-            int data3 = -32000, \
-            int data4 = 32001, \
-            int data5 = 2147483647, \
-            int data6 = -2147483648 , \
-            int data7 = -1, \
-            int data8 = -2  \
-            );\
+        import int importedfunc(    \n\
+            int data0 = 0,          \n\
+            int data1 = 1,          \n\
+            int data2 = 2,          \n\
+            int data3 = -32000,     \n\
+            int data4 = 32001,      \n\
+            int data5 = 2147483647, \n\
+            int data6 = -2147483648 , \n\
+            int data7 = -1,         \n\
+            int data8 = -2          \n\
+            );                      \n\
         ";
 
-    clear_error();
-    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    
+    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
 
     std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -287,11 +292,12 @@ TEST(Compile0, DefaultParametersLargeInts) {
     EXPECT_EQ(-2, sym.entries.at(funcidx).FuncParamDefaultValues[9].IntDefault);
 }
 
-TEST(Compile0, ImportFunctionReturningDynamicArray) {
-    ccCompiledScript *scrip = newScriptFixture();
-    std::vector<Symbol> tokens; AGS::LineHandler lh;
+TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
+    
+    std::vector<Symbol> tokens;
+    LineHandler lh;
     size_t cursor = 0;
-    AGS::SrcList targ(tokens, lh, cursor);
+    SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     char *inpl = "\
@@ -301,11 +307,9 @@ TEST(Compile0, ImportFunctionReturningDynamicArray) {
         };                                  \n\
         ";
 
-    clear_error();
-
-    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
     std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
@@ -316,23 +320,22 @@ TEST(Compile0, ImportFunctionReturningDynamicArray) {
     EXPECT_TRUE(sym.IsDynarray(sym.entries.at(funcidx).FuncParamVartypes[0]));
 }
 
-TEST(Compile0, DoubleNegatedConstant) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DoubleNegatedConstant) {
+    
+    // Can't handle compile time calculations yet
 
     char *inpl = "\
-        import int MyFunction(\
-            int data0 = - -69\
-            );\
+        import int MyFunction(  \n\
+            int data0 = - -69   \n\
+            );                  \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+        
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_STREQ("Expected an integer literal or constant as parameter default", last_seen_cc_error());
 }
 
-TEST(Compile0, SubtractionWithoutSpaces) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, SubtractionWithoutSpaces) {
 
     char *inpl = "\
         int MyFunction()        \n\
@@ -340,14 +343,12 @@ TEST(Compile0, SubtractionWithoutSpaces) {
             int data0 = 2-4;    \n\
         }                       \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, NegationLHSOfExpression) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, NegationLHSOfExpression) {   
 
     char *inpl = "\
         enum MyEnum         \n\
@@ -370,13 +371,12 @@ TEST(Compile0, NegationLHSOfExpression) {
         }                   \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, NegationRHSOfExpression) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, NegationRHSOfExpression) {
 
     char *inpl = "\
         enum MyEnum\
@@ -398,15 +398,12 @@ TEST(Compile0, NegationRHSOfExpression) {
             return 0;\
         }\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-
-TEST(Compile0, FuncDeclWrong1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, FuncDeclWrong1) {    
 
     char *inpl = "\
     managed struct Struct1          \n\
@@ -420,7 +417,7 @@ TEST(Compile0, FuncDeclWrong1) {
                                     \n\
     import int Func(Struct1 *S1, Struct2 *S2);  \n\
                                     \n\
-    int Func(Struct2 *S1, Struct1 *S2)  \n\
+    int Func(Struct2 *S1, Struct1 *S2)          \n\
     {                               \n\
         return 0;                   \n\
     }                               \n\
@@ -430,19 +427,16 @@ TEST(Compile0, FuncDeclWrong1) {
         return 0;                   \n\
     }                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+   
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("parameter"));
-
 }
 
-TEST(Compile0, FuncDeclWrong2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, FuncDeclWrong2) {
+    
 
     char *inpl = "\
     managed struct Struct1          \n\
@@ -466,21 +460,18 @@ TEST(Compile0, FuncDeclWrong2) {
                                     \n\
     int Func(Struct1 *S1, Struct2 *S2);  \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+   
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("parameter"));
-
 }
 
-TEST(Compile0, FuncDeclReturnVartype) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, FuncDeclReturnVartype) {
+    
     // Should compile.
+
     char *inpl = "\
     managed struct DynamicSprite                                    \n\
     {                                                               \n\
@@ -497,18 +488,17 @@ TEST(Compile0, FuncDeclReturnVartype) {
     {                                                               \n\
     }                                                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 
-TEST(Compile0, Writeprotected) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Writeprotected) {
+    
     // Directly taken from the doc on writeprotected, simplified.
+    // Should fail, no modifying of writeprotected components from the outside.
+
     char *inpl = "\
         struct Weapon {                        \n\
             writeprotected int Damage;         \n\
@@ -522,19 +512,16 @@ TEST(Compile0, Writeprotected) {
             return false;                      \n\
         }                                      \n\
         ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    // Should fail, no modifying of writeprotected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
 
-TEST(Compile0, Protected1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Protected1) {   
 
     // Directly taken from the doc on protected, simplified.
     // Should fail, no modifying of protected components from the outside.
@@ -552,19 +539,17 @@ TEST(Compile0, Protected1) {
             return;                            \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
 
-TEST(Compile0, Protected2) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Protected2) {
+    
     // Directly taken from the doc on protected, simplified.
     // Should fail, no modifying of protected components from the outside.
 
@@ -580,18 +565,16 @@ TEST(Compile0, Protected2) {
             return wp.Damage;                  \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
 
-TEST(Compile0, Protected3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Protected3) {
 
     // Should succeed; protected is allowed for struct component functions.
 
@@ -612,15 +595,13 @@ TEST(Compile0, Protected3) {
         {                                           \n\
         }                                           \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Protected4) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Protected4) {
+    
     // Should succeed
 
     char *inpl = "\
@@ -640,15 +621,12 @@ TEST(Compile0, Protected4) {
         {                                           \n\
         }                                           \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+ 
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
 }
 
-TEST(Compile0, Protected5) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Protected5) {    
 
     // Should succeed; protected is allowed for extender functions.
 
@@ -662,14 +640,12 @@ TEST(Compile0, Protected5) {
         {                                           \n\
         }                                           \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Do1Wrong) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Do1Wrong) {    
 
     char *inpl = "\
     void main()                     \n\
@@ -678,19 +654,16 @@ TEST(Compile0, Do1Wrong) {
             int i = 10;             \n\
     }                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("sole body of"));
 
 }
 
-TEST(Compile0, Do2Wrong) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Do2Wrong) { 
 
     // Should balk because the "while" clause is missing.
 
@@ -702,17 +675,15 @@ TEST(Compile0, Do2Wrong) {
             I = 10;                 \n\
     }                               \n\
    ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+   
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("while"));
 }
 
-TEST(Compile0, Do3Wrong) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Do3Wrong) {
+    
     char *inpl = "\
     void main()                     \n\
     {                               \n\
@@ -722,18 +693,15 @@ TEST(Compile0, Do3Wrong) {
         while Holzschuh;            \n\
     }                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+   
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("("));
 }
 
-TEST(Compile0, Do4Wrong) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Do4Wrong) {    
 
     char *inpl = "\
     void main()                     \n\
@@ -744,19 +712,16 @@ TEST(Compile0, Do4Wrong) {
         while (true true);          \n\
     }                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+  
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("true"));
 }
 
-TEST(Compile0, ProtectedFault1) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, ProtectedFault1) {
+    
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -770,59 +735,52 @@ TEST(Compile0, ProtectedFault1) {
             wp.Damage = 7;                     \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     // Should fail, no modifying of protected components from the outside.
-    EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rotected"));
 }
 
-TEST(Compile0, FuncHeader1) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, FuncHeader1) {
+    
     // Can't have a specific array size in func parameters
+
     char *inpl = "\
         void main(int a[15])                   \n\
         {                                      \n\
              return;                           \n\
         }                                      \n\
         ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rray size"));
 }
 
-TEST(Compile0, FuncHeader2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, FuncHeader2) {  
 
     // Default for float parameter, an int value. Should fail
+
     char *inpl = "\
         void Foo(float Param = 7);              \n\
         {                                      \n\
              return;                           \n\
         }                                      \n\
         ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("float literal"));
 }
 
-TEST(Compile0, FuncHeader3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, FuncHeader3) {   
 
     // Integer default for managed parameter. Should fail
     char *inpl = "\
@@ -836,18 +794,15 @@ TEST(Compile0, FuncHeader3) {
              return;                            \n\
         }                                       \n\
         ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rameter default"));
 }
 
-TEST(Compile0, ExtenderFuncHeaderFault1a) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ExtenderFuncHeaderFault1a) {    
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -859,18 +814,16 @@ TEST(Compile0, ExtenderFuncHeaderFault1a) {
             return;                            \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Holzschuh"));
 }
 
-TEST(Compile0, ExtenderFuncHeaderFault1b) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ExtenderFuncHeaderFault1b) {    
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -882,18 +835,15 @@ TEST(Compile0, ExtenderFuncHeaderFault1b) {
             return;                            \n\
         }                                      \n\
         ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("arameter name"));
 }
 
-TEST(Compile0, ExtenderFuncHeaderFault1c) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ExtenderFuncHeaderFault1c) {    
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -905,18 +855,15 @@ TEST(Compile0, ExtenderFuncHeaderFault1c) {
             return;                            \n\
         }                                      \n\
         ";
+  
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("tatic extender function"));
 }
 
-TEST(Compile0, ExtenderFuncHeaderFault2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ExtenderFuncHeaderFault2) {
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -929,17 +876,15 @@ TEST(Compile0, ExtenderFuncHeaderFault2) {
         }                                      \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("struct"));
 }
 
-TEST(Compile0, DoubleExtenderFunc) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DoubleExtenderFunc) {  
 
     // Must not define a function with body twice.
 
@@ -958,18 +903,15 @@ TEST(Compile0, DoubleExtenderFunc) {
             return 2;                           \n\
         }                                       \n\
         ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("defined"));
 }
 
-TEST(Compile0, DoubleNonExtenderFunc) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DoubleNonExtenderFunc) {    
 
     char *inpl = "\
         int Foo(int Bar)                       \n\
@@ -981,18 +923,15 @@ TEST(Compile0, DoubleNonExtenderFunc) {
             return 2;                          \n\
         }                                      \n\
         ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
-TEST(Compile0, UndeclaredStructFunc1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, UndeclaredStructFunc1) {   
 
     // Should fail, Struct doesn't have Func
 
@@ -1006,16 +945,14 @@ TEST(Compile0, UndeclaredStructFunc1) {
         {                                           \n\
         }                                           \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string message = last_seen_cc_error();
     EXPECT_NE(std::string::npos, message.find("Func"));
 }
 
-TEST(Compile0, UndeclaredStructFunc2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, UndeclaredStructFunc2) {   
 
     // Should succeed, Struct has Func
 
@@ -1029,14 +966,12 @@ TEST(Compile0, UndeclaredStructFunc2) {
             void Func(int);                         \n\
         };                                          \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ParamVoid) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ParamVoid) {   
 
     char *inpl = "\
         int Foo(void Bar)                      \n\
@@ -1044,18 +979,15 @@ TEST(Compile0, ParamVoid) {
             return 1;                          \n\
         }                                      \n\
         ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("void"));
 }
 
-TEST(Compile0, LocalGlobalSeq2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalGlobalSeq2) {    
 
     // Should garner a warning for line 7 because the re-definition hides the func
 
@@ -1074,23 +1006,22 @@ TEST(Compile0, LocalGlobalSeq2) {
         ";
 
     std::vector<Symbol> tokens;
-    AGS::LineHandler lh;
+    LineHandler lh;
     size_t cursor = 0;
-    AGS::SrcList targ(tokens, lh, cursor);
+    SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
-    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
-
     std::vector<AGS::Parser::WarningEntry> warnings;
-    clear_error();
-    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+
+    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));  
+    
+    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
 
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     ASSERT_EQ(1u, warnings.size());
     EXPECT_EQ(7, warnings[0].Pos);
 }
 
-TEST(Compile0, VartypeLocalSeq1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, VartypeLocalSeq1) {
 
     // Can't redefine a vartype as a local variable
 
@@ -1101,17 +1032,15 @@ TEST(Compile0, VartypeLocalSeq1) {
             float bool;                     \n\
         }                                   \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     std::string const err = last_seen_cc_error();
     EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_NE(std::string::npos, err.find("in use"));
 }
 
-TEST(Compile0, VartypeLocalSeq2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, VartypeLocalSeq2) {   
 
     // Can't redefine an enum constant as a local variable
 
@@ -1122,143 +1051,128 @@ TEST(Compile0, VartypeLocalSeq2) {
             int false = 1;                  \n\
         }                                   \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     std::string const err = last_seen_cc_error();
     EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : err.c_str());
     EXPECT_NE(std::string::npos, err.find("in use"));
 }
 
-TEST(Compile0, StructExtend1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructExtend1) {    
 
     char *inpl = "\
-    struct Parent                   \n\
-    {                               \n\
-        int Payload;                \n\
-    };                              \n\
-    struct Child extends Parent     \n\
-    {                               \n\
-        int Payload;                \n\
-    };                              \n\
-    ";
+        struct Parent                   \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+        struct Child extends Parent     \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+        ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
 
-TEST(Compile0, StructExtend2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructExtend2) {   
 
     char *inpl = "\
-    struct Grandparent              \n\
-    {                               \n\
-        int Payload;                \n\
-    };                              \n\
-    struct Parent extends Grandparent \n\
-    {                               \n\
-        short Money;                \n\
-    };                              \n\
-    struct Child extends Parent     \n\
-    {                               \n\
-        int Payload;                \n\
-    };                              \n\
-    ";
+        struct Grandparent              \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+        struct Parent extends Grandparent \n\
+        {                               \n\
+            short Money;                \n\
+        };                              \n\
+        struct Child extends Parent     \n\
+        {                               \n\
+            int Payload;                \n\
+        };                              \n\
+        ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
 
-TEST(Compile0, StructExtend3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructExtend3) {   
 
     char *inpl = "\
-    managed struct Parent           \n\
-    {                               \n\
-        int Wage;                   \n\
-    };                              \n\
-    managed struct Child extends Parent \n\
-    {                               \n\
-        int PocketMoney;            \n\
-    };                              \n\
-    void main()                     \n\
-    {                               \n\
-        Parent *Ptr = new Child;    \n\
-    }                               \n\
-    ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+        managed struct Parent           \n\
+        {                               \n\
+            int Wage;                   \n\
+        };                              \n\
+        managed struct Child extends Parent \n\
+        {                               \n\
+            int PocketMoney;            \n\
+        };                              \n\
+        void main()                     \n\
+        {                               \n\
+            Parent *Ptr = new Child;    \n\
+        }                               \n\
+        ";
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, StructExtend4) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructExtend4) { 
 
     char *inpl = "\
-    managed struct Parent           \n\
-    {                               \n\
-        int Wage;                   \n\
-    };                              \n\
-    managed struct Child extends Parent \n\
-    {                               \n\
-        int PocketMoney;            \n\
-    };                              \n\
-    void main()                     \n\
-    {                               \n\
-        Child *Ptr = new Parent;    \n\
-    }                               \n\
-    ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+        managed struct Parent           \n\
+        {                               \n\
+            int Wage;                   \n\
+        };                              \n\
+        managed struct Child extends Parent \n\
+        {                               \n\
+            int PocketMoney;            \n\
+        };                              \n\
+        void main()                     \n\
+        {                               \n\
+            Child *Ptr = new Parent;    \n\
+        }                               \n\
+        ";
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
 }
 
-TEST(Compile0, StructStaticFunc) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructStaticFunc) {
 
     char *inpl = "\
-    builtin managed struct GUI {                          \n\
-        import static GUI* GetAtScreenXY(int x, int y);   \n\
-    }                                                     \n\
-    ";
+        builtin managed struct GUI {                          \n\
+            import static GUI* GetAtScreenXY(int x, int y);   \n\
+        }                                                     \n\
+        ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Undefined) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Undefined) {   
 
     char *inpl = "\
         Supercalifragilisticexpialidocious! \n\
-    ";
+        ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ImportOverride1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ImportOverride1) {
 
     char *inpl = "\
     import int Func(int i = 5);     \n\
@@ -1268,16 +1182,13 @@ TEST(Compile0, ImportOverride1) {
     }                               \n\
     ";
 
-    clear_error();
-
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, DynamicNonManaged1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DynamicNonManaged1) {    
 
     // Dynamic array of non-managed struct not allowed
 
@@ -1291,16 +1202,15 @@ TEST(Compile0, DynamicNonManaged1) {
             Inner In[];                                     \n\
         };                                                  \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST(Compile0, DynamicNonManaged2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DynamicNonManaged2) {    
 
     // Dynamic array of non-managed struct not allowed
 
@@ -1314,16 +1224,15 @@ TEST(Compile0, DynamicNonManaged2) {
             Inner *In;                                      \n\
         };                                                  \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST(Compile0, DynamicNonManaged3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DynamicNonManaged3) {  
 
     // Dynamic array of non-managed struct not allowed
 
@@ -1334,16 +1243,15 @@ TEST(Compile0, DynamicNonManaged3) {
         };                                                  \n\
         Inner *In;                                          \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST(Compile0, BuiltinStructMember) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, BuiltinStructMember) {    
 
     // Builtin (non-managed) components not allowed 
 
@@ -1357,36 +1265,32 @@ TEST(Compile0, BuiltinStructMember) {
             Inner In;                                       \n\
         };                                                  \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GT(0, compileResult);
+    
+    int compileResult = cc_compile(inpl, &scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
 
-TEST(Compile0, ImportOverride2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ImportOverride2) {    
 
     char *inpl = "\
-    int Func(int i = 5);            \n\
-    int Func(int i)                 \n\
-    {                               \n\
-        return 2 * i;               \n\
-    }                               \n\
-    ";
-
-    clear_error();
+        int Func(int i = 5);    \n\
+        int Func(int i)         \n\
+        {                       \n\
+            return 2 * i;       \n\
+        }                       \n\
+        ";
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compileResult = cc_compile(inpl, scrip);
 
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ImportOverride3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ImportOverride3) {   
 
     char *inpl = "\
     int Func(int i)                 \n\
@@ -1396,211 +1300,170 @@ TEST(Compile0, ImportOverride3) {
     import int Func(int i = 5);     \n\
     ";
 
-    clear_error();
-
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
-    ASSERT_GT(0, compileResult);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalSeq1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalSeq1) {    
 
     // The  { ... } must NOT invalidate Var1 but they MUST invalidate Var2.
 
     char *inpl = "\
-    void Func()                     \n\
-    {                               \n\
-        int Var1 = 0;               \n\
-        { short Var2 = 5; }         \n\
-        float Var2 = 7.7;           \n\
-        Var1 = 3;                   \n\
-    }                               \n\
-    ";
+        void Func()                 \n\
+        {                           \n\
+            int Var1 = 0;           \n\
+            { short Var2 = 5; }     \n\
+            float Var2 = 7.7;       \n\
+            Var1 = 3;               \n\
+        }                           \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalSeq2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalSeq2) {
 
     // The  while() { ... } must NOT invalidate Var1 but MUST invalidate Var2.
 
     char *inpl = "\
-    void Func()                     \n\
-    {                               \n\
-        int Var1 = 0;               \n\
-        while (Var1 > 0) { short Var2 = 5; } \n\
-        float Var2 = 7.7;           \n\
-        Var1 = 3;                   \n\
-    }                               \n\
-    ";
+        void Func()                     \n\
+        {                               \n\
+            int Var1 = 0;               \n\
+            while (Var1 > 0) { short Var2 = 5; } \n\
+            float Var2 = 7.7;           \n\
+            Var1 = 3;                   \n\
+        }                               \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalSeq3) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, LocalSeq3) {
+    
     // The  do { ... } while() must NOT invalidate Var1 but MUST invalidate Var2.
 
     char *inpl = "\
-    void Func()                     \n\
-    {                               \n\
-        int Var1 = 0;               \n\
-        do { short Var2 = 5; } while (Var1 > 0); \n\
-        float Var2 = 7.7;           \n\
-        Var1 = 3;                   \n\
-    }                               \n\
-    ";
+        void Func()                     \n\
+        {                               \n\
+            int Var1 = 0;               \n\
+            do { short Var2 = 5; } while (Var1 > 0); \n\
+            float Var2 = 7.7;           \n\
+            Var1 = 3;                   \n\
+        }                               \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalSeq4) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, LocalSeq4) {
+   
     // The  for() { ... } must NOT invalidate Var1 but MUST invalidate Var2 and Var3.
 
     char *inpl = "\
-    void Func()                     \n\
-    {                               \n\
-        int Var1 = 0;               \n\
-        for (int Var2 = 0; Var2 != Var2; Var2 = 1)  \n\
-        {                           \n\
-            short Var3 = 5;         \n\
-        }                           \n\
-        float Var2 = 7.7;           \n\
-        float Var3 = 8.88;          \n\
-        Var1 = 3;                   \n\
-    }                               \n\
-    ";
+        void Func()                     \n\
+        {                               \n\
+            int Var1 = 0;               \n\
+            for (int Var2 = 0; Var2 != Var2; Var2 = 1)  \n\
+            {                           \n\
+                short Var3 = 5;         \n\
+            }                           \n\
+            float Var2 = 7.7;           \n\
+            float Var3 = 8.88;          \n\
+            Var1 = 3;                   \n\
+        }                               \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalParameterSeq1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalParameterSeq1) {  
 
     // Must fail because definitions of I collide
 
     char *inpl = "\
-    void Func(int I)                \n\
-    {                               \n\
-        int I;                      \n\
-    }                               \n\
-    ";
+        void Func(int I)                \n\
+        {                               \n\
+            int I;                      \n\
+        }                               \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalParameterSeq2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalParameterSeq2) { 
 
     // Fine
 
     char *inpl = "\
-    void Func(int I)                \n\
-    {                               \n\
-        { int I; }                  \n\
-    }                               \n\
-    ";
+        void Func(int I)            \n\
+        {                           \n\
+            { int I; }              \n\
+        }                           \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, LocalGlobalSeq1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, LocalGlobalSeq1) {   
 
     char *inpl = "\
-    void Func()                     \n\
-    {                               \n\
-        short Var = 5;              \n\
-        return;                     \n\
-    }                               \n\
-    int Var;                        \n\
-    ";
+        void Func()                     \n\
+        {                               \n\
+            short Var = 5;              \n\
+            return;                     \n\
+        }                               \n\
+        int Var;                        \n\
+        ";
 
-    clear_error();
-
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Void1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Void1) {
 
     char *inpl = "\
-    builtin managed struct Parser {                             \n\
-	    import static int    FindWordID(const string wordToFind);   \n\
-	    import static void   ParseText(const string text);      \n\
-	    import static bool   Said(const string text);           \n\
-	    import static String SaidUnknownWord();                 \n\
-    };                                                          \n\
-    ";
+        builtin managed struct Parser {                             \n\
+	        import static int    FindWordID(const string wordToFind);   \n\
+	        import static void   ParseText(const string text);      \n\
+	        import static bool   Said(const string text);           \n\
+	        import static String SaidUnknownWord();                 \n\
+        };                                                          \n\
+        ";
 
-    std::string input = "";
-    input += g_Input_Bool;
+    std::string input = g_Input_Bool;
     input += g_Input_String;
     input += inpl;
 
-    clear_error();
-
-    int compileResult = cc_compile(input.c_str(), scrip);
-
+    int compileResult = cc_compile(input.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, RetLengthNoMatch) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, RetLengthNoMatch) { 
 
     char *inpl = "\
-    builtin managed struct GUI {                                \n\
-        import void Centre();                                   \n\
-        import static GUI* GetAtScreenXY(int x, int y);         \n\
-    };                                                          \n\
-    ";
+        builtin managed struct GUI {                                \n\
+            import void Centre();                                   \n\
+            import static GUI* GetAtScreenXY(int x, int y);         \n\
+        };                                                          \n\
+        ";
 
-    std::string input = "";
-    input += g_Input_Bool;
+    std::string input = g_Input_Bool;
     input += g_Input_String;
     input += inpl;
 
-    clear_error();
-
-    int compileResult = cc_compile(input.c_str(), scrip);
-
+    int compileResult = cc_compile(input.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalImportVar1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, GlobalImportVar1) {    
 
     char *inpl = "\
         import int Var;     \n\
@@ -1608,59 +1471,54 @@ TEST(Compile0, GlobalImportVar1) {
         int Var;            \n\
         export Var;         \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalImportVar2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, GlobalImportVar2) {
+    
+    char *inpl = "\
+        import int Var;     \n\
+        import int Var;     \n\
+        int Var;            \n\
+        export Var;         \n\
+        ";
+    
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, 1);
 
-    char *inpl = "\
-        import int Var;     \n\
-        import int Var;     \n\
-        int Var;            \n\
-        export Var;         \n\
-        ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalImportVar3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, GlobalImportVar3) {
 
     char *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
         short Var;          \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalImportVar4) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, GlobalImportVar4) {
 
     char *inpl = "\
         int Var;            \n\
         import int Var;     \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalImportVar5) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, GlobalImportVar5) {
+    
     // "import int Var" is treated as a forward declaration
     // for the "int Var" that follows, not as an import proper.
+
     char *inpl = "\
         import int Var;     \n\
         int main()          \n\
@@ -1670,16 +1528,15 @@ TEST(Compile0, GlobalImportVar5) {
         int Var;            \n\
         export Var;         \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, ExtenderFuncDifference)
-{
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, ExtenderFuncDifference) {
+    
     // Same func name, should be okay since they extend different structs
+
     char *inpl = "\
         struct A            \n\
         {                   \n\
@@ -1699,15 +1556,15 @@ TEST(Compile0, ExtenderFuncDifference)
             return 0;       \n\
         }                   \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, StaticFuncCall)
-{
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StaticFuncCall) {
+    
     // Static function call, should work.
+
     char *inpl = "\
         builtin managed struct GUI                                  \n\
         {                                                           \n\
@@ -1719,18 +1576,17 @@ TEST(Compile0, StaticFuncCall)
             GUI.ProcessClick(1, 2, 3);                              \n\
         }                                                           \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Import2GlobalAllocation)
-{
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Import2GlobalAllocation) {
+    
     std::vector<Symbol> tokens;
-    AGS::LineHandler lh;
+    LineHandler lh;
     size_t cursor = 0;
-    AGS::SrcList targ(tokens, lh, cursor);
+    SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
 
     // Imported var I becomes a global var; must be allocated only once.
@@ -1742,32 +1598,31 @@ TEST(Compile0, Import2GlobalAllocation)
         int J;          \n\
     ";
 
-    ASSERT_LE(0, cc_scan(inpl, &targ, scrip, &sym));
+    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
 
     std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, scrip, &sym, &warnings);
+    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
     int idx = sym.Find("J");
     ASSERT_LE(0, idx);
     SymbolTableEntry &entry = sym.entries.at(idx);
     ASSERT_EQ(4, entry.SOffset);
 }
 
-TEST(Compile0, LocalImportVar) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, LocalImportVar) {
+    
     char *inpl = "\
         import int Var;     \n\
         int Var;            \n\
         export Var;         \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Recursive1) {
+TEST_F(Compile0, Recursive1) {
 
     char *agscode = "\
         import int Foo2 (int);    \n\
@@ -1784,13 +1639,11 @@ TEST(Compile0, Recursive1) {
         }                         \n\
         ";
 
-    clear_error();
-    ccCompiledScript *scrip = newScriptFixture();
-    int compileResult = cc_compile(agscode, scrip);
+    int compileResult = cc_compile(agscode, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, GlobalFuncStructFunc) {
+TEST_F(Compile0, GlobalFuncStructFunc) {
 
     char *agscode = "\
         import int Foo2 (int);      \n\
@@ -1805,15 +1658,13 @@ TEST(Compile0, GlobalFuncStructFunc) {
             return 17;              \n\
         }                           \n\
         ";
-
-    clear_error();
-    ccCompiledScript *scrip = newScriptFixture();
-    int compileResult = cc_compile(agscode, scrip);
+   
+    int compileResult = cc_compile(agscode, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 
-TEST(Compile0, VariadicFunc) {
+TEST_F(Compile0, VariadicFunc) {
 
     std::string agscode = "\
         String payload;                 \n\
@@ -1829,13 +1680,11 @@ TEST(Compile0, VariadicFunc) {
     agscode = g_Input_String + agscode;
     agscode = g_Input_Bool + agscode;
 
-    clear_error();
-    ccCompiledScript *scrip = newScriptFixture();
-    int compileResult = cc_compile(agscode.c_str(), scrip);
+    int compileResult = cc_compile(agscode.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, DynamicAndNull) {
+TEST_F(Compile0, DynamicAndNull) {
 
     std::string agscode = "\
         int main()                          \n\
@@ -1848,13 +1697,12 @@ TEST(Compile0, DynamicAndNull) {
         }                                   \n\
         ";
 
-    clear_error();
-    ccCompiledScript *scrip = newScriptFixture();
-    int compileResult = cc_compile(agscode.c_str(), scrip);
+        
+    int compileResult = cc_compile(agscode.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, AssignPtr2ArrayOfPtr) {
+TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
 
     std::string agscode = "\
         managed struct DynamicSprite            \n\
@@ -1871,15 +1719,13 @@ TEST(Compile0, AssignPtr2ArrayOfPtr) {
         }                                       \n\
         ";
     agscode = g_Input_Bool + agscode;
-    clear_error();
-    ccCompiledScript *scrip = newScriptFixture();
-    int compileResult = cc_compile(agscode.c_str(), scrip);
+    
+    int compileResult = cc_compile(agscode.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Attributes01) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Attributes01) {
+    
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
     char *inpl = "\
@@ -1890,17 +1736,14 @@ TEST(Compile0, Attributes01) {
         };                                              \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST(Compile0, Attributes02) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes02) {   
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
@@ -1912,17 +1755,14 @@ TEST(Compile0, Attributes02) {
         };                                              \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST(Compile0, Attributes03) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes03) {
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
@@ -1934,17 +1774,14 @@ TEST(Compile0, Attributes03) {
         };                                              \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST(Compile0, StructPtrFunc) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructPtrFunc) {
 
     // Func is ptr to managed, but it is a function not a variable
     // so ought to be let through.
@@ -1956,17 +1793,13 @@ TEST(Compile0, StructPtrFunc) {
         MS *MS::Func()          \n\
         {}                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, StringOldstyle01) {
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, StringOldstyle01) {    
+    
     // Can't return a local string because it will be already de-allocated when
     // the function returns
 
@@ -1978,16 +1811,15 @@ TEST(Compile0, StringOldstyle01) {
         }                           \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, &scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("local string"));
 }
 
-TEST(Compile0, StringOldstyle02) {
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, StringOldstyle02) {
+    
     // If a function expects a non-const string, it mustn't be passed a const string
 
     char *inpl = "\
@@ -1997,16 +1829,15 @@ TEST(Compile0, StringOldstyle02) {
         }                           \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, &scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
 
-TEST(Compile0, StringOldstyle03) {
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, StringOldstyle03) {
+    
     // A string literal is a constant string, so you should not be able to
     // return it as a string.
 
@@ -2017,14 +1848,14 @@ TEST(Compile0, StringOldstyle03) {
         }                               \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, &scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
 
-TEST(Compile0, StructPointerAttribute) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StructPointerAttribute) {
 
     // It's okay for a managed struct to have a pointer import attribute.
 
@@ -2037,14 +1868,11 @@ TEST(Compile0, StructPointerAttribute) {
         };                                          \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, StringNullCompare) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, StringNullCompare) {
 
     // It's okay to compare strings to null
 
@@ -2057,19 +1885,15 @@ TEST(Compile0, StringNullCompare) {
         }                                   \n\
     ";
 
-    std::string input = "";
-    input += g_Input_Bool;
+    std::string input = g_Input_Bool;
     input += g_Input_String;
     input += inpl;
-
-    clear_error();
-    int compileResult = cc_compile(input.c_str(), scrip);
-
+    
+    int compileResult = cc_compile(input.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Attributes04) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes04) {
 
     // Components may have the same name as vartypes.
 
@@ -2087,15 +1911,12 @@ TEST(Compile0, Attributes04) {
                 return;                     \n\
         }                                   \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Attributes05) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes05) {
 
     // Assignment to static attribute should call the setter.
 
@@ -2110,14 +1931,11 @@ TEST(Compile0, Attributes05) {
         }                                   \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Attributes06) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes06) {
 
     // Assignment to static indexed attribute
 
@@ -2138,14 +1956,11 @@ TEST(Compile0, Attributes06) {
         }                                                           \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Decl) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Decl) {   
 
     // Should complain about the "+="
     // Note, there are many more legal possibilites than just "," ";" "=".
@@ -2156,18 +1971,14 @@ TEST(Compile0, Decl) {
             int Sum +=4;    \n\
         }                   \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+  
+    int compileResult = cc_compile(inpl, &scrip);
     std::string lsce = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : lsce.c_str());
     EXPECT_NE(std::string::npos, lsce.find("+="));
 }
 
-TEST(Compile0, DynamicArrayCompare)
-{
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DynamicArrayCompare) {
 
     // May compare DynArrays for equality.
     // The pointers, not the array components are compared.
@@ -2187,15 +1998,11 @@ TEST(Compile0, DynamicArrayCompare)
         }                                   \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, DoubleLocalDecl)
-{
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, DoubleLocalDecl) {
 
     // A local definition may hide an outer local definition or a global definition;
     // those will be uncovered when the scope of the local definition ends.
@@ -2214,16 +2021,13 @@ TEST(Compile0, DoubleLocalDecl)
             return (0.0 + Bang1 + Bang2 + Bang3) > 0.0; \n\
         }                                               \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+  
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, NewForwardDeclStruct)
-{
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, NewForwardDeclStruct) {
+    
     // "new" on a forward-declared struct mustn't work
     char *inpl = "\
         managed struct Bang;        \n\
@@ -2233,18 +2037,16 @@ TEST(Compile0, NewForwardDeclStruct)
         }                           \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_NE(compileResult, 0);
     std::string lsce = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lsce.find("Bang"));
 }
 
-TEST(Compile0, NewEnumArray)
-{
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, NewEnumArray) {
+    
     // dynamic array of enum should work
+
     char *inpl = "\
         enum bool                               \n\
         {                                       \n\
@@ -2257,14 +2059,12 @@ TEST(Compile0, NewEnumArray)
             bool Test[] = new bool[7];          \n\
         }                                       \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+  
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Attributes07) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Attributes07) {
 
     // Reading an import static attribute should not trigger
     //  a Not Declared error since it is declared.
@@ -2283,15 +2083,12 @@ TEST(Compile0, Attributes07) {
 		}                                                           \n\
 	";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Readonly01) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Compile0, Readonly01) {
+    
     // Declaring a readonly variable with initialization is okay.
 
     char *inpl = "\
@@ -2301,14 +2098,11 @@ TEST(Compile0, Readonly01) {
 		}                                   \n\
 	";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Ternary01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Ternary01) {    
 
     // case labels accept expressions in AGS, so ternary expressions should work, too.
 
@@ -2326,14 +2120,11 @@ TEST(Compile0, Ternary01) {
         }                               \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile0, Ternary02) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Compile0, Ternary02) {
 
     // Values of ternary must have compatible vartypes
 
@@ -2344,10 +2135,8 @@ TEST(Compile0, Ternary02) {
                     break;              \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+  
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprits
     std::string res(last_seen_cc_error());

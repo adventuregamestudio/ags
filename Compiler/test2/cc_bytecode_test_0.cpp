@@ -50,9 +50,7 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
             return a*a;     \n\
         }";
 
-    
     int compileResult = cc_compile(inpl, &scrip);
-
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("P_r_o_t_o_t_y_p_e", scrip);
@@ -71,6 +69,7 @@ protected:
 
     Bytecode0()
     {
+        // Initializations, will be done at the start of each test
         scrip.init();
         ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
         ccSetOption(SCOPT_LINENUMBERS, false);

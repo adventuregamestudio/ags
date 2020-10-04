@@ -8,8 +8,6 @@
 
 #include "script2/cs_scanner.h"
 
-extern ccCompiledScript *newScriptFixture(); // cs_parser_test.cpp
-
 // The vars defined here are provided in each test that is in category "Scan"
 class Scan : public ::testing::Test
 {
@@ -350,9 +348,6 @@ TEST_F(Scan, String1)
 }
 
 TEST_F(Scan, UnknownKeywordAfterReadonly) {
-    ccCompiledScript *scrip = newScriptFixture();
-    SymbolTable sym;
-
     // This incorrect code would crash the scanner.
     // Now, semantic struct parsing has been completely relocated into the parser,
     // and thus this sequence should not pose problems.

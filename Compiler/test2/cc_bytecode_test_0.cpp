@@ -41,8 +41,8 @@
 
 /*    PROTOTYPE
 
-TEST(Bytecode0, P_r_o_t_o_t_y_p_e) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
+    
 
     char *inpl = "\
         int Foo(int a)      \n\
@@ -50,8 +50,8 @@ TEST(Bytecode0, P_r_o_t_o_t_y_p_e) {
             return a*a;     \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
@@ -62,8 +62,24 @@ TEST(Bytecode0, P_r_o_t_o_t_y_p_e) {
 }
 */
 
-TEST(Bytecode0, SimpleVoidFunction) {
-    ccCompiledScript *scrip = newScriptFixture();
+
+// The vars defined here are provided in each test that is in category "Bytecode0"
+class Bytecode0 : public ::testing::Test
+{
+protected:
+    ::ccCompiledScript scrip;
+
+    Bytecode0()
+    {
+        scrip.init();
+        ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
+        ccSetOption(SCOPT_LINENUMBERS, false);
+        clear_error();
+    }
+};
+
+
+TEST_F(Bytecode0, SimpleVoidFunction) {
 
     char *inpl = "\
         void Foo()          \n\
@@ -71,39 +87,38 @@ TEST(Bytecode0, SimpleVoidFunction) {
             return;         \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleVoidFunction", scrip);
     const size_t codesize = 5;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   31,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
 }
 
-TEST(Bytecode0, UnaryMinus1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, UnaryMinus1) {
 
     // Accept a unary minus in front of parens
 
@@ -114,14 +129,14 @@ TEST(Bytecode0, UnaryMinus1) {
             int baz = -(-bar);  \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("UnaryMinus1", scrip);
     const size_t codesize = 35;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,   51,    // 7
@@ -130,26 +145,25 @@ TEST(Bytecode0, UnaryMinus1) {
        4,    3,    3,    4,            3,   29,    3,    2,    // 31
        1,    8,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, UnaryMinus2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, UnaryMinus2) {    
 
     // Unary minus binds more than multiply
 
@@ -161,14 +175,13 @@ TEST(Bytecode0, UnaryMinus2) {
             return -five * -seven;      \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("UnaryMinus2", scrip);
     const size_t codesize = 60;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,    6,    // 7
@@ -180,26 +193,25 @@ TEST(Bytecode0, UnaryMinus2) {
        2,    1,    8,   31,            6,    2,    1,    8,    // 55
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, NotNot) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, NotNot) {
 
     // !!a should be interpreted as !(!a)
     char *inpl = "\
@@ -209,14 +221,12 @@ TEST(Bytecode0, NotNot) {
             return !!(!five);       \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Notnot", scrip);
     const size_t codesize = 29;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,   51,    // 7
@@ -224,66 +234,63 @@ TEST(Bytecode0, NotNot) {
        3,    2,    1,    4,           31,    6,    2,    1,    // 23
        4,    6,    3,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, SimpleIntFunction) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, SimpleIntFunction) { 
 
     char *inpl = "\
         int Foo()      \n\
     {                  \n\
         return 15;     \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleIntFunction", scrip);
     const size_t codesize = 11;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           15,   31,    3,    6,    // 7
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
 }
 
-TEST(Bytecode0, IntFunctionLocalV) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IntFunctionLocalV) {
 
     char *inpl = "\
         int Foo()       \n\
@@ -292,79 +299,74 @@ TEST(Bytecode0, IntFunctionLocalV) {
             return a;   \n\
         }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionLocalV", scrip);
     const size_t codesize = 23;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           15,   29,    3,   51,    // 7
        4,    7,    3,    2,            1,    4,   31,    6,    // 15
        2,    1,    4,    6,            3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, IntFunctionParam) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IntFunctionParam) {
 
     char *inpl = "\
         int Foo(int a) \n\
     {                  \n\
         return a;      \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionParam", scrip);
     const size_t codesize = 12;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   31,    3,    // 7
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, IntFunctionGlobalV) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IntFunctionGlobalV) {    
 
     char *inpl = "\
         int a = 15;    \n\
@@ -372,23 +374,22 @@ TEST(Bytecode0, IntFunctionGlobalV) {
     {                  \n\
         return a;      \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionGlobalV", scrip);
     const size_t codesize = 13;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    2,            0,    7,    3,   31,    // 7
        3,    6,    3,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        4,  -999
@@ -396,24 +397,22 @@ TEST(Bytecode0, IntFunctionGlobalV) {
     char fixuptypes[] = {
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Float1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Float1) {   
 
     // Float values
 
@@ -434,14 +433,13 @@ TEST(Bytecode0, Float1) {
                 Test7 + Test8;              \n\
         }                                   \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Float1", scrip);
     const size_t codesize = 156;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,         -1059061760,   29,    3,    6,    // 7
@@ -465,26 +463,25 @@ TEST(Bytecode0, Float1) {
        2,    1,   32,   31,            6,    2,    1,   32,    // 151
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Float2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Float2) {   
 
     // Positive and negative float parameter defaults
 
@@ -500,13 +497,12 @@ TEST(Bytecode0, Float2) {
         }                                   \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Float2", scrip);
     const size_t codesize = 65;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,         -1059061760,   29,    3,   51,    // 7
@@ -519,10 +515,10 @@ TEST(Bytecode0, Float2) {
        2,    1,    8,   31,            3,    6,    3,    0,    // 63
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       53,  -999
@@ -530,23 +526,22 @@ TEST(Bytecode0, Float2) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, FloatExpr1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, FloatExpr1) { 
 
     char *inpl = "\
         float a = 15.0;     \n\
@@ -556,14 +551,13 @@ TEST(Bytecode0, FloatExpr1) {
             return a + f;   \n\
         }                   \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FloatExpr1", scrip);
     const size_t codesize = 38;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,         1078523331,   29,    3,    6,    // 7
@@ -572,10 +566,10 @@ TEST(Bytecode0, FloatExpr1) {
        4,    3,    2,    1,            4,   31,    6,    2,    // 31
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        9,  -999
@@ -583,23 +577,22 @@ TEST(Bytecode0, FloatExpr1) {
     char fixuptypes[] = {
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, FloatExpr2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, FloatExpr2) {    
 
     char *inpl = "\
         float a = 15.0;                             \n\
@@ -613,14 +606,13 @@ TEST(Bytecode0, FloatExpr2) {
             int E5 = (((a == b) || (a != b)));      \n\
             return a - b * (a / b);                 \n\
         }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FloatExpr2", scrip);
     const size_t codesize = 244;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,         1102158234,   29,    3,    6,    // 7
@@ -655,10 +647,10 @@ TEST(Bytecode0, FloatExpr2) {
        2,    1,   19,   31,            6,    2,    1,   19,    // 239
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 5;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       91,  134,  157,  186,        199,  -999
@@ -666,23 +658,22 @@ TEST(Bytecode0, FloatExpr2) {
     char fixuptypes[] = {
       1,   1,   1,   1,      1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, IfThenElse1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IfThenElse1) {  
 
     char *inpl = "\
     int Foo()               \n\
@@ -694,14 +685,13 @@ TEST(Bytecode0, IfThenElse1) {
             a <<= 3;        \n\
         return a;           \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse1", scrip);
     const size_t codesize = 102;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           15,   29,    3,    6,    // 7
@@ -718,26 +708,25 @@ TEST(Bytecode0, IfThenElse1) {
        7,    3,    2,    1,            4,   31,    6,    2,    // 95
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, IfThenElse2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IfThenElse2) {    
 
     char *inpl = "\
     int Foo()               \n\
@@ -750,14 +739,13 @@ TEST(Bytecode0, IfThenElse2) {
         }                   \n\
         return a;           \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse2", scrip);
     const size_t codesize = 102;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           15,   29,    3,    6,    // 7
@@ -774,26 +762,25 @@ TEST(Bytecode0, IfThenElse2) {
        7,    3,    2,    1,            4,   31,    6,    2,    // 95
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, While) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, While) {
 
     char *inpl = "\
     char c = 'x';             \n\
@@ -809,13 +796,12 @@ TEST(Bytecode0, While) {
         return sum;           \n\
     }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("While", scrip);
     const size_t codesize = 108;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,    6,    // 7
@@ -833,10 +819,10 @@ TEST(Bytecode0, While) {
        2,    1,    4,   31,            6,    2,    1,    4,    // 103
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 4;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        9,   34,   60,   70,        -999
@@ -844,25 +830,22 @@ TEST(Bytecode0, While) {
     char fixuptypes[] = {
       1,   1,   1,   1,     '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-
-
-TEST(Bytecode0, DoNCall) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, DoNCall) {
 
     char *inpl = "\
     char c = 'x';             \n\
@@ -883,14 +866,13 @@ TEST(Bytecode0, DoNCall) {
         return Foo(x^x);      \n\
     }                         \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DoNCall", scrip);
     const size_t codesize = 120;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,    6,    // 7
@@ -910,10 +892,10 @@ TEST(Bytecode0, DoNCall) {
        1,    4,   31,    3,            6,    3,    0,    5,    // 119
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 4;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       14,   40,   50,  108,        -999
@@ -921,23 +903,22 @@ TEST(Bytecode0, DoNCall) {
     char fixuptypes[] = {
       1,   1,   1,   2,     '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, DoUnbracedIf) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, DoUnbracedIf) {    
 
     char *inpl = "\
     void noloopcheck main()   \n\
@@ -951,14 +932,13 @@ TEST(Bytecode0, DoUnbracedIf) {
         while (sum >= -1);    \n\
     }                         \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DoUnbracedIf", scrip);
     const size_t codesize = 70;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   68,    6,            3,    0,   29,    3,    // 7
@@ -971,27 +951,26 @@ TEST(Bytecode0, DoUnbracedIf) {
       30,    4,   19,    4,            3,    3,    4,    3,    // 63
       70,  -58,    2,    1,            4,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
 
-TEST(Bytecode0, For1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For1) {  
 
     char *inpl = "\
     int loop;                       \n\
@@ -1005,14 +984,13 @@ TEST(Bytecode0, For1) {
         }                           \n\
         return 0;                   \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For1", scrip);
     const size_t codesize = 119;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,    6,    2,    0,    // 7
@@ -1031,10 +1009,10 @@ TEST(Bytecode0, For1) {
        3,    4,    8,    3,           31, -100,    6,    3,    // 111
        0,   31,    3,    6,            3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 5;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        7,   12,   32,   65,         98,  -999
@@ -1042,23 +1020,22 @@ TEST(Bytecode0, For1) {
     char fixuptypes[] = {
       1,   1,   1,   1,      1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For2) {    
 
     char *inpl = "\
     int Foo(int i, float f)         \n\
@@ -1080,14 +1057,13 @@ TEST(Bytecode0, For2) {
             sum |= loop;            \n\
         return 0;                   \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For2", scrip);
     const size_t codesize = 312;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    4,    1,    1,    // 7
@@ -1131,26 +1107,25 @@ TEST(Bytecode0, For2) {
        6,    2,    1,    8,            6,    3,    0,    5,    // 311
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For3) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For3) {
 
     char *inpl = "\
     managed struct Struct           \n\
@@ -1168,14 +1143,13 @@ TEST(Bytecode0, For3) {
         return -7;                  \n\
     }                               \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For3", scrip);
     const size_t codesize = 57;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
@@ -1187,10 +1161,10 @@ TEST(Bytecode0, For3) {
        6,    3,   -7,   31,            3,    6,    3,    0,    // 55
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       21,  -999
@@ -1198,23 +1172,22 @@ TEST(Bytecode0, For3) {
     char fixuptypes[] = {
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For4) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For4) {    
 
     char *inpl = "\
     void main()                     \n\
@@ -1224,14 +1197,13 @@ TEST(Bytecode0, For4) {
                 continue;           \n\
     }                               \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For4", scrip);
     const size_t codesize = 71;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,   51,    // 7
@@ -1244,26 +1216,25 @@ TEST(Bytecode0, For4) {
       51,    4,    7,    3,            1,    3,    1,    8,    // 63
        3,   31,  -60,    2,            1,    4,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For5) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For5) {    
 
     char *inpl = "\
         int Start()                     \n\
@@ -1286,15 +1257,14 @@ TEST(Bytecode0, For5) {
                     continue;           \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For5", scrip);
     const size_t codesize = 140;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            1,   31,    3,    6,    // 7
@@ -1316,10 +1286,10 @@ TEST(Bytecode0, For5) {
        1,    4,   51,    4,            8,    3,   31,  -80,    // 135
        2,    1,    4,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 4;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       51,   64,  104,  124,        -999
@@ -1327,23 +1297,22 @@ TEST(Bytecode0, For5) {
     char fixuptypes[] = {
       2,   2,   2,   2,     '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For6) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For6) {  
 
     char *inpl = "\
         void main()                     \n\
@@ -1367,15 +1336,14 @@ TEST(Bytecode0, For6) {
             return x + 1;               \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For6", scrip);
     const size_t codesize = 140;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           93,   23,    3,   29,    // 7
@@ -1397,10 +1365,10 @@ TEST(Bytecode0, For6) {
       11,    4,    3,    3,            4,    3,   31,    3,    // 135
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 4;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        4,   17,   57,   77,        -999
@@ -1408,23 +1376,22 @@ TEST(Bytecode0, For6) {
     char fixuptypes[] = {
       2,   2,   2,   2,     '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, For7) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, For7) {
 
     // Initializer and iterator of a for() need not be assignments,
     // they can be func calls.
@@ -1451,15 +1418,14 @@ TEST(Bytecode0, For7) {
             i++;                        \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For7", scrip);
     const size_t codesize = 123;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           65,   23,    3,    6,    // 7
@@ -1479,10 +1445,10 @@ TEST(Bytecode0, For7) {
        6,    2,    0,    7,            3,    1,    3,    1,    // 119
        8,    3,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 9;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        4,    9,   16,   41,         54,   59,   72,   88,    // 7
@@ -1492,24 +1458,22 @@ TEST(Bytecode0, For7) {
       2,   2,   1,   1,      1,   2,   1,   1,    // 7
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Continue1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Continue1) {   
 
     // Locals only become invalid at the end of their nesting; below a "continue", they
     // remain valid so the offset to start of the local block
@@ -1530,15 +1494,14 @@ TEST(Bytecode0, Continue1) {
             return I;                   \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Continue1", scrip);
     const size_t codesize = 114;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    4,    1,    1,    // 7
@@ -1557,26 +1520,25 @@ TEST(Bytecode0, Continue1) {
        4,   31,    6,    2,            1,    4,    6,    3,    // 111
        0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, IfDoWhile) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, IfDoWhile) {   
 
     char *inpl = "\
     int Foo(int i, float f)                      \n\
@@ -1592,14 +1554,13 @@ TEST(Bytecode0, IfDoWhile) {
             do { loop += 1; } while (loop < 100);   \n\
         return 0;                                \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfDoWhile", scrip);
     const size_t codesize = 179;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,   51,    // 7
@@ -1626,26 +1587,25 @@ TEST(Bytecode0, IfDoWhile) {
        1,   12,   31,    6,            2,    1,   12,    6,    // 175
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Switch01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Switch01) {    
 
     char *inpl = "\
     int Foo(int i, float f)         \n\
@@ -1661,13 +1621,12 @@ TEST(Bytecode0, Switch01) {
         return 0;                   \n\
     }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Switch01", scrip);
     const size_t codesize = 165;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -1692,10 +1651,10 @@ TEST(Bytecode0, Switch01) {
       70,  -93,   31, -124,            6,    3,    0,   31,    // 159
        3,    6,    3,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
@@ -1703,28 +1662,27 @@ TEST(Bytecode0, Switch01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
     {
-        if (!strcmp(scrip->imports[idx], ""))
+        if (!strcmp(scrip.imports[idx], ""))
             continue;
         idx2++;
         ASSERT_LT(idx2, numimports);
         std::string prefix = "imports[";
         prefix += std::to_string(idx2) + "] == ";
-        std::string is_val = prefix + scrip->imports[idx];
+        std::string is_val = prefix + scrip.imports[idx];
         std::string test_val = prefix + imports[idx2];
         ASSERT_EQ(is_val, test_val);
     }
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, FreeLocalPtr) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, FreeLocalPtr) {   
 
     char *inpl = "\
     managed struct S                  \n\
@@ -1740,13 +1698,13 @@ TEST(Bytecode0, FreeLocalPtr) {
             sptr = new S;             \n\
     }                                 \n\
     ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FreeLocalPtr", scrip);
     const size_t codesize = 67;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   73,    3,            4,   51,    0,   47,    // 7
@@ -1759,27 +1717,26 @@ TEST(Bytecode0, FreeLocalPtr) {
        4,   51,    4,   49,            2,    1,    4,    6,    // 63
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, StringOldstyle01) {
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, StringOldstyle01) {
+    ccSetOption(SCOPT_OLDSTRINGS, true);    
 
     char *inpl = "\
         int Sentinel1;              \n\
@@ -1794,13 +1751,12 @@ TEST(Bytecode0, StringOldstyle01) {
         }                           \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle01", scrip);
     const size_t codesize = 34;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
           38,    0,   51,    0,           63,  200,    1,    1,    // 7
@@ -1809,10 +1765,10 @@ TEST(Bytecode0, StringOldstyle01) {
          201,   31,    6,    2,            1,  201,    6,    3,    // 31
            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       18,  -999
@@ -1820,26 +1776,22 @@ TEST(Bytecode0, StringOldstyle01) {
     char fixuptypes[] = {
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, StringOldstyle02) {
-
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, StringOldstyle02) {
 
     char *inpl = "\
         int sub(const string s) \n\
@@ -1853,13 +1805,14 @@ TEST(Bytecode0, StringOldstyle02) {
         }                       \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle02", scrip);
     const size_t codesize = 30;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   31,    3,    6,    // 7
@@ -1867,10 +1820,10 @@ TEST(Bytecode0, StringOldstyle02) {
       29,    3,    6,    3,            0,   23,    3,    2,    // 23
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       15,   20,  -999
@@ -1878,19 +1831,19 @@ TEST(Bytecode0, StringOldstyle02) {
     char fixuptypes[] = {
       3,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 4;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {
     'F',  'o',  'o',    0,          '\0'
@@ -1898,17 +1851,16 @@ TEST(Bytecode0, StringOldstyle02) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (static_cast<int>(idx) >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip.stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
-        std::string test_val = prefix + std::to_string(scrip->strings[idx]);
+        std::string test_val = prefix + std::to_string(scrip.strings[idx]);
         ASSERT_EQ(is_val, test_val);
     }
 }
 
-TEST(Bytecode0, Struct01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct01) {
 
     char *inpl = "\
     	struct Struct                       \n\
@@ -1933,14 +1885,13 @@ TEST(Bytecode0, Struct01) {
 			int J = I[3];                   \n\
 		}                                   \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+ 
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct01", scrip);
     const size_t codesize = 140;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
@@ -1962,10 +1913,10 @@ TEST(Bytecode0, Struct01) {
       12,    7,    3,   29,            3,   51,    8,   49,    // 135
        2,    1,   12,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
      106,  -999
@@ -1973,23 +1924,22 @@ TEST(Bytecode0, Struct01) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct02) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct02) {   
 
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
@@ -2012,13 +1962,12 @@ TEST(Bytecode0, Struct02) {
         return;                     \n\
     }";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct02", scrip);
     const size_t codesize = 85;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,    6,    2,   68,    // 7
@@ -2033,10 +1982,10 @@ TEST(Bytecode0, Struct02) {
       32,    3,    4,   11,            2,    3,   30,    3,    // 79
        8,    3,   31,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 6;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        7,   17,   29,   34,         59,   64,  -999
@@ -2044,23 +1993,22 @@ TEST(Bytecode0, Struct02) {
     char fixuptypes[] = {
       1,   1,   1,   1,      1,   1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct03) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct03) {    
 
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
@@ -2080,14 +2028,13 @@ TEST(Bytecode0, Struct03) {
         S.Array[S.Ix] = 19;         \n\
         return;                     \n\
     }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct03", scrip);
     const size_t codesize = 85;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,    6,    2,   68,    // 7
@@ -2102,10 +2049,10 @@ TEST(Bytecode0, Struct03) {
       32,    3,    4,   11,            2,    3,   30,    3,    // 79
        8,    3,   31,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 6;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        7,   17,   29,   34,         59,   64,  -999
@@ -2113,23 +2060,22 @@ TEST(Bytecode0, Struct03) {
     char fixuptypes[] = {
       1,   1,   1,   1,      1,   1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct04) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct04) {
 
     char *inpl = "\
         managed struct StructI                               \n\
@@ -2152,14 +2098,13 @@ TEST(Bytecode0, Struct04) {
             SOA[2].SI = new StructI;                         \n\
         }                                                    \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct04", scrip);
     const size_t codesize = 104;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,   16,    1,    1,    // 7
@@ -2177,26 +2122,25 @@ TEST(Bytecode0, Struct04) {
      -29,    2,    1,   64,            6,    3,    0,    5,    // 103
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct05) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct05) {   
 
     char *inpl = "\
         struct StructO                                       \n\
@@ -2211,14 +2155,13 @@ TEST(Bytecode0, Struct05) {
              return S1.StInt(S2.StInt(7));                   \n\
         }                                                    \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct05", scrip);
     const size_t codesize = 40;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    0,    1,    1,    // 7
@@ -2228,10 +2171,10 @@ TEST(Bytecode0, Struct05) {
       35,    1,   31,    3,            6,    3,    0,    5,    // 39
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       18,   29,  -999
@@ -2239,24 +2182,23 @@ TEST(Bytecode0, Struct05) {
     char fixuptypes[] = {
       4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "StructO::StInt^1",            "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
 }
 
-TEST(Bytecode0, Struct06) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct06) {
 
     // NOTE: S1.Array[3] is null, so S1.Array[3].Payload should dump
     // when executed in real.
@@ -2282,13 +2224,13 @@ TEST(Bytecode0, Struct06) {
         }                                                   \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct06", scrip);
     const size_t codesize = 50;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    4,    1,    1,    // 7
@@ -2299,26 +2241,25 @@ TEST(Bytecode0, Struct06) {
       51,    4,   49,    2,            1,    4,    6,    3,    // 47
        0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct07) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct07) {    
 
     char *inpl = "\
         struct Struct1                                       \n\
@@ -2338,14 +2279,13 @@ TEST(Bytecode0, Struct07) {
             return 0;                                        \n\
         }                                                    \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct07", scrip);
     const size_t codesize = 72;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,    6,    // 7
@@ -2359,10 +2299,10 @@ TEST(Bytecode0, Struct07) {
        3,    0,   31,    3,            6,    3,    0,    5,    // 71
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 5;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        9,   21,   28,   48,         55,  -999
@@ -2370,23 +2310,22 @@ TEST(Bytecode0, Struct07) {
     char fixuptypes[] = {
       1,   1,   1,   1,      1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Struct08) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Struct08) {   
 
     char *inpl = "\
         struct Struct                                        \n\
@@ -2404,14 +2343,13 @@ TEST(Bytecode0, Struct08) {
             return !i || !(j) && this.k || (0 != this.l);    \n\
         }                                                    \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct08", scrip);
     const size_t codesize = 84;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   42,    3,    // 7
@@ -2426,26 +2364,25 @@ TEST(Bytecode0, Struct08) {
       22,    4,    3,    3,            4,    3,   31,    3,    // 79
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func01) {
 
     char *inpl = "\
     managed struct Struct1          \n\
@@ -2467,15 +2404,13 @@ TEST(Bytecode0, Func01) {
         return Ret;                 \n\
     }                               \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func01", scrip);
     const size_t codesize = 65;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
@@ -2488,10 +2423,10 @@ TEST(Bytecode0, Func01) {
        8,   49,    2,    1,           12,    6,    3,    0,    // 63
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       30,  -999
@@ -2499,23 +2434,22 @@ TEST(Bytecode0, Func01) {
     char fixuptypes[] = {
       4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Func",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func02) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func02) {   
 
     char *inpl = "\
     managed struct Struct1          \n\
@@ -2537,15 +2471,13 @@ TEST(Bytecode0, Func02) {
                                     \n\
     import int Func(Struct1 *S1, Struct2 *S2);  \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func02", scrip);
     const size_t codesize = 65;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
@@ -2558,10 +2490,10 @@ TEST(Bytecode0, Func02) {
        8,   49,    2,    1,           12,    6,    3,    0,    // 63
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       30,  -999
@@ -2569,23 +2501,22 @@ TEST(Bytecode0, Func02) {
     char fixuptypes[] = {
       4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Func",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func03) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func03) {    
 
     char *inpl = "\
     managed struct Struct1          \n\
@@ -2612,15 +2543,13 @@ TEST(Bytecode0, Func03) {
         return Ret;                 \n\
     }                               \n\
    ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func03", scrip);
     const size_t codesize = 99;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   50,    3,    // 7
@@ -2637,10 +2566,10 @@ TEST(Bytecode0, Func03) {
       49,   51,    8,   49,            2,    1,   12,    6,    // 95
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       63,  -999
@@ -2648,24 +2577,23 @@ TEST(Bytecode0, Func03) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func04) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Func04) {
+    
     char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
@@ -2684,14 +2612,12 @@ TEST(Bytecode0, Func04) {
     }                               \n\
     ";
 
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func04", scrip);
     const size_t codesize = 54;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,    6,    // 7
@@ -2702,10 +2628,10 @@ TEST(Bytecode0, Func04) {
        3,    0,    5,   38,           43,   73,    3,    4,    // 47
       31,    3,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        9,  -999
@@ -2713,24 +2639,23 @@ TEST(Bytecode0, Func04) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func05) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Func05) {
+   
     char *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
@@ -2745,14 +2670,13 @@ TEST(Bytecode0, Func05) {
         }                            \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func05", scrip);
     const size_t codesize = 52;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -2763,10 +2687,10 @@ TEST(Bytecode0, Func05) {
        0,   23,    3,    2,            1,    8,   29,    3,    // 47
        2,    1,    4,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       40,  -999
@@ -2774,23 +2698,22 @@ TEST(Bytecode0, Func05) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func06) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func06) {  
 
     char *inpl = "\
         import int Func(int, int = 5); \n\
@@ -2801,15 +2724,14 @@ TEST(Bytecode0, Func06) {
             int Int2 = Func(4, 1);   \n\
         }                            \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func06", scrip);
     const size_t codesize = 48;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   34,    3,    6,    // 7
@@ -2820,10 +2742,10 @@ TEST(Bytecode0, Func06) {
       35,    2,   29,    3,            2,    1,    8,    5,    // 47
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       16,   37,  -999
@@ -2831,23 +2753,22 @@ TEST(Bytecode0, Func06) {
     char fixuptypes[] = {
       4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Func",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func07) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func07) {   
 
     char *inpl = "\
         void main()                  \n\
@@ -2858,15 +2779,14 @@ TEST(Bytecode0, Func07) {
                                      \n\
         import int Func(int, int = 5); \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func07", scrip);
     const size_t codesize = 48;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   34,    3,    6,    // 7
@@ -2877,10 +2797,10 @@ TEST(Bytecode0, Func07) {
       35,    2,   29,    3,            2,    1,    8,    5,    // 47
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       16,   37,  -999
@@ -2888,23 +2808,22 @@ TEST(Bytecode0, Func07) {
     char fixuptypes[] = {
       4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Func",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func08) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func08) {    
 
     char *inpl = "\
         import int Func(int f, int = 5); \n\
@@ -2916,15 +2835,14 @@ TEST(Bytecode0, Func08) {
             int Int2 = Func(4, 1);   \n\
         }                            \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func08", scrip);
     const size_t codesize = 48;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   34,    3,    6,    // 7
@@ -2935,10 +2853,10 @@ TEST(Bytecode0, Func08) {
       35,    2,   29,    3,            2,    1,    8,    5,    // 47
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       16,   37,  -999
@@ -2946,24 +2864,23 @@ TEST(Bytecode0, Func08) {
     char fixuptypes[] = {
       4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Func",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func09) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Func09) {
+    
     char *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
@@ -2977,15 +2894,14 @@ TEST(Bytecode0, Func09) {
             int Int = Func(4,-99);   \n\
         }                            \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func09", scrip);
     const size_t codesize = 52;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -2996,10 +2912,10 @@ TEST(Bytecode0, Func09) {
        0,   23,    3,    2,            1,    8,   29,    3,    // 47
        2,    1,    4,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       40,  -999
@@ -3007,23 +2923,22 @@ TEST(Bytecode0, Func09) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func10) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func10) {   
 
     char *inpl = "\
     struct Struct                   \n\
@@ -3044,15 +2959,13 @@ TEST(Bytecode0, Func10) {
         return Int;                 \n\
     }                               \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func10", scrip);
     const size_t codesize = 60;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   31,    3,    6,    // 7
@@ -3064,10 +2977,10 @@ TEST(Bytecode0, Func10) {
        2,    1,    8,   31,            6,    2,    1,    8,    // 55
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       26,  -999
@@ -3075,24 +2988,23 @@ TEST(Bytecode0, Func10) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Export) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Export) {
+    
     char *inpl = "\
     struct Struct                   \n\
     {                               \n\
@@ -3115,15 +3027,13 @@ TEST(Bytecode0, Export) {
     }                               \n\
     export main;                    \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Export", scrip);
     const size_t codesize = 51;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    8,    1,    1,    // 7
@@ -3134,19 +3044,19 @@ TEST(Bytecode0, Export) {
        1,    8,   31,    6,            2,    1,    8,    6,    // 47
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 4;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     std::string exports[] = {
     "StructyStructy", "Floaty",   "Inty",     "main$0",   // 3
@@ -3156,16 +3066,14 @@ TEST(Bytecode0, Export) {
     0x2000000, 0x200000c,    0x2000008, 0x1000000, // 3
      0
     };
-    CompareExports(scrip, numexports, exports, export_addr);
+    CompareExports(&scrip, numexports, exports, export_addr);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, ArrayOfPointers1) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, ArrayOfPointers1) {
+   
     char *inpl = "\
     managed struct Struct                \n\
     {                                    \n\
@@ -3183,13 +3091,12 @@ TEST(Bytecode0, ArrayOfPointers1) {
     }                                    \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers1", scrip);
     const size_t codesize = 96;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,   51,    // 7
@@ -3206,10 +3113,10 @@ TEST(Bytecode0, ArrayOfPointers1) {
        3,    2,    1,    4,            6,    3,    0,    5,    // 95
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       33,   71,  -999
@@ -3217,23 +3124,22 @@ TEST(Bytecode0, ArrayOfPointers1) {
     char fixuptypes[] = {
       1,   1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, ArrayOfPointers2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, ArrayOfPointers2) {    
 
     char *inpl = "\
     managed struct Struct                \n\
@@ -3252,15 +3158,13 @@ TEST(Bytecode0, ArrayOfPointers2) {
         arr2[4] = null;                  \n\
     }                                    \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers2", scrip);
     const size_t codesize = 147;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,  200,    1,    1,    // 7
@@ -3283,26 +3187,25 @@ TEST(Bytecode0, ArrayOfPointers2) {
        3,    1,   70,   -9,            2,    1,  200,    6,    // 143
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, ArrayInStruct1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, ArrayInStruct1) {    
 
     char *inpl = "\
     managed struct Struct                \n\
@@ -3316,15 +3219,13 @@ TEST(Bytecode0, ArrayInStruct1) {
         S.Int[4] =  1;                   \n\
     }                                    \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayInStruct1", scrip);
     const size_t codesize = 39;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   73,    3,           40,   51,    0,   47,    // 7
@@ -3333,27 +3234,26 @@ TEST(Bytecode0, ArrayInStruct1) {
       16,   30,    3,    8,            3,   51,    4,   49,    // 31
        2,    1,    4,    6,            3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, ArrayInStruct2) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, ArrayInStruct2) {
+    
     // Static arrays can be multidimensional
 
     char *inpl = "\
@@ -3370,15 +3270,13 @@ TEST(Bytecode0, ArrayInStruct2) {
         S.Int2[1][2] = S.Int1[4, 2];     \n\
     }                                    \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayInStruct2", scrip);
     const size_t codesize = 63;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   73,    3,          104,   51,    0,   47,    // 7
@@ -3390,26 +3288,25 @@ TEST(Bytecode0, ArrayInStruct2) {
      100,   30,    3,    8,            3,   51,    4,   49,    // 55
        2,    1,    4,    6,            3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func11) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func11) { 
 
     char *inpl = "\
     int Func(int I, ...)                 \n\
@@ -3422,15 +3319,13 @@ TEST(Bytecode0, Func11) {
         return 0;                        \n\
     }                                    \n\
     ";
-
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+  
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func11", scrip);
     const size_t codesize = 51;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -3441,29 +3336,28 @@ TEST(Bytecode0, Func11) {
       38,   40,    6,    3,            0,   31,    3,    6,    // 47
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func12) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func12) {
 
     // Function with float default, or default "0", for float parameter
+
     char *inpl = "\
     float Func1(float F = 7.2)          \n\
     {                                   \n\
@@ -3481,13 +3375,12 @@ TEST(Bytecode0, Func12) {
     }                                   \n\
     ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func12", scrip);
     const size_t codesize = 68;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   31,    3,    // 7
@@ -3500,10 +3393,10 @@ TEST(Bytecode0, Func12) {
       57,    4,    3,    3,            4,    3,   31,    3,    // 63
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       33,   48,  -999
@@ -3511,26 +3404,25 @@ TEST(Bytecode0, Func12) {
     char fixuptypes[] = {
       2,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-
-TEST(Bytecode0, Func13) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func13) {
 
     // Function with default null or 0 for managed parameter
+
     char *inpl = "\
     managed struct S                    \n\
     {                                   \n\
@@ -3552,14 +3444,13 @@ TEST(Bytecode0, Func13) {
         return Func1() == Func2();      \n\
     }                                   \n\
     ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func13", scrip);
     const size_t codesize = 118;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   50,    3,    // 7
@@ -3578,10 +3469,10 @@ TEST(Bytecode0, Func13) {
       30,    4,   15,    4,            3,    3,    4,    3,    // 111
       31,    3,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       83,   98,  -999
@@ -3589,23 +3480,22 @@ TEST(Bytecode0, Func13) {
     char fixuptypes[] = {
       2,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Func14) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Func14) {   
 
     // Strange misalignment due to bad function protocol
 
@@ -3636,14 +3526,13 @@ TEST(Bytecode0, Func14) {
             TS.Test(7);             \n\
         }                           \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func14", scrip);
     const size_t codesize = 139;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            1,   72,    3,    4,    // 7
@@ -3665,10 +3554,10 @@ TEST(Bytecode0, Func14) {
        1,    2,    4,   49,            2,    1,    8,    6,    // 135
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       79,  117,  -999
@@ -3676,23 +3565,22 @@ TEST(Bytecode0, Func14) {
     char fixuptypes[] = {
       2,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, FuncStart1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, FuncStart1) {
 
     // NON-managed dynpointers must be read/rewritten at function start, too.
 
@@ -3705,13 +3593,13 @@ TEST(Bytecode0, FuncStart1) {
         {                                       \n\
         }                                       \n\
         ";
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    
+    int compileResult = cc_compile(inpl, &scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FuncStart1", scrip);
     const size_t codesize = 40;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,           10,   29,    3,    6,    // 7
@@ -3721,10 +3609,10 @@ TEST(Bytecode0, FuncStart1) {
        7,    3,   50,    3,           51,    8,   49,    5,    // 39
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       18,  -999
@@ -3732,25 +3620,25 @@ TEST(Bytecode0, FuncStart1) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Writeprotected) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Writeprotected) {
+    
     // Directly taken from the doc on writeprotected, simplified.
+
     char *inpl = "\
         struct Weapon {                         \n\
             short Beauty;                       \n\
@@ -3769,15 +3657,13 @@ TEST(Bytecode0, Writeprotected) {
             return wp.Damage;                   \n\
         }                                       \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+ 
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Writeprotected", scrip);
     const size_t codesize = 37;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,    3,    6,    // 7
@@ -3786,10 +3672,10 @@ TEST(Bytecode0, Writeprotected) {
       38,   24,    6,    2,            2,    7,    3,   31,    // 31
        3,    6,    3,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       28,  -999
@@ -3797,25 +3683,25 @@ TEST(Bytecode0, Writeprotected) {
     char fixuptypes[] = {
       1,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Protected1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Protected1) {
 
     // Directly taken from the doc on protected, simplified.
+
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -3830,41 +3716,38 @@ TEST(Bytecode0, Protected1) {
             return 0;                          \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Protected1", scrip);
     const size_t codesize = 21;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,    3,    6,    // 7
        2,   52,    8,    3,            6,    3,    0,   31,    // 15
        3,    6,    3,    0,            5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Static1) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Static1) {   
 
     char *inpl = "\
         struct Weapon {                         \n\
@@ -3884,14 +3767,12 @@ TEST(Bytecode0, Static1) {
         }                                       \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Static1", scrip);
     const size_t codesize = 120;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -3911,10 +3792,10 @@ TEST(Bytecode0, Static1) {
        6,    2,    1,    4,            6,    3,    0,    5,    // 119
      -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 3;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       40,   60,   94,  -999
@@ -3922,23 +3803,22 @@ TEST(Bytecode0, Static1) {
     char fixuptypes[] = {
       2,   2,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Static2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Static2) {
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -3955,15 +3835,13 @@ TEST(Bytecode0, Static2) {
         }                                      \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Static2", scrip);
 
     const size_t codesize = 52;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -3974,10 +3852,10 @@ TEST(Bytecode0, Static2) {
        0,   23,    3,    2,            1,    8,   31,    3,    // 47
        6,    3,    0,    5,          -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       40,  -999
@@ -3985,24 +3863,23 @@ TEST(Bytecode0, Static2) {
     char fixuptypes[] = {
       2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
 }
 
-TEST(Bytecode0, Protected2) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Protected2) {
 
     // In a struct func, a variable that can't be found otherwise
     // should be taken to be out of the current struct.
@@ -4023,15 +3900,13 @@ TEST(Bytecode0, Protected2) {
             return 0;                          \n\
         }                                      \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Protected2", scrip);
     const size_t codesize = 25;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
@@ -4039,26 +3914,25 @@ TEST(Bytecode0, Protected2) {
        6,    3,    0,   31,            3,    6,    3,    0,    // 23
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Import) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Import) {    
 
     char *inpl = "\
         import int Weapon;                     \n\
@@ -4072,14 +3946,12 @@ TEST(Bytecode0, Import) {
         }                                      \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Import", scrip);
     const size_t codesize = 94;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   29,    3,    6,    // 7
@@ -4095,10 +3967,10 @@ TEST(Bytecode0, Import) {
        4,    3,    6,    2,            0,    8,    3,    2,    // 87
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 4;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       12,   17,   49,   84,        -999
@@ -4106,24 +3978,23 @@ TEST(Bytecode0, Import) {
     char fixuptypes[] = {
       4,   4,   4,   4,     '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 1;
     std::string imports[] = {
     "Weapon",       "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Switch02) {
-    ccCompiledScript *scrip = newScriptFixture();
-
+TEST_F(Bytecode0, Switch02) {
+    
     // Last switch clause no "break"
     char *inpl = "\
         void main()                     \n\
@@ -4137,15 +4008,13 @@ TEST(Bytecode0, Switch02) {
             return;                     \n\
         }                               \n\
         ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Switch02", scrip);
     const size_t codesize = 50;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   29,    3,   51,    // 7
@@ -4156,10 +4025,10 @@ TEST(Bytecode0, Switch02) {
      -25,    2,    1,    4,           31,    3,    2,    1,    // 47
        4,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 0;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     const int numimports = 0;
     std::string imports[] = {
@@ -4167,28 +4036,27 @@ TEST(Bytecode0, Switch02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip.numimports; idx++)
     {
-        if (!strcmp(scrip->imports[idx], ""))
+        if (!strcmp(scrip.imports[idx], ""))
             continue;
         idx2++;
         ASSERT_LT(idx2, numimports);
         std::string prefix = "imports[";
         prefix += std::to_string(idx2) + "] == ";
-        std::string is_val = prefix + scrip->imports[idx];
+        std::string is_val = prefix + scrip.imports[idx];
         std::string test_val = prefix + imports[idx2];
         ASSERT_EQ(is_val, test_val);
     }
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Attributes01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Attributes01) {    
 
     char *inpl = "\
         enum bool { false = 0, true = 1 };              \n\
@@ -4211,14 +4079,13 @@ TEST(Bytecode0, Attributes01) {
         }                                               \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes01", scrip);
     const size_t codesize = 166;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
@@ -4243,10 +4110,10 @@ TEST(Bytecode0, Attributes01) {
        1,    4,   31,    9,           51,    4,   49,    2,    // 159
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 6;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       21,   46,   66,   86,        114,  143,  -999
@@ -4254,24 +4121,23 @@ TEST(Bytecode0, Attributes01) {
     char fixuptypes[] = {
       4,   4,   4,   4,      4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 4;
     std::string imports[] = {
     "ViewFrame::get_Flipped^0",   "ViewFrame::get_Graphic^0",   "ViewFrame::set_Graphic^1",   // 2
     "ViewFrame::get_AsFloat^0",    "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Attributes02) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Attributes02) {
 
     // The getter and setter functions are defined locally, so
     // they ought to be exported instead of imported.
@@ -4305,14 +4171,12 @@ TEST(Bytecode0, Attributes02) {
         }                                               \n\
         ";
 
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes02", scrip);
     const size_t codesize = 139;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   73,    3,            8,   51,    0,   47,    // 7
@@ -4334,10 +4198,10 @@ TEST(Bytecode0, Attributes02) {
        1,    2,    2,    7,            3,   31,    3,    6,    // 135
        3,    0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       28,   47,  -999
@@ -4345,23 +4209,22 @@ TEST(Bytecode0, Attributes02) {
     char fixuptypes[] = {
       2,   2,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, Attributes03) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, Attributes03) {
 
     // The getters and setters are NOT defined locally, so
     // import decls should be generated for them.
@@ -4380,15 +4243,13 @@ TEST(Bytecode0, Attributes03) {
             armor.Damage = 17;                          \n\
             return (armor.Damage > 10);                 \n\
         }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
+   
+    int compileResult = cc_compile(inpl, &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes03", scrip);
     const size_t codesize = 86;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   73,    3,            8,   51,    0,   47,    // 7
@@ -4403,10 +4264,10 @@ TEST(Bytecode0, Attributes03) {
        1,    4,   31,    9,           51,    4,   49,    2,    // 79
        1,    4,    6,    3,            0,    5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
       30,   50,  -999
@@ -4414,23 +4275,22 @@ TEST(Bytecode0, Attributes03) {
     char fixuptypes[] = {
       4,   4,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 2;
     std::string imports[] = {
     "Armor::get_Damage^0",        "Armor::set_Damage^1",         "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST(Bytecode0, StringStandard01) {
-    ccCompiledScript *scrip = newScriptFixture();
+TEST_F(Bytecode0, StringStandard01) {    
 
     char inpl[] = "\
         int main()                         \n\
@@ -4446,14 +4306,13 @@ TEST(Bytecode0, StringStandard01) {
     input += g_Input_String;
     input += inpl;
 
-    clear_error();
-    int compileResult = cc_compile(input.c_str(), scrip);
-
+    
+    int compileResult = cc_compile(input.c_str(), &scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringStandard01", scrip);
     const size_t codesize = 65;
-    EXPECT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   64,    3,   51,    // 7
@@ -4466,10 +4325,10 @@ TEST(Bytecode0, StringStandard01) {
        4,   49,    2,    1,            4,    6,    3,    0,    // 63
        5,  -999
     };
-    CompareCode(scrip, codesize, code);
+    CompareCode(&scrip, codesize, code);
 
     const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
        4,   22,  -999
@@ -4477,24 +4336,24 @@ TEST(Bytecode0, StringStandard01) {
     char fixuptypes[] = {
       3,   3,  '\0'
     };
-    CompareFixups(scrip, numfixups, fixups, fixuptypes);
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
     const int numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
-    CompareImports(scrip, numimports, imports);
+    CompareImports(&scrip, numimports, imports);
 
     const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
+    EXPECT_EQ(numexports, scrip.numexports);
 
     const size_t stringssize = 18;
-    EXPECT_EQ(stringssize, scrip->stringssize);
+    EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {
     'H',  'e',  'l',  'l',          'o',  ',',  ' ',  'w',     // 7
     'o',  'r',  'l',  'd',          '!',    0,  'B',  'y',     // 15
     'e',    0,  '\0'
     };
-    CompareStrings(scrip, stringssize, strings);
+    CompareStrings(&scrip, stringssize, strings);
 }

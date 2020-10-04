@@ -97,12 +97,20 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
-	<ClCompile Include="..\..\Common\util\string_compat.c" />
-    <ClCompile Include="..\..\Compiler\test2\cc_byte_compat_test.cpp" />
+    <ClCompile Include="..\..\Common\util\string_compat.c" />
+    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_0.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_1.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_internallist_test.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_symboltable_test.cpp" />
-    <ClCompile Include="..\..\Compiler\test2\cs_parser_test.cpp" />
-    <ClCompile Include="..\..\Compiler\test2\cs_scanner_test.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_lib.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_0.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_1.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_parser_test_lib.cpp" />
+    <ClCompile Include="..\..\Compiler\test2\cc_scanner_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Compiler\test2\cc_bytecode_test_lib.h" />
+    <ClInclude Include="..\..\Compiler\test2\cc_parser_test_lib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

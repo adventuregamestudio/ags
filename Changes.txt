@@ -1,5 +1,26 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 5, October 2020
+
+Editor:
+ - Fixed Inventory Item preview could show wrong sprites and/or sprites in wrong scale.
+
+Engine:
+ - Fixed Dictionary.Get() crashing on missing key instead of returning null, as expected.
+ - Dictionary.GetKeysAsArray(), GetValuesAsArray() and Set.GetItemsAsArray() now return null
+   if they have no elements (0-sized arrays are forbidden by AGS Script).
+ - Fixed AudioChannel.SetRoomLocation() parameters lost upon restoring a saved game.
+
+Linux:
+ - Disabled mouse speed control as it cannot be correctly supported. This fixes mouse movement
+   glitches in fullscreen on certain systems.
+
+Compatibility:
+ - Don't error on missing speech animation frames if speaking character is disabled (.on = false)
+ - Fixed legacy Seek/GetMIDIPosition() and Seek/GetMP3PosMillis() not working correctly in threaded
+   audio mode.
+
+
 VERSION 3.5.0 - Patch 4, August 2020
 
 Editor:

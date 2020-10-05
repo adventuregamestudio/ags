@@ -42,7 +42,6 @@ void ccSetSoftwareVersion(const char *version)
     ccSoftwareVersion = version;
 }
 
-
 ccScript *ccCompileText(const char *script, const char *scriptName)
 {
     ccCompiledScript *compiled_script = new ccCompiledScript();
@@ -70,7 +69,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
     sourcecode += script;
     ccCurScriptName = scriptName;
     compiled_script->start_new_section(ccCurScriptName);
-    cc_compile(sourcecode.c_str(), compiled_script);
+    cc_compile(sourcecode, *compiled_script);
 
     if (ccError)
     {
@@ -80,7 +79,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
     }
 
     // Sanity check for IMPORT fixups
-    for (size_t fixup_idx = 0; fixup_idx < compiled_script->numfixups; fixup_idx++)
+    for (size_t fixup_idx = 0; fixup_idx < static_cast<size_t>(compiled_script->numfixups); fixup_idx++)
     {
         if (FIXUP_IMPORT != compiled_script->fixuptypes[fixup_idx])
             continue;
@@ -108,7 +107,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
             return NULL;
         }
     }
-       
+
     if (ccGetOption(SCOPT_EXPORTALL))
     {
         // export all functions

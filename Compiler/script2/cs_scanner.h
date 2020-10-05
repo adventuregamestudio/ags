@@ -32,8 +32,7 @@ public:
         kSct_NonChar          // i.e., +, ++, /=; this can be one character or two characters
     };
 
-    static std::string const new_section_lit_prefix;
-
+    static std::string const kNewSectionLitPrefix;
 
 private:
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
@@ -45,37 +44,34 @@ private:
             std::string const Opener;
             std::string const Closer;
             size_t Pos;  // of the Opener symbol in the token list
+
+            OpenInfo(std::string const &opener, std::string const &closer, size_t pos);
         };
         std::vector<OpenInfo> _openInfoStack;
-        std::string _lastError;
-        SrcList &_sectionIdConverter;
+        Scanner &_scanner;
 
     public:
-        OpenCloseMatcher(SrcList &sectionIdConverter);
+        OpenCloseMatcher(Scanner &scanner);
 
         // We've encountered an opening symbol; push it and the expected closer onto a stack
         void Push(std::string const &opener, std::string const &expected_closer, size_t opener_pos);
 
         // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
         // If they don't match, generate error. Otherwise, pop from stack
-        void PopAndCheck(std::string const &closer, size_t closer_pos, bool &error_encountered);
-
-        std::string GetLastError() const { return _lastError; };
-
-        // Reset the matcher.
-        void Reset();
+        ErrorType PopAndCheck(std::string const &closer, size_t closer_pos);
     } _ocMatcher;
+    friend OpenCloseMatcher;
 
     std::istringstream _inputStream;
     std::size_t _lineno;
     std::string _section;
     SrcList &_tokenList;
-    std::string _lastError;
+    MessageHandler &_messageHandler;
     struct ::SymbolTable &_sym;
     struct ::ccCompiledScript &_stringCollector;
 
     // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
-    void SkipWhitespace(bool &eof_encountered, bool &error_encountered);
+    ErrorType SkipWhitespace(bool &eof_encountered);
 
     // We encountered a new line; process it
     void NewLine(size_t lineno);
@@ -85,54 +81,51 @@ private:
 
     //  Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
-    void ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
 
     // Translate a '\\' combination into a character, backslash is already read in
-    int EscapedChar2Char(int first_char_after_backslash, bool &error_encountered);
+    ErrorType EscapedChar2Char(int first_char_after_backslash, int &converted);
 
     static std::string MakeStringPrintable(std::string const &inp);
 
     // Read oct combination \777; backslash is already read in
-    int OctChar2Char(int first_digit_char);
+    int OctDigits2Char(int first_digit_char);
 
     // Read hex combination \x77; backslash is already read in
-    int HexChar2Char();
+    int HexDigits2Char(void);
 
     // Read in a character literal; converts it internally into an equivalent int literal
-    void ReadInCharLit(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInCharLit(std::string &symstring, bool &eof_encountered);
 
     // Read in a string literal
-    void ReadInStringLit(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInStringLit(std::string &symstring, bool &eof_encountered);
 
     // Read in an identifier or a keyword 
-    void ReadInIdentifier(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInIdentifier(std::string &symstring, bool &eof_encountered);
 
     // Read in a single-char symstring
-    void ReadIn1Char(std::string & symstring);
+    ErrorType ReadIn1Char(std::string & symstring);
 
     // Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
     // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
     // Otherwise, a one-char symstring is detected and the second char is left for the next call
-    void ReadIn1or2Char(
-        const std::string &possible_second_chars,
-        std::string &symstring,
-        bool &eof_encountered,
-        bool &error_encountered);
+    ErrorType ReadIn1or2Char(std::string const &possible_second_chars, std::string &symstring, bool &eof_encountered);
 
     // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
-    void ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
 
     // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
-    void ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInLTCombi(std::string &symstring, bool &eof_encountered);
 
     // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
-    void ReadInGTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+    ErrorType ReadInGTCombi(std::string &symstring, bool &eof_encountered);
 
-    void SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered, bool error_encountered);
+    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered);
 
-    void CheckMatcherNesting(Symbol token, bool &error_encountered);
+    ErrorType CheckMatcherNesting(Symbol token);
 
-    
+    void Error(char const *msg, ...);
+
 protected:
     // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
@@ -144,22 +137,20 @@ protected:
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
 
 public:
-    Scanner(std::string const &input, SrcList &token_list, struct ::ccCompiledScript &string_collector, SymbolTable &symt);
+    Scanner(std::string const &input, SrcList &token_list, ::ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
 
     // Scan the input into token_list; symbols into symt; strings into _string_collector
-    void Scan(bool &error_encountered);
+    ErrorType Scan();
 
     inline size_t GetLineno() const { return _lineno; }
 
-    inline std::string const GetSection() const{ return _section; }
-
-    inline std::string const GetLastError() const { return _lastError; }
+    inline std::string const GetSection() const { return _section; }
 
     // Get the next symstring from the input. Only exposed for googletests
-    void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
+    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
 
     // Get next token from the input. Only exposed for googletests
-    Symbol GetNextSymbol(bool &eof_encountered, bool &error_encountered);
+    ErrorType GetNextSymbol(Symbol &symbol, bool &eof_encountered);
 };
 
 } // namespace AGS

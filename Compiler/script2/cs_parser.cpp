@@ -432,9 +432,8 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
     _scrip.last_emitted_lineno = INT_MAX;
 }
 
-AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip)
-    : _sym(symt)
-    , _scrip(scrip)
+AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(Parser &parser)
+    : _parser(parser)
 { }
 
 void AGS::Parser::FuncCallpointMgr::Reset()
@@ -448,7 +447,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, C
     CodeCell const callpoint = _funcCallpointMap[func].Callpoint;
     if (callpoint >= 0)
     {
-        _scrip.code[loc] = callpoint;
+        _parser._scrip.code[loc] = callpoint;
         return kERR_None;
     }
 
@@ -521,7 +520,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS:
     for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
         if (pl[pl_idx].ChunkId == CodeBaseId)
         {
-            _scrip.code[pl[pl_idx].Offset] = dest;
+            _parser._scrip.code[pl[pl_idx].Offset] = dest;
             pl[pl_idx].ChunkId = PatchedId;
         }
         else if (pl[pl_idx].ChunkId != PatchedId)
@@ -544,7 +543,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::CheckForUnresolvedFuncs()
             if (pl[pl_idx].ChunkId != CodeBaseId)
                 continue;
             // Is possible if there is a forward declaration but not an import
-            cc_error("Function '%s()' has been called but not defined with body nor imported", _sym.GetName(fcm_it->first).c_str());
+            _parser.Error("Function '%s()' has been called but not defined with body nor imported", _parser._sym.GetName(fcm_it->first).c_str());
             return kERR_InternalError;
         }
     }
@@ -650,7 +649,7 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
     return idx;
 }
 
-AGS::Parser::MemoryLocation::MemoryLocation(AGS::Parser &parser)
+AGS::Parser::MemoryLocation::MemoryLocation(Parser &parser)
     : _parser(parser)
     , _ScType (kScT_None)
     , _startOffs(0u)
@@ -721,19 +720,18 @@ void AGS::Parser::MemoryLocation::Reset()
     _componentOffs = 0u;
 }
 
-AGS::Parser::Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip, std::vector<WarningEntry> &warnings)
+AGS::Parser::Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh)
     : _nest(scrip)
     , _pp(kPP_PreAnalyze)
     , _sym(symt)
     , _src(src)
     , _scrip(scrip)
-    , _warnings(warnings)
-    , _fcm(symt, scrip)
-    , _fim(symt, scrip)
+    , _msg_handler(mh)
+    , _fcm(*this)
+    , _fim(*this)
 {
     _importMgr.Init(&scrip);
     _givm.clear();
-    _warnings.clear();
     _lastEmittedSectionId = 0;
     _lastEmittedLineno = 0;
 
@@ -1893,10 +1891,10 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     
     ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
 
-   retval = ParseFuncdecl_Paramlist(name_of_func, body_follows);
+    retval = ParseFuncdecl_Paramlist(name_of_func, body_follows);
     if (retval < 0) return retval;
 
-   retval = ParseFuncdecl_CheckThatKnownInfoMatches(_sym[name_of_func], known_info, body_follows);
+    retval = ParseFuncdecl_CheckThatKnownInfoMatches(_sym[name_of_func], known_info, body_follows);
     if (retval < 0) return retval;
 
     // copy the default values from the function prototype into the symbol table
@@ -6796,7 +6794,7 @@ ErrorType AGS::Parser::ParseInput()
         {
 
         default:
-            // Assume a command
+            // Assume a command; is handled below the switch
             break;
 
         case 0:
@@ -6831,7 +6829,7 @@ ErrorType AGS::Parser::ParseInput()
         case kSYM_OpenBrace:
         {
             if (kPP_Main == _pp)
-                break; // treat as a command, below the switch
+                break; // treat as a command, handled below the switch
 
             ErrorType retval = SkipToClose(kSYM_CloseBrace);
             if (retval < 0) return retval;
@@ -6882,7 +6880,6 @@ ErrorType AGS::Parser::ParseInput()
     return kERR_None;
 }
 
-// Copy all the func headers from the PreAnalyse phase into the "real" symbol table
 ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning)
 {
     size_t const size_of_sym_after_scanning = sym_after_scanning.entries.size();
@@ -6913,8 +6910,6 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scann
     return kERR_None;
 }
 
-// blank out the name for imports that are not used, to save space
-// in the output file       
 ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
 {
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
@@ -6934,10 +6929,8 @@ ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
     return kERR_None;
 }
 
-void AGS::Parser::ErrorWithPosition(int section_id, int lineno, char const *descr, ...)
+void AGS::Parser::MessageWithPosition(MessageHandler::Severity sev, int section_id, size_t lineno, char const *descr, ...)
 {
-    // cc_error() can't be called with a va_list and doesn't have a variadic variant,
-    // so convert all the parameters into a single C string here
     va_list vlist1, vlist2;
     va_start(vlist1, descr);
     va_copy(vlist2, vlist1);
@@ -6946,15 +6939,12 @@ void AGS::Parser::ErrorWithPosition(int section_id, int lineno, char const *desc
     va_end(vlist2);
     va_end(vlist1);
 
-    // Set line; this is an implicit parameter of cc_error()
-    currentline = lineno;
+    _msg_handler.AddMessage(
+        sev,
+        _src.SectionId2Section(section_id),
+        lineno,
+        message);
 
-    // If an error occurs, then ccCurScriptName is supposed to point to a
-    // static character array that contains the section of the error. 
-    char const *current_section = _src.SectionId2Section(section_id).c_str();
-    strncpy(SectionNameBuffer, current_section, sizeof(SectionNameBuffer) / sizeof(char) - 1);
-    ccCurScriptName = SectionNameBuffer;
-    cc_error("%s", message);
     delete[] message;
 }
 
@@ -6970,7 +6960,11 @@ void AGS::Parser::Error(char const *descr, ...)
     va_end(vlist2);
     va_end(vlist1);
 
-    ErrorWithPosition(_src.GetSectionId(), _src.GetLineno(), message);
+    _msg_handler.AddMessage(
+        MessageHandler::kSV_Error,
+        _src.SectionId2Section(_src.GetSectionId()),
+        _src.GetLineno(),
+        message);
     delete[] message;
 }
 
@@ -6984,8 +6978,11 @@ void AGS::Parser::Warning(char const *descr, ...)
     va_end(vlist2);
     va_end(vlist1);
 
-    WarningEntry const warning = { 1, _src.GetLineno(), message };
-    _warnings.push_back(warning);
+    _msg_handler.AddMessage(
+        MessageHandler::kSV_Warning,
+        _src.SectionId2Section(_src.GetSectionId()),
+        _src.GetLineno(),
+        message);
     delete[] message;
 }
 
@@ -7005,7 +7002,6 @@ ErrorType AGS::Parser::Parse_PreAnalyzePhase()
     // but keep the entries so that they are guaranteed to have
     // the same index when parsed in phase 2
     return Parse_ReinitSymTable(sym_after_scanning);
-
 }
 
 ErrorType AGS::Parser::Parse_MainPhase()
@@ -7041,42 +7037,57 @@ ErrorType AGS::Parser::Parse()
 }
 
 // Scan inpl into scan tokens, build a symbol table
-int cc_scan(char const *inpl, SrcList *src, ccCompiledScript *scrip, SymbolTable *sym)
+int cc_scan(std::string const &inpl, SrcList &src, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
 {
-    AGS::Scanner scanner = { inpl, *src, *scrip, *sym };
-    bool error_encountered = false;
-    scanner.Scan(error_encountered);
-    if (!error_encountered)
-        return kERR_None;
-
-    // Scaffolding around cc_error()
-    currentline = scanner.GetLineno();
-    std::string const section_buf = scanner.GetSection();
-    ccCurScriptName = section_buf.c_str();
-    cc_error("%s", scanner.GetLastError().c_str());
-    return kERR_UserError;
+    AGS::Scanner scanner = { inpl, src, scrip, symt, mh };
+    return scanner.Scan();
 }
 
-int cc_parse(AGS::SrcList *src, ccCompiledScript *scrip, SymbolTable *symt, std::vector<AGS::Parser::WarningEntry> *warnings)
+int cc_parse(AGS::SrcList &src, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
 {
-    
-    AGS::Parser parser = { *symt, *src, *scrip, *warnings };
+    AGS::Parser parser = { src, scrip, symt, mh };
     return parser.Parse();
 }
 
-int cc_compile(char const *inpl, ccCompiledScript *scrip)
+int cc_compile(std::string const &inpl, ccCompiledScript &scrip, MessageHandler &mh)
 {
     std::vector<Symbol> symbols;
     LineHandler lh;
-    size_t cursor = 0;
+    size_t cursor = 0u;
     SrcList src = SrcList(symbols, lh, cursor);
     src.NewSection("UnnamedSection");
-    src.NewLine(1);
-    SymbolTable sym;
+    src.NewLine(1u);
 
-    int retval = cc_scan(inpl, &src, scrip, &sym);
-    if (retval < 0) return retval;
+    SymbolTable symt;
 
-    std::vector<AGS::Parser::WarningEntry> warnings;
-    return cc_parse(&src, scrip, &sym, &warnings);
+    ccCurScriptName = nullptr;
+
+    int error_code = cc_scan(inpl, src, scrip, symt, mh);
+    if (error_code >= 0)
+        error_code = cc_parse(src, scrip, symt, mh);
+    return error_code;
+}
+
+int cc_compile(std::string const &inpl, ccCompiledScript &scrip)
+{
+    MessageHandler mh;
+
+    int error_code = cc_compile(inpl, scrip, mh);
+    if (error_code >= 0)
+    {
+        // Here if there weren't any errors.
+        return error_code;
+    }
+
+    // Here if there was an error. Scaffolding around cc_error()
+    ccCurScriptName = SectionNameBuffer;
+    MessageHandler::Entry const &err = mh.GetError();
+    
+    strncpy_s(
+        SectionNameBuffer,
+        err.Section.c_str(),
+        sizeof(SectionNameBuffer) / sizeof(char) - 1);
+    currentline = err.Lineno;
+    cc_error(err.Message.c_str());
+    return error_code;
 }

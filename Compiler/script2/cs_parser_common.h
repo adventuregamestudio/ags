@@ -2,6 +2,8 @@
 #define __CS_PARSER_COMMON_H
 #include <cstdint>
 #include <cstddef>  // size_t
+#include <string>
+#include <vector>
 
 namespace AGS
 {
@@ -126,7 +128,6 @@ enum SymbolTableFlag : FlagSet
     kSFLG_StructVartype = 1 << 6, // is a struct 
 };
 
-
 // In what type of memory the variable is allocated
 enum ScopeType
 {
@@ -142,6 +143,41 @@ enum ErrorType
     kERR_None = 0,
     kERR_UserError = -1,
     kERR_InternalError = -99,
+};
+
+class MessageHandler
+{
+public:
+    enum Severity
+    {
+        kSV_None,
+        kSV_Info,
+        kSV_Warning,
+        kSV_Error,
+    };
+
+    struct Entry
+    {
+        Severity Severity;
+        std::string Section;
+        size_t Lineno;
+        std::string Message;
+
+        Entry(enum Severity sev, std::string const &section, size_t lineno, std::string const msg);
+    };
+
+    typedef std::vector<Entry> MessagesType;
+
+private:
+    MessagesType _entries;
+    static Entry _noError;
+
+public:
+    void AddMessage(Severity sev, std::string const &sec, size_t line, std::string const msg)
+        {_entries.emplace_back(sev, sec, line, msg); }
+    inline MessagesType GetMessages() const { return _entries; }
+    inline void Clear() { _entries.clear(); }
+    Entry const &GetError() const;
 };
 
 } // namespace AGS

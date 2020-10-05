@@ -42,7 +42,7 @@ TEST_F(Compile0, UnknownVartypeAfterReadonly) {
         };                  \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
@@ -64,7 +64,7 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
         }                                   \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
@@ -85,7 +85,7 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
         };\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -97,7 +97,7 @@ TEST_F(Compile0, ParsingIntSuccess) {
         int testfunc(int x ) { int y = 42; } \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -113,7 +113,7 @@ TEST_F(Compile0, ParsingIntLimits) {
         }\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -124,7 +124,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {
         import int importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);    \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // Offer some leeway in the error message, but insist that the culprit is named
@@ -138,7 +138,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
         import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);   \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
@@ -151,7 +151,7 @@ TEST_F(Compile0, ParsingIntOverflow) {
         int testfunc(int x ) { int y = 4200000000000000000000; }    \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
@@ -164,7 +164,7 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
         int testfunc(int x ) { int y = -4200000000000000000000; }   \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
@@ -179,6 +179,7 @@ TEST_F(Compile0, EnumNegative) {
     size_t cursor = 0;
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
+    MessageHandler mh;
 
     char *inpl = "\
         enum TestMyEnums {      \n\
@@ -196,11 +197,11 @@ TEST_F(Compile0, EnumNegative) {
             intmax=2147483647   \n\
         };\
         ";
-    
-    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
-    std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // Call cc_scan() and cc_parse() by hand so that we can see the symbol table
+    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
+    int compileResult = cc_parse(targ, scrip, sym, mh);
+    ASSERT_EQ(0, compileResult);
 
     // C enums start with 0, but AGS enums with 1
     EXPECT_EQ(1, sym.entries.at(sym.Find("cat")).SOffset);
@@ -230,6 +231,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     size_t cursor = 0;
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
+    MessageHandler mh;
 
     char *inpl = "\
         import int importedfunc(    \n\
@@ -246,14 +248,11 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
         ";
 
     
-    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
+    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
+    int compileResult = cc_parse(targ, scrip, sym, mh);
+    ASSERT_EQ(0, compileResult);
 
-    std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    int funcidx;
-    funcidx = sym.Find("importedfunc");
+    Symbol const funcidx = sym.Find("importedfunc");
 
     EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(1));
     EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[1].Type);
@@ -300,6 +299,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
     size_t cursor = 0;
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
+    MessageHandler mh;
 
     char *inpl = "\
         struct A                            \n\
@@ -308,10 +308,9 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
         };                                  \n\
         ";
 
-    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
-    std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
+    int compileResult = cc_parse(targ, scrip, sym, mh);
+    ASSERT_EQ(0, compileResult);
 
     int funcidx;
     funcidx = sym.Find("A::MyFunc");
@@ -331,7 +330,7 @@ TEST_F(Compile0, DoubleNegatedConstant) {
             );                  \n\
         ";
         
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_STREQ("Expected an integer literal or constant as parameter default", last_seen_cc_error());
 }
@@ -345,7 +344,7 @@ TEST_F(Compile0, SubtractionWithoutSpaces) {
         }                       \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -373,7 +372,7 @@ TEST_F(Compile0, NegationLHSOfExpression) {
         ";
 
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -400,7 +399,7 @@ TEST_F(Compile0, NegationRHSOfExpression) {
         }\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -429,7 +428,7 @@ TEST_F(Compile0, FuncDeclWrong1) {
     }                               \n\
    ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
@@ -462,7 +461,7 @@ TEST_F(Compile0, FuncDeclWrong2) {
     int Func(Struct1 *S1, Struct2 *S2);  \n\
    ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
@@ -490,7 +489,7 @@ TEST_F(Compile0, FuncDeclReturnVartype) {
     }                                                               \n\
    ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -514,7 +513,7 @@ TEST_F(Compile0, Writeprotected) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -541,7 +540,7 @@ TEST_F(Compile0, Protected1) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -567,7 +566,7 @@ TEST_F(Compile0, Protected2) {
         }                                      \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -597,7 +596,7 @@ TEST_F(Compile0, Protected3) {
         }                                           \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -623,7 +622,7 @@ TEST_F(Compile0, Protected4) {
         }                                           \n\
         ";
  
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -642,7 +641,7 @@ TEST_F(Compile0, Protected5) {
         }                                           \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -656,7 +655,7 @@ TEST_F(Compile0, Do1Wrong) {
     }                               \n\
    ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
@@ -677,7 +676,7 @@ TEST_F(Compile0, Do2Wrong) {
     }                               \n\
    ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("while"));
@@ -695,7 +694,7 @@ TEST_F(Compile0, Do3Wrong) {
     }                               \n\
    ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
@@ -714,7 +713,7 @@ TEST_F(Compile0, Do4Wrong) {
     }                               \n\
    ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
@@ -737,7 +736,7 @@ TEST_F(Compile0, ProtectedFault1) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     // Should fail, no modifying of protected components from the outside.
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -756,7 +755,7 @@ TEST_F(Compile0, FuncHeader1) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -774,7 +773,7 @@ TEST_F(Compile0, FuncHeader2) {
         }                                      \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -796,7 +795,7 @@ TEST_F(Compile0, FuncHeader3) {
         }                                       \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -816,7 +815,7 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1a) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -837,7 +836,7 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1b) {
         }                                      \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -857,7 +856,7 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1c) {
         }                                      \n\
         ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -878,7 +877,7 @@ TEST_F(Compile0, ExtenderFuncHeaderFault2) {
         ";
 
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -905,7 +904,7 @@ TEST_F(Compile0, DoubleExtenderFunc) {
         }                                       \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -925,7 +924,7 @@ TEST_F(Compile0, DoubleNonExtenderFunc) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -947,7 +946,7 @@ TEST_F(Compile0, UndeclaredStructFunc1) {
         }                                           \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string message = last_seen_cc_error();
     EXPECT_NE(std::string::npos, message.find("Func"));
@@ -968,7 +967,7 @@ TEST_F(Compile0, UndeclaredStructFunc2) {
         };                                          \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -981,7 +980,7 @@ TEST_F(Compile0, ParamVoid) {
         }                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -1011,15 +1010,13 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     size_t cursor = 0;
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
-    std::vector<AGS::Parser::WarningEntry> warnings;
+    MessageHandler mh;
 
-    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));  
-    
-    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
+    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));  
+    ASSERT_EQ(0, cc_parse(targ, scrip, sym, mh));
 
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    ASSERT_EQ(1u, warnings.size());
-    EXPECT_EQ(7, warnings[0].Pos);
+    ASSERT_EQ(1u, mh.GetMessages().size());
+    EXPECT_EQ(7u, mh.GetMessages()[0].Lineno);
 }
 
 TEST_F(Compile0, VartypeLocalSeq1) {
@@ -1034,7 +1031,7 @@ TEST_F(Compile0, VartypeLocalSeq1) {
         }                                   \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     std::string const err = last_seen_cc_error();
     EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -1053,7 +1050,7 @@ TEST_F(Compile0, VartypeLocalSeq2) {
         }                                   \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     std::string const err = last_seen_cc_error();
     EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : err.c_str());
@@ -1073,7 +1070,7 @@ TEST_F(Compile0, StructExtend1) {
         };                              \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -1098,7 +1095,7 @@ TEST_F(Compile0, StructExtend2) {
         ";
 
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
@@ -1122,7 +1119,7 @@ TEST_F(Compile0, StructExtend3) {
         }                               \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1143,7 +1140,7 @@ TEST_F(Compile0, StructExtend4) {
         }                               \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
 }
@@ -1156,7 +1153,7 @@ TEST_F(Compile0, StructStaticFunc) {
         }                                                     \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -1168,7 +1165,7 @@ TEST_F(Compile0, Undefined) {
         ";
 
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -1184,7 +1181,7 @@ TEST_F(Compile0, ImportOverride1) {
     ";
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -1204,7 +1201,7 @@ TEST_F(Compile0, DynamicNonManaged1) {
         };                                                  \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1226,7 +1223,7 @@ TEST_F(Compile0, DynamicNonManaged2) {
         };                                                  \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1245,7 +1242,7 @@ TEST_F(Compile0, DynamicNonManaged3) {
         Inner *In;                                          \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1267,7 +1264,7 @@ TEST_F(Compile0, BuiltinStructMember) {
         };                                                  \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1287,7 +1284,7 @@ TEST_F(Compile0, ImportOverride2) {
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1302,7 +1299,7 @@ TEST_F(Compile0, ImportOverride3) {
     ";
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -1321,7 +1318,7 @@ TEST_F(Compile0, LocalSeq1) {
         }                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1339,7 +1336,7 @@ TEST_F(Compile0, LocalSeq2) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1357,7 +1354,7 @@ TEST_F(Compile0, LocalSeq3) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1379,7 +1376,7 @@ TEST_F(Compile0, LocalSeq4) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1394,7 +1391,7 @@ TEST_F(Compile0, LocalParameterSeq1) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1409,7 +1406,7 @@ TEST_F(Compile0, LocalParameterSeq2) {
         }                           \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1424,7 +1421,7 @@ TEST_F(Compile0, LocalGlobalSeq1) {
         int Var;                        \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1443,7 +1440,7 @@ TEST_F(Compile0, Void1) {
     input += g_Input_String;
     input += inpl;
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1460,7 +1457,7 @@ TEST_F(Compile0, RetLengthNoMatch) {
     input += g_Input_String;
     input += inpl;
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1473,7 +1470,7 @@ TEST_F(Compile0, GlobalImportVar1) {
         export Var;         \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1488,7 +1485,7 @@ TEST_F(Compile0, GlobalImportVar2) {
     
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, 1);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1500,7 +1497,7 @@ TEST_F(Compile0, GlobalImportVar3) {
         short Var;          \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1511,7 +1508,7 @@ TEST_F(Compile0, GlobalImportVar4) {
         import int Var;     \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1530,7 +1527,7 @@ TEST_F(Compile0, GlobalImportVar5) {
         export Var;         \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1558,7 +1555,7 @@ TEST_F(Compile0, ExtenderFuncDifference) {
         }                   \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1578,18 +1575,12 @@ TEST_F(Compile0, StaticFuncCall) {
         }                                                           \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST_F(Compile0, Import2GlobalAllocation) {
     
-    std::vector<Symbol> tokens;
-    LineHandler lh;
-    size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-
     // Imported var I becomes a global var; must be allocated only once.
     // This means that J ought to be allocated at 4.
 
@@ -1599,14 +1590,18 @@ TEST_F(Compile0, Import2GlobalAllocation) {
         int J;          \n\
     ";
 
-    ASSERT_LE(0, cc_scan(inpl, &targ, &scrip, &sym));
+    std::vector<Symbol> tokens;
+    LineHandler lh;
+    size_t cursor = 0;
+    SrcList targ(tokens, lh, cursor);
+    SymbolTable sym;
+    MessageHandler mh;
 
-    std::vector<AGS::Parser::WarningEntry> warnings;
-    int compileResult = cc_parse(&targ, &scrip, &sym, &warnings);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
+    ASSERT_EQ(0, cc_parse(targ, scrip, sym, mh));
 
-    int idx = sym.Find("J");
-    ASSERT_LE(0, idx);
+    Symbol const idx = sym.Find("J");
+    ASSERT_LT(0, idx);
     SymbolTableEntry &entry = sym.entries.at(idx);
     ASSERT_EQ(4, entry.SOffset);
 }
@@ -1619,7 +1614,7 @@ TEST_F(Compile0, LocalImportVar) {
         export Var;         \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1640,7 +1635,7 @@ TEST_F(Compile0, Recursive1) {
         }                         \n\
         ";
 
-    int compileResult = cc_compile(agscode, &scrip);
+    int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1660,7 +1655,7 @@ TEST_F(Compile0, GlobalFuncStructFunc) {
         }                           \n\
         ";
    
-    int compileResult = cc_compile(agscode, &scrip);
+    int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1681,7 +1676,7 @@ TEST_F(Compile0, VariadicFunc) {
     agscode = g_Input_String + agscode;
     agscode = g_Input_Bool + agscode;
 
-    int compileResult = cc_compile(agscode.c_str(), &scrip);
+    int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1699,7 +1694,7 @@ TEST_F(Compile0, DynamicAndNull) {
         ";
 
         
-    int compileResult = cc_compile(agscode.c_str(), &scrip);
+    int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1721,7 +1716,7 @@ TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
         ";
     agscode = g_Input_Bool + agscode;
     
-    int compileResult = cc_compile(agscode.c_str(), &scrip);
+    int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1737,7 +1732,7 @@ TEST_F(Compile0, Attributes01) {
         };                                              \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1756,7 +1751,7 @@ TEST_F(Compile0, Attributes02) {
         };                                              \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1775,7 +1770,7 @@ TEST_F(Compile0, Attributes03) {
         };                                              \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprit
     std::string res(last_seen_cc_error());
@@ -1795,7 +1790,7 @@ TEST_F(Compile0, StructPtrFunc) {
         {}                      \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1814,7 +1809,7 @@ TEST_F(Compile0, StringOldstyle01) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("local string"));
 }
@@ -1832,7 +1827,7 @@ TEST_F(Compile0, StringOldstyle02) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
@@ -1851,7 +1846,7 @@ TEST_F(Compile0, StringOldstyle03) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
@@ -1869,7 +1864,7 @@ TEST_F(Compile0, StructPointerAttribute) {
         };                                          \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1890,7 +1885,7 @@ TEST_F(Compile0, StringNullCompare) {
     input += g_Input_String;
     input += inpl;
     
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1913,7 +1908,7 @@ TEST_F(Compile0, Attributes04) {
         }                                   \n\
     ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1932,7 +1927,7 @@ TEST_F(Compile0, Attributes05) {
         }                                   \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1957,7 +1952,7 @@ TEST_F(Compile0, Attributes06) {
         }                                                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -1973,7 +1968,7 @@ TEST_F(Compile0, Decl) {
         }                   \n\
     ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string lsce = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : lsce.c_str());
     EXPECT_NE(std::string::npos, lsce.find("+="));
@@ -1999,7 +1994,7 @@ TEST_F(Compile0, DynamicArrayCompare) {
         }                                   \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2023,7 +2018,7 @@ TEST_F(Compile0, DoubleLocalDecl) {
         }                                               \n\
     ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2038,7 +2033,7 @@ TEST_F(Compile0, NewForwardDeclStruct) {
         }                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_NE(compileResult, 0);
     std::string lsce = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lsce.find("Bang"));
@@ -2061,7 +2056,7 @@ TEST_F(Compile0, NewEnumArray) {
         }                                       \n\
         ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2084,7 +2079,7 @@ TEST_F(Compile0, Attributes07) {
 		}                                                           \n\
 	";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2099,7 +2094,7 @@ TEST_F(Compile0, Readonly01) {
 		}                                   \n\
 	";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2121,7 +2116,7 @@ TEST_F(Compile0, Ternary01) {
         }                               \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -2137,7 +2132,7 @@ TEST_F(Compile0, Ternary02) {
         }                               \n\
         ";
   
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Error message must name culprits
     std::string res(last_seen_cc_error());

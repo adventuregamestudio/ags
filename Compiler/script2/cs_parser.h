@@ -61,8 +61,7 @@ public:
         int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
         int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
 
-        SymbolTable &_sym;
-        ::ccCompiledScript &_scrip;
+        Parser &_parser;
 
         struct PatchInfo
         {
@@ -82,7 +81,7 @@ public:
         CallMap _funcCallpointMap;
 
     public:
-        FuncCallpointMgr(::SymbolTable &symt, ::ccCompiledScript &scrip);
+        FuncCallpointMgr(Parser &parser);
         void Reset();
 
         // Enter a code location where a function is called that hasn't been defined yet.
@@ -109,13 +108,7 @@ public:
         // without a location
         ErrorType CheckForUnresolvedFuncs();
     };
-
-    struct WarningEntry
-    {
-        size_t Severity; // 0 == note, >0 == warning;
-        size_t Pos; // in scanned source
-        std::string Message;
-    };
+    friend FuncCallpointMgr;
 
 private:
     enum FunctionType
@@ -316,13 +309,13 @@ private:
     class MemoryLocation
     {
     private:
-        AGS::Parser &_parser;
+        Parser &_parser;
         ScopeType _ScType;
         size_t _startOffs;
         size_t _componentOffs;
 
     public:
-        MemoryLocation(AGS::Parser &parser);
+        MemoryLocation(Parser &parser);
 
         // Set the type and the start offset of the MAR register
         ErrorType SetStart(ScopeType type, size_t offset);
@@ -336,7 +329,6 @@ private:
 
         void Reset();
     };
-    friend MemoryLocation;  // for Error()
 
     // Measurements show that the checks whether imports already exist take up
     // considerable time. The Import Manager speeds this up by caching the lookups.
@@ -378,8 +370,8 @@ private:
     // Receives the parsing results
     ::ccCompiledScript &_scrip;
 
-    // Receives the warnings
-    std::vector<WarningEntry> &_warnings;
+    // Receives the errors and warnings
+    MessageHandler &_msg_handler;
 
     // Manage a map of all the functions that have bodies (in the current source).
     FuncCallpointMgr _fcm;
@@ -947,17 +939,14 @@ private:
     // Blank out all imports that haven't been referenced
     ErrorType Parse_BlankOutUnusedImports();
 
-    // Casts around cc_error()
-    // This is a dying message. After the function has been called,
-    // the compiler needs to exit immediately with a negative return value
-    // Report the error for the section and lineno specified.
-    void ErrorWithPosition(int section_id, int lineno, char const *descr, ...);
-    // Report the error for the section and lineno that _src currently is at.
+    // Report a message for the section and lineno specified.
+    void MessageWithPosition(MessageHandler::Severity sev, int section_id, size_t lineno, char const *descr, ...);
+
+    // Report an error for the section and lineno that _src currently is at.
     void Error(char const *descr, ...);
 
     // Record a warning for the current source position
     void Warning(char const *descr, ...);
-    
 
 public:
     // interpret the float as if it were an int (without converting it really);
@@ -965,7 +954,7 @@ public:
     // This should be moved somewhere. It isn't Parser functionality
     static int InterpretFloatAsInt(float floatval);
 
-    Parser(::SymbolTable &symt, SrcList &src, ::ccCompiledScript &scrip, std::vector<WarningEntry> &warnings);
+    Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh);
 
     ErrorType Parse();
 
@@ -974,21 +963,28 @@ public:
 
 // Only use this function for googletests. Scan and tokenize the input.
 extern int cc_scan(
-    char const *inpl,           // preprocessed text to be tokenized
-    AGS::SrcList *src,          // store for the tokenized text
-    ccCompiledScript *scrip,    // repository for the strings in the text
-    SymbolTable *symt);         // symbol table 
+    std::string const &inpl,    // preprocessed text to be tokenized
+    SrcList &src,               // store for the tokenized text
+    ccCompiledScript &scrip,    // repository for the strings in the text
+    SymbolTable &symt,          // symbol table
+    MessageHandler &mh);        // warnings and the error
 
 // Only use this function for googletests. Parse the input
 extern int cc_parse(
-    AGS::SrcList *src,          // tokenized text
-    ccCompiledScript *scrip,    // result of the compilation
-    SymbolTable *symt,          // symbol table
-    std::vector<AGS::Parser::WarningEntry> *warnings);      // warnings   
+    SrcList &src,               // tokenized text
+    ccCompiledScript &scrip,    // result of the compilation
+    SymbolTable &symt,          // symbol table
+    MessageHandler &mh);        // warnings and the error 
 
-// Compile the input.
+// Compile the input; in case of error cc_error() gets called
 extern int cc_compile(
-    char const *inpl,           // preprocessed text to be compiled
-    ccCompiledScript *scrip);   // store for the compiled text
+    std::string const &source,  // preprocessed text to be compiled
+    ccCompiledScript &scrip);   // store for the compiled text
+
+// Compile the input, return any messages in mh, cc_error() does not get called
+extern int cc_compile(
+    std::string const &source,  // preprocessed text to be compiled
+    ccCompiledScript &scrip,    // store for the compiled text
+    MessageHandler &mh);        // warnings and the error   
 
 #endif // __CS_PARSER_H

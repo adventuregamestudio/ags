@@ -6,7 +6,7 @@
 
 #include "script/cc_options.h"
 
-#include "script/cs_parser.h"
+#include "script2/cs_parser.h"
 
 
 /* This file is for Bytecode tests ONLY.
@@ -51,7 +51,7 @@ TEST_F(Bytecode1, StringOldstyle03) {
 	
 	ccSetOption(SCOPT_OLDSTRINGS, true);
 	
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle03", scrip);
@@ -119,7 +119,7 @@ TEST_F(Bytecode1, StringOldstyle04) {
 		
 	ccSetOption(SCOPT_OLDSTRINGS, true);
 
-	int compileResult = cc_compile(inpl, &scrip);
+	int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle04", scrip);
@@ -179,7 +179,7 @@ TEST_F(Bytecode1, StringOldstyle05) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-	int compileResult = cc_compile(inpl, &scrip);
+	int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringOldstyle05", scrip);
@@ -264,7 +264,7 @@ TEST_F(Bytecode1, StringStandard05) {
     input += g_Input_String;
     input += inpl;
 
-	int compileResult = cc_compile(input.c_str(), &scrip);
+	int compileResult = cc_compile(input, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
@@ -350,7 +350,7 @@ TEST_F(Bytecode1, StringStandardOldstyle) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StringStandardOldstyle", scrip);
@@ -430,7 +430,7 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
         }                                               \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer01", scrip);
     const size_t codesize = 39;
@@ -492,7 +492,7 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
         }                                               \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer02", scrip);
     const size_t codesize = 56;
@@ -558,7 +558,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
         }                                               \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer03", scrip);
     const size_t codesize = 28;
@@ -612,7 +612,7 @@ TEST_F(Bytecode1, Attributes04) {
         }                                       \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes04", scrip);
     const size_t codesize = 58;
@@ -681,7 +681,7 @@ TEST_F(Bytecode1, Attributes05) {
         }                                       \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes05", scrip);
     const size_t codesize = 20;
@@ -735,7 +735,7 @@ TEST_F(Bytecode1, Attributes06) {
         }                                       \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes06", scrip);
     const size_t codesize = 22;
@@ -790,7 +790,7 @@ TEST_F(Bytecode1, Attributes07) {
         }                                   \n\
     ";
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes07", scrip);
@@ -882,7 +882,7 @@ TEST_F(Bytecode1, Struct09) {
         }                                                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Struct09", scrip);
     const size_t codesize = 193;
@@ -961,7 +961,7 @@ TEST_F(Bytecode1, Struct10) {
         }                                                    \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct10", scrip);
@@ -1030,7 +1030,7 @@ TEST_F(Bytecode1, Struct11) {
             return SS.In1.Payload + SS.In2.Payload;         \n\
         }                                                   \n\
     ";
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct11", scrip);
@@ -1102,7 +1102,7 @@ TEST_F(Bytecode1, Struct12) {
             return SS.In[3].Payload + TT[2].In[2].Payload;  \n\
         }                                                   \n\
     ";
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct12", scrip);
@@ -1176,7 +1176,7 @@ TEST_F(Bytecode1, DynArrayOfPrimitives) {
         }                                       \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DynArrayOfPrimitives", scrip);
@@ -1226,7 +1226,7 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
             S.Int[4] = 1;               \n\
         }                               \n\
         ";
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("ManagedDerefZerocheck", scrip);
     const size_t codesize = 24;
@@ -1292,7 +1292,7 @@ TEST_F(Bytecode1, MemInitPtr1) {
             return S2.Payload2;         \n\
         }                               \n\
         ";
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("MemInitPtr1", scrip);
@@ -1355,7 +1355,7 @@ TEST_F(Bytecode1, Ternary1) {
     }                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Ternary1", scrip);
@@ -1406,7 +1406,7 @@ TEST_F(Bytecode1, Ternary2) {
     }                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Ternary2", scrip);
@@ -1460,7 +1460,7 @@ TEST_F(Bytecode1, Ternary3) {
     }                           \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Ternary3", scrip);
@@ -1512,7 +1512,7 @@ TEST_F(Bytecode1, Ternary4) {
     input += g_Input_String;
     input += inpl;
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Ternary4", scrip);
@@ -1582,7 +1582,7 @@ TEST_F(Bytecode1, AssignToString) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(input.c_str(), &scrip);
+    int compileResult = cc_compile(input, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("AssignToString", scrip);
@@ -1660,7 +1660,7 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StructWOldstyleString1", scrip);
@@ -1743,7 +1743,7 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StructWOldstyleString2", scrip);

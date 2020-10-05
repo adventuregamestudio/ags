@@ -46,7 +46,7 @@ TEST_F(Compile1, Sections) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_EQ(3, currentline);
     ASSERT_STREQ("globalscript.ash", ccCurScriptName);
@@ -65,7 +65,7 @@ TEST_F(Compile1, Autoptr) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     ASSERT_EQ(std::string::npos, msg.find("String *"));
@@ -83,7 +83,7 @@ TEST_F(Compile1, BinaryNot)
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("inary op"));
@@ -100,7 +100,7 @@ TEST_F(Compile1, UnaryDivideBy) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("unary op"));
@@ -117,7 +117,7 @@ TEST_F(Compile1, FloatInt1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
@@ -134,7 +134,7 @@ TEST_F(Compile1, FloatInt2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("after '!'"));
@@ -151,7 +151,7 @@ TEST_F(Compile1, StringInt1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
@@ -169,7 +169,7 @@ TEST_F(Compile1, ExpressionVoid) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
@@ -188,7 +188,7 @@ TEST_F(Compile1, ExpressionLoneUnary1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("xpected a term"));
@@ -207,7 +207,7 @@ TEST_F(Compile1, ExpressionLoneUnary2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("xpected a term"));
@@ -226,7 +226,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("right hand side"));
@@ -248,7 +248,7 @@ TEST_F(Compile1, StaticArrayIndex1) {
         }                               \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
@@ -270,7 +270,7 @@ TEST_F(Compile1, StaticArrayIndex2) {
         }                               \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
@@ -289,7 +289,7 @@ TEST_F(Compile1, ExpressionArray1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
@@ -308,7 +308,7 @@ TEST_F(Compile1, ExpressionArray2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("array as a whole"));
@@ -329,7 +329,7 @@ TEST_F(Compile1, FuncTypeClash1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'('"));
@@ -350,7 +350,7 @@ TEST_F(Compile1, FloatOutOfRange) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ut of range"));
@@ -370,7 +370,7 @@ TEST_F(Compile1, DoWhileSemicolon) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("';'"));
@@ -392,7 +392,7 @@ TEST_F(Compile1, ExtenderExtender1) {
         }                                   \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("static"));
@@ -412,7 +412,7 @@ TEST_F(Compile1, ExtenderExtender2) {
         };                                  \n\
     ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'::'"));
@@ -431,7 +431,7 @@ TEST_F(Compile1, NonManagedStructParameter) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("non-managed"));
@@ -447,7 +447,7 @@ TEST_F(Compile1, StrangeParameterName) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("while"));
@@ -463,7 +463,7 @@ TEST_F(Compile1, DoubleParameterName) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("PI"));
@@ -480,7 +480,7 @@ TEST_F(Compile1, FuncParamDefaults1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("#2"));
@@ -497,7 +497,7 @@ TEST_F(Compile1, FuncParamDefaults2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("#2"));
@@ -514,7 +514,7 @@ TEST_F(Compile1, FuncParamDefaults3) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("#1"));
@@ -531,7 +531,7 @@ TEST_F(Compile1, FuncParamNumber1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("parameters"));
@@ -551,7 +551,7 @@ TEST_F(Compile1, FuncParamNumber2) {
         ";
 
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -567,7 +567,7 @@ TEST_F(Compile1, FuncVarargsCollision) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("additional"));
@@ -584,7 +584,7 @@ TEST_F(Compile1, FuncReturnTypes) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("eturn"));
@@ -601,7 +601,7 @@ TEST_F(Compile1, FuncReturnStruct1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("managed"));
@@ -618,7 +618,7 @@ TEST_F(Compile1, FuncReturnStruct2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -634,7 +634,7 @@ TEST_F(Compile1, FuncReturnStruct3) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -652,7 +652,7 @@ TEST_F(Compile1, FuncDouble) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("with body"));
@@ -668,7 +668,7 @@ TEST_F(Compile1, FuncProtected) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("protected"));
@@ -685,7 +685,7 @@ TEST_F(Compile1, FuncNameClash1) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("declared as function"));
@@ -706,7 +706,7 @@ TEST_F(Compile1, TypeEqComponent) {
         };                                      \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -723,7 +723,7 @@ TEST_F(Compile1, ExtenderFuncClash) {
         import int Max(static Maths, int a, int b);		\n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -745,7 +745,7 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
         }                                       \n\
         ";
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("orget a"));
@@ -768,7 +768,7 @@ TEST_F(Compile1, AttributeGet1) {
         }                                       \n\
         ";
          
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -790,7 +790,7 @@ TEST_F(Compile1, AttributeGet2) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("static"));
@@ -817,7 +817,7 @@ TEST_F(Compile1, NewBuiltin1) {
         }                                               \n\
         ";
    
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("built-in"));
@@ -845,7 +845,7 @@ TEST_F(Compile1, NewArrayBuiltin1) {
         }                                               \n\
         ";
  
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
@@ -865,7 +865,7 @@ TEST_F(Compile1, MissingFunc) {
         int GhostFunc(float f = 0.0);                   \n\
         ";
     
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_STREQ("HauntedHouse", ccCurScriptName);
@@ -899,7 +899,7 @@ TEST_F(Compile1, FixupMismatch) {
 
     ccSetOption(SCOPT_LINENUMBERS, true);
 
-    int compileResult = cc_compile(inpl, &scrip);
+    int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 

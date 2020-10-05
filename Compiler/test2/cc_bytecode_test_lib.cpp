@@ -177,7 +177,7 @@ void CompareImports(ccCompiledScript *scrip, size_t numimports, std::string impo
          if (!strcmp(scrip->imports[idx], ""))
              continue;
          idx2++;
-         ASSERT_LT(idx2, numimports);
+         ASSERT_LT(static_cast<size_t>(idx2), numimports); // idx2 is sure to be non-negative here
          std::string const prefix = "imports[" + std::to_string(idx2) + "] == ";
          std::string const should_be_val = prefix + "\"" + imports[idx2] + "\"";
          std::string const is_val = prefix + "\"" + scrip->imports[idx] + "\"";

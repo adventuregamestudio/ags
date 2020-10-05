@@ -33,7 +33,7 @@ ErrorType AGS::Scanner::Scan()
         if (retval < 0) return retval;
         if (eof_encountered) return kERR_None;
         _tokenList.Append(symbol);
-    }        
+    }
 }
 
 void AGS::Scanner::NewLine(size_t lineno)
@@ -69,7 +69,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     // Integer or float literal
     if (IsDigit(next_char))
     {
-        symstring = ""; 
+        symstring = "";
         return ReadInNumberLit(symstring, scan_type, eof_encountered);
     }
 
@@ -148,7 +148,7 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
     symbol = -1;
     std::string symstring;
     ScanType scan_type;
-    
+
     while (true)
     {
         ErrorType retval = GetNextSymstring(symstring, scan_type, eof_encountered);
@@ -163,7 +163,7 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
     ErrorType retval = SymstringToSym(symstring, scan_type, symbol, eof_encountered);
     if (retval < 0) return retval;
     if (eof_encountered) return kERR_None;
-    
+
     return CheckMatcherNesting(symbol);
 }
 
@@ -201,7 +201,7 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
     bool e_encountered = false;
     bool eminus_encountered = false;
 
-    scan_type = (decimal_point_encountered)? kSct_FloatLiteral : kSct_IntLiteral;
+    scan_type = (decimal_point_encountered) ? kSct_FloatLiteral : kSct_IntLiteral;
     symstring.push_back(_inputStream.get());
 
     while (true)
@@ -295,7 +295,7 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encounte
                 Error("'\\[' is not allowed in single quotes, use '[' instead");
                 return kERR_UserError;
             }
-            
+
             ErrorType retval = EscapedChar2Char(lit_char, lit_char);
             if (retval < 0) return retval;
         }
@@ -335,14 +335,14 @@ int AGS::Scanner::OctDigits2Char(int first_digit_char)
     {
         int const digit = _inputStream.peek() - '0';
         if (digit < 0 || digit >= 8)
-            return ret;
+            break;
         int new_value = 8 * ret + digit;
         if (new_value > 255)
-            return ret;
+            break;
         ret = new_value;
         _inputStream.get(); // Eat the digit char
     }
-    return ret;
+    return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
 int AGS::Scanner::HexDigits2Char()
@@ -352,24 +352,37 @@ int AGS::Scanner::HexDigits2Char()
     {
         int hexdigit = _inputStream.peek();
         //convert a..f to A..F
-        if (hexdigit > 'a')
-            hexdigit = hexdigit - 'a' + 'A'; 
-        if (hexdigit < '0' || (hexdigit > '9' && hexdigit < 'A') || hexdigit > 'F' )
-            return ret;
+        if (hexdigit >= 'a')
+            hexdigit = hexdigit - 'a' + 'A';
+        if (hexdigit < '0' || (hexdigit > '9' && hexdigit < 'A') || hexdigit > 'F')
+            break;
         hexdigit -= '0';
         if (hexdigit > 9)
             hexdigit -= ('@' - '9');
         ret = 16 * ret + hexdigit;
         _inputStream.get(); // Eat the hexdigit
     }
-    return ret;
+    return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
 ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, int &converted)
 {
-    if (IsDigit(first_char_after_backslash) && '9' != first_char_after_backslash)
+    if ('0' <= first_char_after_backslash && first_char_after_backslash < '8')
     {
         converted = OctDigits2Char(first_char_after_backslash);
+        return kERR_None;
+    }
+    if ('x' == first_char_after_backslash)
+    {
+        int hexdigit = _inputStream.peek();
+        if (!(('0' <= hexdigit && hexdigit <= '9') ||
+            ('A' <= hexdigit && hexdigit <= 'F') ||
+            ('a' <= hexdigit && hexdigit <= 'f')))
+        {
+            Error("Expected a hex digit to follow '\\x' in a string or char literal, found '%c' instead", hexdigit);
+            return kERR_UserError;
+        }
+        converted = HexDigits2Char();
         return kERR_None;
     }
 
@@ -387,7 +400,6 @@ ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, int &co
     case 'r': converted = '\r'; return kERR_None;
     case 't': converted = '\t'; return kERR_None;
     case 'v': converted = '\v'; return kERR_None;
-    case 'x': converted = HexDigits2Char(); return kERR_None;
     }
     Error("Unrecognized '\\%c' in character or string literal", first_char_after_backslash);
     return kERR_UserError;
@@ -455,7 +467,7 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encoun
         Error("Read error encountered while scanning a string literal (file corrupt?)");
     else if (eof_encountered)
         Error("End of input encountered when scanning a string literal (did you forget a '\"\'?)");
-    else 
+    else
         Error("End of line encountered when scanning a string literal, this isn't allowed (use '[' for newline)");
     return kERR_UserError;
 }
@@ -487,7 +499,6 @@ ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encou
     }
 }
 
-
 ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring, bool &eof_encountered)
 {
     symstring.assign(1, _inputStream.get());
@@ -499,7 +510,7 @@ ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars,
         Error("Read error encountered (file corrupt?)");
         return kERR_UserError;
     }
-        
+
     if (std::string::npos != possible_second_chars.find(second_char))
     {
         _inputStream.get(); // Gobble the character that was peek()ed

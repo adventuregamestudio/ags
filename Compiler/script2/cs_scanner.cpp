@@ -463,15 +463,14 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encoun
     }
 
     // Here when an error or eof occurs.
-    if (error_encountered)
-        Error("Read error encountered while scanning a string literal (file corrupt?)");
-    else if (eof_encountered)
+    if (eof_encountered)
         Error("End of input encountered when scanning a string literal (did you forget a '\"\'?)");
-    else
+    else if (error_encountered)
+        Error("Read error encountered while scanning a string literal (file corrupt?)");
+    else  
         Error("End of line encountered when scanning a string literal, this isn't allowed (use '[' for newline)");
     return kERR_UserError;
 }
-
 
 ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encountered)
 {
@@ -484,7 +483,7 @@ ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encou
         if (eof_encountered) return kERR_None;
         if (_inputStream.fail())
         {
-            Error("Error encountered while scanning an identifier (file corrupt?)");
+            Error("Read error encountered while scanning an identifier (file corrupt?)");
             return kERR_UserError;
         }
 

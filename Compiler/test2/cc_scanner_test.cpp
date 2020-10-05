@@ -102,7 +102,43 @@ TEST_F(Scan, ShortInputSimple2)
     ASSERT_TRUE(eofe);
 }
 
-TEST_F(Scan, TwoByteSymbols)
+TEST_F(Scan, ShortInputString1) {
+
+    // String literal isn't ended
+
+    char *Input = "\"Supercalifragilisticexpialidocious";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("nd of input"));
+}
+
+TEST_F(Scan, ShortInputString2) {
+
+    // String literal isn't ended
+
+    char *Input = "\"Donaudampfschiffahrtskapitaen\\";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("nd of input"));
+}
+
+TEST_F(Scan, ShortInputString3) {
+
+    // String literal isn't ended
+
+    char *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("nd of line"));
+}
+
+TEST_F(Scan, TwoByteSymbols1)
 {
     // Should recognize the two-byte symbols ++ and <=
 
@@ -117,6 +153,18 @@ TEST_F(Scan, TwoByteSymbols)
     EXPECT_EQ(0, symstring.compare("<="));
     EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
     EXPECT_EQ(0, symstring.compare("j"));
+}
+
+TEST_F(Scan, TwoByteSymbols2)
+{
+    // Mustn't use '..'; it's either '.' or '...'
+
+    std::string Input = "i .. ";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_EQ(0, symstring.compare("i"));
+    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, eofe));
 }
 
 TEST_F(Scan, IdentifiersElementary)
@@ -317,6 +365,122 @@ TEST_F(Scan, CharLit5)
     EXPECT_STREQ("10", symstring.c_str());
 }
 
+TEST_F(Scan, BackslashBracketInChar) {
+
+    // Character literal '\[' is forbidden ('[' is okay)
+
+    char *Input = "int i = '\\[';";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_GT(0, scanner.Scan());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("'\\['"));
+}
+
+TEST_F(Scan, BackslashOctal1) {
+
+    // "\19" is equivalent to "\1" + "9" because 9 isn't an octal digit
+
+    char *Input = "String s = \"Boom\\19 Box\";";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("String", symstring.c_str());
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("s", symstring.c_str());
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("=", symstring.c_str());
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("Boom\1" "9 Box", symstring.c_str());
+}
+
+TEST_F(Scan, BackslashOctal2) {
+
+    // '/' is just below the lowest digit '0'; "\7/" is equivalent to "\7" + "/"
+    // Octal 444 is too large for a character, so this is equivalent to "\44" + "4"
+
+    char *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    for (size_t symbol_idx = 4; symbol_idx --> 1 ;) // note! smiley ";)" needed
+        EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("Boom\7" "/Box" "\44" "4/Borg", symstring.c_str());
+}
+
+TEST_F(Scan, BackslashOctal3) {
+
+    // '\102' is 66 corresponds to 'B'; '\234' is 156u is -100
+
+    char *Input = "\"b\\102b\" '\\234'";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("bBb", symstring.c_str());
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("-100", symstring.c_str());
+}
+
+TEST_F(Scan, BackslashHex1) {
+
+    // Expect a hex digit after '\x'
+
+    char *Input = "\"Le\\xicon\"";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_GT(0, scanner.Scan());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("hex digit"));
+}
+
+TEST_F(Scan, BackslashHex2) {
+
+    // End hex when '/' is encountered; that's directly before '0'
+    // End hex when '@' is encountered; that's between '9' and 'A'
+    // End hex when 'g' is encountered; that's directly after 'F'
+    // End hex after two hex digits
+
+    char *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ("He\12/meter \14@fe Nicolas C\12GE \372CE ", symstring.c_str());
+}
+
+TEST_F(Scan, BackslashOctHex) {
+
+    
+    // Test all combinations of upper and lower letters and numbers
+
+    char *Input =
+        "\" \\x19 \\x2a \\x3A \\xb4 \\xcd \\xeB \\xC5 \\xDf \\xEF \""
+        "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    std::string symstring2;
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring2, sct, eofe));
+
+    EXPECT_STREQ(symstring2.c_str(), symstring.c_str());
+}
+
+TEST_F(Scan, BackslashCSym) {
+    
+    // Test different symbol characters after '\'
+
+    char *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, eofe));
+    EXPECT_STREQ(" Is 'Java' \x1bqual to \"Ja\va\" ? ", symstring.c_str());
+}
+
 TEST_F(Scan, String1)
 {
     // Should scan advanced escape sequences within string.
@@ -428,4 +592,18 @@ TEST_F(Scan, MatchBraceParen3)
     ASSERT_GT(0, scanner.Scan());
     EXPECT_EQ(5u, scanner.GetLineno());
     EXPECT_NE(std::string::npos, mh.GetError().Message.find("ine 2"));
+}
+
+TEST_F(Scan, MatchBraceParen4)
+{
+    // The scanner checks that nested (), [], {} match.
+    // Closer without opener
+
+    std::string Input = "struct B );";
+
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+    ASSERT_GT(0, scanner.Scan());
+    EXPECT_EQ(1u, scanner.GetLineno());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("matches the closing"));
 }

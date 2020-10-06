@@ -669,7 +669,9 @@ private:
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
     // to the position of the '.'.
     // The "return_scope_type" is used for deciding what values can be returned from a function.
-    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &access_via_this, bool &static_access);
+    // implied_this_dot is set if subsequent processing should imply that
+    // the expression starts with "this.", with the '.' already read in
+    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.

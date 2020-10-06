@@ -1804,3 +1804,65 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
     };
     CompareStrings(&scrip, stringssize, strings);
 }
+
+TEST_F(Bytecode1, ThisExpression1) {
+
+    // "this" must be handled correctly as an expression term
+
+    char inpl[] = "\
+        builtin managed struct Character    \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        import readonly Character *player;  \n\
+                                            \n\
+        int TestCharacter(this Character *) \n\
+        {                                   \n\
+            Character *c = this;            \n\
+            if (this == player)             \n\
+                return 1;                   \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("ThisExpression1", scrip);
+    size_t const codesize = 61;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    3,    6,            2,   52,    3,    2,    // 7
+       3,   51,    0,   47,            3,    1,    1,    4,    // 15
+       3,    6,    2,   52,            3,    2,    3,   29,    // 23
+       3,    6,    2,    0,           48,    3,   30,    4,    // 31
+      15,    4,    3,    3,            4,    3,   28,   11,    // 39
+       6,    3,    1,   51,            4,   49,    2,    1,    // 47
+       4,   31,    9,   51,            4,   49,    2,    1,    // 55
+       4,    6,    3,    0,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      27,  -999
+    };
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "player",       "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}

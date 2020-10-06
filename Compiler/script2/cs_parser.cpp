@@ -3557,7 +3557,7 @@ ErrorType AGS::Parser::AccessData_StringLiteral(SrcList &expression, AGS::Vartyp
     return kERR_None;
 }
 
-ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access)
+ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype, bool &implied_this_dot, bool &static_access)
 {
     if (expression.Length() < 1)
     {
@@ -3566,12 +3566,13 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
     }
     expression.StartRead();
 
+    implied_this_dot = false;
+
     Symbol const first_sym = expression.PeekNext();
 
     if (_sym.GetThisSym() == first_sym)
     {
         expression.GetNext(); // Eat 'this'
-        expression.GetNext(); // Eat '.'
         vartype = _sym.GetVartype(_sym.GetThisSym());
         if (0 == vartype)
         {
@@ -3582,7 +3583,14 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
         mloc.Reset();
-        access_via_this = true;
+        Symbol const dot = expression.PeekNext();
+        if (kSYM_Dot == _sym.GetSymbolType(dot))
+        {
+            expression.GetNext(); // Eat '.'
+            // Going forward, we must "imply" "this." since we've just gobbled it.
+            implied_this_dot = true;
+        }
+        
         return kERR_None;
     }
 
@@ -3595,15 +3603,17 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         vartype = _sym.GetVartype(_sym.GetThisSym());
         Symbol const thiscomponent = MangleStructAndComponent(vartype, first_sym);
         if (0 != _sym[thiscomponent].SType)
-        {
+        {            
             vloc = kVL_mar_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
-            access_via_this = true;
 
-            // We _should_ prepend "this." to the expression here but can't do that.
-            // So we don't
+            // Going forward, the code should imply "this."
+            // with the '.' already read in.
+            implied_this_dot = true;
+            // Then the component needs to be read again.
+            expression.BackUp();
             return kERR_None;
         }
 
@@ -3807,13 +3817,13 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
     ErrorType retval = AccessData_IsClauseLast(expression, clause_is_last);
     if (retval < 0) return retval;
 
-    bool access_via_this = false; // only true when "this" has just been parsed
+    bool implied_this_dot = false; // only true when "this." is implied
     bool static_access = false; // only true when a vartype has just been parsed
 
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause((writing && clause_is_last), expression, vloc, scope_type, mloc, vartype, access_via_this, static_access);
+    retval = AccessData_FirstClause((writing && clause_is_last), expression, vloc, scope_type, mloc, vartype, implied_this_dot, static_access);
     if (retval < 0) return retval;
 
     Vartype outer_vartype = 0;
@@ -3821,10 +3831,12 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
     // If the previous function has assumed a "this." that isn't there,
     // then a '.' won't be coming up but the while body must be executed anyway.
     // This is why the while condition has "access_via_this" in it.
-    while (kSYM_Dot == _sym.GetSymbolType(expression.PeekNext()) || access_via_this)
+    while (kSYM_Dot == _sym.GetSymbolType(expression.PeekNext()) || implied_this_dot)
     {
-        if (!access_via_this)
-            expression.GetNext(); // Eat '.' or its replacement
+        if (!implied_this_dot)
+            expression.GetNext(); // Eat '.'
+        // Note: do not reset "implied_this_dot" here, it's still needed.
+
         if (expression.ReachedEOF())
         {
             Error("Expected struct component after '.' but did not find it");
@@ -3856,13 +3868,14 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause((clause_is_last && writing), access_via_this, static_access, expression, vloc, scope_type, mloc, vartype);
+        retval = AccessData_SubsequentClause((clause_is_last && writing), implied_this_dot, static_access, expression, vloc, scope_type, mloc, vartype);
         if (retval < 0) return retval;
 
-        // Only the _immediate_ access via 'this.' counts for this flag.
-        // This has passed now, so reset the flag.
-        access_via_this = false;
-        static_access = false; // Same for 'vartype.'
+        // Next component access, if there is any, is dependent on
+        // the current access, no longer on "this".
+        implied_this_dot = false;
+        // Next component access, if there is any, won't be static.
+        static_access = false;
     }
 
     if (kVL_attribute == vloc)

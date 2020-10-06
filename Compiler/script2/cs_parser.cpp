@@ -3856,9 +3856,12 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
 
         if (!_sym.IsStruct(vartype) || !_sym.IsAtomic(vartype))
         {
-            Error(
-                "Expected a struct in front of '.' but found an expression of type '%s' instead",
-                _sym.GetName(outer_vartype).c_str());
+            if (_sym.IsArray(vartype) || _sym.IsDynarray(vartype))
+                Error("Expected a struct in front of '.' but found an array instead");
+            else        
+                Error(
+                    "Expected a struct in front of '.' but found an expression of type '%s' instead",
+                    _sym.GetName(outer_vartype).c_str());
             return kERR_UserError;
         }
 

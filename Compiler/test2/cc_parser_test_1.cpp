@@ -920,7 +920,7 @@ TEST_F(Compile1, FixupMismatch) {
     }
 }
 
-TEST_F(Compile1, ComponetOfNonStruct) {
+TEST_F(Compile1, ComponentOfNonStruct1) {
 
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
@@ -936,6 +936,25 @@ TEST_F(Compile1, ComponetOfNonStruct) {
             MyStruct arr[100];      \n\
             arr.i = 0;              \n\
         }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'.'"));
+}
+
+TEST_F(Compile1, ComponentOfNonStruct2) {
+
+    // If a '.' follows something other than a struct then complain about that fact.
+    // Do not complain about expecting and not finding a component.
+
+    char *inpl = "\
+        void Test()     \n\
+        {               \n\
+            int i;      \n\
+            i.j = 0;    \n\
+        }               \n\
         ";
 
     int compileResult = cc_compile(inpl, scrip);

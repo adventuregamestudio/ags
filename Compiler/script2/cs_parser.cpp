@@ -296,7 +296,7 @@ ErrorType AGS::Parser::String2Float(std::string const &float_as_string, float &f
 AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbol component)
 {
     std::string fullname_str = _sym.GetName(stname) + "::" + _sym.GetName(component);
-    return _sym.FindOrAdd(fullname_str.c_str());
+    return _sym.FindOrAdd(fullname_str);
 }
 
 ErrorType AGS::Parser::SkipTo(SrcList &source, const AGS::SymbolType stoplist[], size_t stoplist_len)
@@ -3201,7 +3201,7 @@ ErrorType AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool wr
     char const *stem_str = writing ? "set" : "get";
     char const *indx_str = indexed ? "i_" : "_";
     std::string func_str = stem_str + (indx_str + member_str);
-    func = _sym.FindOrAdd(func_str.c_str());
+    func = _sym.FindOrAdd(func_str);
     return kERR_None;
 }
 
@@ -3833,11 +3833,6 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
-        if (!_sym.IsStruct(outer_vartype))
-        {
-            Error("Expected a struct before '.' but did not find it");
-            return kERR_UserError;
-        }
 
         // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
         if (_sym.IsDynpointer(vartype))
@@ -3845,6 +3840,14 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
             vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype);
+        }
+
+        if (!_sym.IsStruct(vartype) || !_sym.IsAtomic(vartype))
+        {
+            Error(
+                "Expected a struct in front of '.' but found an expression of type '%s' instead",
+                _sym.GetName(outer_vartype).c_str());
+            return kERR_UserError;
         }
 
         retval = AccessData_IsClauseLast(expression, clause_is_last);

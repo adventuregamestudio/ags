@@ -580,7 +580,7 @@ ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType sc
 {
     std::string const name =
         (kSct_StringLiteral == scan_type) ? MakeStringPrintable(symstring) : symstring;
-    symb = _sym.FindOrAdd(name.c_str());
+    symb = _sym.FindOrAdd(name);
     if (symb < 0)
     {
         Error("Symbol table overflow - could not add new symbol");

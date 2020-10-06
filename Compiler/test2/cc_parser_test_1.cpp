@@ -919,3 +919,27 @@ TEST_F(Compile1, FixupMismatch) {
         EXPECT_FALSE('\0' == scrip.imports[cv][0]);
     }
 }
+
+TEST_F(Compile1, ComponetOfNonStruct) {
+
+    // If a '.' follows something other than a struct then complain about that fact.
+    // Do not complain about expecting and not finding a component.
+
+    char *inpl = "\
+        struct MyStruct             \n\
+        {                           \n\
+            int i;                  \n\
+        };                          \n\
+                                    \n\
+        void TestArray()            \n\
+        {                           \n\
+            MyStruct arr[100];      \n\
+            arr.i = 0;              \n\
+        }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'.'"));
+}

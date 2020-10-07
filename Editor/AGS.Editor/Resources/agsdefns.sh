@@ -2690,6 +2690,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v351
   /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
   import static readonly attribute Overlay* BlockingTextOverlay;
+  /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
+  import static readonly attribute int BlockingWaitSkipped;
 #endif
 };
 

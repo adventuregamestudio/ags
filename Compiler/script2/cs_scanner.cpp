@@ -13,12 +13,12 @@ std::string const AGS::Scanner::kNewSectionLitPrefix = "__NEWSCRIPTSTART_";
 AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ::ccCompiledScript &string_collector, ::SymbolTable &symt, MessageHandler &messageHandler)
     : _ocMatcher(*this)
     , _lineno(1u)
-    , _section("")
     , _tokenList(token_list)
     , _messageHandler(messageHandler)
     , _sym(symt)
     , _stringCollector(string_collector)
 {
+    _section = token_list.SectionId2Section(token_list.GetSectionIdAt(0));
     _inputStream.str(input);
 }
 

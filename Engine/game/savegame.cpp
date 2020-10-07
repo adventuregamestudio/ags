@@ -349,8 +349,8 @@ void DoBeforeRestore(PreservedParams &pp)
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
     remove_screen_overlay(-1);
-    is_complete_overlay = 0;
-    is_text_overlay = 0;
+    play.complete_overlay_on = false;
+    play.text_overlay_on = false;
 
     // cleanup dynamic sprites
     // NOTE: sprite 0 is a special constant sprite that cannot be dynamic

@@ -43,9 +43,6 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
 void remove_screen_overlay_index(size_t over_idx);
 void recreate_overlay_ddbs();
 
-extern int is_complete_overlay;
-extern int is_text_overlay; // blocking text overlay on screen
 
 extern std::vector<ScreenOverlay> screenover;
-
 #endif // __AGS_EE_AC__OVERLAY_H

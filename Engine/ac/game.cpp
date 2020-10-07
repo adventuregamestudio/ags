@@ -108,7 +108,6 @@ extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 
-extern int is_complete_overlay,is_text_overlay;
 
 #if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 extern int psp_gfx_renderer;
@@ -1784,7 +1783,7 @@ void start_skipping_cutscene () {
         remove_popup_interface(ifacepopped);
 
     // if a text message is currently displayed, remove it
-    if (is_text_overlay > 0)
+    if (play.text_overlay_on)
         remove_screen_overlay(OVER_TEXTMSG);
 
 }

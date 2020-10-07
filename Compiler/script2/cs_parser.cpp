@@ -3830,18 +3830,12 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
 
     // If the previous function has assumed a "this." that isn't there,
     // then a '.' won't be coming up but the while body must be executed anyway.
-    // This is why the while condition has "access_via_this" in it.
     while (kSYM_Dot == _sym.GetSymbolType(expression.PeekNext()) || implied_this_dot)
     {
         if (!implied_this_dot)
             expression.GetNext(); // Eat '.'
         // Note: do not reset "implied_this_dot" here, it's still needed.
 
-        if (expression.ReachedEOF())
-        {
-            Error("Expected struct component after '.' but did not find it");
-            return kERR_UserError;
-        }
         // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
@@ -3862,6 +3856,12 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
                 Error(
                     "Expected a struct in front of '.' but found an expression of type '%s' instead",
                     _sym.GetName(outer_vartype).c_str());
+            return kERR_UserError;
+        }
+
+        if (expression.ReachedEOF())
+        {
+            Error("Expected struct component after '.' but did not find it");
             return kERR_UserError;
         }
 

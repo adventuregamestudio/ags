@@ -2687,6 +2687,10 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
+#ifdef SCRIPT_API_v351
+  /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
+  import static readonly attribute Overlay* BlockingTextOverlay;
+#endif
 };
 
 builtin struct GameState {

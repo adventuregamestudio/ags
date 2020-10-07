@@ -43,6 +43,10 @@ extern IGraphicsDriver *gfxDriver;
 
 
 std::vector<ScreenOverlay> screenover;
+// Blocking text overlay managed object, for accessing in scripts
+ScriptOverlay *blocking_text_scover = nullptr;
+
+
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -149,18 +153,27 @@ void dispose_overlay(ScreenOverlay &over)
     if (over.bmp != nullptr)
         gfxDriver->DestroyDDB(over.bmp);
     over.bmp = nullptr;
-    // if the script didn't actually use the Overlay* return
-    // value, dispose of the pointer
-    if (over.associatedOverlayHandle)
+    if (over.associatedOverlayHandle) // dispose script object if there are no more refs
         ccAttemptDisposeObject(over.associatedOverlayHandle);
 }
 
 void remove_screen_overlay_index(size_t over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
+    if (over.type == OVER_COMPLETE) play.complete_overlay_on = false;
+    else if (over.type == OVER_TEXTMSG)
+    {
+        play.text_overlay_on = false;
+        if (blocking_text_scover)
+        {
+            // invalidate existing script object to let user know that previous overlay is gone
+            blocking_text_scover->overlayId = -1;
+            blocking_text_scover = nullptr;
+            // release engine's internal reference, script object may exist while there are user refs
+            ccReleaseObjectReference(over.associatedOverlayHandle);
+        }
+    }
     dispose_overlay(over);
-    if (over.type==OVER_COMPLETE) play.complete_overlay_on = false;
-    if (over.type==OVER_TEXTMSG) play.text_overlay_on = false;
     screenover.erase(screenover.begin() + over_idx);
     // if an overlay before the sierra-style speech one is removed,
     // update the index
@@ -195,8 +208,6 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChann
 
 size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
 {
-    if (type==OVER_COMPLETE) play.complete_overlay_on = true;
-    if (type==OVER_TEXTMSG) play.text_overlay_on = true;
     if (type==OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
         for (int id = OVER_CUSTOM + 1; id < screenover.size() + OVER_CUSTOM + 1; ++id) {
@@ -216,8 +227,25 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.associatedOverlayHandle = 0;
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
+    if (type == OVER_COMPLETE) play.complete_overlay_on = true;
+    else if (type == OVER_TEXTMSG)
+    {
+        play.text_overlay_on = true;
+        blocking_text_scover = add_scriptobj_for_overlay(over);
+        // add engine's internal reference to prevent script object from getting disposed
+        ccAddObjectReference(over.associatedOverlayHandle);
+    }
     screenover.push_back(over);
     return screenover.size() - 1;
+}
+
+ScriptOverlay* add_scriptobj_for_overlay(ScreenOverlay &over)
+{
+    ScriptOverlay *scover = new ScriptOverlay();
+    scover->overlayId = over.type;
+    int handl = ccRegisterManagedObject(scover, scover);
+    over.associatedOverlayHandle = handl;
+    return scover;
 }
 
 

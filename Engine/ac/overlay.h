@@ -40,6 +40,8 @@ void remove_screen_overlay(int type);
 void get_overlay_position(const ScreenOverlay &over, int *x, int *y);
 size_t add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
 size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel = false);
+// Creates and registers a managed script object for existing internal overlay
+ScriptOverlay* add_scriptobj_for_overlay(ScreenOverlay &over);
 void remove_screen_overlay_index(size_t over_idx);
 void recreate_overlay_ddbs();
 

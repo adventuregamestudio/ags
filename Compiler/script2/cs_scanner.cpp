@@ -31,7 +31,8 @@ ErrorType AGS::Scanner::Scan()
         Symbol symbol;
         ErrorType retval = GetNextSymbol(symbol, eof_encountered);
         if (retval < 0) return retval;
-        if (eof_encountered) return kERR_None;
+        if (eof_encountered)
+            return _ocMatcher.EndOfInputCheck();
         _tokenList.Append(symbol);
     }
 }
@@ -157,6 +158,9 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
 
         if (kSct_SectionChange != scan_type)
             break;
+        retval = _ocMatcher.EndOfInputCheck();
+        if (retval < 0) return retval;
+
         NewSection(symstring);
     }
 
@@ -642,8 +646,9 @@ ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer,
     size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
     std::string const &opener_section = _scanner._tokenList.SectionId2Section(opener_section_id);
     size_t const opener_lineno = _scanner._tokenList.GetLinenoAt(oi.Pos);
-    std::string const &closer_section = _scanner._tokenList.SectionId2Section(opener_section_id);
-    size_t const closer_lineno = _scanner._tokenList.GetLinenoAt(closer_pos);
+
+    std::string const &closer_section = _scanner._section;
+    size_t const closer_lineno = _scanner._lineno;
 
     std::string error_msg = "Found '&closer&', this does not match the '&opener&' in &section& on line &lineno&";
     if (closer_section == opener_section)
@@ -653,6 +658,35 @@ ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer,
             error_msg = "Found '&closer&', this does not match the '&opener&' on this line";
     }
     ReplaceToken(error_msg, "&closer&", closer);
+    ReplaceToken(error_msg, "&opener&", oi.Opener);
+    if (std::string::npos != error_msg.find("&lineno&"))
+        ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
+    if (std::string::npos != error_msg.find("&section&"))
+        ReplaceToken(error_msg, "&section&", opener_section);
+    _scanner.Error(error_msg.c_str());
+    return kERR_UserError;
+}
+
+ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
+{
+    if (_openInfoStack.empty())
+        return kERR_None;
+
+    struct OpenInfo const oi = _openInfoStack.back();
+    size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
+    std::string const &opener_section = _scanner._tokenList.SectionId2Section(opener_section_id);
+    size_t const opener_lineno = _scanner._tokenList.GetLinenoAt(oi.Pos);
+
+    std::string const &current_section = _scanner._section;
+    size_t const current_lineno = _scanner._lineno;
+
+    std::string error_msg = "The '&opener&' in &section& on line &lineno& has not been closed.";
+    if (opener_section == current_section)
+    {
+        error_msg = "The '&opener&' on line &lineno& has not been closed.";
+        if (opener_lineno == current_lineno)
+            error_msg = "The '&opener&' on this line has not been closed.";
+    }
     ReplaceToken(error_msg, "&opener&", oi.Opener);
     if (std::string::npos != error_msg.find("&lineno&"))
         ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));

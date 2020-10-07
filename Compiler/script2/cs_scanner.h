@@ -59,6 +59,9 @@ private:
         // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
         // If they don't match, generate error. Otherwise, pop from stack
         ErrorType PopAndCheck(std::string const &closer, size_t closer_pos);
+
+        // At end of input, check whether any unclosed openers remain.
+        ErrorType EndOfInputCheck();
     } _ocMatcher;
     friend OpenCloseMatcher;
 

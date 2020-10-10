@@ -180,7 +180,6 @@
     <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_internallist.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h" />
-    <ClInclude Include="..\..\Compiler\script2\cc_variablesymlist.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_compiler.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_parser.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_parser_common.h" />

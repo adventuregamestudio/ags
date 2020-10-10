@@ -57,9 +57,6 @@
     <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Compiler\script2\cc_variablesymlist.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Compiler\script2\cs_compiler.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>

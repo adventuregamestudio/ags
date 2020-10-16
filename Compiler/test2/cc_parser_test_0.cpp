@@ -759,7 +759,7 @@ TEST_F(Compile0, FuncHeader1) {
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("rray size"));
+    ASSERT_NE(std::string::npos, err.find("'15'"));
 }
 
 TEST_F(Compile0, FuncHeader2) {  
@@ -825,12 +825,14 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1a) {
 
 TEST_F(Compile0, ExtenderFuncHeaderFault1b) {    
 
+    // A comma or paren should follow 'Weapon'
+
     char *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
                                                \n\
-        void Foo(static Weapon Of Destruction) \n\
+        void Foo(static Weapon Of Mass Destruction) \n\
         {                                      \n\
             return;                            \n\
         }                                      \n\
@@ -840,7 +842,7 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1b) {
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("arameter name"));
+    ASSERT_NE(std::string::npos, err.find("'Of'"));
 }
 
 TEST_F(Compile0, ExtenderFuncHeaderFault1c) {    

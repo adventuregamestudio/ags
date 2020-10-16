@@ -8,7 +8,7 @@
 namespace AGS
 {
 typedef int Symbol; // A symbol (result of scanner preprocessing)
-typedef Symbol *SymbolScript; // A buffer of symbols 
+typedef std::vector<Symbol> SymbolList; // A buffer of symbols 
 typedef long FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
@@ -40,69 +40,28 @@ enum SymbolType : SymbolTypeType
 {
     kSYM_NoType = 0,
 
-    // Types below can appear in expressions
-    kSYM_CloseBracket,
-    kSYM_CloseParenthesis,
+    kSYM_Attribute, // fixme
+    kSYM_Delimiter,
     kSYM_Constant,
-    kSYM_Dot,
     kSYM_Function,
     kSYM_GlobalVar,
     kSYM_LiteralFloat,
     kSYM_LiteralInt,
     kSYM_LiteralString,
     kSYM_LocalVar,
-    kSYM_Null,
-    kSYM_OpenBracket,
-    kSYM_OpenParenthesis,
     kSYM_Operator,
     kSYM_StructComponent,
-    kSYM_Tern,              // the '?' in the a? b : c construct
-
-    // Types below cannot appear in expressions
     kSYM_Assign,
     kSYM_AssignMod,         // Modifying assign, e.g. "+="
     kSYM_AssignSOp,         // single-op assignemnt, eg "++", "--"
-    kSYM_Attribute,         // struct member as attribute
-    kSYM_AutoPtr,           // automatic pointer
-    kSYM_Break,
-    kSYM_Builtin,           // can't be instantiated directly by the user
-    kSYM_Case,
-    kSYM_CloseBrace,
-    kSYM_Comma,
-    kSYM_Const,
-    kSYM_Continue,
-    kSYM_Default,
-    kSYM_Do,
-    kSYM_Else,
-    kSYM_Enum,
-    kSYM_Export,
-    kSYM_Extends,           // inheritance
-    kSYM_For,
-    kSYM_If,
+    kSYM_Keyword,
     kSYM_Import,
-    kSYM_InternalString,    // special string struct
-    kSYM_Label,             // : at end of label, also used in ternary
-    kSYM_NoLoopCheck,       // disable loop count checking
-    kSYM_Managed,           // struct allocated on heap
-    kSYM_MemberAccess,      // ::
-    kSYM_New,
-    kSYM_OpenBrace,
-    kSYM_Protected,
-    kSYM_ReadOnly,
-    kSYM_Return,
-    kSYM_Semicolon,
-    kSYM_Static,
-    kSYM_Struct,
-    kSYM_Switch,
     kSYM_UndefinedStruct,   // forward-declared struct
-    kSYM_Varargs,
     kSYM_Vartype,
-    kSYM_While,
-    kSYM_WriteProtected,    // write-protected member
 };
 
 // Types starting (numerically) with this aren't part of expressions
-constexpr SymbolTypeType NOTEXPRESSION = kSYM_Assign; 
+constexpr SymbolType kSYM_LastInExpression = kSYM_StructComponent; // Types beyond here can't be in expressions
 
 enum TypeQualifier
 {

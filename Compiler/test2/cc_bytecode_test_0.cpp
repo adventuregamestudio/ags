@@ -3750,7 +3750,7 @@ TEST_F(Bytecode0, Static1) {
     char *inpl = "\
         struct Weapon {                         \n\
             import static int CalcDamage(       \n\
-            int Lifepoints, int Hitpoints = 5);   \n\
+            int Lifepoints, int Hitpoints = 5); \n\
         };                                      \n\
                                                 \n\
         static int Weapon::CalcDamage(int Lifepoints, int Hitpoints)  \n\
@@ -4057,7 +4057,7 @@ TEST_F(Bytecode0, Switch02) {
 TEST_F(Bytecode0, Attributes01) {    
 
     char *inpl = "\
-        enum bool { false = 0, true = 1 };              \n\
+        enum bool { false = 0, true = 1, };              \n\
         builtin managed struct ViewFrame {              \n\
             readonly import attribute bool Flipped;     \n\
             import attribute int Graphic;               \n\

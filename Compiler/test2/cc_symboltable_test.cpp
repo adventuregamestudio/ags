@@ -92,16 +92,16 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 
 TEST(SymbolTable, Operators) {
     AGS::SymbolTable testSym;
-    int  sym_01 = testSym.AddOp("Antiatomkraftprotestplakat", AGS::kSYM_Operator, 7, 77);
+    int  sym_01 = testSym.AddOp(AGS::kKW_And, "Antiatomkraftprotestplakat", AGS::kSYM_Operator, 7, 77);
     EXPECT_EQ(7, testSym.GetOperatorOpcode(sym_01));
     EXPECT_EQ(77, testSym.BinaryOpPrio(sym_01));
 
-    int const sym_02 = testSym.AddOp("Betriebsgenehmigung", AGS::kSYM_Operator, 8, 88, 888);
+    int const sym_02 = testSym.AddOp(AGS::kKW_And, "Betriebsgenehmigung", AGS::kSYM_Operator, 8, 88, 888);
     EXPECT_EQ(8, testSym.GetOperatorOpcode(sym_02));
     EXPECT_EQ(88, testSym.BinaryOpPrio(sym_02));
     EXPECT_EQ(888, testSym.UnaryOpPrio(sym_02));
 
-    int const sym_03 = testSym.AddOp("Charaktereignungstest", AGS::kSYM_Assign, 9, 99, 999);
+    int const sym_03 = testSym.AddOp(AGS::kKW_And, "Charaktereignungstest", AGS::kSYM_Assign, 9, 99, 999);
     EXPECT_EQ(AGS::kSYM_Assign, testSym.GetSymbolType(sym_03));
     EXPECT_EQ(9, testSym.GetOperatorOpcode(sym_03));
     EXPECT_EQ(99, testSym.BinaryOpPrio(sym_03));

@@ -19,6 +19,104 @@ enum VartypeType
     kVTT_Dynpointer = 1 << 4,
 };
 
+enum Predefined : Symbol
+{
+    kKW_NoSymbol = 0,
+    // Primitive vartypes
+    kKW_Char,       // "char"
+    kKW_Float,      // "float"
+    kKW_Int,        // "int"
+    kKW_Long,       // "long"
+    kKW_Short,      // "short"
+    kKW_String,     // "string"
+    kKW_Void,       // "void"
+
+    kKW_CloseBracket,       // "]"
+    kKW_CloseParenthesis,   // ")"
+    kKW_Dot,        // "."
+    kKW_Null,       // "null"
+    kKW_OpenBracket,        // "["
+    kKW_OpenParenthesis,    // (
+    kKW_Not,        // "!"
+    kKW_BitNeg,     // "~"
+    kKW_Multiply,   // "*"
+    kKW_Dynpointer = kKW_Multiply,
+    kKW_Divide,     // "/"
+    kKW_Modulo,     // "%"
+    kKW_Plus,       // "+"
+    kKW_Minus,      // "-"
+    kKW_ShiftLeft,  // "<<"
+    kKW_ShiftRight, // ">>"
+    kKW_BitAnd,     // "&"
+    kKW_BitOr,      // "|"
+    kKW_BitXor,     // "^"
+    kKW_Equal,      // "=="
+    kKW_NotEqual,   // "!="
+    kKW_Greater,    // ">"
+    kKW_Less,       // "<"
+    kKW_GreaterEqual,   // ">="
+    kKW_LessEqual,      // "<="
+    kKW_And,        // "&&"
+    kKW_Or,         // "||"
+    kKW_Tern,       // "?"
+
+    kKW_This,       // "this"
+
+    // Assignments
+    kKW_Assign,     // "="
+    kKW_AssignPlus, // "+="
+    kKW_AssignMinus,// "-="
+    kKW_AssignMultiply, // "*="
+    kKW_AssignDivide,   // "/="
+    kKW_AssignBitAnd,   // "&="
+    kKW_AssignBitOr,    // "|="
+    kKW_AssignBitXor,   // "^="
+    kKW_AssignShiftLeft,// "<<="
+    kKW_AssignShiftRight,   // ">>="
+    kKW_Increment,      // "++"
+    kKW_Decrement,      // "--"
+
+    // Other keywords and symbols
+    kKW_Attribute,  // "attribute"
+    kKW_Autoptr,    // "autoptr"
+    kKW_Break,      // "break"
+    kKW_Builtin,    // "builtin"
+    kKW_Case,       // "case"
+    kKW_CloseBrace, // "}"
+    kKW_Comma,      // ","
+    kKW_Const,      // "const"
+    kKW_Continue,   // "continue"
+    kKW_Default,    // "cefault"
+    kKW_Do,         // "do"
+    kKW_Else,       // "else"
+    kKW_Enum,       // "enum"
+    kKW_Export,     // "export"
+    kKW_Extends,    // "extends"
+    kKW_For,        // "for"
+    kKW_If,         // "if"
+    kKW_Import,     // "import"
+    kKW_ImportTry,  // "_tryimport"
+    kKW_Internalstring,   // "internalstring"
+    kKW_Colon,      // ":"
+    kKW_Noloopcheck,// "noloopcheck"
+    kKW_Managed,    // "managed"
+    kKW_ScopeRes,   // "::"
+    kKW_New,        // "new"
+    kKW_OpenBrace,  // "{"
+    kKW_Protected,  // "protected"
+    kKW_Readonly,   // "readonly"
+    kKW_Return,     // "return"
+    kKW_Semicolon,  // ";"
+    kKW_Static,     // "static"
+    kKW_Struct,     // "struct"
+    kKW_Switch,     // "switch"
+    kKW_Varargs,    // "..."
+    kKW_While,      // "while"
+    kKW_Writeprotected,  // "writeprotected"
+    kKW_LastPredefined = kKW_Writeprotected,
+};
+
+
 struct SymbolTable;
 
 struct SymbolTableEntry {
@@ -126,20 +224,7 @@ private:
         size_t operator() (std::pair<Vartype, enum VartypeType> pair) const { return hash(pair.first ^ (1021 * pair.second)); };
     };
 
-    // index for predefined symbols
-    Symbol _charSym;      // the symbol that corresponds to "char"
-    Symbol _floatSym;     // the symbol that corresponds to "float"
-    Symbol _intSym;       // the symbol that corresponds to "int"
-    Symbol _longSym;      // the symbol that corresponds to "long"
-    Symbol _shortSym;     // the symbol that corresponds to "short"
-    Symbol _nullSym;      // the symbol that corresponds to "null"
-    Symbol _dynpointerSym;   // the symbol that corresponds to "*"
-    Symbol _oldStringSym;    // the symbol that corresponds to "string"
     Symbol _stringStructSym; // the symbol that corresponds to "String" or whatever the stringstruct is
-    Symbol _thisSym;      // the symbol that corresponds to "this"
-    Symbol _voidSym;      // the symbol that corresponds to "void"
-    Symbol _lastPredefSym;   // last predefined symbol
-
     AGS::Vartype _stringStructPtrVartype;
 
     mutable std::unordered_map<std::string, int> _findCache;
@@ -156,18 +241,8 @@ public:
     inline void ResetCaches() const { _vartypesCache.clear(); };
     void reset();
 
-    inline Symbol GetCharSym() const { return _charSym; }
-    inline Symbol GetFloatSym() const { return _floatSym; }
-    inline Symbol GetIntSym() const { return _intSym; }
-    inline Symbol GetNullSym() const { return _nullSym; }
-    inline Symbol GetOldStringSym() const { return _oldStringSym; }
-    inline Symbol GetDynpointerSym() const { return _dynpointerSym; }
-    inline Symbol GetThisSym() const { return _thisSym; }
-    inline Symbol GetVoidSym() const { return _voidSym; }
     inline Symbol GetStringStructSym() const { return _stringStructSym; }
     inline void SetStringStructSym(Symbol s) { _stringStructSym = s; }
-    inline Symbol GetLastPredefSym() const { return _lastPredefSym; }
-
     inline bool IsInBounds(Symbol s) const { return s > 0 && static_cast<size_t>(s) < entries.size(); }
 
     inline size_t GetSize(Symbol s) const { return IsInBounds(s) ? entries[s].GetSize(*this) : 0; };
@@ -187,9 +262,10 @@ public:
     inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsManaged(*this) : false; }
     inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsStruct(*this) : false; }
     // A predefined atomic vartype such as int and float.
-    inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= GetVoidSym()); };
+    inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= kKW_Void); };
 
     inline bool IsOperator(Symbol s) const { return entries[s].IsOperator(); }
+    inline bool IsVartype(Symbol s) const { return kSYM_Vartype == GetSymbolType(s); }
     inline int BinaryOpPrio(Symbol s) const { return entries[s].OperatorBinaryPrio; }
     inline int UnaryOpPrio(Symbol s) const { return entries[s].OperatorUnaryPrio; }
     inline CodeCell GetOperatorOpcode(Symbol s) const { return entries[s].OperatorOpcode; }
@@ -200,9 +276,12 @@ public:
     // add the name to the symbol table, give it the type stype and the size ssize
     Symbol Add(std::string const &name, SymbolType stype = kSYM_NoType, int ssize = 0);
 
+    // add the symbol to the symbol table at [kw]. Only use during initialization.
+    Symbol Add(Predefined kw, std::string const &name, SymbolType stype, int ssize = 0);
+
     // add the operator opname to the symbol table
     // Priorities: lower value = higher prio; negative value means no priority
-    AGS::Symbol AddOp(std::string const &opname, SymbolType sty, CodeCell opcode, int binary_prio = -1, int unary_prio = -1);
+    Symbol AddOp(Predefined kw, std::string const &opname, SymbolType sty, CodeCell opcode, int binary_prio = -1, int unary_prio = -1);
 
     // Return the symbol to the name, or -1 if not found
     inline Symbol Find(std::string const &name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }

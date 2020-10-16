@@ -906,7 +906,7 @@ TEST_F(Compile1, FixupMismatch) {
     // Sanity check for import fixups: The corresponding Bytecode must
     // point into the imports[] array, and the corresponding slot must
     // contain a non-empty string.
-    for (size_t fixup_idx = 0; fixup_idx < scrip.numfixups; fixup_idx++)
+    for (size_t fixup_idx = 0; fixup_idx < static_cast<size_t>(scrip.numfixups); fixup_idx++)
     {
         if (FIXUP_IMPORT != scrip.fixuptypes[fixup_idx])
             continue;

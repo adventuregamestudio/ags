@@ -214,7 +214,7 @@ std::map<TypeQualifier, std::string> AGS::Parser::_tq2String;
 
 bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= _sym.GetLastPredefSym() || symb > static_cast<decltype(symb)>(_sym.entries.size()))
+    if (symb <= kKW_LastPredefined || symb > static_cast<decltype(symb)>(_sym.entries.size()))
         return false;
     std::string name = _sym.GetName(symb);
     if (name.size() == 0)
@@ -299,7 +299,7 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(AGS::Symbol stname, AGS::Symbo
     return _sym.FindOrAdd(fullname_str);
 }
 
-ErrorType AGS::Parser::SkipTo(SrcList &source, const AGS::SymbolType stoplist[], size_t stoplist_len)
+ErrorType AGS::Parser::SkipTo(SymbolList const &stoplist, SrcList &source)
 {
     int delimeter_nesting_depth = 0;
     for (; !source.ReachedEOF(); source.GetNext())
@@ -307,45 +307,83 @@ ErrorType AGS::Parser::SkipTo(SrcList &source, const AGS::SymbolType stoplist[],
         // Note that the scanner/tokenizer has already verified
         // that all opening symbols get closed and 
         // that we don't have (...] or similar in the input
-        SymbolType const curtype = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_OpenBrace == curtype ||
-            kSYM_OpenBracket == curtype ||
-            kSYM_OpenParenthesis == curtype)
+        Symbol const next_sym = _src.PeekNext();
+        switch (next_sym)
+        {
+        case kKW_OpenBrace:
+        case kKW_OpenBracket:
+        case kKW_OpenParenthesis:
         {
             ++delimeter_nesting_depth;
             continue;
         }
-        if (kSYM_CloseBrace == curtype ||
-            kSYM_CloseBracket == curtype ||
-            kSYM_CloseParenthesis == curtype)
+        case kKW_CloseBrace:
+        case kKW_CloseBracket:
+        case kKW_CloseParenthesis:
         {
             if (--delimeter_nesting_depth < 0)
                 return kERR_None;
             continue;
         }
+        }
         if (0 < delimeter_nesting_depth)
             continue;
 
-        for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
-            if (curtype == stoplist[stoplist_idx])
+        for (auto it = stoplist.begin(); it != stoplist.end(); ++it)
+            if (next_sym == *it)
                 return kERR_None;
     }
     return kERR_UserError;
 }
 
-ErrorType AGS::Parser::SkipToClose(SymbolType closer)
+ErrorType AGS::Parser::SkipToClose(Predefined closer)
 {
-    SymbolType const stoplist[] = { kSYM_NoType, };
-    SkipTo(_src, stoplist, 0); // pass empty list
-    if (closer != _sym.GetSymbolType(_src.GetNext()))
-    {
-        Error("!Unexpected closing symbol");
-        return kERR_InternalError;
-    }
-    return kERR_None;
+    SkipTo(SymbolList{}, _src);
+    if (closer == _src.GetNext())
+        return kERR_None;
+    
+    Error("!Unexpected closing symbol");
+    return kERR_InternalError;
 }
 
-AGS::Parser::NestingStack::NestingInfo::NestingInfo(SymbolType stype, ::ccCompiledScript &scrip)
+ErrorType AGS::Parser::Expect(Symbol expected, Symbol actual, std::string const &custom_msg)
+{
+    if (actual == expected)
+        return kERR_None;
+
+    if ("" != custom_msg)
+        Error(
+            (custom_msg + ", found %s instead").c_str(),
+            _sym.GetName(actual).c_str());
+    else
+        Error(
+            "Expected '%s', found '%s' instead",
+            _sym.GetName(expected).c_str(),
+            _sym.GetName(actual).c_str());
+    return kERR_UserError;
+}
+
+ErrorType AGS::Parser::Expect(std::vector<Symbol> const &expected, Symbol actual)
+{
+    for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+        if (actual == expected[expected_idx])
+            return kERR_None;
+    std::string errmsg = "Expected ";
+    for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+    {
+        errmsg += "'" + _sym.GetName(expected[expected_idx]) + "'";
+        if (expected_idx + 2 < expected.size())
+            errmsg += ", ";
+        else if (expected_idx + 2 == expected.size())
+            errmsg += " or";
+    }
+    errmsg += ", found '%s' instead";
+    Error(errmsg.c_str(), _sym.GetName(actual).c_str());
+    return kERR_UserError;
+}
+            
+
+AGS::Parser::NestingStack::NestingInfo::NestingInfo(NSType stype, ::ccCompiledScript &scrip)
     : Type(stype)
     , OldDefinitions({})
     , Start(BackwardJumpDest{ scrip })
@@ -364,7 +402,7 @@ AGS::Parser::NestingStack::NestingStack(::ccCompiledScript &scrip)
     :_scrip(scrip)
 {
     // Push first record on stack so that it isn't empty
-    Push(kSYM_NoType);
+    Push(NestingStack::kNS_None);
 }
 
 bool AGS::Parser::NestingStack::AddOldDefinition(Symbol s, SymbolTableEntry const &entry)
@@ -441,7 +479,7 @@ void AGS::Parser::FuncCallpointMgr::Reset()
     _funcCallpointMap.clear();
 }
 
-ErrorType AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc)
+ErrorType AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc, size_t in_source)
 {
     // Patch callpoint in when known
     CodeCell const callpoint = _funcCallpointMap[func].Callpoint;
@@ -453,8 +491,9 @@ ErrorType AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, C
 
     // Callpoint not known, so remember this location
     PatchInfo pinfo;
-    pinfo.ChunkId = CodeBaseId;
+    pinfo.ChunkId = kCodeBaseId;
     pinfo.Offset = loc;
+    pinfo.InSource = in_source;
     _funcCallpointMap[func].List.push_back(pinfo);
 
     return kERR_None;
@@ -473,7 +512,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc ch
         for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
         {
             PatchInfo &patch_info = pl[pl_idx];
-            if (patch_info.ChunkId != CodeBaseId)
+            if (kCodeBaseId != patch_info.ChunkId)
                 continue;
             if (patch_info.Offset < chunk_start || patch_info.Offset >= static_cast<decltype(patch_info.Offset)>(chunk_end))
                 continue; // This address isn't yanked
@@ -502,7 +541,7 @@ ErrorType AGS::Parser::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc st
 
             // We cannot repurpose patch_info since it may be written multiple times.
             PatchInfo cb_patch_info;
-            cb_patch_info.ChunkId = CodeBaseId;
+            cb_patch_info.ChunkId = kCodeBaseId;
             cb_patch_info.Offset = patch_info.Offset + start;
             pl.push_back(cb_patch_info);
         }
@@ -518,12 +557,12 @@ ErrorType AGS::Parser::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS:
     size_t const pl_size = pl.size();
     bool yanked_patches_exist = false;
     for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
-        if (pl[pl_idx].ChunkId == CodeBaseId)
+        if (kCodeBaseId == pl[pl_idx].ChunkId)
         {
             _parser._scrip.code[pl[pl_idx].Offset] = dest;
-            pl[pl_idx].ChunkId = PatchedId;
+            pl[pl_idx].ChunkId = kPatchedId;
         }
-        else if (pl[pl_idx].ChunkId != PatchedId)
+        else if (kPatchedId != pl[pl_idx].ChunkId)
         {
             yanked_patches_exist = true;
         }
@@ -534,16 +573,18 @@ ErrorType AGS::Parser::FuncCallpointMgr::SetFuncCallpoint(AGS::Symbol func, AGS:
 
 ErrorType AGS::Parser::FuncCallpointMgr::CheckForUnresolvedFuncs()
 {
-    for (CallMap::iterator fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
+    for (auto fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
     {
         PatchList &pl = fcm_it->second.List;
         size_t const pl_size = pl.size();
         for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
         {
-            if (pl[pl_idx].ChunkId != CodeBaseId)
+            if (kCodeBaseId != pl[pl_idx].ChunkId)
                 continue;
-            // Is possible if there is a forward declaration but not an import
-            _parser.Error("Function '%s()' has been called but not defined with body nor imported", _parser._sym.GetName(fcm_it->first).c_str());
+            _parser._src.SetCursor(pl[pl_idx].InSource);
+            _parser.Error(
+                _parser.ReferenceMsgSym("The called function '%s()' isn't defined with body nor imported", fcm_it->first).c_str(),
+                _parser._sym.GetName(fcm_it->first).c_str());
             return kERR_InternalError;
         }
     }
@@ -1039,21 +1080,17 @@ ErrorType AGS::Parser::RemoveLocalsFromSymtable(size_t from_level)
 
 ErrorType AGS::Parser::HandleEndOfDo()
 {
-    Symbol const cursym = _src.GetNext();
-    if (_sym.GetSymbolType(cursym) != kSYM_While)
-    {
-        Error("Expected the 'while' of a 'do ... while(...)' statement");
-        return kERR_UserError;
-    }
-
-    ErrorType retval = ParseParenthesizedExpression();
+    ErrorType retval = Expect(
+        kKW_While,
+        _src.GetNext(),
+        "Expected the 'while' of a 'do ... while(...)' statement");
     if (retval < 0) return retval;
 
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
-    {
-        Error("Expected ';'");
-        return kERR_UserError;
-    }
+    retval = ParseParenthesizedExpression();
+    if (retval < 0) return retval;
+
+    retval = Expect(kKW_Semicolon, _src.GetNext());
+    if (retval < 0) return retval;
 
     // Jump back to the start of the loop while the condition is true
     _nest.Start().WriteJump(SCMD_JNZ, _src.GetLineno());
@@ -1178,8 +1215,14 @@ ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type
         default_value.Type = SymbolTableEntry::kDT_Dyn;
         default_value.DynDefault = nullptr;
 
-        if (!default_is_negative  && _sym.Find("0") == default_value_symbol || _sym.GetNullSym() == default_value_symbol)
+        if (kKW_Null == default_value_symbol)
             return kERR_None;
+        if (!default_is_negative && _sym.Find("0") == default_value_symbol)
+        {
+            Warning("Found '0' as a default for a dynamic object (prefer 'null')");
+            return kERR_None;
+        }
+        
         Error("Expected the parameter default 'null'");
         return kERR_UserError;
     }
@@ -1194,16 +1237,17 @@ ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type
             default_value.IntDefault);
     }
 
-    if (!_sym.GetFloatSym() == param_type)
+    if (kKW_Float != param_type)
     {
         Error("Parameter cannot have any default value");
         return kERR_UserError;
     }
 
     default_value.Type = SymbolTableEntry::kDT_Float;
-    if (_sym.Find("0") == default_value_symbol)
+    if (!default_is_negative && _sym.Find("0") == default_value_symbol)
     {
         default_value.FloatDefault = 0.0f;
+        Warning("Found '0' as a default for a float value (prefer '0.0')");
         return kERR_None;
     }
 
@@ -1216,15 +1260,12 @@ ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type
 
 ErrorType AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
 {
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_OpenBracket)
+    if (kKW_OpenBracket != _src.PeekNext())
         return kERR_None;
-
     _src.GetNext(); // Eat '['
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_CloseBracket)
-    {
-        Error("Fixed array size cannot be used here (use '[]' instead)");
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_CloseBracket, _src.GetNext());
+    if (retval < 0) return retval;
+
     vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
     return kERR_None;
 }
@@ -1266,7 +1307,7 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
 
     name_of_func = MangleStructAndComponent(struct_of_func, name_of_func);
 
-    if (_sym.GetDynpointerSym() == _src.PeekNext())
+    if (kKW_Dynpointer == _src.PeekNext())
     {
         if (is_static_extender)
         {
@@ -1281,15 +1322,11 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
     _sym[name_of_func].Parent = struct_of_func;
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
-    SymbolType const punctuation = _sym.GetSymbolType(_src.PeekNext());
-    if (kSYM_Comma != punctuation && kSYM_CloseParenthesis != punctuation)
-    {
-        Error("Expected ',' or ')' (cannot specify a parameter name for an extender parameter)");
-        return kERR_UserError;
-    }
-
-    if (kSYM_Comma == punctuation)
-        _src.GetNext();
+    Symbol const punctuation = _src.PeekNext();
+    ErrorType retval = Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, punctuation);
+    if (retval < 0) return retval;
+    if (kKW_Comma == punctuation)
+        _src.GetNext(); // Eat ','
 
     return kERR_None;
 }
@@ -1297,9 +1334,9 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
 ErrorType AGS::Parser::ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname)
 {
     varname = _src.GetNext();
-    if (varname <= _sym.GetLastPredefSym())
+    if (varname <= kKW_LastPredefined)
     {
-        Error("Unexpected '%s'", _sym.GetName(varname).c_str());
+        Error("Expected an identifier, found '%s' instead", _sym.GetName(varname).c_str());
         return kERR_UserError;
     }
 
@@ -1318,7 +1355,7 @@ ErrorType AGS::Parser::ParseVarname(bool accept_member_access, Symbol &structnam
         return kERR_None;
     }
 
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_MemberAccess)
+    if (kKW_ScopeRes != _src.PeekNext())
         return kERR_None; // done
 
     if (!accept_member_access)
@@ -1347,7 +1384,7 @@ return kERR_None;
 
 ErrorType AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
 {
-    if (_sym.GetVoidSym() == vartype)
+    if (kKW_Void == vartype)
     {
         Error("A function parameter must not have the type 'void'");
         return kERR_UserError;
@@ -1369,7 +1406,7 @@ ErrorType AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
 // We accept a param name such as "i" if present
 ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param_name)
 {
-    param_name = -1;
+    param_name = kKW_NoSymbol;
 
     if (kPP_PreAnalyze == _pp || !body_follows)
     {
@@ -1478,41 +1515,12 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
     while (!_src.ReachedEOF())
     {
         Symbol const cursym = _src.GetNext();
-        if (kSYM_CloseParenthesis == _sym.GetSymbolType(cursym))
+        if (kKW_CloseParenthesis == cursym)
             return kERR_None;   // empty parameter list
 
-        switch (_sym.GetSymbolType(cursym))
+        if (kSYM_Vartype == _sym.GetSymbolType(cursym))
         {
-        default:
-            Error("Unexpected '%s' in parameter list", _sym.GetName(cursym).c_str());
-            return kERR_UserError;
-
-        case kSYM_Const:
-        {
-            // check in main compiler phase that type must follow
-            if (kPP_Main == _pp && kSYM_Vartype != _sym.GetSymbolType(_src.PeekNext()))
-            {
-                Error("Expected a type after 'const'");
-                return kERR_UserError;
-            }
-            param_is_const = true;
-            continue;
-        }
-
-        case kSYM_Varargs:
-        {
-            _sym[funcsym].SScope = true;
-            if (kSYM_CloseParenthesis != _sym.GetSymbolType(_src.GetNext()))
-            {
-                Error("Expected ')' after '...'");
-                return kERR_UserError;
-            }
-            return kERR_None;
-        }
-
-        case kSYM_Vartype:
-        {
-            if (param_idx == 0 && _sym.GetVoidSym() == cursym && kSYM_CloseParenthesis == _sym.GetSymbolType(_src.PeekNext()))
+            if (param_idx == 0 && kKW_Void == cursym && kKW_CloseParenthesis == _src.PeekNext())
             {   // explicitly empty parameter list, "(void)"
                 _src.GetNext(); // Eat ')'
                 return kERR_None;
@@ -1529,18 +1537,40 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
 
             param_is_const = false; // modifier has been used up
             Symbol const nextsym = _src.GetNext();
-            SymbolType const nexttype = _sym.GetSymbolType(nextsym);
-            if (kSYM_Comma != nexttype && kSYM_CloseParenthesis != nexttype)
+            if (kKW_Comma != nextsym && kKW_CloseParenthesis != nextsym)
             {
                 Error("Expected ',' or ')' or an identifier, found '%s' instead", _sym.GetName(nextsym).c_str());
                 return kERR_UserError;
             }
-            if (kSYM_CloseParenthesis == nexttype)
+            if (kKW_CloseParenthesis == nextsym)
                 return kERR_None;
-            continue;            
+            continue;
         }
-        } // switch
+
+        if (kKW_Const == cursym)
+        {
+            // check in main compiler phase that type must follow
+            if (kPP_Main == _pp && kSYM_Vartype != _sym.GetSymbolType(_src.PeekNext()))
+            {
+                Error(
+                    "Expected a type after 'const', found '%s' instead",
+                    _sym.GetName(_src.PeekNext()).c_str());
+                return kERR_UserError;
+            }
+            param_is_const = true;
+            continue;
+        }
+
+        if (kKW_Varargs == cursym)
+        {
+            _sym[funcsym].SScope = true;
+            return Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' following the '...'");
+        }
+        
+        Error("Unexpected '%s' in parameter list", _sym.GetName(cursym).c_str());
+        return kERR_UserError;
     } // while
+    // Can't happen
     Error("!End of input when processing parameter list");
     return kERR_InternalError;
 }
@@ -1568,7 +1598,6 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
     }
     return;
 }
-
 
 ErrorType AGS::Parser::ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry const &this_entry, SymbolTableEntry const &known_info, bool body_follows)
 {
@@ -1746,9 +1775,9 @@ ErrorType AGS::Parser::ParseFuncdecl_DoesBodyFollow(bool &body_follows)
 {
     int const cursor = _src.GetCursor();
 
-    ErrorType retval = SkipToClose(kSYM_CloseParenthesis);
+    ErrorType retval = SkipToClose(kKW_CloseParenthesis);
     if (retval < 0) return retval;
-    body_follows = kSYM_OpenBrace == _sym.GetSymbolType(_src.PeekNext());
+    body_follows = (kKW_OpenBrace == _src.PeekNext());
 
     _src.SetCursor(cursor);
     return kERR_None;
@@ -1878,7 +1907,7 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     if (kPP_Main == _pp && body_follows)
     {
         // All the parameters that will be defined as local variables go on nesting level 1.
-        _nest.Push(kSYM_Function);
+        _nest.Push(NestingStack::kNS_Parameters);
         // When this function is called, first all the parameters are pushed on the stack
         // and then the address to which the function should return after it has finished.
         // So the first parameter isn't on top of the stack but one address below that
@@ -1934,29 +1963,29 @@ ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx
     {
         Symbol const current_sym = expression.GetNext();
         SymbolType current_sym_type = _sym.GetSymbolType(current_sym);
-        switch (current_sym_type)
+        if (kKW_New == current_sym ||
+            kKW_Tern == current_sym ||
+            kSYM_Operator == current_sym_type)
         {
-        default:
-            encountered_operand = true;
-            break;
-
-        case kSYM_New:
-        case kSYM_Operator:
-        case kSYM_Tern:
             current_sym_type = kSYM_Operator;
-            break;
-
-        case kSYM_CloseBracket:
-        case kSYM_CloseParenthesis:
+        }
+        else if (kKW_CloseBracket == current_sym ||
+            kKW_CloseParenthesis == current_sym)
+        {
             encountered_operand = true;
             if (nesting_depth > 0)
                 nesting_depth--;
             continue;
-
-        case kSYM_OpenBracket:
-        case kSYM_OpenParenthesis:
+        }
+        else if (kKW_OpenBracket == current_sym ||
+            kKW_OpenParenthesis == current_sym)
+        {
             nesting_depth++;
             continue;
+        }
+        else
+        {
+            encountered_operand = true;
         }
 
         // Continue if we aren't at zero nesting depth, since ()[] take priority
@@ -2003,7 +2032,7 @@ ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx
 // Also check whether the operator can handle the types at all
 ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartype2, CodeCell &opcode)
 {
-    if (_sym.GetFloatSym() == vartype1 || _sym.GetFloatSym() == vartype2)
+    if (kKW_Float == vartype1 || kKW_Float == vartype2)
     {
         switch (opcode)
         {
@@ -2039,7 +2068,7 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
         case SCMD_ISEQUAL:  opcode = SCMD_STRINGSEQUAL; break;
         case SCMD_NOTEQUAL: opcode = SCMD_STRINGSNOTEQ; break;
         }
-        if (_sym.GetNullSym() == vartype1 || _sym.GetNullSym() == vartype2)
+        if (kKW_Null == vartype1 || kKW_Null == vartype2)
             return kERR_None;
 
         if (iatos1 != iatos2)
@@ -2050,10 +2079,10 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
         return kERR_None;
     }
 
-    if (((_sym.IsDynpointer(vartype1) || vartype1 == _sym.GetNullSym()) &&
-        (_sym.IsDynpointer(vartype2) || vartype2 == _sym.GetNullSym())) ||
-        ((_sym.IsDynarray(vartype1) || vartype1 == _sym.GetNullSym()) &&
-        (_sym.IsDynarray(vartype2) || vartype2 == _sym.GetNullSym())))
+    if (((_sym.IsDynpointer(vartype1) || kKW_Null == vartype1) &&
+        (_sym.IsDynpointer(vartype2) || kKW_Null == vartype2)) ||
+        ((_sym.IsDynarray(vartype1) || kKW_Null == vartype1) &&
+        (_sym.IsDynarray(vartype2) || kKW_Null == vartype2)))
     {
         switch (opcode)
         {
@@ -2072,16 +2101,16 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
         return kERR_UserError;
     }
 
-    ErrorType retval = IsVartypeMismatch(vartype1, _sym.GetIntSym(), true);
+    ErrorType retval = IsVartypeMismatch(vartype1, kKW_Int, true);
     if (retval < 0) return retval;
-    return IsVartypeMismatch(vartype2, _sym.GetIntSym(), true);
+    return IsVartypeMismatch(vartype2, kKW_Int, true);
 }
 
 // Check for a type mismatch in one direction only
 bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be) const
 {
     // cannot convert 'void' to anything
-    if (_sym.GetVoidSym() == vartype_is || _sym.GetVoidSym() == vartype_wants_to_be)
+    if (kKW_Void == vartype_is || kKW_Void == vartype_wants_to_be)
         return true;
 
     // Don't convert if no conversion is called for
@@ -2090,20 +2119,20 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
 
 
     // Can convert null to dynpointer or dynarray
-    if (_sym.GetNullSym() == vartype_is)
+    if (kKW_Null == vartype_is)
         return
-        !_sym.IsDynpointer(vartype_wants_to_be) &&
-        !_sym.IsDynarray(vartype_wants_to_be);
+            !_sym.IsDynpointer(vartype_wants_to_be) &&
+            !_sym.IsDynarray(vartype_wants_to_be);
 
     // can convert String * to const string
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
-        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
+        kKW_String == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
     {
         return false;
     }
 
     // can convert string or const string to String *
-    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype_is) &&
+    if (kKW_String == _sym.VartypeWithout(kVTT_Const, vartype_is) &&
         _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_wants_to_be))
     {
         return false;
@@ -2129,11 +2158,11 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     vartype_wants_to_be = _sym.VartypeWithout(kVTT_Const | kVTT_Dynarray, vartype_wants_to_be);
 
     // floats cannot mingle with other types
-    if ((vartype_is == _sym.GetFloatSym()) != (vartype_wants_to_be == _sym.GetFloatSym()))
+    if ((vartype_is == kKW_Float) != (vartype_wants_to_be == kKW_Float))
         return true;
 
     // Can convert short, char etc. into int
-    if (_sym.IsAnyIntegerVartype(vartype_is) && _sym.GetIntSym() == vartype_wants_to_be)
+    if (_sym.IsAnyIntegerVartype(vartype_is) && kKW_Int == vartype_wants_to_be)
         return false;
 
     // Checks to do if at least one is dynarray
@@ -2213,7 +2242,7 @@ bool AGS::Parser::IsBooleanOpcode(CodeCell opcode)
 // then convert AX into a String object and set its type accordingly
 void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
 {
-    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
+    if (kKW_String == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
         _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
     {
         WriteCmd(SCMD_CREATESTRING, SREG_AX); // convert AX
@@ -2276,7 +2305,7 @@ ErrorType AGS::Parser::ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AG
     _scrip.ax_vartype = vartype;
     _scrip.ax_scope_type = scope_type;
 
-    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, vartype))
+    if (kKW_String == _sym.VartypeWithout(kVTT_Const, vartype))
         WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     else
         WriteCmd(
@@ -2460,7 +2489,7 @@ ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation
     }
 
     vloc = kVL_ax_is_value;
-    vartype = _scrip.ax_vartype = _sym.GetIntSym();
+    vartype = _scrip.ax_vartype = kKW_Int;
     return kERR_None;
 }
 
@@ -2470,7 +2499,7 @@ ErrorType AGS::Parser::ParseExpression_Unary(SrcList &expression, ValueLocation 
 {
     Symbol const first_op = expression[0];
 
-    if (kSYM_New == _sym.GetSymbolType(first_op)) // we're parsing something like "new foo"
+    if (kKW_New == first_op) // we're parsing something like "new foo"
         return ParseExpression_New(expression, vloc, scope_type, vartype);
 
     CodeCell const opcode = _sym.GetOperatorOpcode(first_op);
@@ -2495,11 +2524,9 @@ ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &express
     SrcList after_term1 = SrcList(expression, tern_idx + 1, expression.Length() - (tern_idx + 1));
 
     // Find beginning of third term
-    SymbolType const stoplist[] = { kSYM_Label, };
-    size_t stoplist_len = 1;
     after_term1.StartRead();
-    SkipTo(after_term1, stoplist, stoplist_len);
-    if (after_term1.ReachedEOF() || kSYM_Label != _sym.GetSymbolType(after_term1.PeekNext()))
+    SkipTo(SymbolList{ kKW_Colon }, after_term1);
+    if (after_term1.ReachedEOF() || kKW_Colon != after_term1.PeekNext())
     {
         expression.SetCursor(tern_idx);
         Error("Didn't find the matching ':' to '?'");
@@ -2690,7 +2717,7 @@ ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanOpcode(actual_opcode))
-        _scrip.ax_vartype = vartype = _sym.GetIntSym();
+        _scrip.ax_vartype = vartype = kKW_Int;
 
     return kERR_None;
 }
@@ -2698,7 +2725,7 @@ ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression
 ErrorType AGS::Parser::ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype)
 {
     Symbol const operator_sym = expression[op_idx];
-    if (kSYM_Tern == _sym.GetSymbolType(operator_sym))
+    if (kKW_Tern == operator_sym)
         return ParseExpression_Ternary(op_idx, expression, vloc, scope_type, vartype);
     return ParseExpression_Binary(op_idx, expression, vloc, scope_type, vartype);
 }
@@ -2708,8 +2735,7 @@ ErrorType AGS::Parser::ParseExpression_InParens(SrcList &expression, ValueLocati
     // find the corresponding closing parenthesis
     size_t const bp_start = 1;
     expression.SetCursor(bp_start); // Skip the '('
-    SymbolType stoplist[] = { kSYM_NoType };
-    SkipTo(expression, stoplist, 0);
+    SkipTo(SymbolList{}, expression);
     size_t const bp_end = expression.GetCursor();
     
     SrcList between_parens = SrcList(expression, bp_start, bp_end - bp_start);
@@ -2756,7 +2782,7 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
-        _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, valTypeTo))
+        kKW_String == _sym.VartypeWithout(kVTT_Const, valTypeTo))
         WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
 
@@ -2805,13 +2831,13 @@ ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, s
         for (size_t paramListIdx = end_of_current_param - 1; true; paramListIdx--)
         {
             // going backwards so ')' increases the depth level
-            const SymbolType idx_type = _sym.GetSymbolType(parameters[paramListIdx]);
-            if (idx_type == kSYM_CloseParenthesis)
+            Symbol const &idx = parameters[paramListIdx];
+            if (kKW_CloseParenthesis == idx)
                 paren_nesting_depth++;
-            if (idx_type == kSYM_OpenParenthesis)
+            if (kKW_OpenParenthesis == idx)
                 paren_nesting_depth--;
-            if ((paren_nesting_depth == 0 && idx_type == kSYM_Comma) ||
-                (paren_nesting_depth < 0 && idx_type == kSYM_OpenParenthesis))
+            if ((paren_nesting_depth == 0 && kKW_Comma == idx) ||
+                (paren_nesting_depth < 0 && kKW_OpenParenthesis == idx))
             {
                 start_of_current_param = paramListIdx + 1;
                 break;
@@ -2882,18 +2908,18 @@ ErrorType AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parame
 
     for (param_idx = 1; param_idx < parameters.Length(); param_idx++)
     {
-        const SymbolType idx_type = _sym.GetSymbolType(parameters[param_idx]);
+        Symbol const &idx = parameters[param_idx];
 
-        if (idx_type == kSYM_OpenParenthesis)
+        if (kKW_OpenParenthesis == idx)
             paren_nesting_depth++;
-        if (idx_type == kSYM_CloseParenthesis)
+        if (kKW_CloseParenthesis == idx)
         {
             paren_nesting_depth--;
             if (paren_nesting_depth == 0)
                 break;
         }
 
-        if (paren_nesting_depth == 1 && idx_type == kSYM_Comma)
+        if (paren_nesting_depth == 1 && kKW_Comma == idx)
         {
             num_supplied_args++;
             if (found_param_symbol)
@@ -2908,21 +2934,21 @@ ErrorType AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parame
     // Special case: "()" means 0 arguments
     if (num_supplied_args == 1 &&
         parameters.Length() > 1 &&
-        _sym.GetSymbolType(parameters[1]) == kSYM_CloseParenthesis)
+        kKW_CloseParenthesis == parameters[1])
     {
         num_supplied_args = 0;
     }
 
     index_of_close_paren = param_idx;
 
-    if (_sym.GetSymbolType(parameters[index_of_close_paren]) != kSYM_CloseParenthesis)
+    if (kKW_CloseParenthesis != parameters[index_of_close_paren])
     {
         Error("!Missing ')' at the end of the parameter list");
         return kERR_InternalError;
     }
 
     if (index_of_close_paren > 0 &&
-        _sym.GetSymbolType(parameters[index_of_close_paren - 1]) == kSYM_Comma)
+        kKW_Comma == parameters[index_of_close_paren - 1])
     {
         Error("Last argument in function call is empty");
         return kERR_UserError;
@@ -2950,10 +2976,10 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].SOffset);
 
     if (func_is_import)
-    {
+    {   
         _scrip.fixup_previous(kFx_Import); 
         if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
-            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
+            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
 
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
         // At runtime, we will arrive here when the function call has returned: Restore the stack
@@ -2965,7 +2991,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     // Func is non-import
     _scrip.fixup_previous(kFx_Code);
     if (_fcm.IsForwardDecl(name_of_func))
-        _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
+        _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
 
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
 
@@ -3017,7 +3043,7 @@ ErrorType AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bo
 
 ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype)
 {
-    if (kSYM_OpenParenthesis != _sym.GetSymbolType(expression[1]))
+    if (kKW_OpenParenthesis != expression[1])
     {
         Error("Expected '('");
         return kERR_UserError;
@@ -3031,7 +3057,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
     bool const called_func_uses_this =
         std::string::npos != _sym.GetName(name_of_func).find("::") &&
         !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static);
-    bool const calling_func_uses_this = (0 != _sym.GetVartype(_sym.GetThisSym()));
+    bool const calling_func_uses_this = (0 != _sym.GetVartype(kKW_This));
     bool mar_pushed = false;
     bool op_pushed = false;
 
@@ -3098,13 +3124,13 @@ ErrorType AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLocation 
 {
     Symbol const first_sym = expression[0];
     SymbolType const first_sym_type = _sym.GetSymbolType(first_sym);
-    if (kSYM_OpenParenthesis == first_sym_type)
+    if (kKW_OpenParenthesis == first_sym)
         return ParseExpression_InParens(expression, vloc, scope_type, vartype);
 
     if (kSYM_Operator != first_sym_type)
         return AccessData(false, expression, vloc, scope_type, vartype);
 
-    Error("Unexpected '%s'", _sym.GetName(first_sym).c_str());
+    Error("Expected '(' or an operator, found '%s' instead", _sym.GetName(first_sym).c_str());
     return kERR_UserError;
 }
 
@@ -3116,12 +3142,12 @@ ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocation &
         return kERR_InternalError;
     }
 
-    SymbolType const stype = _sym.GetSymbolType(expression[0]);
-    if (kSYM_CloseParenthesis == stype || kSYM_CloseBracket == stype || kSYM_CloseBrace == stype)
+    Symbol const first_sym = expression[0];
+    if (kKW_CloseParenthesis == first_sym || kKW_CloseBracket == first_sym || kKW_CloseBrace == first_sym)
     {   // Shouldn't happen: the scanner sees to it that nesting symbols match
         Error(
             "!Unexpected '%s' at start of expression",
-            _sym.GetName(expression[0]).c_str());
+            _sym.GetName(first_sym).c_str());
         return kERR_InternalError;
     }
 
@@ -3160,7 +3186,7 @@ ErrorType AGS::Parser::AccessData_ReadIntExpression(SrcList &expression)
     retval = ResultToAX(vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    return IsVartypeMismatch(vartype, _sym.GetIntSym(), true);
+    return IsVartypeMismatch(vartype, kKW_Int, true);
 }
 
 // We access a variable or a component of a struct in order to read or write it.
@@ -3224,7 +3250,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     bool const attrib_uses_this =
         !FlagIsSet(_sym[name_of_attribute].TypeQualifiers, kTQ_Static);
     bool const call_is_indexed =
-        (kSYM_OpenBracket == _sym.GetSymbolType(expression.PeekNext()));
+        (kKW_OpenBracket == expression.PeekNext());
     bool const attrib_is_indexed =
         _sym.IsDynarray(name_of_attribute);
 
@@ -3240,7 +3266,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     }
 
     // Get the appropriate access function (as a symbol)
-    Symbol name_of_func = -1;
+    Symbol name_of_func = kKW_NoSymbol;
     ErrorType retval = ConstructAttributeFuncName(component, is_setter, attrib_is_indexed, name_of_func);
     if (retval < 0) return retval;
     name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
@@ -3351,8 +3377,7 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
 {
     // Get the index
     size_t const index_start = expression.GetCursor();
-    SymbolType const stoplist[] = { kSYM_Comma, kSYM_CloseBracket, };
-    SkipTo(expression, stoplist, 2);
+    SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket }, expression);
     size_t const index_end = expression.GetCursor();
     SrcList current_index = SrcList(expression, index_start, index_end - index_start);
     if (0 == current_index.Length())
@@ -3409,7 +3434,7 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
 // If an array index follows, parse it and shorten symlist accordingly
 ErrorType AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, SrcList &expression, ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc, AGS::Vartype &vartype)
 {
-    if (kSYM_OpenBracket != _sym.GetSymbolType(expression.PeekNext()))
+    if (kKW_OpenBracket != expression.PeekNext())
         return kERR_None;
     expression.GetNext(); // Eat '['
 
@@ -3446,18 +3471,16 @@ ErrorType AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_arr
         ErrorType retval = AccessData_ProcessCurrentArrayIndex(dim_idx, dims[dim_idx], dim_sizes[dim_idx], is_dynarray, expression, mloc);
         if (retval < 0) return retval;
 
-        SymbolType divider_sym_type = _sym.GetSymbolType(expression.PeekNext());
-        if (kSYM_CloseBracket != divider_sym_type && kSYM_Comma != divider_sym_type)
-        {
-            Error("Expected ',' or '] after array index");
-            return kERR_UserError;
-        }
-        if (kSYM_CloseBracket == divider_sym_type)
+        Symbol divider = expression.PeekNext();
+        retval = Expect(SymbolList{ kKW_CloseBracket, kKW_Comma }, divider);
+        if (retval < 0) return retval;
+
+        if (kKW_CloseBracket == divider)
         {
             expression.GetNext(); // Eat ']'
-            divider_sym_type = _sym.GetSymbolType(expression.PeekNext());
+            divider = expression.PeekNext();
         }
-        if (kSYM_Comma == divider_sym_type || kSYM_OpenBracket == divider_sym_type)
+        if (kKW_Comma == divider || kKW_OpenBracket == divider)
         {
             if (num_of_dims == dim_idx + 1)
             {
@@ -3519,7 +3542,7 @@ ErrorType AGS::Parser::AccessData_FloatLiteral(bool negate, SrcList &expression,
     int const i = InterpretFloatAsInt(f);
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, i);
-    _scrip.ax_vartype = vartype = _sym.GetFloatSym();
+    _scrip.ax_vartype = vartype = kKW_Float;
     _scrip.ax_scope_type = kScT_Global;
     return kERR_None;
 }
@@ -3532,7 +3555,7 @@ ErrorType AGS::Parser::AccessData_IntLiteralOrConst(bool negate, SrcList &expres
     if (retval < 0) return retval;
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, literal);
-    _scrip.ax_vartype = vartype = _sym.GetIntSym();
+    _scrip.ax_vartype = vartype = kKW_Int;
     _scrip.ax_scope_type = kScT_Global;
     return kERR_None;
 }
@@ -3542,7 +3565,7 @@ ErrorType AGS::Parser::AccessData_Null(SrcList &expression, AGS::Vartype &vartyp
     expression.GetNext(); // Eat 'null'
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
-    _scrip.ax_vartype = vartype = _sym.GetNullSym();
+    _scrip.ax_vartype = vartype = kKW_Null;
     _scrip.ax_scope_type = kScT_Global;
 
     return kERR_None;
@@ -3552,7 +3575,7 @@ ErrorType AGS::Parser::AccessData_StringLiteral(SrcList &expression, AGS::Vartyp
 {
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[expression.GetNext()].SOffset);
     _scrip.fixup_previous(kFx_String);
-    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, _sym.GetOldStringSym());
+    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, kKW_String);
 
     return kERR_None;
 }
@@ -3570,10 +3593,10 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     Symbol const first_sym = expression.PeekNext();
 
-    if (_sym.GetThisSym() == first_sym)
+    if (kKW_This == first_sym)
     {
         expression.GetNext(); // Eat 'this'
-        vartype = _sym.GetVartype(_sym.GetThisSym());
+        vartype = _sym.GetVartype(kKW_This);
         if (0 == vartype)
         {
             Error("'this' is only legal in non-static struct functions");
@@ -3583,8 +3606,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
         mloc.Reset();
-        Symbol const dot = expression.PeekNext();
-        if (kSYM_Dot == _sym.GetSymbolType(dot))
+        if (kKW_Dot == expression.PeekNext())
         {
             expression.GetNext(); // Eat '.'
             // Going forward, we must "imply" "this." since we've just gobbled it.
@@ -3600,7 +3622,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
     {
         // If this unknown symbol can be interpreted as a component of this,
         // treat it that way.
-        vartype = _sym.GetVartype(_sym.GetThisSym());
+        vartype = _sym.GetVartype(kKW_This);
         Symbol const thiscomponent = MangleStructAndComponent(vartype, first_sym);
         if (0 != _sym[thiscomponent].SType)
         {            
@@ -3647,6 +3669,13 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
     }
 
+    case kSYM_Keyword:
+        if (writing) break; // to error msg
+        if (kKW_Null != first_sym) break; // to error msg
+        return_scope_type = kScT_Global;
+        vloc = kVL_ax_is_value;
+        return AccessData_Null(expression, vartype);
+
     case kSYM_LiteralFloat:
         if (writing) break; // to error msg
         return_scope_type = kScT_Global;
@@ -3674,12 +3703,6 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         bool const is_global = false;
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
     }
-
-    case kSYM_Null:
-        if (writing) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
-        return AccessData_Null(expression, vartype);
 
     case kSYM_Vartype:
         return_scope_type = kScT_Global;
@@ -3787,9 +3810,8 @@ Symbol AGS::Parser::FindComponentInStruct(AGS::Vartype strct, AGS::Symbol compon
 ErrorType AGS::Parser::AccessData_IsClauseLast(SrcList &expression, bool &is_last)
 {
     size_t const cursor = expression.GetCursor();
-    SymbolType const stoplist[] = { kSYM_Dot };
-    SkipTo(expression, stoplist, 1);
-    is_last = (kSYM_Dot != _sym.GetSymbolType(expression.PeekNext()));
+    SkipTo(SymbolList{ kKW_Dot },  expression);
+    is_last = (kKW_Dot != expression.PeekNext());
     expression.SetCursor(cursor);
     return kERR_None;
 }
@@ -3830,7 +3852,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
 
     // If the previous function has assumed a "this." that isn't there,
     // then a '.' won't be coming up but the while body must be executed anyway.
-    while (kSYM_Dot == _sym.GetSymbolType(expression.PeekNext()) || implied_this_dot)
+    while (kKW_Dot == expression.PeekNext() || implied_this_dot)
     {
         if (!implied_this_dot)
             expression.GetNext(); // Eat '.'
@@ -3914,7 +3936,7 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
 
     for (size_t idx = 0; idx < expression.Length() - 3; idx += 2)
     {
-        if (kSYM_Dot != _sym.GetSymbolType(expression[idx + 1]))
+        if (kKW_Dot != expression[idx + 1])
             return true;
         Symbol const compo = MangleStructAndComponent(expression[0], expression[2]);
         if (kSYM_StructComponent != _sym.GetSymbolType(compo))
@@ -3924,7 +3946,7 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
 }
 
 // Insert Bytecode for:
-// Copy at most OLDSTRING_LENGTH-1 bytes from m[MAR...] to m[AX...]
+// Copy at most OLDSTRING_LENGTH - 1 bytes from m[MAR...] to m[AX...]
 // Stop when encountering a 0
 void AGS::Parser::AccessData_StrCpy()
 {
@@ -4010,7 +4032,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
 
     // MAR points to the value
 
-    if (_sym.GetOldStringSym() == lhsvartype && _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype))
+    if (kKW_String == lhsvartype && kKW_String == _sym.VartypeWithout(kVTT_Const, rhsvartype))
     {
         // copy the string contents over.
         AccessData_StrCpy();
@@ -4052,10 +4074,9 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
     while (0 <= (peeksym = _src.PeekNext())) // note assignment in while condition
     {
         // Skip over parts that are enclosed in braces, brackets, or parens
-        SymbolType const peektype = _sym.GetSymbolType(peeksym);
-        if (kSYM_OpenParenthesis == peektype || kSYM_OpenBracket == peektype || kSYM_OpenBrace == peektype)
+        if (kKW_OpenParenthesis == peeksym || kKW_OpenBracket == peeksym || kKW_OpenBrace == peeksym)
             ++nesting_depth;
-        else if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
+        else if (kKW_CloseParenthesis == peeksym || kKW_CloseBracket == peeksym || kKW_CloseBrace == peeksym)
             if (--nesting_depth < 0)
                 break; // this symbol can't be part of the current expression
         if (nesting_depth > 0)
@@ -4064,33 +4085,25 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
             continue;
         }
 
-        if (kSYM_Dot == peektype)
-        {
-            _src.GetNext(); // Eat '.'
-            _src.GetNext(); // Eat following symbol
-            continue;
-        }
-
-        if (kSYM_Tern == peektype)
-        {
-            tern_depth++;
-            _src.GetNext(); // Eat '?'
-            continue;
-        }
-
-        if (kSYM_Label == peektype)
+        if (kKW_Colon == peeksym)
         {
             // This is only allowed if it can be matched to an open tern
             if (--tern_depth < 0)
                 break;
 
             _src.GetNext(); // Eat ':'
-            continue; 
+            continue;
         }
 
-        if (kSYM_New == peektype)
+        if (kKW_Dot == peeksym)
         {
-            // This is only allowed if a type follows
+            _src.GetNext(); // Eat '.'
+            _src.GetNext(); // Eat following symbol
+            continue;
+        }
+
+        if (kKW_New == peeksym)
+        {   // Only allowed if a type follows   
             _src.GetNext(); // Eat 'new'
             Symbol const sym_after_new = _src.PeekNext();
             SymbolType const type_of_sym_after = _sym.GetSymbolType(sym_after_new);
@@ -4103,12 +4116,24 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
             break;
         }
 
-        if (kSYM_Vartype == peektype)
+        if (kKW_Null == peeksym)
+        {   // Allowed.
+            _src.GetNext(); // Eat 'null'
+            continue;
+        }
+
+        if (kKW_Tern == peeksym)
         {
-            // This is only allowed if a dot follows
+            tern_depth++;
+            _src.GetNext(); // Eat '?'
+            continue;
+        }
+
+        if (_sym.IsVartype(peeksym))
+        {   // Only allowed if a dot follows
             _src.GetNext(); // Eat the vartype
             Symbol const nextsym = _src.PeekNext();
-            if (kSYM_Dot == _sym.GetSymbolType(nextsym))
+            if (kKW_Dot == nextsym)
             {
                 _src.GetNext(); // Eat '.'
                 continue;
@@ -4117,9 +4142,9 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
             break;
         }
 
-        // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
-        // be part of an expression
-        if (peektype >= NOTEXPRESSION)
+        // Apart from the exceptions above, all symbols with types beyond
+        // kSYM_LastInExpression can't be part of an expression
+        if (_sym.GetSymbolType(peeksym) > kSYM_LastInExpression)
             break;
         _src.GetNext(); // Eat the peeked symbol
     }
@@ -4159,19 +4184,14 @@ ErrorType AGS::Parser::ParseExpression()
 
 ErrorType AGS::Parser::AccessData_ReadBracketedIntExpression(SrcList &expression)
 {
-    Symbol const open_bracket = expression.GetNext();
-    if (kSYM_OpenBracket != _sym.GetSymbolType(open_bracket))
-    {
-        Error("Expected '[', found '%s' instead", _sym.GetName(open_bracket).c_str());
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_OpenBracket, expression.GetNext());
+    if (retval < 0) return retval;
 
     size_t start = expression.GetCursor();
-    SymbolType const stoplist[] = { kSYM_NoType, };
-    SkipTo(expression, stoplist, 0);
+    SkipTo(SymbolList{}, expression);
     SrcList in_brackets = SrcList(expression, start, expression.GetCursor() - start);
 
-    ErrorType retval = AccessData_ReadIntExpression(in_brackets);
+    retval = AccessData_ReadIntExpression(in_brackets);
     if (retval < 0) return retval;
 
     if (!in_brackets.ReachedEOF())
@@ -4179,28 +4199,18 @@ ErrorType AGS::Parser::AccessData_ReadBracketedIntExpression(SrcList &expression
         Error("Expected ']', found '%s' instead", _sym.GetName(in_brackets.GetNext()).c_str());
         return kERR_UserError;
     }
-    expression.GetNext(); // Eat ']'
-    return kERR_None;
+    return Expect(kKW_CloseBracket, expression.GetNext());
 }
 
 ErrorType AGS::Parser::ParseParenthesizedExpression()
 {
-    Symbol next_sym = _src.GetNext();
-    if (_sym.GetSymbolType(next_sym) != kSYM_OpenParenthesis)
-    {
-        Error("Expected '(', found '%s' instead", _sym.GetName(next_sym));
-        return kERR_UserError;
-    }
-    ErrorType retval = ParseExpression();
+    ErrorType retval = Expect(kKW_OpenParenthesis, _src.GetNext());
+    if (retval < 0) return retval;
+    
+    retval = ParseExpression();
     if (retval < 0) return retval;
 
-    next_sym = _src.GetNext();
-    if (_sym.GetSymbolType(next_sym) != kSYM_CloseParenthesis)
-    {
-        Error("Expected ')', found '%s' instead", _sym.GetName(next_sym));
-        return kERR_UserError;
-    }
-    return kERR_None;
+    return Expect(kKW_CloseParenthesis, _src.GetNext());
 }
 
 // We are parsing the left hand side of a += or similar statement.
@@ -4418,7 +4428,7 @@ ErrorType AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, vo
         return kERR_UserError;
     }
 
-    if (_sym.GetOldStringSym() == _sym.GetVartype(varname))
+    if (kKW_String == _sym.GetVartype(varname))
         return ParseVardecl_InitialValAssignment_OldString(initial_val_ptr);
 
     // accept leading '-' if present
@@ -4430,7 +4440,7 @@ ErrorType AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, vo
     }
 
     // Do actual assignment
-    if (_sym.GetVartype(varname) == _sym.GetFloatSym())
+    if (_sym.GetVartype(varname) == kKW_Float)
         return ParseVardecl_InitialValAssignment_Float(is_neg, initial_val_ptr);
     return ParseVardecl_InitialValAssignment_Inttype(is_neg, initial_val_ptr);
 }
@@ -4472,22 +4482,22 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
 
 ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, ScopeType scope_type)
 {
-    if (vartype == _sym.GetOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
+    if (vartype == kKW_String && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
         Error("Type 'string' is no longer supported; use String instead");
         return kERR_UserError;
     }
 
-    if (vartype == _sym.GetOldStringSym() && kScT_Import == scope_type)
+    if (vartype == kKW_String && kScT_Import == scope_type)
     {
         // cannot import because string is really char *, and the pointer won't resolve properly
         Error("Cannot import string; use char[] instead");
         return kERR_UserError;
     }
 
-    if (vartype == _sym.GetVoidSym())
+    if (vartype == kKW_Void)
     {
-        Error("'void' not a valid variable type");
+        Error("'void' is not a valid type in this context");
         return kERR_UserError;
     }
 
@@ -4625,8 +4635,8 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
     Vartype const rhsvartype = _scrip.ax_vartype;
 
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
-        !(_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, rhsvartype) &&
-          _sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, lhsvartype)))
+        !(kKW_String == _sym.VartypeWithout(kVTT_Const, rhsvartype) &&
+          kKW_String == _sym.VartypeWithout(kVTT_Const, lhsvartype)))
     {
         Error(
             "Cannot assign a type '%s' value to a type '%s' variable",
@@ -4645,7 +4655,7 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
 
     ConvertAXStringToStringObject(vartype);
     WriteCmd(SCMD_LOADSPOFFS, 0);
-    if (_sym.GetOldStringSym() == _sym.VartypeWithout(kVTT_Const, lhsvartype))
+    if (kKW_String == _sym.VartypeWithout(kVTT_Const, lhsvartype))
         AccessData_StrCpy();
     else
         WriteCmd(
@@ -4658,19 +4668,19 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
 
 ErrorType AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, ScopeType scope_type)
 {
-    SymbolType next_type = _sym.GetSymbolType(_src.PeekNext());
-    if (kSYM_OpenBracket == next_type)
+    Symbol next_sym = _src.PeekNext();
+    if (kKW_OpenBracket == next_sym)
     {
         ErrorType retval = ParseArray(var_name, vartype);
         if (retval < 0) return retval;
-        next_type = _sym.GetSymbolType(_src.PeekNext());
+        next_sym = _src.PeekNext();
     }
 
     // Enter the variable into the symbol table
     ErrorType retval = ParseVardecl_Var2SymTable(var_name, vartype, scope_type);
     if (retval < 0) return retval;
 
-    bool const has_initial_assignment = (kSYM_Assign == next_type);
+    bool const has_initial_assignment = (kKW_Assign == next_sym);
 
     switch (scope_type)
     {
@@ -4702,7 +4712,7 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
 
     if (kScT_Local == scope_type)
     {
-        switch (_sym[var_name].SType)
+        switch (_sym.GetSymbolType(var_name))
         {
         default:
             Error(
@@ -4745,7 +4755,7 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
 
 ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol name_of_func)
 {
-    _nest.Push(kSYM_Function);
+    _nest.Push(NestingStack::kNS_Function);
 
     // write base address of function for any relocation needed later
     WriteCmd(SCMD_THISBASE, _scrip.codesize);
@@ -4773,7 +4783,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol nam
         WriteCmd(SCMD_MEMINITPTR, SREG_AX);
     }
 
-    SymbolTableEntry &this_entry = _sym[_sym.GetThisSym()];
+    SymbolTableEntry &this_entry = _sym[kKW_This];
     this_entry.Vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static))
     {
@@ -4800,12 +4810,12 @@ ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbo
     RemoveLocalsFromSymtable(SymbolTableEntry::ParameterSScope);
 
     // Function has ended. Set AX to 0 unless the function doesn't return any value.
-    if (_sym.GetVoidSym() != _sym[name_of_current_func].FuncParamVartypes.at(0))
+    if (kKW_Void != _sym[name_of_current_func].FuncParamVartypes.at(0))
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
 
     // We've just finished the body of the current function.
-    name_of_current_func = -1;
-    struct_of_current_func = -1;
+    name_of_current_func = kKW_NoSymbol;
+    struct_of_current_func = kKW_NoSymbol;
 
     _nest.Pop();    // End function variables nesting
     _nest.JumpOut().Patch(_src.GetLineno());
@@ -4878,7 +4888,7 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, size_t &siz
 }
 
 // Check whether the qualifiers that accumulated for this decl go together
-ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, AGS::Symbol decl_type)
+ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl)
 {
     if (in_struct_decl)
     {
@@ -4932,29 +4942,6 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
         return kERR_UserError;
     }
 
-    // Will fire for all commands
-    if (kSYM_OpenBrace == decl_type && 0 != tqs)
-    {
-        TypeQualifier error_tq = kTQ_None;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Const)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Protected)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Readonly)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
-        {
-            Error("Unexpected '%s' before a command", _tq2String[error_tq].c_str());
-            return kERR_UserError;
-        }
-    }
-
-
     if (FlagIsSet(tqs, kTQ_Autoptr))
     {
         if (!FlagIsSet(tqs, kTQ_Builtin) || !FlagIsSet(tqs, kTQ_Managed))
@@ -4964,9 +4951,9 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
         }
     }
 
-    if (FlagIsSet(tqs, kTQ_Builtin) && kSYM_Struct != decl_type)
+    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
     {
-        Error("'builtin' can only be used in a struct definition");
+        Error("'stringstruct' must be combined with 'autoptr'");
         return kERR_UserError;
     }
 
@@ -4976,51 +4963,24 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
         return kERR_UserError;
     }
 
-    if (kSYM_Export == decl_type && 0 != tqs)
+    if (FlagIsSet(tqs, kTQ_Import) && FlagIsSet(tqs, kTQ_Stringstruct))
     {
-        TypeQualifier error_tq = kTQ_None;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
-        {
-            Error("Cannot combine 'export' and '%s'", _tq2String[error_tq].c_str());
-            return kERR_UserError;
-        }
-    }
-
-    if (FlagIsSet(tqs, kTQ_Import))
-    {
-        TypeQualifier error_tq;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
-        {
-            Error("Cannot combine 'import' and '%s'", _tq2String[error_tq].c_str());
-            return kERR_UserError;
-        }
-    }
-
-    if (FlagIsSet(tqs, kTQ_Readonly) && kSYM_Vartype != decl_type)
-    {
-        Error("'readonly' can only be used in a variable declaration");
+        Error("Cannot combine 'import' and 'stringstruct'");
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Static) && kSYM_Vartype != decl_type)
+    return kERR_None;
+}
+
+ErrorType AGS::Parser::Parse_CheckTQ_Empty(TypeQualifierSet tqs)
+{
+    for (auto it = _tq2String.cbegin(); it != _tq2String.cend(); it++)
     {
-        Error("'static' cannot be used in a variable declaration");
+        if (!FlagIsSet(tqs, it->first))
+            continue;
+        Error("Unexpected '%s' before a command", it->second.c_str());
         return kERR_UserError;
     }
-
-    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
-    {
-        Error("'stringstruct' must be combined with 'autoptr'");
-        return kERR_UserError;
-    }
-
     return kERR_None;
 }
 
@@ -5030,29 +4990,21 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
     while (!_src.ReachedEOF())
     {
         Symbol peeksym = _src.PeekNext();
-        switch (_sym.GetSymbolType(peeksym))
+        switch (peeksym)
         {
         default: return;
-        case kSYM_Attribute:      SetFlag(tqs, kTQ_Attribute, true); break;
-        case kSYM_AutoPtr:        SetFlag(tqs, kTQ_Autoptr, true); break;
-        case kSYM_Builtin:        SetFlag(tqs, kTQ_Builtin, true); break;
-        case kSYM_Const:          SetFlag(tqs, kTQ_Const, true); break;
-        // for kSYM_Import, see below
-        case kSYM_InternalString: SetFlag(tqs, kTQ_Stringstruct, true); break;
-        case kSYM_Managed:        SetFlag(tqs, kTQ_Managed, true); break;
-        case kSYM_Protected:      SetFlag(tqs, kTQ_Protected, true); break;
-        case kSYM_ReadOnly:       SetFlag(tqs, kTQ_Readonly, true); break;
-        case kSYM_Static:         SetFlag(tqs, kTQ_Static, true); break;
-        case kSYM_WriteProtected: SetFlag(tqs, kTQ_Writeprotected, true); break;
-
-        // Special case: Same symbol but different flag depending on how it is written
-        case kSYM_Import:
-                SetFlag(
-                    tqs,
-                    (0 ==_sym.GetName(peeksym).compare("_tryimport"))?
-                        kTQ_ImportTry : kTQ_ImportStd,
-                    true);
-                break;
+        case kKW_Attribute:      SetFlag(tqs, kTQ_Attribute, true); break;
+        case kKW_Autoptr:        SetFlag(tqs, kTQ_Autoptr, true); break;
+        case kKW_Builtin:        SetFlag(tqs, kTQ_Builtin, true); break;
+        case kKW_Const:          SetFlag(tqs, kTQ_Const, true); break;
+        case kKW_Import:         SetFlag(tqs, kTQ_ImportStd, true); break;
+        case kKW_ImportTry:      SetFlag(tqs, kTQ_ImportTry, true); break;
+        case kKW_Internalstring: SetFlag(tqs, kTQ_Stringstruct, true); break;
+        case kKW_Managed:        SetFlag(tqs, kTQ_Managed, true); break;
+        case kKW_Protected:      SetFlag(tqs, kTQ_Protected, true); break;
+        case kKW_Readonly:       SetFlag(tqs, kTQ_Readonly, true); break;
+        case kKW_Static:         SetFlag(tqs, kTQ_Static, true); break;
+        case kKW_Writeprotected: SetFlag(tqs, kTQ_Writeprotected, true); break;
         } // switch (_sym.GetSymbolType(peeksym))
 
         _src.GetNext();
@@ -5134,12 +5086,8 @@ ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_o
         Error("Cannot code a function body within a struct definition");
         return kERR_UserError;
     }
-    if (kSYM_Semicolon != _sym.GetSymbolType(_src.PeekNext()))
-    {
-        Error("Expected ';'");
-        return kERR_UserError;
-    }
-    return kERR_None;
+
+    return Expect(kKW_Semicolon, _src.PeekNext());
 }
 
 ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_setter, bool is_indexed, AGS::Vartype vartype)
@@ -5155,7 +5103,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool
         return kERR_UserError;
     }
 
-    Vartype const ret_vartype = is_setter ? _sym.GetVoidSym() : vartype;
+    Vartype const ret_vartype = is_setter ? kKW_Void : vartype;
     if (entry.FuncParamVartypes[0] != ret_vartype)
     {
         std::string const msg = ReferenceMsgSym(
@@ -5170,7 +5118,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool
     size_t p_idx = 1;
     if (is_indexed)
     {
-        if (entry.FuncParamVartypes[p_idx] != _sym.GetIntSym())
+        if (entry.FuncParamVartypes[p_idx] != kKW_Int)
         {
             std::string const msg = ReferenceMsgSym(
                 "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
@@ -5202,7 +5150,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Sy
 
     size_t p_idx = 1;
     if (is_indexed)
-        entry.FuncParamVartypes[p_idx++] = _sym.GetIntSym();
+        entry.FuncParamVartypes[p_idx++] = kKW_Int;
     if (is_setter)
         entry.FuncParamVartypes[p_idx] = vartype;
     SymbolTableEntry::ParamDefault deflt = {};
@@ -5250,7 +5198,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
     _sym[name_of_func].Parent = struct_of_func;
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
-    Vartype const return_vartype = is_setter ? _sym.GetVoidSym() : vartype;
+    Vartype const return_vartype = is_setter ? kKW_Void : vartype;
     ParseFuncdecl_MasterData2Sym(tqs & ~kTQ_Attribute, return_vartype, struct_of_func, name_of_func, false);
 
     ErrorType retval = ParseStruct_Attribute_ParamList(struct_of_func, name_of_func, is_setter, is_indexed, vartype);
@@ -5273,11 +5221,11 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
 
     bool attrib_is_indexed = false;
 
-    if (kSYM_OpenBracket == _sym.GetSymbolType(_src.PeekNext()))
+    if (kKW_OpenBracket == _src.PeekNext())
     {
         attrib_is_indexed = true;
         _src.GetNext();
-        if (kSYM_CloseBracket != _sym.GetSymbolType(_src.GetNext()))
+        if (kKW_CloseBracket != _src.GetNext())
         {
             Error("Cannot specify array size for attribute");
             return kERR_UserError;
@@ -5289,7 +5237,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
         _sym[vname].Vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].Vartype);
 
     // Declare attribute getter, e.g. get_ATTRIB()
-    Symbol attrib_func = -1;
+    Symbol attrib_func = kKW_NoSymbol;
     bool const get_func_is_setter = false;
     ErrorType retval = ConstructAttributeFuncName(vname, get_func_is_setter, attrib_is_indexed, attrib_func);
     if (retval < 0) return retval;
@@ -5329,24 +5277,24 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
         // Skip the sequence of [...]
         while (true)
         {
-            ErrorType retval = SkipToClose(kSYM_CloseBracket);
+            ErrorType retval = SkipToClose(kKW_CloseBracket);
             if (retval < 0) return retval;
-            if (kSYM_OpenBracket != _src.PeekNext())
+            if (kKW_OpenBracket != _src.PeekNext())
                 return kERR_None;
             _src.GetNext(); // Eat '['
         }
     }
 
-    if (kSYM_CloseBracket == _sym.GetSymbolType(_src.PeekNext()))
+    if (kKW_CloseBracket == _src.PeekNext())
     {
         // Dynamic array
         _src.GetNext(); // Eat ']'
-        if (vartype == _sym.GetOldStringSym())
+        if (vartype == kKW_String)
         {
             Error("Dynamic arrays of old-style strings are not supported");
             return kERR_UserError;
         }
-        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManaged(vartype) && _sym.GetFloatSym() != vartype)
+        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManaged(vartype) && kKW_Float != vartype)
         {
             Error("Can only have dynamic arrays of integer types, float or managed structs. '%s' isn't any of this.", _sym.GetName(vartype).c_str());
             return kERR_UserError;
@@ -5374,16 +5322,12 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
 
         dims.push_back(dimension_as_int);
 
-        SymbolType const next_symtype = _sym.GetSymbolType(_src.GetNext());
-        if (kSYM_Comma == next_symtype)
+        Symbol const punctuation = _src.GetNext();
+        retval = Expect(SymbolList{ kKW_Comma, kKW_CloseBracket }, punctuation);
+        if (retval < 0) return retval;
+        if (kKW_Comma == punctuation)
             continue;
-        if (kSYM_CloseBracket != next_symtype)
-        {
-            Error("Expected ']' or ',' after array dimension");
-            return kERR_UserError;
-        }
-        SymbolType const peek_symtype = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_OpenBracket != peek_symtype)
+        if (kKW_OpenBracket != _src.PeekNext())
             break;
         _src.GetNext(); // Eat '['
     }
@@ -5429,7 +5373,7 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
     if (FlagIsSet(tqs, kTQ_Attribute))
         return ParseStruct_Attribute(tqs, stname, vname, vartype);
 
-    if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_OpenBracket)
+    if (_src.PeekNext() == kKW_OpenBracket)
     {
         Vartype vartype = _sym[vname].Vartype;
         ErrorType retval = ParseArray(vname, vartype);
@@ -5449,7 +5393,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
     if (retval < 0) return retval;
 
     Symbol const var_or_func_name = MangleStructAndComponent(name_of_struct, component);
-    bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
+    bool const is_function = (kKW_OpenParenthesis == _src.PeekNext());
 
     // In here, all struct members get this flag, functions included
     // This flag shows that the respective member has been declared within a struct xx {  }
@@ -5491,7 +5435,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
 
 ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
 {
-    if (_sym.GetDynpointerSym() != _src.PeekNext())
+    if (kKW_Dynpointer != _src.PeekNext())
         return kERR_None;
 
     if (kPP_PreAnalyze == _pp || _sym.IsManaged(vartype))
@@ -5521,7 +5465,7 @@ ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierS
     if (retval < 0) return retval;
 
     // "TYPE noloopcheck foo(...)"
-    if (kSYM_NoLoopCheck == _sym.GetSymbolType(_src.PeekNext()))
+    if (kKW_Noloopcheck == _src.PeekNext())
     {
         Error("Cannot use 'noloopcheck' here");
         return kERR_UserError;
@@ -5534,20 +5478,18 @@ ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierS
         if (retval < 0) return retval;
 
         Symbol const punctuation = _src.GetNext();
-        SymbolType const punct_type = _sym.GetSymbolType(punctuation);
-        if (kSYM_Comma != punct_type && kSYM_Semicolon != punct_type)
-        {
-            Error("Expected ',' or ';', found '%s' instead", _sym.GetName(punctuation).c_str());
-            return kERR_UserError;
-        }
-        if (kSYM_Semicolon == punct_type)
+        retval = Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (retval < 0) return retval;
+        if (kKW_Semicolon == punctuation)
             return kERR_None;
     }
 }
 
 // Handle a "struct" definition; we've already eaten the keyword "struct"
-ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol struct_of_current_func, Symbol name_of_current_func)
+ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
+    size_t const start_of_struct_decl = _src.GetCursor();
+
     // get token for name of struct
     Symbol const stname = _src.GetNext();
 
@@ -5574,14 +5516,14 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol struct_of_curren
 
     size_t size_so_far = 0; // Will sum up the size of the struct
 
-    if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Extends)
+    if (kKW_Extends == _src.PeekNext())
     {
         ErrorType retval = ParseStruct_ExtendsClause(stname, size_so_far);
         if (retval < 0) return retval;
     }
 
     // forward-declaration of struct type
-    if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Semicolon)
+    if (kKW_Semicolon == _src.PeekNext())
     {
         if (!FlagIsSet(tqs, kTQ_Managed))
         {
@@ -5596,22 +5538,18 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol struct_of_curren
         return kERR_None;
     }
 
-    Symbol const semicolon = _src.GetNext();
-    if (_sym.GetSymbolType(semicolon) != kSYM_OpenBrace)
-    {
-        Error("Expected '{', found '%s' instead", _sym.GetName(semicolon).c_str());
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_OpenBrace, _src.GetNext());
+    if (retval < 0) return retval;
 
     // Declaration of the components
-    while (_sym.GetSymbolType(_src.PeekNext()) != kSYM_CloseBrace)
+    while (kKW_CloseBrace != _src.PeekNext())
     {
         currentline = _src.GetLinenoAt(_src.GetCursor());
         TypeQualifierSet tqs = 0;
         ParseQualifiers(tqs);
         bool const in_func_body = false;
         bool const in_struct_decl = true;
-        ErrorType retval = Parse_CheckTQ(tqs, in_func_body, in_struct_decl, kSYM_Vartype);
+        retval = Parse_CheckTQ(tqs, in_func_body, in_struct_decl);
         if (retval < 0) return retval;
 
         Vartype vartype = _src.GetNext();
@@ -5631,23 +5569,32 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol struct_of_curren
     _src.GetNext(); // Eat '}'
 
     Symbol const nextsym = _src.PeekNext();
-    SymbolType const type_of_next = _sym.GetSymbolType(nextsym);
-    if (kSYM_Semicolon == type_of_next)
+    if (kKW_Semicolon == nextsym)
     {
+        if (FlagIsSet(tqs, kTQ_Readonly))
+        {
+            // Only now do we find out that there isn't any following declaration
+            // so "readonly" was incorrect. 
+            // Back up the cursor for the error message.
+            _src.SetCursor(start_of_struct_decl);
+            Error("'readonly' can only be used in a variable declaration");
+            return kERR_UserError;
+        }
         _src.GetNext(); // Eat ';'
         return kERR_None;
     }
 
     // If this doesn't seem to be a declaration at first glance,
     // warn that the user might have forgotten a ';'.
+    SymbolType type_of_next = _sym.GetSymbolType(nextsym);
     if (kSYM_NoType != type_of_next &&
         kSYM_Function != type_of_next &&
         kSYM_GlobalVar != type_of_next &&
         kSYM_LocalVar != type_of_next &&
-        kSYM_NoLoopCheck != type_of_next && 
-        _sym.GetDynpointerSym() != nextsym)
+        kKW_Noloopcheck != nextsym && 
+        kKW_Dynpointer != nextsym)
     {
-        Error("Unexpected '%s' (did you forget a ';' ?)", _sym.GetName(nextsym).c_str());
+        Error("Unexpected '%s' (did you forget a ';'?)", _sym.GetName(nextsym).c_str());
         return kERR_UserError;
     }
 
@@ -5705,41 +5652,50 @@ ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     entry.SType = kSYM_Vartype;
     entry.SSize = SIZE_OF_INT;
-    entry.Vartype = _sym.GetIntSym();
+    entry.Vartype = kKW_Int;
 
     return kERR_None;
 }
 
-// enum EnumName { value1, value2 }
-ErrorType AGS::Parser::ParseEnum0()
+// enum eEnumName { value1, value2 };
+// We've already eaten "enum"
+ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
+    size_t const start_of_enum_decl = _src.GetCursor();
+    if (kKW_NoSymbol !=  name_of_current_func)
+    {
+        Error("Enum declaration is not allowed within a function body");
+        return kERR_UserError;
+    }
+    if (FlagIsSet(tqs, kTQ_Builtin))
+    {
+        Error("'builtin' can only be used in a struct declaration");
+        return kERR_UserError;
+    }
+
     // Get name of the enum, enter it into the symbol table
     Symbol enum_name = _src.GetNext();
     ErrorType retval = ParseEnum_Name2Symtable(enum_name);
     if (retval < 0) return retval;
 
-    Symbol const semicolon = _src.GetNext();
-    if (kSYM_OpenBrace != _sym.GetSymbolType(semicolon))
-    {
-        Error("Expected '{', found '%s' instead", _sym.GetName(semicolon).c_str());
-        return kERR_UserError;
-    }
+    retval = Expect(kKW_OpenBrace, _src.GetNext());
+    if (retval < 0) return retval;
 
     int current_constant_value = 0;
 
     while (true)
     {
         Symbol item_name = _src.GetNext();
-        if (_sym.GetSymbolType(item_name) == kSYM_CloseBrace)
+        if (kKW_CloseBrace == item_name)
             break; // item list empty or ends with trailing ','
 
         if (kPP_Main == _pp)
         {
-            if (_sym.GetSymbolType(item_name) == kSYM_Const)
+            if (kSYM_Constant == item_name)
             {
-                std::string const msg =
-                    ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name);
-                Error(msg.c_str(), _sym.GetName(item_name).c_str());
+                Error(
+                    ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name).c_str(),
+                    _sym.GetName(item_name).c_str());
                 return kERR_UserError;
             }
             if (_sym.GetSymbolType(item_name) != 0)
@@ -5752,14 +5708,10 @@ ErrorType AGS::Parser::ParseEnum0()
         current_constant_value++;
 
         Symbol const punctuation = _src.PeekNext();
-        SymbolType type_of_punct = _sym.GetSymbolType(punctuation);
-        if (kSYM_Assign != type_of_punct && kSYM_Comma != type_of_punct && kSYM_CloseBrace != type_of_punct)
-        {
-            Error("Expected '=' or ',' or '}', found '%s' instead", _sym.GetName(punctuation).c_str());
-            return kERR_UserError;
-        }
+        retval = Expect(SymbolList{ kKW_Comma, kKW_Assign, kKW_CloseBrace }, punctuation);
+        if (retval < 0) return retval;
 
-        if (kSYM_Assign == type_of_punct)
+        if (kKW_Assign == punctuation)
         {
             // the value of this entry is specified explicitly
             retval = ParseEnum_AssignedValue(current_constant_value);
@@ -5770,45 +5722,53 @@ ErrorType AGS::Parser::ParseEnum0()
         ParseEnum_Item2Symtable(enum_name, item_name, current_constant_value);
 
         Symbol const comma_or_brace = _src.GetNext();
-        if (kSYM_CloseBrace == _sym.GetSymbolType(comma_or_brace))
-            break;
-        if (kSYM_Comma == _sym.GetSymbolType(comma_or_brace))
+        retval = Expect(SymbolList{ kKW_Comma, kKW_CloseBrace }, comma_or_brace);
+        if (retval < 0) return retval;
+        if (kKW_Comma == comma_or_brace)
             continue;
-
-        Error("Expected ',' or '}', found '%s' instead", _sym.GetName(comma_or_brace).c_str());
-        return kERR_UserError;
+        break;
     }
-    return kERR_None;
-}
 
-// enum eEnumName { value1, value2 };
-// We've already eaten "enum"
-ErrorType AGS::Parser::ParseEnum(AGS::Symbol name_of_current_function)
-{
-    if (name_of_current_function >= 0)
+    Symbol const nextsym = _src.PeekNext();
+    if (kKW_Semicolon == nextsym)
     {
-        Error("Enum declaration not allowed within a function body");
-        return kERR_UserError;
+        _src.GetNext(); // Eat ';'
+        if (FlagIsSet(tqs, kTQ_Readonly))
+        {
+            // Only now do we find out that there isn't any following declaration
+            // so "readonly" was incorrect. 
+            // Back up the cursor for the error message.
+            _src.SetCursor(start_of_enum_decl);
+            Error("'readonly' can only be used in a variable declaration");
+            return kERR_UserError;
+        }
+        return kERR_None;
     }
 
-    ErrorType retval = ParseEnum0();
-    if (retval < 0) return retval;
-
-    // Force a semicolon after the declaration
-    if (_sym.GetSymbolType(_src.GetNext()) != kSYM_Semicolon)
+    // If this doesn't seem to be a declaration at first glance,
+    // warn that the user might have forgotten a ';'.
+    
+    SymbolType type_of_next = _sym.GetSymbolType(nextsym);
+    if (kSYM_NoType != type_of_next &&
+        kSYM_Function != type_of_next &&
+        kSYM_GlobalVar != type_of_next &&
+        kSYM_LocalVar != type_of_next &&
+        kKW_Noloopcheck != nextsym &&
+        kKW_Dynpointer != nextsym)
     {
-        Error("Expected ';'");
+        Error("Unexpected '%s' (did you forget a ';'?)", _sym.GetName(nextsym).c_str());
         return kERR_UserError;
     }
-    return kERR_None;
+
+    // Take enum that has just been defined as the vartype of a declaration
+    return ParseVartype(enum_name, tqs, struct_of_current_func, name_of_current_func);
 }
 
 ErrorType AGS::Parser::ParseExport()
 {
     if (kPP_PreAnalyze == _pp)
     {
-        const SymbolType stoplist[] = { kSYM_Semicolon };
-        SkipTo(_src, stoplist, 1);
+        SkipTo(SymbolList{ kKW_Semicolon }, _src);
         _src.GetNext(); // Eat ';'
         return kERR_None;
     }
@@ -5828,7 +5788,7 @@ ErrorType AGS::Parser::ParseExport()
             Error("Cannot export the imported '%s'", _sym.GetName(export_sym).c_str());
             return kERR_UserError;
         }
-        if (_sym.GetOldStringSym() == _sym.GetVartype(export_sym))
+        if (kKW_String == _sym.GetVartype(export_sym))
         {
             Error("Cannot export 'string'; use char[200] instead");
             return kERR_UserError;
@@ -5843,14 +5803,11 @@ ErrorType AGS::Parser::ParseExport()
                 _sym[export_sym].GetNumOfFuncParams() + 100 * _sym[export_sym].SScope));
             if (retval < 0) return retval;
         }
-        Symbol const next_sym = _src.GetNext();
-        Symbol const type_of_next = _sym.GetSymbolType(next_sym);
-        if (kSYM_Semicolon != type_of_next && kSYM_Comma != type_of_next)
-        {
-            Error("Expected ',' or ';' instead of '%s'", _sym.GetName(next_sym).c_str());
-            return kERR_UserError;
-        }
-        if (kSYM_Semicolon == type_of_next)
+
+        Symbol const punctuation = _src.GetNext();
+        ErrorType retval = Expect(SymbolList{ kKW_Comma, kKW_Semicolon,  }, punctuation);
+        if (retval < 0) return retval;
+        if (kKW_Semicolon == punctuation)
             break;
     }
 
@@ -5858,14 +5815,14 @@ ErrorType AGS::Parser::ParseExport()
 }
 ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext()
 {
-    SymbolType const ns_type = _nest.Type();
-    if (kSYM_Switch == ns_type)
+    NestingStack::NSType const ns_type = _nest.Type();
+    if (NestingStack::kNS_Switch == ns_type)
     {
         Error("Cannot use declarations directly within a switch body. (Put \"{ ... }\" around the case statements)");
         return kERR_UserError;
     }
 
-    if (kSYM_OpenBrace == ns_type || kSYM_Function == ns_type || kSYM_NoType == ns_type)
+    if (NestingStack::kNS_Braces == ns_type || NestingStack::kNS_Function == ns_type || NestingStack::kNS_None == ns_type)
         return kERR_None;
 
     Error("A declaration cannot be the sole body of an 'if', 'else' or loop clause");
@@ -5907,8 +5864,8 @@ ErrorType AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype varty
 
     if (0 >= struct_name)
     {
-        bool const func_is_static_extender = (kSYM_Static == _sym.GetSymbolType(_src.PeekNext()));
-        bool const func_is_extender = (func_is_static_extender) || (_sym.GetThisSym() == _src.PeekNext());
+        bool const func_is_static_extender = (kKW_Static == _src.PeekNext());
+        bool const func_is_extender = func_is_static_extender || (kKW_This == _src.PeekNext());
 
         if (func_is_extender)
         {
@@ -5963,8 +5920,7 @@ ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Sco
     _givm[var_name] = (kScT_Global == scope_type);
 
     // Apart from this, we aren't interested in var defns at this stage, so skip this defn
-    SymbolType const stoplist[] = { kSYM_Comma, kSYM_Semicolon, };
-    SkipTo(_src, stoplist, 2);
+    SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
     return kERR_None;
 }
 
@@ -5976,7 +5932,12 @@ ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_typ
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype.
     _sym[var_name].TypeQualifiers = tqs & ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
 
-    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > SymbolTableEntry::ParameterSScope), std::string::npos != _sym.GetName(var_name).rfind(':'), kSYM_Vartype);
+    if (FlagIsSet(tqs, kTQ_Static))
+    {
+        Error("'static' cannot be used in a variable declaration");
+        return kERR_UserError;
+    }
+    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > SymbolTableEntry::ParameterSScope), std::string::npos != _sym.GetName(var_name).rfind(':'));
     if (retval < 0) return retval;
 
     // parse the definition
@@ -5991,17 +5952,22 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
         Error("Unexpected end of input (did you forget ';'?)");
         return kERR_UserError;
     }
+    if (FlagIsSet(tqs, kTQ_Builtin))
+    {
+        Error("'builtin' can only be used in a struct declaration");
+        return kERR_UserError;
+    }
 
     // Don't define variable or function where illegal in context.
     ErrorType retval = ParseVartype_CheckForIllegalContext();
     if (retval < 0) return retval;
 
     ScopeType const scope_type = 
-        (name_of_current_func > 0) ? kScT_Local :
+        (kKW_NoSymbol != name_of_current_func) ? kScT_Local :
         (FlagIsSet(tqs, kTQ_Import)) ? kScT_Import : kScT_Global;
 
     // Only imply a pointer for a managed entity if it isn't imported.
-    if ((kScT_Import == scope_type && _sym.GetDynpointerSym() == _src.PeekNext()) ||
+    if ((kScT_Import == scope_type && kKW_Dynpointer == _src.PeekNext()) ||
         (kScT_Import != scope_type && _sym.IsManaged(vartype)))
     {
         vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
@@ -6016,7 +5982,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
 
     // Look for "noloopcheck"; if present, gobble it and set the indicator
     // "TYPE noloopcheck foo(...)"
-    bool const no_loop_check = (kSYM_NoLoopCheck == _sym.GetSymbolType(_src.PeekNext()));
+    bool const no_loop_check = (kKW_Noloopcheck == _src.PeekNext());
     if (no_loop_check)
         _src.GetNext();
 
@@ -6024,12 +5990,12 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
     while(true)
     {
         // Get the variable or function name.
-        Symbol var_or_func_name = -1;
-        Symbol struct_name = -1;
+        Symbol var_or_func_name = kKW_NoSymbol;
+        Symbol struct_name = kKW_NoSymbol;
         retval = ParseVarname(true, struct_name, var_or_func_name);
         if (retval < 0) return retval;
 
-        bool const is_function = (kSYM_OpenParenthesis == _sym.GetSymbolType(_src.PeekNext()));
+        bool const is_function = (kKW_OpenParenthesis == _src.PeekNext());
 
         // certain qualifiers, such as "static" only go with certain kinds of definitions.
         retval = ParseVartype_CheckIllegalCombis(is_function, tqs);
@@ -6053,7 +6019,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
         }
         else
         {
-            if (0 < struct_name)
+            if (kKW_NoSymbol != struct_name)
             {
                 Error("Variable may not contain '::'");
                 return kERR_UserError;
@@ -6062,14 +6028,10 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
             if (retval < 0) return retval;
         }
 
-        SymbolType const punctuation = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_Comma != punctuation && kSYM_Semicolon != punctuation)
-        {
-            Error("Expected ',' or ';', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
-            return kERR_UserError;
-        }
-        _src.GetNext();  // Eat ',' or ';'
-        if (kSYM_Semicolon == punctuation)
+        Symbol const punctuation = _src.GetNext();
+        retval = Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (retval < 0) return retval;
+        if (kKW_Semicolon == punctuation)
             return kERR_None;
     }
 }
@@ -6084,23 +6046,23 @@ ErrorType AGS::Parser::HandleEndOfCompoundStmts()
             Error("!Nesting of unknown type ends");
             return kERR_InternalError;
 
-        case kSYM_OpenBrace:
-        case kSYM_Switch:
+        case NestingStack::kNS_Braces:
+        case NestingStack::kNS_Switch:
             // The body of those statements can only be closed by an explicit '}'.
             // So that means that there cannot be any more non-braced compound statements to close here.
             return kERR_None;
 
-        case kSYM_Do:
+        case NestingStack::kNS_Do:
             retval = HandleEndOfDo();
             if (retval < 0) return retval;
             break;
 
-        case kSYM_Else:
+        case NestingStack::kNS_Else:
             retval = HandleEndOfElse();
             if (retval < 0) return retval;
             break;
 
-        case kSYM_If:
+        case NestingStack::kNS_If:
         {
             bool else_follows;
             retval = HandleEndOfIf(else_follows);
@@ -6109,7 +6071,7 @@ ErrorType AGS::Parser::HandleEndOfCompoundStmts()
             break;
         }
 
-        case kSYM_While:
+        case NestingStack::kNS_While:
             retval = HandleEndOfWhile();
             if (retval < 0) return retval;
             break;
@@ -6122,9 +6084,9 @@ ErrorType AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
 {
     Symbol const functionReturnType = _sym[name_of_current_func].FuncParamVartypes[0];
 
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_Semicolon)
+    if (kKW_Semicolon != _src.PeekNext())
     {
-        if (functionReturnType == _sym.GetVoidSym())
+        if (functionReturnType == kKW_Void)
         {
             Error("Cannot return value from void function");
             return kERR_UserError;
@@ -6152,23 +6114,19 @@ ErrorType AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     }
-    else if (_sym.GetVoidSym() != functionReturnType)
+    else if (kKW_Void != functionReturnType)
     {
         Error("Must return a '%s' value from function", _sym.GetName(functionReturnType).c_str());
         return kERR_UserError;
     }
 
-    Symbol const cursym = _src.GetNext();
-    if (kSYM_Semicolon != _sym.GetSymbolType(cursym))
-    {
-        Error("Expected ';' instead of '%s'", _sym.GetName(cursym).c_str());
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_Semicolon, _src.GetNext());
+    if (retval < 0) return retval;
 
     // If locals contain pointers, free them
     if (_sym.IsDyn(functionReturnType))
         FreeDynpointersOfAllLocals_DynResult(); // Special protection for result needed
-    else if (_sym.GetVoidSym() != functionReturnType)
+    else if (kKW_Void != functionReturnType)
         FreeDynpointersOfAllLocals_KeepAX();
     else 
         FreeDynpointersOfLocals(0u);
@@ -6196,7 +6154,7 @@ ErrorType AGS::Parser::ParseIf()
     ErrorType retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
 
-    _nest.Push(kSYM_If);
+    _nest.Push(NestingStack::kNS_If);
 
     // The code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
@@ -6208,7 +6166,7 @@ ErrorType AGS::Parser::ParseIf()
 
 ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
 {
-    if (kSYM_Else != _sym.GetSymbolType(_src.PeekNext()))
+    if (kKW_Else != _src.PeekNext())
     {
         else_follows = false;
         _nest.JumpOut().Patch(_src.GetLineno());
@@ -6227,7 +6185,7 @@ ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
     // Mark the  out jump after the "then" branch, above, for patching.
     _nest.JumpOut().AddParam();
     // To prevent matching multiple else clauses to one if
-    _nest.SetType(kSYM_Else);
+    _nest.SetType(NestingStack::kNS_Else);
     return kERR_None;
 }
 
@@ -6240,7 +6198,7 @@ ErrorType AGS::Parser::ParseWhile()
     ErrorType retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
 
-    _nest.Push(kSYM_While);
+    _nest.Push(NestingStack::kNS_While);
 
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
@@ -6272,7 +6230,7 @@ ErrorType AGS::Parser::HandleEndOfWhile()
     _nest.JumpOut().Patch(_src.GetLineno());
     _nest.Pop();
 
-    if (kSYM_For != _nest.Type())
+    if (NestingStack::kNS_For != _nest.Type())
         return kERR_None;
 
     // This is the outer level of the FOR loop.
@@ -6283,7 +6241,7 @@ ErrorType AGS::Parser::HandleEndOfWhile()
 
 ErrorType AGS::Parser::ParseDo()
 {
-    _nest.Push(kSYM_Do);
+    _nest.Push(NestingStack::kNS_Do);
     _nest.Start().Set();
     return kERR_None;
 }
@@ -6340,8 +6298,8 @@ ErrorType AGS::Parser::ParseFor_InitClauseVardecl()
     while (true)
     {
         Symbol varname = _src.GetNext();
-        SymbolType const next_type = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_MemberAccess == next_type || kSYM_OpenParenthesis == next_type)
+        Symbol const nextsym = _src.PeekNext();
+        if (kKW_ScopeRes == nextsym || kKW_OpenParenthesis == nextsym)
         {
             Error("Function definition not allowed in for loop initialiser");
             return kERR_UserError;
@@ -6350,15 +6308,12 @@ ErrorType AGS::Parser::ParseFor_InitClauseVardecl()
         retval = ParseVardecl(varname, vartype, kScT_Local);
         if (retval < 0) return retval;
 
-        Symbol const punctuation = _sym.GetSymbolType(_src.PeekNext());
-        if (kSYM_Comma != punctuation && kSYM_Semicolon != punctuation)
-        {
-            Error("Expected ',' or ';', found '%s' instead", _sym.GetName(_src.PeekNext()).c_str());
-            return kERR_UserError;
-        }
-        if (kSYM_Comma == punctuation)
-            _src.GetNext();  // Eat ','
-        if (kSYM_Semicolon == punctuation)
+        Symbol const punctuation = _src.PeekNext();
+        retval = Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (retval < 0) return retval;
+        if (kKW_Comma == punctuation)
+            _src.GetNext(); // Eat ','
+        if (kKW_Semicolon == punctuation)
             return kERR_None;
     }
 }
@@ -6366,9 +6321,9 @@ ErrorType AGS::Parser::ParseFor_InitClauseVardecl()
 // The first clause of a 'for' header
 ErrorType AGS::Parser::ParseFor_InitClause(AGS::Symbol peeksym)
 {
-    if (_sym.GetSymbolType(peeksym) == kSYM_Semicolon)
+    if (kKW_Semicolon == peeksym)
         return kERR_None; // Empty init clause
-    if (_sym.GetSymbolType(peeksym) == kSYM_Vartype)
+    if (kSYM_Vartype == _sym.GetSymbolType(peeksym))
         return ParseFor_InitClauseVardecl();
     return ParseAssignmentOrExpression(_src.GetNext());
 }
@@ -6377,7 +6332,7 @@ ErrorType AGS::Parser::ParseFor_WhileClause()
 {
     // Make the last emitted line number invalid so that a linenumber bytecode is emitted
     _scrip.last_emitted_lineno = INT_MAX;
-    if (_sym.GetSymbolType(_src.PeekNext()) == kSYM_Semicolon)
+    if (kKW_Semicolon == _src.PeekNext())
     {
         // Not having a while clause is tantamount to the while condition "true".
         // So let's write "true" to the AX register.
@@ -6390,9 +6345,8 @@ ErrorType AGS::Parser::ParseFor_WhileClause()
 
 ErrorType AGS::Parser::ParseFor_IterateClause()
 {
-    // Check for empty interate clause
-    if (kSYM_CloseParenthesis == _sym.GetSymbolType(_src.PeekNext()))
-        return kERR_None;
+    if (kKW_CloseParenthesis == _src.PeekNext())
+        return kERR_None; // iterate clause is empty
 
     return ParseAssignmentOrExpression(_src.GetNext());
 }
@@ -6405,34 +6359,24 @@ ErrorType AGS::Parser::ParseFor()
     // The inner level contains "while (E) { ...; C}"
 
     // Outer level
-    _nest.Push(kSYM_For);
+    _nest.Push(NestingStack::kNS_For);
 
-    Symbol const paren = _src.GetNext();
-    if (_sym.GetSymbolType(paren) != kSYM_OpenParenthesis)
-    {
-        Error("Expected '(' after 'for', found '%s' instead", _sym.GetName(paren).c_str());
-        return kERR_UserError;
-    }
-
-    Symbol peeksym = _src.PeekNext();
-    if (_sym.GetSymbolType(peeksym) == kSYM_CloseParenthesis)
-    {
-        Error("Empty parentheses \"()\" aren't allowed after \"for\" (write \"for(;;)\" instead");
-        return kERR_UserError;
-    }
-
-    // Generate the initialization clause (I)
-    ErrorType retval = ParseFor_InitClause(peeksym);
+    ErrorType retval = Expect(kKW_OpenParenthesis, _src.GetNext());
     if (retval < 0) return retval;
 
-    Symbol const semicolon1 = _src.GetNext();
-    if (_sym.GetSymbolType(semicolon1) != kSYM_Semicolon)
+    Symbol const peeksym = _src.PeekNext();
+    if (kKW_CloseParenthesis == peeksym)
     {
-        Error(
-            "Expected ';' after for loop initializer clause, found '%s' instead",
-            _sym.GetName(semicolon1).c_str());
+        Error("Empty parentheses '()' aren't allowed after 'for' (write 'for(;;)' instead");
         return kERR_UserError;
     }
+
+    // Initialization clause (I)
+    retval = ParseFor_InitClause(peeksym);
+    if (retval < 0) return retval;
+
+    retval = Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop initializer clause");
+    if (retval < 0) return retval;
 
     // Remember where the code of the while condition starts.
     CodeLoc const while_cond_loc = _scrip.codesize;
@@ -6440,14 +6384,8 @@ ErrorType AGS::Parser::ParseFor()
     retval = ParseFor_WhileClause();
     if (retval < 0) return retval;
 
-    Symbol const semicolon2 = _src.GetNext();
-    if (_sym.GetSymbolType(semicolon2) != kSYM_Semicolon)
-    {
-        Error(
-            "Expected ';' after for loop while clause, found '%s' instead",
-            _sym.GetName(semicolon2).c_str());
-        return kERR_UserError;
-    }
+    retval = Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop while clause");
+    if (retval < 0) return retval;
 
     // Remember where the code of the iterate clause starts.
     CodeLoc const iterate_clause_loc = _scrip.codesize;
@@ -6456,16 +6394,12 @@ ErrorType AGS::Parser::ParseFor()
 
     retval = ParseFor_IterateClause();
     if (retval < 0) return retval;
-    Symbol const close_paren = _src.GetNext();
-    if (_sym.GetSymbolType(close_paren) != kSYM_CloseParenthesis)
-    {
-        Error("Expected ')' after for loop iterate clause, found '%s' instead",
-            _sym.GetName(close_paren).c_str());
-        return kERR_UserError;
-    }
+
+    retval = Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' after for loop iterate clause");
+    if (retval < 0) return retval;
 
     // Inner nesting level
-    _nest.Push(kSYM_While);
+    _nest.Push(NestingStack::kNS_While);
     _nest.Start().Set(while_cond_loc);
 
     // We've just generated code for getting to the next loop iteration.
@@ -6496,14 +6430,10 @@ ErrorType AGS::Parser::ParseSwitch()
     // Copy the result to the BX register, ready for case statements
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
 
-    Symbol const obrace = _src.GetNext();
-    if (kSYM_OpenBrace != _sym.GetSymbolType(obrace))
-    {
-        Error("Expected '{', found '%s' instead", _sym.GetName(obrace).c_str());
-        return kERR_UserError;
-    }
+    retval = Expect(kKW_OpenBrace, _src.GetNext());
+    if (retval < 0) return retval;
 
-    _nest.Push(kSYM_Switch);
+    _nest.Push(NestingStack::kNS_Switch);
     _nest.SetSwitchExprVartype(switch_expr_vartype);
     _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
 
@@ -6517,25 +6447,19 @@ ErrorType AGS::Parser::ParseSwitch()
         Error("Unexpected end of input");
         return kERR_UserError;
     }
-    Symbol const kword = _src.PeekNext();
-    SymbolType kword_type = _sym.GetSymbolType(kword);
-    if (kSYM_Case != kword_type && kSYM_Default != kword_type && kSYM_CloseBrace != kword_type)
-    {
-        Error("Expected 'default' or 'case' or '}', found '%s' instead", _sym.GetName(kword).c_str());
-        return kERR_UserError;
-    }
-    return kERR_None;
+
+    return Expect(SymbolList{ kKW_Default, kKW_Case, kKW_CloseBrace }, _src.PeekNext());
 }
 
 ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 {
-    if (kSYM_Switch != _nest.Type())
+    if (NestingStack::kNS_Switch != _nest.Type())
     {
         Error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(case_or_default).c_str());
         return kERR_UserError;
     }
 
-    if (kSYM_Default == _sym.GetSymbolType(case_or_default))
+    if (kKW_Default == case_or_default)
     {
         if (INT_MAX != _nest.SwitchDefault().Get())
         {
@@ -6573,14 +6497,7 @@ ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         _nest.SwitchCases().push_back(case_code_start);
     }
 
-    Symbol const colon = _src.GetNext();
-    if (kSYM_Label != _sym.GetSymbolType(colon))
-    {
-        Error("Expected ':', found '%s' instead", _sym.GetName(colon).c_str());
-        return kERR_UserError;
-    }
-
-    return kERR_None;
+    return Expect(kKW_Colon, _src.GetNext());
 }
 
 ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
@@ -6596,20 +6513,16 @@ ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
 
 ErrorType AGS::Parser::ParseBreak()
 {
-    Symbol const semicolon = _src.GetNext();
-    if (_sym.GetSymbolType(semicolon) != kSYM_Semicolon)
-    {
-        Error("Expected ';', found '%s' instead", _sym.GetName(semicolon));
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_Semicolon, _src.GetNext());
+    if (retval < 0) return retval;
 
     // Find the (level of the) looping construct to which the break applies
     // Note that this is similar, but _different_ from "continue".
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
-        SymbolType ltype = _nest.Type(nesting_level);
-        if (kSYM_Do == ltype || kSYM_Switch == ltype || kSYM_While == ltype)
+        NestingStack::NSType const ltype = _nest.Type(nesting_level);
+        if (NestingStack::kNS_Do == ltype || NestingStack::kNS_Switch == ltype || NestingStack::kNS_While == ltype)
             break;
     }
 
@@ -6636,20 +6549,16 @@ ErrorType AGS::Parser::ParseBreak()
 
 ErrorType AGS::Parser::ParseContinue()
 {
-    Symbol const semicolon = _src.GetNext();
-    if (_sym.GetSymbolType(semicolon) != kSYM_Semicolon)
-    {
-        Error("Expected ';', found '%s' instead", _sym.GetName(semicolon));
-        return kERR_UserError;
-    }
+    ErrorType retval = Expect(kKW_Semicolon, _src.GetNext());
+    if (retval < 0) return retval;
 
     // Find the level of the looping construct to which the break applies
     // Note that this is similar, but _different_ from "break".
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
-        SymbolType const ltype = _nest.Type(nesting_level);
-        if (kSYM_Do == ltype || kSYM_While == ltype)
+        NestingStack::NSType const ltype = _nest.Type(nesting_level);
+        if (NestingStack::kNS_Do == ltype || NestingStack::kNS_While == ltype)
             break;
     }
 
@@ -6685,7 +6594,7 @@ ErrorType AGS::Parser::ParseContinue()
 
 ErrorType AGS::Parser::ParseCloseBrace()
 {
-    if (kSYM_Switch == _nest.Type())
+    if (NestingStack::kNS_Switch == _nest.Type())
         return HandleEndOfSwitch();
     return HandleEndOfBraceCommand();
 }
@@ -6696,33 +6605,29 @@ ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_curren
 
     // NOTE that some branches of this switch will leave
     // the whole function, others will continue after the switch.
-    switch (_sym.GetSymbolType(leading_sym))
+    switch (leading_sym)
     {
     default:
     {
         // No keyword, so it should be an assignment or an isolated expression
         retval = ParseAssignmentOrExpression(leading_sym);
         if (retval < 0) return retval;
-        Symbol const semicolon = _src.GetNext();
-        if (_sym.GetSymbolType(semicolon) != kSYM_Semicolon)
-        {
-            Error("Expected ';', found '%s' instead.", _sym.GetName(semicolon).c_str());
-            return kERR_UserError;
-        }
+        retval = Expect(kKW_Semicolon, _src.GetNext());
+        if (retval < 0) return retval;
         break;
     }
 
-    case kSYM_Break:
+    case kKW_Break:
         retval = ParseBreak();
         if (retval < 0) return retval;
         break;
 
-    case kSYM_Case:
+    case kKW_Case:
         retval = ParseSwitchLabel(leading_sym);
         if (retval < 0) return retval;
         break;
 
-    case  kSYM_CloseBrace:
+    case kKW_CloseBrace:
         // Note that the scanner has already made sure that every close brace has an open brace
         if (SymbolTableEntry::FunctionSScope >= _nest.TopLevel())
             return HandleEndOfFuncBody(struct_of_current_func, name_of_current_func);
@@ -6731,46 +6636,46 @@ ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_curren
         if (retval < 0) return retval;
         break;
 
-    case kSYM_Continue:
+    case kKW_Continue:
         retval = ParseContinue();
         if (retval < 0) return retval;
         break;
 
-    case kSYM_Default:
+    case kKW_Default:
         retval = ParseSwitchLabel(leading_sym);
         if (retval < 0) return retval;
         break;
 
-    case kSYM_Do:
+    case kKW_Do:
         return ParseDo();
 
-    case kSYM_Else:
+    case kKW_Else:
         Error("Cannot find any 'if' clause that matches this 'else'");
         return kERR_UserError;
 
-    case kSYM_For:
+    case kKW_For:
         return ParseFor();
 
-    case kSYM_If:
+    case kKW_If:
         return ParseIf();
 
-    case kSYM_OpenBrace:
+    case kKW_OpenBrace:
         if (SymbolTableEntry::ParameterSScope == _nest.TopLevel())
              return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
-        _nest.Push(kSYM_OpenBrace);
+        _nest.Push(NestingStack::kNS_Braces);
         return kERR_None;
 
-    case kSYM_Return:
+    case kKW_Return:
         retval = ParseReturn(name_of_current_func);
         if (retval < 0) return retval;
         break;
 
-    case kSYM_Switch:
+    case kKW_Switch:
         retval = ParseSwitch();
         if (retval < 0) return retval;
         break;
 
-    case kSYM_While:
+    case kKW_While:
         // This cannot be the end of a do...while() statement
         // because that would have been handled in HandleEndOfDo()
         return ParseWhile();
@@ -6800,8 +6705,8 @@ ErrorType AGS::Parser::ParseInput()
     size_t nesting_level = 0;
 
     // We start off in the global data part - no code is allowed until a function definition is started
-    Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
-    Symbol name_of_current_func = -1;
+    Symbol struct_of_current_func = kKW_NoSymbol; // non-zero only when a struct member function is open
+    Symbol name_of_current_func = kKW_NoSymbol;
 
     // Collects vartype qualifiers such as 'readonly'
     TypeQualifierSet tqs = 0;
@@ -6814,88 +6719,82 @@ ErrorType AGS::Parser::ParseInput()
 
         ParseQualifiers(tqs);
 
+        ErrorType retval;
         Symbol const leading_sym = _src.GetNext();
-        switch (_sym.GetSymbolType(leading_sym))
+        switch (leading_sym)
         {
-
-        default:
-            // Assume a command; is handled below the switch
-            break;
-
-        case 0:
-            // let it through if "this" can be implied
-            if (struct_of_current_func > 0)
-            {
-                Symbol const mangled = MangleStructAndComponent(struct_of_current_func, leading_sym);
-                if (kSYM_NoType != _sym.GetSymbolType(mangled))
-                    break;
+        default:    // Construct does not begin with a keyword
+        {
+            SymbolType const leading_type = _sym.GetSymbolType(leading_sym);
+            if (kSYM_NoType == leading_type)
+            {   
+                if (struct_of_current_func > 0)
+                {
+                    Symbol const mangled = MangleStructAndComponent(struct_of_current_func, leading_sym);
+                    if (kSYM_NoType != _sym.GetSymbolType(mangled))
+                        break; // "this" can be implied, so treat as a command
+                }
+                Error("Unexpected token '%s'", _sym.GetName(leading_sym).c_str());
+                return kERR_UserError;
             }
-            Error("Unexpected token '%s'", _sym.GetName(leading_sym).c_str());
-            return kERR_UserError;
 
-        case kSYM_Enum:
-        {
-            ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Enum);
-            if (retval < 0) return retval;
-            retval = ParseEnum(name_of_current_func);
-            if (retval < 0) return retval;
-            continue;
+            if (kSYM_Vartype == leading_type)
+            {
+                if (kKW_Dot == _src.PeekNext())
+                    break; // this refers to a static struct component, so treat as a command
+
+                // We can't check yet whether the TQS are legal because we don't know whether the
+                // var / func names are composite.
+                Vartype const vartype = leading_sym;
+                ErrorType retval = ParseVartype(vartype, tqs, struct_of_current_func, name_of_current_func);
+                if (retval < 0) return retval;
+                continue;
+            }
+
+            break; // Treat as a command
         }
 
-        case kSYM_Export:
-        {
-            ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Export);
+        case kKW_Enum:
+            retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
+            if (retval < 0) return retval;
+            retval = ParseEnum(tqs, struct_of_current_func, name_of_current_func);
+            if (retval < 0) return retval;
+            continue;
+
+        case kKW_Export:
+            retval = Parse_CheckTQ_Empty(tqs); // No qualifiers in front of 'export' allowed
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
             continue;
-        }
 
-        case kSYM_OpenBrace:
-        {
+        case kKW_OpenBrace:
             if (kPP_Main == _pp)
                 break; // treat as a command, handled below the switch
 
-            ErrorType retval = SkipToClose(kSYM_CloseBrace);
+            retval = SkipToClose(kKW_CloseBrace);
             if (retval < 0) return retval;
-            name_of_current_func = -1;
-            struct_of_current_func = -1;
+            name_of_current_func = kKW_NoSymbol;
+            struct_of_current_func = kKW_NoSymbol;
             continue;
-        }
 
-        case  kSYM_Struct:
-        {
-            ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_Struct);
+        case kKW_Struct:
+            retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
             if (retval < 0) return retval;
             retval = ParseStruct(tqs, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;
             continue;
-        }
-
-        case kSYM_Vartype:
-        {
-            if (kSYM_Dot == _sym.GetSymbolType(_src.PeekNext()))
-                break; // this is a static struct component function call, so a command
-
-            // We can't check yet whether the TQS are legal because we don't know whether the
-            // var / func names are composite.
-            Vartype const vartype = leading_sym;
-            ErrorType retval = ParseVartype(vartype, tqs, struct_of_current_func, name_of_current_func);
-            if (retval < 0) return retval;
-
-            continue;
-        }
-
         } // switch (symType)
 
         // Commands are only allowed within a function
-        if (name_of_current_func <= 0)
+        if (kKW_NoSymbol == name_of_current_func)
         {
             Error("'%s' is illegal outside a function", _sym.GetName(leading_sym).c_str());
             return kERR_UserError;
         }
 
-        ErrorType retval = Parse_CheckTQ(tqs, (name_of_current_func > 0), false, kSYM_OpenBrace);
+        // No qualifiers in front of a command allowed
+        retval = Parse_CheckTQ_Empty(tqs); 
         if (retval < 0) return retval;
 
         retval = ParseCommand(leading_sym, struct_of_current_func, name_of_current_func);
@@ -6910,7 +6809,7 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scann
     size_t const size_of_sym_after_scanning = sym_after_scanning.entries.size();
     SymbolTableEntry empty;
 
-    for (size_t sym_idx = _sym.GetLastPredefSym() + 1; sym_idx < _sym.entries.size(); sym_idx++)
+    for (size_t sym_idx = kKW_LastPredefined + 1; sym_idx < _sym.entries.size(); sym_idx++)
     {
         SymbolTableEntry &s_entry = _sym[sym_idx];
         if (kSYM_Function == s_entry.SType)

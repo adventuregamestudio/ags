@@ -598,7 +598,7 @@ ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType sc
 
     case Scanner::kSct_StringLiteral:
         _sym[symb].SType = kSYM_LiteralString;
-        _sym[symb].Vartype = _sym.GetOldStringSym();
+        _sym[symb].Vartype = kKW_String;
         _sym[symb].SOffset = _stringCollector.add_string(symstring.c_str());
         return kERR_None;
 
@@ -699,25 +699,25 @@ ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
 // Check the nesting of () [] {}, error if mismatch
 ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
 {
-    switch (_sym.GetSymbolType(token))
+    switch (token)
     {
     default:
         return kERR_None;
 
-    case kSYM_CloseBrace:
-    case kSYM_CloseBracket:
-    case kSYM_CloseParenthesis:
+    case kKW_CloseBrace:
+    case kKW_CloseBracket:
+    case kKW_CloseParenthesis:
         return _ocMatcher.PopAndCheck(_sym[token].SName, _tokenList.Length());
 
-    case kSYM_OpenBrace:
+    case kKW_OpenBrace:
         _ocMatcher.Push("{", "}", _tokenList.Length());
         return kERR_None;
 
-    case kSYM_OpenBracket:
+    case kKW_OpenBracket:
         _ocMatcher.Push("[", "]", _tokenList.Length());
         return kERR_None;
 
-    case kSYM_OpenParenthesis:
+    case kKW_OpenParenthesis:
         _ocMatcher.Push("(", ")", _tokenList.Length());
         return kERR_None;
     }

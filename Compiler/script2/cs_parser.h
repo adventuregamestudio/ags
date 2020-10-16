@@ -58,15 +58,16 @@ public:
     class FuncCallpointMgr
     {
     private:
-        int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
-        int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
+        int const kCodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
+        int const kPatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
 
         Parser &_parser;
 
         struct PatchInfo
         {
             int ChunkId;
-            AGS::CodeLoc Offset;
+            CodeLoc Offset;
+            size_t InSource;    // where the reference happens
         };
         typedef std::vector<PatchInfo> PatchList;
 
@@ -74,6 +75,7 @@ public:
         {
             CodeLoc Callpoint;
             PatchList List;
+
             CallpointInfo();
         };
 
@@ -85,7 +87,7 @@ public:
         void Reset();
 
         // Enter a code location where a function is called that hasn't been defined yet.
-        ErrorType TrackForwardDeclFuncCall(Symbol func, CodeLoc idx);
+        ErrorType TrackForwardDeclFuncCall(Symbol func, CodeLoc idx, size_t in_source);
 
         // When code is ripped out of the codebase: 
         // Update list of calls to forward declared functions 
@@ -204,6 +206,20 @@ private:
     // The stack of nesting compound statements 
     class NestingStack
     {
+    public:
+        enum NSType
+        {
+            kNS_None,
+            kNS_Braces, // { } without any preceding if, while etc.
+            kNS_Do,
+            kNS_Else,
+            kNS_For,
+            kNS_Function,
+            kNS_If,
+            kNS_Parameters, // Parameters of a function
+            kNS_Switch,
+            kNS_While,
+        };
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
 
@@ -220,7 +236,7 @@ private:
         // All data that is associated with a level of the nested compound statements
         struct NestingInfo
         {
-            SymbolType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
+            NSType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
             BackwardJumpDest Start; // of the construct
             ForwardJump JumpOut; // First byte after the construct
             Vartype SwitchExprVartype; // when switch: the vartype of the switch expression
@@ -231,7 +247,7 @@ private:
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
             std::map<Symbol, SymbolTableEntry> OldDefinitions;
 
-            NestingInfo(SymbolType stype, ::ccCompiledScript &scrip);
+            NestingInfo(NSType stype, ::ccCompiledScript &scrip);
         };
 
         std::vector<NestingInfo> _stack;
@@ -244,9 +260,9 @@ private:
         inline size_t TopLevel() const { return _stack.size() - 1; };
 
         // Type of the innermost nesting
-        inline SymbolType Type() const { return _stack.back().Type; }
-        inline SymbolType Type(size_t level) const { return _stack.at(level).Type; }
-        inline void SetType(SymbolType nt) { _stack.back().Type = nt; }
+        inline NSType Type() const { return _stack.back().Type; }
+        inline NSType Type(size_t level) const { return _stack.at(level).Type; }
+        inline void SetType(NSType nt) { _stack.back().Type = nt; }
         
         inline std::map<Symbol, SymbolTableEntry> const &GetOldDefinitions(size_t level) const { return _stack.at(level).OldDefinitions; }
         // Add an old symbol table entry to the innermost nesting; return true if there is one already.
@@ -284,7 +300,7 @@ private:
         inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
         inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
 
-        inline void Push(SymbolType type) { _stack.emplace_back(type, _scrip); }
+        inline void Push(NSType type) { _stack.emplace_back(type, _scrip); }
         inline void Pop() { _stack.pop_back(); };
 
         // Rip a generated chunk of code out of the codebase and stash it away for later 
@@ -416,12 +432,19 @@ private:
     // .  A symbol is encountered whose type is in stoplist[]
     // .  A closing symbol is encountered that hasn't been opened.
     // Don't consume the symbol that stops the scan.
-    ErrorType SkipTo(SrcList &source, SymbolType const stoplist[], size_t stoplist_len);
+    ErrorType SkipTo(SymbolList const &stoplist, SrcList &source);
 
     // Skim through source, ignoring delimited content completely.
     // Stop when a closing symbol is encountered that hasn't been opened.
-    // Eat that symbol and if it doesn't have the type closer, report an _internal_ error.
-    ErrorType SkipToClose(SymbolType closer);
+    // Eat that symbol and if it isn't closer, report an _internal_ error.
+    ErrorType SkipToClose(Predefined closer);
+
+    // If the actual symbol isn't equal to the expected symbol, give an error.
+    // custom_msg, if given, replaces the "Expected " part of the message
+    ErrorType Expect(Symbol expected, Symbol actual, std::string const &custom_msg = "");
+
+    // If the actual symbol isn't in the list of expected symbols, give an error.
+    ErrorType Expect(std::vector<Symbol> const &expected, Symbol actual);
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
@@ -804,7 +827,7 @@ private:
     ErrorType ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
 
     // Handle a "struct" definition clause
-    ErrorType ParseStruct(TypeQualifierSet tqs, Symbol struct_of_current_func, Symbol name_of_current_func);
+    ErrorType ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
     ErrorType ParseEnum_AssignedValue(int &currentValue);
@@ -813,11 +836,8 @@ private:
 
     ErrorType ParseEnum_Name2Symtable(Symbol enumName);
 
-    // We parse enum EnumName { value1, value2 }
-    ErrorType ParseEnum0();
-
     // We parse enum eEnumName { value1, value2 };
-    ErrorType ParseEnum(Symbol name_of_current_function);
+    ErrorType ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);
 
     ErrorType ParseExport();
 
@@ -922,8 +942,10 @@ private:
         { _scrip.refresh_lineno(_src.GetLineno()); _scrip.push_reg(reg); }
     inline void PopReg(CodeCell reg)
         { _scrip.refresh_lineno(_src.GetLineno()); _scrip.pop_reg(reg); }
+
     // Check whether the qualifiers that accumulated for this decl go together
-    ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl, Symbol decl_type = kSYM_NoType);
+    ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
+    ErrorType Parse_CheckTQ_Empty(TypeQualifierSet tqs);
 
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis

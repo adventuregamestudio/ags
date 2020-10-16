@@ -156,7 +156,7 @@ public:
     };
 
     std::string SName;
-    SymbolType SType; // e.g., kSYM_GlobalVar
+    SymbolType SType; // e.g., SymT::kGlobalVar
     int DeclSectionId, DeclLine; // where this was declared
     FlagSet Flags;
     TypeQualifierSet TypeQualifiers;
@@ -210,7 +210,7 @@ public:
     inline bool HasParamDefault(size_t param) const { return kDT_None != FuncParamDefaultValues[param].Type; }
 
     SymbolTableEntry();
-    SymbolTableEntry(std::string const &name, SymbolType stype = kSYM_NoType, size_t ssize = 0);
+    SymbolTableEntry(std::string const &name, SymbolType stype = SymT::kNoType, size_t ssize = 0);
 };
 
 struct SymbolTable {
@@ -265,7 +265,7 @@ public:
     inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= kKW_Void); };
 
     inline bool IsOperator(Symbol s) const { return entries[s].IsOperator(); }
-    inline bool IsVartype(Symbol s) const { return kSYM_Vartype == GetSymbolType(s); }
+    inline bool IsVartype(Symbol s) const { return SymT::kVartype == GetSymbolType(s); }
     inline int BinaryOpPrio(Symbol s) const { return entries[s].OperatorBinaryPrio; }
     inline int UnaryOpPrio(Symbol s) const { return entries[s].OperatorUnaryPrio; }
     inline CodeCell GetOperatorOpcode(Symbol s) const { return entries[s].OperatorOpcode; }
@@ -274,7 +274,7 @@ public:
     bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize
-    Symbol Add(std::string const &name, SymbolType stype = kSYM_NoType, int ssize = 0);
+    Symbol Add(std::string const &name, SymbolType stype = SymT::kNoType, int ssize = 0);
 
     // add the symbol to the symbol table at [kw]. Only use during initialization.
     Symbol Add(Predefined kw, std::string const &name, SymbolType stype, int ssize = 0);
@@ -293,8 +293,8 @@ public:
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
     std::string const SymbolTable::GetName(Symbol symbl) const;
 
-    // The symbol type, as given by the kSYM_... constants
-    inline SymbolType GetSymbolType(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : kSYM_NoType; };
+    // The symbol type, as given by the SymT::k... constants
+    inline SymbolType GetSymbolType(Symbol symb) const { return IsInBounds(symb) ? entries[symb].SType : SymT::kNoType; };
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).Vartype : -1; }

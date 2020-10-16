@@ -597,17 +597,17 @@ ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType sc
         return kERR_None;
 
     case Scanner::kSct_StringLiteral:
-        _sym[symb].SType = kSYM_LiteralString;
+        _sym[symb].SType = SymT::kLiteralString;
         _sym[symb].Vartype = kKW_String;
         _sym[symb].SOffset = _stringCollector.add_string(symstring.c_str());
         return kERR_None;
 
     case Scanner::kSct_IntLiteral:
-        _sym[symb].SType = kSYM_LiteralInt;
+        _sym[symb].SType = SymT::kLiteralInt;
         return kERR_None;
 
     case Scanner::kSct_FloatLiteral:
-        _sym[symb].SType = kSYM_LiteralFloat;
+        _sym[symb].SType = SymT::kLiteralFloat;
         return kERR_None;
     }
     // Can't reach.

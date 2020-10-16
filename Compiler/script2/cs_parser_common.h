@@ -12,7 +12,6 @@ typedef std::vector<Symbol> SymbolList; // A buffer of symbols
 typedef long FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
-typedef short SymbolTypeType;
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode
 typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository
@@ -36,32 +35,34 @@ constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
 inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
 
-enum SymbolType : SymbolTypeType
+enum class SymT     // Symbol Type. This class is used _everywhere_, thus the abbreviation.
 {
-    kSYM_NoType = 0,
+    kNoType = 0,
 
-    kSYM_Attribute, // fixme
-    kSYM_Delimiter,
-    kSYM_Constant,
-    kSYM_Function,
-    kSYM_GlobalVar,
-    kSYM_LiteralFloat,
-    kSYM_LiteralInt,
-    kSYM_LiteralString,
-    kSYM_LocalVar,
-    kSYM_Operator,
-    kSYM_StructComponent,
-    kSYM_Assign,
-    kSYM_AssignMod,         // Modifying assign, e.g. "+="
-    kSYM_AssignSOp,         // single-op assignemnt, eg "++", "--"
-    kSYM_Keyword,
-    kSYM_Import,
-    kSYM_UndefinedStruct,   // forward-declared struct
-    kSYM_Vartype,
+    kAttribute,
+    kDelimiter,
+    kConstant,
+    kFunction,
+    kGlobalVar,
+    kLiteralFloat,
+    kLiteralInt,
+    kLiteralString,
+    kLocalVar,
+    kOperator,
+    kStructComponent,
+    kAssign,
+    kAssignMod,         // Modifying assign, e.g. "+="
+    kAssignSOp,         // single-op assignemnt, eg "++", "--"
+    kKeyword,
+    kImport,
+    kUndefinedStruct,   // forward-declared struct
+    kVartype,
 };
 
+typedef enum class SymT SymbolType;
+
 // Types starting (numerically) with this aren't part of expressions
-constexpr SymbolType kSYM_LastInExpression = kSYM_StructComponent; // Types beyond here can't be in expressions
+constexpr SymbolType kLastInExpression = SymT::kStructComponent; // Types beyond here can't be in expressions
 
 enum TypeQualifier
 {

@@ -26,7 +26,7 @@ struct ccCompiledScript : public ccScript {
     // Variable type of value in AX, usually equiv. to type of the current expression
     AGS::Vartype ax_vartype;
 
-    // kSYM_LocalVar or kSYM_GlobalVar, needed to prevent a return of a local string
+    // Needed to prevent a return of a local string
     ScopeType ax_scope_type;  
 
     void init();

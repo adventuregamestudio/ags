@@ -809,7 +809,7 @@ size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
         for (auto symbols_it = od.cbegin(); symbols_it != od.end(); symbols_it++)
         {
             Symbol const s = symbols_it->first;
-            if (kSYM_LocalVar == _sym.GetSymbolType(s))
+            if (SymT::kLocalVar == _sym.GetSymbolType(s))
                 total_size += _sym.GetSize(s);
         }
     }
@@ -1061,10 +1061,10 @@ ErrorType AGS::Parser::RemoveLocalsFromSymtable(size_t from_level)
         for (auto symbols_it = od.begin(); symbols_it != od.end(); symbols_it++)
         {
             Symbol const s = symbols_it->first;
-            if (kSYM_LocalVar != _sym.GetSymbolType(s))
+            if (SymT::kLocalVar != _sym.GetSymbolType(s))
                 continue;
 
-            if (kSYM_NoType != symbols_it->second.SType)
+            if (SymT::kNoType != symbols_it->second.SType)
             {   // Restore the old definition that we've stashed
                 _sym[s] = symbols_it->second;
                 continue;
@@ -1151,7 +1151,7 @@ ErrorType AGS::Parser::HandleEndOfSwitch()
 ErrorType AGS::Parser::IntLiteralOrConst2Value(AGS::Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value)
 {
     SymbolType const stype = _sym.GetSymbolType(symb);
-    if (kSYM_Constant == stype)
+    if (SymT::kConstant == stype)
     {
         the_value = _sym[symb].SOffset;
         if (is_negative)
@@ -1159,7 +1159,7 @@ ErrorType AGS::Parser::IntLiteralOrConst2Value(AGS::Symbol symb, bool is_negativ
         return kERR_None;
     }
 
-    if (kSYM_LiteralInt == stype)
+    if (SymT::kLiteralInt == stype)
     {
         std::string literal = _sym.GetName(symb);
         if (is_negative)
@@ -1176,7 +1176,7 @@ ErrorType AGS::Parser::IntLiteralOrConst2Value(AGS::Symbol symb, bool is_negativ
 ErrorType AGS::Parser::FloatLiteral2Value(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value)
 {
     SymbolType const stype = _sym.GetSymbolType(symb);
-    if (kSYM_LiteralFloat == stype)
+    if (SymT::kLiteralFloat == stype)
     {
         std::string literal = _sym.GetName(symb);
         if (is_negative)
@@ -1194,7 +1194,7 @@ ErrorType AGS::Parser::FloatLiteral2Value(Symbol symb, bool is_negative, std::st
 // We accept a default value clause like "= 15" if it follows at this point.
 ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type, SymbolTableEntry::ParamDefault &default_value)
 {
-    if (kSYM_Assign != _sym.GetSymbolType(_src.PeekNext()))
+    if (SymT::kAssign != _sym.GetSymbolType(_src.PeekNext()))
     {
         default_value.Type = SymbolTableEntry::kDT_None; // No default value given
         return kERR_None;
@@ -1273,8 +1273,8 @@ ErrorType AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
 // Copy so that the forward decl can be compared afterwards to the real one     
 void AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
 {
-    known_info.SType = kSYM_NoType;
-    if (kSYM_NoType == entry.SType)
+    known_info.SType = SymT::kNoType;
+    if (SymT::kNoType == entry.SType)
         return; // there is no info yet
 
     known_info = entry;
@@ -1345,7 +1345,7 @@ ErrorType AGS::Parser::ParseVarname(bool accept_member_access, Symbol &structnam
         if (0 != structname)
             return kERR_None;
 
-        if (kSYM_Vartype == _sym.GetSymbolType(varname))
+        if (SymT::kVartype == _sym.GetSymbolType(varname))
         {
             std::string msg =
                 ReferenceMsgSym("'%s' is already in use as a type name", varname);
@@ -1429,25 +1429,25 @@ ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol 
             _sym.GetName(param_name).c_str());
         return kERR_UserError;
 
-    case kSYM_Function:
+    case SymT::kFunction:
         Warning(
             ReferenceMsgSym("This hides the function '%s()'", param_name).c_str(),
             _sym.GetName(param_name).c_str());
         return kERR_None;
 
-    case kSYM_GlobalVar:
+    case SymT::kGlobalVar:
         return kERR_None;
 
-    case kSYM_LocalVar:
+    case SymT::kLocalVar:
         Error(
             ReferenceMsgSym("The name '%s' is already in use as a parameter", param_name).c_str(),
             _sym.GetName(param_name).c_str());
         return kERR_UserError;
 
-    case kSYM_NoType:
+    case SymT::kNoType:
         return kERR_None;
 
-    case kSYM_Vartype:
+    case SymT::kVartype:
         Warning(
             ReferenceMsgSym("This hides the type '%s'", param_name).c_str(),
             _sym.GetName(param_name).c_str());
@@ -1518,7 +1518,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
         if (kKW_CloseParenthesis == cursym)
             return kERR_None;   // empty parameter list
 
-        if (kSYM_Vartype == _sym.GetSymbolType(cursym))
+        if (SymT::kVartype == _sym.GetSymbolType(cursym))
         {
             if (param_idx == 0 && kKW_Void == cursym && kKW_CloseParenthesis == _src.PeekNext())
             {   // explicitly empty parameter list, "(void)"
@@ -1550,7 +1550,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
         if (kKW_Const == cursym)
         {
             // check in main compiler phase that type must follow
-            if (kPP_Main == _pp && kSYM_Vartype != _sym.GetSymbolType(_src.PeekNext()))
+            if (kPP_Main == _pp && SymT::kVartype != _sym.GetSymbolType(_src.PeekNext()))
             {
                 Error(
                     "Expected a type after 'const', found '%s' instead",
@@ -1577,7 +1577,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
 void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows)
 {
     SymbolTableEntry &entry = _sym[name_of_function];
-    entry.SType = kSYM_Function;
+    entry.SType = SymT::kFunction;
     entry.FuncParamVartypes[0] = return_vartype;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the entity returned.
     entry.TypeQualifiers = tqs &  ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
@@ -1648,7 +1648,7 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry
 // there was a forward declaration -- check that the real declaration matches it
 ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, SymbolTableEntry const &known_info, bool body_follows)
 {
-    if (kSYM_NoType == known_info.SType)
+    if (SymT::kNoType == known_info.SType)
         return kERR_None; // We don't have any known info
 
     if (known_info.SType != this_entry.SType)
@@ -1800,7 +1800,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
     }
 
     SymbolType const stype = _sym[name_of_func].SType;
-    if (kSYM_Function != stype && kSYM_NoType != stype)
+    if (SymT::kFunction != stype && SymT::kNoType != stype)
     {
         Error(
             ReferenceMsgSym("'%s' is defined elsewhere as a non-function", name_of_func).c_str(),
@@ -1890,7 +1890,7 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
     if (FlagIsSet(tqs, kTQ_Import) &&   // This declaration has 'import'
-        kSYM_Function == _sym.GetSymbolType(name_of_func) &&
+        SymT::kFunction == _sym.GetSymbolType(name_of_func) &&
         !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import)) // but symbol table hasn't 'import'
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
@@ -1927,7 +1927,7 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     if (retval < 0) return retval;
 
     // copy the default values from the function prototype into the symbol table
-    if (known_info.SType != kSYM_NoType)
+    if (known_info.SType != SymT::kNoType)
         _sym[name_of_func].FuncParamDefaultValues.assign(
             known_info.FuncParamDefaultValues.begin(),
             known_info.FuncParamDefaultValues.end());
@@ -1965,9 +1965,9 @@ ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx
         SymbolType current_sym_type = _sym.GetSymbolType(current_sym);
         if (kKW_New == current_sym ||
             kKW_Tern == current_sym ||
-            kSYM_Operator == current_sym_type)
+            SymT::kOperator == current_sym_type)
         {
-            current_sym_type = kSYM_Operator;
+            current_sym_type = SymT::kOperator;
         }
         else if (kKW_CloseBracket == current_sym ||
             kKW_CloseParenthesis == current_sym)
@@ -1992,7 +1992,7 @@ ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx
         if (nesting_depth > 0)
             continue;
 
-        if (current_sym_type != kSYM_Operator)
+        if (current_sym_type != SymT::kOperator)
             continue;
 
         // a binary operator has an operand to its left
@@ -2317,13 +2317,13 @@ ErrorType AGS::Parser::ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AG
 
 ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype new_vartype)
 {
-    if (kSYM_Vartype != _sym.GetSymbolType(new_vartype))
+    if (SymT::kVartype != _sym.GetSymbolType(new_vartype))
     {
         Error("Expected a type after 'new', found '%s' instead", _sym.GetName(new_vartype).c_str());
         return kERR_UserError;
     }
 
-    if (kSYM_UndefinedStruct == _sym.GetSymbolType(new_vartype))
+    if (SymT::kUndefinedStruct == _sym.GetSymbolType(new_vartype))
     {
         Error(
             "The struct '%s' hasn't been completely defined yet",
@@ -2422,9 +2422,9 @@ ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, ValueLoca
     {
         expression.StartRead();
         SymbolType const stype = _sym.GetSymbolType(expression.PeekNext());
-        if (kSYM_Constant == stype || kSYM_LiteralInt == stype)
+        if (SymT::kConstant == stype || SymT::kLiteralInt == stype)
             return AccessData_IntLiteralOrConst(true, expression, vartype);
-        if (kSYM_LiteralFloat == stype)
+        if (SymT::kLiteralFloat == stype)
             return AccessData_FloatLiteral(true, expression, vartype);
     };
 
@@ -3127,7 +3127,7 @@ ErrorType AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLocation 
     if (kKW_OpenParenthesis == first_sym)
         return ParseExpression_InParens(expression, vloc, scope_type, vartype);
 
-    if (kSYM_Operator != first_sym_type)
+    if (SymT::kOperator != first_sym_type)
         return AccessData(false, expression, vloc, scope_type, vartype);
 
     Error("Expected '(' or an operator, found '%s' instead", _sym.GetName(first_sym).c_str());
@@ -3391,7 +3391,7 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
     {
         Symbol const index_sym = current_index[0];
         SymbolType const index_sym_type = _sym.GetSymbolType(index_sym);
-        if (kSYM_LiteralInt == index_sym_type || kSYM_Constant == index_sym_type)
+        if (SymT::kLiteralInt == index_sym_type || SymT::kConstant == index_sym_type)
             return AccessData_ProcessArrayIndexConstant(idx, index_sym, false, dim, factor, mloc);
     }
     if (2 == current_index.Length())
@@ -3399,8 +3399,8 @@ ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t di
         Symbol const op_sym = current_index[0];
         Symbol const index_sym = current_index[1];
         SymbolType const index_sym_type = _sym.GetSymbolType(index_sym);
-        if (kSYM_Operator == _sym[op_sym].SType && SCMD_SUBREG ==_sym[op_sym].OperatorOpcode &&
-            (kSYM_LiteralInt == index_sym_type || kSYM_Constant == index_sym_type))
+        if (SymT::kOperator == _sym[op_sym].SType && SCMD_SUBREG ==_sym[op_sym].OperatorOpcode &&
+            (SymT::kLiteralInt == index_sym_type || SymT::kConstant == index_sym_type))
             return AccessData_ProcessArrayIndexConstant(idx, index_sym, true, dim, factor, mloc);
     }
 
@@ -3624,7 +3624,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         // treat it that way.
         vartype = _sym.GetVartype(kKW_This);
         Symbol const thiscomponent = MangleStructAndComponent(vartype, first_sym);
-        if (0 != _sym[thiscomponent].SType)
+        if (SymT::kNoType != _sym[thiscomponent].SType)
         {            
             vloc = kVL_mar_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
@@ -3643,13 +3643,13 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         return kERR_UserError;
     }
 
-    case kSYM_Constant:
+    case SymT::kConstant:
         if (writing) break; // to error msg
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
-    case kSYM_Function:
+    case SymT::kFunction:
     {
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
@@ -3660,7 +3660,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         return kERR_None;
     }
 
-    case kSYM_GlobalVar:
+    case SymT::kGlobalVar:
     {
         return_scope_type = kScT_Global;
         vloc = kVL_mar_pointsto_value;
@@ -3669,32 +3669,32 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
     }
 
-    case kSYM_Keyword:
+    case SymT::kKeyword:
         if (writing) break; // to error msg
         if (kKW_Null != first_sym) break; // to error msg
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_Null(expression, vartype);
 
-    case kSYM_LiteralFloat:
+    case SymT::kLiteralFloat:
         if (writing) break; // to error msg
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_FloatLiteral(false, expression, vartype);
 
-    case kSYM_LiteralInt:
+    case SymT::kLiteralInt:
         if (writing) break; // to error msg
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
-    case kSYM_LiteralString:
+    case SymT::kLiteralString:
         if (writing) break; // to error msg
         return_scope_type = kScT_Global;
         vloc = kVL_ax_is_value;
         return AccessData_StringLiteral(expression, vartype);
 
-    case kSYM_LocalVar:
+    case SymT::kLocalVar:
     {
         // Parameters can be returned although they are local because they are allocated
         // outside of the function proper. The return scope type for them is global.
@@ -3704,7 +3704,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
     }
 
-    case kSYM_Vartype:
+    case SymT::kVartype:
         return_scope_type = kScT_Global;
         static_access = true;
         return AccessData_Static(expression, mloc, vartype);
@@ -3722,7 +3722,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     Symbol const next_sym = expression.PeekNext();
 
     Symbol const component = FindComponentInStruct(Vartype2Symbol(vartype), next_sym);
-    SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : kSYM_NoType;
+    SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : SymT::kNoType;
 
     if (static_access && !FlagIsSet(_sym[component].TypeQualifiers, kTQ_Static))
     {
@@ -3740,7 +3740,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
             _sym.GetName(next_sym).c_str());
         return kERR_UserError;
 
-    case kSYM_Attribute:
+    case SymT::kAttribute:
     {   // make MAR point to the struct of the attribute
         retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
@@ -3757,7 +3757,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
         return AccessData_CallAttributeFunc(is_setter, expression, vartype);
     }
 
-    case kSYM_Function:
+    case SymT::kFunction:
     {
         vloc = kVL_ax_is_value;
         return_scope_type = kScT_Local;
@@ -3769,7 +3769,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
         return kERR_None;
     }
 
-    case kSYM_StructComponent:
+    case SymT::kStructComponent:
         vloc = kVL_mar_pointsto_value;
         retval = AccessData_StructMember(component, writing, access_via_this, expression, mloc, vartype);
         if (retval < 0) return retval;
@@ -3784,7 +3784,7 @@ Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol component)
     do
     {
         Symbol symb = MangleStructAndComponent(strct, component);
-        if (kSYM_NoType != _sym.GetSymbolType(symb))
+        if (SymT::kNoType != _sym.GetSymbolType(symb))
             return strct;
         strct = _sym[strct].Parent;
     }
@@ -3797,7 +3797,7 @@ Symbol AGS::Parser::FindComponentInStruct(AGS::Vartype strct, AGS::Symbol compon
     do
     {
         Symbol ret = MangleStructAndComponent(strct, component);
-        if (kSYM_NoType != _sym.GetSymbolType(ret))
+        if (SymT::kNoType != _sym.GetSymbolType(ret))
             return ret;
         strct = _sym[strct].Parent;
     }
@@ -3928,7 +3928,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
 bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
 {
     SymbolType const type_of_first = _sym.GetSymbolType(expression[0]);
-    if (kSYM_GlobalVar != type_of_first && kSYM_LocalVar != type_of_first)
+    if (SymT::kGlobalVar != type_of_first && SymT::kLocalVar != type_of_first)
         return true;
 
     if (1 == expression.Length())
@@ -3939,7 +3939,7 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
         if (kKW_Dot != expression[idx + 1])
             return true;
         Symbol const compo = MangleStructAndComponent(expression[0], expression[2]);
-        if (kSYM_StructComponent != _sym.GetSymbolType(compo))
+        if (SymT::kStructComponent != _sym.GetSymbolType(compo))
             return true;
     }
     return false;
@@ -4107,7 +4107,7 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
             _src.GetNext(); // Eat 'new'
             Symbol const sym_after_new = _src.PeekNext();
             SymbolType const type_of_sym_after = _sym.GetSymbolType(sym_after_new);
-            if (kSYM_Vartype == type_of_sym_after || kSYM_UndefinedStruct == type_of_sym_after)
+            if (SymT::kVartype == type_of_sym_after || SymT::kUndefinedStruct == type_of_sym_after)
             {
                 _src.GetNext(); // Eat symbol after 'new'
                 continue;
@@ -4143,8 +4143,8 @@ ErrorType AGS::Parser::SkipToEndOfExpression()
         }
 
         // Apart from the exceptions above, all symbols with types beyond
-        // kSYM_LastInExpression can't be part of an expression
-        if (_sym.GetSymbolType(peeksym) > kSYM_LastInExpression)
+        // SymT::kLastInExpression can't be part of an expression
+        if (_sym.GetSymbolType(peeksym) > kLastInExpression)
             break;
         _src.GetNext(); // Eat the peeked symbol
     }
@@ -4324,13 +4324,13 @@ ErrorType AGS::Parser::ParseAssignment(AGS::Symbol ass_symbol, SrcList &lhs)
         Error("!Illegal assignment symbol found");
         return kERR_InternalError;
 
-    case kSYM_Assign:
+    case SymT::kAssign:
         return ParseAssignment_Assign(lhs);
 
-    case kSYM_AssignMod:
+    case SymT::kAssignMod:
         return ParseAssignment_MAssign(ass_symbol, lhs);
 
-    case kSYM_AssignSOp:
+    case SymT::kAssignSOp:
         return ParseAssignment_SAssign(ass_symbol, lhs);
     }
 }
@@ -4338,7 +4338,7 @@ ErrorType AGS::Parser::ParseAssignment(AGS::Symbol ass_symbol, SrcList &lhs)
 ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_Float(bool is_neg, void *& initial_val_ptr)
 {
     // initialize float
-    if (_sym.GetSymbolType(_src.PeekNext()) != kSYM_LiteralFloat)
+    if (_sym.GetSymbolType(_src.PeekNext()) != SymT::kLiteralFloat)
     {
         Error("Expected floating point value after '='");
         return kERR_UserError;
@@ -4365,7 +4365,7 @@ ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_Float(bool is_neg, void
 ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr)
 {
     Symbol literal_sym = _src.GetNext();
-    if (kSYM_LiteralString != _sym.GetSymbolType(literal_sym))
+    if (SymT::kLiteralString != _sym.GetSymbolType(literal_sym))
     {
         Error("Expected a literal string");
         return kERR_UserError;
@@ -4473,7 +4473,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
         }
     }
 
-    var_entry.SType = (scope_type == kScT_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
+    var_entry.SType = (scope_type == kScT_Local) ? SymT::kLocalVar : SymT::kGlobalVar;
     var_entry.Vartype = vartype;
     var_entry.SScope = _nest.TopLevel();
     _sym.SetDeclared(var_name, _src.GetSectionId(), _src.GetLineno());
@@ -4507,7 +4507,7 @@ ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Sco
 // there was a forward declaration -- check that the real declaration matches it
 ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows)
 {
-    if (0 == known_info->SType)
+    if (SymT::kNoType == known_info->SType)
         return kERR_None; // We don't have any known info
 
     if (known_info->SType != this_entry->SType)
@@ -4516,9 +4516,9 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
             "This variable is declared as %s elsewhere",
             known_info->DeclSectionId,
             known_info->DeclLine).c_str(),
-            (kSYM_Function == known_info->SType)  ? "function" :
-            (kSYM_GlobalVar == known_info->SType) ? "global variable" :
-            (kSYM_LocalVar == known_info->SType)  ? "local variable" : "another entity");
+            (SymT::kFunction == known_info->SType)  ? "function" :
+            (SymT::kGlobalVar == known_info->SType) ? "global variable" :
+            (SymT::kLocalVar == known_info->SType)  ? "local variable" : "another entity");
         return kERR_UserError;
     }
 
@@ -4720,20 +4720,20 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
                  _sym.GetName(var_name).c_str());
             return kERR_UserError;
 
-        case kSYM_Function:
+        case SymT::kFunction:
             Warning(
                 ReferenceMsgSym("This hides the function '%s()'", var_name).c_str(),
                 _sym.GetName(var_name).c_str());
             break;
 
-        case kSYM_GlobalVar:
-        case kSYM_LocalVar:
+        case SymT::kGlobalVar:
+        case SymT::kLocalVar:
             break;
 
-        case kSYM_NoType:
+        case SymT::kNoType:
             break;
 
-        case kSYM_Vartype:
+        case SymT::kVartype:
             Error(
                 ReferenceMsgSym("'%s' is in use as a type elsewhere", var_name).c_str(),
                 _sym.GetName(var_name).c_str());
@@ -4788,7 +4788,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol nam
     if (struct_of_func > 0 && !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static))
     {
         // Declare "this" but do not allocate memory for it
-        this_entry.SType = kSYM_LocalVar;
+        this_entry.SType = SymT::kLocalVar;
         this_entry.Vartype = struct_of_func; // Don't declare this as dynpointer
         this_entry.SScope = 0u;
         this_entry.TypeQualifiers = kTQ_Readonly;
@@ -4833,7 +4833,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
 {
     SymbolTableEntry &entry = _sym[stname];
 
-    entry.SType = kSYM_Vartype;
+    entry.SType = SymT::kVartype;
     entry.Parent = 0;
     entry.SSize = 0;
 
@@ -4857,7 +4857,7 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, size_t &siz
     if (kPP_PreAnalyze == _pp)
         return kERR_None; // No further analysis necessary in first phase
 
-    if (kSYM_Vartype != _sym.GetSymbolType(parent))
+    if (SymT::kVartype != _sym.GetSymbolType(parent))
     {
         Error("Expected a struct type here");
         return kERR_UserError;
@@ -5023,15 +5023,14 @@ ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Var
     }
 
     SymbolType const vartype_type = _sym.GetSymbolType(vartype);
-    if (vartype_type == kSYM_NoType)
+    if (vartype_type == SymT::kNoType)
     {
         Error(
             "Type '%s' is undefined",
             _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
-
-    if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
+    if (SymT::kVartype != vartype_type && SymT::kUndefinedStruct != vartype_type)
     {
         std::string const msg = ReferenceMsgSym(
             "'%s' should be a typename but is in use differently",
@@ -5049,7 +5048,7 @@ ErrorType AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS
     if (current_struct <= 0)
         return kERR_None;
     Symbol const member = MangleStructAndComponent(current_struct, compo);
-    if (kSYM_NoType != _sym.GetSymbolType(member))
+    if (SymT::kNoType != _sym.GetSymbolType(member))
     {
         Error(
             ReferenceMsgSym(
@@ -5164,7 +5163,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
 {
     // If this symbol has been defined before, check whether the definitions clash
     SymbolType const stype = _sym[name_of_func].SType;
-    if (kSYM_Function != stype && kSYM_NoType != stype)
+    if (SymT::kFunction != stype && SymT::kNoType != stype)
     {
         std::string msg = ReferenceMsgSym(
             "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
@@ -5172,7 +5171,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
         Error(msg.c_str(), _sym[name_of_func].SName.c_str());
         return kERR_UserError;
     }
-    if (kSYM_Function == stype)
+    if (SymT::kFunction == stype)
     {
         ErrorType retval = ParseStruct_Attribute_CheckFunc(name_of_func, is_setter, is_indexed, vartype);
         if (retval < 0) return retval;
@@ -5180,7 +5179,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
 
     SetFlag(tqs, kTQ_Import, true); // Assume that attribute functions are imported
     if (FlagIsSet(tqs, kTQ_Import) &&
-        kSYM_Function == _sym.GetSymbolType(name_of_func) &&
+        SymT::kFunction == _sym.GetSymbolType(name_of_func) &&
         !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import))
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
@@ -5232,7 +5231,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
         }
     }
 
-    _sym[vname].SType = kSYM_Attribute;
+    _sym[vname].SType = SymT::kAttribute;
     if (attrib_is_indexed)
         _sym[vname].Vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].Vartype);
 
@@ -5362,7 +5361,7 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
         }
 
         SymbolTableEntry &entry = _sym[vname];
-        entry.SType = kSYM_StructComponent;
+        entry.SType = SymT::kStructComponent;
         entry.Parent = stname;  // save which struct it belongs to
         entry.SOffset = size_so_far;
         entry.Vartype = vartype;
@@ -5413,7 +5412,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
 
     if (kPP_Main == _pp)
     {
-        if (_sym.GetSymbolType(var_or_func_name) != 0)
+        if (SymT::kNoType != _sym.GetSymbolType(var_or_func_name))
         {
             std::string const msg = ReferenceMsgSym(
                 "'%s' is already defined", var_or_func_name);
@@ -5493,8 +5492,8 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     // get token for name of struct
     Symbol const stname = _src.GetNext();
 
-    if ((_sym.GetSymbolType(stname) != 0) &&
-        (_sym.GetSymbolType(stname) != kSYM_UndefinedStruct))
+    if (SymT::kNoType !=  _sym.GetSymbolType(stname) &&
+        SymT::kUndefinedStruct !=  _sym.GetSymbolType(stname))
     {
         std::string const msg = ReferenceMsgSym("'%s' is already defined", stname);
         Error(msg.c_str(), _sym.GetName(stname).c_str());
@@ -5532,7 +5531,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
         }
         _src.GetNext(); // Eat ';'
         SymbolTableEntry &entry = _sym[stname];
-        entry.SType = kSYM_UndefinedStruct;
+        entry.SType = SymT::kUndefinedStruct;
         SetFlag(entry.Flags, kSFLG_StructManaged, true);
         entry.SSize = 0;
         return kERR_None;
@@ -5587,10 +5586,10 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     // If this doesn't seem to be a declaration at first glance,
     // warn that the user might have forgotten a ';'.
     SymbolType type_of_next = _sym.GetSymbolType(nextsym);
-    if (kSYM_NoType != type_of_next &&
-        kSYM_Function != type_of_next &&
-        kSYM_GlobalVar != type_of_next &&
-        kSYM_LocalVar != type_of_next &&
+    if (SymT::kNoType != type_of_next &&
+        SymT::kFunction != type_of_next &&
+        SymT::kGlobalVar != type_of_next &&
+        SymT::kLocalVar != type_of_next &&
         kKW_Noloopcheck != nextsym && 
         kKW_Dynpointer != nextsym)
     {
@@ -5623,7 +5622,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
 {
     SymbolTableEntry &entry = _sym[item_name];
 
-    entry.SType = kSYM_Constant;
+    entry.SType = SymT::kConstant;
     entry.Vartype = enum_name;
     entry.SScope = 0u;
     entry.TypeQualifiers = kTQ_Readonly;
@@ -5640,7 +5639,7 @@ ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 {
     SymbolTableEntry &entry = _sym[enumName];
 
-    if (0 != entry.SType)
+    if (SymT::kNoType != entry.SType)
     {
         std::string msg = ReferenceMsg(
             "'%s' is already defined",
@@ -5650,7 +5649,7 @@ ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
         return kERR_UserError;
     }
 
-    entry.SType = kSYM_Vartype;
+    entry.SType = SymT::kVartype;
     entry.SSize = SIZE_OF_INT;
     entry.Vartype = kKW_Int;
 
@@ -5691,14 +5690,14 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
 
         if (kPP_Main == _pp)
         {
-            if (kSYM_Constant == item_name)
+            if (SymT::kConstant == _sym.GetSymbolType(item_name))
             {
                 Error(
                     ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name).c_str(),
                     _sym.GetName(item_name).c_str());
                 return kERR_UserError;
             }
-            if (_sym.GetSymbolType(item_name) != 0)
+            if (SymT::kNoType != _sym.GetSymbolType(item_name))
             {
                 Error("Expected '}' or an unused identifier, found '%s' instead", _sym.GetName(item_name).c_str());
                 return kERR_UserError;
@@ -5749,10 +5748,10 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
     // warn that the user might have forgotten a ';'.
     
     SymbolType type_of_next = _sym.GetSymbolType(nextsym);
-    if (kSYM_NoType != type_of_next &&
-        kSYM_Function != type_of_next &&
-        kSYM_GlobalVar != type_of_next &&
-        kSYM_LocalVar != type_of_next &&
+    if (SymT::kNoType != type_of_next &&
+        SymT::kFunction != type_of_next &&
+        SymT::kGlobalVar != type_of_next &&
+        SymT::kLocalVar != type_of_next &&
         kKW_Noloopcheck != nextsym &&
         kKW_Dynpointer != nextsym)
     {
@@ -5778,7 +5777,7 @@ ErrorType AGS::Parser::ParseExport()
     {
         Symbol const export_sym = _src.GetNext();
         SymbolType const export_type = _sym.GetSymbolType(export_sym);
-        if ((export_type != kSYM_GlobalVar) && (export_type != kSYM_Function))
+        if ((export_type != SymT::kGlobalVar) && (export_type != SymT::kFunction))
         {
             Error("Can only export global variables and functions, not '%s'", _sym.GetName(export_sym).c_str());
             return kERR_UserError;
@@ -5794,11 +5793,11 @@ ErrorType AGS::Parser::ParseExport()
             return kERR_UserError;
         }
         // if all functions are being exported anyway, don't bother doing it now
-        if (!(0 != ccGetOption(SCOPT_EXPORTALL) && kSYM_Function == export_type))
+        if (!(0 != ccGetOption(SCOPT_EXPORTALL) && SymT::kFunction == export_type))
         {
             ErrorType retval = static_cast<ErrorType>(_scrip.add_new_export(
                 _sym.GetName(export_sym).c_str(),
-                (kSYM_GlobalVar == export_type) ? EXPORT_DATA : EXPORT_FUNCTION,
+                (SymT::kGlobalVar == export_type) ? EXPORT_DATA : EXPORT_FUNCTION,
                 _sym[export_sym].SOffset,
                 _sym[export_sym].GetNumOfFuncParams() + 100 * _sym[export_sym].SScope));
             if (retval < 0) return retval;
@@ -6273,7 +6272,7 @@ ErrorType AGS::Parser::ParseAssignmentOrExpression(AGS::Symbol cursym)
 
     Symbol const nextsym = _src.PeekNext();
     SymbolType const nexttype = _sym.GetSymbolType(nextsym);
-    if (kSYM_Assign == nexttype || kSYM_AssignMod == nexttype || kSYM_AssignSOp == nexttype)
+    if (SymT::kAssign == nexttype || SymT::kAssignMod == nexttype || SymT::kAssignSOp == nexttype)
     {
         _src.GetNext(); // Eat assignment symbol
         return ParseAssignment(nextsym, expression);
@@ -6323,7 +6322,7 @@ ErrorType AGS::Parser::ParseFor_InitClause(AGS::Symbol peeksym)
 {
     if (kKW_Semicolon == peeksym)
         return kERR_None; // Empty init clause
-    if (kSYM_Vartype == _sym.GetSymbolType(peeksym))
+    if (SymT::kVartype == _sym.GetSymbolType(peeksym))
         return ParseFor_InitClauseVardecl();
     return ParseAssignmentOrExpression(_src.GetNext());
 }
@@ -6726,19 +6725,19 @@ ErrorType AGS::Parser::ParseInput()
         default:    // Construct does not begin with a keyword
         {
             SymbolType const leading_type = _sym.GetSymbolType(leading_sym);
-            if (kSYM_NoType == leading_type)
+            if (SymT::kNoType == leading_type)
             {   
                 if (struct_of_current_func > 0)
                 {
                     Symbol const mangled = MangleStructAndComponent(struct_of_current_func, leading_sym);
-                    if (kSYM_NoType != _sym.GetSymbolType(mangled))
+                    if (SymT::kNoType != _sym.GetSymbolType(mangled))
                         break; // "this" can be implied, so treat as a command
                 }
                 Error("Unexpected token '%s'", _sym.GetName(leading_sym).c_str());
                 return kERR_UserError;
             }
 
-            if (kSYM_Vartype == leading_type)
+            if (SymT::kVartype == leading_type)
             {
                 if (kKW_Dot == _src.PeekNext())
                     break; // this refers to a static struct component, so treat as a command
@@ -6812,7 +6811,7 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scann
     for (size_t sym_idx = kKW_LastPredefined + 1; sym_idx < _sym.entries.size(); sym_idx++)
     {
         SymbolTableEntry &s_entry = _sym[sym_idx];
-        if (kSYM_Function == s_entry.SType)
+        if (SymT::kFunction == s_entry.SType)
         {
             SetFlag(s_entry.TypeQualifiers, kTQ_Import, (kFT_Import == s_entry.SOffset));
             s_entry.SOffset = 0;
@@ -6842,7 +6841,7 @@ ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
         // Don't mind attributes - they are shorthand for the respective getter
         // and setter funcs. If _those_ are unused, then they will be caught
         // in the same that way normal functions are.
-        if (kSYM_Function != stype && kSYM_GlobalVar != stype)
+        if (SymT::kFunction != stype && SymT::kGlobalVar != stype)
             continue;
 
         if (FlagIsSet(_sym[entries_idx].TypeQualifiers, kTQ_Import) &&

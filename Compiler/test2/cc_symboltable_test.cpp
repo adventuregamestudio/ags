@@ -19,7 +19,7 @@ TEST(SymbolTable, GetNameNonExistent) {
 TEST(SymbolTable, GetNameNormal) {
     AGS::SymbolTable testSym;
 
-    int const foo_sym = testSym.Add("foo", AGS::kSYM_NoType, 0);
+    int const foo_sym = testSym.Add("foo", AGS::SymT::kNoType, 0);
 
     EXPECT_STREQ("foo", testSym.GetName(foo_sym).c_str());
 }
@@ -27,8 +27,8 @@ TEST(SymbolTable, GetNameNormal) {
 TEST(SymbolTable, GetNameConverted) {
     AGS::SymbolTable testSym;
 
-    AGS::Vartype const foo_vartype = testSym.Add("foo", AGS::kSYM_NoType, 0);
-    testSym[foo_vartype].SType = AGS::kSYM_Vartype;
+    AGS::Vartype const foo_vartype = testSym.Add("foo", AGS::SymT::kNoType, 0);
+    testSym[foo_vartype].SType = AGS::SymT::kVartype;
     testSym[foo_vartype].VartypeType = AGS::kVTT_Atomic;
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
@@ -49,22 +49,22 @@ TEST(SymbolTable, GetNameConverted) {
 TEST(SymbolTable, AddExAlreadyExists) {
     AGS::SymbolTable testSym;
 
-    int const a_sym = testSym.Add("a", AGS::kSYM_NoType, 0);
-    ASSERT_EQ(-1, testSym.Add("a", AGS::kSYM_NoType, 0));
+    int const a_sym = testSym.Add("a", AGS::SymT::kNoType, 0);
+    ASSERT_EQ(-1, testSym.Add("a", AGS::SymT::kNoType, 0));
 }
 
 TEST(SymbolTable, AddExUnique) {
     AGS::SymbolTable testSym;
 
-    int const a_sym = testSym.Add("a", AGS::kSYM_NoType, 0);
-    int const b_sym = testSym.Add("b", AGS::kSYM_NoType, 0);
+    int const a_sym = testSym.Add("a", AGS::SymT::kNoType, 0);
+    int const b_sym = testSym.Add("b", AGS::SymT::kNoType, 0);
     ASSERT_NE(a_sym, b_sym);
 }
 
 TEST(SymbolTable, AddExDefaultValues) {
     AGS::SymbolTable testSym;
 
-    AGS::SymbolType const stype = AGS::kSYM_Assign;
+    AGS::SymbolType const stype = AGS::SymT::kAssign;
     int const ssize = 2;
     int const a_sym = testSym.Add("a", stype, ssize);
 
@@ -82,7 +82,7 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
     AGS::SymbolTable testSym;
 
     // ensure reading and writing to entries actually works!
-    int const a_sym = testSym.Add("x", AGS::kSYM_NoType, 0);
+    int const a_sym = testSym.Add("x", AGS::SymT::kNoType, 0);
     testSym.entries.at(a_sym).Flags = 10;
     EXPECT_EQ(10, testSym.entries.at(a_sym).Flags);
     testSym[a_sym].Flags = 11;
@@ -92,17 +92,17 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 
 TEST(SymbolTable, Operators) {
     AGS::SymbolTable testSym;
-    int  sym_01 = testSym.AddOp(AGS::kKW_And, "Antiatomkraftprotestplakat", AGS::kSYM_Operator, 7, 77);
+    int  sym_01 = testSym.AddOp(AGS::kKW_And, "Antiatomkraftprotestplakat", AGS::SymT::kOperator, 7, 77);
     EXPECT_EQ(7, testSym.GetOperatorOpcode(sym_01));
     EXPECT_EQ(77, testSym.BinaryOpPrio(sym_01));
 
-    int const sym_02 = testSym.AddOp(AGS::kKW_And, "Betriebsgenehmigung", AGS::kSYM_Operator, 8, 88, 888);
+    int const sym_02 = testSym.AddOp(AGS::kKW_And, "Betriebsgenehmigung", AGS::SymT::kOperator, 8, 88, 888);
     EXPECT_EQ(8, testSym.GetOperatorOpcode(sym_02));
     EXPECT_EQ(88, testSym.BinaryOpPrio(sym_02));
     EXPECT_EQ(888, testSym.UnaryOpPrio(sym_02));
 
-    int const sym_03 = testSym.AddOp(AGS::kKW_And, "Charaktereignungstest", AGS::kSYM_Assign, 9, 99, 999);
-    EXPECT_EQ(AGS::kSYM_Assign, testSym.GetSymbolType(sym_03));
+    int const sym_03 = testSym.AddOp(AGS::kKW_And, "Charaktereignungstest", AGS::SymT::kAssign, 9, 99, 999);
+    EXPECT_EQ(AGS::SymT::kAssign, testSym.GetSymbolType(sym_03));
     EXPECT_EQ(9, testSym.GetOperatorOpcode(sym_03));
     EXPECT_EQ(99, testSym.BinaryOpPrio(sym_03));
     EXPECT_EQ(999, testSym.UnaryOpPrio(sym_03));

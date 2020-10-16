@@ -8,7 +8,7 @@
 
 AGS::SymbolTableEntry::SymbolTableEntry()
     : SName("")
-    , SType(kSYM_NoType)
+    , SType(SymT::kNoType)
     , DeclSectionId(0)
     , DeclLine(0)
     , Flags(0)
@@ -51,7 +51,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
 
 bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != SType)
+    if (SymT::kVartype != SType)
         return symt.IsVTT(Vartype, vtt);
 
     // "Constant" always is the outermost vartype qualifier,
@@ -64,12 +64,12 @@ bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt)
 
 size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
 {
-    return (kSYM_Vartype == SType) ? SSize : symt.GetSize(Vartype);
+    return (SymT::kVartype == SType) ? SSize : symt.GetSize(Vartype);
 }
 
 size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != SType)
+    if (SymT::kVartype != SType)
         return symt.NumArrayElements(Vartype);
 
     if (0 == Dims.size())
@@ -83,7 +83,7 @@ size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
 
 bool AGS::SymbolTableEntry::IsVTF(SymbolTableFlag flag, SymbolTable const &symt) const
 {
-    if (kSYM_Vartype != SType && kSYM_UndefinedStruct != SType)
+    if (SymT::kVartype != SType && SymT::kUndefinedStruct != SType)
         return symt.IsVTF(Vartype, flag);
 
     // Recursively get to the innermost symbol; read that symbol's flags
@@ -145,99 +145,99 @@ void AGS::SymbolTable::reset()
 
     SetStringStructSym(0);
 
-    Add(kKW_NoSymbol, "__dummy_sym_0__", kSYM_NoType);
+    Add(kKW_NoSymbol, "__dummy_sym_0__", SymT::kNoType);
 
     // Primitive types
-    Add(kKW_Char, "char", kSYM_Vartype, 1);
-    Add(kKW_Float, "float", kSYM_Vartype, 4);
-    Add(kKW_Int, "int", kSYM_Vartype, SIZE_OF_INT);
-    Add(kKW_Long, "long", kSYM_Vartype, SIZE_OF_INT);
-    Add(kKW_Short, "short", kSYM_Vartype, 2);
-    Add(kKW_String, "string", kSYM_Vartype, STRINGBUFFER_LENGTH);
-    Add(kKW_Void, "void", kSYM_Vartype, 0);
+    Add(kKW_Char, "char", SymT::kVartype, 1);
+    Add(kKW_Float, "float", SymT::kVartype, 4);
+    Add(kKW_Int, "int", SymT::kVartype, SIZE_OF_INT);
+    Add(kKW_Long, "long", SymT::kVartype, SIZE_OF_INT);
+    Add(kKW_Short, "short", SymT::kVartype, 2);
+    Add(kKW_String, "string", SymT::kVartype, STRINGBUFFER_LENGTH);
+    Add(kKW_Void, "void", SymT::kVartype, 0);
 
-    Add(kKW_CloseBracket, "]", kSYM_Delimiter);
-    Add(kKW_CloseParenthesis, ")", kSYM_Delimiter);
-    Add(kKW_Dot, ".", kSYM_Keyword);
-    Add(kKW_Null, "null", kSYM_Keyword);
-    Add(kKW_OpenBracket, "[", kSYM_Delimiter);
-    Add(kKW_OpenParenthesis, "(", kSYM_Delimiter);
+    Add(kKW_CloseBracket, "]", SymT::kDelimiter);
+    Add(kKW_CloseParenthesis, ")", SymT::kDelimiter);
+    Add(kKW_Dot, ".", SymT::kKeyword);
+    Add(kKW_Null, "null", SymT::kKeyword);
+    Add(kKW_OpenBracket, "[", SymT::kDelimiter);
+    Add(kKW_OpenParenthesis, "(", SymT::kDelimiter);
 
-    AddOp(kKW_Not, "!", kSYM_Operator, SCMD_NOTREG, -1, 101); // boolean NOT
-    AddOp(kKW_BitNeg, "~", kSYM_Operator, SCMD_NOTREG, -1, 101); // bitwise NOT
-    AddOp(kKW_Multiply, "*", kSYM_Operator, SCMD_MULREG, 103);
-    AddOp(kKW_Divide, "/", kSYM_Operator, SCMD_DIVREG, 103);
-    AddOp(kKW_Modulo, "%", kSYM_Operator, SCMD_MODREG, 103);
-    AddOp(kKW_Plus, "+", kSYM_Operator, SCMD_ADDREG, 105);
-    AddOp(kKW_Minus, "-", kSYM_Operator, SCMD_SUBREG, 105, 101);
-    AddOp(kKW_ShiftLeft, "<<", kSYM_Operator, SCMD_SHIFTLEFT, 107);
-    AddOp(kKW_ShiftRight, ">>", kSYM_Operator, SCMD_SHIFTRIGHT, 107);
-    AddOp(kKW_BitAnd, "&", kSYM_Operator, SCMD_BITAND, 109);
-    AddOp(kKW_BitOr, "|", kSYM_Operator, SCMD_BITOR, 110);
-    AddOp(kKW_BitXor, "^", kSYM_Operator, SCMD_XORREG, 110);
-    AddOp(kKW_Equal, "==", kSYM_Operator, SCMD_ISEQUAL, 112);
-    AddOp(kKW_NotEqual, "!=", kSYM_Operator, SCMD_NOTEQUAL, 112);
-    AddOp(kKW_Greater, ">", kSYM_Operator, SCMD_GREATER, 112);
-    AddOp(kKW_Less, "<", kSYM_Operator, SCMD_LESSTHAN, 112);
-    AddOp(kKW_GreaterEqual, ">=", kSYM_Operator, SCMD_GTE, 112);
-    AddOp(kKW_LessEqual, "<=", kSYM_Operator, SCMD_LTE, 112);
-    AddOp(kKW_And, "&&", kSYM_Operator, SCMD_AND, 118);
-    AddOp(kKW_Or, "||", kSYM_Operator, SCMD_OR, 119);
-    AddOp(kKW_Tern, "?", kSYM_Keyword, -1, 120);
+    AddOp(kKW_Not, "!", SymT::kOperator, SCMD_NOTREG, -1, 101); // boolean NOT
+    AddOp(kKW_BitNeg, "~", SymT::kOperator, SCMD_NOTREG, -1, 101); // bitwise NOT
+    AddOp(kKW_Multiply, "*", SymT::kOperator, SCMD_MULREG, 103);
+    AddOp(kKW_Divide, "/", SymT::kOperator, SCMD_DIVREG, 103);
+    AddOp(kKW_Modulo, "%", SymT::kOperator, SCMD_MODREG, 103);
+    AddOp(kKW_Plus, "+", SymT::kOperator, SCMD_ADDREG, 105);
+    AddOp(kKW_Minus, "-", SymT::kOperator, SCMD_SUBREG, 105, 101);
+    AddOp(kKW_ShiftLeft, "<<", SymT::kOperator, SCMD_SHIFTLEFT, 107);
+    AddOp(kKW_ShiftRight, ">>", SymT::kOperator, SCMD_SHIFTRIGHT, 107);
+    AddOp(kKW_BitAnd, "&", SymT::kOperator, SCMD_BITAND, 109);
+    AddOp(kKW_BitOr, "|", SymT::kOperator, SCMD_BITOR, 110);
+    AddOp(kKW_BitXor, "^", SymT::kOperator, SCMD_XORREG, 110);
+    AddOp(kKW_Equal, "==", SymT::kOperator, SCMD_ISEQUAL, 112);
+    AddOp(kKW_NotEqual, "!=", SymT::kOperator, SCMD_NOTEQUAL, 112);
+    AddOp(kKW_Greater, ">", SymT::kOperator, SCMD_GREATER, 112);
+    AddOp(kKW_Less, "<", SymT::kOperator, SCMD_LESSTHAN, 112);
+    AddOp(kKW_GreaterEqual, ">=", SymT::kOperator, SCMD_GTE, 112);
+    AddOp(kKW_LessEqual, "<=", SymT::kOperator, SCMD_LTE, 112);
+    AddOp(kKW_And, "&&", SymT::kOperator, SCMD_AND, 118);
+    AddOp(kKW_Or, "||", SymT::kOperator, SCMD_OR, 119);
+    AddOp(kKW_Tern, "?", SymT::kKeyword, -1, 120);
 
-    Add(kKW_This, "this", kSYM_Keyword);
+    Add(kKW_This, "this", SymT::kKeyword);
 
     // Assignments and modifiers
-    AddOp(kKW_Assign, "=", kSYM_Assign, 0);
-    AddOp(kKW_AssignPlus, "+=", kSYM_AssignMod, SCMD_ADDREG);
-    AddOp(kKW_AssignMinus, "-=", kSYM_AssignMod, SCMD_SUBREG);
-    AddOp(kKW_AssignMultiply, "*=", kSYM_AssignMod, SCMD_MULREG);
-    AddOp(kKW_AssignDivide, "/=", kSYM_AssignMod, SCMD_DIVREG);
-    AddOp(kKW_AssignBitAnd, "&=", kSYM_AssignMod, SCMD_BITAND);
-    AddOp(kKW_AssignBitOr, "|=", kSYM_AssignMod, SCMD_BITOR);
-    AddOp(kKW_AssignBitXor, "^=", kSYM_AssignMod, SCMD_XORREG);
-    AddOp(kKW_AssignShiftLeft, "<<=", kSYM_AssignMod, SCMD_SHIFTLEFT);
-    AddOp(kKW_AssignShiftRight, ">>=", kSYM_AssignMod, SCMD_SHIFTRIGHT);
-    AddOp(kKW_Increment, "++", kSYM_AssignSOp, SCMD_ADD);
-    AddOp(kKW_Decrement, "--", kSYM_AssignSOp, SCMD_SUB);
+    AddOp(kKW_Assign, "=", SymT::kAssign, 0);
+    AddOp(kKW_AssignPlus, "+=", SymT::kAssignMod, SCMD_ADDREG);
+    AddOp(kKW_AssignMinus, "-=", SymT::kAssignMod, SCMD_SUBREG);
+    AddOp(kKW_AssignMultiply, "*=", SymT::kAssignMod, SCMD_MULREG);
+    AddOp(kKW_AssignDivide, "/=", SymT::kAssignMod, SCMD_DIVREG);
+    AddOp(kKW_AssignBitAnd, "&=", SymT::kAssignMod, SCMD_BITAND);
+    AddOp(kKW_AssignBitOr, "|=", SymT::kAssignMod, SCMD_BITOR);
+    AddOp(kKW_AssignBitXor, "^=", SymT::kAssignMod, SCMD_XORREG);
+    AddOp(kKW_AssignShiftLeft, "<<=", SymT::kAssignMod, SCMD_SHIFTLEFT);
+    AddOp(kKW_AssignShiftRight, ">>=", SymT::kAssignMod, SCMD_SHIFTRIGHT);
+    AddOp(kKW_Increment, "++", SymT::kAssignSOp, SCMD_ADD);
+    AddOp(kKW_Decrement, "--", SymT::kAssignSOp, SCMD_SUB);
 
     // other keywords and symbols
-    Add(kKW_Attribute, "attribute", kSYM_Keyword);
-    Add(kKW_Autoptr, "autoptr", kSYM_Keyword);
-    Add(kKW_Break, "break", kSYM_Keyword);
-    Add(kKW_Builtin, "builtin", kSYM_Keyword);
-    Add(kKW_Case, "case", kSYM_Keyword);
-    Add(kKW_CloseBrace, "}", kSYM_Keyword);
-    Add(kKW_Comma, ",", kSYM_Keyword);
-    Add(kKW_Const, "const", kSYM_Keyword);
-    Add(kKW_Continue, "continue", kSYM_Keyword);
-    Add(kKW_Default, "default", kSYM_Keyword);
-    Add(kKW_Do, "do", kSYM_Keyword);
-    Add(kKW_Else, "else", kSYM_Keyword);
-    Add(kKW_Enum, "enum", kSYM_Keyword);
-    Add(kKW_Export, "export", kSYM_Keyword);
-    Add(kKW_Extends, "extends", kSYM_Keyword);
-    Add(kKW_For, "for", kSYM_Keyword);
-    Add(kKW_If, "if", kSYM_Keyword);
-    Add(kKW_Import, "import", kSYM_Import);     // NOTE: Different keywords, same symbol
-    Add(kKW_ImportTry, "_tryimport", kSYM_Import); // NOTE: Different keywords, same symbol
-    Add(kKW_Internalstring, "internalstring", kSYM_Keyword);
-    Add(kKW_Colon, ":", kSYM_Keyword);
-    Add(kKW_Noloopcheck, "noloopcheck", kSYM_Keyword);
-    Add(kKW_Managed, "managed", kSYM_Keyword);
-    Add(kKW_ScopeRes, "::", kSYM_Keyword);
-    AddOp(kKW_New, "new", kSYM_Keyword, -1, -1, 101); // note, can also be operator
-    Add(kKW_OpenBrace, "{", kSYM_Keyword);
-    Add(kKW_Protected, "protected", kSYM_Keyword);
-    Add(kKW_Readonly, "readonly", kSYM_Keyword);
-    Add(kKW_Return, "return", kSYM_Keyword);
-    Add(kKW_Semicolon, ";", kSYM_Keyword);
-    Add(kKW_Static, "static", kSYM_Keyword);
-    Add(kKW_Struct, "struct", kSYM_Keyword);
-    Add(kKW_Switch, "switch", kSYM_Keyword);
-    Add(kKW_Varargs, "...", kSYM_Keyword);
-    Add(kKW_While, "while", kSYM_Keyword);
-    Add(kKW_Writeprotected, "writeprotected", kSYM_Keyword);
+    Add(kKW_Attribute, "attribute", SymT::kKeyword);
+    Add(kKW_Autoptr, "autoptr", SymT::kKeyword);
+    Add(kKW_Break, "break", SymT::kKeyword);
+    Add(kKW_Builtin, "builtin", SymT::kKeyword);
+    Add(kKW_Case, "case", SymT::kKeyword);
+    Add(kKW_CloseBrace, "}", SymT::kKeyword);
+    Add(kKW_Comma, ",", SymT::kKeyword);
+    Add(kKW_Const, "const", SymT::kKeyword);
+    Add(kKW_Continue, "continue", SymT::kKeyword);
+    Add(kKW_Default, "default", SymT::kKeyword);
+    Add(kKW_Do, "do", SymT::kKeyword);
+    Add(kKW_Else, "else", SymT::kKeyword);
+    Add(kKW_Enum, "enum", SymT::kKeyword);
+    Add(kKW_Export, "export", SymT::kKeyword);
+    Add(kKW_Extends, "extends", SymT::kKeyword);
+    Add(kKW_For, "for", SymT::kKeyword);
+    Add(kKW_If, "if", SymT::kKeyword);
+    Add(kKW_Import, "import", SymT::kImport);     // NOTE: Different keywords, same symbol
+    Add(kKW_ImportTry, "_tryimport", SymT::kImport); // NOTE: Different keywords, same symbol
+    Add(kKW_Internalstring, "internalstring", SymT::kKeyword);
+    Add(kKW_Colon, ":", SymT::kKeyword);
+    Add(kKW_Noloopcheck, "noloopcheck", SymT::kKeyword);
+    Add(kKW_Managed, "managed", SymT::kKeyword);
+    Add(kKW_ScopeRes, "::", SymT::kKeyword);
+    AddOp(kKW_New, "new", SymT::kKeyword, -1, -1, 101); // note, can also be operator
+    Add(kKW_OpenBrace, "{", SymT::kKeyword);
+    Add(kKW_Protected, "protected", SymT::kKeyword);
+    Add(kKW_Readonly, "readonly", SymT::kKeyword);
+    Add(kKW_Return, "return", SymT::kKeyword);
+    Add(kKW_Semicolon, ";", SymT::kKeyword);
+    Add(kKW_Static, "static", SymT::kKeyword);
+    Add(kKW_Struct, "struct", SymT::kKeyword);
+    Add(kKW_Switch, "switch", SymT::kKeyword);
+    Add(kKW_Varargs, "...", SymT::kKeyword);
+    Add(kKW_While, "while", SymT::kKeyword);
+    Add(kKW_Writeprotected, "writeprotected", SymT::kKeyword);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
@@ -281,7 +281,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
     Vartype const array_vartype = FindOrAdd(conv_name);
-    entries[array_vartype].SType = kSYM_Vartype;
+    entries[array_vartype].SType = SymT::kVartype;
     entries[array_vartype].VartypeType = kVTT_Array;
     entries[array_vartype].Vartype = vartype;
     entries[array_vartype].SSize = num_elements * GetSize(vartype);
@@ -317,7 +317,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
     std::string const conv_name = (pre + entries[vartype].SName) + post;
     valref = FindOrAdd(conv_name);
     SymbolTableEntry &entry = entries[valref];
-    entry.SType = kSYM_Vartype;
+    entry.SType = SymT::kVartype;
     entry.VartypeType = vtt;
     entry.Vartype = vartype;
     entry.SSize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
@@ -328,7 +328,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) co
 {
     while (
         IsInBounds(vartype) &&
-        kSYM_Vartype == entries[vartype].SType &&
+        SymT::kVartype == entries[vartype].SType &&
         FlagIsSet(entries[vartype].VartypeType, vtt))
         vartype = entries[vartype].Vartype;
     return vartype;
@@ -354,7 +354,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
         return false;
 
     // Convert a var to its vartype
-    if (kSYM_LocalVar == entries[s].SType || kSYM_GlobalVar == entries[s].SType)
+    if (SymT::kLocalVar == entries[s].SType || SymT::kGlobalVar == entries[s].SType)
     {
         s = entries[s].Vartype;
         if (!IsInBounds(s))
@@ -362,7 +362,7 @@ bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
     }
 
     // Must be vartype at this point
-    if (kSYM_Vartype != entries[s].SType)
+    if (SymT::kVartype != entries[s].SType)
         return false;
 
     // Oldstrings and String * are strings
@@ -379,10 +379,10 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
         return false;
 
     // Convert a var to its vartype
-    if (kSYM_LocalVar == entries[s].SType || kSYM_GlobalVar == entries[s].SType)
+    if (SymT::kLocalVar == entries[s].SType || SymT::kGlobalVar == entries[s].SType)
     {
         s = entries[s].Vartype;
-        if (!IsInBounds(s) || kSYM_Vartype != entries[s].SType)
+        if (!IsInBounds(s) || SymT::kVartype != entries[s].SType)
             return false;
     }
 

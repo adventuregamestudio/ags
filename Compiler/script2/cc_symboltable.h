@@ -128,8 +128,8 @@ protected:
     bool IsVTT(enum VartypeType vtt, SymbolTable const &symt) const;
 
 public:
-    static size_t const ParameterSScope = 1;
-    static size_t const FunctionSScope = 2;
+    static size_t const kParameterSScope = 1;
+    static size_t const kFunctionSScope = 2;
     
     enum ParamDefaultType
     {
@@ -198,7 +198,7 @@ public:
     inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
     inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
     inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
-    inline bool IsParameter() const { return ParameterSScope == SScope; };
+    inline bool IsParameter() const { return kParameterSScope == SScope; };
 
     // Array or Dynarray
     size_t NumArrayElements(SymbolTable const &symt) const;

@@ -4459,7 +4459,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
                 _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
-        if (SymbolTableEntry::ParameterSScope == var_entry.SScope && SymbolTableEntry::FunctionSScope == _nest.TopLevel())
+        if (SymbolTableEntry::kParameterSScope == var_entry.SScope && SymbolTableEntry::kFunctionSScope == _nest.TopLevel())
         {
             Error(
                 ReferenceMsgSym("'%s' has already been defined as a parameter", var_name).c_str(),
@@ -4805,9 +4805,9 @@ ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbo
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
-    RemoveLocalsFromStack(SymbolTableEntry::FunctionSScope);
+    RemoveLocalsFromStack(SymbolTableEntry::kFunctionSScope);
     // All the function variables, _including_ the parameters, become invalid.
-    RemoveLocalsFromSymtable(SymbolTableEntry::ParameterSScope);
+    RemoveLocalsFromSymtable(SymbolTableEntry::kParameterSScope);
 
     // Function has ended. Set AX to 0 unless the function doesn't return any value.
     if (kKW_Void != _sym[name_of_current_func].FuncParamVartypes.at(0))
@@ -5936,7 +5936,7 @@ ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_typ
         Error("'static' cannot be used in a variable declaration");
         return kERR_UserError;
     }
-    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > SymbolTableEntry::ParameterSScope), std::string::npos != _sym.GetName(var_name).rfind(':'));
+    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > SymbolTableEntry::kParameterSScope), std::string::npos != _sym.GetName(var_name).rfind(':'));
     if (retval < 0) return retval;
 
     // parse the definition
@@ -6038,7 +6038,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
 ErrorType AGS::Parser::HandleEndOfCompoundStmts()
 {
     ErrorType retval;
-    while (_nest.TopLevel() > SymbolTableEntry::FunctionSScope)
+    while (_nest.TopLevel() > SymbolTableEntry::kFunctionSScope)
         switch (_nest.Type())
         {
         default:
@@ -6134,11 +6134,11 @@ ErrorType AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
-    RemoveLocalsFromStack(SymbolTableEntry::FunctionSScope);
+    RemoveLocalsFromStack(SymbolTableEntry::kFunctionSScope);
   
     // Jump to the exit point of the function
     WriteCmd(SCMD_JMP, 0);
-    _nest.JumpOut(SymbolTableEntry::ParameterSScope).AddParam();
+    _nest.JumpOut(SymbolTableEntry::kParameterSScope).AddParam();
 
     // The locals only disappear if control flow actually follows the "return"
     // statement. Otherwise, below the statement, the locals remain on the stack.
@@ -6628,7 +6628,7 @@ ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_curren
 
     case kKW_CloseBrace:
         // Note that the scanner has already made sure that every close brace has an open brace
-        if (SymbolTableEntry::FunctionSScope >= _nest.TopLevel())
+        if (SymbolTableEntry::kFunctionSScope >= _nest.TopLevel())
             return HandleEndOfFuncBody(struct_of_current_func, name_of_current_func);
 
         retval = ParseCloseBrace();
@@ -6659,7 +6659,7 @@ ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_curren
         return ParseIf();
 
     case kKW_OpenBrace:
-        if (SymbolTableEntry::ParameterSScope == _nest.TopLevel())
+        if (SymbolTableEntry::kParameterSScope == _nest.TopLevel())
              return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
         _nest.Push(NestingStack::kNS_Braces);
         return kERR_None;

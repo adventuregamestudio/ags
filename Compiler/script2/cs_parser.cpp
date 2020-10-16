@@ -1469,11 +1469,11 @@ ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AG
     // stack has the first parameter. The + 1 is because the
     // call will push the return address onto the stack as well
     param_entry.SOffset = _scrip.offset_to_local_var_block - (param_idx + 1) * SIZE_OF_STACK_CELL;
-    _sym.SetDeclared(param_name, _src.GetSectionId(), _src.GetLineno());
+    _sym.SetDeclared(param_name, _src.GetCursor());
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follows, AGS::Vartype param_vartype, bool param_is_const, size_t param_idx)
+ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype param_vartype, bool param_is_const, size_t param_idx)
 {
     ErrorType retval = ParseParamlist_ParamType(param_vartype);
     if (retval < 0) return retval;
@@ -1639,7 +1639,7 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry
             errstr2.replace(errstr2.find("<2>"), 3, "has the default "
                 + known_info.FuncParamDefaultValues[param_idx].ToString());
         errstr1 += errstr2;
-        Error(ReferenceMsg(errstr1, known_info.DeclSectionId, known_info.DeclLine).c_str());
+        Error(ReferenceMsgLoc(errstr1, known_info.Declared).c_str());
         return kERR_UserError;
     }
     return kERR_None;
@@ -1653,10 +1653,9 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
 
     if (known_info.SType != this_entry.SType)
     {
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "'%s' is declared as a function here but differently elsewhere",
-            known_info.DeclSectionId,
-            known_info.DeclLine);
+            known_info.Declared);
         Error(msg.c_str(), this_entry.SName.c_str());
         return kERR_UserError;
     }
@@ -1665,20 +1664,18 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
     {
         std::string const ki_tq = TypeQualifierSet2String(known_info.TypeQualifiers & ~kTQ_Import);
         std::string const te_tq = TypeQualifierSet2String(this_entry.TypeQualifiers & ~kTQ_Import);
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "'%s' has the qualifiers '%s' here but '%s' elsewhere",
-            known_info.DeclSectionId,
-            known_info.DeclLine);
+            known_info.Declared);
         Error(msg.c_str(), this_entry.SName.c_str(), te_tq.c_str(), ki_tq.c_str());
         return kERR_UserError;
     }
 
     if (known_info.GetNumOfFuncParams() != this_entry.GetNumOfFuncParams())
     {
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "Function '%s' is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
-            known_info.DeclSectionId,
-            known_info.DeclLine);
+            known_info.Declared);
         Error(msg.c_str(), this_entry.SName.c_str(), this_entry.GetNumOfFuncParams(), known_info.GetNumOfFuncParams());
         return kERR_UserError;
     }
@@ -1693,20 +1690,18 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
             "to accepts additional parameters elsewhere" :
             "to not accept additional parameters elsewhere";
         std::string const msg =
-            ReferenceMsg(
+            ReferenceMsgLoc(
                 "Function '%s' %s, %s",
-                known_info.DeclSectionId,
-                known_info.DeclLine);
+                known_info.Declared);
         Error(msg.c_str(), this_entry.SName.c_str(), te.c_str(), ki.c_str());
         return kERR_UserError;
     }
 
     if (known_info.FuncParamVartypes.at(0) != this_entry.FuncParamVartypes.at(0))
     {
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "Return type of '%s' is declared as '%s' here, as '%s' elsewhere",
-            known_info.DeclSectionId,
-            known_info.DeclLine);
+            known_info.Declared);
         Error(
             msg.c_str(),
             this_entry.SName.c_str(),
@@ -1720,10 +1715,9 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
     {
         if (known_info.FuncParamVartypes.at(param_idx) != this_entry.FuncParamVartypes.at(param_idx))
         {
-            std::string msg = ReferenceMsg(
+            std::string msg = ReferenceMsgLoc(
                 "For function '%s': Type of parameter #%d is %s here, %s in a declaration elsewhere",
-                known_info.DeclSectionId,
-                known_info.DeclLine);
+                known_info.Declared);
             Error(
                 msg.c_str(),
                 this_entry.SName.c_str(),
@@ -1935,7 +1929,7 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     retval = ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
     if (retval < 0) return retval;
 
-    _sym.SetDeclared(name_of_func, _src.GetSectionIdAt(declaration_start), _src.GetLinenoAt(declaration_start));
+    _sym.SetDeclared(name_of_func, declaration_start);
     return kERR_None;
 }
 
@@ -2786,10 +2780,15 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
         WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
 
-std::string AGS::Parser::ReferenceMsg(std::string const &msg, int section_id, int line)
+std::string const AGS::Parser::ReferenceMsgLoc(std::string const &msg, size_t declared)
 {
+    if (SymbolTableEntry::kNoSrcLocation == declared)
+        return msg;
+
+    int const section_id = _src.GetSectionIdAt(declared);
     std::string const &section = _src.SectionId2Section(section_id);
 
+    int const line = _src.GetLinenoAt(declared);
     if (line <= 0 || (!section.empty() && '_' == section[0]))
         return msg;
 
@@ -2809,12 +2808,9 @@ std::string AGS::Parser::ReferenceMsg(std::string const &msg, int section_id, in
     return msg + tpl;
 }
 
-std::string AGS::Parser::ReferenceMsgSym(std::string const &msg, AGS::Symbol symb)
+std::string const AGS::Parser::ReferenceMsgSym(std::string const &msg, AGS::Symbol symb)
 {
-    return ReferenceMsg(
-        msg,
-        _sym.GetDeclaredSectionId(symb),
-        _sym.GetDeclaredLine(symb));
+    return ReferenceMsgLoc(msg, _sym.GetDeclared(symb));
 }
 
 ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
@@ -4476,7 +4472,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
     var_entry.SType = (scope_type == kScT_Local) ? SymT::kLocalVar : SymT::kGlobalVar;
     var_entry.Vartype = vartype;
     var_entry.SScope = _nest.TopLevel();
-    _sym.SetDeclared(var_name, _src.GetSectionId(), _src.GetLineno());
+    _sym.SetDeclared(var_name, _src.GetCursor());
     return kERR_None;
 }
 
@@ -4512,10 +4508,7 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
 
     if (known_info->SType != this_entry->SType)
     {
-        Error(ReferenceMsg(
-            "This variable is declared as %s elsewhere",
-            known_info->DeclSectionId,
-            known_info->DeclLine).c_str(),
+        Error(ReferenceMsgLoc("This variable is declared as %s elsewhere", known_info->Declared).c_str(),
             (SymT::kFunction == known_info->SType)  ? "function" :
             (SymT::kGlobalVar == known_info->SType) ? "global variable" :
             (SymT::kLocalVar == known_info->SType)  ? "local variable" : "another entity");
@@ -4526,10 +4519,9 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
     {
         std::string const ki_tq = TypeQualifierSet2String(known_info->TypeQualifiers & ~kTQ_Import);
         std::string const te_tq = TypeQualifierSet2String(this_entry->TypeQualifiers & ~kTQ_Import);
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "The variable '%s' has the qualifiers '%s' here, but '%s' elsewhere",
-            known_info->DeclSectionId,
-            known_info->DeclLine);
+            known_info->Declared);
         Error(msg.c_str(), te_tq.c_str(), ki_tq.c_str());
         return kERR_UserError;
     }
@@ -4537,10 +4529,9 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
     if (known_info->Vartype != this_entry->Vartype)
     {
         // This will check the array lengths, too
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "This variable is declared as %s here, as %s elsewhere",
-            known_info->DeclSectionId,
-            known_info->DeclLine);
+            known_info->Declared);
         Error(
             msg.c_str(),
             _sym.GetName(this_entry->Vartype).c_str(),
@@ -4550,10 +4541,9 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
 
     if (known_info->GetSize(_sym) != this_entry->GetSize(_sym))
     {
-        std::string msg = ReferenceMsg(
+        std::string msg = ReferenceMsgLoc(
             "Size of this variable is %d here, %d declared elsewhere",
-            known_info->DeclSectionId,
-            known_info->DeclLine);
+            known_info->Declared);
         Error(
             msg.c_str(),
             this_entry->GetSize(_sym), known_info->GetSize(_sym));
@@ -4845,7 +4835,7 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
     if (FlagIsSet(tqs, kTQ_Autoptr))
         SetFlag(entry.Flags, kSFLG_StructAutoPtr, true);
 
-    _sym.SetDeclared(stname, _src.GetSectionId(), _src.GetLineno());
+    _sym.SetDeclared(stname, _src.GetCursor());
 }
 
 // We have accepted something like "struct foo" and are waiting for "extends"
@@ -5243,10 +5233,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
     Symbol const get_func_name = MangleStructAndComponent(stname, attrib_func);
     retval = ParseStruct_Attribute_DeclareFunc(tqs, stname, get_func_name, get_func_is_setter, attrib_is_indexed, vartype);
     if (retval < 0) return retval;
-    _sym.SetDeclared(
-        get_func_name,
-        _src.GetSectionIdAt(declaration_start),
-        _src.GetLinenoAt(declaration_start));
+    _sym.SetDeclared(get_func_name, declaration_start);
 
     if (attrib_is_readonly)
         return kERR_None;
@@ -5258,10 +5245,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
     Symbol const set_func_name = MangleStructAndComponent(stname, attrib_func);
     retval = ParseStruct_Attribute_DeclareFunc(tqs, stname, set_func_name, set_func_is_setter, attrib_is_indexed, vartype);
     if (retval < 0) return retval;
-    _sym.SetDeclared(
-        set_func_name,
-        _src.GetSectionIdAt(declaration_start),
-        _src.GetLinenoAt(declaration_start));
+    _sym.SetDeclared(set_func_name, declaration_start);
 
     return kERR_None;
 }
@@ -5428,7 +5412,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
     retval =  ParseStruct_VariableOrAttributeDefn(tqs, vartype, name_of_struct, var_or_func_name, size_so_far);
     if (retval < 0) return retval;
 
-    _sym.SetDeclared(var_or_func_name, _src.GetSectionIdAt(declaration_start), _src.GetLinenoAt(declaration_start));
+    _sym.SetDeclared(var_or_func_name, declaration_start);
     return kERR_None;
 }
 
@@ -5630,7 +5614,7 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = current_constant_value;
     if (kPP_Main == _pp)
-        _sym.SetDeclared(item_name, _src.GetSectionId(), _src.GetLineno());
+        _sym.SetDeclared(item_name, _src.GetCursor());
 
     _sym[enum_name].Children.push_back(item_name);
 }
@@ -5641,10 +5625,7 @@ ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     if (SymT::kNoType != entry.SType)
     {
-        std::string msg = ReferenceMsg(
-            "'%s' is already defined",
-            entry.DeclSectionId,
-            entry.DeclLine);
+        std::string msg = ReferenceMsgLoc("'%s' is already defined", entry.Declared);
         Error(msg.c_str(), _sym.GetName(enumName).c_str());
         return kERR_UserError;
     }

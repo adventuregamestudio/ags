@@ -408,9 +408,10 @@ private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
     // Augment the message with a "See ..." indication
-    std::string ReferenceMsg(std::string const &msg, int section_id, int line);
+    // declared is the point in _src where the thing is declared
+    std::string const ReferenceMsgLoc(std::string const &msg, size_t declared);
     // Augment the message with a "See ..." indication pointing to the declaration of sym
-    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
+    std::string const ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
 
     // These two need to be non-static because they can yield errors
     // and errors need the parser object's line number information.

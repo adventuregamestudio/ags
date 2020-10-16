@@ -130,6 +130,8 @@ protected:
 public:
     static size_t const kParameterSScope = 1;
     static size_t const kFunctionSScope = 2;
+
+    static size_t const kNoSrcLocation = INT_MAX;
     
     enum ParamDefaultType
     {
@@ -157,7 +159,7 @@ public:
 
     std::string SName;
     SymbolType SType; // e.g., SymT::kGlobalVar
-    int DeclSectionId, DeclLine; // where this was declared
+    size_t Declared; // where this was declared
     FlagSet Flags;
     TypeQualifierSet TypeQualifiers;
     CodeLoc SOffset; // multiple use
@@ -299,11 +301,10 @@ public:
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol symb) const { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries.at(symb).Vartype : -1; }
 
-    // Set/get section and line where the item is declared
-    void SetDeclared(int idx, int section_id, int line);
-    inline int GetDeclaredLine(int idx) { return (*this)[idx].DeclLine; };
-    inline int GetDeclaredSectionId(int idx) { return (*this)[idx].DeclSectionId; };
-
+    // Set/get the position in the source where the item is declared
+    inline void SetDeclared(int idx, size_t declared) { (*this)[idx].Declared = declared; }
+    inline int GetDeclared(int idx) { return (*this)[idx].Declared; };
+    
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
     // The "Dynarray / Dynpointer/ Const ... of vartype" vartype

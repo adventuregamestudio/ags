@@ -9,8 +9,7 @@
 AGS::SymbolTableEntry::SymbolTableEntry()
     : SName("")
     , SType(SymT::kNoType)
-    , DeclSectionId(0)
-    , DeclLine(0)
+    , Declared(kNoSrcLocation)
     , Flags(0)
     , TypeQualifiers(0)
     , SOffset(0)
@@ -31,8 +30,7 @@ AGS::SymbolTableEntry::SymbolTableEntry()
 AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType stype, size_t ssize)
     : SName(name)
     , SType(stype)
-    , DeclSectionId(0)
-    , DeclLine(0)
+    , Declared(kNoSrcLocation)
     , Flags(0)
     , TypeQualifiers(0)
     , SOffset(0)
@@ -257,12 +255,6 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
     return entries[symbl].SName;
-}
-
-void AGS::SymbolTable::SetDeclared(int idx, int section_id, int line)
-{
-    (*this)[idx].DeclSectionId = section_id;
-    (*this)[idx].DeclLine = line;
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)

@@ -14,7 +14,6 @@ namespace AGS.Types
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
-        public const int CHARACTER_SCRIPTNAME_LENGTH = 20; // limited by compiled data format
 
         private static InteractionSchema _interactionSchema;
 
@@ -75,7 +74,7 @@ namespace AGS.Types
         public string ScriptName
         {
             get { return _scriptName; }
-            set { _scriptName = Utilities.ValidateScriptName(value, CHARACTER_SCRIPTNAME_LENGTH); }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
         [Description("The full name of the character")]

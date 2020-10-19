@@ -324,6 +324,9 @@ int GUI_GetBlendMode(ScriptGUI *gui) {
 }
 
 void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
+    if (blendMode > 0) blendMode += 1; // Script API only uses from "Add" and later, 0 is leave-as-is
+    if ((blendMode < 0) /*|| (blendMode > kNumBlendModes)*/)
+        quit("!GUI.BlendMode: invalid blend mode");
     guis[gui->id].BlendMode = blendMode;
 }
 

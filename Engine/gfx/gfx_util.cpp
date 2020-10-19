@@ -66,15 +66,15 @@ static const BlendModeSetter BlendModeSets[kNumBlendModes] =
 {
     { nullptr, nullptr, nullptr, nullptr, nullptr }, // kBlendMode_NoAlpha
     { _argb2argb_blender, _argb2rgb_blender, _rgb2argb_blender, _opaque_alpha_blender, nullptr }, // kBlendMode_Alpha
-    { NULL, _blender_masked_add32, _blender_add24, _blender_add24, NULL }, // kBlendMode_Add
-    { NULL, _blender_masked_darken32, _my_blender_darken24, _my_blender_darken24, NULL }, // kBlendMode_Darken
-    { NULL, _blender_masked_lighten32, _my_blender_lighten24, _my_blender_lighten24, NULL }, // kBlendMode_Lighten
-    { NULL, _blender_masked_multiply32, _blender_multiply24, _blender_multiply24, NULL }, // kBlendMode_Multiply
-    { NULL, _blender_masked_screen32, _blender_screen24, _blender_screen24, NULL }, // kBlendMode_Screen
-    { NULL, _blender_masked_burn32, _my_blender_burn24, _my_blender_burn24, NULL }, // kBlendMode_Burn
-    { NULL, _blender_masked_subtract32, _my_blender_subtract24, NULL }, // kBlendMode_Subtract
-    { NULL, _blender_masked_exclusion32, _my_blender_exclusion24, _my_blender_exclusion24, NULL }, // kBlendMode_Exclusion
-    { NULL, _blender_masked_dodge32, _my_blender_dodge24, _my_blender_dodge24, NULL }, // kBlendMode_Dodge
+    { nullptr, _blender_masked_add32, _blender_add24, _blender_add24, nullptr }, // kBlendMode_Add
+    { nullptr, _blender_masked_darken32, _my_blender_darken24, _my_blender_darken24, nullptr }, // kBlendMode_Darken
+    { nullptr, _blender_masked_lighten32, _my_blender_lighten24, _my_blender_lighten24, nullptr }, // kBlendMode_Lighten
+    { nullptr, _blender_masked_multiply32, _blender_multiply24, _blender_multiply24, nullptr }, // kBlendMode_Multiply
+    { nullptr, _blender_masked_screen32, _blender_screen24, _blender_screen24, nullptr }, // kBlendMode_Screen
+    { nullptr, _blender_masked_burn32, _my_blender_burn24, _my_blender_burn24, nullptr }, // kBlendMode_Burn
+    { nullptr, _blender_masked_subtract32, _my_blender_subtract24, nullptr }, // kBlendMode_Subtract
+    { nullptr, _blender_masked_exclusion32, _my_blender_exclusion24, _my_blender_exclusion24, nullptr }, // kBlendMode_Exclusion
+    { nullptr, _blender_masked_dodge32, _my_blender_dodge24, _my_blender_dodge24, nullptr }, // kBlendMode_Dodge
     // NOTE: add new modes here
 };
 

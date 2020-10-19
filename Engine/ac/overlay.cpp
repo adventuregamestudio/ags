@@ -151,6 +151,10 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
+    if (blendMode > 0) blendMode += 1; // Script API only uses from "Add" and later, 0 is leave-as-is
+    if ((blendMode < 0) /*|| (blendMode > kNumBlendModes)*/)
+        quit("!Overlay.BlendMode: invalid blend mode");
+
     screenover[ovri].blendMode = blendMode;
 }
 

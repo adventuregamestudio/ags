@@ -1322,7 +1322,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     // Blend modes
     switch (bmpToDraw->_blendMode) {
         // blend mode is always NORMAL at this point
-        case kBlendMode_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
+        //case kBlendMode_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
         case kBlendMode_Add: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
         case kBlendMode_Darken: AGS_D3DBLENDOP(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
         case kBlendMode_Lighten: AGS_D3DBLENDOP(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN

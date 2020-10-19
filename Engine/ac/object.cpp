@@ -419,6 +419,9 @@ int Object_GetBlendMode(ScriptObject *objj) {
 }
 
 void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
+    if (blendMode > 0) blendMode += 1; // Script API only uses from "Add" and later, 0 is leave-as-is
+    if ((blendMode < 0) /*|| (blendMode > kNumBlendModes)*/)
+        quit("!Object.BlendMode: invalid blend mode");
     objs[objj->id].blend_mode = blendMode;
 }
 

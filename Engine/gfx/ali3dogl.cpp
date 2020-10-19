@@ -1336,7 +1336,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     // Blend modes
     switch (bmpToDraw->_blendMode) {
         // blend mode is always NORMAL at this point
-        case kBlendMode_Alpha: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); break; // ALPHA
+        //case kBlendMode_Alpha: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); break; // ALPHA
         case kBlendMode_Add: AGS_OGLBLENDOP(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
 #ifdef GL_MIN
         case kBlendMode_Darken: AGS_OGLBLENDOP(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN

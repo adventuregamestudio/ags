@@ -34,7 +34,7 @@ void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
-    if (cmp_ver >= 2)
+    if (cmp_ver >= 100)
     {
         blend_mode = in->ReadInt32();
         // TODO future implementations
@@ -69,7 +69,7 @@ void CharacterExtras::WriteToFile(Stream *out)
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
-    // since version 2
+    // since version 100
     out->WriteInt32(blend_mode);
     // TODO future implementations
     out->WriteInt32(0); // transform scale x

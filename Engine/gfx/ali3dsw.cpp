@@ -522,12 +522,12 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
 
     if (bitmap->_transparency >= 255) {} // fully transparent, do nothing
     else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0)) {}
-    else if (bitmap->_blendMode > 0 && bitmap->GetColorDepth() >= 32 && virtualScreen->GetColorDepth() >= 32)
+    else if (bitmap->_blendMode > 0 && bitmap->GetColorDepth() >= 32 && surface->GetColorDepth() >= 32)
     {
         Common::BlendMode al_blender_mode = (Common::BlendMode) bitmap->_blendMode;
         if (al_blender_mode >= Common::kNumBlendModes)
             al_blender_mode = Common::kBlendMode_Alpha;
-        GfxUtil::DrawSpriteBlend(virtualScreen, Point(drawAtX, drawAtY), bitmap->_bmp, al_blender_mode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, al_blender_mode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
     }
     else if (bitmap->_opaque)
     {

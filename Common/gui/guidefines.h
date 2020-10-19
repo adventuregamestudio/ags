@@ -72,8 +72,7 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_399         = 120,
-    kGuiVersion_Current     = kGuiVersion_399,
+    kGuiVersion_Current     = kGuiVersion_350,
 };
 
 namespace AGS
@@ -176,7 +175,7 @@ enum GuiSvgVersion
 {
     kGuiSvgVersion_Initial  = 0,
     kGuiSvgVersion_350      = 1,
-    kGuiSvgVersion_399      = 2
+    kGuiSvgVersion_399      = 100
 };
 
 } // namespace Common

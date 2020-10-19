@@ -1564,11 +1564,9 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
 }
 
 void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
-    /*
-    // TODO validation when blendmodes finalized
-    if ((blendMode < 0) || (blendMode > 4))
-    quit("!SetBlendMode: invalid blend mode");
-    */
+    if (blendMode > 0) blendMode += 1; // Script API only uses from "Add" and later, 0 is leave-as-is
+    if ((blendMode < 0) /*|| (blendMode > kNumBlendModes)*/)
+        quit("!Character.BlendMode: invalid blend mode");
     charextra[chaa->index_id].blend_mode = blendMode;
 }
 

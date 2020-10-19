@@ -38,7 +38,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
         _offsetX = in->ReadInt32();
         _offsetY = in->ReadInt32();
     }
-    if (cmp_ver >= 2)
+    if (cmp_ver >= 100)
     {
         blendMode = in->ReadInt32();
         // TODO future implementations

@@ -403,8 +403,7 @@ enum LogLevel
 
 #ifdef SCRIPT_API_v399
 enum BlendMode {
-    eBlendModeDefault = 0, //eBlendModeNoAlpha
-    eBlendModeAlpha,
+    eBlendModeNormal = 0, // note: enum values different from engine and 0 leaves as is
     eBlendModeAdd,
     eBlendModeDarken,
     eBlendModeLighten,

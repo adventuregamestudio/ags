@@ -1092,7 +1092,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        2,
+        100,
         0,
         WriteCharacters,
         ReadCharacters
@@ -1141,7 +1141,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        1,
+        100,
         0,
         WriteOverlays,
         ReadOverlays

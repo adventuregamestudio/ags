@@ -669,7 +669,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseDownCtrl);
     out->WriteInt32(MouseWasAt.X);
     out->WriteInt32(MouseWasAt.Y);
-    // since version 2 (kGuiSvgVersion_399)
+    // since version 100 (kGuiSvgVersion_399)
     out->WriteInt32(BlendMode);
     // TODO future implementations
     out->WriteInt32(0); // transform scale x

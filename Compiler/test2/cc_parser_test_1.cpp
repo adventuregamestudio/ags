@@ -335,7 +335,7 @@ TEST_F(Compile1, FuncTypeClash1) {
     EXPECT_NE(std::string::npos, msg.find("'('"));
 }
 
-TEST_F(Compile1, FloatOutOfRange) {
+TEST_F(Compile1, FloatOutOfBounds) {
 
     // Too small
 
@@ -353,7 +353,7 @@ TEST_F(Compile1, FloatOutOfRange) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of range"));
+    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
 }
 
 TEST_F(Compile1, DoWhileSemicolon) { 

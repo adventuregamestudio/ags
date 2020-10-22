@@ -122,17 +122,17 @@ private:
 
     // This indicates where a value is delivered.
     // When reading, we need the value itself.
-    // - It can be in AX (kVL_ax_is_value)
-    // - or in m(MAR) (kVL_mar_pointsto_value).
+    // - It can be in AX (kVL_AX_is_value)
+    // - or in m(MAR) (kVL_MAR_pointsto_value).
     // When writing, we need a pointer to the adress that has to be modified.
-    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
-    // - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
-    // - attributes must be modified by calling their setter function (kVL_attribute)
+    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_MAR_pointsto_value).
+    // - or AX, i.e., the value to modify is in m(AX) (kVL_AX_is_value)
+    // - attributes must be modified by calling their setter function (kVL_Attribute)
     enum ValueLocation
     {
-        kVL_ax_is_value,         // The value is in register AX
-        kVL_mar_pointsto_value,  // The value is in m(MAR)
-        kVL_attribute            // The value must be modified by calling an attribute setter
+        kVL_AX_is_value,         // The value is in register AX
+        kVL_MAR_pointsto_value,  // The value is in m(MAR)
+        kVL_Attribute            // The value must be modified by calling an attribute setter
     };
 
     // This ought to replace the #defines in script_common.h
@@ -207,19 +207,20 @@ private:
     class NestingStack
     {
     public:
-        enum NSType
+        enum class NSType
         {
-            kNS_None,
-            kNS_Braces, // { } without any preceding if, while etc.
-            kNS_Do,
-            kNS_Else,
-            kNS_For,
-            kNS_Function,
-            kNS_If,
-            kNS_Parameters, // Parameters of a function
-            kNS_Switch,
-            kNS_While,
+            kNone,
+            kBraces, // { } without any preceding if, while etc.
+            kDo,
+            kElse,
+            kFor,
+            kFunction,
+            kIf,
+            kParameters, // Parameters of a function
+            kSwitch,
+            kWhile,
         };
+
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
 
@@ -312,13 +313,15 @@ private:
         // Write chunk of code back into the codebase stashed in the innermost level, at index
         inline void WriteChunk(size_t chunk_idx, int &id) { WriteChunk(TopLevel(), chunk_idx, id); };
     } _nest;
+    typedef NestingStack::NSType NSType;
 
     // Track the phase the parser is in.
-    enum ParsingPhase
+    enum class PP
     {
-        kPP_PreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
-        kPP_Main,           // The main phase that generates the bytecode.
+        kPreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
+        kMain,           // The main phase that generates the bytecode.
     } _pp;
+    typedef PP ParsingPhase;
 
     // We set the MAR register lazily to save on runtime computation. This object
     // encapsulates the stashed operations that haven't been done on MAR yet.
@@ -341,7 +344,7 @@ private:
         // Write out the Bytecode necessary to bring MAR up-to-date; reset the object
         ErrorType MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
 
-        inline bool OpsPending() const { return kScT_None != _ScType || 0u < _startOffs || 0u < _componentOffs; };
+        inline bool OpsPending() const { return ScT::kNone != _ScType || 0u < _startOffs || 0u < _componentOffs; };
 
         void Reset();
     };
@@ -797,9 +800,9 @@ private:
     // We have accepted something like "struct foo" and are waiting for "extends"
     ErrorType ParseStruct_ExtendsClause(Symbol stname, size_t &size_so_far);
 
-    void ParseQualifiers(TypeQualifierSet &tqs);
+    ErrorType ParseQualifiers(TypeQualifierSet &tqs);
 
-    ErrorType ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype, bool member_is_import);
+    ErrorType ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
 
     // check that we haven't extended a struct that already contains a member with the same name
     ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol current_struct);
@@ -946,7 +949,7 @@ private:
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
-    ErrorType Parse_CheckTQ_Empty(TypeQualifierSet tqs);
+    ErrorType Parse_CheckEmpty(TypeQualifierSet tqs);
 
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis

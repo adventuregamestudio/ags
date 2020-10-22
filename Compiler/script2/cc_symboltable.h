@@ -6,17 +6,87 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <bitset>
 
 namespace AGS
 {
 
-enum VartypeType
+// In what type of memory the variable is allocated
+enum class ScT  // Scope type
 {
-    kVTT_Atomic = 0,
-    kVTT_Array = 1 << 1,
-    kVTT_Const = 1 << 2,
-    kVTT_Dynarray = 1 << 3,
-    kVTT_Dynpointer = 1 << 4,
+    kNone = 0,
+    kGlobal,
+    kImport,
+    kLocal,
+};
+typedef ScT ScopeType;
+
+enum class VTT  // Vartype type
+{
+    kAtomic = 0,
+    kArray,
+    kConst,
+    kDynarray,
+    kDynpointer,
+};
+typedef VTT VartypeType;
+
+enum class VTF : size_t // Vartype flag
+{
+    kUndefined = 0,     // Undefined or only forward-defined
+    kAutoptr,           // Will be displayed without the '*'
+    kBuiltin,           // May not be instantiated with new (but new[] is okay)
+    kIntegerVartype,    // Is any type of integer, e.g., int, 'enum's etc.
+    kManaged,           // Must be instantiated with new or new[]
+    kStruct,            // Is a struct
+};
+constexpr VTF kLastVartypeFlag = VTF::kStruct;
+typedef VTF VartypeFlag;
+
+// Wrapper around the bitset so that it is indexed by a vartype flag.
+class VartypeFlags
+{
+    std::bitset<16u> _flags;
+
+public:
+    inline bool operator[](VartypeFlag f) const { return _flags[static_cast<size_t>(f)]; }
+    // This ugly, ugly piece of C++ clumsiness is needed so that you can assign through the [] operator ))-:
+    inline std::bitset<16u>::reference operator[](VartypeFlag f) { return _flags[static_cast<size_t>(f)]; }
+
+    inline bool operator==(VartypeFlags const &other) const { return this->_flags == other._flags; }
+    inline bool operator!=(VartypeFlags const &other) const { return !(*this == other); }
+};
+
+enum class TQ : size_t // Type qualifier
+{
+    kNone = 0,
+    kAttribute,
+    kAutoptr,
+    kBuiltin,
+    kConst,
+    kImport,
+    kManaged,
+    kProtected,
+    kReadonly,
+    kStatic,
+    kStringstruct,
+    kWriteprotected,
+};
+typedef TQ TypeQualifier;
+
+class TypeQualifierSet
+{
+    std::bitset<16u> _flags;
+
+public:
+    // This ugly, ugly piece of C++ clumsiness is needed so that you can assign through the [] operator ))-:
+    inline std::bitset<16u>::reference operator[](TypeQualifier f) { return _flags[static_cast<size_t>(f)]; }
+    inline bool operator[](TypeQualifier f) const { return _flags[static_cast<size_t>(f)]; }
+
+    inline bool operator==(TypeQualifierSet const &other) const { return this->_flags == other._flags; }
+    inline bool operator!=(TypeQualifierSet const &other) const { return !(*this == other); }
+
+    inline TypeQualifierSet reset(TypeQualifier tq) { (*this)[tq] = false; return *this; }
 };
 
 enum Predefined : Symbol
@@ -94,7 +164,7 @@ enum Predefined : Symbol
     kKW_Extends,    // "extends"
     kKW_For,        // "for"
     kKW_If,         // "if"
-    kKW_Import,     // "import"
+    kKW_ImportStd,  // "import"
     kKW_ImportTry,  // "_tryimport"
     kKW_Internalstring,   // "internalstring"
     kKW_Colon,      // ":"
@@ -121,13 +191,13 @@ struct SymbolTable;
 
 struct SymbolTableEntry {
     friend SymbolTable;
-protected:
+public:
+
     // Is (or has) a vartype that can be recognized by a flag
     bool IsVTF(SymbolTableFlag flag, SymbolTable const &symt) const;
     // Is (or has)  a vartype that can be recognized by a vartype type
-    bool IsVTT(enum VartypeType vtt, SymbolTable const &symt) const;
+    bool IsVTT(AGS::VartypeType vtt, SymbolTable const &symt) const;
 
-public:
     static size_t const kParameterSScope = 1;
     static size_t const kFunctionSScope = 2;
 
@@ -173,7 +243,7 @@ public:
 
     // Vartypes only
     size_t SSize;      // Size in bytes
-    enum VartypeType VartypeType;
+    VartypeType VartypeType;
     std::vector<size_t> Dims; // number of elements in each dimension of static array
     std::vector<Symbol> Children; // of structs and enums
 
@@ -189,14 +259,14 @@ public:
 public:
     // General
     inline bool IsAnyArrayVartype(SymbolTable const &symt) const { return IsArrayVartype(symt) || IsDynarrayVartype(symt); }
-    inline bool IsArrayVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); }
-    inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); }
+    inline bool IsArrayVartype(SymbolTable const &symt) const { return IsVTT(VTT::kArray, symt); }
+    inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(VTT::kAtomic, symt); }
     inline bool IsBuiltin(SymbolTable const &symt) const { return IsVTF(kSFLG_StructBuiltin, symt); }
-    inline bool IsConstVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); }
-    inline bool IsDynarrayVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); }
-    inline bool IsDynpointerVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); }
-    inline bool IsDynVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); }
-    inline bool IsImport() const { return FlagIsSet(TypeQualifiers, kTQ_Import); }
+    inline bool IsConstVartype(SymbolTable const &symt) const { return IsVTT(VTT::kConst, symt); }
+    inline bool IsDynarrayVartype(SymbolTable const &symt) const { return IsVTT(VTT::kDynarray, symt); }
+    inline bool IsDynpointerVartype(SymbolTable const &symt) const { return IsVTT(VTT::kDynpointer, symt); }
+    inline bool IsDynVartype(SymbolTable const &symt) const { return IsVTT(VTT::kDynarray, symt) || IsVTT(VTT::kDynpointer, symt); }
+    inline bool IsImport() const { return TypeQualifiers[TQ::kImport]; }
     inline bool IsManagedVartype(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
     inline bool IsStructVartype(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
     inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
@@ -223,16 +293,16 @@ private:
     struct VVTTHash
     {
         std::hash<Vartype> hash;
-        size_t operator() (std::pair<Vartype, enum VartypeType> pair) const { return hash(pair.first ^ (1021 * pair.second)); };
+        size_t operator() (std::pair<Vartype, VartypeType> pair) const { return hash(pair.first ^ (1021 * static_cast<long>(pair.second))); };
     };
 
     Symbol _stringStructSym; // the symbol that corresponds to "String" or whatever the stringstruct is
     AGS::Vartype _stringStructPtrVartype;
 
     mutable std::unordered_map<std::string, int> _findCache;
-    mutable std::unordered_map<std::pair<Vartype, enum VartypeType>, Vartype, VVTTHash> _vartypesCache;
+    mutable std::unordered_map<std::pair<Vartype, VartypeType>, Vartype, VVTTHash> _vartypesCache;
 
-    inline bool IsVTT(Symbol s, enum VartypeType vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
+    inline bool IsVTT(Symbol s, VartypeType vtt) const { return IsInBounds(s) ? entries[s].IsVTT(vtt, *this) : false; }
     inline bool IsVTF(Symbol s, SymbolTableFlag f) const { return IsInBounds(s) ? entries[s].IsVTF(f, *this) : false; }
 
 public:
@@ -308,9 +378,11 @@ public:
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
     // The "Dynarray / Dynpointer/ Const ... of vartype" vartype
-    Vartype VartypeWith(enum VartypeType vtt, Vartype vartype);
-    // The vartype without the qualifiers given in vtt
-    Vartype VartypeWithout(long vtt, Vartype vartype) const;
+    Vartype VartypeWith(VartypeType vtt, Vartype vartype);
+    // The vartype without the qualifier given in vtt
+    Vartype VartypeWithout(VartypeType vtt, Vartype vartype) const;
+    // Base vartype, without any qualifiers
+    Vartype BaseVartype(Vartype vartype) const;
 
     // Fills compo_list with the indexes of all the strct components
     // Includes the ancesters' components

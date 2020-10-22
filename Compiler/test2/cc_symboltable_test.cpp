@@ -29,15 +29,15 @@ TEST(SymbolTable, GetNameConverted) {
 
     AGS::Vartype const foo_vartype = testSym.Add("foo", AGS::SymT::kNoType, 0);
     testSym[foo_vartype].SType = AGS::SymT::kVartype;
-    testSym[foo_vartype].VartypeType = AGS::kVTT_Atomic;
+    testSym[foo_vartype].VartypeType = AGS::VTT::kAtomic;
     AGS::Vartype foo_conv_vartype = foo_vartype;
     EXPECT_STREQ(
         "foo[]",
-        testSym.GetName(testSym.VartypeWith(AGS::kVTT_Dynarray, foo_vartype)).c_str());
+        testSym.GetName(testSym.VartypeWith(AGS::VTT::kDynarray, foo_vartype)).c_str());
 
     EXPECT_STREQ(
         "foo *",
-        testSym.GetName(testSym.VartypeWith(AGS::kVTT_Dynpointer, foo_vartype)).c_str());
+        testSym.GetName(testSym.VartypeWith(AGS::VTT::kDynpointer, foo_vartype)).c_str());
 
 
     std::vector<size_t> const dims = { 3, 5, 7 };

@@ -240,7 +240,10 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
         if (std::string::npos != exponent_leadin.find(ch) && std::string::npos != exponent_follow.find(peek))
             continue; // Is neither an int nor a float but will become a number
 
-        if (('-' == ch || '+' == ch) && IsDigit(peek))
+        if (('-' == ch || '+' == ch) &&
+            IsDigit(peek) &&
+            valstring.length() > 1 &&
+            std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2]))
             continue; // Is neither an int nor a float but will become a number
 
         std::strtol(valstring.c_str(), &endptr, 0);
@@ -297,9 +300,9 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
     if (std::numeric_limits<float>::max() < double_value)
     {
         Error(
-            "Literal float '%s' is out of bounds (maximum is '%s')",
+            "Literal float '%s' is out of bounds (maximum is '%.3G')",
             valstring.c_str(),
-            std::to_string(std::numeric_limits<float>::max()).c_str());
+            static_cast<double>(std::numeric_limits<float>::max()));
         return kERR_UserError;
     }
     scan_type = kSct_FloatLiteral;

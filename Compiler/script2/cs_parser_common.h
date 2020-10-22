@@ -17,7 +17,6 @@ typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository
 typedef int32_t GlobalLoc; // An offset into the global space
 typedef char FixupType; // the type of a fixup
-typedef FlagSet TypeQualifierSet;
 
 constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
@@ -64,24 +63,6 @@ typedef enum class SymT SymbolType;
 // Types starting (numerically) with this aren't part of expressions
 constexpr SymbolType kLastInExpression = SymT::kStructComponent; // Types beyond here can't be in expressions
 
-enum TypeQualifier
-{
-    kTQ_None = 0,
-    kTQ_Attribute = 1 << 0,
-    kTQ_Autoptr = 1 << 1,
-    kTQ_Builtin = 1 << 2,
-    kTQ_Const = 1 << 3,
-    kTQ_ImportStd = 1 << 4,
-    kTQ_ImportTry = 1 << 5,
-    kTQ_Managed = 1 << 6,
-    kTQ_Protected = 1 << 7,
-    kTQ_Readonly = 1 << 8,
-    kTQ_Static = 1 << 9,
-    kTQ_Stringstruct = 1 << 10,
-    kTQ_Writeprotected = 1 << 11,
-    kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
-};
-
 enum SymbolTableFlag : FlagSet
 {
     kSFLG_Accessed = 1 << 0, // If not set, the variable is never used
@@ -91,16 +72,6 @@ enum SymbolTableFlag : FlagSet
     kSFLG_StructMember = 1 << 4, // is a member 
     kSFLG_StructManaged = 1 << 5, // is managed
     kSFLG_StructVartype = 1 << 6, // is a struct 
-};
-
-// In what type of memory the variable is allocated
-enum ScopeType
-{
-    kScT_None = 0,
-    kScT_Global,
-    kScT_Import,
-    kScT_Local,
-    kScT_Strings,
 };
 
 enum ErrorType
@@ -123,13 +94,13 @@ public:
 
     struct Entry
     {
-        Severity Severity;
-        std::string Section;
-        size_t Lineno;
-        std::string Message;
+        Severity Severity = kSV_Error;
+        std::string Section = "";
+        size_t Lineno = 0u;
+        std::string Message = "";
 
         Entry() = default;
-        Entry(enum Severity sev, std::string const &section, size_t lineno, std::string const msg);
+        Entry(enum Severity sev, std::string const &section, size_t lineno, std::string const &msg);
     };
 
     typedef std::vector<Entry> MessagesType;

@@ -11,12 +11,12 @@ AGS::SymbolTableEntry::SymbolTableEntry()
     , SType(SymT::kNoType)
     , Declared(kNoSrcLocation)
     , Flags(0)
-    , TypeQualifiers(0)
+    , TypeQualifiers({})
     , SOffset(0)
     , Vartype(0)
     , SSize(0)
     , SScope(0u)
-    , VartypeType(kVTT_Atomic)
+    , VartypeType(VTT::kAtomic)
     , Dims({})
     , Parent(0)
     , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
@@ -32,12 +32,12 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , SType(stype)
     , Declared(kNoSrcLocation)
     , Flags(0)
-    , TypeQualifiers(0)
+    , TypeQualifiers({})
     , SOffset(0)
     , Vartype(0)
     , SSize(ssize)
     , SScope(0u)
-    , VartypeType(kVTT_Atomic)
+    , VartypeType(VTT::kAtomic)
     , Dims({})
     , Parent(0)
     , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
@@ -47,7 +47,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType styp
     , OperatorUnaryPrio(-1)
 { }
 
-bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt) const
+bool AGS::SymbolTableEntry::IsVTT(AGS::VartypeType vtt, SymbolTable const &symt) const
 {
     if (SymT::kVartype != SType)
         return symt.IsVTT(Vartype, vtt);
@@ -55,8 +55,8 @@ bool AGS::SymbolTableEntry::IsVTT(enum VartypeType vtt, SymbolTable const &symt)
     // "Constant" always is the outermost vartype qualifier,
     // so if this is constant and we're checking for something else,
     // then look for the info one level down.
-    if (kVTT_Const == VartypeType)
-        return (kVTT_Const == vtt) ? true : symt.IsVTT(Vartype, vtt);
+    if (VTT::kConst == VartypeType)
+        return (VTT::kConst == vtt) ? true : symt.IsVTT(Vartype, vtt);
     return vtt == VartypeType;
 }
 
@@ -85,7 +85,7 @@ bool AGS::SymbolTableEntry::IsVTF(SymbolTableFlag flag, SymbolTable const &symt)
         return symt.IsVTF(Vartype, flag);
 
     // Recursively get to the innermost symbol; read that symbol's flags
-    if (kVTT_Atomic == VartypeType)
+    if (VTT::kAtomic == VartypeType)
         return FlagIsSet(Flags, flag);
     return symt.IsVTF(Vartype, flag);
 }
@@ -217,7 +217,7 @@ void AGS::SymbolTable::reset()
     Add(kKW_Extends, "extends", SymT::kKeyword);
     Add(kKW_For, "for", SymT::kKeyword);
     Add(kKW_If, "if", SymT::kKeyword);
-    Add(kKW_Import, "import", SymT::kImport);     // NOTE: Different keywords, same symbol
+    Add(kKW_ImportStd, "import", SymT::kImport);     // NOTE: Different keywords, same symbol
     Add(kKW_ImportTry, "_tryimport", SymT::kImport); // NOTE: Different keywords, same symbol
     Add(kKW_Internalstring, "internalstring", SymT::kKeyword);
     Add(kKW_Colon, ":", SymT::kKeyword);
@@ -260,7 +260,7 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
 {
     // Can't have classic arrays of classic arrays
-    if (IsVTT(vartype, kVTT_Array))
+    if (IsVTT(vartype, VTT::kArray))
         return vartype;
 
     std::string conv_name = entries[vartype].SName + "[";
@@ -274,17 +274,17 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     }
     Vartype const array_vartype = FindOrAdd(conv_name);
     entries[array_vartype].SType = SymT::kVartype;
-    entries[array_vartype].VartypeType = kVTT_Array;
+    entries[array_vartype].VartypeType = VTT::kArray;
     entries[array_vartype].Vartype = vartype;
     entries[array_vartype].SSize = num_elements * GetSize(vartype);
     entries[array_vartype].Dims = dims;
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, Vartype vartype)
 {
     // Return cached result if existent 
-    std::pair<Vartype, enum VartypeType> const arg = { vartype, vtt };
+    std::pair<Vartype, AGS::VartypeType> const arg = { vartype, vtt };
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
@@ -296,15 +296,15 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
     std::string post = "";
     switch (vtt)
     {
-    default: pre = "QUAL" + std::to_string(vtt) + " "; break;
-    case kVTT_Const: pre = "const "; break;
+    default: pre = "QUAL" + std::to_string(static_cast<int>(vtt)) + " "; break;
+    case VTT::kConst: pre = "const "; break;
         // Note: Even if we have an autoptr and suppress the '*', we still need to add _something_ to the name.
         // The name for the pointered type must be different from the name of the unpointered type.
         // (If this turns out to be too ugly, then we need two fields for vartypes:
         // one field that is output to the user, another field that is guaranteed to have different values
         // for different vartypes.)
-    case kVTT_Dynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr) ? " " : " *"; break;
-    case kVTT_Dynarray: post = "[]"; break;
+    case VTT::kDynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr) ? " " : " *"; break;
+    case VTT::kDynarray: post = "[]"; break;
     }
     std::string const conv_name = (pre + entries[vartype].SName) + post;
     valref = FindOrAdd(conv_name);
@@ -312,17 +312,27 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(enum VartypeType vtt, Vartype vartype
     entry.SType = SymT::kVartype;
     entry.VartypeType = vtt;
     entry.Vartype = vartype;
-    entry.SSize = (kVTT_Const == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
+    entry.SSize = (VTT::kConst == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
     return valref;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWithout(long vtt, AGS::Vartype vartype) const
+AGS::Vartype AGS::SymbolTable::VartypeWithout(VartypeType vtt, AGS::Vartype vartype) const
 {
     while (
         IsInBounds(vartype) &&
         SymT::kVartype == entries[vartype].SType &&
-        FlagIsSet(entries[vartype].VartypeType, vtt))
+        entries[vartype].VartypeType == vtt)
         vartype = entries[vartype].Vartype;
+    return vartype;
+}
+
+AGS::Vartype AGS::SymbolTable::BaseVartype(Vartype vartype) const
+{
+    while (!IsAtomic(vartype))
+    {
+        VartypeType const vtt = entries[vartype].VartypeType;
+        vartype = VartypeWithout(vtt, vartype);
+    }
     return vartype;
 }
 
@@ -358,11 +368,11 @@ bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
         return false;
 
     // Oldstrings and String * are strings
-    Vartype const s_without_const = VartypeWithout(kVTT_Const, s);
+    Vartype const s_without_const = VartypeWithout(VTT::kConst, s);
 
     return
         kKW_String == s_without_const ||
-        GetStringStructSym() == VartypeWithout(kVTT_Dynpointer, s_without_const);
+        GetStringStructSym() == VartypeWithout(VTT::kDynpointer, s_without_const);
 }
 
 bool AGS::SymbolTable::IsOldstring(Symbol s) const
@@ -379,13 +389,13 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
     }
 
     Vartype const s_without_const =
-        VartypeWithout(kVTT_Const, s);
+        VartypeWithout(VTT::kConst, s);
     // string and const string are oldstrings
     if (kKW_String == s_without_const)
         return true;
 
     // const char[..] and char[..] are considered oldstrings, too
-    return (IsArrayVartype(s) && kKW_Char == VartypeWithout(kVTT_Array, s_without_const));
+    return (IsArrayVartype(s) && kKW_Char == VartypeWithout(VTT::kArray, s_without_const));
 }
 
 AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int ssize)

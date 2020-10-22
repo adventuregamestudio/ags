@@ -1059,6 +1059,22 @@ TEST_F(Compile0, VartypeLocalSeq2) {
     EXPECT_NE(std::string::npos, err.find("in use"));
 }
 
+TEST_F(Compile0, StructMemberImport) {    
+
+    char *inpl = "\
+        struct Parent                   \n\
+        {                               \n\
+            import int Payload;         \n\
+        };                              \n\
+        ";
+   
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("import"));
+}
+
 TEST_F(Compile0, StructExtend1) {    
 
     char *inpl = "\

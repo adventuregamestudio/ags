@@ -239,7 +239,7 @@ std::string const AGS::Parser::TypeQualifierSet2String(TypeQualifierSet tqs) con
     std::string ret;
 
     for (auto tq_it = _tq2String.begin(); _tq2String.end() != tq_it; tq_it++)
-        if (FlagIsSet(tqs, tq_it->first))
+        if (tqs[tq_it->first])
             ret += tq_it->second + " ";
     if (ret.length() > 0)
         ret.pop_back();
@@ -402,7 +402,7 @@ AGS::Parser::NestingStack::NestingStack(::ccCompiledScript &scrip)
     :_scrip(scrip)
 {
     // Push first record on stack so that it isn't empty
-    Push(NestingStack::kNS_None);
+    Push(NSType::kNone);
 }
 
 bool AGS::Parser::NestingStack::AddOldDefinition(Symbol s, SymbolTableEntry const &entry)
@@ -692,7 +692,7 @@ int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
 
 AGS::Parser::MemoryLocation::MemoryLocation(Parser &parser)
     : _parser(parser)
-    , _ScType (kScT_None)
+    , _ScType (ScT::kNone)
     , _startOffs(0u)
     , _componentOffs (0u)
 {
@@ -700,7 +700,7 @@ AGS::Parser::MemoryLocation::MemoryLocation(Parser &parser)
 
 ErrorType AGS::Parser::MemoryLocation::SetStart(ScopeType type, size_t offset)
 {
-    if (kScT_None != _ScType)
+    if (ScT::kNone != _ScType)
     {
         _parser.Error("!Memory location object doubly initialized ");
         return kERR_InternalError;
@@ -722,13 +722,13 @@ ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledS
             scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
         break;
 
-    case kScT_Global:
+    case ScT::kGlobal:
         scrip.refresh_lineno(lineno);
         scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.fixup_previous(Parser::kFx_GlobalData);
         break;
 
-    case kScT_Import:
+    case ScT::kImport:
         // Have to convert the import number into a code offset first.
         // Can only then add the offset to it.
         scrip.refresh_lineno(lineno);
@@ -738,7 +738,7 @@ ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledS
             scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
         break;
 
-    case kScT_Local:
+    case ScT::kLocal:
         scrip.refresh_lineno(lineno);
         CodeCell const offset = scrip.offset_to_local_var_block - _startOffs - _componentOffs;
         if (offset < 0)
@@ -756,14 +756,14 @@ ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccCompiledS
 
 void AGS::Parser::MemoryLocation::Reset()
 {
-    _ScType = kScT_None;
+    _ScType = ScT::kNone;
     _startOffs = 0u;
     _componentOffs = 0u;
 }
 
 AGS::Parser::Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh)
     : _nest(scrip)
-    , _pp(kPP_PreAnalyze)
+    , _pp(PP::kPreAnalyze)
     , _sym(symt)
     , _src(src)
     , _scrip(scrip)
@@ -779,25 +779,24 @@ AGS::Parser::Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt
     if (_tq2String.empty())
         _tq2String =
             {
-                { kTQ_Attribute, "attribute", },
-                { kTQ_Autoptr, "autoptr", },
-                { kTQ_Builtin, "builtin", },
-                { kTQ_Const, "const", },
-                { kTQ_ImportStd, "import", },
-                { kTQ_ImportTry, "_tryimport", },
-                { kTQ_Managed, "managed", },
-                { kTQ_Protected, "protected", },
-                { kTQ_Readonly, "readonly", },
-                { kTQ_Static, "static", },
-                { kTQ_Stringstruct, "stringstruct", },
-                { kTQ_Writeprotected, "writeprotected", },
+                { TQ::kAttribute, "attribute", },
+                { TQ::kAutoptr, "autoptr", },
+                { TQ::kBuiltin, "builtin", },
+                { TQ::kConst, "const", },
+                { TQ::kImport, "import", },
+                { TQ::kManaged, "managed", },
+                { TQ::kProtected, "protected", },
+                { TQ::kReadonly, "readonly", },
+                { TQ::kStatic, "static", },
+                { TQ::kStringstruct, "stringstruct", },
+                { TQ::kWriteprotected, "writeprotected", },
             };
 }
 
 void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
 {
     if (_sym.IsManagedVartype(vartype))
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+        vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
 }
 
 size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
@@ -1266,7 +1265,7 @@ ErrorType AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
     ErrorType retval = Expect(kKW_CloseBracket, _src.GetNext());
     if (retval < 0) return retval;
 
-    vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
+    vartype = _sym.VartypeWith(VTT::kDynarray, vartype);
     return kERR_None;
 }
 
@@ -1295,7 +1294,7 @@ void AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kn
 ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS::Symbol &struct_of_func, AGS::Symbol &name_of_func, TypeQualifierSet &tqs)
 {
     if (is_static_extender)
-        SetFlag(tqs, kTQ_Static, true);
+        tqs[TQ::kStatic] = true;
 
     _src.GetNext(); // Eat "this" or "static"
     struct_of_func = _src.GetNext();
@@ -1393,7 +1392,7 @@ ErrorType AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
     ErrorType retval = EatDynpointerSymbolIfPresent(vartype);
     if (retval < 0) return retval;
 
-    if (kPP_Main == _pp && !_sym.IsManagedVartype(vartype) && _sym.IsStructVartype(vartype))
+    if (PP::kMain == _pp && !_sym.IsManagedVartype(vartype) && _sym.IsStructVartype(vartype))
     {
         Error("'%s' is non-managed; a non-managed struct cannot be passed as parameter", _sym.GetName(vartype).c_str());
         return kERR_UserError;
@@ -1408,7 +1407,7 @@ ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol 
 {
     param_name = kKW_NoSymbol;
 
-    if (kPP_PreAnalyze == _pp || !body_follows)
+    if (PP::kPreAnalyze == _pp || !body_follows)
     {
         // Ignore the parameter name when present, it won't be used later on (in this phase)
         Symbol const nextsym = _src.PeekNext();
@@ -1462,8 +1461,8 @@ ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AG
     
    if (param_is_const)
     {
-        SetFlag(param_entry.TypeQualifiers, kTQ_Readonly, true);
-        param_entry.Vartype = _sym.VartypeWith(kVTT_Const, param_entry.Vartype);
+        param_entry.TypeQualifiers[TQ::kReadonly] = true;
+        param_entry.Vartype = _sym.VartypeWith(VTT::kConst, param_entry.Vartype);
     }
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The + 1 is because the
@@ -1478,7 +1477,7 @@ ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follo
     ErrorType retval = ParseParamlist_ParamType(param_vartype);
     if (retval < 0) return retval;
     if (param_is_const)
-        param_vartype = _sym.VartypeWith(kVTT_Const, param_vartype);
+        param_vartype = _sym.VartypeWith(VTT::kConst, param_vartype);
 
     Symbol param_name;
     retval = ParseParamlist_Param_Name(body_follows, param_name);
@@ -1494,12 +1493,12 @@ ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follo
     _sym[name_of_func].FuncParamVartypes.push_back(param_vartype);
     _sym[name_of_func].FuncParamDefaultValues.push_back(param_default);
     
-    if (kPP_Main != _pp || !body_follows)
+    if (PP::kMain != _pp || !body_follows)
         return kERR_None;
 
     // All function parameters correspond to local variables.
     // A body will follow, so we need to enter this parameter as a variable into the symbol table
-    retval = ParseVardecl_Var2SymTable(param_name, param_vartype, kScT_Local);
+    retval = ParseVardecl_Var2SymTable(param_name, param_vartype, ScT::kLocal);
     if (retval < 0) return retval;
     // Set the offset, make read-only if required
     return ParseParamlist_Param_AsVar2Sym(param_name, param_vartype, param_is_const, param_idx);
@@ -1550,7 +1549,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_fo
         if (kKW_Const == cursym)
         {
             // check in main compiler phase that type must follow
-            if (kPP_Main == _pp && SymT::kVartype != _sym.GetSymbolType(_src.PeekNext()))
+            if (PP::kMain == _pp && SymT::kVartype != _sym.GetSymbolType(_src.PeekNext()))
             {
                 Error(
                     "Expected a type after 'const', found '%s' instead",
@@ -1579,17 +1578,20 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
     SymbolTableEntry &entry = _sym[name_of_function];
     entry.SType = SymT::kFunction;
     entry.FuncParamVartypes[0] = return_vartype;
+    entry.TypeQualifiers = tqs;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the entity returned.
-    entry.TypeQualifiers = tqs &  ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
+    entry.TypeQualifiers[TQ::kAutoptr] = false;
+    entry.TypeQualifiers[TQ::kManaged] = false;
+    entry.TypeQualifiers[TQ::kBuiltin] = false;
 
     // Do not set Extends and the component flag here.
     // They are used to denote functions that were either declared in a struct defn or as extender
 
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
     {
         // Encode in entry.SOffset the type of function declaration
         FunctionType ft = kFT_PureForward;
-        if (FlagIsSet(tqs, kTQ_Import))
+        if (tqs[TQ::kImport])
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
@@ -1660,10 +1662,14 @@ ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry 
         return kERR_UserError;
     }
 
-    if ((known_info.TypeQualifiers & ~kTQ_Import) != (this_entry.TypeQualifiers & ~kTQ_Import))
+    TypeQualifierSet known_tq = known_info.TypeQualifiers;
+    known_tq[TQ::kImport] = false;
+    TypeQualifierSet this_tq = this_entry.TypeQualifiers;
+    this_tq[TQ::kImport] = false;
+    if (known_tq != this_tq)
     {
-        std::string const ki_tq = TypeQualifierSet2String(known_info.TypeQualifiers & ~kTQ_Import);
-        std::string const te_tq = TypeQualifierSet2String(this_entry.TypeQualifiers & ~kTQ_Import);
+        std::string const ki_tq = TypeQualifierSet2String(known_tq);
+        std::string const te_tq = TypeQualifierSet2String(this_tq);
         std::string msg = ReferenceMsgLoc(
             "'%s' has the qualifiers '%s' here but '%s' elsewhere",
             known_info.Declared);
@@ -1779,7 +1785,7 @@ ErrorType AGS::Parser::ParseFuncdecl_DoesBodyFollow(bool &body_follows)
 
 ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check)
 {
-    if (0 >= struct_of_func && FlagIsSet(tqs, kTQ_Protected))
+    if (0 >= struct_of_func && tqs[TQ::kProtected])
     {
         Error(
             "Function '%s' isn't a struct component and so cannot be 'protected'",
@@ -1808,7 +1814,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
         return kERR_UserError;
     }
 
-    if (kPP_PreAnalyze == _pp && body_follows && kFT_LocalBody == _sym[name_of_func].SOffset)
+    if (PP::kPreAnalyze == _pp && body_follows && kFT_LocalBody == _sym[name_of_func].SOffset)
     {
         Error(
             ReferenceMsgSym("Function '%s' is also defined with body elsewhere", name_of_func).c_str(),
@@ -1816,7 +1822,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
         return kERR_UserError;
     }
 
-    if (kPP_Main == _pp && 0 < struct_of_func && struct_of_func != _sym[name_of_func].Parent)
+    if (PP::kMain == _pp && 0 < struct_of_func && struct_of_func != _sym[name_of_func].Parent)
     {
         // Functions only get this if they are declared in a struct or as extender
         std::string component = _sym.GetName(name_of_func);
@@ -1832,12 +1838,12 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
 
 AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
     {
         // Get start offset and function index
         int function_idx = -1; // Index in the _scrip.functions[] array
         int func_startoffs;
-        ErrorType retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, FlagIsSet(tqs, kTQ_Import), func_startoffs, function_idx);
+        ErrorType retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], func_startoffs, function_idx);
         if (retval < 0) return retval;
         _sym[name_of_func].SOffset = func_startoffs;
         if (function_idx >= 0)
@@ -1845,14 +1851,14 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
             _sym[name_of_func].GetNumOfFuncParams();
     }
 
-    if (!FlagIsSet(tqs, kTQ_Import))
+    if (!tqs[TQ::kImport])
         return kERR_None;
 
     // Imported functions
 
-    SetFlag(_sym[name_of_func].TypeQualifiers, kTQ_Import, true);
+    _sym[name_of_func].TypeQualifiers[TQ::kImport] = true;
 
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
     {
         _sym[name_of_func].SOffset = kFT_Import;
         return kERR_None;
@@ -1883,9 +1889,9 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
-    if (FlagIsSet(tqs, kTQ_Import) &&   // This declaration has 'import'
+    if (tqs[TQ::kImport] &&   // This declaration has 'import'
         SymT::kFunction == _sym.GetSymbolType(name_of_func) &&
-        !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import)) // but symbol table hasn't 'import'
+        !_sym[name_of_func].TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
@@ -1895,13 +1901,13 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
             Error(msg.c_str());
             return kERR_UserError;
         }
-        SetFlag(tqs, kTQ_Import, false);
+        tqs[TQ::kImport] = false;
     }
 
-    if (kPP_Main == _pp && body_follows)
+    if (PP::kMain == _pp && body_follows)
     {
         // All the parameters that will be defined as local variables go on nesting level 1.
-        _nest.Push(NestingStack::kNS_Parameters);
+        _nest.Push(NSType::kParameters);
         // When this function is called, first all the parameters are pushed on the stack
         // and then the address to which the function should return after it has finished.
         // So the first parameter isn't on top of the stack but one address below that
@@ -2119,15 +2125,15 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
             !_sym.IsDynarrayVartype(vartype_wants_to_be);
 
     // can convert String * to const string
-    if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
-        kKW_String == _sym.VartypeWithout(kVTT_Const, vartype_wants_to_be))
+    if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, vartype_is) &&
+        kKW_String == _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be))
     {
         return false;
     }
 
     // can convert string or const string to String *
-    if (kKW_String == _sym.VartypeWithout(kVTT_Const, vartype_is) &&
-        _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_wants_to_be))
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype_is) &&
+        _sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, vartype_wants_to_be))
     {
         return false;
     }
@@ -2148,8 +2154,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return false;
 
     // From here on, don't mind constness or dynarray-ness
-    vartype_is = _sym.VartypeWithout(kVTT_Const | kVTT_Dynarray, vartype_is);
-    vartype_wants_to_be = _sym.VartypeWithout(kVTT_Const | kVTT_Dynarray, vartype_wants_to_be);
+    vartype_is = _sym.VartypeWithout(VTT::kConst, vartype_is);
+    vartype_is = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
+    vartype_wants_to_be = _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be);
+    vartype_wants_to_be = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
 
     // floats cannot mingle with other types
     if ((vartype_is == kKW_Float) != (vartype_wants_to_be == kKW_Float))
@@ -2169,8 +2177,8 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         // The underlying core vartypes must be identical:
         // A dynarray contains a sequence of elements whose size are used
         // to index the individual element, so no extending elements
-        Symbol const target_core_vartype = _sym.VartypeWithout(kVTT_Dynarray, vartype_wants_to_be);
-        Symbol const current_core_vartype = _sym.VartypeWithout(kVTT_Dynarray, vartype_is);
+        Symbol const target_core_vartype = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
+        Symbol const current_core_vartype = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
         return current_core_vartype != target_core_vartype;
     }
 
@@ -2182,8 +2190,8 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
             return true;
 
         // Core vartypes need not be identical here: check against extensions
-        Symbol const target_core_vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype_wants_to_be);
-        Symbol current_core_vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype_is);
+        Symbol const target_core_vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype_wants_to_be);
+        Symbol current_core_vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype_is);
         while (current_core_vartype != target_core_vartype)
         {
             current_core_vartype = _sym[current_core_vartype].Parent;
@@ -2236,11 +2244,11 @@ bool AGS::Parser::IsBooleanOpcode(CodeCell opcode)
 // then convert AX into a String object and set its type accordingly
 void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
 {
-    if (kKW_String == _sym.VartypeWithout(kVTT_Const, _scrip.ax_vartype) &&
-        _sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, wanted_vartype))
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, _scrip.ax_vartype) &&
+        _sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, wanted_vartype))
     {
         WriteCmd(SCMD_CREATESTRING, SREG_AX); // convert AX
-        _scrip.ax_vartype = _sym.VartypeWith(kVTT_Dynpointer, _sym.GetStringStructSym());
+        _scrip.ax_vartype = _sym.VartypeWith(VTT::kDynpointer, _sym.GetStringStructSym());
     }
 }
 
@@ -2277,9 +2285,9 @@ ErrorType AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Par
         if (_sym.IsManagedVartype(vartype))
         {
             // Interpret the memory address as the result
-            vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+            vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-            vloc = kVL_ax_is_value;
+            vloc = kVL_AX_is_value;
             _scrip.ax_vartype = vartype;
             return kERR_None;
         }
@@ -2293,19 +2301,19 @@ ErrorType AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Par
 
 ErrorType AGS::Parser::ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype)
 {
-    if (kVL_mar_pointsto_value != vloc)
+    if (kVL_MAR_pointsto_value != vloc)
         return kERR_None; // So it's already in AX 
 
     _scrip.ax_vartype = vartype;
     _scrip.ax_scope_type = scope_type;
 
-    if (kKW_String == _sym.VartypeWithout(kVTT_Const, vartype))
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
         WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     else
         WriteCmd(
             _sym.IsDynVartype(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
-    vloc = kVL_ax_is_value;
+    vloc = kVL_AX_is_value;
     return kERR_None;
 }
 
@@ -2363,8 +2371,8 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
 
         retval = AccessData_ReadBracketedIntExpression(expression);
         if (retval < 0) return retval;
-        element_vartype = is_managed ? _sym.VartypeWith(kVTT_Dynpointer, argument_vartype) : argument_vartype;
-        vartype = _sym.VartypeWith(kVTT_Dynarray, element_vartype);
+        element_vartype = is_managed ? _sym.VartypeWith(VTT::kDynpointer, argument_vartype) : argument_vartype;
+        vartype = _sym.VartypeWith(VTT::kDynarray, element_vartype);
     }
     else
     {
@@ -2379,7 +2387,7 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
             return kERR_UserError;
         }
         element_vartype = argument_vartype;
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, argument_vartype);
+        vartype = _sym.VartypeWith(VTT::kDynpointer, argument_vartype);
     }
 
     size_t const element_size = _sym.GetSize(element_vartype);
@@ -2394,9 +2402,9 @@ ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &v
     else
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
 
-    _scrip.ax_scope_type = scope_type = kScT_Global;
+    _scrip.ax_scope_type = scope_type = ScT::kGlobal;
     _scrip.ax_vartype = vartype;
-    vloc = kVL_ax_is_value;
+    vloc = kVL_AX_is_value;
     return kERR_None;
 }
 
@@ -2438,7 +2446,7 @@ ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, ValueLoca
     WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
     WriteCmd(opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_ax_is_value;
+    vloc = kVL_AX_is_value;
     return kERR_None;
 }
 
@@ -2482,7 +2490,7 @@ ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation
         WriteCmd(SCMD_NOTREG, SREG_AX);
     }
 
-    vloc = kVL_ax_is_value;
+    vloc = kVL_AX_is_value;
     vartype = _scrip.ax_vartype = kKW_Int;
     return kERR_None;
 }
@@ -2616,8 +2624,8 @@ ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &express
         test_jumpdest.Patch(_src.GetLineno());
 
     scope_type =
-        (kScT_Local == term2_scope_type || kScT_Local == term3_scope_type) ?
-        kScT_Local : kScT_Global;
+        (ScT::kLocal == term2_scope_type || ScT::kLocal == term3_scope_type) ?
+        ScT::kLocal : ScT::kGlobal;
 
     if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
     {
@@ -2704,7 +2712,7 @@ ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression
 
     WriteCmd(actual_opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_ax_is_value;
+    vloc = kVL_AX_is_value;
 
     to_exit.Patch(_src.GetLineno());
 
@@ -2775,8 +2783,8 @@ ErrorType AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
-    if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, _scrip.ax_vartype) &&
-        kKW_String == _sym.VartypeWithout(kVTT_Const, valTypeTo))
+    if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, _scrip.ax_vartype) &&
+        kKW_String == _sym.VartypeWithout(VTT::kConst, valTypeTo))
         WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
 
@@ -3047,12 +3055,12 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
 
     expression.EatFirstSymbol();
 
-    bool const func_is_import = FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import);
+    bool const func_is_import = _sym[name_of_func].TypeQualifiers[TQ::kImport];
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
     bool const called_func_uses_this =
         std::string::npos != _sym.GetName(name_of_func).find("::") &&
-        !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static);
+        !_sym[name_of_func].TypeQualifiers[TQ::kStatic];
     bool const calling_func_uses_this = (0 != _sym.GetVartype(kKW_This));
     bool mar_pushed = false;
     bool op_pushed = false;
@@ -3105,7 +3113,7 @@ ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &exp
 
     // function return type
     rettype = _scrip.ax_vartype = _sym[name_of_func].FuncParamVartypes[0];
-    _scrip.ax_scope_type = kScT_Local;
+    _scrip.ax_scope_type = ScT::kLocal;
 
     if (mar_pushed)
         PopReg(SREG_MAR);
@@ -3192,14 +3200,14 @@ ErrorType AGS::Parser::AccessData_StructMember(AGS::Symbol component, bool writi
     expression.GetNext(); // Eat component
     SymbolTableEntry &entry = _sym[component];
 
-    if (writing && FlagIsSet(entry.TypeQualifiers, kTQ_Writeprotected) && !access_via_this)
+    if (writing && entry.TypeQualifiers[TQ::kWriteprotected] && !access_via_this)
     {
         Error(
             "Writeprotected component '%s' must not be modified from outside",
             _sym.GetName(component).c_str());
         return kERR_UserError;
     }
-    if (FlagIsSet(entry.TypeQualifiers, kTQ_Protected) && !access_via_this)
+    if (entry.TypeQualifiers[TQ::kProtected] && !access_via_this)
     {
         Error(
             "Protected component '%s' must not be accessed from outside",
@@ -3244,7 +3252,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
 
     bool const attrib_uses_this =
-        !FlagIsSet(_sym[name_of_attribute].TypeQualifiers, kTQ_Static);
+        !_sym[name_of_attribute].TypeQualifiers[TQ::kStatic];
     bool const call_is_indexed =
         (kKW_OpenBracket == expression.PeekNext());
     bool const attrib_is_indexed =
@@ -3268,7 +3276,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
     if (name_of_func < 0) return retval;
 
-    bool const func_is_import = FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import);
+    bool const func_is_import = _sym[name_of_func].TypeQualifiers[TQ::kImport];
 
     if (attrib_uses_this)
         PushReg(SREG_OP); // is the current this ptr, must be restored after call
@@ -3310,7 +3318,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
         PopReg(SREG_OP); // restore old this ptr after the func call
 
     // attribute return type
-    _scrip.ax_scope_type = kScT_Local;
+    _scrip.ax_scope_type = ScT::kLocal;
     _scrip.ax_vartype = vartype = _sym[name_of_func].FuncParamVartypes[0];
 
     MarkAcessed(name_of_func);
@@ -3321,11 +3329,11 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
 // Location contains a pointer to another address. Get that address.
 ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::Parser::MemoryLocation &mloc)
 {
-    if (kVL_ax_is_value == vloc)
+    if (kVL_AX_is_value == vloc)
     {
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_mar_pointsto_value;
+        vloc = kVL_MAR_pointsto_value;
         mloc.Reset();
     }
     else
@@ -3501,22 +3509,22 @@ ErrorType AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing,
     SymbolTableEntry &entry = _sym[varname];
     CodeCell const soffs = entry.SOffset;
 
-    if (writing && FlagIsSet(entry.TypeQualifiers, kTQ_Readonly))
+    if (writing && entry.TypeQualifiers[TQ::kReadonly])
     {
         Error("Cannot write to readonly '%s'", _sym.GetName(varname).c_str());
         return kERR_UserError;
     }
 
-    if (FlagIsSet(entry.TypeQualifiers, kTQ_Import))
-        mloc.SetStart(kScT_Import, soffs);
+    if (entry.TypeQualifiers[TQ::kImport])
+        mloc.SetStart(ScT::kImport, soffs);
     else
-        mloc.SetStart(is_global ? kScT_Global : kScT_Local, soffs);
+        mloc.SetStart(is_global ? ScT::kGlobal : ScT::kLocal, soffs);
 
     vartype = _sym.GetVartype(varname);
 
     // Process an array index if it follows
-    ValueLocation vl_dummy = kVL_mar_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(kVL_mar_pointsto_value, expression, vl_dummy, mloc, vartype);
+    ValueLocation vl_dummy = kVL_MAR_pointsto_value;
+    return AccessData_ProcessAnyArrayIndex(kVL_MAR_pointsto_value, expression, vl_dummy, mloc, vartype);
 }
 
 ErrorType AGS::Parser::AccessData_Static(SrcList &expression, MemoryLocation &mloc, AGS::Vartype &vartype)
@@ -3539,7 +3547,7 @@ ErrorType AGS::Parser::AccessData_FloatLiteral(bool negate, SrcList &expression,
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, i);
     _scrip.ax_vartype = vartype = kKW_Float;
-    _scrip.ax_scope_type = kScT_Global;
+    _scrip.ax_scope_type = ScT::kGlobal;
     return kERR_None;
 }
 
@@ -3552,7 +3560,7 @@ ErrorType AGS::Parser::AccessData_IntLiteralOrConst(bool negate, SrcList &expres
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, literal);
     _scrip.ax_vartype = vartype = kKW_Int;
-    _scrip.ax_scope_type = kScT_Global;
+    _scrip.ax_scope_type = ScT::kGlobal;
     return kERR_None;
 }
 
@@ -3562,7 +3570,7 @@ ErrorType AGS::Parser::AccessData_Null(SrcList &expression, AGS::Vartype &vartyp
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     _scrip.ax_vartype = vartype = kKW_Null;
-    _scrip.ax_scope_type = kScT_Global;
+    _scrip.ax_scope_type = ScT::kGlobal;
 
     return kERR_None;
 }
@@ -3571,7 +3579,7 @@ ErrorType AGS::Parser::AccessData_StringLiteral(SrcList &expression, AGS::Vartyp
 {
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[expression.GetNext()].SOffset);
     _scrip.fixup_previous(kFx_String);
-    _scrip.ax_vartype = vartype = _sym.VartypeWith(kVTT_Const, kKW_String);
+    _scrip.ax_vartype = vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
 
     return kERR_None;
 }
@@ -3598,7 +3606,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
             Error("'this' is only legal in non-static struct functions");
             return kERR_UserError;
         }
-        vloc = kVL_mar_pointsto_value;
+        vloc = kVL_MAR_pointsto_value;
         WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
         mloc.Reset();
@@ -3622,7 +3630,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         Symbol const thiscomponent = MangleStructAndComponent(vartype, first_sym);
         if (SymT::kNoType != _sym[thiscomponent].SType)
         {            
-            vloc = kVL_mar_pointsto_value;
+            vloc = kVL_MAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
@@ -3641,14 +3649,14 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case SymT::kConstant:
         if (writing) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case SymT::kFunction:
     {
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
         if (retval < 0) return retval;
         if (_sym.IsDynarrayVartype(vartype))
@@ -3658,8 +3666,8 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
 
     case SymT::kGlobalVar:
     {
-        return_scope_type = kScT_Global;
-        vloc = kVL_mar_pointsto_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_MAR_pointsto_value;
         bool const is_global = true;
         MarkAcessed(first_sym);
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
@@ -3668,40 +3676,40 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
     case SymT::kKeyword:
         if (writing) break; // to error msg
         if (kKW_Null != first_sym) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         return AccessData_Null(expression, vartype);
 
     case SymT::kLiteralFloat:
         if (writing) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         return AccessData_FloatLiteral(false, expression, vartype);
 
     case SymT::kLiteralInt:
         if (writing) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         return AccessData_IntLiteralOrConst(false, expression, vartype);
 
     case SymT::kLiteralString:
         if (writing) break; // to error msg
-        return_scope_type = kScT_Global;
-        vloc = kVL_ax_is_value;
+        return_scope_type = ScT::kGlobal;
+        vloc = kVL_AX_is_value;
         return AccessData_StringLiteral(expression, vartype);
 
     case SymT::kLocalVar:
     {
         // Parameters can be returned although they are local because they are allocated
         // outside of the function proper. The return scope type for them is global.
-        return_scope_type = _sym[first_sym].IsParameter() ? kScT_Global : kScT_Local;
-        vloc = kVL_mar_pointsto_value;
+        return_scope_type = _sym[first_sym].IsParameter() ? ScT::kGlobal : ScT::kLocal;
+        vloc = kVL_MAR_pointsto_value;
         bool const is_global = false;
         return AccessData_GlobalOrLocalVar(is_global, writing, expression, mloc, vartype);
     }
 
     case SymT::kVartype:
-        return_scope_type = kScT_Global;
+        return_scope_type = ScT::kGlobal;
         static_access = true;
         return AccessData_Static(expression, mloc, vartype);
     }
@@ -3720,7 +3728,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     Symbol const component = FindComponentInStruct(Vartype2Symbol(vartype), next_sym);
     SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : SymT::kNoType;
 
-    if (static_access && !FlagIsSet(_sym[component].TypeQualifiers, kTQ_Static))
+    if (static_access && !_sym[component].TypeQualifiers[TQ::kStatic])
     {
         Error("Must specify a specific struct for non-static component %s", _sym.GetName(component).c_str());
         return kERR_UserError;
@@ -3745,18 +3753,18 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
             // We cannot process the attribute here so return to the assignment that
             // this attribute was originally called from
             vartype = _sym.GetVartype(component);
-            vloc = kVL_attribute;
+            vloc = kVL_Attribute;
             return kERR_None;
         }
-        vloc = kVL_ax_is_value;
+        vloc = kVL_AX_is_value;
         bool const is_setter = false;
         return AccessData_CallAttributeFunc(is_setter, expression, vartype);
     }
 
     case SymT::kFunction:
     {
-        vloc = kVL_ax_is_value;
-        return_scope_type = kScT_Local;
+        vloc = kVL_AX_is_value;
+        return_scope_type = ScT::kLocal;
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         retval = AccessData_FunctionCall(component, start_of_funccall, mloc, vartype);
         if (retval < 0) return retval;
@@ -3766,7 +3774,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
     }
 
     case SymT::kStructComponent:
-        vloc = kVL_mar_pointsto_value;
+        vloc = kVL_MAR_pointsto_value;
         retval = AccessData_StructMember(component, writing, access_via_this, expression, mloc, vartype);
         if (retval < 0) return retval;
         return AccessData_ProcessAnyArrayIndex(vloc, expression, vloc, mloc, vartype);
@@ -3854,7 +3862,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
             expression.GetNext(); // Eat '.'
         // Note: do not reset "implied_this_dot" here, it's still needed.
 
-        // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
+        // Here, if kVL_MAR_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
 
@@ -3863,7 +3871,7 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         {
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
-            vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype);
+            vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype);
         }
 
         if (!_sym.IsStructVartype(vartype) || !_sym.IsAtomic(vartype))
@@ -3899,18 +3907,16 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         static_access = false;
     }
 
-    if (kVL_attribute == vloc)
+    if (kVL_Attribute == vloc)
     {
         // Caller will do the assignment
         // For this to work, the caller must know the type of the struct
         // in which the attribute resides
-        vartype = _sym.VartypeWithout(
-            kVTT_Const | kVTT_Dynarray | kVTT_Dynpointer,
-            outer_vartype);
+        vartype = _sym.BaseVartype(outer_vartype);
         return kERR_None;
     }
 
-    if (kVL_ax_is_value == vloc)
+    if (kVL_AX_is_value == vloc)
     {
         _scrip.ax_vartype = vartype;
         _scrip.ax_scope_type = scope_type;
@@ -3997,7 +4003,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     ErrorType retval = AccessData(writing, expression, vloc, lhs_scope_type, lhsvartype);
     if (retval < 0) return retval;
 
-    if (kVL_ax_is_value == vloc)
+    if (kVL_AX_is_value == vloc)
     {
         if (!_sym.IsManagedVartype(lhsvartype))
         {
@@ -4006,7 +4012,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
         }
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_mar_pointsto_value;
+        vloc = kVL_MAR_pointsto_value;
     }
 
     if (may_clobber)
@@ -4014,7 +4020,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     _scrip.ax_vartype = rhsvartype;
     _scrip.ax_scope_type = rhs_scope_type;
 
-    if (kVL_attribute == vloc)
+    if (kVL_Attribute == vloc)
     {
         // We need to call the attribute setter 
         Vartype struct_of_attribute = lhsvartype;
@@ -4028,7 +4034,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
 
     // MAR points to the value
 
-    if (kKW_String == lhsvartype && kKW_String == _sym.VartypeWithout(kVTT_Const, rhsvartype))
+    if (kKW_String == lhsvartype && kKW_String == _sym.VartypeWithout(VTT::kConst, rhsvartype))
     {
         // copy the string contents over.
         AccessData_StrCpy();
@@ -4223,7 +4229,7 @@ ErrorType AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &lhs, Valu
         return kERR_InternalError;
     }
 
-    if (kVL_mar_pointsto_value == vloc)
+    if (kVL_MAR_pointsto_value == vloc)
     {
         // write memory to AX
         _scrip.ax_vartype = lhstype;
@@ -4269,7 +4275,7 @@ ErrorType AGS::Parser::ParseAssignment_MAssign(AGS::Symbol ass_symbol, SrcList &
     PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
 
-    if (kVL_mar_pointsto_value == vloc)
+    if (kVL_MAR_pointsto_value == vloc)
     {
         // Shortcut: Write the result directly back to memory
         CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
@@ -4295,7 +4301,7 @@ ErrorType AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, SrcList &
     if (retval < 0) return retval;
     WriteCmd(opcode, SREG_AX, 1);
 
-    if (kVL_mar_pointsto_value == vloc)
+    if (kVL_MAR_pointsto_value == vloc)
     {
         _src.GetNext(); // Eat ++ or --
         // write AX back to memory
@@ -4446,7 +4452,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
 {
     SymbolTableEntry &var_entry = _sym[var_name];
 
-    if (kScT_Local == scope_type)
+    if (ScT::kLocal == scope_type)
     {
         if (_nest.TopLevel() == var_entry.SScope)
         {
@@ -4469,7 +4475,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
         }
     }
 
-    var_entry.SType = (scope_type == kScT_Local) ? SymT::kLocalVar : SymT::kGlobalVar;
+    var_entry.SType = (scope_type == ScT::kLocal) ? SymT::kLocalVar : SymT::kGlobalVar;
     var_entry.Vartype = vartype;
     var_entry.SScope = _nest.TopLevel();
     _sym.SetDeclared(var_name, _src.GetCursor());
@@ -4484,7 +4490,7 @@ ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Sco
         return kERR_UserError;
     }
 
-    if (vartype == kKW_String && kScT_Import == scope_type)
+    if (vartype == kKW_String && ScT::kImport == scope_type)
     {
         // cannot import because string is really char *, and the pointer won't resolve properly
         Error("Cannot import string; use char[] instead");
@@ -4515,10 +4521,14 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
         return kERR_UserError;
     }
 
-    if ((known_info->TypeQualifiers & ~kTQ_Import) != (this_entry->TypeQualifiers & ~kTQ_Import))
+    TypeQualifierSet known_tq = known_info->TypeQualifiers;
+    known_tq[TQ::kImport] = false;
+    TypeQualifierSet this_tq = this_entry->TypeQualifiers;
+    this_tq[TQ::kImport] = false;
+    if (known_tq != this_tq)
     {
-        std::string const ki_tq = TypeQualifierSet2String(known_info->TypeQualifiers & ~kTQ_Import);
-        std::string const te_tq = TypeQualifierSet2String(this_entry->TypeQualifiers & ~kTQ_Import);
+        std::string const ki_tq = TypeQualifierSet2String(known_tq);
+        std::string const te_tq = TypeQualifierSet2String(this_tq);
         std::string msg = ReferenceMsgLoc(
             "The variable '%s' has the qualifiers '%s' here, but '%s' elsewhere",
             known_info->Declared);
@@ -4564,7 +4574,7 @@ ErrorType AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_
     if (_givm[var_name])
         return kERR_None; // Skip this since the global non-import decl will come later
 
-    SetFlag(_sym[var_name].TypeQualifiers, kTQ_Import, true);
+    _sym[var_name].TypeQualifiers[TQ::kImport] = true;
     _sym[var_name].SOffset = _scrip.add_new_import(_sym.GetName(var_name).c_str());
     if (_sym[var_name].SOffset == -1)
     {
@@ -4625,8 +4635,8 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
     Vartype const rhsvartype = _scrip.ax_vartype;
 
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
-        !(kKW_String == _sym.VartypeWithout(kVTT_Const, rhsvartype) &&
-          kKW_String == _sym.VartypeWithout(kVTT_Const, lhsvartype)))
+        !(kKW_String == _sym.VartypeWithout(VTT::kConst, rhsvartype) &&
+          kKW_String == _sym.VartypeWithout(VTT::kConst, lhsvartype)))
     {
         Error(
             "Cannot assign a type '%s' value to a type '%s' variable",
@@ -4645,7 +4655,7 @@ ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype var
 
     ConvertAXStringToStringObject(vartype);
     WriteCmd(SCMD_LOADSPOFFS, 0);
-    if (kKW_String == _sym.VartypeWithout(kVTT_Const, lhsvartype))
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, lhsvartype))
         AccessData_StrCpy();
     else
         WriteCmd(
@@ -4678,7 +4688,7 @@ ErrorType AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype,
         Error("!Wrong scope type");
         return kERR_InternalError;
 
-    case kScT_Global:
+    case ScT::kGlobal:
     {
         void *initial_val_ptr = nullptr;
         ErrorType retval = ParseVardecl_GlobalNoImport(var_name, vartype, has_initial_assignment, initial_val_ptr);
@@ -4686,10 +4696,10 @@ ErrorType AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype,
         return retval;
     }
 
-    case kScT_Import:
+    case ScT::kImport:
         return ParseVardecl_GlobalImport(var_name, has_initial_assignment);
 
-    case kScT_Local:
+    case ScT::kLocal:
         return ParseVardecl_Local(var_name, vartype, has_initial_assignment);
     }
 }
@@ -4700,7 +4710,7 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
     ErrorType retval = ParseVardecl_CheckIllegalCombis(vartype, scope_type);
     if (retval < 0) return retval;
 
-    if (kScT_Local == scope_type)
+    if (ScT::kLocal == scope_type)
     {
         switch (_sym.GetSymbolType(var_name))
         {
@@ -4732,20 +4742,20 @@ ErrorType AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, 
     }
 
     SymbolTableEntry known_info;
-    if (kScT_Global == scope_type)
+    if (ScT::kGlobal == scope_type)
         CopyKnownSymInfo(_sym[var_name], known_info);
     
     retval = ParseVardecl0(var_name, vartype, scope_type);
     if (retval < 0) return retval;
 
-    if (kScT_Global == scope_type)
+    if (ScT::kGlobal == scope_type)
         return ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info, false);
     return kERR_None;
 }
 
 ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol name_of_func)
 {
-    _nest.Push(NestingStack::kNS_Function);
+    _nest.Push(NSType::kFunction);
 
     // write base address of function for any relocation needed later
     WriteCmd(SCMD_THISBASE, _scrip.codesize);
@@ -4775,13 +4785,14 @@ ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol nam
 
     SymbolTableEntry &this_entry = _sym[kKW_This];
     this_entry.Vartype = 0;
-    if (struct_of_func > 0 && !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Static))
+    if (struct_of_func > 0 && !_sym[name_of_func].TypeQualifiers[TQ::kStatic])
     {
         // Declare "this" but do not allocate memory for it
         this_entry.SType = SymT::kLocalVar;
         this_entry.Vartype = struct_of_func; // Don't declare this as dynpointer
         this_entry.SScope = 0u;
-        this_entry.TypeQualifiers = kTQ_Readonly;
+        this_entry.TypeQualifiers = {};
+        this_entry.TypeQualifiers[TQ::kReadonly] = true;
         this_entry.Flags = kSFLG_Accessed | kSFLG_StructVartype;
         this_entry.SOffset = 0;
     }
@@ -4828,11 +4839,11 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
     entry.SSize = 0;
 
     SetFlag(entry.Flags, kSFLG_StructVartype, true);
-    if (FlagIsSet(tqs, kTQ_Managed))
+    if (tqs[TQ::kManaged])
         SetFlag(entry.Flags, kSFLG_StructManaged, true);
-    if (FlagIsSet(tqs, kTQ_Builtin))
+    if (tqs[TQ::kBuiltin])
         SetFlag(entry.Flags, kSFLG_StructBuiltin, true);
-    if (FlagIsSet(tqs, kTQ_Autoptr))
+    if (tqs[TQ::kAutoptr])
         SetFlag(entry.Flags, kSFLG_StructAutoPtr, true);
 
     _sym.SetDeclared(stname, _src.GetCursor());
@@ -4844,7 +4855,7 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, size_t &siz
     _src.GetNext(); // Eat "extends"
     Symbol const parent = _src.GetNext(); // name of the extended struct
 
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
         return kERR_None; // No further analysis necessary in first phase
 
     if (SymT::kVartype != _sym.GetSymbolType(parent))
@@ -4882,10 +4893,9 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
 {
     if (in_struct_decl)
     {
-        TypeQualifier error_tq = kTQ_None;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
+        TypeQualifier error_tq = TQ::kNone;
+        if (tqs[(error_tq = TQ::kBuiltin)] ||
+            tqs[(error_tq = TQ::kStringstruct)])
         {
             Error("'%s' is illegal in a struct declaration", _tq2String[error_tq].c_str());
             return kERR_UserError;
@@ -4893,10 +4903,10 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
     }
     else // !in_struct_decl
     {
-        TypeQualifier error_tq = kTQ_None;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Attribute)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Protected)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Writeprotected)))
+        TypeQualifier error_tq = TQ::kNone;
+        if (tqs[(error_tq = TQ::kAttribute)] ||
+            tqs[(error_tq = TQ::kProtected)] ||
+            tqs[(error_tq = TQ::kWriteprotected)])
         {
             Error("'%s' is only legal in a struct declaration", _tq2String[error_tq].c_str());
             return kERR_UserError;
@@ -4905,14 +4915,13 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
 
     if (in_func_body)
     {
-        TypeQualifier error_tq = kTQ_None;
-        if (FlagIsSet(tqs, (error_tq = kTQ_Autoptr)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Builtin)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportStd)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_ImportTry)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Managed)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Static)) ||
-            FlagIsSet(tqs, (error_tq = kTQ_Stringstruct)))
+        TypeQualifier error_tq = TQ::kNone;
+        if (tqs[(error_tq = TQ::kAutoptr)] ||
+            tqs[(error_tq = TQ::kBuiltin)] ||
+            tqs[(error_tq = TQ::kImport)] ||
+            tqs[(error_tq = TQ::kManaged)] ||
+            tqs[(error_tq = TQ::kStatic)] ||
+            tqs[(error_tq = TQ::kStringstruct)])
         {
             Error("'%s' is illegal in a function body", _tq2String[error_tq].c_str());
             return kERR_UserError;
@@ -4920,40 +4929,34 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
     }
 
     // Keywords that never go together
-    if (1 < FlagIsSet(tqs, kTQ_Protected) + FlagIsSet(tqs, kTQ_Writeprotected) + FlagIsSet(tqs, kTQ_Readonly))
+    if (1 < tqs[TQ::kProtected] + tqs[TQ::kWriteprotected] + tqs[TQ::kReadonly])
     {
         Error("Can only use one out of 'protected', 'readonly', and 'writeprotected'");
         return kERR_UserError;
     }
 
-    if (1 < FlagIsSet(tqs, kTQ_ImportStd) + FlagIsSet(tqs, kTQ_ImportTry))
+    if (tqs[TQ::kAutoptr])
     {
-        Error("Cannot combine 'import' and '_tryimport'");
-        return kERR_UserError;
-    }
-
-    if (FlagIsSet(tqs, kTQ_Autoptr))
-    {
-        if (!FlagIsSet(tqs, kTQ_Builtin) || !FlagIsSet(tqs, kTQ_Managed))
+        if (!tqs[TQ::kBuiltin] || !tqs[TQ::kManaged])
         {
             Error("'autoptr' must be combined with 'builtin' and 'managed'");
             return kERR_UserError;
         }
     }
 
-    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
+    if (tqs[TQ::kStringstruct] && (!tqs[TQ::kAutoptr]))
     {
         Error("'stringstruct' must be combined with 'autoptr'");
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Const))
+    if (tqs[TQ::kConst])
     {
         Error("'const' can only be used for a function parameter (use 'readonly' instead)");
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Import) && FlagIsSet(tqs, kTQ_Stringstruct))
+    if (tqs[TQ::kImport] && tqs[TQ::kStringstruct])
     {
         Error("Cannot combine 'import' and 'stringstruct'");
         return kERR_UserError;
@@ -4962,11 +4965,11 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
     return kERR_None;
 }
 
-ErrorType AGS::Parser::Parse_CheckTQ_Empty(TypeQualifierSet tqs)
+ErrorType AGS::Parser::Parse_CheckEmpty(TypeQualifierSet tqs)
 {
     for (auto it = _tq2String.cbegin(); it != _tq2String.cend(); it++)
     {
-        if (!FlagIsSet(tqs, it->first))
+        if (!tqs[it->first])
             continue;
         Error("Unexpected '%s' before a command", it->second.c_str());
         return kERR_UserError;
@@ -4974,36 +4977,43 @@ ErrorType AGS::Parser::Parse_CheckTQ_Empty(TypeQualifierSet tqs)
     return kERR_None;
 }
 
-void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
+ErrorType AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
 {
-    tqs = 0;
+    bool istd_found = false;
+    bool itry_found = false;
+    tqs = {};
     while (!_src.ReachedEOF())
     {
         Symbol peeksym = _src.PeekNext();
         switch (peeksym)
         {
-        default: return;
-        case kKW_Attribute:      SetFlag(tqs, kTQ_Attribute, true); break;
-        case kKW_Autoptr:        SetFlag(tqs, kTQ_Autoptr, true); break;
-        case kKW_Builtin:        SetFlag(tqs, kTQ_Builtin, true); break;
-        case kKW_Const:          SetFlag(tqs, kTQ_Const, true); break;
-        case kKW_Import:         SetFlag(tqs, kTQ_ImportStd, true); break;
-        case kKW_ImportTry:      SetFlag(tqs, kTQ_ImportTry, true); break;
-        case kKW_Internalstring: SetFlag(tqs, kTQ_Stringstruct, true); break;
-        case kKW_Managed:        SetFlag(tqs, kTQ_Managed, true); break;
-        case kKW_Protected:      SetFlag(tqs, kTQ_Protected, true); break;
-        case kKW_Readonly:       SetFlag(tqs, kTQ_Readonly, true); break;
-        case kKW_Static:         SetFlag(tqs, kTQ_Static, true); break;
-        case kKW_Writeprotected: SetFlag(tqs, kTQ_Writeprotected, true); break;
+        default: return kERR_None;
+        case kKW_Attribute:      tqs[TQ::kAttribute] = true; break;
+        case kKW_Autoptr:        tqs[TQ::kAutoptr] = true; break;
+        case kKW_Builtin:        tqs[TQ::kBuiltin] = true; break;
+        case kKW_Const:          tqs[TQ::kConst] = true; break;
+        case kKW_ImportStd:      tqs[TQ::kImport] = true; istd_found = true;  break;
+        case kKW_ImportTry:      tqs[TQ::kImport] = true; itry_found = true;  break;
+        case kKW_Internalstring: tqs[TQ::kStringstruct] = true; break;
+        case kKW_Managed:        tqs[TQ::kManaged] = true; break;
+        case kKW_Protected:      tqs[TQ::kProtected] = true; break;
+        case kKW_Readonly:       tqs[TQ::kReadonly] = true; break;
+        case kKW_Static:         tqs[TQ::kStatic] = true; break;
+        case kKW_Writeprotected: tqs[TQ::kWriteprotected] = true; break;
         } // switch (_sym.GetSymbolType(peeksym))
 
         _src.GetNext();
+        if (istd_found && itry_found)
+        {
+            Error("Cannot both use 'import' and '_tryimport'");
+            return kERR_UserError;
+        }
     };
 
-    return;
+    return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Vartype vartype, bool member_is_import)
+ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Vartype vartype)
 {
     if (Vartype2Symbol(vartype) == stname && !_sym.IsManagedVartype(vartype))
     {
@@ -5055,7 +5065,7 @@ ErrorType AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS
 
 ErrorType AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype)
 {
-    if (FlagIsSet(tqs, kTQ_Writeprotected))
+    if (tqs[TQ::kWriteprotected])
     {
         Error("'writeprotected' does not apply to functions");
         return kERR_UserError;
@@ -5167,10 +5177,10 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
         if (retval < 0) return retval;
     }
 
-    SetFlag(tqs, kTQ_Import, true); // Assume that attribute functions are imported
-    if (FlagIsSet(tqs, kTQ_Import) &&
+    tqs[TQ::kImport] = true; // Assume that attribute functions are imported
+    if (tqs[TQ::kImport] &&
         SymT::kFunction == _sym.GetSymbolType(name_of_func) &&
-        !FlagIsSet(_sym[name_of_func].TypeQualifiers, kTQ_Import))
+        !_sym[name_of_func].TypeQualifiers[TQ::kImport])
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
@@ -5180,7 +5190,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
             Error(msg.c_str());
             return kERR_UserError;
         }
-        SetFlag(tqs, kTQ_Import, false);
+        tqs[TQ::kImport] = false;
     }
 
     // Store the fact that this function has been declared within the struct declaration
@@ -5188,14 +5198,14 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
     SetFlag(_sym[name_of_func].Flags, kSFLG_StructMember, true);
 
     Vartype const return_vartype = is_setter ? kKW_Void : vartype;
-    ParseFuncdecl_MasterData2Sym(tqs & ~kTQ_Attribute, return_vartype, struct_of_func, name_of_func, false);
+    tqs[TQ::kAttribute] = false;
+    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, false);
 
     ErrorType retval = ParseStruct_Attribute_ParamList(struct_of_func, name_of_func, is_setter, is_indexed, vartype);
     if (retval < 0) return retval;
 
     // When the function is defined, it won't have "attribute" set so don't set "attribute" here
    
-
     bool const body_follows = false; // we are within a struct definition
     return ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
 }
@@ -5205,8 +5215,8 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
 {
     size_t const declaration_start = _src.GetCursor();
     // "readonly" means that there isn't a setter function. The individual vartypes are not readonly.
-    bool const attrib_is_readonly = FlagIsSet(tqs, kTQ_Readonly);
-    SetFlag(tqs, kTQ_Readonly, false);
+    bool const attrib_is_readonly = tqs[TQ::kReadonly];
+    tqs[TQ::kReadonly] = false;
 
     bool attrib_is_indexed = false;
 
@@ -5223,7 +5233,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname
 
     _sym[vname].SType = SymT::kAttribute;
     if (attrib_is_indexed)
-        _sym[vname].Vartype = _sym.VartypeWith(kVTT_Dynarray, _sym[vname].Vartype);
+        _sym[vname].Vartype = _sym.VartypeWith(VTT::kDynarray, _sym[vname].Vartype);
 
     // Declare attribute getter, e.g. get_ATTRIB()
     Symbol attrib_func = kKW_NoSymbol;
@@ -5255,7 +5265,7 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
 {
     _src.GetNext(); // Eat '['
 
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
     {
         // Skip the sequence of [...]
         while (true)
@@ -5282,7 +5292,7 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
             Error("Can only have dynamic arrays of integer types, float or managed structs. '%s' isn't any of this.", _sym.GetName(vartype).c_str());
             return kERR_UserError;
         }
-        vartype = _sym.VartypeWith(kVTT_Dynarray, vartype);
+        vartype = _sym.VartypeWith(VTT::kDynarray, vartype);
         return kERR_None;
     }
 
@@ -5321,7 +5331,7 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
 // We're inside a struct decl, processing a member variable or a member attribute
 ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname, size_t &size_so_far)
 {
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
     {
         if (_sym.IsBuiltin(vartype) && !_sym.IsDynVartype(vartype))
         {
@@ -5330,14 +5340,14 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
             return kERR_UserError;
         }
 
-        if (FlagIsSet(tqs, kTQ_Import) && !FlagIsSet(tqs, kTQ_Attribute))
+        if (tqs[TQ::kImport] && !tqs[TQ::kAttribute])
         {
             // member variable cannot be an import
             Error("Can't import struct component variables; import the whole struct instead");
             return kERR_UserError;
         }
 
-        if (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(stname) && !FlagIsSet(tqs, kTQ_Attribute))
+        if (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(stname) && !tqs[TQ::kAttribute])
         {
             // This is an Engine restriction
             Error("Cannot currently have managed variable components in managed struct");
@@ -5349,11 +5359,14 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
         entry.Parent = stname;  // save which struct it belongs to
         entry.SOffset = size_so_far;
         entry.Vartype = vartype;
+        entry.TypeQualifiers = tqs;
         // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype
-        entry.TypeQualifiers = tqs & ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
+        entry.TypeQualifiers[TQ::kAutoptr] = false;
+        entry.TypeQualifiers[TQ::kManaged] = false;
+        entry.TypeQualifiers[TQ::kBuiltin] = false;
     }
 
-    if (FlagIsSet(tqs, kTQ_Attribute))
+    if (tqs[TQ::kAttribute])
         return ParseStruct_Attribute(tqs, stname, vname, vartype);
 
     if (_src.PeekNext() == kKW_OpenBracket)
@@ -5394,7 +5407,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
         return kERR_UserError;
     }
 
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
     {
         if (SymT::kNoType != _sym.GetSymbolType(var_or_func_name))
         {
@@ -5421,7 +5434,7 @@ ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
     if (kKW_Dynpointer != _src.PeekNext())
         return kERR_None;
 
-    if (kPP_PreAnalyze == _pp || _sym.IsManagedVartype(vartype))
+    if (PP::kPreAnalyze == _pp || _sym.IsManagedVartype(vartype))
     {
         _src.GetNext(); // Eat '*'
         return kERR_None;
@@ -5433,9 +5446,9 @@ ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
 
 ErrorType AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far)
 {
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
     {   // Check for illegal struct member types
-        ErrorType retval = ParseStruct_CheckComponentVartype(name_of_struct, vartype, FlagIsSet(tqs, kTQ_Import));
+        ErrorType retval = ParseStruct_CheckComponentVartype(name_of_struct, vartype);
         if (retval < 0) return retval;
     }
 
@@ -5487,7 +5500,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     ParseStruct_SetTypeInSymboltable(stname, tqs);
 
     // Declare the struct type that implements new strings
-    if (FlagIsSet(tqs, kTQ_Stringstruct))
+    if (tqs[TQ::kStringstruct])
     {
         if (_sym.GetStringStructSym() > 0 && stname != _sym.GetStringStructSym())
         {
@@ -5508,7 +5521,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     // forward-declaration of struct type
     if (kKW_Semicolon == _src.PeekNext())
     {
-        if (!FlagIsSet(tqs, kTQ_Managed))
+        if (!tqs[TQ::kManaged])
         {
             Error("Forward-declared structs must be 'managed'");
             return kERR_UserError;
@@ -5528,8 +5541,9 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     while (kKW_CloseBrace != _src.PeekNext())
     {
         currentline = _src.GetLinenoAt(_src.GetCursor());
-        TypeQualifierSet tqs = 0;
-        ParseQualifiers(tqs);
+        TypeQualifierSet tqs = {};
+        retval = ParseQualifiers(tqs);
+        if (retval < 0) return retval;
         bool const in_func_body = false;
         bool const in_struct_decl = true;
         retval = Parse_CheckTQ(tqs, in_func_body, in_struct_decl);
@@ -5541,7 +5555,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
         if (retval < 0) return retval;
     }
 
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
     {
         // round up size to nearest multiple of STRUCT_ALIGNTO
         if (0 != (size_so_far % STRUCT_ALIGNTO))
@@ -5554,7 +5568,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
     Symbol const nextsym = _src.PeekNext();
     if (kKW_Semicolon == nextsym)
     {
-        if (FlagIsSet(tqs, kTQ_Readonly))
+        if (tqs[TQ::kReadonly])
         {
             // Only now do we find out that there isn't any following declaration
             // so "readonly" was incorrect. 
@@ -5609,11 +5623,12 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.SType = SymT::kConstant;
     entry.Vartype = enum_name;
     entry.SScope = 0u;
-    entry.TypeQualifiers = kTQ_Readonly;
+    entry.TypeQualifiers = {}; TQ::kReadonly;
+    entry.TypeQualifiers[TQ::kReadonly] = true;
     entry.Parent = enum_name;
     // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.SOffset = current_constant_value;
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
         _sym.SetDeclared(item_name, _src.GetCursor());
 
     _sym[enum_name].Children.push_back(item_name);
@@ -5647,7 +5662,7 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
         Error("Enum declaration is not allowed within a function body");
         return kERR_UserError;
     }
-    if (FlagIsSet(tqs, kTQ_Builtin))
+    if (tqs[TQ::kBuiltin])
     {
         Error("'builtin' can only be used in a struct declaration");
         return kERR_UserError;
@@ -5669,7 +5684,7 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
         if (kKW_CloseBrace == item_name)
             break; // item list empty or ends with trailing ','
 
-        if (kPP_Main == _pp)
+        if (PP::kMain == _pp)
         {
             if (SymT::kConstant == _sym.GetSymbolType(item_name))
             {
@@ -5713,7 +5728,7 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
     if (kKW_Semicolon == nextsym)
     {
         _src.GetNext(); // Eat ';'
-        if (FlagIsSet(tqs, kTQ_Readonly))
+        if (tqs[TQ::kReadonly])
         {
             // Only now do we find out that there isn't any following declaration
             // so "readonly" was incorrect. 
@@ -5746,7 +5761,7 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
 
 ErrorType AGS::Parser::ParseExport()
 {
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
     {
         SkipTo(SymbolList{ kKW_Semicolon }, _src);
         _src.GetNext(); // Eat ';'
@@ -5795,14 +5810,14 @@ ErrorType AGS::Parser::ParseExport()
 }
 ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext()
 {
-    NestingStack::NSType const ns_type = _nest.Type();
-    if (NestingStack::kNS_Switch == ns_type)
+    NSType const ns_type = _nest.Type();
+    if (NSType::kSwitch == ns_type)
     {
         Error("Cannot use declarations directly within a switch body. (Put \"{ ... }\" around the case statements)");
         return kERR_UserError;
     }
 
-    if (NestingStack::kNS_Braces == ns_type || NestingStack::kNS_Function == ns_type || NestingStack::kNS_None == ns_type)
+    if (NSType::kBraces == ns_type || NSType::kFunction == ns_type || NSType::kNone == ns_type)
         return kERR_None;
 
     Error("A declaration cannot be the sole body of an 'if', 'else' or loop clause");
@@ -5811,7 +5826,7 @@ ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext()
 
 ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::TypeQualifierSet tqs)
 {
-    if (FlagIsSet(tqs, kTQ_Static) && !is_function)
+    if (tqs[TQ::kStatic] && !is_function)
     {
         Error("'static' can only be applied to functions that are members of a struct");
         return kERR_UserError;
@@ -5822,13 +5837,13 @@ ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::Ty
     // We can't know at this point whether the function is extender, so we can't
     // check  at this point whether 'protected' is allowed.
 
-    if (FlagIsSet(tqs, kTQ_Readonly) && is_function)
+    if (tqs[TQ::kReadonly] && is_function)
     {
         Error("Readonly cannot be applied to a function");
         return kERR_UserError;
     }
 
-    if (FlagIsSet(tqs, kTQ_Writeprotected) && is_function)
+    if (tqs[TQ::kWriteprotected] && is_function)
     {
         Error("'writeprotected' cannot be applied to a function");
         return kERR_UserError;
@@ -5891,13 +5906,13 @@ ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Sco
             Error("'%s' is already defined as a global non-import variable", _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
-        else if (kScT_Global == scope_type && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        else if (ScT::kGlobal == scope_type && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
             Error("'%s' is defined as an import variable; that cannot be overridden here", _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
     }
-    _givm[var_name] = (kScT_Global == scope_type);
+    _givm[var_name] = (ScT::kGlobal == scope_type);
 
     // Apart from this, we aren't interested in var defns at this stage, so skip this defn
     SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
@@ -5906,13 +5921,15 @@ ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Sco
 
 ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype)
 {
-    if (kPP_PreAnalyze == _pp)
+    if (PP::kPreAnalyze == _pp)
         return ParseVartype_VarDecl_PreAnalyze(var_name, scope_type);
 
+    _sym[var_name].TypeQualifiers = tqs;
     // "autoptr", "managed" and "builtin" are aspects of the vartype, not of the variable having the vartype.
-    _sym[var_name].TypeQualifiers = tqs & ~kTQ_Autoptr & ~kTQ_Managed & ~kTQ_Builtin;
-
-    if (FlagIsSet(tqs, kTQ_Static))
+    _sym[var_name].TypeQualifiers[TQ::kAutoptr] = false;
+    _sym[var_name].TypeQualifiers[TQ::kManaged] = false;
+    _sym[var_name].TypeQualifiers[TQ::kBuiltin] = false;
+    if (tqs[TQ::kStatic])
     {
         Error("'static' cannot be used in a variable declaration");
         return kERR_UserError;
@@ -5932,7 +5949,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
         Error("Unexpected end of input (did you forget ';'?)");
         return kERR_UserError;
     }
-    if (FlagIsSet(tqs, kTQ_Builtin))
+    if (tqs[TQ::kBuiltin])
     {
         Error("'builtin' can only be used in a struct declaration");
         return kERR_UserError;
@@ -5943,14 +5960,14 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
     if (retval < 0) return retval;
 
     ScopeType const scope_type = 
-        (kKW_NoSymbol != name_of_current_func) ? kScT_Local :
-        (FlagIsSet(tqs, kTQ_Import)) ? kScT_Import : kScT_Global;
+        (kKW_NoSymbol != name_of_current_func) ? ScT::kLocal :
+        (tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
 
     // Only imply a pointer for a managed entity if it isn't imported.
-    if ((kScT_Import == scope_type && kKW_Dynpointer == _src.PeekNext()) ||
-        (kScT_Import != scope_type && _sym.IsManagedVartype(vartype)))
+    if ((ScT::kImport == scope_type && kKW_Dynpointer == _src.PeekNext()) ||
+        (ScT::kImport != scope_type && _sym.IsManagedVartype(vartype)))
     {
-        vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
+        vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
     }
 
     retval = EatDynpointerSymbolIfPresent(vartype);
@@ -6026,23 +6043,23 @@ ErrorType AGS::Parser::HandleEndOfCompoundStmts()
             Error("!Nesting of unknown type ends");
             return kERR_InternalError;
 
-        case NestingStack::kNS_Braces:
-        case NestingStack::kNS_Switch:
+        case NSType::kBraces:
+        case NSType::kSwitch:
             // The body of those statements can only be closed by an explicit '}'.
             // So that means that there cannot be any more non-braced compound statements to close here.
             return kERR_None;
 
-        case NestingStack::kNS_Do:
+        case NSType::kDo:
             retval = HandleEndOfDo();
             if (retval < 0) return retval;
             break;
 
-        case NestingStack::kNS_Else:
+        case NSType::kElse:
             retval = HandleEndOfElse();
             if (retval < 0) return retval;
             break;
 
-        case NestingStack::kNS_If:
+        case NSType::kIf:
         {
             bool else_follows;
             retval = HandleEndOfIf(else_follows);
@@ -6051,7 +6068,7 @@ ErrorType AGS::Parser::HandleEndOfCompoundStmts()
             break;
         }
 
-        case NestingStack::kNS_While:
+        case NSType::kWhile:
             retval = HandleEndOfWhile();
             if (retval < 0) return retval;
             break;
@@ -6084,7 +6101,7 @@ ErrorType AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
         if (retval < 0) return retval;
 
         if (_sym.IsOldstring(_scrip.ax_vartype) &&
-            (kScT_Local == _scrip.ax_scope_type))
+            (ScT::kLocal == _scrip.ax_scope_type))
         {
             Error("Cannot return local string from function");
             return kERR_UserError;
@@ -6134,7 +6151,7 @@ ErrorType AGS::Parser::ParseIf()
     ErrorType retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
 
-    _nest.Push(NestingStack::kNS_If);
+    _nest.Push(NSType::kIf);
 
     // The code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
@@ -6165,7 +6182,7 @@ ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
     // Mark the  out jump after the "then" branch, above, for patching.
     _nest.JumpOut().AddParam();
     // To prevent matching multiple else clauses to one if
-    _nest.SetType(NestingStack::kNS_Else);
+    _nest.SetType(NSType::kElse);
     return kERR_None;
 }
 
@@ -6178,7 +6195,7 @@ ErrorType AGS::Parser::ParseWhile()
     ErrorType retval = ParseParenthesizedExpression();
     if (retval < 0) return retval;
 
-    _nest.Push(NestingStack::kNS_While);
+    _nest.Push(NSType::kWhile);
 
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
@@ -6210,7 +6227,7 @@ ErrorType AGS::Parser::HandleEndOfWhile()
     _nest.JumpOut().Patch(_src.GetLineno());
     _nest.Pop();
 
-    if (NestingStack::kNS_For != _nest.Type())
+    if (NSType::kFor != _nest.Type())
         return kERR_None;
 
     // This is the outer level of the FOR loop.
@@ -6221,7 +6238,7 @@ ErrorType AGS::Parser::HandleEndOfWhile()
 
 ErrorType AGS::Parser::ParseDo()
 {
-    _nest.Push(NestingStack::kNS_Do);
+    _nest.Push(NSType::kDo);
     _nest.Start().Set();
     return kERR_None;
 }
@@ -6285,7 +6302,7 @@ ErrorType AGS::Parser::ParseFor_InitClauseVardecl()
             return kERR_UserError;
         }
 
-        retval = ParseVardecl(varname, vartype, kScT_Local);
+        retval = ParseVardecl(varname, vartype, ScT::kLocal);
         if (retval < 0) return retval;
 
         Symbol const punctuation = _src.PeekNext();
@@ -6339,7 +6356,7 @@ ErrorType AGS::Parser::ParseFor()
     // The inner level contains "while (E) { ...; C}"
 
     // Outer level
-    _nest.Push(NestingStack::kNS_For);
+    _nest.Push(NSType::kFor);
 
     ErrorType retval = Expect(kKW_OpenParenthesis, _src.GetNext());
     if (retval < 0) return retval;
@@ -6379,7 +6396,7 @@ ErrorType AGS::Parser::ParseFor()
     if (retval < 0) return retval;
 
     // Inner nesting level
-    _nest.Push(NestingStack::kNS_While);
+    _nest.Push(NSType::kWhile);
     _nest.Start().Set(while_cond_loc);
 
     // We've just generated code for getting to the next loop iteration.
@@ -6413,7 +6430,7 @@ ErrorType AGS::Parser::ParseSwitch()
     retval = Expect(kKW_OpenBrace, _src.GetNext());
     if (retval < 0) return retval;
 
-    _nest.Push(NestingStack::kNS_Switch);
+    _nest.Push(NSType::kSwitch);
     _nest.SetSwitchExprVartype(switch_expr_vartype);
     _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
 
@@ -6433,7 +6450,7 @@ ErrorType AGS::Parser::ParseSwitch()
 
 ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 {
-    if (NestingStack::kNS_Switch != _nest.Type())
+    if (NSType::kSwitch != _nest.Type())
     {
         Error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(case_or_default).c_str());
         return kERR_UserError;
@@ -6501,8 +6518,8 @@ ErrorType AGS::Parser::ParseBreak()
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
-        NestingStack::NSType const ltype = _nest.Type(nesting_level);
-        if (NestingStack::kNS_Do == ltype || NestingStack::kNS_Switch == ltype || NestingStack::kNS_While == ltype)
+        NSType const ltype = _nest.Type(nesting_level);
+        if (NSType::kDo == ltype || NSType::kSwitch == ltype || NSType::kWhile == ltype)
             break;
     }
 
@@ -6537,8 +6554,8 @@ ErrorType AGS::Parser::ParseContinue()
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
-        NestingStack::NSType const ltype = _nest.Type(nesting_level);
-        if (NestingStack::kNS_Do == ltype || NestingStack::kNS_While == ltype)
+        NSType const ltype = _nest.Type(nesting_level);
+        if (NSType::kDo == ltype || NSType::kWhile == ltype)
             break;
     }
 
@@ -6574,7 +6591,7 @@ ErrorType AGS::Parser::ParseContinue()
 
 ErrorType AGS::Parser::ParseCloseBrace()
 {
-    if (NestingStack::kNS_Switch == _nest.Type())
+    if (NSType::kSwitch == _nest.Type())
         return HandleEndOfSwitch();
     return HandleEndOfBraceCommand();
 }
@@ -6642,7 +6659,7 @@ ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_curren
     case kKW_OpenBrace:
         if (SymbolTableEntry::kParameterSScope == _nest.TopLevel())
              return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
-        _nest.Push(NestingStack::kNS_Braces);
+        _nest.Push(NSType::kBraces);
         return kERR_None;
 
     case kKW_Return:
@@ -6674,7 +6691,7 @@ void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
     if (src_section_id == _lastEmittedSectionId)
         return;
 
-    if (kPP_Main == _pp)
+    if (PP::kMain == _pp)
         _scrip.start_new_section(_src.SectionId2Section(src_section_id));
     _lastEmittedSectionId = src_section_id;
 }
@@ -6689,7 +6706,7 @@ ErrorType AGS::Parser::ParseInput()
     Symbol name_of_current_func = kKW_NoSymbol;
 
     // Collects vartype qualifiers such as 'readonly'
-    TypeQualifierSet tqs = 0;
+    TypeQualifierSet tqs = {};
 
     while (!_src.ReachedEOF())
     {
@@ -6697,9 +6714,9 @@ ErrorType AGS::Parser::ParseInput()
         HandleSrcSectionChangeAt(next_pos);
         currentline = _src.GetLinenoAt(next_pos);
 
-        ParseQualifiers(tqs);
+        ErrorType retval = ParseQualifiers(tqs);
+        if (retval < 0) return retval;
 
-        ErrorType retval;
         Symbol const leading_sym = _src.GetNext();
         switch (leading_sym)
         {
@@ -6742,14 +6759,14 @@ ErrorType AGS::Parser::ParseInput()
             continue;
 
         case kKW_Export:
-            retval = Parse_CheckTQ_Empty(tqs); // No qualifiers in front of 'export' allowed
+            retval = Parse_CheckEmpty(tqs); // No qualifiers in front of 'export' allowed
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
             continue;
 
         case kKW_OpenBrace:
-            if (kPP_Main == _pp)
+            if (PP::kMain == _pp)
                 break; // treat as a command, handled below the switch
 
             retval = SkipToClose(kKW_CloseBrace);
@@ -6774,7 +6791,7 @@ ErrorType AGS::Parser::ParseInput()
         }
 
         // No qualifiers in front of a command allowed
-        retval = Parse_CheckTQ_Empty(tqs); 
+        retval = Parse_CheckEmpty(tqs); 
         if (retval < 0) return retval;
 
         retval = ParseCommand(leading_sym, struct_of_current_func, name_of_current_func);
@@ -6794,7 +6811,7 @@ ErrorType AGS::Parser::Parse_ReinitSymTable(const ::SymbolTable &sym_after_scann
         SymbolTableEntry &s_entry = _sym[sym_idx];
         if (SymT::kFunction == s_entry.SType)
         {
-            SetFlag(s_entry.TypeQualifiers, kTQ_Import, (kFT_Import == s_entry.SOffset));
+            s_entry.TypeQualifiers[TQ::kImport] = (kFT_Import == s_entry.SOffset);
             s_entry.SOffset = 0;
             continue;
         }
@@ -6825,7 +6842,7 @@ ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
         if (SymT::kFunction != stype && SymT::kGlobalVar != stype)
             continue;
 
-        if (FlagIsSet(_sym[entries_idx].TypeQualifiers, kTQ_Import) &&
+        if (_sym[entries_idx].TypeQualifiers[TQ::kImport] &&
             !FlagIsSet(_sym[entries_idx].Flags, kSFLG_Accessed))
             _scrip.imports[_sym[entries_idx].SOffset][0] = '\0';
     }
@@ -6895,7 +6912,7 @@ ErrorType AGS::Parser::Parse_PreAnalyzePhase()
     // Needed to partially reset the symbol table later on
     SymbolTable const sym_after_scanning(_sym);
 
-    _pp = kPP_PreAnalyze;
+    _pp = PP::kPreAnalyze;
     ErrorType retval = ParseInput();
     if (retval < 0) return retval;
 
@@ -6910,7 +6927,7 @@ ErrorType AGS::Parser::Parse_PreAnalyzePhase()
 
 ErrorType AGS::Parser::Parse_MainPhase()
 {
-    _pp = kPP_Main;
+    _pp = PP::kMain;
     return ParseInput();
 }
 

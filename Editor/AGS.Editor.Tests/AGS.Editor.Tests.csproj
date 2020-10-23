@@ -72,6 +72,7 @@
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Types\RoomMessageTests.cs" />
+    <Compile Include="Types\RoomObjectTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

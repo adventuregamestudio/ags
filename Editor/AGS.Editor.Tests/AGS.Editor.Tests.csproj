@@ -11,7 +11,7 @@
     <ProjectGuid>{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AGS.Editor</RootNamespace>
+    <RootNamespace>AGS</RootNamespace>
     <AssemblyName>AGS.Editor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -66,9 +66,9 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColorThemes\ColorThemesTests.cs" />
-    <Compile Include="ColorThemes\Controls\ComboBoxCustomTests.cs" />
-    <Compile Include="Panes\FreePanControlTests.cs" />
+    <Compile Include="Editor\ColorThemes\ColorThemesTests.cs" />
+    <Compile Include="Editor\ColorThemes\Controls\ComboBoxCustomTests.cs" />
+    <Compile Include="Editor\Panes\FreePanControlTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +80,7 @@
       <Name>AGSEditor</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

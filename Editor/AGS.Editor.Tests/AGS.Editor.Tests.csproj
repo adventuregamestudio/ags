@@ -75,6 +75,7 @@
     <Compile Include="Types\RoomHotspotTests.cs" />
     <Compile Include="Types\RoomMessageTests.cs" />
     <Compile Include="Types\RoomObjectTests.cs" />
+    <Compile Include="Types\RoomRegionTests.cs" />
     <Compile Include="Types\RoomWalkableAreaTests.cs" />
     <Compile Include="Types\RoomWalkBehindTests.cs" />
   </ItemGroup>

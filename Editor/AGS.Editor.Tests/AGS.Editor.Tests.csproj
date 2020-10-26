@@ -76,6 +76,7 @@
     <Compile Include="Types\RoomMessageTests.cs" />
     <Compile Include="Types\RoomObjectTests.cs" />
     <Compile Include="Types\RoomWalkableAreaTests.cs" />
+    <Compile Include="Types\RoomWalkBehindTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -47,10 +47,8 @@ namespace Mouse
     // Unlock mouse from the game window
     void UnlockFromWindow();
 
-    // Enable mouse movement control
-    void EnableControl(bool confine);
-    // Disable mouse movement control
-    void DisableControl();
+    // Enable or disable mouse movement control
+    void SetMovementControl(bool on);
     // Tell if the mouse movement control is enabled
     bool IsControlEnabled();
     // Set base speed factor, which would serve as a mouse speed unit
@@ -67,7 +65,7 @@ namespace Mouse
 {
     // Updates limits of the area inside which the standard OS cursor is not shown;
     // uses game's main viewport (in native coordinates) to calculate real area on screen
-    void SetGraphicArea();
+    void UpdateGraphicArea();
     // Limits the area where the game cursor can move on virtual screen;
     // parameter must be in native game coordinates
     void SetMoveLimit(const Rect &r);

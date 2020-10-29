@@ -456,7 +456,7 @@ void apply_config(const ConfigTree &cfg)
                 break;
             }
         }
-        usetup.mouse_ctrl_enabled = INIreadint(cfg, "mouse", "control_enabled", 1) > 0;
+        usetup.mouse_ctrl_enabled = INIreadint(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled) > 0;
         const char *mouse_speed_options[kNumMouseSpeedDefs] = { "absolute", "current_display" };
         mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
         for (int i = 0; i < kNumMouseSpeedDefs; ++i)

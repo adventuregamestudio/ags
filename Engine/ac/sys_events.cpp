@@ -187,6 +187,7 @@ Instead we accumulate button presses over a couple of timer loops.
 static int mouse_button_state = 0;
 static int mouse_accum_button_state = 0;
 static auto mouse_clear_at_time = AGS_Clock::now();
+static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 
 // Returns accumulated mouse button state and clears internal cache by timer
 static int mouse_button_poll()
@@ -203,6 +204,8 @@ static int mouse_button_poll()
 static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
     sys_mouse_x = event.x;
     sys_mouse_y = event.y;
+    mouse_accum_relx += event.xrel;
+    mouse_accum_rely += event.yrel;
 }
 
 static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
@@ -279,6 +282,13 @@ int ags_mgetbutton() {
     return result;
 }
 
+void ags_mouse_get_relxy(int &x, int &y) {
+    x = mouse_accum_relx;
+    y = mouse_accum_rely;
+    mouse_accum_relx = 0;
+    mouse_accum_rely = 0;
+}
+
 void ags_domouse(int what) {
     // do mouse is "update the mouse x,y and also the cursor position", unless DOMOUSE_NOCURSOR is set.
     if (what == DOMOUSE_NOCURSOR)
@@ -308,6 +318,8 @@ void ags_clear_input_buffer()
     mouse_button_state = 0;
     mouse_accum_button_state = 0;
     mouse_clear_at_time = AGS_Clock::now() + std::chrono::milliseconds(50);
+    mouse_accum_relx = 0;
+    mouse_accum_rely = 0;
 }
 
 void ags_wait_until_keypress()

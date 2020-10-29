@@ -292,8 +292,8 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     }
 
     Mouse_EnableControl(usetup.mouse_ctrl_enabled);
-    Debug::Printf(kDbgMsg_Info, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
-        Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+    Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
+        usetup.mouse_ctrl_enabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
     on_coordinates_scaling_changed();
 
@@ -306,7 +306,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
 void engine_pre_gfxmode_mouse_cleanup()
 {
     // Always disable mouse control and unlock mouse when releasing down gfx mode
-    Mouse::DisableControl();
+    Mouse::SetMovementControl(false);
     Mouse::UnlockFromWindow();
 }
 
@@ -359,7 +359,7 @@ void engine_pre_gfxsystem_shutdown()
 void on_coordinates_scaling_changed()
 {
     // Reset mouse graphic area and bounds
-    Mouse::SetGraphicArea();
+    Mouse::UpdateGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
     if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
         Mouse::SetMoveLimit(play.GetMainViewport());

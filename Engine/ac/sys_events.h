@@ -42,6 +42,8 @@ int  ags_iskeypressed (int keycode);
 bool ags_misbuttondown(int but);
 // Returns mouse button code
 int  ags_mgetbutton();
+// Returns recent relative mouse movement
+void ags_mouse_get_relxy(int &x, int &y);
 // Updates mouse cursor position in game
 void ags_domouse(int what);
 // Returns -1 for wheel down and +1 for wheel up

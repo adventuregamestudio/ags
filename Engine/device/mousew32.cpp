@@ -20,19 +20,14 @@
 // Win32 (allegro) update (c) 1999 Chris Jones
 //
 //=============================================================================
-
-#include "core/platform.h"
-#include "util/wgt2allg.h"
+#include "device/mousew32.h"
+#include <SDL.h>
 #include "ac/gamestate.h"
 #include "ac/sys_events.h"
 #include "debug/out.h"
-#include "device/mousew32.h"
 #include "gfx/bitmap.h"
-#include "gfx/gfx_util.h"
 #include "main/graphics_mode.h"
-#include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "util/math.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -60,8 +55,6 @@ namespace Mouse
     Rect  ControlRect;
     // Mouse control enabled flag
     bool  ControlEnabled = false;
-    // Flag that tells whether the mouse must be forced to stay inside control rect
-    bool  ConfineInCtrlRect = false;
     // Mouse speed value provided by user
     float SpeedVal = 1.f;
     // Mouse speed unit
@@ -69,8 +62,8 @@ namespace Mouse
     // Actual speed factor (cached)
     float Speed = 1.f;
 
-
-    void AdjustPosition(int &x, int &y);
+    // Converts real window coordinates to native game coords
+    void WindowToGame(int &x, int &y);
 }
 
 void mgetgraphpos()
@@ -99,46 +92,11 @@ void mgetgraphpos()
 
     if (!switched_away && Mouse::ControlEnabled)
     {
-        // Control mouse movement by querying mouse mickeys (movement deltas)
-        // and applying them to saved mouse coordinates.
-        int mickey_x, mickey_y;
-        get_mouse_mickeys(&mickey_x, &mickey_y);
-        
-        // Apply mouse speed
-        int dx = Mouse::Speed * mickey_x;
-        int dy = Mouse::Speed * mickey_y;
-
-        //
-        // Perform actual cursor update
-        //---------------------------------------------------------------------
-        // If the real cursor is inside the control rectangle (read - game window),
-        // then apply sensitivity factors and adjust real cursor position
-        if (Mouse::ControlRect.IsInside(real_mouse_x + dx, real_mouse_y + dy))
-        {
-            real_mouse_x += dx;
-            real_mouse_y += dy;
-            sys_window_set_mouse(real_mouse_x, real_mouse_y);
-        }
-        // Otherwise, if real cursor was moved outside the control rect, yet we
-        // are required to confine cursor inside one, then adjust cursor position
-        // to stay inside the rect's bounds.
-        else if (Mouse::ConfineInCtrlRect)
-        {
-            real_mouse_x = Math::Clamp(real_mouse_x + dx, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
-            real_mouse_y = Math::Clamp(real_mouse_y + dy, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-            sys_window_set_mouse(real_mouse_x, real_mouse_y);
-        }
-        // Lastly, if the real cursor is out of the control rect, simply add
-        // actual movement to keep up with the system cursor coordinates.
-        else
-        {
-            real_mouse_x += mickey_x;
-            real_mouse_y += mickey_y;
-        }
-
-        // Do not update the game cursor if the real cursor is beyond the control rect
-        if (!Mouse::ControlRect.IsInside(real_mouse_x, real_mouse_y))
-            return;
+        // Use relative mouse movement; speed factor should already be applied by SDL in this mode
+        int rel_x, rel_y;
+        ags_mouse_get_relxy(rel_x, rel_y);
+        real_mouse_x = Math::Clamp(real_mouse_x + rel_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+        real_mouse_y = Math::Clamp(real_mouse_y + rel_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
     }
     else
     {
@@ -160,7 +118,7 @@ void mgetgraphpos()
     }
 
     // Convert to virtual coordinates
-    Mouse::AdjustPosition(mousex, mousey);
+    Mouse::WindowToGame(mousex, mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
@@ -217,13 +175,13 @@ int minstalled()
   return 3; // SDL *theoretically* support 3 mouse buttons, but that does not mean they are physically present...
 }
 
-void Mouse::AdjustPosition(int &x, int &y)
+void Mouse::WindowToGame(int &x, int &y)
 {
     x = GameScaling.X.UnScalePt(x) - play.GetMainViewport().Left;
     y = GameScaling.Y.UnScalePt(y) - play.GetMainViewport().Top;
 }
 
-void Mouse::SetGraphicArea()
+void Mouse::UpdateGraphicArea()
 {
     Mouse::ControlRect = GameScaling.ScaleRange(play.GetMainViewport());
     Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)",
@@ -261,16 +219,15 @@ void Mouse::UnlockFromWindow()
     LockedToWindow = false;
 }
 
-void Mouse::EnableControl(bool confine)
+void Mouse::SetMovementControl(bool on)
 {
-    ControlEnabled = true;
-    ConfineInCtrlRect = confine;
-}
-
-void Mouse::DisableControl()
-{
-    ControlEnabled = false;
-    ConfineInCtrlRect = false;
+    ControlEnabled = on;
+    SDL_SetRelativeMouseMode(static_cast<SDL_bool>(on));
+    if (on)
+        SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, String::FromFormat("%.2f", Mouse::Speed).GetCStr());
+    else
+        SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, "1.0");
+    ags_clear_input_buffer();
 }
 
 bool Mouse::IsControlEnabled()

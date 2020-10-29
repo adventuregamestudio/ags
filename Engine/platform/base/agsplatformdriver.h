@@ -75,8 +75,6 @@ struct AGSPlatformDriver
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
-    // Tells whether build is capable of controlling mouse movement properly
-    virtual bool IsMouseControlSupported(bool windowed) { return false; }
     // Tells whether this platform's backend library deals with mouse cursor
     // virtual->real coordinate transformation itself (otherwise AGS engine should do it)
     virtual bool IsBackendResponsibleForMouseScaling() { return false; }

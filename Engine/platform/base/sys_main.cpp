@@ -126,6 +126,11 @@ bool sys_window_lock_mouse(bool on) {
     return on; // TODO: test if successful?
 }
 
+void sys_window_set_mouse(int x, int y) {
+    if (!window) return;
+    SDL_WarpMouseInWindow(window, x, y);
+}
+
 void sys_window_destroy() {
     if (window) {
         SDL_DestroyWindow(window);

@@ -53,6 +53,8 @@ bool sys_window_set_size(int w, int h, bool center);
 // Locks on unlocks mouse inside the window.
 // Returns new state of the mouse lock.
 bool sys_window_lock_mouse(bool on);
+// Sets mouse position within the game window
+void sys_window_set_mouse(int x, int y);
 // Destroy current game window, if one exists.
 void sys_window_destroy();
 // Set window title text.

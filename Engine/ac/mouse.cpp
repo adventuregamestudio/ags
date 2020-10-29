@@ -24,6 +24,7 @@
 #include "ac/global_mouse.h"
 #include "ac/global_plugin.h"
 #include "ac/global_screen.h"
+#include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -46,7 +47,6 @@ extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 extern void ags_domouse(int str);
-extern int misbuttondown(int buno);
 
 ScriptMouse scmouse;
 int cur_mode,cur_cursor;
@@ -307,7 +307,7 @@ int GetCursorMode() {
 int IsButtonDown(int which) {
     if ((which < 1) || (which > 3))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
-    if (misbuttondown(which-1))
+    if (ags_misbuttondown(which-1))
         return 1;
     return 0;
 }

@@ -25,21 +25,15 @@
 
 #define MAXCURSORS 20
 
-#include "util/geometry.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
 void msetgraphpos(int,int);
-// Sets the area of the screen within which the mouse can move
-void mgraphconfine(int x1, int y1, int x2, int y2);
 void mgetgraphpos();
 // Sets the area of the game frame (zero-based coordinates) where the mouse cursor is allowed to move;
 // this function was meant to be used to achieve gameplay effect
 void msetcursorlimit(int x1, int y1, int x2, int y2);
-int ismouseinbox(int lf, int tp, int rt, int bt);
-void mfreemem();
-void mloadwcursor(char *namm);
 void msetgraphpos(int xa, int ya);
 void msethotspot(int xx, int yy);
 int minstalled();
@@ -84,7 +78,6 @@ namespace Mouse
 
 extern int mousex, mousey;
 extern int hotx, hoty;
-extern int disable_mgetgraphpos;
 extern char currentcursor;
 
 extern Common::Bitmap *mousecurs[MAXCURSORS];

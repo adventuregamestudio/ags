@@ -29,16 +29,9 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameState play;
 
-extern volatile unsigned long globalTimerCounter;
-extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;
 
-extern void domouse(int str);
-extern int mgetbutton();
-extern int misbuttondown(int buno);
-
-int mouse_z_was = 0;
 
 int ags_kbhit () {
     return keypressed();
@@ -50,43 +43,6 @@ int ags_iskeypressed (int keycode) {
         return key[keycode] != 0;
     }
     return 0;
-}
-
-int ags_misbuttondown (int but) {
-    return misbuttondown(but);
-}
-
-int ags_mgetbutton() {
-    int result;
-
-    if (pluginSimulatedClick > MouseNone) {
-        result = pluginSimulatedClick;
-        pluginSimulatedClick = MouseNone;
-    }
-    else {
-        result = mgetbutton();
-    }
-    return result;
-}
-
-void ags_domouse (int what) {
-    // do mouse is "update the mouse x,y and also the cursor position", unless DOMOUSE_NOCURSOR is set.
-    if (what == DOMOUSE_NOCURSOR)
-        mgetgraphpos();
-    else
-        domouse(what);
-}
-
-int ags_check_mouse_wheel () {
-    int result = 0;
-    if ((mouse_z != mouse_z_was) && (game.options[OPT_MOUSEWHEEL] != 0)) {
-        if (mouse_z > mouse_z_was)
-            result = 1;
-        else
-            result = -1;
-        mouse_z_was = mouse_z;
-    }
-    return result;
 }
 
 int ags_getch() {
@@ -191,10 +147,167 @@ int ags_getch() {
     return gott;
 }
 
+
+// ----------------------------------------------------------------------------
+// MOUSE INPUT
+// ----------------------------------------------------------------------------
+volatile int sys_mouse_x = 0; // mouse x position
+volatile int sys_mouse_y = 0; // mouse y position
+volatile int sys_mouse_z = 0; // mouse wheel position
+
+
+// TODO: check later, if this may be useful in other places (then move to header)
+enum eAGSMouseButtonMask
+{
+    MouseBitLeft     = 0x01,
+    MouseBitRight    = 0x02,
+    MouseBitMiddle   = 0x04,
+    MouseBitX1       = 0x08,
+    MouseBitX2       = 0x10
+};
+
+static int sdl_button_to_mask(int button)
+{
+    switch (button) {
+    case SDL_BUTTON_LEFT: return MouseBitLeft;
+    case SDL_BUTTON_RIGHT: return MouseBitRight;
+    case SDL_BUTTON_MIDDLE: return MouseBitMiddle;
+    case SDL_BUTTON_X1: return MouseBitX1;
+    case SDL_BUTTON_X2: return MouseBitX2;
+    }
+    return 0;
+}
+
+/* [sonneveld]
+Button tracking:
+On OSX, some tap to click up/down events happen too quickly to be detected on the polled mouse_b global variable.
+Instead we accumulate button presses over a couple of timer loops.
+// TODO: check again when/if we replace polling with different event handling.
+*/
+static int mouse_button_state = 0;
+static int mouse_accum_button_state = 0;
+static auto mouse_clear_at_time = AGS_Clock::now();
+
+// Returns accumulated mouse button state and clears internal cache by timer
+static int mouse_button_poll()
+{
+    auto now = AGS_Clock::now();
+    int result = mouse_button_state | mouse_accum_button_state;
+    if (now >= mouse_clear_at_time) {
+        mouse_accum_button_state = 0;
+        mouse_clear_at_time = now + std::chrono::milliseconds(50);
+    }
+    return result;
+}
+
+static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
+    sys_mouse_x = event.x;
+    sys_mouse_y = event.y;
+}
+
+static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
+{
+    sys_mouse_x = event.x;
+    sys_mouse_y = event.y;
+
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
+        mouse_button_state |= sdl_button_to_mask(event.button);
+        mouse_accum_button_state |= sdl_button_to_mask(event.button);
+    }
+    else {
+        mouse_button_state &= ~sdl_button_to_mask(event.button);
+    }
+}
+
+static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
+{
+    sys_mouse_z += event.y;
+}
+
+int butwas = 0;
+int mgetbutton()
+{
+    int toret = MouseNone;
+    int butis = mouse_button_poll();
+
+    if ((butis > 0) & (butwas > 0))
+        return MouseNone;  // don't allow holding button down
+
+    if (butis & MouseBitLeft)
+        toret = MouseLeft;
+    else if (butis & MouseBitRight)
+        toret = MouseRight;
+    else if (butis & MouseMiddle)
+        toret = MouseMiddle;
+
+    butwas = butis;
+    return toret;
+
+    // TODO: presumably this was a hack for 1-button Mac mouse;
+    // is this still necessary?
+    // find an elegant way to reimplement this; e.g. allow to configure key->mouse mappings?!
+#define AGS_SIMULATE_RIGHT_CLICK (AGS_PLATFORM_OS_MACOS)
+#if AGS_SIMULATE_RIGHT_CLICK__FIXME
+        // j Ctrl-left click should be right-click
+        if (ags_iskeypressed(__allegro_KEY_LCONTROL) || ags_iskeypressed(__allegro_KEY_RCONTROL))
+        {
+            toret = RIGHT;
+        }
+#endif
+}
+
+extern int pluginSimulatedClick;
+extern void domouse(int str);
+int mouse_z_was = 0;
+const int MB_ARRAY[3] = { MouseBitLeft, MouseBitRight, MouseBitMiddle };
+
+bool ags_misbuttondown(int but)
+{
+    return mouse_button_poll() & MB_ARRAY[but];
+}
+
+int ags_mgetbutton() {
+    int result;
+
+    if (pluginSimulatedClick > MouseNone) {
+        result = pluginSimulatedClick;
+        pluginSimulatedClick = MouseNone;
+    }
+    else {
+        result = mgetbutton();
+    }
+    return result;
+}
+
+void ags_domouse(int what) {
+    // do mouse is "update the mouse x,y and also the cursor position", unless DOMOUSE_NOCURSOR is set.
+    if (what == DOMOUSE_NOCURSOR)
+        mgetgraphpos();
+    else
+        domouse(what);
+}
+
+int ags_check_mouse_wheel() {
+    if (game.options[OPT_MOUSEWHEEL] == 0) { return 0; }
+    if (sys_mouse_z == mouse_z_was) { return 0; }
+
+    int result = 0;
+    if (sys_mouse_z > mouse_z_was)
+        result = 1;   // eMouseWheelNorth
+    else
+        result = -1;  // eMouseWheelSouth
+    mouse_z_was = sys_mouse_z;
+    return result;
+}
+
+
+
 void ags_clear_input_buffer()
 {
     while (ags_kbhit()) ags_getch();
-    while (mgetbutton() != MouseNone);
+    mouse_button_state = 0;
+    mouse_accum_button_state = 0;
+    mouse_clear_at_time = AGS_Clock::now() + std::chrono::milliseconds(50);
 }
 
 void ags_wait_until_keypress()
@@ -245,6 +358,17 @@ void sys_evt_process_one(const SDL_Event &event) {
             }
             break;
         }
+        break;
+    // INPUT
+    case SDL_MOUSEMOTION:
+        on_sdl_mouse_motion(event.motion);
+        break;
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+        on_sdl_mouse_button(event.button);
+        break;
+    case SDL_MOUSEWHEEL:
+        on_sdl_mouse_wheel(event.wheel);
         break;
     }
 }

@@ -38,10 +38,21 @@ int  ags_getch ();
 int  ags_kbhit ();
 int  ags_iskeypressed (int keycode);
 
-int  ags_misbuttondown (int but);
+// Tells if the mouse button is currently down
+bool ags_misbuttondown(int but);
+// Returns mouse button code
 int  ags_mgetbutton();
-void ags_domouse (int what);
-int  ags_check_mouse_wheel ();
+// Updates mouse cursor position in game
+void ags_domouse(int what);
+// Returns -1 for wheel down and +1 for wheel up
+// TODO: introduce constants for this
+int  ags_check_mouse_wheel();
+
+// TODO: hide these later after refactoring mousew32.cpp
+extern volatile int sys_mouse_x; // mouse x position
+extern volatile int sys_mouse_y; // mouse y position
+extern volatile int sys_mouse_z; // mouse wheel position
+
 
 // Clears buffered keypresses and mouse clicks, if any
 void ags_clear_input_buffer();

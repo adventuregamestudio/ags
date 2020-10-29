@@ -957,7 +957,7 @@ bool DialogOptions::Run()
           parserActivated = 1;
       }
 
-      int mouseButtonPressed = NONE;
+      int mouseButtonPressed = MouseNone;
       int mouseWheelTurn = 0;
       if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0 &&
           !play.IsIgnoringInput())

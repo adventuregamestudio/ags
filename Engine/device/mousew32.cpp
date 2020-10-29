@@ -47,9 +47,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/math.h"
-#if AGS_SIMULATE_RIGHT_CLICK
 #include "ac/sys_events.h" // j for ags_iskeypressed
-#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -58,7 +56,6 @@ using namespace AGS::Engine;
 extern char lib_file_name[13];
 
 const char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
-const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
 char currentcursor = 0;
 // virtual mouse cursor coordinates
 int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
@@ -252,28 +249,28 @@ void mloadwcursor(char *namm)
 int butwas = 0;
 int mgetbutton()
 {
-  int toret = NONE;
+  int toret = MouseNone;
   poll_mouse();
   int butis = mouse_b;
 
   if ((butis > 0) & (butwas > 0))
-    return NONE;  // don't allow holding button down
+    return MouseNone;  // don't allow holding button down
 
   if (butis & 1)
   {
-    toret = LEFT;
+    toret = MouseLeft;
 #if AGS_SIMULATE_RIGHT_CLICK
     // j Ctrl-left click should be right-click
     if (ags_iskeypressed(__allegro_KEY_LCONTROL) || ags_iskeypressed(__allegro_KEY_RCONTROL))
     {
-      toret = RIGHT;
+      toret = MouseRight;
     }
 #endif
   }
   else if (butis & 2)
-    toret = RIGHT;
+    toret = MouseRight;
   else if (butis & 4)
-    toret = MIDDLE;
+    toret = MouseMiddle;
 
   butwas = butis;
   return toret;

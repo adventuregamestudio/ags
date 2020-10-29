@@ -59,9 +59,9 @@ int ags_misbuttondown (int but) {
 int ags_mgetbutton() {
     int result;
 
-    if (pluginSimulatedClick > NONE) {
+    if (pluginSimulatedClick > MouseNone) {
         result = pluginSimulatedClick;
-        pluginSimulatedClick = NONE;
+        pluginSimulatedClick = MouseNone;
     }
     else {
         result = mgetbutton();
@@ -194,7 +194,7 @@ int ags_getch() {
 void ags_clear_input_buffer()
 {
     while (ags_kbhit()) ags_getch();
-    while (mgetbutton() != NONE);
+    while (mgetbutton() != MouseNone);
 }
 
 void ags_wait_until_keypress()

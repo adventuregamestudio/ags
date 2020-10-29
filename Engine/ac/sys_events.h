@@ -18,6 +18,20 @@
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
 
+// AGS own mouse button codes
+// TODO: these were internal button codes, but AGS script uses different ones,
+// which start with Left=1, and make more sense (0 is easier to use as "no value").
+// Must research if there are any dependencies to these internal values, and if not,
+// then just replace these matching script ones!
+// UPD: even plugin API seem to match script codes and require remap to internals.
+enum eAGSMouseButton
+{
+    MouseNone     = -1,
+    MouseLeft     =  0,
+    MouseRight    =  1,
+    MouseMiddle   =  2
+};
+
 // Input handling
 //
 int  ags_getch ();

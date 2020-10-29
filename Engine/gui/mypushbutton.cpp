@@ -15,7 +15,7 @@
 #include <string.h>
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "ac/mouse.h"
+#include "ac/sys_events.h"
 #include "font/fonts.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
@@ -69,12 +69,10 @@ void MyPushButton::draw(Bitmap *ds)
     ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
-//extern const int LEFT;  // in mousew32
-
 int MyPushButton::pressedon(int mousex, int mousey)
 {
     int wasstat;
-    while (mbutrelease(LEFT) == 0) {
+    while (mbutrelease(MouseLeft) == 0) {
 
         wasstat = state;
         state = mouseisinarea(mousex, mousey);

@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
 #include "util/wgt2allg.h"
+#include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gui/mytextbox.h"
 #include "gui/guidialoginternaldefs.h"
@@ -65,7 +65,7 @@ int MyTextBox::processmessage(int mcode, int wParam, long lParam)
     } else if (mcode == CTB_GETTEXT)
         strcpy((char *)lParam, text);
     else if (mcode == CTB_KEYPRESS) {
-        if (wParam == 8) {
+        if (wParam == eAGSKeyCodeBackspace) {
             if (text[0] != 0)
                 text[strlen(text) - 1] = 0;
 

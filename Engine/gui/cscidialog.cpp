@@ -159,14 +159,14 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         smcode = 0;
         int keywas;
         if (run_service_key_controls(keywas) && !play.IsIgnoringInput()) {
-            if (keywas == 13) {
+            if (keywas == eAGSKeyCodeReturn) {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);
                 cscim->code = CM_COMMAND;
-            } else if (keywas == 27) {
+            } else if (keywas == eAGSKeyCodeEscape) {
                 cscim->id = finddefaultcontrol(CNF_CANCEL);
                 cscim->code = CM_COMMAND;
-            } else if ((keywas < 32) && (keywas != 8)) ;
-            else if ((keywas >= 372) & (keywas <= 381) & (finddefaultcontrol(CNT_LISTBOX) >= 0))
+            } else if ((keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace)) ;
+            else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) & (finddefaultcontrol(CNT_LISTBOX) >= 0))
                 vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)
                 vobjs[finddefaultcontrol(CNT_TEXTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);

@@ -1794,7 +1794,7 @@ bool check_skip_cutscene_keypress (int kgn) {
 
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
-        (kgn == 27 && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
+        (kgn == eAGSKeyCodeEscape && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
     {
         start_skipping_cutscene();
         return true;

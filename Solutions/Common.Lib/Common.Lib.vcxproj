@@ -276,6 +276,7 @@
     <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp" />
     <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp" />
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
+    <ClCompile Include="..\..\Common\ac\keycode.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
     <ClCompile Include="..\..\Common\ac\spritecache.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
@@ -373,6 +374,7 @@
     <ClInclude Include="..\..\Common\ac\interfacebutton.h" />
     <ClInclude Include="..\..\Common\ac\interfaceelement.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
+    <ClInclude Include="..\..\Common\ac\keycode.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
     <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
     <ClInclude Include="..\..\Common\ac\spritecache.h" />

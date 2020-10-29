@@ -32,6 +32,7 @@
 #include <ddstream.h>	// DirectDraw multimedia stream interfaces
 #include <initguid.h>   // Defines DEFINE_GUID macro and enables GUID initialization
 #include "ac/draw.h"
+#include "ac/keycode.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
@@ -394,7 +395,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
     //Sleep(0);
     int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
-      if ((canskip == 1) && (key == 27))
+      if ((canskip == 1) && (key == eAGSKeyCodeEscape))
         break;
       if (canskip >= 2)
         break;

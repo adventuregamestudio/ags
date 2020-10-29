@@ -30,6 +30,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
+#include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
@@ -71,7 +72,7 @@ int check_if_user_input_should_cancel_video()
 {
     int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
-        if ((key==27) && (canabort==1))
+        if ((key==eAGSKeyCodeEscape) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key

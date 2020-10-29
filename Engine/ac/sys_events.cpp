@@ -115,7 +115,7 @@ int ags_getch() {
     if (gott == READKEY_CODE_ALT_TAB)
     {
         // Alt+Tab, it gets stuck down unless we do this
-        gott = AGS_KEYCODE_ALT_TAB;
+        gott = eAGSKeyCodeAltTab;
     }
     #if AGS_PLATFORM_OS_MACOS
     else if (scancode == __allegro_KEY_BACKSPACE) 

@@ -356,6 +356,9 @@
     <ClCompile Include="..\..\Common\libsrc\freetype-2.1.3\src\winfonts\winfnt.c">
       <Filter>Library Sources\freetype</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\ac\keycode.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -618,6 +621,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\string_compat.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\keycode.h">
+      <Filter>Header Files\ac</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

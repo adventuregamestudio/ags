@@ -34,6 +34,7 @@
 #define _STRSAFE_H_INCLUDED_
 typedef float D3DVALUE, *LPD3DVALUE;
 #include "ac/common.h"
+#include "ac/keycode.h"
 #include "main/game_run.h"
 #include "media/video/VMR9Graph.h"
 #include "platform/base/sys_main.h"
@@ -120,7 +121,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
 
     int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
-      if ((canskip == 1) && (key == 27))
+      if ((canskip == 1) && (key == eAGSKeyCodeEscape))
         break;
       if (canskip >= 2)
         break;

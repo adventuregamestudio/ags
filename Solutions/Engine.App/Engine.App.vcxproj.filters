@@ -834,9 +834,6 @@
     <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\keycode.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -1053,9 +1050,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\invwindow.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\keycode.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\label.h">

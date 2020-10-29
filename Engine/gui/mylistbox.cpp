@@ -16,6 +16,7 @@
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gui/guidialog.h"
@@ -165,16 +166,16 @@ extern int smcode;
       strcpy(itemnames[wParam], newstri);
 
     } else if (mcode == CTB_KEYPRESS) {
-      if ((wParam == 380) && (selected < items - 1))
+      if ((wParam == eAGSKeyCodeDownArrow) && (selected < items - 1))
         selected++;
 
-      if ((wParam == 372) && (selected > 0))
+      if ((wParam == eAGSKeyCodeUpArrow) && (selected > 0))
         selected--;
 
-      if (wParam == 373)
+      if (wParam == eAGSKeyCodePageUp)
         selected -= (numonscreen - 1);
 
-      if (wParam == 381)
+      if (wParam == eAGSKeyCodePageDown)
         selected += (numonscreen - 1);
 
       if ((selected < 0) && (items > 0))

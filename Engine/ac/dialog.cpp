@@ -877,7 +877,7 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text) == 0))) {
+          if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (strlen(parserInput->Text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
             for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
               parserInput->OnKeyPress(play.lastParserEntry[i]);
@@ -886,7 +886,7 @@ bool DialogOptions::Run()
             Redraw();
             return true; // continue running loop
           }
-          else if ((gkey >= 32) || (gkey == 13) || (gkey == 8)) {
+          else if ((gkey >= eAGSKeyCodeSpace) || (gkey == eAGSKeyCodeReturn) || (gkey == eAGSKeyCodeBackspace)) {
             parserInput->OnKeyPress(gkey);
             if (!parserInput->IsActivated) {
               //ags_domouse(DOMOUSE_DISABLE);

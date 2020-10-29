@@ -334,7 +334,6 @@
     <ClCompile Include="..\..\Engine\ac\interfaceelement.cpp" />
     <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp" />
     <ClCompile Include="..\..\Engine\ac\invwindow.cpp" />
-    <ClCompile Include="..\..\Engine\ac\keycode.cpp" />
     <ClCompile Include="..\..\Engine\ac\label.cpp" />
     <ClCompile Include="..\..\Engine\ac\listbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\math.cpp" />
@@ -612,7 +611,6 @@
     <ClInclude Include="..\..\Engine\ac\hotspot.h" />
     <ClInclude Include="..\..\Engine\ac\inventoryitem.h" />
     <ClInclude Include="..\..\Engine\ac\invwindow.h" />
-    <ClInclude Include="..\..\Engine\ac\keycode.h" />
     <ClInclude Include="..\..\Engine\ac\label.h" />
     <ClInclude Include="..\..\Engine\ac\lipsync.h" />
     <ClInclude Include="..\..\Engine\ac\listbox.h" />

@@ -160,9 +160,6 @@ enum eAGSKeyCode
     eAGSKeyCodeAltX = 324
 };
 
-#define AGS_KEYCODE_INSERT (eAGSKeyCodeInsert)
-#define AGS_KEYCODE_DELETE (eAGSKeyCodeDelete)
-#define AGS_KEYCODE_ALT_TAB (eAGSKeyCodeAltTab)
 #define READKEY_CODE_ALT_TAB 0x4000
 
 // Gets a key code for "on_key_press" script callback

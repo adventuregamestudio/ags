@@ -17,6 +17,8 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
+#include <SDL_keyboard.h>
+#include "ac/keycode.h"
 
 // AGS own mouse button codes
 // TODO: these were internal button codes, but AGS script uses different ones,
@@ -32,12 +34,22 @@ enum eAGSMouseButton
     MouseMiddle   =  2
 };
 
-// Input handling
+// Keyboard input handling
 //
+// Converts SDL key data to eAGSKeyCode, which may be also directly used as an ASCII char
+// if it is in proper range, see comments to eAGSKeyCode for details.
+eAGSKeyCode ags_keycode_from_sdl(const SDL_Keysym &key);
+// Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
+// NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
+bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
+
+
 int  ags_getch ();
 int  ags_kbhit ();
 int  ags_iskeypressed (int keycode);
 
+// Mouse input handling
+//
 // Tells if the mouse button is currently down
 bool ags_misbuttondown(int but);
 // Returns mouse button code

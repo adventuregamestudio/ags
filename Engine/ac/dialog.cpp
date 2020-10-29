@@ -898,7 +898,7 @@ bool DialogOptions::Run()
         else if (new_custom_render)
         {
             runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(GetKeyForKeyPressCb(gkey));
+            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         // Allow selection of options by keyboard shortcuts

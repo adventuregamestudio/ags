@@ -539,7 +539,7 @@ static void check_keyboard_controls()
     }
 
     if (!keywasprocessed) {
-        kgn = GetKeyForKeyPressCb(kgn);
+        kgn = AGSKeyToScriptKey(kgn);
         debug_script_log("Running on_key_press keycode %d", kgn);
         setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
     }

@@ -23,9 +23,22 @@
 #define EXTENDED_KEY_CODE ('\0')
 #define EXTENDED_KEY_CODE_MACOS ('?')
 
+// Constant used to define Alt+Key codes
 #define AGS_EXT_KEY_SHIFT  300
+#define AGS_EXT_KEY_ALPHA(key)  (AGS_EXT_KEY_SHIFT + (key - eAGSKeyCodeCtrlA) + 1)
 
-// These are based on values in agsdefn.sh
+// These are based on eKeyCode values in AGS Script.
+// The actual values are based on scan codes of the old backend (allegro 3 and/or 4),
+// which in turn mostly match ASCII values (at least for ones below 128), including
+// Ctrl + letter combination codes.
+// More codes are added at much higher ranges, for example Alt + letter combo codes
+// are defined as 300 + letter's order.
+// It should be specifically noted that eAGSKeyCode is directly conversible to ASCII
+// at the range of 1 - 128, and AGS script makes use of this.
+// Another important thing to note is that letter codes are always sent into script
+// callbacks (like "on_key_pressed") in capitalized form, and that's how they are
+// declared in script API (that's why in these callbacks user would have to check
+// the Shift key state if they want to know if it's A or Shift + A).
 enum eAGSKeyCode
 {
     eAGSKeyCodeNone = 0,
@@ -57,10 +70,12 @@ enum eAGSKeyCode
     eAGSKeyCodeCtrlY = 25,
     eAGSKeyCodeCtrlZ = 26,
 
-    eAGSKeyCodeBackspace = 8,
-    eAGSKeyCodeTab = 9,
-    eAGSKeyCodeReturn = 13,
+    eAGSKeyCodeBackspace = 8, // matches Ctrl + H
+    eAGSKeyCodeTab = 9, // matches Ctrl + I
+    eAGSKeyCodeReturn = 13, // matches Ctrl + M
     eAGSKeyCodeEscape = 27,
+
+    /* printable chars - from eAGSKeyCodeSpace to eAGSKeyCode_z */
     eAGSKeyCodeSpace = 32,
     eAGSKeyCodeExclamationMark = 33,
     eAGSKeyCodeDoubleQuote = 34,
@@ -77,17 +92,6 @@ enum eAGSKeyCode
     eAGSKeyCodeHyphen = 45,
     eAGSKeyCodePeriod = 46,
     eAGSKeyCodeForwardSlash = 47,
-    eAGSKeyCodeColon = 58,
-    eAGSKeyCodeSemiColon = 59,
-    eAGSKeyCodeLessThan = 60,
-    eAGSKeyCodeEquals = 61,
-    eAGSKeyCodeGreaterThan = 62,
-    eAGSKeyCodeQuestionMark = 63,
-    eAGSKeyCodeAt = 64,
-    eAGSKeyCodeOpenBracket = 91,
-    eAGSKeyCodeBackSlash = 92,
-    eAGSKeyCodeCloseBracket = 93,
-    eAGSKeyCodeUnderscore = 95,
 
     eAGSKeyCode0 = 48,
     eAGSKeyCode1 = 49,
@@ -100,8 +104,17 @@ enum eAGSKeyCode
     eAGSKeyCode8 = 56,
     eAGSKeyCode9 = 57,
 
-    eAGSKeyCodeA = 65,
-    eAGSKeyCodeB = 66,
+    eAGSKeyCodeColon = 58,
+    eAGSKeyCodeSemiColon = 59,
+    eAGSKeyCodeLessThan = 60,
+    eAGSKeyCodeEquals = 61,
+    eAGSKeyCodeGreaterThan = 62,
+    eAGSKeyCodeQuestionMark = 63,
+    eAGSKeyCodeAt = 64, // '@'
+
+    /* Notice that default letter codes match capital ASCII letters */
+    eAGSKeyCodeA = 65, // 'A'
+    eAGSKeyCodeB = 66, // 'B', etc
     eAGSKeyCodeC = 67,
     eAGSKeyCodeD = 68,
     eAGSKeyCodeE = 69,
@@ -125,8 +138,44 @@ enum eAGSKeyCode
     eAGSKeyCodeW = 87,
     eAGSKeyCodeX = 88,
     eAGSKeyCodeY = 89,
-    eAGSKeyCodeZ = 90,
+    eAGSKeyCodeZ = 90, // 'Z'
 
+    eAGSKeyCodeOpenBracket = 91,
+    eAGSKeyCodeBackSlash = 92,
+    eAGSKeyCodeCloseBracket = 93,
+    eAGSKeyCodeCaret = 94, // '^'
+    eAGSKeyCodeUnderscore = 95,
+    eAGSKeyCodeBackquote = 96, // '`'
+
+    /* Small ASCII letter codes are declared here for consistency, but unused in script callbacks */
+    eAGSKeyCode_a = 97, // 'a'
+    eAGSKeyCode_b = 98, // 'b', etc
+    eAGSKeyCode_c = 99,
+    eAGSKeyCode_d = 100,
+    eAGSKeyCode_e = 101,
+    eAGSKeyCode_f = 102,
+    eAGSKeyCode_g = 103,
+    eAGSKeyCode_h = 104,
+    eAGSKeyCode_i = 105,
+    eAGSKeyCode_j = 106,
+    eAGSKeyCode_k = 107,
+    eAGSKeyCode_l = 108,
+    eAGSKeyCode_m = 109,
+    eAGSKeyCode_n = 110,
+    eAGSKeyCode_o = 111,
+    eAGSKeyCode_p = 112,
+    eAGSKeyCode_q = 113,
+    eAGSKeyCode_r = 114,
+    eAGSKeyCode_s = 115,
+    eAGSKeyCode_t = 116,
+    eAGSKeyCode_u = 117,
+    eAGSKeyCode_v = 118,
+    eAGSKeyCode_w = 119,
+    eAGSKeyCode_x = 120,
+    eAGSKeyCode_y = 121,
+    eAGSKeyCode_z = 122, // 'z'
+
+    /* extended symbol codes */
     eAGSKeyCodeF1 = AGS_EXT_KEY_SHIFT + 59,
     eAGSKeyCodeF2 = AGS_EXT_KEY_SHIFT + 60,
     eAGSKeyCodeF3 = AGS_EXT_KEY_SHIFT + 61,
@@ -152,18 +201,58 @@ enum eAGSKeyCode
     eAGSKeyCodeInsert = AGS_EXT_KEY_SHIFT + 82,
     eAGSKeyCodeDelete = AGS_EXT_KEY_SHIFT + 83,
 
+    // not certain if necessary anymore (and not certain what was the origin of this value)
     eAGSKeyCodeAltTab = AGS_EXT_KEY_SHIFT + 99,
 
-    // These are only used by debugging and abort keys.
-    // They're based on allegro4 codes so I won't expand here.
-    eAGSKeyCodeAltV = 322,
-    eAGSKeyCodeAltX = 324
+    // [sonneveld] These are only used by debugging and abort keys.
+    // They're based on allegro4 codes ...
+    eAGSKeyCodeAltV = AGS_EXT_KEY_ALPHA(eAGSKeyCodeV),
+    eAGSKeyCodeAltX = AGS_EXT_KEY_ALPHA(eAGSKeyCodeX),
+
+    // These keys are not defined in the script eAGSKey enum but are in the manual
+    // https://adventuregamestudio.github.io/ags-manual/ASCIIcodes.html
+    // *Probably* made-up numbers not derived from allegro scan codes.
+    eAGSKeyCodeLShift = 403,
+    eAGSKeyCodeRShift = 404,
+    eAGSKeyCodeLCtrl = 405,
+    eAGSKeyCodeRCtrl = 406,
+    eAGSKeyCodeLAlt = 407,
+
+    // [sonneveld]
+    // The following are the AGS_EXT_KEY_SHIFT, derived from applying arithmetic to the original keycodes.
+    // These do not have a corresponding ags key enum, do not appear in the manual and may not be accessible because of OS contraints.
+    eAGSKeyCodeRAlt = 420,
+    // TODO: judging that above works (at least on Win), following might also work,
+    // but idk which ones may be necessary; still keeping here this excerpt from an old code
+    // if they'd want to be restored (also add them to script API then!).
+    // Also see allegro 4's keyboard.h, where these were declared.
+    /*
+    case 392: __allegro_KEY_PRTSCR
+    case 393: __allegro_KEY_PAUSE
+    case 394: __allegro_KEY_ABNT_C1  // The ABNT_C1 (Brazilian) key
+    case 395: __allegro_KEY_YEN)
+    case 396: __allegro_KEY_KANA
+    case 397: __allegro_KEY_CONVERT
+    case 398: __allegro_KEY_NOCONVERT
+    case 400: __allegro_KEY_CIRCUMFLEX
+    case 402: __allegro_KEY_KANJI
+    case 421: __allegro_KEY_LWIN
+    case 422: __allegro_KEY_RWIN
+    case 423: __allegro_KEY_MENU
+    case 424: __allegro_KEY_SCRLOCK
+    case 425: __allegro_KEY_NUMLOCK
+    case 426: __allegro_KEY_CAPSLOCK
+    */
 };
+
 
 #define READKEY_CODE_ALT_TAB 0x4000
 
-// Gets a key code for "on_key_press" script callback
-int GetKeyForKeyPressCb(int keycode);
+// Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
+int AGSKeyToScriptKey(int keycode);
+// Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
+// Not unicode compatible.
+char AGSKeyToText(int keycode);
 
 // Allegro4 "platform" keycode from an AGS keycode.
 // Returns -1 if not found.

@@ -33,6 +33,161 @@ extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;
 
 
+
+// Converts SDL scan and key codes to the ags keycode
+eAGSKeyCode ags_keycode_from_sdl(const SDL_Keysym &key)
+{
+    const SDL_Keycode sym = key.sym;
+    const Uint16 mod = key.mod;
+    // Letter codes have special treatment depending on mods
+    if (sym >= SDLK_a && sym <= SDLK_z)
+    {
+        int agskey = sym;
+        // capitalize a letter if *any* mod is down (see why below)
+        if ((mod & (KMOD_SHIFT | KMOD_CTRL | KMOD_ALT)) != 0)
+            agskey = agskey - eAGSKeyCode_a + eAGSKeyCodeA;
+        // Ctrl and Alt combinations realign the letter code to certain offset
+        if ((mod & KMOD_CTRL) != 0)
+            agskey = 0 + (agskey - eAGSKeyCodeA) + 1; // align letters to code 1
+        else if ((mod & KMOD_ALT) != 0)
+            agskey = AGS_EXT_KEY_SHIFT + (agskey - eAGSKeyCodeA) + 1; // align letters to code 301
+        return static_cast<eAGSKeyCode>(agskey);
+    }
+    // Rest of the printable characters seem to match 1:1 (and match ascii codes)
+    if (sym >= SDLK_SPACE && sym <= SDLK_BACKQUOTE)
+    {
+        return static_cast<eAGSKeyCode>(sym);
+    }
+
+    // Remaining codes may match or not, but we use a big table anyway.
+    // TODO: this is code by [sonneveld],
+    // double check that we must use scan codes here, maybe can use sdl key (sym) too?
+    switch (key.scancode)
+    {
+    case SDL_SCANCODE_BACKSPACE: return eAGSKeyCodeBackspace;
+    case SDL_SCANCODE_TAB:
+    case SDL_SCANCODE_KP_TAB: return eAGSKeyCodeTab;
+    case SDL_SCANCODE_RETURN:
+    case SDL_SCANCODE_RETURN2:
+    case SDL_SCANCODE_KP_ENTER: return eAGSKeyCodeReturn;
+    case SDL_SCANCODE_ESCAPE: return eAGSKeyCodeEscape;
+
+    case SDL_SCANCODE_F1: return eAGSKeyCodeF1;
+    case SDL_SCANCODE_F2: return eAGSKeyCodeF2;
+    case SDL_SCANCODE_F3: return eAGSKeyCodeF3;
+    case SDL_SCANCODE_F4: return eAGSKeyCodeF4;
+    case SDL_SCANCODE_F5: return eAGSKeyCodeF5;
+    case SDL_SCANCODE_F6: return eAGSKeyCodeF6;
+    case SDL_SCANCODE_F7: return eAGSKeyCodeF7;
+    case SDL_SCANCODE_F8: return eAGSKeyCodeF8;
+    case SDL_SCANCODE_F9: return eAGSKeyCodeF9;
+    case SDL_SCANCODE_F10: return eAGSKeyCodeF10;
+    case SDL_SCANCODE_F11: return eAGSKeyCodeF11;
+    case SDL_SCANCODE_F12: return eAGSKeyCodeF12;
+
+    case SDL_SCANCODE_KP_7:
+    case SDL_SCANCODE_HOME: return eAGSKeyCodeHome;
+    case SDL_SCANCODE_KP_8:
+    case SDL_SCANCODE_UP: return eAGSKeyCodeUpArrow;
+    case SDL_SCANCODE_KP_9:
+    case SDL_SCANCODE_PAGEUP: return eAGSKeyCodePageUp;
+    case SDL_SCANCODE_KP_4:
+    case SDL_SCANCODE_LEFT: return eAGSKeyCodeLeftArrow;
+    case SDL_SCANCODE_KP_5: return eAGSKeyCodeNumPad5;
+    case SDL_SCANCODE_KP_6:
+    case SDL_SCANCODE_RIGHT: return eAGSKeyCodeRightArrow;
+    case SDL_SCANCODE_KP_1:
+    case SDL_SCANCODE_END: return eAGSKeyCodeEnd;
+    case SDL_SCANCODE_KP_2:
+    case SDL_SCANCODE_DOWN: return eAGSKeyCodeDownArrow;
+    case SDL_SCANCODE_KP_3:
+    case SDL_SCANCODE_PAGEDOWN: return eAGSKeyCodePageDown;
+    case SDL_SCANCODE_KP_0:
+    case SDL_SCANCODE_INSERT: return eAGSKeyCodeInsert;
+    case SDL_SCANCODE_KP_PERIOD:
+    case SDL_SCANCODE_DELETE: return eAGSKeyCodeDelete;
+
+    default: return eAGSKeyCodeNone;
+    }
+    return eAGSKeyCodeNone;
+}
+
+// Converts ags key to SDL key scans (up to 3 values, because this is not a 1:1 match);
+// NOTE: will ignore Ctrl+ or Alt+ script keys.
+// TODO: double check and ammend later if anything is missing
+bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
+{
+    scan[0] = SDL_SCANCODE_UNKNOWN;
+    scan[1] = SDL_SCANCODE_UNKNOWN;
+    scan[2] = SDL_SCANCODE_UNKNOWN;
+    SDL_Keycode sym = SDLK_UNKNOWN;
+
+    // SDL sym codes happen to match small ASCII letters, so lowercase ours if necessary
+    if (key >= eAGSKeyCodeA && key <= eAGSKeyCodeZ)
+    {
+        sym = static_cast<SDL_Keycode>(key - eAGSKeyCodeA + SDLK_a);
+    }
+    // Rest of the printable characters seem to match (and match ascii codes)
+    else if (key >= eAGSKeyCodeSpace && key <= eAGSKeyCodeBackquote)
+    {
+        sym = static_cast<SDL_Keycode>(key);
+    }
+
+    // If we have got key sym, convert it to SDL scancode using library's function
+    if (sym != SDLK_UNKNOWN)
+    {
+        scan[0] = SDL_GetScancodeFromKey(sym);
+        return true;
+    }
+
+    // Other keys are mapped directly to scancode (based on [sonneveld]'s code)
+    switch (key)
+    {
+    case eAGSKeyCodeBackspace: scan[0] = SDL_SCANCODE_BACKSPACE; scan[1] = SDL_SCANCODE_KP_BACKSPACE; return true;
+    case eAGSKeyCodeTab: scan[0] = SDL_SCANCODE_TAB; scan[1] = SDL_SCANCODE_KP_TAB; return true;
+    case eAGSKeyCodeReturn: scan[0] = SDL_SCANCODE_RETURN; scan[1] = SDL_SCANCODE_RETURN2; scan[2] = SDL_SCANCODE_KP_ENTER; return true;
+    case eAGSKeyCodeEscape: scan[0] = SDL_SCANCODE_ESCAPE; return true;
+
+    case eAGSKeyCodeF1: scan[0] = SDL_SCANCODE_F1; return true;
+    case eAGSKeyCodeF2: scan[0] = SDL_SCANCODE_F2; return true;
+    case eAGSKeyCodeF3: scan[0] = SDL_SCANCODE_F3; return true;
+    case eAGSKeyCodeF4: scan[0] = SDL_SCANCODE_F4; return true;
+    case eAGSKeyCodeF5: scan[0] = SDL_SCANCODE_F5; return true;
+    case eAGSKeyCodeF6: scan[0] = SDL_SCANCODE_F6; return true;
+    case eAGSKeyCodeF7: scan[0] = SDL_SCANCODE_F7; return true;
+    case eAGSKeyCodeF8: scan[0] = SDL_SCANCODE_F8; return true;
+    case eAGSKeyCodeF9: scan[0] = SDL_SCANCODE_F9; return true;
+    case eAGSKeyCodeF10: scan[0] = SDL_SCANCODE_F10; return true;
+    case eAGSKeyCodeF11: scan[0] = SDL_SCANCODE_F11; return true;
+    case eAGSKeyCodeF12: scan[0] = SDL_SCANCODE_F12; return true;
+
+    case eAGSKeyCodeHome: scan[0] = SDL_SCANCODE_KP_7; scan[1] = SDL_SCANCODE_HOME; return true;
+    case eAGSKeyCodeUpArrow: scan[0] = SDL_SCANCODE_KP_8; scan[1] = SDL_SCANCODE_UP; return true;
+    case eAGSKeyCodePageUp: scan[0] = SDL_SCANCODE_KP_9; scan[1] = SDL_SCANCODE_PAGEUP; return true;
+    case eAGSKeyCodeLeftArrow: scan[0] = SDL_SCANCODE_KP_4; scan[1] = SDL_SCANCODE_LEFT; return true;
+    case eAGSKeyCodeNumPad5: scan[0] = SDL_SCANCODE_KP_5; return true;
+    case eAGSKeyCodeRightArrow: scan[0] = SDL_SCANCODE_KP_6; scan[1] = SDL_SCANCODE_RIGHT; return true;
+    case eAGSKeyCodeEnd: scan[0] = SDL_SCANCODE_KP_1; scan[1] = SDL_SCANCODE_END; return true;
+    case eAGSKeyCodeDownArrow: scan[0] = SDL_SCANCODE_KP_2; scan[1] = SDL_SCANCODE_DOWN; return true;
+    case eAGSKeyCodePageDown: scan[0] = SDL_SCANCODE_KP_3; scan[1] = SDL_SCANCODE_PAGEDOWN; return true;
+    case eAGSKeyCodeInsert: scan[0] = SDL_SCANCODE_KP_0; scan[1] = SDL_SCANCODE_INSERT; return true;
+    case eAGSKeyCodeDelete: scan[0] = SDL_SCANCODE_KP_PERIOD; scan[1] = SDL_SCANCODE_DELETE; return true;
+
+    case eAGSKeyCodeLShift: scan[0] = SDL_SCANCODE_LSHIFT; return true;
+    case eAGSKeyCodeRShift: scan[0] = SDL_SCANCODE_RSHIFT; return true;
+    case eAGSKeyCodeLCtrl: scan[0] = SDL_SCANCODE_LCTRL; return true;
+    case eAGSKeyCodeRCtrl: scan[0] = SDL_SCANCODE_RCTRL; return true;
+    case eAGSKeyCodeLAlt: scan[0] = SDL_SCANCODE_LALT; return true;
+    case eAGSKeyCodeRAlt: scan[0] = SDL_SCANCODE_RALT; return true;
+
+    default: return false;
+    }
+    return false;
+}
+
+
+
+
 int ags_kbhit () {
     return keypressed();
 }

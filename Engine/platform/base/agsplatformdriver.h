@@ -84,12 +84,9 @@ struct AGSPlatformDriver
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
     virtual void PlayVideo(const char* name, int skip, int flags);
-    virtual void InitialiseAbufAtStartup();
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
-    virtual void FinishedUsingGraphicsMode();
     virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out);
-    virtual void SetGameWindowIcon();
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(const char *fmt, ...);
@@ -97,25 +94,11 @@ struct AGSPlatformDriver
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdErr(const char *fmt, ...);
     virtual void YieldCPU();
-    // Called when the game window is being switch out from
-    virtual void DisplaySwitchOut();
-    // Called when the game window is being switch back to
-    virtual void DisplaySwitchIn();
     // Called when the application is being paused completely (e.g. when player alt+tabbed from it).
     // This function should suspend any platform-specific realtime processing.
     virtual void PauseApplication();
     // Called when the application is being resumed.
     virtual void ResumeApplication();
-    // Returns a list of supported display modes
-    virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
-    // Switch to system fullscreen mode; store previous mode parameters
-    virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
-    // Return back to the mode was before switching to fullscreen
-    virtual bool ExitFullscreenMode();
-    // Adjust application window's parameters to suit fullscreen mode
-    virtual void AdjustWindowStyleForFullscreen();
-    // Adjust application window's parameters to suit windowed mode
-    virtual void AdjustWindowStyleForWindowed();
     virtual void RegisterGameWithGameExplorer();
     virtual void UnRegisterGameWithGameExplorer();
     virtual int  ConvertKeycodeToScanCode(int keyCode);
@@ -125,9 +108,6 @@ struct AGSPlatformDriver
     virtual int  InitializeCDPlayer() = 0;  // return 0 on success
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
-
-    virtual bool LockMouseToWindow();
-    virtual void UnlockMouse();
 
     static AGSPlatformDriver *GetDriver();
 

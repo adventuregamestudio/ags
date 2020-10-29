@@ -35,6 +35,7 @@
 #include "main/engine_setup.h"
 #include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -285,7 +286,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
     {
         Size cur_desktop;
-        if (get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height) == 0)
+        if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height) == 0)
             Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
             (float)cur_desktop.Height / (float)init_desktop.Height));
     }

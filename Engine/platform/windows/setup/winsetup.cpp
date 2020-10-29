@@ -36,6 +36,7 @@
 #include "main/config.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "resource/resource.h"
 #include "util/file.h"
 #include "util/string_utils.h"
@@ -51,11 +52,6 @@
 #define MIDI_AUTODETECT       -1 
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
-
-extern "C"
-{
-    HWND win_get_window();
-}
 
 namespace AGS
 {
@@ -533,7 +529,7 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree 
                                            const String &data_dir, const String &version_str)
 {
     _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
-    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, win_get_window(),
+    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, (HWND)sys_win_get_window(),
         (DLGPROC)WinSetupDialog::DialogProc, 0L);
     delete _dlg;
     _dlg = NULL;
@@ -607,7 +603,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
     SetText(_hwnd, _winCfg.Title);
-    SetText(win_get_window(), _winCfg.Title);
+    SetText((HWND)sys_win_get_window(), _winCfg.Title);
     SetText(_hGameResolutionText, String::FromFormat("Native game resolution: %d x %d x %d",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth));
 
@@ -1210,7 +1206,7 @@ void WinSetupDialog::UpdateMouseSpeedText()
 //=============================================================================
 void SetWinIcon()
 {
-    SetClassLong(win_get_window(),GCL_HICON,
+    SetClassLong((HWND)sys_win_get_window(), GCL_HICON,
         (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
 }
 

@@ -31,6 +31,7 @@
 #include "main/graphics_mode.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 
 // Don't try to figure out the window size on the mac because the port resizes itself.
 #if AGS_PLATFORM_OS_MACOS || defined(ALLEGRO_SDL2) || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
@@ -92,7 +93,7 @@ DisplayModeSetup::DisplayModeSetup()
 Size get_desktop_size()
 {
     Size sz;
-    get_desktop_resolution(&sz.Width, &sz.Height);
+    sys_get_desktop_resolution(sz.Width, sz.Height);
     return sz;
 }
 
@@ -448,7 +449,6 @@ bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
 void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, const int color_depth)
 {
     proper_exit=1;
-    platform->FinishedUsingGraphicsMode();
 
     String main_error;
     ScreenSizeSetup scsz = setup.DisplayMode.ScreenSize;
@@ -472,7 +472,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
 {
     // Log out display information
     Size device_size;
-    if (get_desktop_resolution(&device_size.Width, &device_size.Height) == 0)
+    if (sys_get_desktop_resolution(device_size.Width, device_size.Height) == 0)
         Debug::Printf("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
         Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
@@ -673,7 +673,4 @@ void graphics_mode_shutdown()
         GfxFactory->Shutdown();
     GfxFactory = nullptr;
     gfxDriver = nullptr;
-
-    // Tell Allegro that we are no longer in graphics mode
-    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
 }

@@ -37,7 +37,7 @@
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
-#include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "ac/route_finder.h"
 #include "core/assetmanager.h"
 #include "util/directory.h"
@@ -478,6 +478,7 @@ int ags_entry_point(int argc, char *argv[]) {
     {
         int result = initialize_engine(startup_opts);
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
+        sys_main_shutdown();
         allegro_exit();
         platform->PostAllegroExit();
         return result;

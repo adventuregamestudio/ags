@@ -36,6 +36,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -319,7 +320,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   HRESULT hr;
   
   useSound = pUseSound;
-  ghWnd = win_get_window();
+  ghWnd = (HWND)sys_win_get_window();
 
   CoInitialize(NULL);
    

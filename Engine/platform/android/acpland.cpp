@@ -52,7 +52,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PostAllegroExit();
-  virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void WriteStdErr(const char *fmt, ...);
@@ -706,10 +705,6 @@ int AGSAndroid::InitializeCDPlayer() {
 
 void AGSAndroid::PostAllegroExit() {
   java_environment->DeleteGlobalRef(java_class);
-}
-
-void AGSAndroid::SetGameWindowIcon() {
-  // do nothing
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)

@@ -33,6 +33,7 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "util/library.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
@@ -460,18 +461,12 @@ void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode)
      throw Ali3DException(get_allegro_error());
    }
 
-   _enter_critical();
-
    d3d_mode_to_init = mode;
-   // Set the display mode in the window's thread
-   if (wnd_call_proc(wnd_create_device)) {
-     _exit_critical();
+   if (wnd_create_device()) {
      throw Ali3DException(get_allegro_error());
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
-
-   _exit_critical();
 
    // Set up a fake allegro gfx driver so that things like
    // the allegro mouse handler still work
@@ -656,13 +651,9 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
 int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
-  HWND allegro_wnd = win_get_window();
+  sys_window_set_style(mode.Windowed);
 
-  if (mode.Windowed)
-    platform->AdjustWindowStyleForWindowed();
-  else
-    platform->AdjustWindowStyleForFullscreen();
-
+  HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
   d3dpp.BackBufferHeight = mode.Height;
@@ -671,7 +662,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
-  d3dpp.hDeviceWindow = allegro_wnd;
+  d3dpp.hDeviceWindow = hwnd;
   d3dpp.Windowed = mode.Windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
@@ -697,7 +688,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     hr = ResetD3DDevice();
   }
   else
-    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, allegro_wnd,
+    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, &direct3ddevice);
   if (hr != D3D_OK)
@@ -711,7 +702,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (mode.Windowed)
   {
-    if (adjust_window(mode.Width, mode.Height) != 0) 
+    if (!sys_window_set_size(mode.Width, mode.Height)) 
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
@@ -719,8 +710,6 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
       return -1;
     }
   }
-
-  win_grab_input();
 
   if (first_time_init)
   {
@@ -923,8 +912,6 @@ void D3DGraphicsDriver::CreateVirtualScreen()
 
   // create initial stage screen for plugin raw drawing
   _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
-  // we must set Allegro's screen pointer to **something**
-  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -1136,7 +1123,7 @@ void D3DGraphicsDriver::Render()
 
 void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
 {
-  if (wnd_call_proc(wnd_reset_device))
+  if (wnd_reset_device())
   {
     throw Ali3DFullscreenLostException();
   }

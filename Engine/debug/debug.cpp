@@ -28,7 +28,7 @@
 #include "debug/messagebuffer.h"
 #include "main/config.h"
 #include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_common.h"
@@ -376,7 +376,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
     char messageToSend[STD_BUFFER_SIZE];
     sprintf(messageToSend, "<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
 #if AGS_PLATFORM_OS_WINDOWS
-    sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)win_get_window());
+    sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)sys_win_get_window());
 #endif
     sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
     if (errorMsg != nullptr)

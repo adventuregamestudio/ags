@@ -36,6 +36,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "media/audio/audio_system.h"
 
@@ -97,7 +98,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
 void quit_shutdown_platform(QuitReason qreason)
 {
     // Be sure to unlock mouse on exit, or users will hate us
-    platform->UnlockMouse();
+    sys_window_lock_mouse(false);
     platform->AboutToQuitGame();
 
     our_eip = 9016;
@@ -105,8 +106,6 @@ void quit_shutdown_platform(QuitReason qreason)
     pl_stop_plugins();
 
     quit_check_dynamic_sprites(qreason);
-
-    platform->FinishedUsingGraphicsMode();
 
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
@@ -286,6 +285,7 @@ void quit(const char *quitmsg)
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,
     // if their destruction is called later, program will crash!
+    sys_main_shutdown();
     allegro_exit();
 
     platform->PostAllegroExit();

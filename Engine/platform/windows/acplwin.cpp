@@ -33,6 +33,7 @@
 #include "gfx/bitmap.h"
 #include "main/engine.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
 #include "util/file.h"
@@ -118,25 +119,15 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
-  virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void WriteStdErr(const char *fmt, ...);
-  virtual void DisplaySwitchOut();
-  virtual void DisplaySwitchIn();
   virtual void PauseApplication();
   virtual void ResumeApplication();
-  virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
-  virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
-  virtual bool ExitFullscreenMode();
-  virtual void AdjustWindowStyleForFullscreen();
-  virtual void AdjustWindowStyleForWindowed();
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
-  virtual bool LockMouseToWindow();
-  virtual void UnlockMouse();
 
 #ifndef AGS_NO_VIDEO_PLAYER
   virtual void PlayVideo(const char* name, int skip, int flags);
@@ -153,10 +144,7 @@ private:
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
 
-  bool SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen);
-
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
-  DisplayMode _preFullscreenMode; // saved display mode before switching system to fullscreen
   bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
 };
 
@@ -734,19 +722,6 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
     "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
-void AGSWin32::DisplaySwitchOut()
-{
-    // If we have explicitly set up fullscreen mode then minimize the window
-    if (_preFullscreenMode.IsValid())
-        ShowWindow(win_get_window(), SW_MINIMIZE);
-}
-
-void AGSWin32::DisplaySwitchIn() {
-    // If we have explicitly set up fullscreen mode then restore the window
-    if (_preFullscreenMode.IsValid())
-        ShowWindow(win_get_window(), SW_RESTORE);
-}
-
 void AGSWin32::PauseApplication()
 {
 #ifndef AGS_NO_VIDEO_PLAYER
@@ -759,71 +734,6 @@ void AGSWin32::ResumeApplication()
 #ifndef AGS_NO_VIDEO_PLAYER
   dxmedia_resume_video();
 #endif
-}
-
-void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
-{
-    dms.clear();
-    GFX_MODE_LIST *gmlist = get_gfx_mode_list(GFX_DIRECTX);
-    for (int i = 0; i < gmlist->num_modes; ++i)
-    {
-        const GFX_MODE &m = gmlist->mode[i];
-        dms.push_back(DisplayMode(GraphicResolution(m.width, m.height, m.bpp)));
-    }
-    destroy_gfx_mode_list(gmlist);
-}
-
-bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen)
-{
-  DEVMODE devmode;
-  memset(&devmode, 0, sizeof(devmode));
-  devmode.dmSize = sizeof(devmode);
-  devmode.dmPelsWidth = dm.Width;
-  devmode.dmPelsHeight = dm.Height;
-  devmode.dmBitsPerPel = dm.ColorDepth;
-  devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-  return ChangeDisplaySettings(&devmode, fullscreen ? CDS_FULLSCREEN : 0) == DISP_CHANGE_SUCCESSFUL;
-}
-
-bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
-{
-  // Remember current mode
-  get_desktop_resolution(&_preFullscreenMode.Width, &_preFullscreenMode.Height);
-  _preFullscreenMode.ColorDepth = desktop_color_depth();
-
-  // Set requested desktop mode
-  return SetSystemDisplayMode(dm, true);
-}
-
-bool AGSWin32::ExitFullscreenMode()
-{
-  if (!_preFullscreenMode.IsValid())
-    return false;
-
-  DisplayMode dm = _preFullscreenMode;
-  _preFullscreenMode = DisplayMode();
-  return SetSystemDisplayMode(dm, false);
-}
-
-void AGSWin32::AdjustWindowStyleForFullscreen()
-{
-  // Remove the border in full-screen mode
-  Size sz;
-  get_desktop_resolution(&sz.Width, &sz.Height);
-  HWND allegro_wnd = win_get_window();
-  LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
-  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
-  SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, sz.Width, sz.Height, 0);
-}
-
-void AGSWin32::AdjustWindowStyleForWindowed()
-{
-  // Make a regular window with a border
-  HWND allegro_wnd = win_get_window();
-  LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
-  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP) | (WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX));
-  // Make window go on top, but at the same time remove WS_EX_TOPMOST style (applied by Direct3D fullscreen mode)
-  SetWindowPos(allegro_wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
@@ -868,7 +778,7 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   if (_guiMode)
-    MessageBox(win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+    MessageBox((HWND)sys_win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
 
   // Always write to either stderr or stdout, even if message boxes are enabled.
   if (_logToStdErr)
@@ -991,10 +901,6 @@ SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_ou
   return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.data_files_dir, version_str);
 }
 
-void AGSWin32::SetGameWindowIcon() {
-  SetWinIcon();
-}
-
 void AGSWin32::WriteStdOut(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
@@ -1062,7 +968,7 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     // This is the maximal size that OS can reliably resize the window to (including any frame)
     const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
     // This is the size of window's non-client area (frame, caption, etc)
-    HWND allegro_wnd = win_get_window();
+    HWND allegro_wnd = (HWND)sys_win_get_window();
     LONG winstyle = borderless ? WS_POPUP : WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
     LONG winstyle_al = GetWindowLong(allegro_wnd, GWL_STYLE);
     SetRectEmpty(&nc_rc);
@@ -1075,23 +981,6 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
 }
 
-bool AGSWin32::LockMouseToWindow()
-{
-    RECT rc;
-    HWND allegro_wnd = win_get_window();
-    GetClientRect(allegro_wnd, &rc);
-    ClientToScreen(allegro_wnd, (POINT*)&rc);
-    ClientToScreen(allegro_wnd, (POINT*)&rc.right);
-    --rc.right;
-    --rc.bottom;
-    return ::ClipCursor(&rc) != 0;
-}
-
-void AGSWin32::UnlockMouse()
-{
-    ::ClipCursor(NULL);
-}
-
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSWin32();
@@ -1102,7 +991,7 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 // *********** WINDOWS-SPECIFIC PLUGIN API FUNCTIONS *************
 
 HWND IAGSEngine::GetWindowHandle () {
-  return win_get_window();
+  return (HWND)sys_win_get_window();
 }
 LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
   if (directdraw == NULL)

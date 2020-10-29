@@ -36,8 +36,7 @@ typedef float D3DVALUE, *LPD3DVALUE;
 #include "ac/common.h"
 #include "main/game_run.h"
 #include "media/video/VMR9Graph.h"
-#include "platform/base/agsplatformdriver.h"
-//#include <atlbase.h>
+#include "platform/base/sys_main.h"
 #include "media/audio/audio_system.h"
 
 #define USES_CONVERSION int _convert = 0; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw = NULL; _lpw; LPCSTR _lpa = NULL; _lpa
@@ -82,7 +81,7 @@ void dxmedia_shutdown_3d()
 
 int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch) 
 {
-  HWND gameWindow = win_get_window();
+  HWND gameWindow = (HWND)sys_win_get_window();
 
   if (graph == NULL)
   {
@@ -635,7 +634,7 @@ BOOL CVMR9Graph::SetMediaFile(const char* pszFileName, bool withSound, int nLaye
   UseAVISound = withSound;
   m_pszFileName = pszFileName;
 
-  if (!wnd_call_proc(wndproc_build_filter_graph))
+  if (!wndproc_build_filter_graph())
     return FALSE;
 
 

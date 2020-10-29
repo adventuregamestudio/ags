@@ -48,7 +48,6 @@ struct AGSMac : AGSPlatformDriver {
   virtual eScriptSystemOSID GetSystemOSID() override;
   virtual int  InitializeCDPlayer() override;
   virtual void PostAllegroExit() override;
-  virtual void SetGameWindowIcon() override;
   virtual void ShutdownCDPlayer() override;
     
   virtual const char *GetUserSavedgamesDirectory() override;
@@ -104,10 +103,6 @@ int AGSMac::InitializeCDPlayer() {
 }
 
 void AGSMac::PostAllegroExit() {
-  // do nothing
-}
-
-void AGSMac::SetGameWindowIcon() {
   // do nothing
 }
 

@@ -48,15 +48,8 @@ AGSPlatformDriver *platform = nullptr;
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::AttachToParentConsole() { }
-void AGSPlatformDriver::DisplaySwitchOut() { }
-void AGSPlatformDriver::DisplaySwitchIn() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
-void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
-bool AGSPlatformDriver::EnterFullscreenMode(const DisplayMode &dm) { return true; }
-bool AGSPlatformDriver::ExitFullscreenMode() { return true; }
-void AGSPlatformDriver::AdjustWindowStyleForFullscreen() { }
-void AGSPlatformDriver::AdjustWindowStyleForWindowed() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::PlayVideo(const char* name, int skip, int flags) {}
@@ -112,25 +105,9 @@ void AGSPlatformDriver::YieldCPU() {
     //std::this_thread::yield();
 }
 
-void AGSPlatformDriver::InitialiseAbufAtStartup()
-{
-    // because loading the game file accesses abuf, it must exist
-    // No no no, David Blain, no magic here :P
-    //abuf = BitmapHelper::CreateBitmap(10,10,8);
-}
-
-void AGSPlatformDriver::FinishedUsingGraphicsMode()
-{
-    // don't need to do anything on any OS except DOS
-}
-
 SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
 {
     return kSetup_Cancel;
-}
-
-void AGSPlatformDriver::SetGameWindowIcon() {
-    // do nothing
 }
 
 int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
@@ -138,9 +115,6 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
     keycode -= ('A' - KEY_A);
     return keycode;
 }
-
-bool AGSPlatformDriver::LockMouseToWindow() { return false; }
-void AGSPlatformDriver::UnlockMouse() { }
 
 //-----------------------------------------------
 // IOutputHandler implementation

@@ -15,13 +15,13 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <new.h>
-#include <allegro.h>
-#include <winalleg.h>
+#include <windows.h>
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "main/main.h"
+#include "platform/base/sys_main.h"
 #include "util/ini_util.h"
 
 #if !AGS_PLATFORM_DEBUG
@@ -54,7 +54,7 @@ static void DisplayException()
         excinfo.ExceptionCode, (intptr_t)excinfo.ExceptionAddress, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, script_callstack.GetCStr(),
         (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." :
         "Unable to create an error dump file.", miniDumpResultCode);
-    MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+    MessageBoxA((HWND)sys_win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
 }
 
 int initialize_engine_with_exception_handling(

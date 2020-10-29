@@ -60,6 +60,7 @@
 #include "main/game_file.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
 
@@ -774,18 +775,14 @@ void SetMultitasking (int mode) {
     if ((mode == 1) && (!scsystem.windowed))
         mode = 0;
 
+    // Install engine callbacks for switching in and out the window
     if (mode == 0) {
-        if (set_display_switch_mode(SWITCH_PAUSE) == -1)
-            set_display_switch_mode(SWITCH_AMNESIA);
-        // install callbacks to stop the sound when switching away
-        set_display_switch_callback(SWITCH_IN, display_switch_in_resume);
-        set_display_switch_callback(SWITCH_OUT, display_switch_out_suspend);
+        sys_set_background_mode(false);
+        sys_evt_set_focus_callbacks(display_switch_in_resume, display_switch_out_suspend);
     }
     else {
-        if (set_display_switch_mode (SWITCH_BACKGROUND) == -1)
-            set_display_switch_mode(SWITCH_BACKAMNESIA);
-        set_display_switch_callback(SWITCH_IN, display_switch_in);
-        set_display_switch_callback(SWITCH_OUT, display_switch_out);
+        sys_set_background_mode(true);
+        sys_evt_set_focus_callbacks(display_switch_in, display_switch_out);
     }
 }
 

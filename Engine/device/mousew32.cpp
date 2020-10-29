@@ -45,6 +45,7 @@
 #include "gfx/gfx_util.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "util/math.h"
 #if AGS_SIMULATE_RIGHT_CLICK
 #include "ac/sys_events.h" // j for ags_iskeypressed
@@ -337,13 +338,13 @@ bool Mouse::IsLockedToWindow()
 bool Mouse::TryLockToWindow()
 {
     if (!LockedToWindow)
-        LockedToWindow = platform->LockMouseToWindow();
+        LockedToWindow = sys_window_lock_mouse(true);
     return LockedToWindow;
 }
 
 void Mouse::UnlockFromWindow()
 {
-    platform->UnlockMouse();
+    sys_window_lock_mouse(false);
     LockedToWindow = false;
 }
 

@@ -34,10 +34,6 @@
 using AGS::Common::String;
 
 
-// Replace the default Allegro icon. The original defintion is in the
-// Allegro 4.4 source under "src/x/xwin.c".
-#include "icon.xpm"
-void* allegro_icon = icon_xpm;
 String CommonDataDirectory;
 String UserDataDirectory;
 
@@ -56,11 +52,7 @@ struct AGSLinux : AGSPlatformDriver {
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
   void PostAllegroExit() override;
-  void SetGameWindowIcon() override;
   void ShutdownCDPlayer() override;
-  bool LockMouseToWindow() override;
-  void UnlockMouse() override;
-  void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms) override;
 };
 
 
@@ -170,10 +162,6 @@ void AGSLinux::PostAllegroExit() {
   // do nothing
 }
 
-void AGSLinux::SetGameWindowIcon() {
-  // do nothing
-}
-
 void AGSLinux::ShutdownCDPlayer() {
   cd_exit();
 }
@@ -182,30 +170,6 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == nullptr)
     instance = new AGSLinux();
   return instance;
-}
-
-bool AGSLinux::LockMouseToWindow()
-{
-    return XGrabPointer(_xwin.display, _xwin.window, False,
-        PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-        GrabModeAsync, GrabModeAsync, _xwin.window, None, CurrentTime) == GrabSuccess;
-}
-
-void AGSLinux::UnlockMouse()
-{
-    XUngrabPointer(_xwin.display, CurrentTime);
-}
-
-void AGSLinux::GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms)
-{
-    dms.clear();
-    GFX_MODE_LIST *gmlist = get_gfx_mode_list(GFX_XWINDOWS_FULLSCREEN);
-    for (int i = 0; i < gmlist->num_modes; ++i)
-    {
-        const GFX_MODE &m = gmlist->mode[i];
-        dms.push_back(Engine::DisplayMode(Engine::GraphicResolution(m.width, m.height, m.bpp)));
-    }
-    destroy_gfx_mode_list(gmlist);
 }
 
 #endif

@@ -65,6 +65,7 @@
 #include "main/main.h"
 #include "main/main_allegro.h"
 #include "media/audio/audio_core.h"
+#include "platform/base/sys_main.h"
 #include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
@@ -122,6 +123,8 @@ bool engine_init_allegro()
             user_hint);
         return false;
     }
+
+    sys_main_init();
     return true;
 }
 
@@ -144,11 +147,10 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     our_eip = -198;
-    set_window_title("Adventure Game Studio");
-    set_close_button_callback (winclosehook);
+    sys_window_create("Adventure Game Studio", 320, 200, true);
+    sys_window_set_icon();
+    sys_evt_set_quit_callback(winclosehook);
     our_eip = -197;
-
-    platform->SetGameWindowIcon();
 }
 
 // Starts up setup application, if capable.
@@ -184,6 +186,7 @@ bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
 
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
+            sys_main_shutdown();
             allegro_exit();
             char quotedpath[MAX_PATH];
             snprintf(quotedpath, MAX_PATH, "\"%s\"", exe_path.GetCStr());
@@ -511,7 +514,6 @@ int engine_load_game_data()
     if (!err)
     {
         proper_exit=1;
-        platform->FinishedUsingGraphicsMode();
         display_game_file_error(err);
         return EXIT_ERROR;
     }
@@ -540,7 +542,7 @@ int engine_check_register_game()
 void engine_init_title()
 {
     our_eip=-91;
-    set_window_title(game.gamename);
+    sys_window_set_title(game.gamename);
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
 }
 
@@ -698,7 +700,7 @@ int engine_init_sprites()
     HError err = spriteset.InitFile(SpriteCache::DefaultSpriteFileName, SpriteCache::DefaultSpriteIndexName);
     if (!err) 
     {
-        platform->FinishedUsingGraphicsMode();
+        sys_main_shutdown();
         allegro_exit();
         proper_exit=1;
         platform->DisplayAlert("Could not load sprite set file %s\n%s",

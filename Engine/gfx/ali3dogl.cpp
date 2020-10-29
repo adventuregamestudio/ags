@@ -24,6 +24,7 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "util/math.h"
 #include "ac/timer.h"
 
@@ -365,24 +366,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   ios_create_screen();
   ios_select_buffer();
 #elif AGS_PLATFORM_OS_WINDOWS
-  if (mode.Windowed)
-  {
-    platform->AdjustWindowStyleForWindowed();
-  }
-  else
-  {
-    if (platform->EnterFullscreenMode(mode))
-      platform->AdjustWindowStyleForFullscreen();
-  }
+  sys_window_set_style(mode.Windowed);
 
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
-  if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
+  if (mode.Windowed && !sys_window_set_size(mode.Width, mode.Height))
   {
     set_allegro_error("Window size not supported");
     return false;
   }
 
-  _hWnd = win_get_window();
+  _hWnd = sys_win_get_window();
   if (!(_hDC = GetDC(_hWnd)))
     return false;
 
@@ -416,7 +409,6 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
 
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
-  win_grab_input();
 #elif AGS_PLATFORM_OS_LINUX
   if (!_have_window)
   {
@@ -990,8 +982,6 @@ void OGLGraphicsDriver::CreateVirtualScreen()
     return;
   // create initial stage screen for plugin raw drawing
   _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
-  // we must set Allegro's screen pointer to **something**
-  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -1023,7 +1013,7 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) con
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
     std::vector<DisplayMode> modes;
-    platform->GetSystemDisplayModes(modes);
+    sys_get_desktop_modes(modes);
     return new OGLDisplayModeList(modes);
 }
 
@@ -1046,7 +1036,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = nullptr;
 
-  platform->ExitFullscreenMode();
+  sys_window_set_style(false);
 }
 
 void OGLGraphicsDriver::UnInit() 

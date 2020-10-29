@@ -11,14 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/sys_events.h"
+#include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/sys_events.h"
 #include "device/mousew32.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/timer.h"
@@ -203,4 +203,55 @@ void ags_wait_until_keypress()
         platform->YieldCPU();
     }
     ags_getch();
+}
+
+
+// ----------------------------------------------------------------------------
+// EVENTS
+// ----------------------------------------------------------------------------
+static void(*_on_quit_callback)(void) = nullptr;
+static void(*_on_switchin_callback)(void) = nullptr;
+static void(*_on_switchout_callback)(void) = nullptr;
+
+void sys_evt_set_quit_callback(void(*proc)(void)) {
+    _on_quit_callback = proc;
+}
+
+void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void)) {
+    _on_switchin_callback = switch_in;
+    _on_switchout_callback = switch_out;
+}
+
+void sys_evt_process_one(const SDL_Event &event) {
+    switch (event.type) {
+    // GENERAL
+    case SDL_QUIT:
+        if (_on_quit_callback) {
+            _on_quit_callback();
+        }
+        break;
+    // WINDOW
+    case SDL_WINDOWEVENT:
+        switch (event.window.event)
+        {
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            if (_on_switchin_callback) {
+                _on_switchin_callback();
+            }
+            break;
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            if (_on_switchout_callback) {
+                _on_switchout_callback();
+            }
+            break;
+        }
+        break;
+    }
+}
+
+void sys_evt_process_pending(void) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        sys_evt_process_one(event);
+    }
 }

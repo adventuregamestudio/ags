@@ -1,0 +1,67 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// The main backend interface.
+//
+// TODO: split up later if it gets filled with functions in all categories.
+//
+//=============================================================================
+#include "core/platform.h"
+#include <vector>
+#include "gfx/gfxdefines.h"
+
+// Initializes main backend system;
+// should be called before anything else backend related.
+// Returns 0 on success, non-0 on failure.
+int  sys_main_init(/*config*/);
+// Shutdown main backend system;
+// should be called last, after everything else backend related is shutdown.
+void sys_main_shutdown();
+// Sets whether the engine wants to update while the window has no focus.
+// TODO: this is a placeholder at the moment, check later if we need any implementation
+void sys_set_background_mode(bool on);
+
+// Display utilities.
+//
+// Queries current desktop resolution.
+int sys_get_desktop_resolution(int &width, int &height);
+// Queries supported desktop modes.
+void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms);
+
+// Window utilities.
+//
+struct SDL_Window;
+// Create a new single game window.
+SDL_Window *sys_window_create(const char *window_title, int w, int h, bool windowed, int ex_flags = 0);
+// Returns current game window, if one exists, or null.
+SDL_Window *get_window();
+// Sets current window style, does nothing if window was not created.
+void sys_window_set_style(bool windowed);
+// Locks on unlocks mouse inside the window.
+// Returns new state of the mouse lock.
+bool sys_window_lock_mouse(bool on);
+// Destroy current game window, if one exists.
+void sys_window_destroy();
+// Set window title text.
+void sys_window_set_title(const char *title);
+// Set window icon.
+// TODO: this is a placeholder, until we figure out the best way to set icon with SDL on wanted systems.
+void sys_window_set_icon();
+// Set window size.
+bool sys_window_set_size(int w, int h);
+
+#if AGS_PLATFORM_OS_WINDOWS
+// Returns game window's handle.
+void* sys_win_get_window();
+#endif

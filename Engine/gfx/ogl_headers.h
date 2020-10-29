@@ -18,21 +18,24 @@
 
 #include "core/platform.h"
 
+#define AGS_OPENGL_DRIVER (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS)
+
 #if AGS_PLATFORM_OS_WINDOWS
+#include <SDL.h>
 #include <allegro.h>
 #include <winalleg.h>
-#include <allegro/platform/aintwin.h>
-
 #include "glad/glad.h"
 #include "glad/glad_wgl.h"
 
 #elif AGS_PLATFORM_OS_LINUX
+#include <SDL.h>
 #include <allegro.h>
-#include <xalleg.h>
-#include <X11/Xatom.h>
-
 #include "glad/glad.h"
 #include "glad/glad_glx.h"
+
+#elif AGS_PLATFORM_OS_MACOS
+#include "SDL.h"
+#include "glad/glad.h"
 
 #elif AGS_PLATFORM_OS_ANDROID
 
@@ -46,11 +49,6 @@
 // TODO: we probably should not use GLExt since we use GLES2
 #include <GLES/glext.h>
 
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
 #elif AGS_PLATFORM_OS_IOS
 
 #include <OpenGLES/ES1/gl.h>
@@ -60,11 +58,6 @@
 #endif
 
 #include <OpenGLES/ES1/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
 
 #else
 

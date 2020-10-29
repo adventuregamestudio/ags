@@ -218,25 +218,18 @@ private:
     POGLFilter _filter;
 
 #if AGS_PLATFORM_OS_WINDOWS
-    HDC _hDC;
-    HGLRC _hRC;
-    HWND _hWnd;
-    HINSTANCE _hInstance;
-    GLuint _oldPixelFormat;
-    PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
 #if AGS_PLATFORM_OS_LINUX
-    bool _have_window;
-    GLXContext _glxContext;
 #endif
     bool _firstTimeInit;
+    SDL_Window *_sdlWindow = nullptr;
+    SDL_GLContext _sdlGlContext = nullptr;
     // Position of backbuffer texture in world space
     GLfloat _backbuffer_vertices[8];
     // Relative position of source image on the backbuffer texture,
     // in local coordinates
     GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
-    String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
     // Shader program and its variable references;
@@ -288,8 +281,8 @@ private:
     void FirstTimeInit();
     // Initializes Gl rendering context
     bool InitGlScreen(const DisplayMode &mode);
-    bool CreateGlContext(const DisplayMode &mode);
-    void DeleteGlContext();
+    bool CreateWindowAndGlContext(const DisplayMode &mode);
+    void DeleteWindowAndGlContext();
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
@@ -308,8 +301,8 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX
-    void CreateDesktopScreen(int width, int height, int depth);
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
+    void CreateDesktopScreen();
 #elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
     void UpdateDeviceScreen();
 #endif

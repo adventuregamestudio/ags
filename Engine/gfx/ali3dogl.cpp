@@ -17,6 +17,7 @@
 #if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX
 
 #include <algorithm>
+#include <SDL.h>
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfxfilter_ogl.h"
@@ -120,48 +121,6 @@ namespace OGL
 {
 
 using namespace AGS::Common;
-
-void ogl_dummy_vsync() { }
-
-#define GFX_OPENGL  AL_ID('O','G','L',' ')
-
-GFX_DRIVER gfx_opengl =
-{
-   GFX_OPENGL,
-   empty_string,
-   empty_string,
-   "OpenGL",
-   nullptr,    // init
-   nullptr,   // exit
-   nullptr,                        // AL_METHOD(int, scroll, (int x, int y)); 
-   ogl_dummy_vsync,   // vsync
-   nullptr,  // setpalette
-   nullptr,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   nullptr,                        // AL_METHOD(int, poll_scroll, (void));
-   nullptr,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   nullptr,  //create_video_bitmap
-   nullptr,  //destroy_video_bitmap
-   nullptr,   //show_video_bitmap
-   nullptr,
-   nullptr,  //gfx_directx_create_system_bitmap,
-   nullptr, //gfx_directx_destroy_system_bitmap,
-   nullptr, //gfx_directx_set_mouse_sprite,
-   nullptr, //gfx_directx_show_mouse,
-   nullptr, //gfx_directx_hide_mouse,
-   nullptr, //gfx_directx_move_mouse,
-   nullptr,                        // AL_METHOD(void, drawing_mode, (void));
-   nullptr,                        // AL_METHOD(void, save_video_state, (void*));
-   nullptr,                        // AL_METHOD(void, restore_video_state, (void*));
-   nullptr,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   nullptr,                        // AL_METHOD(int, fetch_mode_list, (void));
-   0, 0,                        // int w, h;
-   FALSE,                        // int linear;
-   0,                           // long bank_size;
-   0,                           // long bank_gran;
-   0,                           // long vid_mem;
-   0,                           // long vid_phys_base;
-   TRUE                         // int windowed;
-};
 
 void OGLBitmap::Dispose()
 {
@@ -366,13 +325,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   ios_create_screen();
   ios_select_buffer();
 #elif AGS_PLATFORM_OS_WINDOWS
-  sys_window_set_style(mode.Windowed);
-
-  // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
-  if (mode.Windowed && !sys_window_set_size(mode.Width, mode.Height))
+  SDL_Window* window = sys_get_window();
+  if (window == nullptr || (SDL_GetWindowFlags(window) & SDL_WINDOW_OPENGL) == 0)
   {
-    set_allegro_error("Window size not supported");
-    return false;
+    sys_window_create("", mode.Width, mode.Height, mode.Windowed, SDL_WINDOW_OPENGL);
+  }
+  else
+  {
+    sys_window_set_style(mode.Windowed);
+    if (mode.Windowed)
+        sys_window_set_size(mode.Width, mode.Height, true);
   }
 
   _hWnd = sys_win_get_window();
@@ -502,8 +464,6 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
 #endif
-
-  gfx_driver = &gfx_opengl;
   return true;
 }
 
@@ -1034,8 +994,6 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  gfx_driver = nullptr;
-
   sys_window_set_style(false);
 }
 
@@ -1052,6 +1010,8 @@ void OGLGraphicsDriver::UnInit()
 
   DeleteShaderProgram(_tintShader);
   DeleteShaderProgram(_lightShader);
+
+  sys_window_destroy();
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()

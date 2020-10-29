@@ -14,6 +14,7 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "util/geometry.h"
 #include "util/string.h"
 
 namespace ags = AGS::Common;
@@ -108,7 +109,7 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, bool windo
     return window;
 }
 
-SDL_Window *get_window() {
+SDL_Window *sys_get_window() {
     return window;
 }
 
@@ -147,9 +148,11 @@ void sys_window_set_icon() {
     }
 }
 
-bool sys_window_set_size(int w, int h) {
+bool sys_window_set_size(int w, int h, bool center) {
     if (window) {
         SDL_SetWindowSize(window, w, h);
+        if (center)
+            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         int new_w, new_h;
         SDL_GetWindowSize(window, &new_w, &new_h);
         return new_w == w && new_h == h;

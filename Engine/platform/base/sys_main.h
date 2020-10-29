@@ -45,9 +45,11 @@ struct SDL_Window;
 // Create a new single game window.
 SDL_Window *sys_window_create(const char *window_title, int w, int h, bool windowed, int ex_flags = 0);
 // Returns current game window, if one exists, or null.
-SDL_Window *get_window();
+SDL_Window *sys_get_window();
 // Sets current window style, does nothing if window was not created.
 void sys_window_set_style(bool windowed);
+// Set new window size; optionally center new window on screen
+bool sys_window_set_size(int w, int h, bool center);
 // Locks on unlocks mouse inside the window.
 // Returns new state of the mouse lock.
 bool sys_window_lock_mouse(bool on);
@@ -58,8 +60,6 @@ void sys_window_set_title(const char *title);
 // Set window icon.
 // TODO: this is a placeholder, until we figure out the best way to set icon with SDL on wanted systems.
 void sys_window_set_icon();
-// Set window size.
-bool sys_window_set_size(int w, int h);
 
 #if AGS_PLATFORM_OS_WINDOWS
 // Returns game window's handle.

@@ -21,9 +21,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 
 #include "platform/windows/gfx/ali3dd3d.h"
-
-#include <allegro.h>
-#include <allegro/platform/aintwin.h>
+#include <SDL.h>
 #include "ac/timer.h"
 #include "debug/assert.h"
 #include "debug/out.h"
@@ -169,88 +167,6 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
     return false;
 }
 
-
-void dummy_vsync() { }
-
-#define GFX_DIRECT3D_WIN  AL_ID('D','X','3','W')
-#define GFX_DIRECT3D_FULL AL_ID('D','X','3','D')
-
-GFX_DRIVER gfx_direct3d_win =
-{
-   GFX_DIRECT3D_WIN,
-   empty_string,
-   empty_string,
-   "Direct3D windowed",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
-   dummy_vsync,   // vsync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
-   0, 0,                        // int w, h;
-   FALSE,                        // int linear;
-   0,                           // long bank_size;
-   0,                           // long bank_gran;
-   0,                           // long vid_mem;
-   0,                           // long vid_phys_base;
-   TRUE                         // int windowed;
-};
-
-GFX_DRIVER gfx_direct3d_full =
-{
-   GFX_DIRECT3D_FULL,
-   empty_string,
-   empty_string,
-   "Direct3D fullscreen",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
-   dummy_vsync,   // sync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
-   0, 0,                        // int w, h;
-   FALSE,                        // int linear;
-   0,                           // long bank_size;
-   0,                           // long bank_gran;
-   0,                           // long vid_mem;
-   0,                           // long vid_phys_base;
-   FALSE                         // int windowed;
-};
-
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
@@ -357,7 +273,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  gfx_driver = NULL;
+  sys_window_set_style(false);
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -467,13 +383,6 @@ void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode)
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
-
-   // Set up a fake allegro gfx driver so that things like
-   // the allegro mouse handler still work
-   if (mode.Windowed)
-     gfx_driver = &gfx_direct3d_win;
-   else
-     gfx_driver = &gfx_direct3d_full;
 
    return;
 }
@@ -651,7 +560,16 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
 int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
-  sys_window_set_style(mode.Windowed);
+  if (sys_get_window() == nullptr)
+  {
+    sys_window_create("", mode.Width, mode.Height, mode.Windowed);
+  }
+  else
+  {
+    sys_window_set_style(mode.Windowed);
+    if (mode.Windowed)
+        sys_window_set_size(mode.Width, mode.Height, true);
+  }
 
   HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -698,17 +616,6 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     else
       set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;
-  }
-
-  if (mode.Windowed)
-  {
-    if (!sys_window_set_size(mode.Width, mode.Height)) 
-    {
-      direct3ddevice->Release();
-      direct3ddevice = NULL;
-      set_allegro_error("Window size not supported");
-      return -1;
-    }
   }
 
   if (first_time_init)
@@ -1006,6 +913,8 @@ void D3DGraphicsDriver::UnInit()
     direct3ddevice->Release();
     direct3ddevice = NULL;
   }
+
+  sys_window_destroy();
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()

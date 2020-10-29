@@ -139,7 +139,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     our_eip = -198;
-    sys_window_create("Adventure Game Studio", 320, 200, true);
+    sys_window_set_title(game.gamename);
     sys_window_set_icon();
     sys_evt_set_quit_callback(winclosehook);
     our_eip = -197;
@@ -529,13 +529,6 @@ int engine_check_register_game()
     }
 
     return 0;
-}
-
-void engine_init_title()
-{
-    our_eip=-91;
-    sys_window_set_title(game.gamename);
-    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
 }
 
 void engine_init_directories()
@@ -1296,7 +1289,6 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     //-----------------------------------------------------
     // Begin setting up systems
-    engine_setup_window();    
 
     our_eip = -194;
 
@@ -1343,8 +1335,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (res != 0)
         return res;
 
-    engine_init_title();
-
     our_eip = -189;
 
     res = engine_check_disk_space();
@@ -1365,6 +1355,9 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
         return EXIT_ERROR;
+
+    // Configure game window after renderer was initialized
+    engine_setup_window();
 
     SetMultitasking(0);
 

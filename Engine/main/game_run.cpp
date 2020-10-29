@@ -87,6 +87,7 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
+extern char check_dynamic_sprites_at_exit;
 
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
@@ -274,94 +275,103 @@ static void check_mouse_controls()
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 }
 
-// Returns current key modifiers;
-// NOTE: annoyingly enough, on Windows (not sure about other platforms)
-// Allegro API's 'key_shifts' variable seem to be always one step behind real
-// situation: if first modifier gets pressed, 'key_shifts' will be zero,
-// when second modifier gets pressed it will only contain first one, and so on.
-static int get_active_shifts()
-{
-    int shifts = 0;
-    if (key[KEY_LSHIFT] || key[KEY_RSHIFT])
-        shifts |= KB_SHIFT_FLAG;
-    if (key[KEY_LCONTROL] || key[KEY_RCONTROL])
-        shifts |= KB_CTRL_FLAG;
-    if (key[KEY_ALT] || key[KEY_ALTGR])
-        shifts |= KB_ALT_FLAG;
-    return shifts;
-}
 
-// Special flags to OR saved shift flags with:
-// Shifts key combination already fired (wait until full shifts release)
-#define KEY_SHIFTS_FIRED      0x80000000
+
+// Special flags to OR saved SDL_Keymod flags with:
+// Mod key combination already fired (wait until full mod release)
+#define KEY_MODS_FIRED      0x80000000
+
+int cur_key_mods = 0;
+int old_key_mod = 0; // for saving previous key mods
 
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.
-bool run_service_key_controls(int &kgn)
+bool run_service_key_controls(int &out_key)
 {
-    // check keypresses
-    static int old_key_shifts = 0; // for saving shift modes
-
     bool handled = false;
-    int kbhit_res = ags_kbhit();
-    // First, check shifts
-    const int act_shifts = get_active_shifts();
+    const bool key_valid = ags_keyevent_ready();
+    const SDL_Event key_evt = key_valid ? ags_get_next_keyevent() : SDL_Event();
+    const bool is_only_mod_key = key_evt.type == SDL_KEYDOWN ? is_mod_key(key_evt.key.keysym) : false;
+
+    // Following section is for testing for pushed and released mod-keys.
+    // A bit of explanation: some service actions may require combination of
+    // mod-keys, for example [Ctrl + Alt] toggles mouse lock in window.
+    // Here comes a problem: other actions may also use [Ctrl + Alt] mods in
+    // combination with a third key: e.g. [Ctrl + Alt + V] displays engine info.
+    // For this reason we cannot simply test for pressed Ctrl and Alt here,
+    // but we must wait until player *releases at least one mod key* of this combo,
+    // while no third key was pressed.
+    // In other words, such action should only trigger if:
+    // * if combination of held down mod-keys was gathered,
+    // * if no other key was pressed meanwhile,
+    // * if at least one of those gathered mod-keys was released.
+    //
+    // TODO: maybe split this mod handling into sep procedure and make it easier to use (not that it's used alot)?
+
+    // First, check mods
+    const int cur_mod = make_merged_mod(SDL_GetModState());
+    
     // If shifts combination have already triggered an action, then do nothing
     // until new shifts are empty, in which case reset saved shifts
-    if (old_key_shifts & KEY_SHIFTS_FIRED)
+    if (old_key_mod & KEY_MODS_FIRED)
     {
-        if (act_shifts == 0)
-            old_key_shifts = 0;
+        if (cur_mod == 0)
+            old_key_mod = 0;
     }
     else
     {
-        // If any non-shift key is pressed, add fired flag to indicate that
-        // this is no longer a pure shifts key combination
-        if (kbhit_res)
+        // If any non-mod key is pressed, add fired flag to indicate that
+        // this is no longer a pure mod keys combination
+        if (key_valid && !is_only_mod_key)
         {
-            old_key_shifts = act_shifts | KEY_SHIFTS_FIRED;
+            old_key_mod = cur_mod | KEY_MODS_FIRED;
         }
-        // If all the previously registered shifts are still pressed,
-        // then simply resave new shift state.
-        else if ((old_key_shifts & act_shifts) == old_key_shifts)
+        // If all the previously registered mods are still pressed,
+        // then simply resave new mods state.
+        else if ((old_key_mod & cur_mod) == old_key_mod)
         {
-            old_key_shifts = act_shifts;
+            old_key_mod = cur_mod;
         }
-        // Otherwise some of the shifts were released, then run key combo action
-        // and set KEY_COMBO_FIRED flag to prevent multiple execution
-        else if (old_key_shifts)
+        // Otherwise some of the mods were released, then run key combo action
+        // and set KEY_MODS_FIRED flag to prevent multiple execution
+        else if (old_key_mod)
         {
             // Toggle mouse lock on Ctrl + Alt
-            if (old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
+            if (old_key_mod == (KMOD_CTRL | KMOD_ALT))
             {
                 toggle_mouse_lock();
                 handled = true;
             }
-            old_key_shifts |= KEY_SHIFTS_FIRED;
+            old_key_mod |= KEY_MODS_FIRED;
         }
     }
+    cur_key_mods = cur_mod;
 
-    if (!kbhit_res || handled)
-        return false;
+    if (!key_valid)
+        return false; // if there was no key press, finish after handling current mod state
+    if (is_only_mod_key || handled)
+        return false; // rest of engine currently does not use pressed mod keys
+                      // change this when it's no longer true (but be mindful about key-skipping!)
 
-    int keycode = ags_getch();
-    // NS: I'm still not sure why we read a second key. 
-    // Perhaps it's of a time when we read the keyboard one byte at a time?
-    // if (keycode == 0)
-    //     keycode = ags_getch() + AGS_EXT_KEY_SHIFT;
-    if (keycode == 0)
-        return false;
+    int agskey = ags_keycode_from_sdl(key_evt);
+    if (agskey == eAGSKeyCodeNone)
+        return false; // should skip this key event
 
-    // LAlt or RAlt + Enter
-    // NOTE: for some reason LAlt + Enter produces same code as F9
-    if (act_shifts == KB_ALT_FLAG && ((keycode == eAGSKeyCodeF9 && !key[KEY_F9]) || keycode == eAGSKeyCodeReturn))
+    // LAlt or RAlt + Enter/Return
+    if ((cur_mod == KMOD_ALT) && agskey == eAGSKeyCodeReturn)
     {
         engine_try_switch_windowed_gfxmode();
         return false;
     }
 
-    // No service operation triggered? return active keypress and shifts to caller
-    kgn = keycode;
+    // Alt+X, abort (but only once game is loaded)
+    if ((displayed_room >= 0) && (play.abort_key > 0 && agskey == play.abort_key)) {
+        check_dynamic_sprites_at_exit = 0;
+        quit("!|");
+    }
+
+    // No service operation triggered? return active keypress and mods to caller
+    out_key = agskey;
     return true;
 }
 
@@ -486,7 +496,7 @@ static void check_keyboard_controls()
     //     return;
     // }
 
-    if ((kgn == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+    if ((kgn == eAGSKeyCodeAltV) && ((cur_key_mods & KMOD_CTRL) != 0) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;

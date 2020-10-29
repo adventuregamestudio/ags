@@ -246,16 +246,9 @@ enum eAGSKeyCode
 };
 
 
-#define READKEY_CODE_ALT_TAB 0x4000
-
 // Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
 int AGSKeyToScriptKey(int keycode);
 // Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
 // Not unicode compatible.
 char AGSKeyToText(int keycode);
-
-// Allegro4 "platform" keycode from an AGS keycode.
-// Returns -1 if not found.
-int PlatformKeyFromAgsKey(int key);
-
 #endif // __AGS_EE_AC__KEYCODE_H

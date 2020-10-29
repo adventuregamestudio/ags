@@ -105,8 +105,6 @@ ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
-#define ALLEGRO_KEYBOARD_HANDLER
-
 bool engine_init_allegro()
 {
     Debug::Printf(kDbgMsg_Info, "Initializing allegro");
@@ -416,14 +414,7 @@ void engine_locate_audio_pak()
 
 void engine_init_keyboard()
 {
-#ifdef ALLEGRO_KEYBOARD_HANDLER
-    Debug::Printf(kDbgMsg_Info, "Initializing keyboard");
-
-    install_keyboard();
-#endif
-#if AGS_PLATFORM_OS_LINUX
-    setlocale(LC_NUMERIC, "C"); // needed in X platform because install keyboard affects locale of printfs
-#endif
+    /* do nothing */
 }
 
 void engine_init_timer()

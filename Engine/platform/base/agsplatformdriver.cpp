@@ -110,12 +110,6 @@ SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTre
     return kSetup_Cancel;
 }
 
-int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
-{
-    keycode -= ('A' - KEY_A);
-    return keycode;
-}
-
 //-----------------------------------------------
 // IOutputHandler implementation
 //-----------------------------------------------

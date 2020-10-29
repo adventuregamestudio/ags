@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <limits>
+#include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
@@ -609,9 +610,10 @@ void check_debug_keys() {
     if (play.debug_mode) {
         // do the run-time script debugging
 
-        if ((!key[KEY_SCRLOCK]) && (scrlockWasDown))
+        const Uint8 *ks = SDL_GetKeyboardState(NULL);
+        if ((!ks[SDL_SCANCODE_SCROLLLOCK]) && (scrlockWasDown))
             scrlockWasDown = 0;
-        else if ((key[KEY_SCRLOCK]) && (!scrlockWasDown)) {
+        else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown)) {
 
             break_on_next_script_step = 1;
             scrlockWasDown = 1;

@@ -12,51 +12,54 @@
 //
 //=============================================================================
 #include "ac/sys_events.h"
+#include <deque>
 #include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
+#include "ac/timer.h"
 #include "device/mousew32.h"
 #include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
-
-extern int displayed_room;
-extern char check_dynamic_sprites_at_exit;
-
-
 
 // Converts SDL scan and key codes to the ags keycode
-eAGSKeyCode ags_keycode_from_sdl(const SDL_Keysym &key)
+eAGSKeyCode ags_keycode_from_sdl(const SDL_Event &event)
 {
+    // Printable ASCII characters are returned only from SDL_TEXTINPUT event,
+    // as it has key presses + mods correctly converted using current system locale already,
+    // so no need to do that manually.
+    // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
+    // received when user presses for example Shift + 1 on regular keyboard, but only on
+    // systems where single keypress can produce that symbol.
+    // NOTE: following will not work for Unicode, will need to reimplement whole thing
+    if (event.type == SDL_TEXTINPUT)
+    {
+        unsigned char textch = event.text.text[0];
+        if (textch >= 32 && textch <= 255) {
+            return static_cast<eAGSKeyCode>(textch);
+        }
+        return eAGSKeyCodeNone;
+    }
+
+    if (event.type != SDL_KEYDOWN)
+        return eAGSKeyCodeNone;
+
+    const SDL_Keysym key = event.key.keysym;
     const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
-    // Letter codes have special treatment depending on mods
+    // Ctrl and Alt combinations realign the letter code to certain offset
     if (sym >= SDLK_a && sym <= SDLK_z)
     {
-        int agskey = sym;
-        // capitalize a letter if *any* mod is down (see why below)
-        if ((mod & (KMOD_SHIFT | KMOD_CTRL | KMOD_ALT)) != 0)
-            agskey = agskey - eAGSKeyCode_a + eAGSKeyCodeA;
-        // Ctrl and Alt combinations realign the letter code to certain offset
-        if ((mod & KMOD_CTRL) != 0)
-            agskey = 0 + (agskey - eAGSKeyCodeA) + 1; // align letters to code 1
-        else if ((mod & KMOD_ALT) != 0)
-            agskey = AGS_EXT_KEY_SHIFT + (agskey - eAGSKeyCodeA) + 1; // align letters to code 301
-        return static_cast<eAGSKeyCode>(agskey);
-    }
-    // Rest of the printable characters seem to match 1:1 (and match ascii codes)
-    if (sym >= SDLK_SPACE && sym <= SDLK_BACKQUOTE)
-    {
-        return static_cast<eAGSKeyCode>(sym);
+        if ((mod & KMOD_CTRL) != 0) // align letters to code 1
+            return static_cast<eAGSKeyCode>( 0 + (sym - SDLK_a) + 1 );
+        else if ((mod & KMOD_ALT) != 0) // align letters to code 301
+            return static_cast<eAGSKeyCode>( AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1 );
     }
 
     // Remaining codes may match or not, but we use a big table anyway.
@@ -188,118 +191,69 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 
 
 
-int ags_kbhit () {
-    return keypressed();
+
+
+
+// ----------------------------------------------------------------------------
+// KEYBOARD INPUT
+// ----------------------------------------------------------------------------
+
+// Because our game engine still uses input polling, we have to accumulate
+// key events for our internal use whenever engine have to query key input.
+static std::deque<SDL_Event> g_keyEvtQueue;
+
+bool ags_keyevent_ready()
+{
+    return g_keyEvtQueue.size() > 0;
 }
 
-int ags_iskeypressed (int keycode) {
-    if (keycode >= 0 && keycode < __allegro_KEY_MAX)
+SDL_Event ags_get_next_keyevent()
+{
+    if (g_keyEvtQueue.size() > 0)
     {
-        return key[keycode] != 0;
+        auto evt = g_keyEvtQueue.front();
+        g_keyEvtQueue.pop_front();
+        return evt;
     }
-    return 0;
+    SDL_Event empty = {};
+    return empty;
 }
 
-int ags_getch() {
-    const int read_key_value = readkey();
-    int gott = read_key_value;
-    const int scancode = ((gott >> 8) & 0x00ff);
-    const int ascii = (gott & 0x00ff);
+int ags_iskeydown(eAGSKeyCode ags_key)
+{
+    SDL_PumpEvents();
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    SDL_Scancode scan[3];
+    if (!ags_key_to_sdl_scan(ags_key, scan))
+        return -1;
+    return (state[scan[0]] || state[scan[1]] || state[scan[2]]);
+}
 
-    bool is_extended = (ascii == EXTENDED_KEY_CODE);
-    // On macos, the extended keycode is the ascii character '?' or '\0' if alt-key
-    // so check it's not actually the character '?'
-    #if AGS_PLATFORM_OS_MACOS && ! AGS_PLATFORM_OS_IOS
-    is_extended = is_extended || ((ascii == EXTENDED_KEY_CODE_MACOS) && (scancode != __allegro_KEY_SLASH));
-    #endif
+void ags_simulate_keypress(eAGSKeyCode ags_key)
+{
+    SDL_Scancode scan[3];
+    if (!ags_key_to_sdl_scan(ags_key, scan))
+        return;
+    // Push a key event to the event queue; note that this won't affect the key states array
+    SDL_Event sdlevent = {};
+    sdlevent.type = SDL_KEYDOWN;
+    sdlevent.key.keysym.sym = SDL_GetKeyFromScancode(scan[0]);
+    sdlevent.key.keysym.scancode = scan[0];
+    SDL_PushEvent(&sdlevent);
+}
 
-    /*  char message[200];
-    sprintf(message, "Scancode: %04X", gott);
-    Debug::Printf(message);*/
+static void on_sdl_key_down(const SDL_Event &event)
+{
+    // Engine is not structured very well yet, and we cannot pass this event where it's needed;
+    // instead we save it in the queue where it will be ready whenever any component asks for one.
+    g_keyEvtQueue.push_back(event);
+}
 
-    /*if ((scancode >= KEY_0_PAD) && (scancode <= KEY_9_PAD)) {
-    // fix numeric pad keys if numlock is off (allegro 4.2 changed this behaviour)
-    if ((key_shifts & KB_NUMLOCK_FLAG) == 0)
-    gott = (gott & 0xff00) | EXTENDED_KEY_CODE;
-    }*/
-
-    if (gott == READKEY_CODE_ALT_TAB)
-    {
-        // Alt+Tab, it gets stuck down unless we do this
-        gott = eAGSKeyCodeAltTab;
-    }
-    #if AGS_PLATFORM_OS_MACOS
-    else if (scancode == __allegro_KEY_BACKSPACE) 
-    {
-        gott = eAGSKeyCodeBackspace;
-    }
-    #endif
-    else if (is_extended) 
-    {
-
-        // I believe we rely on a lot of keys being converted to ASCII, which is why
-        // the complete scan code list is not here.
-
-        switch(scancode) 
-        {
-            case __allegro_KEY_F1 : gott = eAGSKeyCodeF1 ; break;
-            case __allegro_KEY_F2 : gott = eAGSKeyCodeF2 ; break;
-            case __allegro_KEY_F3 : gott = eAGSKeyCodeF3 ; break;
-            case __allegro_KEY_F4 : gott = eAGSKeyCodeF4 ; break;
-            case __allegro_KEY_F5 : gott = eAGSKeyCodeF5 ; break;
-            case __allegro_KEY_F6 : gott = eAGSKeyCodeF6 ; break;
-            case __allegro_KEY_F7 : gott = eAGSKeyCodeF7 ; break;
-            case __allegro_KEY_F8 : gott = eAGSKeyCodeF8 ; break;
-            case __allegro_KEY_F9 : gott = eAGSKeyCodeF9 ; break;
-            case __allegro_KEY_F10 : gott = eAGSKeyCodeF10 ; break;
-            case __allegro_KEY_F11 : gott = eAGSKeyCodeF11 ; break;
-            case __allegro_KEY_F12 : gott = eAGSKeyCodeF12 ; break;
-
-            case __allegro_KEY_INSERT : gott = eAGSKeyCodeInsert ; break;
-            case __allegro_KEY_DEL : gott = eAGSKeyCodeDelete ; break;
-            case __allegro_KEY_HOME : gott = eAGSKeyCodeHome ; break;
-            case __allegro_KEY_END : gott = eAGSKeyCodeEnd ; break;
-            case __allegro_KEY_PGUP : gott = eAGSKeyCodePageUp ; break;
-            case __allegro_KEY_PGDN : gott = eAGSKeyCodePageDown ; break;
-            case __allegro_KEY_LEFT : gott = eAGSKeyCodeLeftArrow ; break;
-            case __allegro_KEY_RIGHT : gott = eAGSKeyCodeRightArrow ; break;
-            case __allegro_KEY_UP : gott = eAGSKeyCodeUpArrow ; break;
-            case __allegro_KEY_DOWN : gott = eAGSKeyCodeDownArrow ; break;
-
-            case __allegro_KEY_0_PAD : gott = eAGSKeyCodeInsert ; break;
-            case __allegro_KEY_1_PAD : gott = eAGSKeyCodeEnd ; break;
-            case __allegro_KEY_2_PAD : gott = eAGSKeyCodeDownArrow ; break;
-            case __allegro_KEY_3_PAD : gott = eAGSKeyCodePageDown ; break;
-            case __allegro_KEY_4_PAD : gott = eAGSKeyCodeLeftArrow ; break;
-            case __allegro_KEY_5_PAD : gott = eAGSKeyCodeNumPad5 ; break;
-            case __allegro_KEY_6_PAD : gott = eAGSKeyCodeRightArrow ; break;
-            case __allegro_KEY_7_PAD : gott = eAGSKeyCodeHome ; break;
-            case __allegro_KEY_8_PAD : gott = eAGSKeyCodeUpArrow ; break;
-            case __allegro_KEY_9_PAD : gott = eAGSKeyCodePageUp ; break;
-            case __allegro_KEY_DEL_PAD : gott = eAGSKeyCodeDelete ; break;
-
-            default: 
-                // no meaningful mappings
-                // this is how we accidentally got the alt-key mappings
-                gott = scancode + AGS_EXT_KEY_SHIFT;
-        }
-    }
-    else
-    {
-        // this includes ascii characters and ctrl-A-Z
-        gott = ascii;
-    }
-
-    // Alt+X, abort (but only once game is loaded)
-    if ((gott == play.abort_key) && (displayed_room >= 0)) {
-        check_dynamic_sprites_at_exit = 0;
-        quit("!|");
-    }
-
-    //sprintf(message, "Keypress: %d", gott);
-    //Debug::Printf(message);
-
-    return gott;
+static void on_sdl_textinput(const SDL_Event &event)
+{
+    // We also push text input events to the same queue, as this is only valid way to get proper
+    // text interpretation of the pressed key combination based on current system locale.
+    g_keyEvtQueue.push_back(event);
 }
 
 
@@ -469,7 +423,7 @@ int ags_check_mouse_wheel() {
 
 void ags_clear_input_buffer()
 {
-    while (ags_kbhit()) ags_getch();
+    g_keyEvtQueue.clear();
     mouse_button_state = 0;
     mouse_accum_button_state = 0;
     mouse_clear_at_time = AGS_Clock::now() + std::chrono::milliseconds(50);
@@ -477,12 +431,16 @@ void ags_clear_input_buffer()
     mouse_accum_rely = 0;
 }
 
+// TODO: this is an awful function that should be removed eventually.
+// Must replace with proper updateable game state.
 void ags_wait_until_keypress()
 {
-    while (!ags_kbhit()) {
+    do
+    {
+        sys_evt_process_pending();
         platform->YieldCPU();
-    }
-    ags_getch();
+    } while (!ags_keyevent_ready());
+    ags_clear_input_buffer();
 }
 
 
@@ -527,6 +485,12 @@ void sys_evt_process_one(const SDL_Event &event) {
         }
         break;
     // INPUT
+    case SDL_KEYDOWN:
+        on_sdl_key_down(event);
+        break;
+    case SDL_TEXTINPUT:
+        on_sdl_textinput(event);
+        break;
     case SDL_MOUSEMOTION:
         on_sdl_mouse_motion(event.motion);
         break;

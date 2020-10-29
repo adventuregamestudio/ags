@@ -125,7 +125,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void ResumeApplication();
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
-  virtual int  ConvertKeycodeToScanCode(int keyCode);
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
 
 #ifndef AGS_NO_VIDEO_PLAYER
@@ -937,21 +936,6 @@ void AGSWin32::WriteStdErr(const char *fmt, ...) {
 
 void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
-}
-
-extern "C" const unsigned char hw_to_mycode[256];
-
-int AGSWin32::ConvertKeycodeToScanCode(int keycode)
-{
-  // ** HIDEOUS HACK TO WORK AROUND ALLEGRO BUG
-  // the key[] array is hardcoded to qwerty keyboards, so we
-  // have to re-map it to make it work on other keyboard layouts
-  keycode += ('a' - 'A');
-  int vkey = VkKeyScan(keycode);
-  int scancode = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
-  if ((scancode >= 0) && (scancode < 256))
-    keycode = hw_to_mycode[scancode];
-  return keycode;
 }
 
 void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const

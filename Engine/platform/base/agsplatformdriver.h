@@ -99,7 +99,6 @@ struct AGSPlatformDriver
     virtual void ResumeApplication();
     virtual void RegisterGameWithGameExplorer();
     virtual void UnRegisterGameWithGameExplorer();
-    virtual int  ConvertKeycodeToScanCode(int keyCode);
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const {}
 

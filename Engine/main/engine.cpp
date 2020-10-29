@@ -114,7 +114,7 @@ bool engine_init_allegro()
     our_eip = -199;
     // Initialize allegro
     set_uformat(U_ASCII);
-    if (install_allegro(SYSTEM_AUTODETECT, &errno, atexit))
+    if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
         const char *al_err = get_allegro_error();
         const char *user_hint = platform->GetAllegroFailUserHint();
@@ -126,14 +126,6 @@ bool engine_init_allegro()
 
     sys_main_init();
     return true;
-}
-
-void engine_setup_allegro()
-{
-    // Setup allegro using constructed config string
-    const char *al_config_data = "[mouse]\n"
-        "mouse_accel_factor = 0\n";
-    override_config_data(al_config_data, ustrsize(al_config_data));
 }
 
 void winclosehook() {
@@ -1284,7 +1276,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     }
     // Set up game options from user config
     engine_set_config(cfg);
-    engine_setup_allegro();
     engine_force_window();
 
     our_eip = -190;
@@ -1302,9 +1293,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_locate_audio_pak();
 
     our_eip = -193;
-
-    // Assign custom find resource callback for limited Allegro operations
-    system_driver->find_resource = al_find_resource;
 
     //-----------------------------------------------------
     // Begin setting up systems

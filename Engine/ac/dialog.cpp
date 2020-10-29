@@ -849,6 +849,9 @@ void DialogOptions::Redraw()
 
 bool DialogOptions::Run()
 {
+    // Run() can be called in a loop, so keep events going.
+    sys_evt_process_pending();
+
     const bool new_custom_render = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
 
       if (runGameLoopsInBackground)

@@ -50,6 +50,8 @@ SDL_Window *sys_get_window();
 void sys_window_set_style(bool windowed);
 // Set new window size; optionally center new window on screen
 bool sys_window_set_size(int w, int h, bool center);
+// Shows or hides system cursor when it's in the game window
+void sys_window_show_cursor(bool on);
 // Locks on unlocks mouse inside the window.
 // Returns new state of the mouse lock.
 bool sys_window_lock_mouse(bool on);

@@ -120,6 +120,10 @@ void sys_window_set_style(bool windowed) {
     SDL_SetWindowFullscreen(window, windowed ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
+void sys_window_show_cursor(bool on) {
+    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
+}
+
 bool sys_window_lock_mouse(bool on) {
     if (!window) return false;
     SDL_SetWindowGrab(window, static_cast<SDL_bool>(on));

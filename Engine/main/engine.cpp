@@ -1361,9 +1361,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     SetMultitasking(0);
 
-    // [ER] 2014-03-13
-    // Hide the system cursor via allegro
-    show_os_cursor(MOUSE_CURSOR_NONE);
+    sys_window_show_cursor(false); // hide the system cursor
 
     show_preload();
 

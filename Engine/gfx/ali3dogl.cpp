@@ -1838,6 +1838,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     WaitForNextFrame();
@@ -1918,6 +1919,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     
     this->_render(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     platform->Delay(delay);

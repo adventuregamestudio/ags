@@ -22,13 +22,12 @@
 
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <SDL.h>
+#include "ac/sys_events.h"
 #include "ac/timer.h"
-#include "debug/assert.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
-#include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
@@ -1744,6 +1743,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_renderAndPresent(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     WaitForNextFrame();
@@ -1824,6 +1824,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     
     this->_renderAndPresent(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     platform->Delay(delay);

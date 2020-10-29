@@ -564,13 +564,7 @@
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\gfxfilter_allegro.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d.cpp">
-      <Filter>Source Files\gfx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\gfxfilter_hqx.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_ogl.cpp">
@@ -801,9 +795,6 @@
     <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c">
       <Filter>Library Sources\libcda</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp">
-      <Filter>Header Files\gfx</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
@@ -869,6 +860,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp">
       <Filter>Source Files\platform\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_sdl_renderer.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp">
+      <Filter>Source Files\gfx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1331,13 +1328,7 @@
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\gfxfilter_allegro.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\gfxfilter_hqx.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_ogl.h">
@@ -1350,9 +1341,6 @@
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\graphicsdriver.h">
-      <Filter>Header Files\gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gfx\hq2x3x.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\cc_instance.h">
@@ -1744,6 +1732,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h">
       <Filter>Header Files\platform\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_sdl_renderer.h">
+      <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

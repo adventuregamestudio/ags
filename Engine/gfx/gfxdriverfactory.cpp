@@ -20,7 +20,7 @@
 #define AGS_HAS_OPENGL (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX)
 
 #include "gfx/ali3dsw.h"
-#include "gfx/gfxfilter_allegro.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 
 #if AGS_HAS_OPENGL
 #include "gfx/ali3dogl.h"
@@ -61,7 +61,7 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
         return OGL::OGLGraphicsFactory::GetFactory();
 #endif
     if (id.CompareNoCase("Software") == 0)
-        return ALSW::ALSWGraphicsFactory::GetFactory();
+        return ALSW::SDLRendererGraphicsFactory::GetFactory();
     set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
     return nullptr;
 }

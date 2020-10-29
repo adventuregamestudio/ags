@@ -12,14 +12,13 @@
 //
 //=============================================================================
 //
-// High quality x2 scaling filter
+// SDL software renderer filter. Technically a non-op, as SDL_Renderer
+// does the job.
 //
 //=============================================================================
-
-#ifndef __AGS_EE_GFX__HQ2XGFXFILTER_H
-#define __AGS_EE_GFX__HQ2XGFXFILTER_H
-
-#include "gfx/gfxfilter_allegro.h"
+#ifndef __AGS_EE_GFX__SDLRENDERERFILTER_H
+#define __AGS_EE_GFX__SDLRENDERERFILTER_H
+#include "gfx/gfxfilter_scaling.h"
 
 namespace AGS
 {
@@ -28,31 +27,16 @@ namespace Engine
 namespace ALSW
 {
 
-class HqxGfxFilter : public AllegroGfxFilter
+class SDLRendererGfxFilter : public ScalingGfxFilter
 {
 public:
-    HqxGfxFilter();
-    ~HqxGfxFilter() override;
-
-    const GfxFilterInfo &GetInfo() const override;
-
-    bool Initialize(const int color_depth, String &err_str) override;
-    Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect) override;
-    Bitmap *ShutdownAndReturnRealScreen() override;
+    virtual const GfxFilterInfo &GetInfo() const;
 
     static const GfxFilterInfo FilterInfo;
-
-protected:
-    Bitmap *PreRenderPass(Bitmap *toRender) override;
-
-    typedef void (*PfnHqx)(unsigned char *in, unsigned char *out, int src_w, int src_h, int bpl);
-
-    PfnHqx  _pfnHqx;
-    Bitmap *_hqxScalingBuffer;
 };
 
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__HQ2XGFXFILTER_H
+#endif // __AGS_EE_GFX__SDLRENDERERFILTER_H

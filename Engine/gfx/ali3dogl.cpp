@@ -249,9 +249,13 @@ void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supers
 
 bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
-  if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
+  if (mode.Width <= 0 || mode.Height <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    set_allegro_error("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
+    return false;
+  }
+  if (mode.ColorDepth != 32) {
+    set_allegro_error("Display colour depth not supported: %d", mode.ColorDepth);
     return false;
   }
   return true;

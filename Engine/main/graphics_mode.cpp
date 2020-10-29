@@ -571,10 +571,6 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
     set_color_depth(dm.ColorDepth);
-    // TODO: this is remains of the old code; find out what it means and do we
-    // need this if we are not using allegro software driver?
-    if (dm.RefreshRate >= 50)
-        request_refresh_rate(dm.RefreshRate);
 
     if (!gfxDriver->SetDisplayMode(dm, nullptr))
     {

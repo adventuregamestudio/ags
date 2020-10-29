@@ -11,20 +11,22 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "gfx/gfxfilter_sdl_renderer.h"
 
-#ifndef __AC_HQ2X3X_H
-#define __AC_HQ2X3X_H
+namespace AGS
+{
+namespace Engine
+{
+namespace ALSW
+{
 
-#include "core/platform.h"
+const GfxFilterInfo SDLRendererGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
 
-#if AGS_PLATFORM_OS_ANDROID
-void InitLUTs(){}
-void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}
-void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}
-#else
-void InitLUTs();
-void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-#endif
+const GfxFilterInfo &SDLRendererGfxFilter::GetInfo() const
+{
+    return FilterInfo;
+}
 
-#endif // __AC_HQ2X3X_H
+} // namespace ALSW
+} // namespace Engine
+} // namespace AGS

@@ -95,7 +95,7 @@ private:
 
     // Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
-    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type);
+    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value);
 
     // Translate a '\\' combination into a character, backslash is already read in
     ErrorType EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted);

@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <limits>
 #include <cstdarg>
 
 #include "cc_internallist.h"    // SrcList
@@ -68,7 +69,8 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     if (IsDigit(next_char))
     {
         symstring = "";
-        return ReadInNumberLit(symstring, scan_type);
+        CodeCell value;
+        return ReadInNumberLit(symstring, scan_type, value);
     }
 
     // Character literal
@@ -200,64 +202,109 @@ ErrorType AGS::Scanner::SkipWhitespace()
     }
 }
 
-ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type)
+ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
-    bool decimal_point_encountered = (std::string::npos != symstring.find('.'));
-    bool e_encountered = false;
-    bool eminus_encountered = false;
+    static std::string const exponent_leadin = "EePp";
+    static std::string const exponent_follow = "0123456789-+";
 
-    scan_type = (decimal_point_encountered) ? kSct_FloatLiteral : kSct_IntLiteral;
+    // Collect all the characters into symstring.
+    // Collect those characters that are part of the number proper and have a meaning into valstring
+    // Extend the strings as far as possible so that they still can be interpreted as long or double.
+    // Let std::strtol and std::strtod figure out just what that is.
+
     symstring.push_back(Get());
+    std::string valstring = symstring;
+    char *endptr;
 
     while (true)
     {
         int const ch = Get();
-        if (EOFReached()) return kERR_None;
-        if (Failed())
+        if (!EOFReached() && Failed())
         {
-            Error("Read error while scanning a number literal (file corrupt?)");
+            Error("Error whilst reading a number literal (file corrupt?)");
             return kERR_UserError;
         }
-
-        if (IsDigit(ch))
+        symstring.push_back(ch);
+        if ('\'' == ch)
         {
-            symstring.push_back(ch);
+            if ((!valstring.empty() && IsDigit(valstring.back()) && IsDigit(Peek())) ||
+                ("0x" == valstring.substr(0, 2) && IsHexDigit(valstring.back()) && IsHexDigit(Peek())))
+                continue;
+        }
+        valstring.push_back(ch);
+
+        int const peek = Peek();
+        if ("0x" == valstring && IsHexDigit(peek))
+            continue; // Is neither an int nor a float but will become a number
+
+        if (std::string::npos != exponent_leadin.find(ch) && std::string::npos != exponent_follow.find(peek))
+            continue; // Is neither an int nor a float but will become a number
+
+        if (('-' == ch || '+' == ch) && IsDigit(peek))
+            continue; // Is neither an int nor a float but will become a number
+
+        std::strtol(valstring.c_str(), &endptr, 0);
+        bool const can_be_long = (valstring.length() == endptr - valstring.c_str());
+        if (can_be_long)
             continue;
-        }
-        if ('.' == ch)
-        {
-            if (!decimal_point_encountered)
-            {
-                decimal_point_encountered = true;
-                scan_type = kSct_FloatLiteral;
-                symstring.push_back(ch);
-                continue;
-            }
-        }
-        if ('e' == ch || 'E' == ch)
-        {
-            if (!e_encountered)
-            {
-                decimal_point_encountered = true;
-                e_encountered = true;
-                scan_type = kSct_FloatLiteral;
-                symstring.push_back(ch);
-                continue;
-            }
-        }
-        if ('-' == ch)
-        {
-            if (e_encountered && !eminus_encountered)
-            {
-                eminus_encountered = true;
-                symstring.push_back(ch);
-                continue;
-            }
+        std::strtod(valstring.c_str(), &endptr);
+        bool const can_be_double = (valstring.length() == endptr - valstring.c_str());
+        if (can_be_double)
+            continue;
 
-        }
-        UnGet(); // no longer part of the number literal, so put it back
+        // So this last char can't belong to the number
+        symstring.pop_back();
+        valstring.pop_back();
+        UnGet();
         break;
     }
+
+    int const peek = Peek();
+    if ('8' == peek || '9' == peek)
+    {
+        Error("Encountered the illegal digit '%c' in the octal number literal starting with '%s'", peek, symstring.c_str());
+        return kERR_UserError;
+    }
+
+    if ('f' == peek || 'F' == peek)
+        symstring.push_back(Get());
+
+    long long_value = std::strtol(valstring.c_str(), &endptr, 0);
+    bool can_be_long = (valstring.length() == endptr - valstring.c_str());
+    if (can_be_long && peek != 'f' && peek != 'F')
+    {
+        if (std::numeric_limits<CodeCell>::max() < long_value)
+        {
+            Error(
+                "Literal integer '%s' is out of bounds (maximum is '%s')",
+                valstring.c_str(),
+                std::to_string(std::numeric_limits<CodeCell>::max()).c_str());
+            return kERR_UserError;
+        }
+        scan_type = kSct_IntLiteral;
+        value = long_value;
+        return kERR_None;
+    }
+
+    double double_value = std::strtod(valstring.c_str(), &endptr);
+    bool can_be_double = (valstring.length() == endptr - valstring.c_str());
+    if (!can_be_double)
+    {
+        Error("Expected a number literal, found '%s' instead", symstring.c_str());
+        return kERR_UserError;
+    }
+
+    if (std::numeric_limits<float>::max() < double_value)
+    {
+        Error(
+            "Literal float '%s' is out of bounds (maximum is '%s')",
+            valstring.c_str(),
+            std::to_string(std::numeric_limits<float>::max()).c_str());
+        return kERR_UserError;
+    }
+    scan_type = kSct_FloatLiteral;
+    float float_value = static_cast<float>(double_value);
+    value = *reinterpret_cast<CodeCell *>(&float_value);
     return kERR_None;
 }
 
@@ -537,7 +584,10 @@ ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_ty
     }
 
     if (IsDigit(second_char))
-        return ReadInNumberLit(symstring, scan_type);
+    {
+        CodeCell value;
+        return ReadInNumberLit(symstring, scan_type, value);
+    }
 
     if ('.' != second_char)
         return kERR_None;

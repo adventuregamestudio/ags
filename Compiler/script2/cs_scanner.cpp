@@ -80,7 +80,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     }
 
     // Identifier or keyword
-    if (IsUpper(next_char) || IsLower(next_char) || ('_' == next_char))
+    if (IsAlpha(next_char) || '_' == next_char)
     {
         scan_type = kSct_Identifier;
         return ReadInIdentifier(symstring);
@@ -103,7 +103,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     }
 
     // Non-char symstrings, such as "*="
-    scan_type = kSct_NonChar;
+    scan_type = kSct_NonAlphanum;
     switch (next_char)
     {
     default:  break;
@@ -482,7 +482,7 @@ ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
             return kERR_UserError;
         }
 
-        if (IsUpper(ch) || IsLower(ch) || IsDigit(ch) || (ch == '_'))
+        if (IsAlpha(ch) || IsDigit(ch) || '_' == ch)
         {
             symstring.push_back(ch);
             continue;

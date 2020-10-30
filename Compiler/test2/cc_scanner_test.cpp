@@ -215,7 +215,7 @@ TEST_F(Scan, IdentifiersNumbers)
 
     EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct));
     EXPECT_STREQ(";", symstring.c_str());
-    EXPECT_EQ(AGS::Scanner::kSct_NonChar, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_NonAlphanum, sct);
 
     EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct));
     EXPECT_STREQ("_4", symstring.c_str());

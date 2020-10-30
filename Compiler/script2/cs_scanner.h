@@ -27,9 +27,9 @@ public:
         kSct_Identifier,      // Identifier or keyword --- [A-Za-z][A-Za-z_]*
         kSct_FloatLiteral,    // Numbers containing a "." --- [0-9]+[.][0-9]*
         kSct_IntLiteral,      // Numbers not containing a "." --- [0-9]+
+        kSct_NonAlphanum,     // i.e., +, ++, /=; this can be one character or two characters
         kSct_SectionChange,   // String literal beginning with magic string
         kSct_StringLiteral,   // Quoted strings --- ["]([\\].[^"]*)*["]
-        kSct_NonChar          // i.e., +, ++, /=; this can be one character or two characters
     };
 
     static std::string const kNewSectionLitPrefix;
@@ -141,10 +141,8 @@ private:
     void Error(char const *msg, ...);
 
 protected:
-    // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool IsUpper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
-    inline static bool IsLower(int ch) { return (ch >= 'a' && ch <= 'z'); }
+    inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
     inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
     // Change where: replace the first occurrence of token in where by replacement.

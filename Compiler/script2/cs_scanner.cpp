@@ -29,9 +29,9 @@ ErrorType AGS::Scanner::Scan()
         bool eof_encountered = false;
         bool error_encountered = false;
         Symbol symbol;
-        ErrorType retval = GetNextSymbol(symbol, eof_encountered);
+        ErrorType retval = GetNextSymbol(symbol);
         if (retval < 0) return retval;
-        if (eof_encountered)
+        if (EOFReached())
             return _ocMatcher.EndOfInputCheck();
         _tokenList.Append(symbol);
     }
@@ -50,18 +50,15 @@ void AGS::Scanner::NewSection(std::string const &section)
     NewLine(0);
 }
 
-ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered)
+ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type)
 {
-    eof_encountered = false;
-
-    ErrorType retval = SkipWhitespace(eof_encountered);
+    ErrorType retval = SkipWhitespace();
     if (retval < 0) return kERR_UserError;
-    if (eof_encountered) return kERR_None;
+    if (EOFReached()) return kERR_None;
 
-    int next_char = _inputStream.peek();
-    eof_encountered = _inputStream.eof();
-    if (eof_encountered) return kERR_None;
-    if (_inputStream.fail())
+    int next_char = Peek();
+    if (EOFReached()) return kERR_None;
+    if (Failed())
     {
         Error("Error reading a character (file corrupt?)");
         return kERR_UserError;
@@ -71,7 +68,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     if (IsDigit(next_char))
     {
         symstring = "";
-        return ReadInNumberLit(symstring, scan_type, eof_encountered);
+        return ReadInNumberLit(symstring, scan_type);
     }
 
     // Character literal
@@ -79,21 +76,21 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     {
         // Note that this converts the literal to an equivalent integer string "'A'" >>-> "65"
         scan_type = kSct_IntLiteral;
-        return ReadInCharLit(symstring, eof_encountered);
+        return ReadInCharLit(symstring);
     }
 
     // Identifier or keyword
     if (IsUpper(next_char) || IsLower(next_char) || ('_' == next_char))
     {
         scan_type = kSct_Identifier;
-        return ReadInIdentifier(symstring, eof_encountered);
+        return ReadInIdentifier(symstring);
     }
 
     // String literal
     if ('"' == next_char)
     {
         scan_type = kSct_StringLiteral;
-        ErrorType retval = ReadInStringLit(symstring, eof_encountered);
+        ErrorType retval = ReadInStringLit(symstring);
         if (retval < 0) return retval;
 
         size_t const len = kNewSectionLitPrefix.length();
@@ -110,31 +107,31 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     switch (next_char)
     {
     default:  break;
-    case '!': return ReadIn1or2Char("=", symstring, eof_encountered);
-    case '%': return ReadIn1or2Char("=", symstring, eof_encountered);
-    case '&': return ReadIn1or2Char("&=", symstring, eof_encountered);
+    case '!': return ReadIn1or2Char("=", symstring);
+    case '%': return ReadIn1or2Char("=", symstring);
+    case '&': return ReadIn1or2Char("&=", symstring);
     case '(': return ReadIn1Char(symstring);
     case ')': return ReadIn1Char(symstring);
-    case '*': return ReadIn1or2Char("=", symstring, eof_encountered);
-    case '+': return ReadIn1or2Char("+=", symstring, eof_encountered);
+    case '*': return ReadIn1or2Char("=", symstring);
+    case '+': return ReadIn1or2Char("+=", symstring);
     case ',': return ReadIn1Char(symstring);
-    case '-': return ReadIn1or2Char("-=>", symstring, eof_encountered);
+    case '-': return ReadIn1or2Char("-=>", symstring);
         // Note, this can overwrite scan_type.
-    case '.': return ReadInDotCombi(symstring, scan_type, eof_encountered);
+    case '.': return ReadInDotCombi(symstring, scan_type);
         // Note that the input is pre-processed,
         // so it cannot contain comments of the form //...EOL or /*...*/
-    case '/': return ReadIn1or2Char("=", symstring, eof_encountered);
-    case ':': return ReadIn1or2Char(":", symstring, eof_encountered);
+    case '/': return ReadIn1or2Char("=", symstring);
+    case ':': return ReadIn1or2Char(":", symstring);
     case ';': return ReadIn1Char(symstring);
-    case '<': return ReadInLTCombi(symstring, eof_encountered);
-    case '=': return ReadIn1or2Char("=", symstring, eof_encountered);
-    case '>': return ReadInGTCombi(symstring, eof_encountered);
+    case '<': return ReadInLTCombi(symstring);
+    case '=': return ReadIn1or2Char("=", symstring);
+    case '>': return ReadInGTCombi(symstring);
     case '?': return ReadIn1Char(symstring);
     case '[': return ReadIn1Char(symstring);
     case ']': return ReadIn1Char(symstring);
-    case '^': return ReadIn1or2Char("=", symstring, eof_encountered);
+    case '^': return ReadIn1or2Char("=", symstring);
     case '{': return ReadIn1Char(symstring);
-    case '|': return ReadIn1or2Char("=|", symstring, eof_encountered);
+    case '|': return ReadIn1or2Char("=|", symstring);
     case '}': return ReadIn1Char(symstring);
     case '~': return ReadIn1Char(symstring);
     }
@@ -144,7 +141,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     return kERR_UserError;
 }
 
-ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
+ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
 {
     symbol = -1;
     std::string symstring;
@@ -152,9 +149,9 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
 
     while (true)
     {
-        ErrorType retval = GetNextSymstring(symstring, scan_type, eof_encountered);
+        ErrorType retval = GetNextSymstring(symstring, scan_type);
         if (retval < 0) return retval;
-        if (eof_encountered) return kERR_None;
+        if (EOFReached()) return kERR_None;
 
         if (kSct_SectionChange != scan_type)
             break;
@@ -164,21 +161,20 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol, bool &eof_encountered)
         NewSection(symstring);
     }
 
-    ErrorType retval = SymstringToSym(symstring, scan_type, symbol, eof_encountered);
+    ErrorType retval = SymstringToSym(symstring, scan_type, symbol);
     if (retval < 0) return retval;
-    if (eof_encountered) return kERR_None;
+    if (EOFReached()) return kERR_None;
 
     return CheckMatcherNesting(symbol);
 }
 
-ErrorType AGS::Scanner::SkipWhitespace(bool &eof_encountered)
+ErrorType AGS::Scanner::SkipWhitespace()
 {
     while (true)
     {
-        int const ch = _inputStream.get();
-        eof_encountered = _inputStream.eof();
-        if (eof_encountered) return kERR_None;
-        if (_inputStream.fail())
+        int const ch = Get();
+        if (EOFReached()) return kERR_None;
+        if (Failed())
         {
             Error("Error whilst skipping whitespace (file corrupt?)");
             return kERR_UserError;
@@ -186,12 +182,12 @@ ErrorType AGS::Scanner::SkipWhitespace(bool &eof_encountered)
 
         if (!IsSpace(ch))
         {
-            _inputStream.putback(ch);
+            UnGet();
             return kERR_None;
         }
 
         // Gobble the CR of a CRLF combination
-        if ('\r' == ch && '\n' == _inputStream.peek())
+        if ('\r' == ch && '\n' == Peek())
             continue;
 
         if ('\n' == ch)
@@ -199,23 +195,22 @@ ErrorType AGS::Scanner::SkipWhitespace(bool &eof_encountered)
     }
 }
 
-ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type)
 {
     bool decimal_point_encountered = (std::string::npos != symstring.find('.'));
     bool e_encountered = false;
     bool eminus_encountered = false;
 
     scan_type = (decimal_point_encountered) ? kSct_FloatLiteral : kSct_IntLiteral;
-    symstring.push_back(_inputStream.get());
+    symstring.push_back(Get());
 
     while (true)
     {
-        int const ch = _inputStream.get();
-        eof_encountered = _inputStream.eof();
-        if (eof_encountered) return kERR_None;
-        if (_inputStream.fail())
+        int const ch = Get();
+        if (EOFReached()) return kERR_None;
+        if (Failed())
         {
-            Error("Read error encountered while scanning a number literal (file corrupt?)");
+            Error("Read error while scanning a number literal (file corrupt?)");
             return kERR_UserError;
         }
 
@@ -255,42 +250,41 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
             }
 
         }
-        _inputStream.putback(ch); // no longer part of the number literal, so put it back
+        UnGet(); // no longer part of the number literal, so put it back
         break;
     }
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring)
 {
     symstring = "";
 
     do // exactly 1 time
     {
         // Opening '\''
-        _inputStream.get(); // Eat '\''
+        Get(); // Eat '\''
 
         // The character inside
-        int lit_char = _inputStream.get();
-        eof_encountered = _inputStream.eof();
-        if (eof_encountered)
+        int lit_char = Get();
+        if (EOFReached())
         {
             Error("Expected a character after the quote mark but input ended instead");
             return kERR_UserError;
         }
-        if (_inputStream.fail())
+        if (Failed())
             break; // to error processing
 
         if ('\\' == lit_char)
         {
             // The next char is escaped
-            lit_char = _inputStream.get();
-            if (_inputStream.eof())
+            lit_char = Get();
+            if (EOFReached())
             {
                 Error("Expected a character after the '\\' but input ended instead");
                 return kERR_UserError;
             }
-            if (_inputStream.fail())
+            if (Failed())
                 break; // to error processing
 
             if ('[' == lit_char)
@@ -305,13 +299,13 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encounte
         }
 
         // Closing '\''
-        int const ch = _inputStream.get();
-        if (_inputStream.eof())
+        int const ch = Get();
+        if (EOFReached())
         {
             Error("Expected an apostrophe but input ended instead");
             return kERR_UserError;
         }
-        if (_inputStream.fail())
+        if (Failed())
             break; // to error processing
 
         if (ch != '\'')
@@ -328,7 +322,7 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encounte
     while (false);
 
     // Here when we got a read error
-    Error("Read error encountered while scanning a char literal (file corrupt?)");
+    Error("Read error while scanning a char literal (file corrupt?)");
     return kERR_UserError;
 }
 
@@ -337,14 +331,14 @@ int AGS::Scanner::OctDigits2Char(int first_digit_char)
     int ret = first_digit_char - '0';
     for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
     {
-        int const digit = _inputStream.peek() - '0';
+        int const digit = Peek() - '0';
         if (digit < 0 || digit >= 8)
             break;
         int new_value = 8 * ret + digit;
         if (new_value > 255)
             break;
         ret = new_value;
-        _inputStream.get(); // Eat the digit char
+        Get(); // Eat the digit char
     }
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
@@ -354,7 +348,7 @@ int AGS::Scanner::HexDigits2Char()
     int ret = 0;
     for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
     {
-        int hexdigit = _inputStream.peek();
+        int hexdigit = Peek();
         //convert a..f to A..F
         if (hexdigit >= 'a')
             hexdigit = hexdigit - 'a' + 'A';
@@ -364,7 +358,7 @@ int AGS::Scanner::HexDigits2Char()
         if (hexdigit > 9)
             hexdigit -= ('@' - '9');
         ret = 16 * ret + hexdigit;
-        _inputStream.get(); // Eat the hexdigit
+        Get(); // Eat the hexdigit
     }
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
@@ -378,7 +372,7 @@ ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, int &co
     }
     if ('x' == first_char_after_backslash)
     {
-        int hexdigit = _inputStream.peek();
+        int hexdigit = Peek();
         if (!(('0' <= hexdigit && hexdigit <= '9') ||
             ('A' <= hexdigit && hexdigit <= 'F') ||
             ('a' <= hexdigit && hexdigit <= 'f')))
@@ -426,25 +420,23 @@ std::string AGS::Scanner::MakeStringPrintable(std::string const &inp)
     return out.str();
 }
 
-ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring)
 {
     symstring = "";
     bool error_encountered = false;
-    _inputStream.get(); // Eat '"'
+    Get(); // Eat '"'
     while (true)
     {
-        int ch = _inputStream.get();
-        eof_encountered = _inputStream.eof();
-        error_encountered = _inputStream.fail();
-        if (eof_encountered || error_encountered || ch == '\n' || ch == '\r')
+        int ch = Get();
+        error_encountered = Failed();
+        if (EOFReached() || Failed() || '\n' == ch  || '\r' == ch)
             break; // to error msg
 
         if (ch == '\\')
         {
-            ch = _inputStream.get();
-            eof_encountered = _inputStream.eof();
-            error_encountered = _inputStream.fail();
-            if (eof_encountered || error_encountered || ch == '\n' || ch == '\r')
+            ch = Get();
+            error_encountered = Failed();
+            if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
                 break; // to error msg
             if ('[' == ch)
             {
@@ -467,27 +459,26 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encoun
     }
 
     // Here when an error or eof occurs.
-    if (eof_encountered)
-        Error("End of input encountered when scanning a string literal (did you forget a '\"\'?)");
+    if (EOFReached())
+        Error("End of input when scanning a string literal (did you forget a '\"\'?)");
     else if (error_encountered)
-        Error("Read error encountered while scanning a string literal (file corrupt?)");
+        Error("Read error while scanning a string literal (file corrupt?)");
     else  
-        Error("End of line encountered when scanning a string literal, this isn't allowed (use '[' for newline)");
+        Error("End of line when scanning a string literal, this isn't allowed (use '[' for newline)");
     return kERR_UserError;
 }
 
-ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
 {
-    symstring.assign(1, _inputStream.get());
+    symstring.assign(1, Get());
 
     while (true)
     {
-        int ch = _inputStream.get();
-        eof_encountered = _inputStream.eof();
-        if (eof_encountered) return kERR_None;
-        if (_inputStream.fail())
+        int ch = Get();
+        if (EOFReached()) return kERR_None;
+        if (Failed())
         {
-            Error("Read error encountered while scanning an identifier (file corrupt?)");
+            Error("Read error while scanning an identifier (file corrupt?)");
             return kERR_UserError;
         }
 
@@ -497,26 +488,25 @@ ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring, bool &eof_encou
             continue;
         }
         // That last char doesn't belong to the literal, so put it back.
-        _inputStream.putback(ch);
+        UnGet();
         return kERR_None;
     }
 }
 
-ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring)
 {
-    symstring.assign(1, _inputStream.get());
-    int const second_char = _inputStream.peek();
-    eof_encountered = _inputStream.eof();
-    if (eof_encountered) return kERR_None;
-    if (_inputStream.fail())
+    symstring.assign(1, Get());
+    int const second_char = Peek();
+    if (EOFReached()) return kERR_None;
+    if (Failed())
     {
-        Error("Read error encountered (file corrupt?)");
+        Error("Read error (file corrupt?)");
         return kERR_UserError;
     }
 
     if (std::string::npos != possible_second_chars.find(second_char))
     {
-        _inputStream.get(); // Gobble the character that was peek()ed
+        Get(); // Gobble the character that was peek()ed
         symstring.push_back(second_char);
     }
     return kERR_None;
@@ -524,31 +514,30 @@ ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars,
 
 ErrorType AGS::Scanner::ReadIn1Char(std::string &symstring)
 {
-    symstring.assign(1, _inputStream.get());
+    symstring.assign(1, Get());
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type)
 {
-    symstring.assign(1, _inputStream.get());
-    int const second_char = _inputStream.peek();
-    eof_encountered = _inputStream.eof();
-    if (eof_encountered) return kERR_None;
-    if (_inputStream.fail())
+    symstring.assign(1, Get());
+    int const second_char = Peek();
+    if (EOFReached()) return kERR_None;
+    if (Failed())
     {
-        Error("Read error encountered (file corrupt?)");
+        Error("Read error (file corrupt?)");
         return kERR_UserError;
     }
 
     if (IsDigit(second_char))
-        return ReadInNumberLit(symstring, scan_type, eof_encountered);
+        return ReadInNumberLit(symstring, scan_type);
 
     if ('.' != second_char)
         return kERR_None;
 
-    symstring.push_back(_inputStream.get());
+    symstring.push_back(Get());
 
-    if ('.' != _inputStream.get())
+    if ('.' != Get())
     {
         Error("Must either use '.' or '...'");
         return kERR_UserError;
@@ -558,29 +547,29 @@ ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_ty
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
 {
-    ErrorType retval = ReadIn1or2Char("<=", symstring, eof_encountered);
+    ErrorType retval = ReadIn1or2Char("<=", symstring);
     if (retval < 0) return retval;
-    if (eof_encountered) return kERR_None;
+    if (EOFReached()) return kERR_None;
 
-    if ((symstring == "<<") && (_inputStream.peek() == '='))
-        symstring.push_back(_inputStream.get());
+    if ((symstring == "<<") && (Peek() == '='))
+        symstring.push_back(Get());
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring, bool &eof_encountered)
+ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
 {
-    ErrorType retval = ReadIn1or2Char(">=", symstring, eof_encountered);
+    ErrorType retval = ReadIn1or2Char(">=", symstring);
     if (retval < 0) return retval;
-    if (eof_encountered) return kERR_None;
+    if (EOFReached()) return kERR_None;
 
-    if ((symstring == ">>") && (_inputStream.peek() == '='))
-        symstring.push_back(_inputStream.get());
+    if ((symstring == ">>") && (Peek() == '='))
+        symstring.push_back(Get());
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered)
+ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb)
 {
     std::string const name =
         (kSct_StringLiteral == scan_type) ? MakeStringPrintable(symstring) : symstring;

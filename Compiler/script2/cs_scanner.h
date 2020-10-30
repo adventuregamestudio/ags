@@ -66,6 +66,10 @@ private:
     friend OpenCloseMatcher;
 
     std::istringstream _inputStream;
+    // eof() won't fire if we read beyond the end-of-stream repeatedly.
+    // We need that, so we collect in _eofReached the fact that end-of-stream has ever been reached.
+    bool _eofReached = false;
+    bool _failed = false;
     std::size_t _lineno;
     std::string _section;
     SrcList &_tokenList;
@@ -73,8 +77,15 @@ private:
     struct ::SymbolTable &_sym;
     struct ::ccCompiledScript &_stringCollector;
 
-    // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
-    ErrorType SkipWhitespace(bool &eof_encountered);
+    // Get the next char from the input stream
+    inline int Get() { int ret = _inputStream.get(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
+    // Undoes the last character read. But won't reset _eofReached: Once the end-of-stream is reached, it stays reached.
+    void  UnGet() { _inputStream.unget(); }
+    // Look ahead at the next char to be read without reading it. If there aren't any chars to be read, _eofReached is set.
+    inline int Peek() { int ret = _inputStream.peek(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
+
+// Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
+    ErrorType SkipWhitespace();
 
     // We encountered a new line; process it
     void NewLine(size_t lineno);
@@ -84,7 +95,7 @@ private:
 
     //  Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
-    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
+    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type);
 
     // Translate a '\\' combination into a character, backslash is already read in
     ErrorType EscapedChar2Char(int first_char_after_backslash, int &converted);
@@ -98,13 +109,13 @@ private:
     int HexDigits2Char(void);
 
     // Read in a character literal; converts it internally into an equivalent int literal
-    ErrorType ReadInCharLit(std::string &symstring, bool &eof_encountered);
+    ErrorType ReadInCharLit(std::string &symstring);
 
     // Read in a string literal
-    ErrorType ReadInStringLit(std::string &symstring, bool &eof_encountered);
+    ErrorType ReadInStringLit(std::string &symstring);
 
     // Read in an identifier or a keyword 
-    ErrorType ReadInIdentifier(std::string &symstring, bool &eof_encountered);
+    ErrorType ReadInIdentifier(std::string &symstring);
 
     // Read in a single-char symstring
     ErrorType ReadIn1Char(std::string & symstring);
@@ -112,18 +123,18 @@ private:
     // Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
     // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
     // Otherwise, a one-char symstring is detected and the second char is left for the next call
-    ErrorType ReadIn1or2Char(std::string const &possible_second_chars, std::string &symstring, bool &eof_encountered);
+    ErrorType ReadIn1or2Char(std::string const &possible_second_chars, std::string &symstring);
 
     // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
-    ErrorType ReadInDotCombi(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
+    ErrorType ReadInDotCombi(std::string &symstring, ScanType &scan_type);
 
     // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
-    ErrorType ReadInLTCombi(std::string &symstring, bool &eof_encountered);
+    ErrorType ReadInLTCombi(std::string &symstring);
 
     // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
-    ErrorType ReadInGTCombi(std::string &symstring, bool &eof_encountered);
+    ErrorType ReadInGTCombi(std::string &symstring);
 
-    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb, bool eof_encountered);
+    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb);
 
     ErrorType CheckMatcherNesting(Symbol token);
 
@@ -145,15 +156,20 @@ public:
     // Scan the input into token_list; symbols into symt; strings into _string_collector
     ErrorType Scan();
 
+    // Returns whether we've encountered EOF.
+    inline bool EOFReached() const { return _eofReached; };
+    // Returns whether we've encountered a read failure
+    inline bool Failed() const { return _failed; };
+
     inline size_t GetLineno() const { return _lineno; }
 
     inline std::string const GetSection() const { return _section; }
 
     // Get the next symstring from the input. Only exposed for googletests
-    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered);
+    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type);
 
     // Get next token from the input. Only exposed for googletests
-    ErrorType GetNextSymbol(Symbol &symbol, bool &eof_encountered);
+    ErrorType GetNextSymbol(Symbol &symbol);
 };
 
 } // namespace AGS

@@ -93,26 +93,26 @@ private:
     // We encountered a section start; process it
     void NewSection(std::string const &section);
 
-    //  Read in either an int literal or a float literal
+    // Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
     ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type);
 
     // Translate a '\\' combination into a character, backslash is already read in
-    ErrorType EscapedChar2Char(int first_char_after_backslash, int &converted);
+    ErrorType EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted);
 
     static std::string MakeStringPrintable(std::string const &inp);
 
     // Read oct combination \777; backslash is already read in
-    int OctDigits2Char(int first_digit_char);
+    int OctDigits2Char(int first_digit_char, std::string &symstring);
 
     // Read hex combination \x77; backslash is already read in
-    int HexDigits2Char(void);
+    int HexDigits2Char(std::string &symstring);
 
-    // Read in a character literal; converts it internally into an equivalent int literal
-    ErrorType ReadInCharLit(std::string &symstring);
+    // Read in a character literal
+    ErrorType ReadInCharLit(std::string &symstring, CodeCell &value);
 
-    // Read in a string literal
-    ErrorType ReadInStringLit(std::string &symstring);
+    // Read in a string literal. valstring is the interpreted literal (no quotes, '\\' combinations resolved)
+    ErrorType ReadInStringLit(std::string &symstring, std::string &valstring);
 
     // Read in an identifier or a keyword 
     ErrorType ReadInIdentifier(std::string &symstring);
@@ -142,10 +142,11 @@ private:
 
 protected:
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
+    inline static bool IsHexDigit(int ch) { return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
     inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
     inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
-    // Change where: replace the first occurrence of token in where by replacement.
+    // Change 'where': replace the first occurrence of 'token' in 'where' by 'replacement'.
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
 
 public:

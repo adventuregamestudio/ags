@@ -110,7 +110,7 @@ TEST_F(Scan, ShortInputString1) {
 
     EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct));
     std::string errmsg = mh.GetError().Message;
-    EXPECT_NE(std::string::npos, errmsg.find("nd of input"));
+    EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
 
 TEST_F(Scan, ShortInputString2) {
@@ -122,7 +122,7 @@ TEST_F(Scan, ShortInputString2) {
 
     EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct));
     std::string errmsg = mh.GetError().Message;
-    EXPECT_NE(std::string::npos, errmsg.find("nd of input"));
+    EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
 
 TEST_F(Scan, ShortInputString3) {
@@ -134,7 +134,7 @@ TEST_F(Scan, ShortInputString3) {
 
     EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct));
     std::string errmsg = mh.GetError().Message;
-    EXPECT_NE(std::string::npos, errmsg.find("nd of line"));
+    EXPECT_NE(std::string::npos, errmsg.find("ine ended"));
 }
 
 TEST_F(Scan, TwoByteSymbols1)

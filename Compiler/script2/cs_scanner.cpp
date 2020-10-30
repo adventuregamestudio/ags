@@ -76,7 +76,11 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     {
         // Note that this converts the literal to an equivalent integer string "'A'" >>-> "65"
         scan_type = kSct_IntLiteral;
-        return ReadInCharLit(symstring);
+        CodeCell value;
+        ErrorType retval = ReadInCharLit(symstring, value);
+        if (retval < 0) return retval;
+        symstring = std::to_string(value);
+        return kERR_None;
     }
 
     // Identifier or keyword
@@ -90,7 +94,8 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     if ('"' == next_char)
     {
         scan_type = kSct_StringLiteral;
-        ErrorType retval = ReadInStringLit(symstring);
+        std::string dummy;
+        ErrorType retval = ReadInStringLit(dummy, symstring);
         if (retval < 0) return retval;
 
         size_t const len = kNewSectionLitPrefix.length();
@@ -256,17 +261,18 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring)
+ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
 {
     symstring = "";
 
     do // exactly 1 time
     {
         // Opening '\''
-        Get(); // Eat '\''
+        symstring.push_back(Get());
 
         // The character inside
         int lit_char = Get();
+        symstring.push_back(lit_char);
         if (EOFReached())
         {
             Error("Expected a character after the quote mark but input ended instead");
@@ -279,9 +285,10 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring)
         {
             // The next char is escaped
             lit_char = Get();
+            symstring.push_back(lit_char);
             if (EOFReached())
             {
-                Error("Expected a character after the '\\' but input ended instead");
+                Error("Expected a character after the backslash but input ended instead");
                 return kERR_UserError;
             }
             if (Failed())
@@ -294,29 +301,27 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring)
                 return kERR_UserError;
             }
 
-            ErrorType retval = EscapedChar2Char(lit_char, lit_char);
+            ErrorType retval = EscapedChar2Char(lit_char, symstring, lit_char);
             if (retval < 0) return retval;
         }
 
         // Closing '\''
-        int const ch = Get();
+        int const closer = Get();
+        symstring.push_back(closer);
         if (EOFReached())
         {
-            Error("Expected an apostrophe but input ended instead");
+            Error("Expected a quote mark but input ended instead");
             return kERR_UserError;
         }
         if (Failed())
             break; // to error processing
 
-        if (ch != '\'')
+        if ('\'' != closer)
         {
-            Error("Expected apostrophe but found '%c' instead", ch);
+            Error("Expected a quote mark but found '%c' instead", closer);
             return kERR_UserError;
         }
-        // Convert the char literal to an int literal
-        // Note: We do NOT return the char literal, 
-        // we return an equivalent integer literal, instead.
-        symstring = std::to_string(lit_char);
+        value = lit_char;
         return kERR_None;
     }
     while (false);
@@ -326,7 +331,7 @@ ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring)
     return kERR_UserError;
 }
 
-int AGS::Scanner::OctDigits2Char(int first_digit_char)
+int AGS::Scanner::OctDigits2Char(int first_digit_char, std::string &symstring)
 {
     int ret = first_digit_char - '0';
     for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
@@ -338,12 +343,12 @@ int AGS::Scanner::OctDigits2Char(int first_digit_char)
         if (new_value > 255)
             break;
         ret = new_value;
-        Get(); // Eat the digit char
+        symstring.push_back(Get()); // Eat the digit char
     }
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
-int AGS::Scanner::HexDigits2Char()
+int AGS::Scanner::HexDigits2Char(std::string &symstring)
 {
     int ret = 0;
     for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
@@ -358,16 +363,16 @@ int AGS::Scanner::HexDigits2Char()
         if (hexdigit > 9)
             hexdigit -= ('@' - '9');
         ret = 16 * ret + hexdigit;
-        Get(); // Eat the hexdigit
+        symstring.push_back(Get()); // Eat the hexdigit
     }
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
-ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, int &converted)
+ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted)
 {
     if ('0' <= first_char_after_backslash && first_char_after_backslash < '8')
     {
-        converted = OctDigits2Char(first_char_after_backslash);
+        converted = OctDigits2Char(first_char_after_backslash, symstring);
         return kERR_None;
     }
     if ('x' == first_char_after_backslash)
@@ -380,7 +385,7 @@ ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, int &co
             Error("Expected a hex digit to follow '\\x' in a string or char literal, found '%c' instead", hexdigit);
             return kERR_UserError;
         }
-        converted = HexDigits2Char();
+        converted = HexDigits2Char(symstring);
         return kERR_None;
     }
 
@@ -420,34 +425,36 @@ std::string AGS::Scanner::MakeStringPrintable(std::string const &inp)
     return out.str();
 }
 
-ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring)
+ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)
 {
-    symstring = "";
-    bool error_encountered = false;
-    Get(); // Eat '"'
+    symstring = "\"";
+    valstring = "";
+
+    Get(); // Eat '"';
+
     while (true)
     {
         int ch = Get();
-        error_encountered = Failed();
-        if (EOFReached() || Failed() || '\n' == ch  || '\r' == ch)
+        symstring.push_back(ch);
+        if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
             break; // to error msg
 
-        if (ch == '\\')
+        if ('\\' == ch)
         {
             ch = Get();
-            error_encountered = Failed();
+            symstring.push_back(ch);
             if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
                 break; // to error msg
             if ('[' == ch)
             {
-                symstring.append("\\[");
+                valstring.append("\\[");
             }
             else
             {
                 int converted;
-                ErrorType retval = EscapedChar2Char(ch, converted);
+                ErrorType retval = EscapedChar2Char(ch, symstring, converted);
                 if (retval < 0) return retval;
-                symstring.push_back(converted);
+                valstring.push_back(converted);
             }
             continue;
         }
@@ -455,16 +462,16 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring)
         if (ch == '"')
             return kERR_None; // End of string
 
-        symstring.push_back(ch);
+        valstring.push_back(ch);
     }
 
     // Here when an error or eof occurs.
     if (EOFReached())
-        Error("End of input when scanning a string literal (did you forget a '\"\'?)");
-    else if (error_encountered)
+        Error("Input ended within a string literal (did you forget a '\"\'?)");
+    else if (Failed())
         Error("Read error while scanning a string literal (file corrupt?)");
-    else  
-        Error("End of line when scanning a string literal, this isn't allowed (use '[' for newline)");
+    else
+        Error("Line ended within a string literal, this isn't allowed (use '[' for newline)");
     return kERR_UserError;
 }
 

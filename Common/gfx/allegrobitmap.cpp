@@ -143,16 +143,6 @@ void Bitmap::SetMaskColor(color_t color)
 	// not supported? CHECKME
 }
 
-void Bitmap::Acquire()
-{
-	acquire_bitmap(_alBitmap);
-}
-
-void Bitmap::Release()
-{
-	release_bitmap(_alBitmap);
-}
-
 color_t Bitmap::GetCompatibleColor(color_t color)
 {
     color_t compat_color = 0;

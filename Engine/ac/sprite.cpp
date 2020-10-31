@@ -157,11 +157,7 @@ void initialize_sprite (int ee) {
             tmpdbl = BitmapHelper::CreateTransparentBitmap(newwid,newhit,curspr->GetColorDepth());
             if (tmpdbl == nullptr)
                 quit("Not enough memory to load sprite graphics");
-            tmpdbl->Acquire ();
-            curspr->Acquire ();
             tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
-            curspr->Release ();
-            tmpdbl->Release ();
             delete curspr;
             spriteset.SubstituteBitmap(ee, tmpdbl);
         }

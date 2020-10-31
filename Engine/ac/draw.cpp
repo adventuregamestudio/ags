@@ -883,10 +883,6 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     if (noWalkBehindsAtAll)
         return 0;
 
-    if ((!thisroom.WalkBehindMask->IsMemoryBitmap()) ||
-        (!sprit->IsMemoryBitmap()))
-        quit("!sort_out_walk_behinds: wb bitmap not linear");
-
     int rr,tmm, toheight;//,tcol;
     // precalculate this to try and shave some time off
     int maskcol = sprit->GetMaskColor();

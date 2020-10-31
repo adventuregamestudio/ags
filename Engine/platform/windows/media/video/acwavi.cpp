@@ -245,31 +245,17 @@ void RenderToSurface(Bitmap *vscreen) {
   }
   else {
     g_bAppactive = TRUE;
+    // TODO: don't render on virtual screen, use gfxDriver->DrawSprite instead!
 	Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-    // TODO: don't render on screen bitmap, use gfxDriver->DrawSprite instead!
-    screen_bmp->Acquire();
     // Because vscreen is a DX Video Bitmap, it can be stretched
-    // onto the screen (also a Video Bmp) but not onto a memory
-    // bitmap (which is what "screen" is when using gfx filters)
-    if (screen_bmp->IsVideoBitmap())
-    {
-		screen_bmp->StretchBlt(vscreen,
-		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
-          RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
-                 screen_bmp->GetHeight() / 2 - newHeight / 2,
-                 newWidth, newHeight));
-    }
-    else
-    {
-      vsMemory->Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
-      screen_bmp->StretchBlt(vsMemory,
-		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
-          RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
-		         screen_bmp->GetHeight() / 2 - newHeight / 2,
-			     newWidth, newHeight));
-    }
-    screen_bmp->Release();
-
+    // onto the video bitmap but not onto a memory
+    // bitmap (which is what "screen" is when using backbuffer)
+    vsMemory->Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
+    screen_bmp->StretchBlt(vsMemory,
+        RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
+        RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
+            screen_bmp->GetHeight() / 2 - newHeight / 2,
+            newWidth, newHeight));
     // if we're not playing AVI sound, poll the audio system
     if (!useSound)
       update_audio_system_on_game_loop();

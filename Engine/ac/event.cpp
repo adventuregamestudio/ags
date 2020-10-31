@@ -324,7 +324,6 @@ void process_event(EventHappened*evp) {
                 WaitForNextFrame();
                 transparency -= 16;
             }
-            saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
             saved_viewport_bitmap = nullptr;

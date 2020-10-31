@@ -247,10 +247,6 @@ void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldep
 
 unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)
 {
-    if (!is_linear_bitmap(bmp))
-        quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
-    acquire_bitmap(bmp);
-
     Bitmap *stage = gfxDriver->GetStageBackBuffer();
     if (stage && bmp == stage->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
@@ -260,8 +256,6 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)
 
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp)
 {
-    release_bitmap (bmp);
-
     Bitmap *stage = gfxDriver->GetStageBackBuffer();
     if (stage && bmp == stage->GetAllegroBitmap())
     {

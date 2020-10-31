@@ -381,12 +381,8 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
 
   update_polled_stuff_if_runtime();
 
-  bmm->Acquire ();
-
   for (arin = 0; arin < loptr[1]; arin++)
     memcpy(&bmm->GetScanLineForWriting(arin)[0], &membuffer[arin * loptr[0]], loptr[0]);
-
-  bmm->Release ();
 
   update_polled_stuff_if_runtime();
 

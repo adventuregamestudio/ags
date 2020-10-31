@@ -1540,8 +1540,6 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
   memset(&imgpalcnt[0],0,sizeof(int)*256);
-  if (scene->IsLinearBitmap()==0)
-    quit("mem bitmap non-linear?");
 
   for (a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
     imgpalcnt[scene->GetScanLine(0)[a]]++;
@@ -1601,8 +1599,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
 }
 
 void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) {
-  if ((toValidate == NULL) || (toValidate->GetColorDepth() != 8) ||
-      (!toValidate->IsMemoryBitmap())) {
+  if ((toValidate == NULL) || (toValidate->GetColorDepth() != 8)) {
     quit("Invalid mask passed to validate_mask");
     return;
   }

@@ -110,11 +110,6 @@ void recache_walk_behinds () {
 
   update_polled_stuff_if_runtime();
 
-  // since this is an 8-bit memory bitmap, we can just use direct 
-  // memory access
-  if ((!thisroom.WalkBehindMask->IsLinearBitmap()) || (thisroom.WalkBehindMask->GetColorDepth() != 8))
-    quit("Walk behinds bitmap not linear");
-
   for (ee=0;ee<thisroom.WalkBehindMask->GetWidth();ee++) {
     walkBehindExists[ee] = 0;
     for (rr=0;rr<thisroom.WalkBehindMask->GetHeight();rr++) {

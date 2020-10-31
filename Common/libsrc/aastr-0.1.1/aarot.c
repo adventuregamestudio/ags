@@ -306,11 +306,7 @@ _aa_rotate_bitmap (BITMAP *_src, BITMAP *_dst, int _x, int _y, fixed _angle,
     return;
 
   /* Color manipulation routines.  */
-  if (is_screen_bitmap (_src))
-    return;
-  else
-    {
-      switch (bitmap_color_depth (_src))
+  switch (bitmap_color_depth (_src))
 	{
 	case 8:
 	  add = ((_masked != 0) ? _aa_masked_add_rgb8 : _aa_add_rgb8);
@@ -337,13 +333,8 @@ _aa_rotate_bitmap (BITMAP *_src, BITMAP *_dst, int _x, int _y, fixed _angle,
 	default:
 	  return;
 	}
-    }
 
-  if (is_planar_bitmap (_dst))
-    return;
-  else
-    {
-      switch (bitmap_color_depth (_dst))
+  switch (bitmap_color_depth (_dst))
 	{
 	case 8:
 	  put = ((_masked != 0) ? _aa_masked_put_rgb8 : _aa_put_rgb8);
@@ -370,7 +361,6 @@ _aa_rotate_bitmap (BITMAP *_src, BITMAP *_dst, int _x, int _y, fixed _angle,
 	default:
 	  return;
 	}
-    }
 
   lindex = 1;
   rindex = 1;

@@ -837,9 +837,6 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\main\main_allegro.cpp">
-      <Filter>Source Files\main</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\minidump.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
@@ -866,6 +863,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\main\main_sdl2.cpp">
+      <Filter>Source Files\main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

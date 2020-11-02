@@ -32,8 +32,6 @@
 #include "gfx/gfxfilter_d3d.h"
 #endif
 
-#include "main/main_allegro.h"
-
 namespace AGS
 {
 namespace Engine
@@ -62,7 +60,7 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
 #endif
     if (id.CompareNoCase("Software") == 0)
         return ALSW::SDLRendererGraphicsFactory::GetFactory();
-    set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
+    SDL_SetError("No graphics factory with such id: %s", id.GetCStr());
     return nullptr;
 }
 

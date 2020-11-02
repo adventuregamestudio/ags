@@ -17,6 +17,7 @@
 //
 
 #include <algorithm>
+#include <SDL.h>
 #include "core/platform.h"
 #include "ac/draw.h"
 #include "debug/debugger.h"
@@ -29,7 +30,6 @@
 #include "main/config.h"
 #include "main/engine_setup.h"
 #include "main/graphics_mode.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
@@ -110,14 +110,14 @@ bool create_gfx_driver(const String &gfx_driver_id)
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory. Error: %s", gfx_driver_id.GetCStr(), get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory. Error: %s", gfx_driver_id.GetCStr(), SDL_GetError());
         return false;
     }
     Debug::Printf("Using graphics factory: %s", gfx_driver_id.GetCStr());
     gfxDriver = GfxFactory->GetDriver();
     if (!gfxDriver)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", SDL_GetError());
         return false;
     }
     Debug::Printf("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -465,7 +465,7 @@ void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, con
             "(Problem: '%s')\n"
             "Try to correct the problem, or seek help from the AGS homepage."
             "%s",
-            main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
+            main_error.GetCStr(), SDL_GetError(), platform->GetGraphicsTroubleshootingText());
 }
 
 bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth)
@@ -574,7 +574,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 
     if (!gfxDriver->SetDisplayMode(dm, nullptr))
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", SDL_GetError());
         return false;
     }
 
@@ -603,7 +603,7 @@ bool graphics_mode_update_render_frame()
     {
         Debug::Printf(kDbgMsg_Error, "Failed to set render frame (%d, %d, %d, %d : %d x %d). Error: %s", 
             render_frame.Left, render_frame.Top, render_frame.Right, render_frame.Bottom,
-            render_frame.GetWidth(), render_frame.GetHeight(), get_allegro_error());
+            render_frame.GetWidth(), render_frame.GetHeight(), SDL_GetError());
         return false;
     }
 

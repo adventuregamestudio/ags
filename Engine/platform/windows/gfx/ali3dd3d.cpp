@@ -28,7 +28,6 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "util/library.h"
@@ -294,8 +293,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = 
-        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+    SDL_SetError("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -314,7 +313,8 @@ int D3DGraphicsDriver::FirstTimeInit()
       {
         direct3ddevice->Release();
         direct3ddevice = NULL;
-        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
+        SDL_SetError("Failed to create pixel shader: 0x%08X", hr);
+        previousError = SDL_GetError();
         return -1;
       }
       UnlockResource(hGlobal);
@@ -325,7 +325,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to load pixel shader resource");
+    SDL_SetError("Failed to load pixel shader resource");
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -334,7 +335,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to create vertex buffer");
+    SDL_SetError("Failed to create vertex buffer");
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -373,12 +375,12 @@ void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode)
 {
    if (!IsModeSupported(mode))
    {
-     throw Ali3DException(get_allegro_error());
+     throw Ali3DException(SDL_GetError());
    }
 
    d3d_mode_to_init = mode;
    if (wnd_create_device()) {
-     throw Ali3DException(get_allegro_error());
+     throw Ali3DException(SDL_GetError());
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
@@ -455,7 +457,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    SDL_SetError("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
     return false;
   }
 
@@ -472,7 +474,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   {
     if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &d3d_mode)))
     {
-      set_allegro_error("IDirect3D9::EnumAdapterModes failed");
+      SDL_SetError("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
@@ -482,7 +484,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     }
   }
 
-  set_allegro_error("The requested adapter mode is not supported");
+  SDL_SetError("The requested adapter mode is not supported");
   return false;
 }
 
@@ -611,9 +613,9 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   if (hr != D3D_OK)
   {
     if (!previousError.IsEmpty())
-      set_allegro_error(previousError);
+      SDL_SetError(previousError);
     else
-      set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
+      SDL_SetError("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;
   }
 
@@ -760,7 +762,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("Direct3D driver does not support 256-color display mode");
+    SDL_SetError("Direct3D driver does not support 256-color display mode");
     return false;
   }
 
@@ -770,8 +772,8 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != get_allegro_error())
-      set_allegro_error(exception._message);
+    if (exception._message != SDL_GetError())
+      SDL_SetError(exception._message);
     return false;
   }
   OnInit(loopTimer);
@@ -1958,7 +1960,7 @@ bool D3DGraphicsFactory::Init()
 
     if (!_library.Load("d3d9"))
     {
-        set_allegro_error("Direct3D 9 is not installed");
+        SDL_SetError("Direct3D 9 is not installed");
         return false;
     }
 
@@ -1967,14 +1969,14 @@ bool D3DGraphicsFactory::Init()
     if (!lpDirect3DCreate9)
     {
         _library.Unload();
-        set_allegro_error("Entry point not found in d3d9.dll");
+        SDL_SetError("Entry point not found in d3d9.dll");
         return false;
     }
     _direct3d = lpDirect3DCreate9(D3D_SDK_VERSION);
     if (!_direct3d)
     {
         _library.Unload();
-        set_allegro_error("Direct3DCreate failed!");
+        SDL_SetError("Direct3DCreate failed!");
         return false;
     }
     return true;

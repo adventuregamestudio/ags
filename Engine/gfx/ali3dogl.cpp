@@ -23,7 +23,6 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_ogl.h"
 #include "gfx/gfxfilter_aaogl.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
@@ -251,11 +250,11 @@ bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
+    SDL_SetError("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
     return false;
   }
   if (mode.ColorDepth != 32) {
-    set_allegro_error("Display colour depth not supported: %d", mode.ColorDepth);
+    SDL_SetError("Display colour depth not supported: %d", mode.ColorDepth);
     return false;
   }
   return true;
@@ -707,7 +706,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("OpenGL driver does not support 256-color display mode");
+    SDL_SetError("OpenGL driver does not support 256-color display mode");
     return false;
   }
 
@@ -721,8 +720,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != get_allegro_error())
-      set_allegro_error(exception._message);
+    if (exception._message != SDL_GetError())
+      SDL_SetError(exception._message);
     return false;
   }
 

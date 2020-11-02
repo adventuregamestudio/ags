@@ -63,7 +63,6 @@
 #include "main/engine_setup.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
-#include "main/main_allegro.h"
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "platform/util/pe.h"
@@ -114,7 +113,7 @@ bool engine_init_allegro()
     set_uformat(U_ASCII);
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
-        const char *al_err = get_allegro_error();
+        const char *al_err = SDL_GetError();
         const char *user_hint = platform->GetAllegroFailUserHint();
         platform->DisplayAlert("Unable to initialize Allegro system driver.\n%s\n\n%s",
             al_err[0] ? al_err : "Allegro library provided no further information on the problem.",

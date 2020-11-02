@@ -17,7 +17,6 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_sdl_renderer.h"
 #include "gfx/gfx_util.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "ac/timer.h"
@@ -72,11 +71,11 @@ bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
+    SDL_SetError("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
     return false;
   }
   if (mode.ColorDepth != 32) {
-    set_allegro_error("Display colour depth not supported: %d", mode.ColorDepth);
+    SDL_SetError("Display colour depth not supported: %d", mode.ColorDepth);
     return false;
   }
   return true;

@@ -1158,6 +1158,61 @@ TEST_F(Compile0, StructStaticFunc) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
+TEST_F(Compile0, StructManaged1a)
+{
+    // Cannot have managed components in managed struct.
+    // This is an Engine restriction.
+
+    char *inpl = "\
+        managed struct Managed1 \n\
+        { };                    \n\
+        managed struct Managed  \n\
+        {                       \n\
+            Managed1 compo;     \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StructManaged1b)
+{
+    // Cannot have managed components in managed struct.
+    // This is an Engine restriction.
+
+    char *inpl = "\
+        managed struct Managed1 \n\
+        { };                    \n\
+        managed struct Managed  \n\
+        {                       \n\
+            Managed1 compo[];   \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StructManaged2)
+{
+    // Cannot have managed components in managed struct.
+    // This is an Engine restriction.
+
+    char *inpl = "\
+        managed struct Managed  \n\
+        {                       \n\
+            int *compo;         \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
 TEST_F(Compile0, Undefined) {   
 
     char *inpl = "\

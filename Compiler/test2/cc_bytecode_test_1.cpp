@@ -1076,92 +1076,68 @@ TEST_F(Bytecode1, Struct11) {
 }
 
 TEST_F(Bytecode1, Struct12) {
-    
-    // Managed structs may contain dynamic arrays.
+
+    // Can have managed components in non-managed struct.
 
     char *inpl = "\
-        managed struct Inner                                \n\
-        {                                                   \n\
-            short Fluff;                                    \n\
-            int Payload;                                    \n\
-        };                                                  \n\
-        short Fluff;                                        \n\
-        managed struct Struct                               \n\
-        {                                                   \n\
-            Inner In[];                                     \n\
-        } SS, TT[];                                         \n\
-                                                            \n\
-        int main()                                          \n\
-        {                                                   \n\
-            SS = new Struct;                                \n\
-            SS.In = new Inner[7];                           \n\
-            SS.In[3].Payload = 77;                          \n\
-            TT = new Struct[5];                             \n\
-            TT[2].In = new Inner[11];                       \n\
-            TT[2].In[2].Payload = 777;                      \n\
-            return SS.In[3].Payload + TT[2].In[2].Payload;  \n\
-        }                                                   \n\
-    ";
+        struct NonManaged           \n\
+        {                           \n\
+            long Dummy;             \n\
+            int  IntArray[];        \n\
+        } SS;                       \n\
+                                    \n\
+        int main()                  \n\
+        {                           \n\
+            SS.IntArray = new int[10];  \n\
+            SS.IntArray[3] = 7;     \n\
+            return SS.IntArray[3];  \n\
+        }                           \n\
+        ";
+
     int compileResult = cc_compile(inpl, scrip);
+
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Struct12", scrip);
-    const size_t codesize = 184;
+    WriteOutput("Struct12", scrip);
+
+    size_t const codesize = 49;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,   73,    3,            4,    6,    2,    2,    // 7
-      47,    3,    6,    3,            7,   72,    3,    4,    // 15
-       1,    6,    2,    2,           48,    2,   52,   47,    // 23
-       3,    6,    3,   77,           29,    3,    6,    2,    // 31
-       2,   48,    2,   52,           48,    2,   52,    1,    // 39
-       2,   12,   48,    2,           52,    1,    2,    2,    // 47
-      30,    3,    8,    3,            6,    3,    5,   72,    // 55
-       3,    4,    1,    6,            2,    6,   47,    3,    // 63
-       6,    3,   11,   72,            3,    4,    1,   29,    // 71
-       3,    6,    2,    6,           48,    2,   52,    1,    // 79
-       2,    8,   48,    2,           52,   30,    3,   47,    // 87
-       3,    6,    3,  777,           29,    3,    6,    2,    // 95
-       6,   48,    2,   52,            1,    2,    8,   48,    // 103
-       2,   52,   48,    2,           52,    1,    2,    8,    // 111
-      48,    2,   52,    1,            2,    2,   30,    3,    // 119
-       8,    3,    6,    2,            2,   48,    2,   52,    // 127
-      48,    2,   52,    1,            2,   12,   48,    2,    // 135
-      52,    1,    2,    2,            7,    3,   29,    3,    // 143
-       6,    2,    6,   48,            2,   52,    1,    2,    // 151
-       8,   48,    2,   52,           48,    2,   52,    1,    // 159
-       2,    8,   48,    2,           52,    1,    2,    2,    // 167
-       7,    3,   30,    4,           11,    4,    3,    3,    // 175
-       4,    3,   31,    3,            6,    3,    0,    5,    // 183
-     -999
+      38,    0,    6,    3,           10,   72,    3,    4,    // 7
+       0,    6,    2,    4,           47,    3,    6,    3,    // 15
+       7,   29,    3,    6,            2,    4,   48,    2,    // 23
+      52,    1,    2,   12,           30,    3,    8,    3,    // 31
+       6,    2,    4,   48,            2,   52,    1,    2,    // 39
+      12,    7,    3,   31,            3,    6,    3,    0,    // 47
+       5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 8;
+    size_t const numfixups = 3;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       7,   19,   32,   61,         75,   96,  124,  146,    // 7
-     -999
+      11,   21,   34,  -999
     };
     char fixuptypes[] = {
-      1,   1,   1,   1,      1,   1,   1,   1,    // 7
-     '\0'
+      1,   1,   1,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
 
 TEST_F(Bytecode1, DynArrayOfPrimitives) {
     

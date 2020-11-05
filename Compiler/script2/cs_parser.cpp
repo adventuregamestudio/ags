@@ -5078,6 +5078,7 @@ ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Var
             _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
+
     if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
     {
         std::string const msg = ReferenceMsgSym(
@@ -5409,6 +5410,13 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
             return kERR_UserError;
         }
 
+        if (_sym.IsManaged(vartype) && _sym.IsManaged(stname) && !FlagIsSet(tqs, kTQ_Attribute))
+        {
+            // This is an Engine restriction
+            Error("Cannot currently have managed variable components in managed struct");
+            return kERR_UserError;
+        }
+
         SymbolTableEntry &entry = _sym[vname];
         entry.SType = kSYM_StructComponent;
         entry.Parent = stname;  // save which struct it belongs to
@@ -5451,7 +5459,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
 
     if (is_function)
         return ParseStruct_FuncDecl(name_of_struct, var_or_func_name, tqs, vartype);
-    
+
     size_t const declaration_start = _src.GetCursor();
     if (_sym.IsDynarray(vartype)) // e.g., int [] zonk;
     {
@@ -5844,8 +5852,6 @@ ErrorType AGS::Parser::ParseExport()
         }
         if (kSYM_Semicolon == type_of_next)
             break;
-       
-
     }
 
     return kERR_None;

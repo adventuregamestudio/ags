@@ -682,8 +682,10 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 
   /* If full screen, specify the refresh rate */
-  if ((d3dpp.Windowed == FALSE) && (mode.RefreshRate > 0))
-    d3dpp.FullScreen_RefreshRateInHz = mode.RefreshRate;
+  // TODO find a way to avoid the wrong refreshrate to be set on mode.RefreshRate
+  // for now it's best to let it set automatically, so we prevent alt tab delays due to mismatching refreshrates
+  //if ((d3dpp.Windowed == FALSE) && (mode.RefreshRate > 0))
+  //  d3dpp.FullScreen_RefreshRateInHz = mode.RefreshRate;
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(&d3dpp);

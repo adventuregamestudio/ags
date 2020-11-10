@@ -204,20 +204,16 @@ typedef struct APEG_LAYER {
 	float multiple;
 
 	struct {
-#ifndef DISABLE_MPEG_AUDIO
-		struct reader rd;
-		struct frame fr;
-		struct mpstr mp;
-		int frame;
-#endif
-
 		int (*callback_init)(APEG_STREAM*, int*, int*, void*);
 		int (*callback)(APEG_STREAM*, void*, int, void*);
 		void *callback_arg;
 
 		int buf_segment;
 		int voice;
-		SAMPLE *stream;
+
+		unsigned int alSource;
+		int processedSamples;
+
 		int bufsize;
 
 		int samples_per_update;

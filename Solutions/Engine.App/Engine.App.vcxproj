@@ -698,6 +698,15 @@
     <ClInclude Include="..\..\Engine\gui\mypushbutton.h" />
     <ClInclude Include="..\..\Engine\gui\mytextbox.h" />
     <ClInclude Include="..\..\Engine\gui\newcontrol.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\apeg.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\common.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\getbits.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\getblk.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\huffman.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\l2tables.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpeg1dec.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpg123.h" />
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\openal_support.h" />
     <ClInclude Include="..\..\Engine\main\config.h" />
     <ClInclude Include="..\..\Engine\main\engine.h" />
     <ClInclude Include="..\..\Engine\main\engine_setup.h" />

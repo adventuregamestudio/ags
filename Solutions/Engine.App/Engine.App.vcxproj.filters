@@ -1727,6 +1727,33 @@
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_sdl_renderer.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\apeg.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\common.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\getbits.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\getblk.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\huffman.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\l2tables.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpeg1dec.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpg123.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\openal_support.h">
+      <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">

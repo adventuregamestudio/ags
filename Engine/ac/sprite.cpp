@@ -30,7 +30,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
-extern color palette[256];
+extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 

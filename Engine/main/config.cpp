@@ -16,8 +16,8 @@
 // Game configuration
 //
 #include <ctype.h> // toupper
-
 #include "core/platform.h"
+#include <allegro.h> // file path functions
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

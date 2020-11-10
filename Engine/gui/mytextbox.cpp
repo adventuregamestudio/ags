@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gui/mytextbox.h"

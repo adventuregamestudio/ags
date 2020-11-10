@@ -15,12 +15,10 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-
-// ********* WINDOWS *********
-
+#include <direct.h>
 #include <string.h>
-#include <allegro.h>
-#include <allegro/platform/aintwin.h>
+#include <allegro.h> // find files
+#include <winalleg.h> // prevents typename conflicts
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -55,7 +53,7 @@ extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
-extern color palette[256];
+extern RGB palette[256];
 
 #include <shlobj.h>
 #include <time.h>

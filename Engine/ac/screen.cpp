@@ -51,7 +51,7 @@ void my_fade_in(PALETTE p, int speed) {
 }
 
 Bitmap *saved_viewport_bitmap = nullptr;
-color old_palette[256];
+RGB old_palette[256];
 void current_fade_out_effect () {
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
         return;

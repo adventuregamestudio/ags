@@ -43,7 +43,7 @@ static int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
 extern char alpha_blend_cursor ;
 Bitmap *mousecurs[MAXCURSORS];
-extern color palette[256];
+extern RGB palette[256];
 extern volatile bool switched_away;
 
 namespace Mouse

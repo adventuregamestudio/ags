@@ -11,9 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <allegro.h> // file functions
 #include "ac/game.h"
-
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiocliptype.h"
@@ -127,7 +126,7 @@ extern CachedActSpsData* actspswbcache;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
-extern color palette[256];
+extern RGB palette[256];
 extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
@@ -1306,7 +1305,7 @@ void ReadCharacterExtras_Aligned(Stream *in)
 
 void restore_game_palette(Stream *in)
 {
-    in->ReadArray(&palette[0],sizeof(color),256);
+    in->ReadArray(&palette[0],sizeof(RGB),256);
 }
 
 void restore_game_dialogs(Stream *in)

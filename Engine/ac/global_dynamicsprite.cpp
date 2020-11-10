@@ -11,9 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_dynamicsprite.h"
-#include "util/wgt2allg.h" // Allegro RGB, PALETTE
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/path_helper.h"

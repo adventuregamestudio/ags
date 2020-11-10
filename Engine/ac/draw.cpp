@@ -62,6 +62,7 @@
 #include "gfx/blender.h"
 #include "media/audio/audio_system.h"
 #include "ac/game.h"
+#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -114,7 +115,7 @@ extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
-color palette[256];
+RGB palette[256];
 
 COLOR_MAP maincoltable;
 

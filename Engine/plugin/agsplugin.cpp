@@ -11,13 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <vector>
 #include "core/platform.h"
+#include <allegro.h>
 #if AGS_PLATFORM_OS_WINDOWS
-#include "platform/windows/winapi_exclusive.h"
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
 #endif
-#include "util/wgt2allg.h"
+#include "plugin/agsplugin.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/charactercache.h"
@@ -37,34 +39,35 @@
 #include "ac/path_helper.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/spritecache.h"
 #include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
+#include "ac/dynobj/scriptstring.h"
 #include "font/fonts.h"
-#include "util/string_compat.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "device/mousew32.h"
+#include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/gfx_util.h"
+#include "gfx/gfxfilter.h"
 #include "gui/guidefines.h"
 #include "main/game_run.h"
+#include "main/graphics_mode.h"
 #include "main/engine.h"
-#include "plugin/agsplugin.h"
+#include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "plugin/plugin_builtin.h"
 #include "plugin/pluginobjectreader.h"
+#include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "ac/spritecache.h"
-#include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/gfxfilter.h"
-#include "script/runtimescriptvalue.h"
-#include "debug/out.h"
-#include "ac/dynobj/scriptstring.h"
-#include "main/graphics_mode.h"
-#include "gfx/gfx_util.h"
-#include "util/memory.h"
 #include "util/filestream.h"
-#include "media/audio/audio_system.h"
+#include "util/library.h"
+#include "util/memory.h"
+#include "util/stream.h"
+#include "util/string_compat.h"
+#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
@@ -98,18 +101,13 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
-extern color palette[256];
+extern RGB palette[256];
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern RuntimeScriptValue GlobalReturnValue;
 extern ScriptString myScriptStringImpl;
 
 // **************** PLUGIN IMPLEMENTATION ****************
-
-
-#include "util/library.h"
-
-
 
 
 struct EnginePlugin {
@@ -430,7 +428,7 @@ AGSColor* IAGSEngine::GetPalette () {
     return (AGSColor*)&palette[0];
 }
 void IAGSEngine::SetPalette (int32 start, int32 finish, AGSColor *cpl) {
-    set_palette_range((color*)cpl, start, finish, 0);
+    set_palette_range((RGB*)cpl, start, finish, 0);
 }
 int IAGSEngine::GetNumCharacters () {
     return game.numcharacters;

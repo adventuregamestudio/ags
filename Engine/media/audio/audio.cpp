@@ -11,11 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <math.h>
-
 #include "core/platform.h"
-#include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"

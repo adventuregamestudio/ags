@@ -15,16 +15,13 @@
 // AGS Platform-specific functions
 //
 //=============================================================================
-
 #include <thread>
-#include "util/wgt2allg.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
-#include "plugin/agsplugin.h"
 #include "ac/timer.h"
 #include "media/audio/audio_system.h"
 

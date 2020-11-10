@@ -17,11 +17,10 @@
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
-
+#include <allegro.h> // RGB
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
 #include "util/string.h"
-#include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -40,7 +39,7 @@ struct GameSetupStructBase {
     char              gamename[GAME_NAME_LENGTH];
     int               options[MAX_OPTIONS];
     unsigned char     paluses[256];
-    color             defpal[256];
+    RGB               defpal[256];
     int               numviews;
     int               numcharacters;
     int               playercharacter;

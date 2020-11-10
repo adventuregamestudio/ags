@@ -425,7 +425,7 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
     for (int i = 0; i < 20; i++)
         gss->options[i] = ogss->options[i];
     memcpy (&gss->paluses[0], &ogss->paluses[0], 256);
-    memcpy (&gss->defpal[0],  &ogss->defpal[0],  256 * sizeof(color));
+    memcpy (&gss->defpal[0],  &ogss->defpal[0],  256 * sizeof(RGB));
     gss->numviews = ogss->numviews;
     gss->numcharacters = ogss->numcharacters;
     gss->playercharacter = ogss->playercharacter;

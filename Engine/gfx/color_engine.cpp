@@ -15,11 +15,8 @@
 // Implementation from wgt2allg.cpp specific to Engine runtime
 //
 //=============================================================================
-
-#include "core/platform.h"
-
+#include <allegro.h>
 #include "util/wgt2allg.h"
-#include "gfx/bitmap.h"
 
 void __my_setcolor(int *ctset, int newcol, int wantColDep)
   {

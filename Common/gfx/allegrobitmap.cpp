@@ -14,6 +14,7 @@
 
 #include <aastr.h>
 #include "gfx/allegrobitmap.h"
+#include <string.h> // memcpy
 #include "debug/assert.h"
 
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);

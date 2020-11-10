@@ -21,7 +21,7 @@
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
-
+#include <time.h>
 #include "ac/common.h" // quit
 #include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"

@@ -15,11 +15,10 @@
 // Graphics driver interface
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
-
 #include <memory>
+#include <allegro.h> // RGB, PALETTE
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"

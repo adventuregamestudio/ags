@@ -15,9 +15,10 @@
 //
 // Quit game procedure
 //
-
 #include "core/platform.h"
+#include <allegro.h> // find files, allegro_exit
 #include "ac/cdaudio.h"
+#include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstatus.h"
@@ -202,8 +203,8 @@ void quit_release_data()
 
 void quit_delete_temp_files()
 {
-    al_ffblk	dfb;
-    int	dun = al_findfirst("~ac*.tmp",&dfb,FA_SEARCH);
+    al_ffblk dfb;
+    int	dun = al_findfirst("~ac*.tmp", &dfb, FA_SEARCH);
     while (!dun) {
         ::remove(dfb.name);
         dun = al_findnext(&dfb);

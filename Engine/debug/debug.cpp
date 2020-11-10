@@ -14,8 +14,13 @@
 
 #include <memory>
 #include <limits>
-#include <SDL.h>
 #include "core/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
+#endif
+#include <SDL.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
@@ -36,10 +41,6 @@
 #include "script/cc_error.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
-
-#if AGS_PLATFORM_OS_WINDOWS
-#include <winalleg.h>
-#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
@@ -36,7 +35,7 @@ extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern color palette[256];
+extern RGB palette[256];
 extern unsigned int loopcounter;
 
 void FlipScreen(int amount) {

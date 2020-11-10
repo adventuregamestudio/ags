@@ -26,9 +26,9 @@
 #endif
 
 #include <memory>
-#include <allegro.h>
-#include <winalleg.h>
+#define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
+#undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"

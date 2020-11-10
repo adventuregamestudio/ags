@@ -21,7 +21,7 @@
 #ifndef __AGS_CN_GFX__ALLEGROBITMAP_H
 #define __AGS_CN_GFX__ALLEGROBITMAP_H
 
-#include <allegro.h>
+#include <allegro.h> // BITMAP
 #include "core/types.h"
 #include "gfx/bitmap.h"
 

@@ -17,10 +17,11 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_palette.h"
+#include "util/wgt2allg.h"
 
 extern GameSetupStruct game;
 extern GameState play;
-extern color palette[256];
+extern RGB palette[256];
 
 
 void CyclePalette(int strt,int eend) {

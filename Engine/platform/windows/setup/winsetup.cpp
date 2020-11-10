@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-
+#define BITMAP WINDOWS_BITMAP
 #include <windows.h>
+#undef BITMAP
 #include <commctrl.h>
 #include <crtdbg.h>
 #include <shlobj.h>
@@ -28,8 +28,6 @@
 #include "ac/gamestructdefines.h"
 #undef RGB
 #undef PALETTE
-#define RGB void*
-#define PALETTE void*
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

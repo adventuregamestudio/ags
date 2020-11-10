@@ -13,11 +13,11 @@
 //=============================================================================
 
 #include <cstdio>
+#include <allegro.h> // file functions
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                    // filelength()
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
-#include "util/wgt2allg.h"              // exists()
 #include "platform/base/agsplatformdriver.h"
 
 using AGS::Common::Stream;

@@ -55,7 +55,7 @@
 using namespace Common;
 
 extern GameSetupStruct game;
-extern color palette[256];
+extern RGB palette[256];
 extern DialogTopic *dialog;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
@@ -220,7 +220,7 @@ HSaveError WriteGameState(PStream out)
     game.WriteForSavegame(out);
     // Game palette
     // TODO: probably no need to save this for hi/true-res game
-    out->WriteArray(palette, sizeof(color), 256);
+    out->WriteArray(palette, sizeof(RGB), 256);
 
     if (loaded_game_file_version <= kGameVersion_272)
     {
@@ -314,7 +314,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     // Game base
     game.ReadFromSavegame(in);
     // Game palette
-    in->ReadArray(palette, sizeof(color), 256);
+    in->ReadArray(palette, sizeof(RGB), 256);
 
     if (loaded_game_file_version <= kGameVersion_272)
     {

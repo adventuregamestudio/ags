@@ -50,7 +50,7 @@
 #include <dirent.h>
 #endif
 
-#include "allegro.h"
+#include <allegro.h> // file path functions
 #include "util/file.h"
 #include "util/stream.h"
 

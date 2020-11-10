@@ -24,8 +24,8 @@
 
 #include "core/platform.h"
 #define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
-
 #include <set>
+#include <allegro.h> // allegro_exit
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"

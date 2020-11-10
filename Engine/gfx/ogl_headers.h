@@ -22,14 +22,14 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <SDL.h>
-#include <allegro.h>
-#include <winalleg.h>
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
 #include "glad/glad.h"
 #include "glad/glad_wgl.h"
 
 #elif AGS_PLATFORM_OS_LINUX
 #include <SDL.h>
-#include <allegro.h>
 #include "glad/glad.h"
 #include "glad/glad_glx.h"
 

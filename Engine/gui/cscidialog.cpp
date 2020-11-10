@@ -11,9 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cctype>
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"

@@ -22,6 +22,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif
+#include <allegro.h> // find file and path functions
 
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
@@ -94,7 +95,7 @@ extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern color palette[256];
+extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
@@ -637,7 +638,7 @@ int engine_check_font_was_loaded()
 // Do the preload graphic if available
 void show_preload()
 {
-    color temppal[256];
+    RGB temppal[256];
 	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != nullptr)
     {

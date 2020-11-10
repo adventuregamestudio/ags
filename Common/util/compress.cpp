@@ -140,7 +140,7 @@ void cpackbitl32(const uint32_t *line, int size, Stream *out)
 }
 
 
-void csavecompressed(Stream *out, const unsigned char * tobesaved, const color pala[256])
+void csavecompressed(Stream *out, const unsigned char * tobesaved, const RGB pala[256])
 {
   int widt, hit;
   widt = *tobesaved++;
@@ -288,7 +288,7 @@ int cunpackbitl32(uint32_t *line, int size, Stream *in)
 
 const char *lztempfnm = "~aclzw.tmp";
 
-void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
+void save_lzw(Stream *out, const Bitmap *bmpp, const RGB *pall)
 {
   // First write original bitmap into temporary file
   Stream *lz_temp_s = ci_fopen(lztempfnm, kFile_CreateAlways, kFile_Write);
@@ -300,7 +300,7 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
   // Now open same file for reading, and begin writing compressed data into required output stream
   lz_temp_s = ci_fopen(lztempfnm);
   soff_t temp_sz = lz_temp_s->GetLength();
-  out->WriteArray(&pall[0], sizeof(color), 256);
+  out->WriteArray(&pall[0], sizeof(RGB), 256);
   out->WriteInt32(temp_sz);
   soff_t gobacto = out->GetPosition();
 
@@ -320,13 +320,13 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
   out->Seek(toret, kSeekBegin);
 }
 
-void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
+void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, RGB *pall) {
   soff_t        uncompsiz;
   int           *loptr;
   unsigned char *membuffer;
   int           arin;
 
-  in->Read(&pall[0], sizeof(color)*256);
+  in->Read(&pall[0], sizeof(RGB)*256);
   maxsize = in->ReadInt32();
   uncompsiz = in->ReadInt32();
 
@@ -396,7 +396,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
   *dst_bmp = bmm;
 }
 
-void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) {
+void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const RGB *pall) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
 
@@ -409,7 +409,7 @@ void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) 
   free(wgtbl);
 }
 
-void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall) {
+void loadcompressed_allegro(Stream *in, Bitmap **bimpp, RGB *pall) {
   short widd,hitt;
   int   ii;
 

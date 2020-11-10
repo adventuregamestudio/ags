@@ -111,7 +111,7 @@ extern "C" int fli_callback() {
 }
 
 void play_flc_file(int numb,int playflags) {
-    color oldpal[256];
+    RGB oldpal[256];
 
     // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
     if (loaded_game_file_version <= kGameVersion_272)

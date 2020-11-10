@@ -36,6 +36,7 @@
 #include "util/math.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
+#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 

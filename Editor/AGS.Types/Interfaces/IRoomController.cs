@@ -21,11 +21,17 @@ namespace AGS.Types
 		/// RequiredAGSVersion: 3.0.1.35
 		/// </summary>
 		bool LoadRoom(IRoom roomToLoad);
-		/// <summary>
-		/// Gets the area number on the specified room mask at (x,y)
-		/// RequiredAGSVersion: 3.0.1.35
-		/// </summary>
-		int  GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y);
+        /// <summary>
+        /// Gets the loaded room backround as a <see cref="Bitmap"/> instance.
+        /// </summary>
+        /// <param name="background">The background index to get.</param>
+        /// <returns>A <see cref="Bitmap"/> instance with the selected background. Returns null if background doesn't exist.</returns>
+        Bitmap GetBackground(int background);
+        /// <summary>
+        /// Gets the area number on the specified room mask at (x,y)
+        /// RequiredAGSVersion: 3.0.1.35
+        /// </summary>
+        int  GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y);
 		/// <summary>
 		/// Draws the room background to the specified graphics context.
 		/// RequiredAGSVersion: 3.0.1.35

@@ -26,7 +26,8 @@ namespace AGS.Editor
         public delegate void AbandonChangesHandler(Room room);
         public event AbandonChangesHandler AbandonChanges;
 
-        private Room _room;
+        private readonly Room _room;
+        private readonly IRoomController _roomController;
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private IRoomEditorFilter _emptyLayer;
@@ -80,7 +81,7 @@ namespace AGS.Editor
         }
 
 
-        public RoomSettingsEditor(Room room)
+        public RoomSettingsEditor(Room room, IRoomController roomController)
         {
             if (LockedCursor == null)
             {
@@ -92,6 +93,11 @@ namespace AGS.Editor
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
+            _roomController = roomController;
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
+            // TODO: choose default zoom based on the room size vs window size?
+            SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
             _emptyLayer = new EmptyEditorFilter(bufferedPanel1, _room);
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
@@ -602,9 +608,10 @@ namespace AGS.Editor
             string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", Constants.IMAGE_FILE_FILTER);
             if (fileName != null)
             {
-                Bitmap bmp = Factory.NativeProxy.GetBitmapForBackground(_room, cmbBackgrounds.SelectedIndex);
-                ImportExport.ExportBitmapToFile(fileName, bmp);
-                bmp.Dispose();
+                using (Bitmap bmp = _roomController.GetBackground(cmbBackgrounds.SelectedIndex))
+                {
+                    ImportExport.ExportBitmapToFile(fileName, bmp);
+                }
             }
         }
 

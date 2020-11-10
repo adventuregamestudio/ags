@@ -990,7 +990,7 @@ namespace AGS.Editor.Components
         {
             string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
 
-            RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom);
+            RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom, this);
             _roomSettings = new ContentDocument(editor,
                 paneTitle, this, ROOM_ICON_LOADED, ConstructPropertyObjectList(_loadedRoom));
             if (previousDockData != null && previousDockData.DockState != DockingState.Document)
@@ -1497,7 +1497,18 @@ namespace AGS.Editor.Components
 			return LoadDifferentRoom((UnloadedRoom)roomToLoad);
 		}
 
-		int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
+        Bitmap IRoomController.GetBackground(int background)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            // TODO Replace with bitmap loading from disk with C# when room is open format
+            return _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
+        }
+
+        int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
 		{
 			if (_loadedRoom == null)
 			{

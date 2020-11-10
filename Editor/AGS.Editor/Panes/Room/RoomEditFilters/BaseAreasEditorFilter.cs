@@ -38,10 +38,11 @@ namespace AGS.Editor
 			Pens.Yellow, Pens.White};
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
-        protected Room _room;
+        protected readonly Room _room;
         protected Panel _panel;
         RoomSettingsEditor _editor;
         protected ToolTip _tooltip;
+        private IRoomController _roomController;
         private bool _isOn = false;
         private int _selectedArea = 1;
 		private int _drawingWithArea;
@@ -56,7 +57,7 @@ namespace AGS.Editor
         private static Cursor _selectCursor;
         private static bool _greyedOutMasks = true;
 
-        public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+        public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
         {
             if (!_registeredIcons)
             {
@@ -90,6 +91,7 @@ namespace AGS.Editor
 			_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
 
             _room = room;
+            _roomController = roomController;
             _panel = displayPanel;
             _editor = editor;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
@@ -428,11 +430,7 @@ namespace AGS.Editor
 			}
             else if (command == EXPORT_MASK_COMMAND)
             {
-                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.MASK_IMAGE_FILE_FILTER);
-                if (fileName != null)
-                {
-                    ExportMaskFromFile(fileName);
-                }
+                ExportMaskFromFile();
             }
             else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
 			{
@@ -490,13 +488,18 @@ namespace AGS.Editor
             }
         }
 
-        private void ExportMaskFromFile(string fileName)
+        private void ExportMaskFromFile()
         {
             try
             {
-                Bitmap bmp = Factory.NativeProxy.ExportAreaMask(_room, this.MaskToDraw);
-                bmp.Save(fileName, ImageFormat.Bmp);
-                bmp.Dispose();
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.MASK_IMAGE_FILE_FILTER);
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+                    using (Bitmap bmp = _roomController.GetMask(MaskToDraw))
+                    {
+                        bmp.Save(fileName, ImageFormat.Bmp);
+                    }
+                }
             }
             catch (Exception ex)
             {

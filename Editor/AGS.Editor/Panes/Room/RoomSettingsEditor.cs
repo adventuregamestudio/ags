@@ -104,10 +104,10 @@ namespace AGS.Editor
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room, _roomController));
 
             foreach (IRoomEditorFilter layer in _layers)
             {

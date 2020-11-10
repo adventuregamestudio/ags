@@ -28,6 +28,12 @@ namespace AGS.Types
         /// <returns>A <see cref="Bitmap"/> instance with the selected background. Returns null if background doesn't exist.</returns>
         Bitmap GetBackground(int background);
         /// <summary>
+        /// Gets the loaded room specified mask as a <see cref="Bitmap"/> instance.
+        /// </summary>
+        /// <param name="mask">The mask type to get.</param>
+        /// <returns>A <see cref="Bitmap"/> instance with the selected mask type.Return null if none is selected.</returns>
+        Bitmap GetMask(RoomAreaMaskType mask);
+        /// <summary>
         /// Gets the area number on the specified room mask at (x,y)
         /// RequiredAGSVersion: 3.0.1.35
         /// </summary>

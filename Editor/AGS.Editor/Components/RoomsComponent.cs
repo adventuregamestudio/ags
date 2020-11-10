@@ -1508,6 +1508,17 @@ namespace AGS.Editor.Components
             return _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
         }
 
+        Bitmap IRoomController.GetMask(RoomAreaMaskType mask)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            // TODO Replace with bitmap loading from disk with C# when room is open format
+            return _nativeProxy.ExportAreaMask(_loadedRoom, mask);
+        }
+
         int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
 		{
 			if (_loadedRoom == null)

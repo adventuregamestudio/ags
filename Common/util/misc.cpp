@@ -57,6 +57,10 @@
 
 using namespace AGS::Common;
 
+//
+// TODO: rewrite all this in a cleaner way perhaps, and move to our file or path utilities unit
+//
+
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */

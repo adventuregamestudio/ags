@@ -17,8 +17,14 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
 #include <string.h>
-#include <allegro.h> // find files
-#include <winalleg.h> // prevents typename conflicts
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
+#include <shlobj.h>
+#include <shlwapi.h>
+#include <gameux.h>
+#include <libcda.h>
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -54,15 +60,6 @@ extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
-
-#include <shlobj.h>
-#include <time.h>
-#include <shlwapi.h>
-#include <windows.h>
-#include <rpcsal.h>
-#include <gameux.h>
-
-#include <libcda.h>
 
 
 #ifndef CSIDL_LOCAL_APPDATA
@@ -367,20 +364,6 @@ void AGSWin32::add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *g
 
   SysFreeString(bstrGDFBinPath);
   SysFreeString(bstrGameDirectory);
-}
-
-#define FA_SEARCH -1
-void delete_files_in_directory(const char *directoryName, const char *fileMask)
-{
-  char srchBuffer[MAX_PATH];
-  sprintf(srchBuffer, "%s\\%s", directoryName, fileMask);
-  al_ffblk dfb;
-  int	dun = al_findfirst(srchBuffer, &dfb, FA_SEARCH);
-  while (!dun) {
-    ::remove(dfb.name);
-    dun = al_findnext(&dfb);
-  }
-  al_findclose(&dfb);
 }
 
 void AGSWin32::remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers)

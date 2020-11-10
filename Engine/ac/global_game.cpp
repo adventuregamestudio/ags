@@ -14,7 +14,6 @@
 
 #include <math.h>
 #include "core/platform.h"
-#include <allegro.h> // file path functions
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -58,6 +57,7 @@
 #include "core/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/sys_main.h"
@@ -244,7 +244,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         // need to copy, since the script gets destroyed
         get_install_dir_path(gamefilenamebuf, newgame);
         ResPaths.GamePak.Path = gamefilenamebuf;
-        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
+        ResPaths.GamePak.Name = Path::GetFilename(gamefilenamebuf);
         play.takeover_data = data;
         load_new_game_restore = -1;
 

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#include <allegro.h> // file functions
 #include "ac/game.h"
 #include "ac/common.h"
 #include "ac/view.h"
@@ -378,7 +377,7 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
 {
     rp = ResolvedPath();
     // don't allow absolute paths
-    if (!is_relative_filename(newFolder))
+    if (!Path::IsRelativePath(newFolder))
         return false;
 
     String base_dir;
@@ -1055,9 +1054,9 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     update_polled_stuff_if_runtime();
 
-    if (exists(tempFileName))
+    if (Path::IsFile(tempFileName))
     {
-        fileSize = file_size_ex(tempFileName);
+        fileSize = File::GetFileSize(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);

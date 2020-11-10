@@ -22,7 +22,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif
-#include <allegro.h> // find file and path functions
+#include <allegro.h> // allegro_install and _exit
 
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
@@ -538,7 +538,7 @@ void engine_init_directories()
 
     ResPaths.DataDir = usetup.data_files_dir;
     ResPaths.GamePak.Path = usetup.main_data_filepath;
-    ResPaths.GamePak.Name = get_filename(usetup.main_data_filepath);
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_filepath);
 
     set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
     if (!usetup.install_dir.IsEmpty())
@@ -1049,11 +1049,11 @@ bool define_gamedata_location(const String &exe_path)
     // derive missing ones from available.
     if (usetup.main_data_filename.IsEmpty())
     {
-        usetup.main_data_filename = get_filename(usetup.main_data_filepath);
+        usetup.main_data_filename = Path::GetFilename(usetup.main_data_filepath);
     }
     else if (usetup.main_data_filepath.IsEmpty())
     {
-        if (usetup.data_files_dir.IsEmpty() || !is_relative_filename(usetup.main_data_filename))
+        if (usetup.data_files_dir.IsEmpty() || !Path::IsRelativePath(usetup.main_data_filename))
             usetup.main_data_filepath = usetup.main_data_filename;
         else
             usetup.main_data_filepath = Path::ConcatPaths(usetup.data_files_dir, usetup.main_data_filename);

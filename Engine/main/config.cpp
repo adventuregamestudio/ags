@@ -17,7 +17,6 @@
 //
 #include <ctype.h> // toupper
 #include "core/platform.h"
-#include <allegro.h> // file path functions
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -49,29 +48,6 @@ extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
 const String DefaultConfigFileName = "acsetup.cfg";
-
-// Replace the filename part of complete path WASGV with INIFIL
-// TODO: get rid of this and use proper lib path function instead
-void INIgetdirec(char *wasgv, const char *inifil) {
-    int u = strlen(wasgv) - 1;
-
-    for (u = strlen(wasgv) - 1; u >= 0; u--) {
-        if ((wasgv[u] == '\\') || (wasgv[u] == '/')) {
-            memcpy(&wasgv[u + 1], inifil, strlen(inifil) + 1);
-            break;
-        }
-    }
-
-    if (u <= 0) {
-        // no slashes - either the path is just "f:acwin.exe"
-        if (strchr(wasgv, ':') != nullptr)
-            memcpy(strchr(wasgv, ':') + 1, inifil, strlen(inifil) + 1);
-        // or it's just "acwin.exe" (unlikely)
-        else
-            strcpy(wasgv, inifil);
-    }
-
-}
 
 bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value)
 {
@@ -233,12 +209,7 @@ String find_default_cfg_file(const char *alt_cfg_file)
     String filename = String::FromFormat("%s/%s", Directory::GetCurrentDirectory().GetCStr(), DefaultConfigFileName.GetCStr());
     if (!Common::File::TestReadFile(filename))
     {
-        char conffilebuf[512];
-        strcpy(conffilebuf, alt_cfg_file);
-        fix_filename_case(conffilebuf);
-        fix_filename_slashes(conffilebuf);
-        INIgetdirec(conffilebuf, DefaultConfigFileName);
-        filename = conffilebuf;
+        filename = String::FromFormat("%s/%s", alt_cfg_file, DefaultConfigFileName.GetCStr());
     }
     return filename;
 }

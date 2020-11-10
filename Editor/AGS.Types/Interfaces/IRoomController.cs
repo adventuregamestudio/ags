@@ -66,10 +66,14 @@ namespace AGS.Types
 		/// RequiredAGSVersion: 3.0.1.35
 		/// </summary>
 		void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
-		/// <summary>
-		/// Sets whether or not to grey out non-selected masks when drawing the background.
-		/// </summary>
-		bool GreyOutNonSelectedMasks { set; }
+        /// <summary>
+        /// Copies the walkable area into regions mask.
+        /// </summary>
+        void CopyWalkableAreaMaskToRegions();
+        /// <summary>
+        /// Sets whether or not to grey out non-selected masks when drawing the background.
+        /// </summary>
+        bool GreyOutNonSelectedMasks { set; }
         /// <summary>
         /// Occurs when a room is about to be saved to disk. You can add a new CompileError
         /// to the errors collection if you want to prevent the save going ahead.

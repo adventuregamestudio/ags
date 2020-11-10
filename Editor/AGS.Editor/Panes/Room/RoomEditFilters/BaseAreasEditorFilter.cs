@@ -436,8 +436,7 @@ namespace AGS.Editor
 			{
 				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
 				{
-					Factory.NativeProxy.CopyWalkableAreaMaskToRegions(_room);
-					_room.Modified = true;
+                    _roomController.CopyWalkableAreaMaskToRegions();
 					_panel.Invalidate();
 				}
 			}

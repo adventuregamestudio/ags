@@ -1604,6 +1604,20 @@ namespace AGS.Editor.Components
 			g.ReleaseHdc(hdc);
 		}
 
+        void IRoomController.CopyWalkableAreaMaskToRegions()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            using (Bitmap bmp = ((IRoomController)this).GetMask(RoomAreaMaskType.WalkableAreas))
+            {
+                ((IRoomController)this).SetMask(RoomAreaMaskType.Regions, bmp);
+            }
+            _loadedRoom.Modified = true;
+        }
+
 		bool IRoomController.GreyOutNonSelectedMasks
 		{
 			set { _nativeProxy.GreyOutNonSelectedMasks = value; }

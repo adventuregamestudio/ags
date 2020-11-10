@@ -312,11 +312,6 @@ namespace AGS.Editor
             _native.DrawFillOntoMask(room, mask, x1, y1, color);
         }
 
-        public void CopyWalkableAreaMaskToRegions(Room room)
-        {
-            _native.CopyWalkableMaskToRegions(room);
-        }
-
 		public bool GreyOutNonSelectedMasks
 		{
 			set { _native.SetGreyedOutMasksEnabled(value); }

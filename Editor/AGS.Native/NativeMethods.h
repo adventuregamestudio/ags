@@ -68,7 +68,6 @@ namespace AGS
 			void DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);
 			void DrawFilledRectOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);
 			void DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color);
-			void CopyWalkableMaskToRegions(Room ^room);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);

@@ -78,7 +78,6 @@ extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
 extern void FixRoomMasks(Room ^room);
-extern void copy_walkable_to_regions(void *roomptr);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
@@ -495,11 +494,6 @@ namespace AGS
 		void NativeMethods::DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color)
 		{
 			draw_fill_onto_mask((void*)room->_roomStructPtr, (int)maskType, x1, y1, color);
-		}
-
-		void NativeMethods::CopyWalkableMaskToRegions(Room ^room) 
-		{
-			copy_walkable_to_regions((void*)room->_roomStructPtr);
 		}
 
     void NativeMethods::ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp)

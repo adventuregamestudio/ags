@@ -596,11 +596,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
-void copy_walkable_to_regions (void *roomptr) {
-	RoomStruct *theRoom = (RoomStruct*)roomptr;
-	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
-}
-
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);

@@ -565,7 +565,7 @@ namespace AGS.Editor
                         {
                             while (_room.BackgroundCount > 1)
                             {
-                                Factory.NativeProxy.DeleteBackground(_room, 1);
+                                _roomController.DeleteBackground(1);
                             }
                         }
 
@@ -595,12 +595,8 @@ namespace AGS.Editor
         {
             if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this background?") == DialogResult.Yes)
             {
-				lock (_room)
-				{
-					Factory.NativeProxy.DeleteBackground(_room, cmbBackgrounds.SelectedIndex);
-					RepopulateBackgroundList(0);
-				}
-                _room.Modified = true;
+                _roomController.DeleteBackground(cmbBackgrounds.SelectedIndex);
+                RepopulateBackgroundList(0);
             }
         }
 

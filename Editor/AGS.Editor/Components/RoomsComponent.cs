@@ -1524,6 +1524,21 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified = true;
         }
 
+        void IRoomController.DeleteBackground(int background)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            // TODO Replace with bitmap deleting from disk with C# when room is open format
+            lock (_loadedRoom)
+            {
+                _nativeProxy.DeleteBackground(_loadedRoom, background);
+            }
+            _loadedRoom.Modified = true;
+        }
+
         Bitmap IRoomController.GetMask(RoomAreaMaskType mask)
         {
             if (_loadedRoom == null)

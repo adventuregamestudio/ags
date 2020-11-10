@@ -34,6 +34,11 @@ namespace AGS.Types
         /// <param name="bmp">The image to use for the frame.</param>
         void SetBackground(int background, Bitmap bmp);
         /// <summary>
+        /// Deletes the loaded room's background frame.
+        /// </summary>
+        /// <param name="background">The background index to delete.</param>
+        void DeleteBackground(int background);
+        /// <summary>
         /// Gets the loaded room specified mask as a <see cref="Bitmap"/> instance.
         /// </summary>
         /// <param name="mask">The mask type to get.</param>

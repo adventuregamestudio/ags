@@ -28,6 +28,12 @@ namespace AGS.Types
         /// <returns>A <see cref="Bitmap"/> instance with the selected background. Returns null if background doesn't exist.</returns>
         Bitmap GetBackground(int background);
         /// <summary>
+        /// Sets the loaded room's background frame.
+        /// </summary>
+        /// <param name="background">The background index to set.</param>
+        /// <param name="bmp">The image to use for the frame.</param>
+        void SetBackground(int background, Bitmap bmp);
+        /// <summary>
         /// Gets the loaded room specified mask as a <see cref="Bitmap"/> instance.
         /// </summary>
         /// <param name="mask">The mask type to get.</param>

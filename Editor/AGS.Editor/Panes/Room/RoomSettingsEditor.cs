@@ -559,10 +559,7 @@ namespace AGS.Editor
                     }
                     if (doImport)
                     {
-                        _room.Width = bmp.Width;
-                        _room.Height = bmp.Height;
-                        Factory.NativeProxy.ImportBackground(_room, bgIndex, bmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, false);
-                        _room.Modified = true;
+                        _roomController.SetBackground(bgIndex, bmp);
 
                         if (deleteExtraFrames)
                         {

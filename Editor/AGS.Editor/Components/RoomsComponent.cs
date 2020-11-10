@@ -1509,6 +1509,21 @@ namespace AGS.Editor.Components
             return _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
         }
 
+        void IRoomController.SetBackground(int background, Bitmap bmp)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            _loadedRoom.Width = bmp.Width;
+            _loadedRoom.Height = bmp.Height;
+            // TODO Replace with bitmap saving to disk with C# when room is open format
+            _nativeProxy.ImportBackground(
+                _loadedRoom, background, bmp, _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+            _loadedRoom.Modified = true;
+        }
+
         Bitmap IRoomController.GetMask(RoomAreaMaskType mask)
         {
             if (_loadedRoom == null)

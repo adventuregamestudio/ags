@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using AGS.Editor.Panes.Room;
 using AddressBarExt;
 using AddressBarExt.Controls;
+using System.Linq;
 
 namespace AGS.Editor
 {
@@ -356,36 +357,39 @@ namespace AGS.Editor
         {
             _state.Offset = new Point(-bufferedPanel1.AutoScrollPosition.X, -bufferedPanel1.AutoScrollPosition.Y);
 
-            int scaleFactor = 1;
-
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
                 e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
-                IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth,
-                    bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight);
+
                 // Adjust co-ordinates using original scale factor so that it lines
                 // up with objects, etc
                 int drawOffsX = _state.RoomXToWindow(0);
                 int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
                 lock (_room)
-				{
-					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
-                        maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
-                        (maskFilter == null || !maskFilter.Enabled) ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
-				}
-                foreach (IRoomEditorFilter layer in _layers)
-                {                    
-                    if (!IsVisible(layer)) continue;
+                {
+                    _roomController.DrawRoomBackground(
+                        e.Graphics,
+                        drawOffsX,
+                        drawOffsY,
+                        backgroundNumber,
+                        (int)_state.Scale,
+                        maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw,
+                        sldTransparency.Value,
+                        maskFilter == null || !maskFilter.Enabled ? 0 : maskFilter.SelectedArea);
+                }
+
+                IntPtr hdc = e.Graphics.GetHdc();
+                foreach (IRoomEditorFilter layer in _layers.Where(l => IsVisible(l)))
+                {
                     layer.PaintToHDC(hdc, _state);
                 }
                 Factory.NativeProxy.RenderBufferToHDC(hdc);
                 e.Graphics.ReleaseHdc(hdc);
-                foreach (IRoomEditorFilter layer in _layers)
+
+                foreach (IRoomEditorFilter layer in _layers.Where(l => IsVisible(l)))
                 {
-                    if (!IsVisible(layer)) continue;
                     layer.Paint(e.Graphics, _state);
                 }
             }

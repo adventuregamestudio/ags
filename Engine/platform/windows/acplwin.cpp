@@ -45,13 +45,6 @@
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
 
-#ifndef AGS_NO_VIDEO_PLAYER
-extern void dxmedia_abort_video();
-extern void dxmedia_pause_video();
-extern void dxmedia_resume_video();
-extern char lastError[200];
-#endif
-
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -121,11 +114,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
-
-#ifndef AGS_NO_VIDEO_PLAYER
-  virtual void PlayVideo(const char* name, int skip, int flags);
-#endif
-
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -703,16 +691,10 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
 
 void AGSWin32::PauseApplication()
 {
-#ifndef AGS_NO_VIDEO_PLAYER
-  dxmedia_pause_video();
-#endif
 }
 
 void AGSWin32::ResumeApplication()
 {
-#ifndef AGS_NO_VIDEO_PLAYER
-  dxmedia_resume_video();
-#endif
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
@@ -817,51 +799,8 @@ int AGSWin32::InitializeCDPlayer() {
 #endif
 }
 
-#ifndef AGS_NO_VIDEO_PLAYER
-
-void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
-
-  char useloc[250];
-  sprintf(useloc, "%s\\%s", ResPaths.DataDir.GetCStr(), name);
-
-  bool useSound = true;
-  if (flags >= 10) {
-    flags -= 10;
-    useSound = false;
-  }
-  else {
-  }
-
-  bool isError = false;
-  if (Common::File::TestReadFile(useloc))
-  {
-    isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
-  }
-  else
-  {
-    isError = true;
-    sprintf(lastError, "File not found: %s", useloc);
-  }
-  
-  if (isError) {
-    // turn "Always display as speech" off, to make sure error
-    // gets displayed correctly
-    int oldalways = game.options[OPT_ALWAYSSPCH];
-    game.options[OPT_ALWAYSSPCH] = 0;
-    Display("Video playing error: %s", lastError);
-    game.options[OPT_ALWAYSSPCH] = oldalways;
-  }
-
-  set_palette_range(palette, 0, 255, 0);
-}
-
-#endif
-
 void AGSWin32::AboutToQuitGame() 
 {
-#ifndef AGS_NO_VIDEO_PLAYER
-  dxmedia_abort_video();
-#endif
 }
 
 void AGSWin32::PostAllegroExit() {

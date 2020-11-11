@@ -18,6 +18,7 @@
 #include "ac/global_video.h"
 #include "ac/path_helper.h"
 #include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
@@ -57,10 +58,8 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
     }
     else
     {
-        char videoFilePath[MAX_PATH];
-        get_install_dir_path(videoFilePath, name);
-
-        platform->PlayVideo(videoFilePath, skip, flags);
+        debug_script_warn("PlayVideo: file '%s' is an unsupported format.", name);
+        return;
     }
 
     if (flags < 10) 

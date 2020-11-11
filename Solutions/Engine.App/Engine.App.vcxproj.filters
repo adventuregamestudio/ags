@@ -642,12 +642,6 @@
     <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi.cpp">
-      <Filter>Source Files\media\video</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi3d.cpp">
-      <Filter>Source Files\media\video</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\media\video\video.cpp">
       <Filter>Source Files\media\video</Filter>
     </ClCompile>
@@ -1389,9 +1383,6 @@
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\video\video.h">
-      <Filter>Header Files\media\video</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\video\VMR9Graph.h">
       <Filter>Header Files\media\video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h">

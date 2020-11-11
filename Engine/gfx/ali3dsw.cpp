@@ -21,10 +21,6 @@
 #include "platform/base/sys_main.h"
 #include "ac/timer.h"
 
-#ifndef AGS_NO_VIDEO_PLAYER
-extern int dxmedia_play_video (const char*, bool, int, int);
-#endif
-
 namespace AGS
 {
 namespace Engine
@@ -784,20 +780,6 @@ void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int de
   }
 }
 // end fading routines
-
-#ifndef AGS_NO_VIDEO_PLAYER
-
-bool SDLRendererGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
-{
-#if AGS_PLATFORM_OS_WINDOWS
-  int result = dxmedia_play_video(filename, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
-  return (result == 0);
-#else
-  return 0;
-#endif
-}
-
-#endif
 
 // add the alpha values together, used for compositing alpha images
 // TODO: why is this here, move to gfx/blender? check if there's already similar function there

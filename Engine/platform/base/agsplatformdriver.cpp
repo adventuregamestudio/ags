@@ -49,7 +49,6 @@ void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
-void AGSPlatformDriver::PlayVideo(const char* name, int skip, int flags) {}
 
 const char* AGSPlatformDriver::GetAllegroFailUserHint()
 {

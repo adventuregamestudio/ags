@@ -446,8 +446,6 @@
     <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp" />
-    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi.cpp" />
-    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi3d.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\minidump.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\winsetup.cpp" />
     <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp" />
@@ -733,7 +731,6 @@
     <ClInclude Include="..\..\Engine\media\audio\sound.h" />
     <ClInclude Include="..\..\Engine\media\audio\soundclip.h" />
     <ClInclude Include="..\..\Engine\media\video\video.h" />
-    <ClInclude Include="..\..\Engine\media\video\VMR9Graph.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />

@@ -60,20 +60,6 @@ extern RGB palette[256];
 #define CSIDL_COMMON_APPDATA       0x0023
 #endif
 
-typedef struct BMP_EXTRA_INFO {
-   LPDIRECTDRAWSURFACE2 surf;
-   struct BMP_EXTRA_INFO *next;
-   struct BMP_EXTRA_INFO *prev;
-   int flags;
-   int lock_nesting;
-} BMP_EXTRA_INFO;
-
-// from Allegro DDraw driver
-extern "C" extern LPDIRECTDRAW2 directdraw;
-extern "C" extern LPDIRECTSOUND directsound;
-extern "C" extern LPDIRECTINPUTDEVICE mouse_dinput_device;
-extern "C" extern LPDIRECTINPUTDEVICE key_dinput_device;
-
 char win32SavedGamesDirectory[MAX_PATH] = "\0";
 char win32AppDataDirectory[MAX_PATH] = "\0";
 String win32OutputDirectory;
@@ -892,34 +878,28 @@ HWND IAGSEngine::GetWindowHandle () {
   return (HWND)sys_win_get_window();
 }
 LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
-  if (directdraw == NULL)
-    quit("!This plugin requires DirectDraw based graphics driver (software driver).");
-
-  return directdraw;
+  quit("!IAGSEngine::GetDirectDraw2() is deprecated and not supported anymore.");
+  return nullptr;
 }
 LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp) 
 {
-  if (directdraw == NULL)
-    quit("!This plugin requires DirectDraw based graphics driver (software driver).");
-
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
-
-  if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap())
-    invalidate_screen();
-
-  return bei->surf;
+  quit("!IAGSEngine::GetBitmapSurface() is deprecated and not supported anymore.");
+  return nullptr;
 }
 
 LPDIRECTSOUND IAGSEngine::GetDirectSound() {
-  return directsound;
+  quit("!IAGSEngine::GetDirectSound() is deprecated and not supported anymore.");
+  return nullptr;
 }
 
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard() {
-  return key_dinput_device;
+  quit("!IAGSEngine::GetDirectInputKeyboard() is deprecated and not supported anymore.");
+  return nullptr;
 }
 
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
-  return mouse_dinput_device;
+  quit("!IAGSEngine::GetDirectInputMouse() is deprecated and not supported anymore.");
+  return nullptr;
 }
 
 #endif

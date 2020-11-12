@@ -464,7 +464,7 @@ private:
 
     // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
-    void FreeDynpointersOfStruct(Symbol struct_vtype, bool &clobbers_ax);
+    void FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_ax);
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.

@@ -867,7 +867,7 @@ ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_eleme
 
 // We're at the end of a block and releasing all the pointers in a struct.
 // MAR already points to the start of the struct.
-void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_ax)
+void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_ax)
 {
     std::vector<Symbol> compo_list;
     _sym.GetComponentsOfStruct(struct_vtype, compo_list);

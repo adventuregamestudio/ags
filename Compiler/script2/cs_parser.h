@@ -779,9 +779,9 @@ private:
     // there was a forward declaration -- check that the real declaration matches it
     ErrorType ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
 
-    ErrorType ParseVardecl_GlobalImport(Symbol var_name, bool has_initial_assignment);
+    ErrorType ParseVardecl_Import(Symbol var_name, bool has_initial_assignment);
 
-    ErrorType ParseVardecl_GlobalNoImport(Symbol var_name, Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr);
+    ErrorType ParseVardecl_Global(Symbol var_name, Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr);
 
     ErrorType ParseVardecl_Local(Symbol var_name, Vartype vartype, bool has_initial_assignment);
 

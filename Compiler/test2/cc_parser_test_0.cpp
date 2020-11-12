@@ -1534,7 +1534,7 @@ TEST_F(Compile0, RetLengthNoMatch) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, GlobalImportVar1) {    
+TEST_F(Compile0, ImportVar1) {    
 
     char *inpl = "\
         import int Var;     \n\
@@ -1547,7 +1547,7 @@ TEST_F(Compile0, GlobalImportVar1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, GlobalImportVar2) {
+TEST_F(Compile0, ImportVar2) {
     
     char *inpl = "\
         import int Var;     \n\
@@ -1562,7 +1562,7 @@ TEST_F(Compile0, GlobalImportVar2) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, GlobalImportVar3) {
+TEST_F(Compile0, ImportVar3) {
 
     char *inpl = "\
         import int Var;     \n\
@@ -1574,7 +1574,7 @@ TEST_F(Compile0, GlobalImportVar3) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, GlobalImportVar4) {
+TEST_F(Compile0, ImportVar4) {
 
     char *inpl = "\
         int Var;            \n\
@@ -1585,7 +1585,7 @@ TEST_F(Compile0, GlobalImportVar4) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, GlobalImportVar5) {
+TEST_F(Compile0, ImportVar5) {
     
     // "import int Var" is treated as a forward declaration
     // for the "int Var" that follows, not as an import proper.

@@ -4563,7 +4563,7 @@ ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initial_assignment)
+ErrorType AGS::Parser::ParseVardecl_Import(AGS::Symbol var_name, bool has_initial_assignment)
 {
     if (has_initial_assignment)
     {
@@ -4585,7 +4585,7 @@ ErrorType AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr)
+ErrorType AGS::Parser::ParseVardecl_Global(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr)
 {
     if (has_initial_assignment)
     {
@@ -4691,13 +4691,13 @@ ErrorType AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype,
     case ScT::kGlobal:
     {
         void *initial_val_ptr = nullptr;
-        ErrorType retval = ParseVardecl_GlobalNoImport(var_name, vartype, has_initial_assignment, initial_val_ptr);
+        ErrorType retval = ParseVardecl_Global(var_name, vartype, has_initial_assignment, initial_val_ptr);
         if (initial_val_ptr) free(initial_val_ptr);
         return retval;
     }
 
     case ScT::kImport:
-        return ParseVardecl_GlobalImport(var_name, has_initial_assignment);
+        return ParseVardecl_Import(var_name, has_initial_assignment);
 
     case ScT::kLocal:
         return ParseVardecl_Local(var_name, vartype, has_initial_assignment);

@@ -52,7 +52,7 @@ public:
 class SrcList
 {
 public:
-    static int const kEOF = -2;
+    static Symbol const kEOF = 0;
 
 private:
     std::vector<Symbol> &_script;

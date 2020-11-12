@@ -168,6 +168,7 @@ public:
         size_t Lineno;
         std::string Message;
 
+        Entry() = default;
         Entry(enum Severity sev, std::string const &section, size_t lineno, std::string const msg);
     };
 

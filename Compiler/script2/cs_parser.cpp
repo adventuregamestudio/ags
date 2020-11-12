@@ -3240,12 +3240,12 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
 {
     Symbol const component = expression.GetNext();
     Symbol const struct_of_component =
-        FindStructOfComponent(Vartype2Symbol(vartype), component);
+        FindStructOfComponent(vartype, component);
     if (0 == struct_of_component)
     {
         Error(
             "Struct '%s' does not have an attribute named '%s'",
-            _sym.GetName(Vartype2Symbol(vartype)).c_str(),
+            _sym.GetName(vartype).c_str(),
             _sym.GetName(component).c_str());
         return kERR_UserError;
     }
@@ -3725,7 +3725,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
 {
     Symbol const next_sym = expression.PeekNext();
 
-    Symbol const component = FindComponentInStruct(Vartype2Symbol(vartype), next_sym);
+    Symbol const component = FindComponentInStruct(vartype, next_sym);
     SymbolType const component_type = (component) ? _sym.GetSymbolType(component) : SymT::kNoType;
 
     if (static_access && !_sym[component].TypeQualifiers[TQ::kStatic])
@@ -5015,7 +5015,7 @@ ErrorType AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
 
 ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Vartype vartype)
 {
-    if (Vartype2Symbol(vartype) == stname && !_sym.IsManagedVartype(vartype))
+    if (vartype == stname && !_sym.IsManagedVartype(vartype))
     {
         // cannot do "struct A { A varname; }", this struct would be infinitely large
         Error("Struct '%s' cannot be a member of itself", _sym.GetName(vartype).c_str());
@@ -5034,7 +5034,7 @@ ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Var
     {
         std::string const msg = ReferenceMsgSym(
             "'%s' should be a typename but is in use differently",
-            Vartype2Symbol(vartype));
+            vartype);
         Error(msg.c_str(), _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }

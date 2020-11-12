@@ -425,8 +425,6 @@ private:
 
     std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
 
-    inline static Symbol Vartype2Symbol(Vartype vartype) { return static_cast<Symbol>(vartype); };
-
     void SetDynpointerInManagedVartype(Vartype &vartype);
 
     // Combine the arguments to stname::component, get the symbol for that

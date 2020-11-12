@@ -30,6 +30,130 @@ protected:
     }
 };
 
+TEST_F(Bytecode1, StringOldstyle01) {
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    char *inpl = "\
+        int Sentinel1;              \n\
+        string GLOBAL;              \n\
+        int Sentinel2;              \n\
+                                    \n\
+        string MyFunction(int a)    \n\
+        {                           \n\
+            string x;               \n\
+            char   Sentinel3;       \n\
+            return GLOBAL;          \n\
+        }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("StringOldstyle01", scrip);
+    const size_t codesize = 34;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+          38,    0,   51,    0,           63,  200,    1,    1,    // 7
+         200,   51,    0,   63,            1,    1,    1,    1,    // 15
+           6,    2,    4,    3,            2,    3,    2,    1,    // 23
+         201,   31,    6,    2,            1,  201,    6,    3,    // 31
+           0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      18,  -999
+    };
+    char fixuptypes[] = {
+      1,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, StringOldstyle02) {
+
+    char *inpl = "\
+        int sub(const string s) \n\
+        {                       \n\
+            return;             \n\
+        }                       \n\
+                                \n\
+        int main()              \n\
+        {                       \n\
+            sub(\"Foo\");       \n\
+        }                       \n\
+        ";
+
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("StringOldstyle02", scrip);
+    const size_t codesize = 30;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            0,   31,    3,    6,    // 7
+       3,    0,    5,   38,           11,    6,    3,    0,    // 15
+      29,    3,    6,    3,            0,   23,    3,    2,    // 23
+       1,    4,    6,    3,            0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      15,   20,  -999
+    };
+    char fixuptypes[] = {
+      3,   2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    const size_t stringssize = 4;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+
+    char strings[] = {
+    'F',  'o',  'o',    0,          '\0'
+    };
+
+    for (size_t idx = 0; idx < stringssize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip.stringssize) break;
+        std::string prefix = "strings[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(strings[idx]);
+        std::string test_val = prefix + std::to_string(scrip.strings[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
 
 TEST_F(Bytecode1, StringOldstyle03) {
     
@@ -232,6 +356,75 @@ TEST_F(Bytecode1, StringOldstyle05) {
     char strings[] = {
     'H',  'o',  'l',  'z',          '-',    0,  '-',  'S',     // 7
     'c',  'h',  'u',  'h',            0,  '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}
+
+TEST_F(Bytecode1, StringStandard01) {
+
+    char inpl[] = "\
+        int main()                         \n\
+        {                                  \n\
+            String s = \"Hello, world!\";  \n\
+            if (s != \"Bye\")              \n\
+                return 1;                  \n\
+            return 0;                      \n\
+        }                                  \n\
+        ";
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
+
+    int compileResult = cc_compile(input, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("StringStandard01", scrip);
+    size_t const codesize = 65;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            0,   64,    3,   51,    // 7
+       0,   47,    3,    1,            1,    4,   51,    4,    // 15
+      48,    3,   29,    3,            6,    3,   14,   30,    // 23
+       4,   66,    4,    3,            3,    4,    3,   28,    // 31
+      11,    6,    3,    1,           51,    4,   49,    2,    // 39
+       1,    4,   31,   20,            6,    3,    0,   51,    // 47
+       4,   49,    2,    1,            4,   31,    9,   51,    // 55
+       4,   49,    2,    1,            4,    6,    3,    0,    // 63
+       5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       4,   22,  -999
+    };
+
+    char fixuptypes[] = {
+      3,   3,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 18;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+
+    char strings[] = {
+    'H',  'e',  'l',  'l',          'o',  ',',  ' ',  'w',     // 7
+    'o',  'r',  'l',  'd',          '!',    0,  'B',  'y',     // 15
+    'e',    0,  '\0'
     };
     CompareStrings(&scrip, stringssize, strings);
 }
@@ -596,6 +789,240 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+TEST_F(Bytecode1, Attributes01) {
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1, };              \n\
+        builtin managed struct ViewFrame {              \n\
+            readonly import attribute bool Flipped;     \n\
+            import attribute int Graphic;               \n\
+            readonly import attribute float AsFloat;    \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            ViewFrame *VF;                              \n\
+            if (VF.Flipped)                             \n\
+            {                                           \n\
+                VF.Graphic = 17;                        \n\
+                float f = VF.AsFloat + VF.AsFloat;      \n\
+                return VF.Graphic;                      \n\
+            }                                           \n\
+            return VF.Flipped;                          \n\
+        }                                               \n\
+        ";
+
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes01", scrip);
+    const size_t codesize = 166;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   51,    0,           49,    1,    1,    4,    // 7
+      51,    4,   48,    2,           52,   29,    6,   45,    // 15
+       2,   39,    0,    6,            3,    0,   33,    3,    // 23
+      30,    6,   28,  102,            6,    3,   17,   51,    // 31
+       4,   48,    2,   52,           29,    6,   34,    3,    // 39
+      45,    2,   39,    1,            6,    3,    2,   33,    // 47
+       3,   35,    1,   30,            6,   51,    4,   48,    // 55
+       2,   52,   29,    6,           45,    2,   39,    0,    // 63
+       6,    3,    3,   33,            3,   30,    6,   29,    // 71
+       3,   51,    8,   48,            2,   52,   29,    6,    // 79
+      45,    2,   39,    0,            6,    3,    3,   33,    // 87
+       3,   30,    6,   30,            4,   57,    4,    3,    // 95
+       3,    4,    3,   29,            3,   51,    8,   48,    // 103
+       2,   52,   29,    6,           45,    2,   39,    0,    // 111
+       6,    3,    1,   33,            3,   30,    6,   51,    // 119
+       8,   49,    2,    1,            8,   31,   38,    2,    // 127
+       1,    4,   51,    4,           48,    2,   52,   29,    // 135
+       6,   45,    2,   39,            0,    6,    3,    0,    // 143
+      33,    3,   30,    6,           51,    4,   49,    2,    // 151
+       1,    4,   31,    9,           51,    4,   49,    2,    // 159
+       1,    4,    6,    3,            0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    const size_t numfixups = 6;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      21,   46,   66,   86,        114,  143,  -999
+    };
+    char fixuptypes[] = {
+      4,   4,   4,   4,      4,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    const int numimports = 4;
+    std::string imports[] = {
+    "ViewFrame::get_Flipped^0",   "ViewFrame::get_Graphic^0",   "ViewFrame::set_Graphic^1",   // 2
+    "ViewFrame::get_AsFloat^0",    "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, Attributes02) {
+
+    // The getter and setter functions are defined locally, so
+    // they ought to be exported instead of imported.
+    // Assigning to the attribute should generate the same call
+    // as calling the setter; reading the same as calling the getter.
+    // Armor:: functions should be allowed to access _Damage.
+
+    char *inpl = "\
+        managed struct Armor {                          \n\
+            attribute int Damage;                       \n\
+            writeprotected short _Aura;                 \n\
+            protected int _Damage;                      \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            Armor *armor = new Armor;                   \n\
+            armor.Damage = 17;                          \n\
+            return (armor.Damage > 10);                 \n\
+        }                                               \n\
+                                                        \n\
+        void Armor::set_Damage(int damage)              \n\
+        {                                               \n\
+            if (damage >= 0)                            \n\
+                _Damage = damage;                       \n\
+        }                                               \n\
+                                                        \n\
+        int Armor::get_Damage()                         \n\
+        {                                               \n\
+            return _Damage;                             \n\
+        }                                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes02", scrip);
+    const size_t codesize = 139;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   73,    3,            8,   51,    0,   47,    // 7
+       3,    1,    1,    4,            6,    3,   17,   51,    // 15
+       4,   48,    2,   52,           29,    6,   29,    3,    // 23
+      45,    2,    6,    3,           83,   23,    3,    2,    // 31
+       1,    4,   30,    6,           51,    4,   48,    2,    // 39
+      52,   29,    6,   45,            2,    6,    3,  122,    // 47
+      23,    3,   30,    6,           29,    3,    6,    3,    // 55
+      10,   30,    4,   17,            4,    3,    3,    4,    // 63
+       3,   51,    4,   49,            2,    1,    4,   31,    // 71
+       9,   51,    4,   49,            2,    1,    4,    6,    // 79
+       3,    0,    5,   38,           83,   51,    8,    7,    // 87
+       3,   29,    3,    6,            3,    0,   30,    4,    // 95
+      19,    4,    3,    3,            4,    3,   28,   17,    // 103
+      51,    8,    7,    3,           29,    3,    3,    6,    // 111
+       2,   52,    1,    2,            2,   30,    3,    8,    // 119
+       3,    5,   38,  122,            3,    6,    2,   52,    // 127
+       1,    2,    2,    7,            3,   31,    3,    6,    // 135
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      28,   47,  -999
+    };
+    char fixuptypes[] = {
+      2,   2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, Attributes03) {
+
+    // The getters and setters are NOT defined locally, so
+    // import decls should be generated for them.
+    // The getters and setters should be called as import funcs.
+
+    char *inpl = "\
+        managed struct Armor {                          \n\
+            attribute int Damage;                       \n\
+            writeprotected short _aura;                 \n\
+            protected int _damage;                      \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            Armor *armor = new Armor;                   \n\
+            armor.Damage = 17;                          \n\
+            return (armor.Damage > 10);                 \n\
+        }";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes03", scrip);
+    const size_t codesize = 86;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   73,    3,            8,   51,    0,   47,    // 7
+       3,    1,    1,    4,            6,    3,   17,   51,    // 15
+       4,   48,    2,   52,           29,    6,   34,    3,    // 23
+      45,    2,   39,    1,            6,    3,    1,   33,    // 31
+       3,   35,    1,   30,            6,   51,    4,   48,    // 39
+       2,   52,   29,    6,           45,    2,   39,    0,    // 47
+       6,    3,    0,   33,            3,   30,    6,   29,    // 55
+       3,    6,    3,   10,           30,    4,   17,    4,    // 63
+       3,    3,    4,    3,           51,    4,   49,    2,    // 71
+       1,    4,   31,    9,           51,    4,   49,    2,    // 79
+       1,    4,    6,    3,            0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      30,   50,  -999
+    };
+    char fixuptypes[] = {
+      4,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    const int numimports = 2;
+    std::string imports[] = {
+    "Armor::get_Damage^0",        "Armor::set_Damage^1",         "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
 TEST_F(Bytecode1, Attributes04) {
     
     // Attribute func was not called properly
@@ -834,310 +1261,6 @@ TEST_F(Bytecode1, Attributes07) {
     };
     CompareStrings(&scrip, stringssize, strings);
 }
-
-TEST_F(Bytecode1, Struct09) {
-    
-    // Should be able to find SetCharacter as a component of
-    // VehicleBase as an extension of Vehicle Cars[5];
-    // should generate call of VehicleBase::SetCharacter()
-
-    char *inpl = "\
-        enum CharacterDirection                                     \n\
-        {                                                           \n\
-            eDirectionUp = 3                                        \n\
-        };                                                          \n\
-                                                                    \n\
-        builtin managed struct Character                            \n\
-        {                                                           \n\
-            readonly import attribute int ID;                       \n\
-        };                                                          \n\
-        import Character character[7];                              \n\
-        import Character cAICar1;                                   \n\
-                                                                    \n\
-        struct VehicleBase                                          \n\
-        {                                                           \n\
-            import void SetCharacter(Character *c,                  \n\
-                                int carSprite,                      \n\
-                                CharacterDirection carSpriteDir,    \n\
-                                int view = 0,                       \n\
-                                int loop = 0,                       \n\
-                                int frame = 0);                     \n\
-        };                                                          \n\
-                                                                    \n\
-        struct Vehicle extends VehicleBase                          \n\
-        {                                                           \n\
-            float bodyMass;                                         \n\
-        };                                                          \n\
-        import Vehicle Cars[6];                                     \n\
-                                                                    \n\
-        int main()                                                  \n\
-        {                                                           \n\
-            int drivers[] = new int[6];                             \n\
-            int i = 5;                                              \n\
-            Cars[i].SetCharacter(                                   \n\
-                character[cAICar1.ID + i],                          \n\
-                7 + drivers[i],                                     \n\
-                eDirectionUp,                                       \n\
-                3 + i, 0, 0);                                       \n\
-        }                                                           \n\
-    ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // WriteOutput("Struct09", scrip);
-    const size_t codesize = 193;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      38,    0,    6,    3,            6,   72,    3,    4,    // 7
-       0,   51,    0,   47,            3,    1,    1,    4,    // 15
-       6,    3,    5,   29,            3,    6,    2,    4,    // 23
-      29,    2,   51,    8,            7,    3,   30,    2,    // 31
-      46,    3,    6,   32,            3,    4,   11,    2,    // 39
-       3,   29,    2,    6,            3,    0,   34,    3,    // 47
-       6,    3,    0,   34,            3,    6,    3,    3,    // 55
-      29,    3,   51,   12,            7,    3,   30,    4,    // 63
-      11,    4,    3,    3,            4,    3,   34,    3,    // 71
-       6,    3,    3,   34,            3,    6,    3,    7,    // 79
-      29,    3,   51,   16,           48,    2,   52,   29,    // 87
-       2,   51,   16,    7,            3,   30,    2,   32,    // 95
-       3,    4,   71,    3,           11,    2,    3,    7,    // 103
-       3,   30,    4,   11,            4,    3,    3,    4,    // 111
-       3,   34,    3,    6,            2,    1,   29,    2,    // 119
-       6,    2,    2,   29,            6,   45,    2,   39,    // 127
-       0,    6,    3,    0,           33,    3,   30,    6,    // 135
-      29,    3,   51,   16,            7,    3,   30,    4,    // 143
-      11,    4,    3,    3,            4,    3,   30,    2,    // 151
-      46,    3,    7,   32,            3,    0,   11,    2,    // 159
-       3,    3,    2,    3,           34,    3,   51,    4,    // 167
-       7,    2,   45,    2,           39,    6,    6,    3,    // 175
-       3,   33,    3,   35,            6,   30,    2,   51,    // 183
-       8,   49,    2,    1,            8,    6,    3,    0,    // 191
-       5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    const size_t numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-      23,  117,  122,  131,        176,  -999
-    };
-    char fixuptypes[] = {
-      4,   4,   4,   4,      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    const int numimports = 5;
-    std::string imports[] = {
-    "Character::get_ID^0",        "character",   "cAICar1",     "VehicleBase::SetCharacter^6",               // 3
-    "Cars",         "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode1, Struct10) {
-    
-    // When accessing a component of an import variable,
-    // the import variable must be read first so that the fixup can be
-    // applied. Only then may the offset be added to it.
-
-    char *inpl = "\
-        import struct Struct                                 \n\
-        {                                                    \n\
-            int fluff;                                       \n\
-            int k;                                           \n\
-        } ss;                                                \n\
-                                                             \n\
-        int main()                                           \n\
-        {                                                    \n\
-            return ss.k;                                     \n\
-        }                                                    \n\
-    ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct10", scrip);
-    const size_t codesize = 16;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      38,    0,    6,    2,            0,    1,    2,    4,    // 7
-       7,    3,   31,    3,            6,    3,    0,    5,    // 15
-     -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    const size_t numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-       4,  -999
-    };
-    char fixuptypes[] = {
-      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    const int numimports = 1;
-    std::string imports[] = {
-    "ss",           "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode1, Struct11) {
-    
-    // Structs may contain variables that are structs themselves.
-    // Since Inner1 is managed, In1 will convert into an Inner1 *.
-
-    char *inpl = "\
-        managed struct Inner1                               \n\
-        {                                                   \n\
-            short Fluff;                                    \n\
-            int Payload;                                    \n\
-        };                                                  \n\
-        struct Inner2                                       \n\
-        {                                                   \n\
-            short Fluff;                                    \n\
-            int Payload;                                    \n\
-        };                                                  \n\
-        import int Foo;                                     \n\
-        import struct Struct                                \n\
-        {                                                   \n\
-            Inner1 In1;                                     \n\
-            Inner2 In2;                                     \n\
-        } SS;                                               \n\
-                                                            \n\
-        int main()                                          \n\
-        {                                                   \n\
-            SS.In1 = new Inner1;                            \n\
-            SS.In1.Payload = 77;                            \n\
-            SS.In2.Payload = 777;                           \n\
-            return SS.In1.Payload + SS.In2.Payload;         \n\
-        }                                                   \n\
-    ";
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct11", scrip);
-    const size_t codesize = 78;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      38,    0,   73,    3,            8,    6,    2,    1,    // 7
-      47,    3,    6,    3,           77,   29,    3,    6,    // 15
-       2,    1,   48,    2,           52,    1,    2,    2,    // 23
-      30,    3,    8,    3,            6,    3,  777,   29,    // 31
-       3,    6,    2,    1,            1,    2,    6,   30,    // 39
-       3,    8,    3,    6,            2,    1,   48,    2,    // 47
-      52,    1,    2,    2,            7,    3,   29,    3,    // 55
-       6,    2,    1,    1,            2,    6,    7,    3,    // 63
-      30,    4,   11,    4,            3,    3,    4,    3,    // 71
-      31,    3,    6,    3,            0,    5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    const size_t numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-       7,   17,   35,   45,         58,  -999
-    };
-    char fixuptypes[] = {
-      4,   4,   4,   4,      4,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    const int numimports = 1;
-    std::string imports[] = {
-    "SS",           "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode1, Struct12) {
-
-    // Can have managed components in non-managed struct.
-
-    char *inpl = "\
-        struct NonManaged           \n\
-        {                           \n\
-            long Dummy;             \n\
-            int  IntArray[];        \n\
-        } SS;                       \n\
-                                    \n\
-        int main()                  \n\
-        {                           \n\
-            SS.IntArray = new int[10];  \n\
-            SS.IntArray[3] = 7;     \n\
-            return SS.IntArray[3];  \n\
-        }                           \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    WriteOutput("Struct12", scrip);
-
-    size_t const codesize = 49;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      38,    0,    6,    3,           10,   72,    3,    4,    // 7
-       0,    6,    2,    4,           47,    3,    6,    3,    // 15
-       7,   29,    3,    6,            2,    4,   48,    2,    // 23
-      52,    1,    2,   12,           30,    3,    8,    3,    // 31
-       6,    2,    4,   48,            2,   52,    1,    2,    // 39
-      12,    7,    3,   31,            3,    6,    3,    0,    // 47
-       5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 3;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-      11,   21,   34,  -999
-    };
-    char fixuptypes[] = {
-      1,   1,   1,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
 
 TEST_F(Bytecode1, DynArrayOfPrimitives) {
     

@@ -4965,7 +4965,7 @@ ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bo
     return kERR_None;
 }
 
-ErrorType AGS::Parser::Parse_CheckEmpty(TypeQualifierSet tqs)
+ErrorType AGS::Parser::Parse_CheckTQSIsEmpty(TypeQualifierSet tqs)
 {
     for (auto it = _tq2String.cbegin(); it != _tq2String.cend(); it++)
     {
@@ -6759,7 +6759,7 @@ ErrorType AGS::Parser::ParseInput()
             continue;
 
         case kKW_Export:
-            retval = Parse_CheckEmpty(tqs); // No qualifiers in front of 'export' allowed
+            retval = Parse_CheckTQSIsEmpty(tqs); // No qualifiers in front of 'export' allowed
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
@@ -6791,7 +6791,7 @@ ErrorType AGS::Parser::ParseInput()
         }
 
         // No qualifiers in front of a command allowed
-        retval = Parse_CheckEmpty(tqs); 
+        retval = Parse_CheckTQSIsEmpty(tqs); 
         if (retval < 0) return retval;
 
         retval = ParseCommand(leading_sym, struct_of_current_func, name_of_current_func);

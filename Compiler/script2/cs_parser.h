@@ -947,7 +947,7 @@ private:
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
-    ErrorType Parse_CheckEmpty(TypeQualifierSet tqs);
+    ErrorType Parse_CheckTQSIsEmpty(TypeQualifierSet tqs);
 
     // Analyse the decls and collect info about locally defined functions
     // This is a pre phase that only does simplified analysis

@@ -614,6 +614,10 @@ private:
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary '-'
     ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
+    // Parse the term given in EXPRESSION. The lowest-binding operator is unary '+'
+    // Note: Not called yet.
+    ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+
     // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
     ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 

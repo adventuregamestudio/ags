@@ -2450,6 +2450,39 @@ ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, ValueLoca
     return kERR_None;
 }
 
+// We're parsing an expression that starts with '+' (unary minus)
+ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype)
+{
+    if (expression.Length() < 2)
+    {
+        Error(
+            "Expected a term after '%s' but didn't find any",
+            _sym.GetName(expression[0]).c_str());
+        return kERR_UserError;
+    }
+
+    expression.EatFirstSymbol(); // Eat '+'
+    if (expression.Length() == 1)
+    {
+        expression.StartRead();
+        Symbol const peek = expression.PeekNext();
+        SymbolType const stype = _sym.GetSymbolType(peek);
+        if (SymT::kConstant == stype || SymT::kLiteralInt == stype)
+            return AccessData_IntLiteralOrConst(false, expression, vartype);
+        if (SymT::kLiteralFloat == stype)
+            return AccessData_FloatLiteral(false, expression, vartype);
+    };
+
+    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+
+    if (_sym.IsAnyIntegerVartype(vartype) || kKW_Float == vartype)
+        return kERR_None;
+
+    Error("Cannot apply unary '+' to an expression of type '%s'", _sym.GetName(vartype));
+    return kERR_UserError;
+}
+
 // We're parsing an expression that starts with '!' (boolean NOT) or '~' (bitwise Negate)
 ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype)
 {

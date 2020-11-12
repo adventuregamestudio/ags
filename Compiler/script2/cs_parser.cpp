@@ -5600,7 +5600,7 @@ ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_curre
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows
-ErrorType AGS::Parser::ParseEnum_AssignedValue(int &current_constant_value)
+ErrorType AGS::Parser::ParseEnum_AssignedValue(int &value)
 {
     _src.GetNext(); // eat "="
 
@@ -5613,10 +5613,10 @@ ErrorType AGS::Parser::ParseEnum_AssignedValue(int &current_constant_value)
         item_value = _src.GetNext();
     }
 
-    return IntLiteralOrConst2Value(item_value, is_neg, "Expected integer or integer constant after '='", current_constant_value);
+    return IntLiteralOrConst2Value(item_value, is_neg, "Expected integer or integer constant after '='", value);
 }
 
-void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int current_constant_value)
+void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int value)
 {
     SymbolTableEntry &entry = _sym[item_name];
 
@@ -5627,21 +5627,21 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.TypeQualifiers[TQ::kReadonly] = true;
     entry.Parent = enum_name;
     // SOffset is unused for a constant, so in a gratuitous hack we use it to store the enum's value
-    entry.SOffset = current_constant_value;
+    entry.SOffset = value;
     if (PP::kMain == _pp)
         _sym.SetDeclared(item_name, _src.GetCursor());
 
     _sym[enum_name].Children.push_back(item_name);
 }
 
-ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
+ErrorType AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enum_name)
 {
-    SymbolTableEntry &entry = _sym[enumName];
+    SymbolTableEntry &entry = _sym[enum_name];
 
     if (SymT::kNoType != entry.SType)
     {
         std::string msg = ReferenceMsgLoc("'%s' is already defined", entry.Declared);
-        Error(msg.c_str(), _sym.GetName(enumName).c_str());
+        Error(msg.c_str(), _sym.GetName(enum_name).c_str());
         return kERR_UserError;
     }
 

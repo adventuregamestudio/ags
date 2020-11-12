@@ -832,11 +832,11 @@ private:
     ErrorType ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
-    ErrorType ParseEnum_AssignedValue(int &currentValue);
+    ErrorType ParseEnum_AssignedValue(int &value);
 
-    void ParseEnum_Item2Symtable(Symbol enum_name, Symbol item_name, int currentValue);
+    void ParseEnum_Item2Symtable(Symbol enum_name, Symbol item_name, int value);
 
-    ErrorType ParseEnum_Name2Symtable(Symbol enumName);
+    ErrorType ParseEnum_Name2Symtable(Symbol enum_name);
 
     // We parse enum eEnumName { value1, value2 };
     ErrorType ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);

@@ -10,7 +10,7 @@ namespace AGS
 typedef int Symbol; // A symbol (result of scanner preprocessing)
 typedef Symbol *SymbolScript; // A buffer of symbols 
 typedef long FlagSet; // Collection of bits that are set and reset
-typedef long Vartype; // e.g., "int"
+typedef int Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
 typedef short SymbolTypeType;
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode

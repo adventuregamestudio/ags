@@ -188,17 +188,17 @@ public:
 
 public:
     // General
-    inline bool IsAnyArray(SymbolTable const &symt) const { return IsArray(symt) || IsDynarray(symt); }
-    inline bool IsArray(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); }
+    inline bool IsAnyArrayVartype(SymbolTable const &symt) const { return IsArrayVartype(symt) || IsDynarrayVartype(symt); }
+    inline bool IsArrayVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Array, symt); }
     inline bool IsAtomic(SymbolTable const &symt) const { return IsVTT(kVTT_Atomic, symt); }
     inline bool IsBuiltin(SymbolTable const &symt) const { return IsVTF(kSFLG_StructBuiltin, symt); }
-    inline bool IsConst(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); }
-    inline bool IsDynarray(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); }
-    inline bool IsDynpointer(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); }
-    inline bool IsDyn(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); }
+    inline bool IsConstVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Const, symt); }
+    inline bool IsDynarrayVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt); }
+    inline bool IsDynpointerVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynpointer, symt); }
+    inline bool IsDynVartype(SymbolTable const &symt) const { return IsVTT(kVTT_Dynarray, symt) || IsVTT(kVTT_Dynpointer, symt); }
     inline bool IsImport() const { return FlagIsSet(TypeQualifiers, kTQ_Import); }
-    inline bool IsManaged(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
-    inline bool IsStruct(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
+    inline bool IsManagedVartype(SymbolTable const &symt) const { return IsVTF(kSFLG_StructManaged, symt); }
+    inline bool IsStructVartype(SymbolTable const &symt) const { return IsVTF(kSFLG_StructVartype, symt); }
     inline bool IsOperator() const { return (OperatorBinaryPrio >= 0) || (OperatorUnaryPrio >= 0); }
     inline bool IsParameter() const { return kParameterSScope == SScope; };
 
@@ -251,18 +251,18 @@ public:
 
     // int, long, char, an enum etc.
     bool IsAnyIntegerVartype(Symbol s) const;
-    inline bool IsArray(Symbol s) const { return IsInBounds(s) ? entries[s].IsArray(*this) : false; }
+    inline bool IsArrayVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsArrayVartype(*this) : false; }
     inline size_t NumArrayElements(Symbol s) const { return IsInBounds(s) ? entries[s].NumArrayElements(*this) : 0; }
     inline bool IsAtomic(Symbol s) const { return IsInBounds(s) ? entries[s].IsAtomic(*this) : false; }
     inline bool IsBuiltin(Symbol s) const { return IsInBounds(s) ? entries[s].IsBuiltin(*this) : false; }
-    inline bool IsConst(Symbol s) const { return IsInBounds(s) ? entries[s].IsConst(*this) : false; }
-    inline bool IsDynarray(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarray(*this) : false; }
-    inline bool IsDynpointer(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointer(*this) : false; }
+    inline bool IsConstVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsConstVartype(*this) : false; }
+    inline bool IsDynarrayVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynarrayVartype(*this) : false; }
+    inline bool IsDynpointerVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynpointerVartype(*this) : false; }
     // Dynpointer or Dynarray
-    inline bool IsDyn(Symbol s) const { return IsInBounds(s) ? entries[s].IsDyn(*this) : false; }
+    inline bool IsDynVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsDynVartype(*this) : false; }
     inline bool IsImport(Symbol s) const { return IsInBounds(s) ? entries[s].IsImport() : false; }
-    inline bool IsManaged(Symbol s) const { return IsInBounds(s) ? entries[s].IsManaged(*this) : false; }
-    inline bool IsStruct(Symbol s) const { return IsInBounds(s) ? entries[s].IsStruct(*this) : false; }
+    inline bool IsManagedVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsManagedVartype(*this) : false; }
+    inline bool IsStructVartype(Symbol s) const { return IsInBounds(s) ? entries[s].IsStructVartype(*this) : false; }
     // A predefined atomic vartype such as int and float.
     inline bool IsPrimitive(Symbol s) const { return (s > 0 && s <= kKW_Void); };
 
@@ -272,7 +272,7 @@ public:
     inline int UnaryOpPrio(Symbol s) const { return entries[s].OperatorUnaryPrio; }
     inline CodeCell GetOperatorOpcode(Symbol s) const { return entries[s].OperatorOpcode; }
 
-    bool IsAnyTypeOfString(Symbol s) const;
+    bool IsAnyStringVartype(Symbol s) const;
     bool IsOldstring(Symbol s) const;
 
     // add the name to the symbol table, give it the type stype and the size ssize

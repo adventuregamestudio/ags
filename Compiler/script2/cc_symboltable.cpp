@@ -340,7 +340,7 @@ int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& c
     }
 }
 
-bool AGS::SymbolTable::IsAnyTypeOfString(Symbol s) const
+bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
 {
     if (!IsInBounds(s))
         return false;
@@ -385,7 +385,7 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
         return true;
 
     // const char[..] and char[..] are considered oldstrings, too
-    return (IsArray(s) && kKW_Char == VartypeWithout(kVTT_Array, s_without_const));
+    return (IsArrayVartype(s) && kKW_Char == VartypeWithout(kVTT_Array, s_without_const));
 }
 
 AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int ssize)

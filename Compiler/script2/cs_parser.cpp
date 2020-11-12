@@ -796,7 +796,7 @@ AGS::Parser::Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt
 
 void AGS::Parser::SetDynpointerInManagedVartype(Vartype &vartype)
 {
-    if (_sym.IsManaged(vartype))
+    if (_sym.IsManagedVartype(vartype))
         vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
 }
 
@@ -820,11 +820,11 @@ size_t AGS::Parser::StacksizeOfLocals(size_t from_level)
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool AGS::Parser::ContainsReleasableDynpointers(AGS::Vartype vartype)
 {
-    if (_sym.IsDyn(vartype))
+    if (_sym.IsDynVartype(vartype))
         return true;
-    if (_sym.IsArray(vartype))
+    if (_sym.IsArrayVartype(vartype))
         return ContainsReleasableDynpointers(_sym.GetVartype(vartype));
-    if (!_sym.IsStruct(vartype))
+    if (!_sym.IsStructVartype(vartype))
         return false; // Atomic non-structs can't have pointers
 
     std::vector<Symbol> compo_list;
@@ -893,7 +893,7 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
             WriteCmd(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.SOffset;
 
-        if (_sym.IsDyn(entry.Vartype))
+        if (_sym.IsDynVartype(entry.Vartype))
         {
             WriteCmd(SCMD_MEMZEROPTR);
             continue;
@@ -901,9 +901,9 @@ void AGS::Parser::FreeDynpointersOfStruct(AGS::Symbol struct_vtype, bool &clobbe
 
         if (compo_list.back() != *compo_it)
             PushReg(SREG_MAR);
-        if (entry.IsArray(_sym))
+        if (entry.IsArrayVartype(_sym))
             FreeDynpointersOfStdArray(*compo_it, clobbers_ax);
-        else if (entry.IsStruct(_sym))
+        else if (entry.IsStructVartype(_sym))
             FreeDynpointersOfStruct(entry.Vartype, clobbers_ax);
         if (compo_list.back() != *compo_it)
             PopReg(SREG_MAR);
@@ -941,13 +941,13 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
         return;
     Vartype const element_vartype =
         _sym.GetVartype(_sym.GetVartype(the_array));
-    if (_sym.IsDynpointer(element_vartype))
+    if (_sym.IsDynpointerVartype(element_vartype))
     {
         FreeDynpointersOfStdArrayOfDynpointer(num_of_elements, clobbers_ax);
         return;
     }
 
-    if (_sym.IsStruct(element_vartype))
+    if (_sym.IsStructVartype(element_vartype))
         FreeDynpointersOfStdArrayOfStruct(element_vartype, _sym[the_array], clobbers_ax);
 
     return;
@@ -978,11 +978,11 @@ ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &clobber
             // Set MAR to the start of the construct that contains releasable pointers
             WriteCmd(SCMD_LOADSPOFFS, _scrip.offset_to_local_var_block - _sym[s].SOffset);
             clobbers_mar = true;
-            if (_sym.IsDyn(s_vartype))
+            if (_sym.IsDynVartype(s_vartype))
                 WriteCmd(SCMD_MEMZEROPTR);
-            else if (_sym.IsArray(s_vartype))
+            else if (_sym.IsArrayVartype(s_vartype))
                 FreeDynpointersOfStdArray(s, clobbers_ax);
-            else if (_sym.IsStruct(s_vartype))
+            else if (_sym.IsStructVartype(s_vartype))
                 FreeDynpointersOfStruct(s_vartype, clobbers_ax);
         }
     }
@@ -1124,7 +1124,7 @@ ErrorType AGS::Parser::HandleEndOfSwitch()
 
     // Get correct comparison operation: Don't compare strings as pointers but as strings
     CodeCell const eq_opcode =
-        _sym.IsAnyTypeOfString(_nest.SwitchExprVartype()) ? SCMD_STRINGSEQUAL : SCMD_ISEQUAL;
+        _sym.IsAnyStringVartype(_nest.SwitchExprVartype()) ? SCMD_STRINGSEQUAL : SCMD_ISEQUAL;
 
     const size_t number_of_cases = _nest.Chunks().size();
     for (size_t cases_idx = 0; cases_idx < number_of_cases; ++cases_idx)
@@ -1210,7 +1210,7 @@ ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(AGS::Vartype param_type
         default_value_symbol = _src.GetNext();
     }
 
-    if (_sym.IsDyn(param_type))
+    if (_sym.IsDynVartype(param_type))
     {
         default_value.Type = SymbolTableEntry::kDT_Dyn;
         default_value.DynDefault = nullptr;
@@ -1299,7 +1299,7 @@ ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extende
 
     _src.GetNext(); // Eat "this" or "static"
     struct_of_func = _src.GetNext();
-    if (!_sym.IsStruct(struct_of_func))
+    if (!_sym.IsStructVartype(struct_of_func))
     {
         Error("Expected a struct type instead of '%s'", _sym.GetName(struct_of_func).c_str());
         return kERR_UserError;
@@ -1393,7 +1393,7 @@ ErrorType AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
     ErrorType retval = EatDynpointerSymbolIfPresent(vartype);
     if (retval < 0) return retval;
 
-    if (kPP_Main == _pp && !_sym.IsManaged(vartype) && _sym.IsStruct(vartype))
+    if (kPP_Main == _pp && !_sym.IsManagedVartype(vartype) && _sym.IsStructVartype(vartype))
     {
         Error("'%s' is non-managed; a non-managed struct cannot be passed as parameter", _sym.GetName(vartype).c_str());
         return kERR_UserError;
@@ -1802,7 +1802,7 @@ ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_
         return kERR_UserError;
     }
 
-    if (!_sym.IsManaged(return_vartype) && _sym.IsStruct(return_vartype))
+    if (!_sym.IsManagedVartype(return_vartype) && _sym.IsStructVartype(return_vartype))
     {
         Error("Can only return a struct when it is 'managed'");
         return kERR_UserError;
@@ -2049,8 +2049,8 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
         return kERR_None;
     }
 
-    bool const iatos1 = _sym.IsAnyTypeOfString(vartype1);
-    bool const iatos2 = _sym.IsAnyTypeOfString(vartype2);
+    bool const iatos1 = _sym.IsAnyStringVartype(vartype1);
+    bool const iatos2 = _sym.IsAnyStringVartype(vartype2);
 
     if (iatos1 || iatos2)
     {
@@ -2073,10 +2073,10 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
         return kERR_None;
     }
 
-    if (((_sym.IsDynpointer(vartype1) || kKW_Null == vartype1) &&
-        (_sym.IsDynpointer(vartype2) || kKW_Null == vartype2)) ||
-        ((_sym.IsDynarray(vartype1) || kKW_Null == vartype1) &&
-        (_sym.IsDynarray(vartype2) || kKW_Null == vartype2)))
+    if (((_sym.IsDynpointerVartype(vartype1) || kKW_Null == vartype1) &&
+        (_sym.IsDynpointerVartype(vartype2) || kKW_Null == vartype2)) ||
+        ((_sym.IsDynarrayVartype(vartype1) || kKW_Null == vartype1) &&
+        (_sym.IsDynarrayVartype(vartype2) || kKW_Null == vartype2)))
     {
         switch (opcode)
         {
@@ -2089,7 +2089,7 @@ ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartyp
     }
 
     // Other combinations of managed types won't mingle
-    if (_sym.IsDynpointer(vartype1) || _sym.IsDynpointer(vartype2))
+    if (_sym.IsDynpointerVartype(vartype1) || _sym.IsDynpointerVartype(vartype2))
     {
         Error("The operator cannot be applied to values of these types");
         return kERR_UserError;
@@ -2115,8 +2115,8 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     // Can convert null to dynpointer or dynarray
     if (kKW_Null == vartype_is)
         return
-            !_sym.IsDynpointer(vartype_wants_to_be) &&
-            !_sym.IsDynarray(vartype_wants_to_be);
+            !_sym.IsDynpointerVartype(vartype_wants_to_be) &&
+            !_sym.IsDynarrayVartype(vartype_wants_to_be);
 
     // can convert String * to const string
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(kVTT_Dynpointer, vartype_is) &&
@@ -2141,7 +2141,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     // Note: the position of this test is important.
     // Don't "group" string tests "together" and move this test above or below them.
     // cannot convert const to non-const
-    if (_sym.IsConst(vartype_is) && !_sym.IsConst(vartype_wants_to_be))
+    if (_sym.IsConstVartype(vartype_is) && !_sym.IsConstVartype(vartype_wants_to_be))
         return true;
 
     if (_sym.IsOldstring(vartype_is))
@@ -2160,10 +2160,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return false;
 
     // Checks to do if at least one is dynarray
-    if (_sym.IsDynarray(vartype_is) || _sym.IsDynarray(vartype_wants_to_be))
+    if (_sym.IsDynarrayVartype(vartype_is) || _sym.IsDynarrayVartype(vartype_wants_to_be))
     {
         // BOTH sides must be dynarray 
-        if (_sym.IsDynarray(vartype_is) != _sym.IsDynarray(vartype_wants_to_be))
+        if (_sym.IsDynarrayVartype(vartype_is) != _sym.IsDynarrayVartype(vartype_wants_to_be))
             return false;
 
         // The underlying core vartypes must be identical:
@@ -2175,10 +2175,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     }
 
     // Checks to do if at least one is dynpointer
-    if (_sym.IsDynpointer(vartype_is) || _sym.IsDynpointer(vartype_wants_to_be))
+    if (_sym.IsDynpointerVartype(vartype_is) || _sym.IsDynpointerVartype(vartype_wants_to_be))
     {
         // BOTH sides must be dynpointer
-        if (_sym.IsDynpointer(vartype_is) != _sym.IsDynpointer(vartype_wants_to_be))
+        if (_sym.IsDynpointerVartype(vartype_is) != _sym.IsDynpointerVartype(vartype_wants_to_be))
             return true;
 
         // Core vartypes need not be identical here: check against extensions
@@ -2194,8 +2194,8 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     }
 
     // Checks to do if at least one is a struct or an array
-    if (_sym.IsStruct(vartype_is) || _sym.IsStruct(vartype_wants_to_be) ||
-        _sym.IsArray(vartype_is) || _sym.IsArray(vartype_wants_to_be))
+    if (_sym.IsStructVartype(vartype_is) || _sym.IsStructVartype(vartype_wants_to_be) ||
+        _sym.IsArrayVartype(vartype_is) || _sym.IsArrayVartype(vartype_wants_to_be))
         return (vartype_is != vartype_wants_to_be);
 
     return false;
@@ -2266,15 +2266,15 @@ int AGS::Parser::GetWriteCommandForSize(int the_size)
 
 ErrorType AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc)
 {
-    if (_sym.IsArray(vartype))
+    if (_sym.IsArrayVartype(vartype))
     {
         Error("Cannot access array as a whole (did you forget to add \"[0]\"?)");
         return kERR_UserError;
     }
 
-    if (_sym.IsAtomic(vartype) && _sym.IsStruct(vartype))
+    if (_sym.IsAtomic(vartype) && _sym.IsStructVartype(vartype))
     {
-        if (_sym.IsManaged(vartype))
+        if (_sym.IsManagedVartype(vartype))
         {
             // Interpret the memory address as the result
             vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
@@ -2303,7 +2303,7 @@ ErrorType AGS::Parser::ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AG
         WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     else
         WriteCmd(
-            _sym.IsDyn(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
+            _sym.IsDynVartype(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
     vloc = kVL_ax_is_value;
     return kERR_None;
@@ -2325,7 +2325,7 @@ ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype new_vartype)
         return kERR_UserError;
     }
 
-    if (!_sym.IsAnyIntegerVartype(new_vartype) && !_sym.IsManaged(new_vartype))
+    if (!_sym.IsAnyIntegerVartype(new_vartype) && !_sym.IsManagedVartype(new_vartype))
     {
         Error("Can only use integer or managed types with 'new'");
         return kERR_UserError;
@@ -2565,7 +2565,7 @@ ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &express
             return kERR_InternalError;
         }
         ResultToAX(vloc, term2_scope_type, term2_vartype);
-        if (_sym.IsAnyTypeOfString(term2_vartype))
+        if (_sym.IsAnyStringVartype(term2_vartype))
         {
             ConvertAXStringToStringObject(_sym.GetStringStructSym());
             term2_vartype = _scrip.ax_vartype;
@@ -2582,7 +2582,7 @@ ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &express
         // to the end of the expression if the test does NOT yield zero
         term2_vartype = term1_vartype;
         term2_scope_type = term1_scope_type;
-        if (_sym.IsAnyTypeOfString(term2_vartype))
+        if (_sym.IsAnyStringVartype(term2_vartype))
         {
             ConvertAXStringToStringObject(_sym.GetStringStructSym());
             term2_vartype = _scrip.ax_vartype;
@@ -2604,7 +2604,7 @@ ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &express
     retval = ParseExpression_Term(term3, vloc, term3_scope_type, term3_vartype);
     if (retval < 0) return retval;
     ResultToAX(vloc, term3_scope_type, term3_vartype);
-    if (_sym.IsAnyTypeOfString(term3_vartype))
+    if (_sym.IsAnyStringVartype(term3_vartype))
     {
         ConvertAXStringToStringObject(_sym.GetStringStructSym());
         term3_vartype = _scrip.ax_vartype;
@@ -3248,7 +3248,7 @@ ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &exp
     bool const call_is_indexed =
         (kKW_OpenBracket == expression.PeekNext());
     bool const attrib_is_indexed =
-        _sym.IsDynarray(name_of_attribute);
+        _sym.IsDynarrayVartype(name_of_attribute);
 
     if (call_is_indexed && !attrib_is_indexed)
     {
@@ -3434,8 +3434,8 @@ ErrorType AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_arr
         return kERR_None;
     expression.GetNext(); // Eat '['
 
-    bool const is_dynarray = _sym.IsDynarray(vartype);
-    bool const is_array = _sym.IsArray(vartype);
+    bool const is_dynarray = _sym.IsDynarrayVartype(vartype);
+    bool const is_array = _sym.IsArrayVartype(vartype);
     if (!is_dynarray && !is_array)
     {
         Error("Array index is only legal after an array expression");
@@ -3651,7 +3651,7 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         vloc = kVL_ax_is_value;
         ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
         if (retval < 0) return retval;
-        if (_sym.IsDynarray(vartype))
+        if (_sym.IsDynarrayVartype(vartype))
             return AccessData_ProcessAnyArrayIndex(vloc, expression, vloc, mloc, vartype);
         return kERR_None;
     }
@@ -3760,7 +3760,7 @@ ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         retval = AccessData_FunctionCall(component, start_of_funccall, mloc, vartype);
         if (retval < 0) return retval;
-        if (_sym.IsDynarray(vartype))
+        if (_sym.IsDynarrayVartype(vartype))
             return AccessData_ProcessAnyArrayIndex(vloc, expression, vloc, mloc, vartype);
         return kERR_None;
     }
@@ -3859,16 +3859,16 @@ ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocati
         outer_vartype = vartype;
 
         // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
-        if (_sym.IsDynpointer(vartype))
+        if (_sym.IsDynpointerVartype(vartype))
         {
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
             vartype = _sym.VartypeWithout(kVTT_Dynpointer, vartype);
         }
 
-        if (!_sym.IsStruct(vartype) || !_sym.IsAtomic(vartype))
+        if (!_sym.IsStructVartype(vartype) || !_sym.IsAtomic(vartype))
         {
-            if (_sym.IsArray(vartype) || _sym.IsDynarray(vartype))
+            if (_sym.IsArrayVartype(vartype) || _sym.IsDynarrayVartype(vartype))
                 Error("Expected a struct in front of '.' but found an array instead");
             else        
                 Error(
@@ -3999,7 +3999,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
 
     if (kVL_ax_is_value == vloc)
     {
-        if (!_sym.IsManaged(lhsvartype))
+        if (!_sym.IsManagedVartype(lhsvartype))
         {
             Error("Cannot modify this value");
             return kERR_UserError;
@@ -4048,7 +4048,7 @@ ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     }
 
     CodeCell const opcode =
-        _sym.IsDyn(lhsvartype) ?
+        _sym.IsDynVartype(lhsvartype) ?
         SCMD_MEMWRITEPTR : GetWriteCommandForSize(_sym.GetSize(lhsvartype));
     WriteCmd(opcode, SREG_AX);
     _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
@@ -4412,13 +4412,13 @@ ErrorType AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, vo
     initial_val_ptr = nullptr;
     _src.GetNext(); // Eat '='
 
-    if (_sym.IsManaged(varname))
+    if (_sym.IsManagedVartype(varname))
     {
         Error("Cannot assign an initial value to a managed type or String");
         return kERR_UserError;
     }
 
-    if (_sym.IsStruct(varname))
+    if (_sym.IsStructVartype(varname))
     {
         Error("Cannot initialize struct type");
         return kERR_UserError;
@@ -4597,7 +4597,7 @@ ErrorType AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, AGS::Va
 ErrorType AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, AGS::Vartype vartype, bool has_initial_assignment)
 {
     size_t const var_size = _sym.GetSize(vartype);
-    bool const is_dyn = _sym.IsDyn(vartype);
+    bool const is_dyn = _sym.IsDynVartype(vartype);
 
     _sym[var_name].SOffset = _scrip.offset_to_local_var_block;
 
@@ -4763,7 +4763,7 @@ ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func, AGS::Symbol nam
     for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value param_idx == 0
     {
         Vartype const param_vartype = _sym[name_of_func].FuncParamVartypes[param_idx];
-        if (!_sym.IsDyn(param_vartype))
+        if (!_sym.IsDynVartype(param_vartype))
             continue;
 
         // The return address is on top of the stack, so the nth param is at (n+1)th position
@@ -4852,17 +4852,17 @@ ErrorType AGS::Parser::ParseStruct_ExtendsClause(AGS::Symbol stname, size_t &siz
         Error("Expected a struct type here");
         return kERR_UserError;
     }
-    if (!_sym.IsStruct(parent))
+    if (!_sym.IsStructVartype(parent))
     {
         Error("Must extend a struct type");
         return kERR_UserError;
     }
-    if (!_sym.IsManaged(parent) && _sym.IsManaged(stname))
+    if (!_sym.IsManagedVartype(parent) && _sym.IsManagedVartype(stname))
     {
         Error("Managed struct cannot extend the unmanaged struct '%s'", _sym.GetName(parent).c_str());
         return kERR_UserError;
     }
-    if (_sym.IsManaged(parent) && !_sym.IsManaged(stname))
+    if (_sym.IsManagedVartype(parent) && !_sym.IsManagedVartype(stname))
     {
         Error("Unmanaged struct cannot extend the managed struct '%s'", _sym.GetName(parent).c_str());
         return kERR_UserError;
@@ -5005,7 +5005,7 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
 
 ErrorType AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, AGS::Vartype vartype, bool member_is_import)
 {
-    if (Vartype2Symbol(vartype) == stname && !_sym.IsManaged(vartype))
+    if (Vartype2Symbol(vartype) == stname && !_sym.IsManagedVartype(vartype))
     {
         // cannot do "struct A { A varname; }", this struct would be infinitely large
         Error("Struct '%s' cannot be a member of itself", _sym.GetName(vartype).c_str());
@@ -5277,7 +5277,7 @@ ErrorType AGS::Parser::ParseArray(AGS::Symbol vname, AGS::Vartype &vartype)
             Error("Dynamic arrays of old-style strings are not supported");
             return kERR_UserError;
         }
-        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManaged(vartype) && kKW_Float != vartype)
+        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManagedVartype(vartype) && kKW_Float != vartype)
         {
             Error("Can only have dynamic arrays of integer types, float or managed structs. '%s' isn't any of this.", _sym.GetName(vartype).c_str());
             return kERR_UserError;
@@ -5323,7 +5323,7 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
 {
     if (kPP_Main == _pp)
     {
-        if (_sym.IsBuiltin(vartype) && !_sym.IsDyn(vartype))
+        if (_sym.IsBuiltin(vartype) && !_sym.IsDynVartype(vartype))
         {
             Error("'%s' is a builtin non-managed struct; struct members of that type are not supported",
                 _sym.GetName(vartype).c_str());
@@ -5337,7 +5337,7 @@ ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs,
             return kERR_UserError;
         }
 
-        if (_sym.IsManaged(vartype) && _sym.IsManaged(stname) && !FlagIsSet(tqs, kTQ_Attribute))
+        if (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(stname) && !FlagIsSet(tqs, kTQ_Attribute))
         {
             // This is an Engine restriction
             Error("Cannot currently have managed variable components in managed struct");
@@ -5388,7 +5388,7 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
         return ParseStruct_FuncDecl(name_of_struct, var_or_func_name, tqs, vartype);
 
     size_t const declaration_start = _src.GetCursor();
-    if (_sym.IsDynarray(vartype)) // e.g., int [] zonk;
+    if (_sym.IsDynarrayVartype(vartype)) // e.g., int [] zonk;
     {
         Error("Expected '('");
         return kERR_UserError;
@@ -5421,7 +5421,7 @@ ErrorType AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
     if (kKW_Dynpointer != _src.PeekNext())
         return kERR_None;
 
-    if (kPP_PreAnalyze == _pp || _sym.IsManaged(vartype))
+    if (kPP_PreAnalyze == _pp || _sym.IsManagedVartype(vartype))
     {
         _src.GetNext(); // Eat '*'
         return kERR_None;
@@ -5948,7 +5948,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
 
     // Only imply a pointer for a managed entity if it isn't imported.
     if ((kScT_Import == scope_type && kKW_Dynpointer == _src.PeekNext()) ||
-        (kScT_Import != scope_type && _sym.IsManaged(vartype)))
+        (kScT_Import != scope_type && _sym.IsManagedVartype(vartype)))
     {
         vartype = _sym.VartypeWith(kVTT_Dynpointer, vartype);
     }
@@ -5992,7 +5992,7 @@ ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbo
             if (body_follows)
                 return kERR_None;
         }
-        else if (_sym.IsDynarray(vartype) || no_loop_check) // e.g., int [] zonk;
+        else if (_sym.IsDynarrayVartype(vartype) || no_loop_check) // e.g., int [] zonk;
         {
             Error("Expected '('");
             return kERR_UserError;
@@ -6104,7 +6104,7 @@ ErrorType AGS::Parser::ParseReturn(AGS::Symbol name_of_current_func)
     if (retval < 0) return retval;
 
     // If locals contain pointers, free them
-    if (_sym.IsDyn(functionReturnType))
+    if (_sym.IsDynVartype(functionReturnType))
         FreeDynpointersOfAllLocals_DynResult(); // Special protection for result needed
     else if (kKW_Void != functionReturnType)
         FreeDynpointersOfAllLocals_KeepAX();

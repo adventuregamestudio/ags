@@ -178,7 +178,7 @@ private:
     static Entry _noError;
 
 public:
-    void AddMessage(Severity sev, std::string const &sec, size_t line, std::string const msg)
+    inline void AddMessage(Severity sev, std::string const &sec, size_t line, std::string const &msg)
         {_entries.emplace_back(sev, sec, line, msg); }
     inline MessagesType GetMessages() const { return _entries; }
     inline void Clear() { _entries.clear(); }

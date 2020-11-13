@@ -85,7 +85,7 @@ int fli_pal_dirty_to = INT_MIN;
 
 int fli_frame = 0;                     /* current frame number in the FLI */
 
-volatile int fli_timer = 0;            /* for timing FLI playback */
+int fli_speed = 0;                     /* speed of the fli playback */
 
 static PACKFILE *fli_file = NULL;      /* the file we are reading */
 static char *fli_filename = NULL;      /* name of the file */
@@ -97,18 +97,6 @@ static FLI_HEADER fli_header;          /* header structure */
 static FLI_FRAME frame_header;         /* frame header structure */
 
 static unsigned char _fli_broken_data[3 * 256]; /* data substituted for broken chunks */
-
-
-
-/* fli_timer_callback:
- *  Timer interrupt handler for syncing FLI files.
- */
-static void fli_timer_callback(void)
-{
-   fli_timer++;
-}
-
-END_OF_STATIC_FUNCTION(fli_timer_callback);
 
 
 
@@ -871,22 +859,15 @@ static int do_open_fli(void)
 
    reset_fli_variables();
    fli_frame = 0;
-   fli_timer = 2;
    fli_status = FLI_OK;
 
-   /* install the timer handler */
-   LOCK_VARIABLE(fli_timer);
-   LOCK_FUNCTION(fli_timer_callback);
-
    if (fli_header.type == FLI_MAGIC1)
-      speed = BPS_TO_TIMER(70) * (long)fli_header.speed;
+      fli_speed = (1000 * (long)fli_header.speed) / 70;
    else
-      speed = MSEC_TO_TIMER((long)fli_header.speed);
+      fli_speed = (long)fli_header.speed;
 
-   if (speed == 0)
-      speed = BPS_TO_TIMER(70);
-
-   install_int_ex(fli_timer_callback, speed);
+   if (fli_speed == 0)
+      fli_speed = 1000 / 70;
 
    return fli_status;
 }
@@ -969,7 +950,7 @@ int open_memory_fli(void *fli_data)
  */
 void close_fli(void)
 {
-   remove_int(fli_timer_callback);
+   fli_speed = 0;
 
    if (fli_file) {
       /* if fli_filename is NULL this means that the packfile was 
@@ -1016,8 +997,6 @@ int next_fli_frame(int loop)
 
    if (fli_status != FLI_OK)
       return fli_status;
-
-   fli_timer--;
 
    /* end of file? should we loop? */
    if (fli_frame >= fli_header.frame_count) {

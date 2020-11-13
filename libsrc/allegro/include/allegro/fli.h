@@ -51,7 +51,7 @@ AL_VAR(int, fli_pal_dirty_to);
 
 AL_VAR(int, fli_frame);                /* current frame number */
 
-AL_VAR(volatile int, fli_timer);       /* for timing FLI playback */
+AL_VAR(int, fli_speed);                /* FLI playback speed factor, in milliseconds */
 
 #ifdef __cplusplus
    }

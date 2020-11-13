@@ -175,6 +175,12 @@
     <Filter Include="Header Files\platform\windows">
       <UniqueIdentifier>{c3e78d00-def2-49a7-9fa4-d5f693d14655}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Sources\MojoAL">
+      <UniqueIdentifier>{b04763fd-6213-43f6-8309-fd556b59eadd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\MojoAL\AL">
+      <UniqueIdentifier>{c683eef3-2c8f-4b45-af32-2423f41102ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -1031,6 +1037,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp">
       <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
+      <Filter>Library Sources\MojoAL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1909,6 +1918,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h">
       <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h">
+      <Filter>Library Sources\MojoAL\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h">
+      <Filter>Library Sources\MojoAL\AL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -111,10 +111,10 @@ AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
 }
 
 AGS::SymbolTable::SymbolTable()
+    : _stringStructSym (kKW_NoSymbol)
+    , _stringStructPtrSym(kKW_NoSymbol)
 {
-    _stringStructSym = _stringStructPtrSym = kKW_NoSymbol;
-
-    _findCache.clear();
+   _findCache.clear();
     _vartypesCache.clear();
 
     entries.clear();

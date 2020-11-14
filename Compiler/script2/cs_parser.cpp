@@ -3580,7 +3580,6 @@ ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression,
         vartype = _sym.GetVartype(kKW_This);
         if (_sym[vartype].VartypeD->Components.count(first_sym))
         {
-            Symbol const qualified_name = _sym[vartype].VartypeD->Components[first_sym];
             vloc = kVL_MAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
@@ -4652,7 +4651,7 @@ ErrorType AGS::Parser::ParseVardecl(Symbol var_name, AGS::Vartype vartype, Scope
 
     if (ScT::kLocal == scope_type)
     {
-        ErrorType retval = ParseVardecl_CheckAndStashOldDefn(var_name);
+        retval = ParseVardecl_CheckAndStashOldDefn(var_name);
         if (retval < 0) return retval;
     }
 
@@ -5302,7 +5301,6 @@ ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifi
         Symbol const parent = FindStructOfComponent(name_of_struct, unqualified_component);
         if (kKW_NoSymbol != parent)
         {
-            Symbol const qualified_component = _sym[parent].VartypeD->Components[unqualified_component];
             Error(
                 ReferenceMsgSym(
                     "The struct '%s' extends '%s', and '%s' is already defined",
@@ -7041,7 +7039,7 @@ ErrorType AGS::Parser::Parse()
 
         return Parse_BlankOutUnusedImports();
     }
-    catch (std::exception e)
+    catch (std::exception const &e)
     {
         std::string const msg = std::string{ "Exception encountered: currentline %d, " } + e.what();
         Error(msg.c_str(), currentline);

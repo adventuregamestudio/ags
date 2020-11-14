@@ -544,7 +544,7 @@ private:
     ErrorType ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
     // Enter the function in the imports[] or functions[] array; get its index   
-    ErrorType ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, CodeLoc &function_soffs, int &function_idx);
+    ErrorType ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs);
 
     // We're at something like "int foo(", directly before the "("
     // Find out whether the symbol that follows the corresponding ")" is "{"

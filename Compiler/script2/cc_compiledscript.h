@@ -48,9 +48,8 @@ struct ccCompiledScript : public ccScript {
     // Set a fixup to the last code cell written
     inline void fixup_previous(FixupType ftype) { add_fixup(codesize - 1, ftype); };
 
-    // Add a function named 'func_name' to the functions repository; if set, index_allocated gets where it is stored
-    // Returns the offset of the function start in the code[] space
-    CodeLoc add_new_function(std::string const &func_name, int *index_allocated = nullptr);
+    // Add a function named 'func_name' to the functions repository
+    CodeLoc AddNewFunction(std::string const &func_name, size_t num_of_parameters);
 
     // Add an import to the import repository; return the index of the import
     int add_new_import(std::string const &import_name);

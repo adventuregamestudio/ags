@@ -1630,12 +1630,12 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string 
 }
 
 // Enter the function in the imports[] or functions[] array; get its index   
-AGS::ErrorType AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import,CodeLoc &function_soffs, int &function_idx)
+AGS::ErrorType AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs)
 {
     if (body_follows)
     {
         // Index of the function in the ccCompiledScript::functions[] array
-        function_soffs = _scrip.add_new_function(_sym.GetName(name_of_func), &function_idx);
+        function_soffs = _scrip.AddNewFunction(_sym.GetName(name_of_func), num_of_parameters);
         if (function_soffs < 0)
         {
             Error("Max. number of functions exceeded");
@@ -1734,15 +1734,10 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
 {
     if (PP::kMain == _pp)
     {
-        // Get start offset and function index
-        int function_idx = -1; // Index in the _scrip.functions[] array
         int func_startoffs;
-        ErrorType retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], func_startoffs, function_idx);
+        ErrorType retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], _sym.NumOfFuncParams(name_of_func), func_startoffs);
         if (retval < 0) return retval;
         _sym[name_of_func].FunctionD->SOffset = func_startoffs;
-        if (function_idx >= 0)
-            _scrip.functions[function_idx].NumOfParams =
-            _sym.NumOfFuncParams(name_of_func);
     }
 
     if (!tqs[TQ::kImport])

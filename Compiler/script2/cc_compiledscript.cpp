@@ -121,15 +121,13 @@ void AGS::ccCompiledScript::add_fixup(CodeLoc where, FixupType ftype)
     numfixups++;
 }
 
-AGS::CodeLoc AGS::ccCompiledScript::add_new_function(std::string const &func_name, int *index_allocated)
+AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t num_of_parameters)
 {
     FuncProps fp;
     fp.Name = func_name;
     fp.CodeOffs = codesize;
-    fp.NumOfParams = 0;
+    fp.NumOfParams = num_of_parameters;
     functions.push_back(fp);
-    if (index_allocated)
-        *index_allocated = functions.size() - 1;
     return codesize;
 }
 
@@ -221,4 +219,5 @@ std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
 void AGS::ccCompiledScript::free_extra()
 {
     functions.clear();
+    functions.shrink_to_fit();
 }

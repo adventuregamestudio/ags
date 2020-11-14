@@ -63,7 +63,7 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 
 AGS::ccCompiledScript::~ccCompiledScript()
 {
-    free_extra();
+    FreeExtra();
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
@@ -112,7 +112,7 @@ AGS::StringsLoc AGS::ccCompiledScript::add_string(std::string const &literal)
     return start_of_new_string;
 }
 
-void AGS::ccCompiledScript::add_fixup(CodeLoc where, FixupType ftype)
+void AGS::ccCompiledScript::AddFixup(CodeLoc where, FixupType ftype)
 {
     fixuptypes = (char *) realloc(fixuptypes, numfixups + 5);
     fixups = static_cast<CodeLoc *>(realloc(
@@ -219,7 +219,7 @@ std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
 }
 
 // free the extra bits that ccScript doesn't have
-void AGS::ccCompiledScript::free_extra()
+void AGS::ccCompiledScript::FreeExtra()
 {
     Functions.clear();
     Functions.shrink_to_fit();

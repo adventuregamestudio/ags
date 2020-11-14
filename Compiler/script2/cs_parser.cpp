@@ -400,7 +400,7 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
 
     size_t const fixups_size = item.Fixups.size();
     for (size_t fixups_idx = 0u; fixups_idx < fixups_size; fixups_idx++)
-        _scrip.add_fixup(
+        _scrip.AddFixup(
             item.Fixups[fixups_idx] + start_of_insert,
             item.FixupTypes[fixups_idx]);
 
@@ -636,7 +636,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
     case ScT::kGlobal:
         scrip.refresh_lineno(lineno);
         scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
-        scrip.fixup_previous(Parser::kFx_GlobalData);
+        scrip.FixupPrevious(Parser::kFx_GlobalData);
         break;
 
     case ScT::kImport:
@@ -644,7 +644,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
         // Can only then add the offset to it.
         scrip.refresh_lineno(lineno);
         scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
-        scrip.fixup_previous(Parser::kFx_Import);
+        scrip.FixupPrevious(Parser::kFx_Import);
         if (_componentOffs != 0)
             scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
         break;
@@ -2888,7 +2888,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
 
     if (func_is_import)
     {   
-        _scrip.fixup_previous(kFx_Import); 
+        _scrip.FixupPrevious(kFx_Import);
         if (!_scrip.IsImport(_sym.GetName(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
 
@@ -2900,7 +2900,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     }
 
     // Func is non-import
-    _scrip.fixup_previous(kFx_Code);
+    _scrip.FixupPrevious(kFx_Code);
     if (_fcm.IsForwardDecl(name_of_func))
         _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
 
@@ -6529,7 +6529,7 @@ AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &
 
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
-        _scrip.fixup_previous(kFx_String);
+        _scrip.FixupPrevious(kFx_String);
     _scrip.AX_Vartype = vartype;
     _scrip.AX_ScopeType = ScT::kGlobal;
     vl = kVL_AX_is_value;

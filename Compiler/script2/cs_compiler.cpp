@@ -136,6 +136,6 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
         }
     }
 
-    compiled_script->free_extra();
+    compiled_script->FreeExtra();
     return compiled_script;
 }

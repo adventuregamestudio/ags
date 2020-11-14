@@ -33,7 +33,7 @@ struct ccCompiledScript : public ccScript {
     // Needed to prevent a return of a local string
     ScopeType AX_ScopeType;
 
-    void free_extra();
+    void FreeExtra();
 
     // Reserve siz bytes of memory for global data;
     // copy the value at vall into this new memory space if given; 
@@ -46,10 +46,10 @@ struct ccCompiledScript : public ccScript {
 
     // Set a fixup to the code location given. Depending on the fixup type,
     // where can be an offset to the global memory, too.
-    void add_fixup(CodeLoc where, FixupType ftype);
+    void AddFixup(CodeLoc where, FixupType ftype);
 
     // Set a fixup to the last code cell written
-    inline void fixup_previous(FixupType ftype) { add_fixup(codesize - 1, ftype); };
+    inline void FixupPrevious(FixupType ftype) { AddFixup(codesize - 1, ftype); };
 
     // Add a function named 'func_name' to the functions repository
     CodeLoc AddNewFunction(std::string const &func_name, size_t num_of_parameters);

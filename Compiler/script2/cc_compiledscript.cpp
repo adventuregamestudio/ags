@@ -135,7 +135,7 @@ AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name,
 
 int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
 {
-    if (0 < ImportIdx.count(import_name))
+    if (0u < ImportIdx.count(import_name))
         return ImportIdx[import_name];
 
     if (numimports >= importsCapacity)
@@ -148,9 +148,16 @@ int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
     return (ImportIdx[import_name] = numimports++);
 }
 
-int AGS::ccCompiledScript::add_new_export(std::string const &name, Exporttype etype, CodeLoc location, size_t num_of_arguments)
+int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments)
 {
-    // add_new_export(std::string const &name, AGS::Vartype vartype, AGS::CodeLoc location, size_t num_of_arguments = 0);
+    bool const is_function = (INT_MAX != num_of_arguments);
+    // Exported functions get the number of parameters appended
+    std::string const export_name =
+        is_function ? name + "$" + std::to_string(num_of_arguments) : name;
+
+    if (0u < ExportIdx.count(export_name))
+        return ExportIdx[export_name];
+
     if (numexports >= exportsCapacity)
     {
         exportsCapacity += 1000;
@@ -163,21 +170,13 @@ int AGS::ccCompiledScript::add_new_export(std::string const &name, Exporttype et
         return -1;
     }
     
-    // mangle the name for functions to record parameters
-    std::string new_name(name);
-    if (etype == EXPORT_FUNCTION)
-        new_name.append("$").append(std::to_string(num_of_arguments));
- 
-    // Check if it's already exported
-    for (int exports_idx = 0; exports_idx < numexports; exports_idx++)
-        if (0 == new_name.compare(exports[exports_idx]))
-            return exports_idx;
-
-    size_t const new_name_size = new_name.size() + 1;
-    exports[numexports] = static_cast<char *>(malloc(new_name_size));
-    strncpy(exports[numexports], new_name.c_str(), new_name_size);
-    export_addr[numexports] = location | (static_cast<long>(etype) << 24L);
-    return numexports++;
+    size_t const entry_size = export_name.size() + 1u;
+    exports[numexports] = static_cast<char *>(malloc(entry_size));
+    strncpy(exports[numexports], export_name.c_str(), entry_size);
+    export_addr[numexports] =
+        location |
+        static_cast<CodeLoc>(is_function? EXPORT_FUNCTION : EXPORT_DATA) << 24L;
+    return (ExportIdx[export_name] = numexports++);
 }
 
 void AGS::ccCompiledScript::write_code(CodeCell cell)
@@ -224,6 +223,6 @@ void AGS::ccCompiledScript::free_extra()
 {
     Functions.clear();
     Functions.shrink_to_fit();
-
     ImportIdx.clear();
+    ExportIdx.clear();
 }

@@ -124,9 +124,8 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
         // export all functions
         for (size_t func_num = 0; func_num < compiled_script->Functions.size(); func_num++)
         {
-            if (-1 == compiled_script->add_new_export(
+            if (-1 == compiled_script->AddExport(
                 compiled_script->Functions[func_num].Name,
-                EXPORT_FUNCTION,
                 compiled_script->Functions[func_num].CodeOffs,
                 compiled_script->Functions[func_num].NumOfParams))
             {

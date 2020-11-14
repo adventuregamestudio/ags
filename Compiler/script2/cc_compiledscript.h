@@ -19,6 +19,7 @@ struct ccCompiledScript : public ccScript {
     std::vector<FuncProps> Functions;
 
     std::unordered_map<std::string, int> ImportIdx;
+    std::unordered_map<std::string, int> ExportIdx;
 
     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
     size_t OffsetToLocalVarBlock;
@@ -61,7 +62,7 @@ struct ccCompiledScript : public ccScript {
     // Add an exported entity to the export repository;
     // it has type vartype, resides at location; if it is a function
     // Note: This function returns -1 on error
-    int add_new_export(std::string const &name, Exporttype etype,CodeLoc location, size_t num_of_arguments = 0);
+    int AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments = INT_MAX);
 
     // Start a new section of the code.
     std::string start_new_section(std::string const &name);

@@ -5652,9 +5652,8 @@ AGS::ErrorType AGS::Parser::ParseExport_Function(Symbol func)
         return kERR_UserError;
     }
 
-    return static_cast<ErrorType>(_scrip.add_new_export(
+    return static_cast<ErrorType>(_scrip.AddExport(
         _sym.GetName(func).c_str(),
-        EXPORT_FUNCTION,
         _sym[func].FunctionD->SOffset,
         _sym.NumOfFuncParams(func) + 100 * _sym[func].FunctionD->IsVariadic));
 }
@@ -5679,11 +5678,9 @@ AGS::ErrorType AGS::Parser::ParseExport_Variable(Symbol var)
     // Note, if this is a string then the compiler keeps track of it by its first byte.
     // AFAICS, this _is_ exportable.
     
-    return static_cast<ErrorType>(_scrip.add_new_export(
+    return static_cast<ErrorType>(_scrip.AddExport(
         _sym.GetName(var).c_str(),
-        EXPORT_DATA,
-        _sym[var].VariableD->SOffset,
-        0u));
+        _sym[var].VariableD->SOffset));
 }
 
 AGS::ErrorType AGS::Parser::ParseExport()

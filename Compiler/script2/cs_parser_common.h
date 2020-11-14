@@ -11,7 +11,6 @@ typedef int Symbol; // A symbol (result of scanner preprocessing)
 typedef std::vector<Symbol> SymbolList;
 typedef long FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
-typedef int Exporttype; // e.g., EXPORT_FUNCTION
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode
 typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository

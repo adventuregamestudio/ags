@@ -8,7 +8,7 @@
 namespace AGS
 {
 typedef int Symbol; // A symbol (result of scanner preprocessing)
-typedef std::vector<Symbol> SymbolList; // A buffer of symbols 
+typedef std::vector<Symbol> SymbolList;
 typedef long FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
@@ -33,46 +33,6 @@ constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 
 inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
 inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
-
-enum class SymT     // Symbol Type. This class is used _everywhere_, thus the abbreviation.
-{
-    kNoType = 0,
-
-    kAttribute,
-    kDelimiter,
-    kConstant,
-    kFunction,
-    kGlobalVar,
-    kLiteralFloat,
-    kLiteralInt,
-    kLiteralString,
-    kLocalVar,
-    kOperator,
-    kStructComponent,
-    kAssign,
-    kAssignMod,         // Modifying assign, e.g. "+="
-    kAssignSOp,         // single-op assignemnt, eg "++", "--"
-    kKeyword,
-    kImport,
-    kUndefinedStruct,   // forward-declared struct
-    kVartype,
-};
-
-typedef enum class SymT SymbolType;
-
-// Types starting (numerically) with this aren't part of expressions
-constexpr SymbolType kLastInExpression = SymT::kStructComponent; // Types beyond here can't be in expressions
-
-enum SymbolTableFlag : FlagSet
-{
-    kSFLG_Accessed = 1 << 0, // If not set, the variable is never used
-    kSFLG_NoLoopCheck = 1 << 1, // A function that does not check for long-running loops
-    kSFLG_StructAutoPtr = 1 << 2, // "*" is implied
-    kSFLG_StructBuiltin = 1 << 3, // is built in (can't use "new")
-    kSFLG_StructMember = 1 << 4, // is a member 
-    kSFLG_StructManaged = 1 << 5, // is managed
-    kSFLG_StructVartype = 1 << 6, // is a struct 
-};
 
 enum ErrorType
 {

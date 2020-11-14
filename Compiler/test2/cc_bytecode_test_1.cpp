@@ -1262,6 +1262,84 @@ TEST_F(Bytecode1, Attributes07) {
     CompareStrings(&scrip, stringssize, strings);
 }
 
+TEST_F(Bytecode1, Attributes08) {
+
+    char *inpl = "\
+        builtin managed autoptr struct String           \n\
+        {                                               \n\
+            char Payload;                               \n\
+        };                                              \n\
+                                                        \n\
+        builtin managed struct ListBox                  \n\
+        {                                               \n\
+            import attribute String Items[];            \n\
+        };                                              \n\
+                                                        \n\
+        void ListBox::seti_Items(int idx, String val)   \n\
+        {                                               \n\
+        }                                               \n\
+                                                        \n\
+        String ListBox::geti_Items(int idx)             \n\
+        {                                               \n\
+        }                                               \n\
+                                                        \n\
+        void main()                                     \n\
+        {                                               \n\
+            ListBox L;                                  \n\
+            String S = L.Items[7];                      \n\
+            L.Items[8] = S;                             \n\
+        }                                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    WriteOutput("Attributes08", scrip);
+    size_t const codesize = 109;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   51,   12,            7,    3,   50,    3,    // 7
+      51,   12,   49,    5,           38,   12,    6,    3,    // 15
+       0,    5,   38,   18,           51,    0,   49,    1,    // 23
+       1,    4,   51,    4,           48,    2,   52,   29,    // 31
+       6,   29,    2,    6,            3,    7,   30,    2,    // 39
+      29,    3,   45,    2,            6,    3,   12,   23,    // 47
+       3,    2,    1,    4,           30,    6,   51,    0,    // 55
+      47,    3,    1,    1,            4,   51,    4,   48,    // 63
+       3,   29,    3,   51,           12,   48,    2,   52,    // 71
+      30,    3,   29,    6,           29,    3,   29,    2,    // 79
+       6,    3,    8,   30,            2,   29,    3,   45,    // 87
+       2,    6,    3,    0,           23,    3,    2,    1,    // 95
+       8,   30,    6,   51,            8,   49,   51,    4,    // 103
+      49,    2,    1,    8,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 2;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      46,   91,  -999
+    };
+    char fixuptypes[] = {
+      2,   2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
 TEST_F(Bytecode1, DynArrayOfPrimitives) {
     
     // Dynamic arrays of primitives are allowed.

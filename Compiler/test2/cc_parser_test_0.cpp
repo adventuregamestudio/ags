@@ -32,7 +32,7 @@ protected:
 
 TEST_F(Compile0, UnknownVartypeAfterReadonly) {   
 
-    // Must have a know vartype in struct
+    // Must have a known vartype in struct
 
     char *inpl = "\
         struct MyStruct     \n\
@@ -43,7 +43,6 @@ TEST_F(Compile0, UnknownVartypeAfterReadonly) {
         ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
@@ -65,7 +64,6 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
     ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
@@ -86,7 +84,6 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
         ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -98,23 +95,23 @@ TEST_F(Compile0, ParsingIntSuccess) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST_F(Compile0, ParsingIntLimits) {    
 
+    // Note, 2147483648 will result in an overflow found by the scanner
+
     char *inpl = "\
-        import int int_limits(int param_min = -2147483648, int param_max = 2147483647); \n\
+        import int int_limits(int param_min = -2147483647, int param_max = 2147483647); \n\
         int int_limits(int param_min, int param_max)    \n\
         {                                               \n\
-            int var_min = - 2147483648;                 \n\
+            int var_min = - 2147483647;                 \n\
             int var_max = 2147483647;                   \n\
         }\
         ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
@@ -142,7 +139,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("-9999999999999999999999"));
+    EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
 }
 
 TEST_F(Compile0, ParsingIntOverflow) {
@@ -168,9 +165,8 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("-4200000000000000000000"));
+    EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
 }
-
 
 TEST_F(Compile0, EnumNegative) {
     
@@ -193,7 +189,7 @@ TEST_F(Compile0, EnumNegative) {
             x,                  \n\
             y,                  \n\
             z,                  \n\
-            intmin=-2147483648, \n\
+            intmin=-2147483647, \n\
             intmax=2147483647   \n\
         };\
         ";
@@ -204,25 +200,23 @@ TEST_F(Compile0, EnumNegative) {
     ASSERT_EQ(0, compileResult);
 
     // C enums start with 0, but AGS enums with 1
-    EXPECT_EQ(1, sym.entries.at(sym.Find("cat")).SOffset);
-    EXPECT_EQ(2, sym.entries.at(sym.Find("dog")).SOffset);
-    EXPECT_EQ(3, sym.entries.at(sym.Find("fish")).SOffset);
+    EXPECT_EQ(sym.Find("1"), sym.entries.at(sym.Find("cat")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("2"), sym.entries.at(sym.Find("dog")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("3"), sym.entries.at(sym.Find("fish")).ConstantD->ValueSym);
 
-    EXPECT_EQ(100, sym.entries.at(sym.Find("money")).SOffset);
-    EXPECT_EQ(101, sym.entries.at(sym.Find("death")).SOffset);
-    EXPECT_EQ(102, sym.entries.at(sym.Find("taxes")).SOffset);
+    EXPECT_EQ(sym.Find("100"), sym.entries.at(sym.Find("money")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("101"), sym.entries.at(sym.Find("death")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("102"), sym.entries.at(sym.Find("taxes")).ConstantD->ValueSym);
 
-    EXPECT_EQ(-3, sym.entries.at(sym.Find("popularity")).SOffset);
-    EXPECT_EQ(-2, sym.entries.at(sym.Find("x")).SOffset);
-    EXPECT_EQ(-1, sym.entries.at(sym.Find("y")).SOffset);
-    EXPECT_EQ(0, sym.entries.at(sym.Find("z")).SOffset);
+    EXPECT_EQ(sym.Find("-3"), sym.entries.at(sym.Find("popularity")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("-2"), sym.entries.at(sym.Find("x")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("-1"), sym.entries.at(sym.Find("y")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("0"), sym.entries.at(sym.Find("z")).ConstantD->ValueSym);
 
-    // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
-    // so it can't be used. Microsoft recomments using INT_MIN instead.
-    EXPECT_EQ(INT_MIN, sym.entries.at(sym.Find("intmin")).SOffset);
-    EXPECT_EQ(2147483647, sym.entries.at(sym.Find("intmax")).SOffset);
+    // Note: -2147483648 makes the scanner (!) find an int overflow.
+    EXPECT_EQ(sym.Find("-2147483647"), sym.entries.at(sym.Find("intmin")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(sym.Find("intmax")).ConstantD->ValueSym);
 }
-
 
 TEST_F(Compile0, DefaultParametersLargeInts) {
     
@@ -235,15 +229,15 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
 
     char *inpl = "\
         import int importedfunc(    \n\
-            int data0 = 0,          \n\
-            int data1 = 1,          \n\
-            int data2 = 2,          \n\
-            int data3 = -32000,     \n\
-            int data4 = 32001,      \n\
-            int data5 = 2147483647, \n\
-            int data6 = -2147483648 , \n\
-            int data7 = -1,         \n\
-            int data8 = -2          \n\
+            int data1 = 0,          \n\
+            int data2 = 1,          \n\
+            int data3 = 2,          \n\
+            int data4 = -32000,     \n\
+            int  = 32001,           \n\
+            int data6 = 2147483647, \n\
+            int data7 = -2147483647 , \n\
+            int data8 = -1,         \n\
+            int data9 = -2          \n\
             );                      \n\
         ";
 
@@ -254,42 +248,32 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
 
     Symbol const funcidx = sym.Find("importedfunc");
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(1));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[1].Type);
-    EXPECT_EQ(0, sym.entries.at(funcidx).FuncParamDefaultValues[1].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[1].Vartype);
+    EXPECT_EQ(sym.Find("0"), sym.entries.at(funcidx).FunctionD->Parameters[1].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(2));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[2].Type);
-    EXPECT_EQ(1, sym.entries.at(funcidx).FuncParamDefaultValues[2].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[2].Vartype);
+    EXPECT_EQ(sym.Find("1"), sym.entries.at(funcidx).FunctionD->Parameters[2].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(3));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[3].Type);
-    EXPECT_EQ(2, sym.entries.at(funcidx).FuncParamDefaultValues[3].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[3].Vartype);
+    EXPECT_EQ(sym.Find("2"), sym.entries.at(funcidx).FunctionD->Parameters[3].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(4));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[4].Type);
-    EXPECT_EQ(-32000, sym.entries.at(funcidx).FuncParamDefaultValues[4].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[4].Vartype);
+    EXPECT_EQ(sym.Find("-32000"), sym.entries.at(funcidx).FunctionD->Parameters[4].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(5));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[5].Type);
-    EXPECT_EQ(32001, sym.entries.at(funcidx).FuncParamDefaultValues[5].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[5].Vartype);
+    EXPECT_EQ(sym.Find("32001"), sym.entries.at(funcidx).FunctionD->Parameters[5].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(6));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[6].Type);
-    EXPECT_EQ((2147483647), sym.entries.at(funcidx).FuncParamDefaultValues[6].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[6].Vartype);
+    EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[6].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(7));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[7].Type);
-    // NOTE: It's not possible to write the lowest possible signed integer as -2147483648
-    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).FuncParamDefaultValues[7].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[7].Vartype);
+    EXPECT_EQ(sym.Find("-2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[7].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(8));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[8].Type);
-    EXPECT_EQ(-1, sym.entries.at(funcidx).FuncParamDefaultValues[8].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[8].Vartype);
+    EXPECT_EQ(sym.Find("-1"), sym.entries.at(funcidx).FunctionD->Parameters[8].Default);
 
-    EXPECT_EQ(true, sym.entries.at(funcidx).HasParamDefault(9));
-    EXPECT_EQ(SymbolTableEntry::kDT_Int, sym.entries.at(funcidx).FuncParamDefaultValues[9].Type);
-    EXPECT_EQ(-2, sym.entries.at(funcidx).FuncParamDefaultValues[9].IntDefault);
+    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[9].Vartype);
+    EXPECT_EQ(sym.Find("-2"), sym.entries.at(funcidx).FunctionD->Parameters[9].Default);
 }
 
 TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
@@ -317,7 +301,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_TRUE(sym.IsDynarrayVartype(sym.entries.at(funcidx).FuncParamVartypes[0]));
+    EXPECT_TRUE(sym.IsDynarrayVartype(sym.entries.at(funcidx).FunctionD->Parameters[0].Vartype));
 }
 
 TEST_F(Compile0, DoubleNegatedConstant) {
@@ -332,7 +316,8 @@ TEST_F(Compile0, DoubleNegatedConstant) {
         
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_STREQ("Expected an integer literal or constant as parameter default", last_seen_cc_error());
+    std::string msg = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, msg.find("parameter default"));
 }
 
 TEST_F(Compile0, SubtractionWithoutSpaces) {
@@ -371,7 +356,6 @@ TEST_F(Compile0, NegationLHSOfExpression) {
         }                   \n\
         ";
 
-    
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -493,7 +477,6 @@ TEST_F(Compile0, FuncDeclReturnVartype) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-
 TEST_F(Compile0, Writeprotected) {
     
     // Directly taken from the doc on writeprotected, simplified.
@@ -514,11 +497,9 @@ TEST_F(Compile0, Writeprotected) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Damage"));
+    EXPECT_NE(std::string::npos, err.find("Damage"));
 }
 
 TEST_F(Compile0, Protected1) {   
@@ -541,11 +522,10 @@ TEST_F(Compile0, Protected1) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Damage"));
+    EXPECT_NE(std::string::npos, err.find("Damage"));
 }
 
 TEST_F(Compile0, Protected2) {
@@ -571,7 +551,7 @@ TEST_F(Compile0, Protected2) {
     ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Damage"));
+    EXPECT_NE(std::string::npos, err.find("Damage"));
 }
 
 TEST_F(Compile0, Protected3) {
@@ -709,7 +689,7 @@ TEST_F(Compile0, Do4Wrong) {
         int i;                      \n\
         do                          \n\
             i = 10;                 \n\
-        while (true true);          \n\
+        while (blah blah);          \n\
     }                               \n\
    ";
   
@@ -717,10 +697,12 @@ TEST_F(Compile0, Do4Wrong) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("true"));
+    EXPECT_NE(std::string::npos, res.find("'blah'"));
 }
 
-TEST_F(Compile0, ProtectedFault1) {
+TEST_F(Compile0, Protected0) {
+
+    // Should fail, no modifying of protected components from the outside.
     
     char *inpl = "\
         struct Weapon {                        \n\
@@ -737,11 +719,9 @@ TEST_F(Compile0, ProtectedFault1) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
-    // Should fail, no modifying of protected components from the outside.
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("rotected"));
+    EXPECT_NE(std::string::npos, err.find("rotected"));
 }
 
 TEST_F(Compile0, FuncHeader1) {
@@ -756,10 +736,9 @@ TEST_F(Compile0, FuncHeader1) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("'15'"));
+    EXPECT_NE(std::string::npos, err.find("'15'"));
 }
 
 TEST_F(Compile0, FuncHeader2) {  
@@ -774,10 +753,9 @@ TEST_F(Compile0, FuncHeader2) {
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("float literal"));
+    EXPECT_NE(std::string::npos, err.find("literal float"));
 }
 
 TEST_F(Compile0, FuncHeader3) {   
@@ -796,10 +774,9 @@ TEST_F(Compile0, FuncHeader3) {
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("rameter default"));
+    EXPECT_NE(std::string::npos, err.find("rameter default"));
 }
 
 TEST_F(Compile0, ExtenderFuncHeaderFault1a) {    
@@ -816,11 +793,9 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1a) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Holzschuh"));
+    EXPECT_NE(std::string::npos, err.find("Holzschuh"));
 }
 
 TEST_F(Compile0, ExtenderFuncHeaderFault1b) {    
@@ -839,10 +814,9 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1b) {
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("'Of'"));
+    EXPECT_NE(std::string::npos, err.find("'Of'"));
 }
 
 TEST_F(Compile0, ExtenderFuncHeaderFault1c) {    
@@ -859,10 +833,9 @@ TEST_F(Compile0, ExtenderFuncHeaderFault1c) {
         ";
   
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("tatic extender function"));
+    EXPECT_NE(std::string::npos, err.find("tatic extender function"));
 }
 
 TEST_F(Compile0, ExtenderFuncHeaderFault2) {
@@ -880,10 +853,9 @@ TEST_F(Compile0, ExtenderFuncHeaderFault2) {
 
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("struct"));
+    EXPECT_NE(std::string::npos, err.find("struct"));
 }
 
 TEST_F(Compile0, DoubleExtenderFunc) {  
@@ -895,22 +867,21 @@ TEST_F(Compile0, DoubleExtenderFunc) {
             int Damage;                         \n\
         };                                      \n\
                                                 \n\
-        int Weapon::Foo(void)                   \n\
+        int Foo(this Weapon *)                  \n\
         {                                       \n\
             return 1;                           \n\
         }                                       \n\
                                                 \n\
-        int Foo(this Weapon *)                  \n\
+        int Weapon::Foo(void)                   \n\
         {                                       \n\
             return 2;                           \n\
         }                                       \n\
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("defined"));
+    EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
 TEST_F(Compile0, DoubleNonExtenderFunc) {    
@@ -927,7 +898,6 @@ TEST_F(Compile0, DoubleNonExtenderFunc) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     EXPECT_NE(std::string::npos, err.find("defined"));
@@ -983,10 +953,9 @@ TEST_F(Compile0, ParamVoid) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("void"));
+    EXPECT_NE(std::string::npos, err.find("void"));
 }
 
 TEST_F(Compile0, LocalGlobalSeq2) {    
@@ -1034,9 +1003,8 @@ TEST_F(Compile0, VartypeLocalSeq1) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     std::string const err = last_seen_cc_error();
-    EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_NE(std::string::npos, err.find("in use"));
 }
 
@@ -1053,9 +1021,8 @@ TEST_F(Compile0, VartypeLocalSeq2) {
         ";
     
     int compileResult = cc_compile(inpl, scrip);
-
     std::string const err = last_seen_cc_error();
-    EXPECT_STRNE("Ok", (compileResult >= 0) ? "Ok" : err.c_str());
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : err.c_str());
     EXPECT_NE(std::string::npos, err.find("in use"));
 }
 
@@ -1069,10 +1036,9 @@ TEST_F(Compile0, StructMemberImport) {
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("import"));
+    EXPECT_NE(std::string::npos, err.find("import"));
 }
 
 TEST_F(Compile0, StructExtend1) {    
@@ -1089,10 +1055,9 @@ TEST_F(Compile0, StructExtend1) {
         ";
    
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Payload"));
+    EXPECT_NE(std::string::npos, err.find("Payload"));
 }
 
 TEST_F(Compile0, StructExtend2) {   
@@ -1114,10 +1079,9 @@ TEST_F(Compile0, StructExtend2) {
 
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, err.find("Payload"));
+    EXPECT_NE(std::string::npos, err.find("Payload"));
 }
 
 TEST_F(Compile0, StructExtend3) {   
@@ -1143,6 +1107,8 @@ TEST_F(Compile0, StructExtend3) {
 
 TEST_F(Compile0, StructExtend4) { 
 
+    // Can't assign Parent * to Child *: Parent doesn't necessarily have all the fields
+
     char *inpl = "\
         managed struct Parent           \n\
         {                               \n\
@@ -1161,19 +1127,88 @@ TEST_F(Compile0, StructExtend4) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("assign"));
 }
 
 TEST_F(Compile0, StructStaticFunc) {
 
+    // Okay, a struct that is being defined is automatically forward-declared
+
     char *inpl = "\
         builtin managed struct GUI {                          \n\
             import static GUI* GetAtScreenXY(int x, int y);   \n\
-        }                                                     \n\
+        };                                                    \n\
         ";
 
     int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
 
+TEST_F(Compile0, StructForwardDeclare1) {
+
+    // GUI is forward-defined, but the definition will show up later so this is okay.
+
+    char *inpl = "\
+        managed struct GUI;     \n\
+        GUI *Var;               \n\
+        managed struct GUI {    \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StructForwardDeclare2) {
+
+    // Forward-declared structs must be "managed".
+
+    char *inpl = "\
+        struct GUI;     \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string msg = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, msg.find("managed"));
+}
+
+TEST_F(Compile0, StructForwardDeclare3) {
+
+    // GUI only has a forward definition
+
+    char *inpl = "\
+        managed struct GUI;     \n\
+        GUI *Var;               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string msg = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, msg.find("completely defined"));
+}
+
+TEST_F(Compile0, StructForwardDeclareNew) {
+
+    // "new" on a forward-declared struct mustn't work
+    // even when the struct is defined after the reference
+
+    char *inpl = "\
+        managed struct Bang;        \n\
+        int main()                  \n\
+        {                           \n\
+            Bang sptr = new Bang;   \n\
+        }                           \n\
+        managed struct Bang         \n\
+        {                           \n\
+            int i;                  \n\
+        };                          \n\
+    ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_NE(compileResult, 0);
+    std::string lsce = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, lsce.find("Bang"));
 }
 
 TEST_F(Compile0, StructManaged1a)
@@ -1193,6 +1228,8 @@ TEST_F(Compile0, StructManaged1a)
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, StructManaged1b)
@@ -1210,8 +1247,9 @@ TEST_F(Compile0, StructManaged1b)
         ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, StructManaged2)
@@ -1227,8 +1265,9 @@ TEST_F(Compile0, StructManaged2)
         ";
 
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, Undefined) {   
@@ -1239,8 +1278,9 @@ TEST_F(Compile0, Undefined) {
 
     
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, ImportOverride1) {
@@ -1255,8 +1295,9 @@ TEST_F(Compile0, ImportOverride1) {
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, DynamicNonManaged1) {    
@@ -1276,7 +1317,6 @@ TEST_F(Compile0, DynamicNonManaged1) {
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
@@ -1298,7 +1338,6 @@ TEST_F(Compile0, DynamicNonManaged2) {
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
@@ -1317,7 +1356,6 @@ TEST_F(Compile0, DynamicNonManaged3) {
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
@@ -1339,11 +1377,9 @@ TEST_F(Compile0, BuiltinStructMember) {
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
-
 
 TEST_F(Compile0, ImportOverride2) {    
 
@@ -1373,8 +1409,9 @@ TEST_F(Compile0, ImportOverride3) {
 
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
     int compileResult = cc_compile(inpl, scrip);
-
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, LocalSeq1) {    
@@ -1466,6 +1503,8 @@ TEST_F(Compile0, LocalParameterSeq1) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, LocalParameterSeq2) { 
@@ -1560,6 +1599,8 @@ TEST_F(Compile0, ImportVar2) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string msg = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, msg.find("import"));
 }
 
 TEST_F(Compile0, ImportVar3) {
@@ -1572,6 +1613,9 @@ TEST_F(Compile0, ImportVar3) {
    
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string msg = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, msg.find("'short'"));
+    EXPECT_NE(std::string::npos, msg.find("'int'"));
 }
 
 TEST_F(Compile0, ImportVar4) {
@@ -1583,6 +1627,8 @@ TEST_F(Compile0, ImportVar4) {
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
 TEST_F(Compile0, ImportVar5) {
@@ -1674,9 +1720,9 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     ASSERT_EQ(0, cc_parse(targ, scrip, sym, mh));
 
     Symbol const idx = sym.Find("J");
-    ASSERT_LT(0, idx);
+    ASSERT_LE(0, idx);
     SymbolTableEntry &entry = sym.entries.at(idx);
-    ASSERT_EQ(4, entry.SOffset);
+    ASSERT_EQ(4, entry.VariableD->SOffset);
 }
 
 TEST_F(Compile0, LocalImportVar) {
@@ -1731,7 +1777,6 @@ TEST_F(Compile0, GlobalFuncStructFunc) {
     int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
-
 
 TEST_F(Compile0, VariadicFunc) {
 
@@ -1807,7 +1852,6 @@ TEST_F(Compile0, Attributes01) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
@@ -1826,7 +1870,6 @@ TEST_F(Compile0, Attributes02) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
@@ -1845,121 +1888,8 @@ TEST_F(Compile0, Attributes03) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprit
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
-}
-
-TEST_F(Compile0, StructPtrFunc) {
-
-    // Func is ptr to managed, but it is a function not a variable
-    // so ought to be let through.
-
-    char *inpl = "\
-        managed struct MS {     \n\
-            MS *Func();         \n\
-        };                      \n\
-        MS *MS::Func()          \n\
-        {}                      \n\
-        ";
-   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST_F(Compile0, StringOldstyle01) {    
-    
-    // Can't return a local string because it will be already de-allocated when
-    // the function returns
-
-    char *inpl = "\
-        string MyFunction(int a)    \n\
-        {                           \n\
-            string x;               \n\
-            return x;               \n\
-        }                           \n\
-        ";
-
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string lerr = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, lerr.find("local string"));
-}
-
-TEST_F(Compile0, StringOldstyle02) {
-    
-    // If a function expects a non-const string, it mustn't be passed a const string
-
-    char *inpl = "\
-        void Func(string s)         \n\
-        {                           \n\
-            Func(\"Holzschuh\");    \n\
-        }                           \n\
-        ";
-
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string lerr = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
-}
-
-TEST_F(Compile0, StringOldstyle03) {
-    
-    // A string literal is a constant string, so you should not be able to
-    // return it as a string.
-
-    char *inpl = "\
-        string Func()                   \n\
-        {                               \n\
-            return \"Parameter\";       \n\
-        }                               \n\
-        ";
-
-    ccSetOption(SCOPT_OLDSTRINGS, true);
-
-    int compileResult = cc_compile(inpl, scrip);
-    std::string lerr = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
-}
-
-TEST_F(Compile0, StructPointerAttribute) {
-
-    // It's okay for a managed struct to have a pointer import attribute.
-
-    char *inpl = "\
-        builtin managed struct AudioClip {          \n\
-            import void Stop();                     \n\
-        };                                          \n\
-        builtin managed struct ViewFrame {          \n\
-            import attribute AudioClip *LinkedAudio;    \n\
-        };                                          \n\
-    ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST_F(Compile0, StringNullCompare) {
-
-    // It's okay to compare strings to null
-
-    char inpl[] = "\
-        void main()                         \n\
-        {                                   \n\
-            String SS;                      \n\
-            int compare3 = (SS == null);    \n\
-            int compare4 = (null == SS);    \n\
-        }                                   \n\
-    ";
-
-    std::string input = g_Input_Bool;
-    input += g_Input_String;
-    input += inpl;
-    
-    int compileResult = cc_compile(input, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST_F(Compile0, Attributes04) {
@@ -1980,7 +1910,7 @@ TEST_F(Compile0, Attributes04) {
                 return;                     \n\
         }                                   \n\
     ";
-    
+
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -2029,6 +1959,189 @@ TEST_F(Compile0, Attributes06) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
+TEST_F(Compile0, Attributes07) {
+
+    // Reading an import static attribute should not trigger
+    //  a Not Declared error since it is declared.
+
+    char *inpl = "\
+		enum bool { false = 0, true };                              \n\
+		builtin managed struct Game {                               \n\
+			readonly import static attribute bool Foo;              \n\
+			readonly import static attribute bool SkippingCutscene; \n\
+		};                                                          \n\
+		int room_RepExec()                                          \n\
+		{                                                           \n\
+			int i = 0;                                              \n\
+            if (Game.SkippingCutscene)                              \n\
+                i = 1;                                              \n\
+		}                                                           \n\
+	";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, Attributes08) {
+
+    // Accept a readonly attribute and a non-readonly getter
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };      \n\
+        struct CameraEx                         \n\
+        {                                       \n\
+            import static readonly attribute bool StaticTarget;  \n\
+        };                                      \n\
+                                                \n\
+        bool get_StaticTarget(static CameraEx)  \n\
+        {                                       \n\
+            return 0;                           \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile0, Attributes09) {
+
+    // Do not accept a static attribute and a non-static getter
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };      \n\
+        struct CameraEx                         \n\
+        {                                       \n\
+            import static readonly attribute bool StaticTarget;  \n\
+        };                                      \n\
+                                                \n\
+        bool get_StaticTarget(this CameraEx *)  \n\
+        {                                       \n\
+            return 0;                           \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("static"));
+}
+
+TEST_F(Compile0, StructPtrFunc) {
+
+    // Func is ptr to managed, but it is a function not a variable
+    // so ought to be let through.
+
+    char *inpl = "\
+        managed struct MS {     \n\
+            MS *Func();         \n\
+        };                      \n\
+        MS *MS::Func()          \n\
+        {}                      \n\
+        ";
+   
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StringOldstyle01) {    
+    
+    // Can't return a local string because it will be already de-allocated when
+    // the function returns
+
+    char *inpl = "\
+        string MyFunction(int a)    \n\
+        {                           \n\
+            string x;               \n\
+            return x;               \n\
+        }                           \n\
+        ";
+
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string lerr = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, lerr.find("local string"));
+}
+
+TEST_F(Compile0, StringOldstyle02) {
+    
+    // If a function expects a non-const string, it mustn't be passed a const string
+
+    char *inpl = "\
+        void Func(string s)         \n\
+        {                           \n\
+            Func(\"Holzschuh\");    \n\
+        }                           \n\
+        ";
+
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string lerr = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, lerr.find("ype mismatch"));
+}
+
+TEST_F(Compile0, StringOldstyle03) {
+    
+    // A string literal is a constant string, so you should not be able to
+    // return it as a string.
+
+    char *inpl = "\
+        string Func()                   \n\
+        {                               \n\
+            return \"Parameter\";       \n\
+        }                               \n\
+        ";
+
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string lerr = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, lerr.find("ype mismatch"));
+}
+
+TEST_F(Compile0, StructPointerAttribute) {
+
+    // It's okay for a managed struct to have a pointer import attribute.
+
+    char *inpl = "\
+        builtin managed struct AudioClip {          \n\
+            import void Stop();                     \n\
+        };                                          \n\
+        builtin managed struct ViewFrame {          \n\
+            import attribute AudioClip *LinkedAudio;    \n\
+        };                                          \n\
+    ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StringNullCompare) {
+
+    // It's okay to compare strings to null
+
+    char inpl[] = "\
+        void main()                         \n\
+        {                                   \n\
+            String SS;                      \n\
+            int compare3 = (SS == null);    \n\
+            int compare4 = (null == SS);    \n\
+        }                                   \n\
+    ";
+
+    std::string input = g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+    
+    int compileResult = cc_compile(input, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
 TEST_F(Compile0, Decl) {   
 
     // Should complain about the "+="
@@ -2045,6 +2158,7 @@ TEST_F(Compile0, Decl) {
     std::string lsce = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : lsce.c_str());
     EXPECT_NE(std::string::npos, lsce.find("+="));
+    EXPECT_EQ(std::string::npos, lsce.find("xception"));
 }
 
 TEST_F(Compile0, DynamicArrayCompare) {
@@ -2095,23 +2209,6 @@ TEST_F(Compile0, DoubleLocalDecl) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST_F(Compile0, NewForwardDeclStruct) {
-    
-    // "new" on a forward-declared struct mustn't work
-    char *inpl = "\
-        managed struct Bang;        \n\
-        int main()                  \n\
-        {                           \n\
-            Bang sptr = new Bang;   \n\
-        }                           \n\
-    ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_NE(compileResult, 0);
-    std::string lsce = last_seen_cc_error();
-    ASSERT_NE(std::string::npos, lsce.find("Bang"));
-}
-
 TEST_F(Compile0, NewEnumArray) {
     
     // dynamic array of enum should work
@@ -2129,29 +2226,6 @@ TEST_F(Compile0, NewEnumArray) {
         }                                       \n\
         ";
   
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST_F(Compile0, Attributes07) {
-
-    // Reading an import static attribute should not trigger
-    //  a Not Declared error since it is declared.
-
-    char *inpl = "\
-		enum bool { false = 0, true };                              \n\
-		builtin managed struct Game {                               \n\
-			readonly import static attribute bool Foo;              \n\
-			readonly import static attribute bool SkippingCutscene; \n\
-		};                                                          \n\
-		int room_RepExec()                                          \n\
-		{                                                           \n\
-			int i = 0;                                              \n\
-            if (Game.SkippingCutscene)                              \n\
-                i = 1;                                              \n\
-		}                                                           \n\
-	";
-
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
@@ -2207,8 +2281,8 @@ TEST_F(Compile0, Ternary02) {
   
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // Error message must name culprits
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("int"));
     EXPECT_NE(std::string::npos, res.find("float"));
 }
+

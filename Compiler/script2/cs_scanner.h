@@ -41,11 +41,8 @@ private:
     private:
         struct OpenInfo
         {
-            std::string const Opener;
-            std::string const Closer;
+            Symbol Opener;
             size_t Pos;  // of the Opener symbol in the token list
-
-            OpenInfo(std::string const &opener, std::string const &closer, size_t pos);
         };
         std::vector<OpenInfo> _openInfoStack;
         Scanner &_scanner;
@@ -54,11 +51,11 @@ private:
         OpenCloseMatcher(Scanner &scanner);
 
         // We've encountered an opening symbol; push it and the expected closer onto a stack
-        void Push(std::string const &opener, std::string const &expected_closer, size_t opener_pos);
+        void Push(Symbol opener, size_t opener_pos);
 
         // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
         // If they don't match, generate error. Otherwise, pop from stack
-        ErrorType PopAndCheck(std::string const &closer, size_t closer_pos);
+        ErrorType PopAndCheck(Symbol closer, size_t closer_pos);
 
         // At end of input, check whether any unclosed openers remain.
         ErrorType EndOfInputCheck();
@@ -84,7 +81,7 @@ private:
     // Look ahead at the next char to be read without reading it. If there aren't any chars to be read, _eofReached is set.
     inline int Peek() { int ret = _inputStream.peek(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
 
-// Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
+    // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
     ErrorType SkipWhitespace();
 
     // We encountered a new line; process it
@@ -134,7 +131,7 @@ private:
     // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
     ErrorType ReadInGTCombi(std::string &symstring);
 
-    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb);
+    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb);
 
     ErrorType CheckMatcherNesting(Symbol token);
 
@@ -165,7 +162,7 @@ public:
     inline std::string const GetSection() const { return _section; }
 
     // Get the next symstring from the input. Only exposed for googletests
-    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type);
+    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, AGS::CodeCell &value);
 
     // Get next token from the input. Only exposed for googletests
     ErrorType GetNextSymbol(Symbol &symbol);

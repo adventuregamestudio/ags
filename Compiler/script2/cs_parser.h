@@ -10,7 +10,7 @@ The processing is done in the following layers:
 
 * Scanning
     Read the characters of the input and partition it in symbols (e.g., identifier, number literal).
-    Enter all the symbols into a symbol table (thus recognizing keywords)
+    Enter all the symbols into a symbol table (thus recognizing keywords and literals)
     Enter all literal strings into a strings table
 These two steps are performed separately _before_ the Parsing (below) begins.
 The result is:
@@ -399,11 +399,11 @@ private:
     // The "Callpoint" of such a function is the index in the import table.
     FuncCallpointMgr _fim; // i for import
 
+    // Track a forward-declared struct and one of its references to it.
+    std::map<Symbol, size_t> _structRefs;
+
     size_t _lastEmittedSectionId;
     size_t _lastEmittedLineno;
-
-    // Map type qualifiers to strings so that they can be output
-    static std::map<TypeQualifier, std::string> _tq2String;
 
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
@@ -416,12 +416,8 @@ private:
     // Augment the message with a "See ..." indication pointing to the declaration of sym
     std::string const ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
 
-    // These two need to be non-static because they can yield errors
-    // and errors need the parser object's line number information.
-    ErrorType String2Int(std::string const &str, int &val);
-    ErrorType String2Float(std::string const &float_as_string, float &val);
-
-    bool IsIdentifier(Symbol symb);
+    // Adds the symbol to the list if it isn't there yet.
+    void AddToSymbolList(Symbol symb, SymbolList &list);
 
     std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
 
@@ -449,7 +445,7 @@ private:
     ErrorType Expect(std::vector<Symbol> const &expected, Symbol actual);
 
     // Mark the symbol as "accessed" in the symbol table
-    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].Flags, kSFLG_Accessed, true); }
+    inline void MarkAcessed(Symbol symb) { _sym[symb].Accessed = true; }
 
     // The size of all local variables that have been allocated at a level higher than from_level
     size_t StacksizeOfLocals(size_t from_level);
@@ -468,7 +464,7 @@ private:
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreeDynpointersOfStdArrayOfStruct(Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements, bool &clobbers_ax);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
@@ -487,27 +483,37 @@ private:
     // Free the pointers of all locals at the end of a function. Do not clobber AX.
     ErrorType FreeDynpointersOfAllLocals_KeepAX(void);
 
-    // Remove defns from the _sym table that have a nesting level of from_level or higher
-    // Also restores old definitions if they have been shadowed by local definitions
-    ErrorType RemoveLocalsFromSymtable(size_t from_level);
+    // Restore those definitions that have a nesting level of 'from_level' or higher
+    // to what they were on the level 'from_level - 1'.
+    ErrorType RestoreLocalsFromSymtable(size_t from_level);
 
     // Remove at nesting_level or higher.
     ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
-    ErrorType IntLiteralOrConst2Value(Symbol symb, bool is_negative, std::string const &errorMsg, int &the_value);
-    ErrorType FloatLiteral2Value(Symbol symb, bool is_negative, std::string const &errorMsg, float &the_value);
+    // Read a symbol that must be a literal or a const. If it is a const, dereference it until it becomes a literal.
+    ErrorType ReadLiteralOrConst(SrcList &src, Symbol &lit);
+    inline ErrorType ReadLiteralOrConst(Symbol &lit) { return ReadLiteralOrConst(_src, lit); }
+    ErrorType ReadIntLiteralOrConst(Symbol &lit, std::string const &msg);
+
+    // When 'symb' corresponds to 'value', set it to the symbol that corresponds to -'value'.
+    ErrorType NegateLiteral(Symbol &symb);
+
+    // Emit the code that loads the literal into AX.
+    ErrorType EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &vartype);
+
+    // Find or create a symbol that is a literal for the value 'value'.
+    ErrorType FindOrAddIntLiteral(CodeCell value, Symbol &symb);
 
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
     // We accept a default value clause like "= 15" if it follows at this point.
-    ErrorType ParseParamlist_Param_DefaultValue(Vartype param_type, SymbolTableEntry::ParamDefault &default_value);
+    // If there isn't any default, kKW_NoSymbol is returned.
+    // Otherwise, a symbol is returned that is a literal.
+    ErrorType ParseParamlist_Param_DefaultValue(Vartype param_type, Symbol &default_value);
 
     // process a dynamic array declaration, when present
     // We have accepted something like "int foo" and we might expect a trailing "[]" here
     ErrorType ParseDynArrayMarkerIfPresent(Vartype &vartype);
-
-    // Copy so that the forward decl can be compared afterwards to the real one     
-    void CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
 
     // Extender function, eg. function GoAway(this Character *someone)
     // We've just accepted something like "int func("
@@ -531,10 +537,8 @@ private:
 
     void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows);
 
-    ErrorType ParseFuncdecl_CheckThatKIM_CheckDefaults(SymbolTableEntry const &this_entry, SymbolTableEntry const &known_info, bool body_follows);
-
     // there was a forward declaration -- check that the real declaration matches it
-    ErrorType ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry &this_entry, SymbolTableEntry const &known_info, bool body_follows);
+    ErrorType ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
     // Enter the function in the imports[] or functions[] array; get its index   
     ErrorType ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, CodeLoc &function_soffs, int &function_idx);
@@ -615,7 +619,6 @@ private:
     ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary '+'
-    // Note: Not called yet.
     ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
@@ -680,17 +683,7 @@ private:
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
     ErrorType AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
-    ErrorType AccessData_GlobalOrLocalVar(bool is_global, bool writing, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
-
-    ErrorType AccessData_Static(SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
-
-    ErrorType AccessData_FloatLiteral(bool negate, SrcList &expression, Vartype &vartype);
-
-    ErrorType AccessData_IntLiteralOrConst(bool negate, SrcList &expression, Vartype &vartype);
-
-    ErrorType AccessData_Null(SrcList &expression, Vartype &vartype);
-
-    ErrorType AccessData_StringLiteral(SrcList &expression, Vartype &vartype);
+    ErrorType AccessData_Variable(ScopeType scope_type, bool writing, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
@@ -709,12 +702,13 @@ private:
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
-    // Return 0 if such a struct doesn't exist 
-    Symbol FindStructOfComponent(Vartype strct, Symbol component);
+    // Return kKW_NoSymbol if such a struct doesn't exist 
+    Symbol FindStructOfComponent(Vartype strct, Symbol unqualified_component);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the component(!), qualified by the struct that the component was defined in
-    Symbol FindComponentInStruct(Vartype strct, Symbol component);
+    // Return kKW_NoSymbol if such a struct doesn't exist 
+    Symbol FindComponentInStruct(Vartype strct, Symbol unqualified_component);
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot
@@ -759,17 +753,11 @@ private:
     // "var++" or "var--"
     ErrorType ParseAssignment_SAssign(Symbol ass_symbol, SrcList &lhs);
 
-    // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
-    // An assignment symbol is following. Compile the assignment.
-    ErrorType ParseAssignment(Symbol ass_symbol, SrcList &lhs);
-
-    ErrorType ParseVardecl_InitialValAssignment_Float(bool is_neg, void *&initial_val_ptr);
+    ErrorType ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype var, void *&initial_val_ptr);
 
     ErrorType ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr);
 
-    ErrorType ParseVardecl_InitialValAssignment_Inttype(bool is_neg, void *&initial_val_ptr);
-
-    // if initial_value is non-null, it returns malloc'd memory that must be free
+    // if initial_value is non-null, return with 'malloc'ed memory that must be 'free'd
     ErrorType ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
@@ -783,15 +771,18 @@ private:
     // there was a forward declaration -- check that the real declaration matches it
     ErrorType ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
 
-    ErrorType ParseVardecl_Import(Symbol var_name, bool has_initial_assignment);
+    ErrorType ParseVardecl_Global(Symbol var_name, Vartype vartype, void *&initial_val_ptr);
 
-    ErrorType ParseVardecl_Global(Symbol var_name, Vartype vartype, bool has_initial_assignment, void *&initial_val_ptr);
+    ErrorType ParseVardecl_Import(Symbol var_name);
 
-    ErrorType ParseVardecl_Local(Symbol var_name, Vartype vartype, bool has_initial_assignment);
+    ErrorType ParseVardecl_Local(Symbol var_name, Vartype vartype);
 
-    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type);
+    ErrorType ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs);
 
-    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type);
+    // Checks whether an old definition exists that may be stashed; stashes it if possible
+    ErrorType ParseVardecl_CheckAndStashOldDefn(Symbol var_name);
+
+    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs);
 
     ErrorType ParseFuncBodyStart(Symbol struct_of_func, Symbol name_of_func);
 
@@ -800,14 +791,11 @@ private:
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
 
     // We have accepted something like "struct foo" and are waiting for "extends"
-    ErrorType ParseStruct_ExtendsClause(Symbol stname, size_t &size_so_far);
+    ErrorType ParseStruct_ExtendsClause(Symbol stname);
 
     ErrorType ParseQualifiers(TypeQualifierSet &tqs);
 
     ErrorType ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
-
-    // check that we haven't extended a struct that already contains a member with the same name
-    ErrorType ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol current_struct);
 
     ErrorType ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
 
@@ -817,39 +805,49 @@ private:
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    ErrorType ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
+    ErrorType ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
     // We're in a struct declaration. Parse an attribute declaration.
     ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype);
 
     // We're inside a struct decl, processing a member variable
-    ErrorType ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);
+    ErrorType ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
 
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
-    ErrorType ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+    ErrorType ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
 
     // We've accepted, e.g., "struct foo {". Now we're parsing a variable declaration or a function declaration
-    ErrorType ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+    ErrorType ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
 
     // Handle a "struct" definition clause
     ErrorType ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
-    ErrorType ParseEnum_AssignedValue(int &value);
+    ErrorType ParseEnum_AssignedValue(Symbol vname, CodeCell &value);
 
-    void ParseEnum_Item2Symtable(Symbol enum_name, Symbol item_name, int value);
+    // Define the item 'item_name' to have the value 'value'. 
+    ErrorType ParseEnum_Item2Symtable(Symbol enum_name, Symbol item_name, int value);
 
     ErrorType ParseEnum_Name2Symtable(Symbol enum_name);
 
     // We parse enum eEnumName { value1, value2 };
     ErrorType ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);
 
+    ErrorType ParseExport_Function(Symbol func);
+    ErrorType ParseExport_Variable(Symbol var);
     ErrorType ParseExport();
 
     ErrorType ParseReturn(Symbol name_of_current_func);
 
-    ErrorType ParseVarname(bool accept_member_access, Symbol &structname, Symbol &varname);
+    // Helper function for parsing a varname
+    ErrorType ParseVarname0(bool accept_member_access, Symbol &structname, Symbol &varname);
+
+    // Parse a variable name; may contain '::'
+    // If it does contain '::' then varname will contain the qualified name (a::b) and structname the vartype (a)
+    inline ErrorType ParseVarname(Symbol &structname, Symbol &varname) { return ParseVarname0(true, structname, varname); }
+    // Parse a variable name; may not contain '::'
+    inline ErrorType ParseVarname(Symbol &varname) { Symbol dummy; return ParseVarname0(false, dummy, varname); }
 
     ErrorType ParseVartype_CheckForIllegalContext();
 
@@ -964,7 +962,10 @@ private:
 
     // Only certain info should be carried over from the pre phase into the main phase.
     // Discard all the rest so that the main phase can start with a clean slate.
-    ErrorType Parse_ReinitSymTable(const ::SymbolTable &sym_after_scanning);
+    ErrorType Parse_ReinitSymTable(size_t size_after_scanning);
+
+    // Check whether a forward-declared struct has actually been referenced and never defined
+    ErrorType Parse_CheckForUnresolvedStructForwardDecls();
 
     // Blank out all imports that haven't been referenced
     ErrorType Parse_BlankOutUnusedImports();
@@ -979,11 +980,6 @@ private:
     void Warning(char const *descr, ...);
 
 public:
-    // interpret the float as if it were an int (without converting it really);
-    // return that int
-    // This should be moved somewhere. It isn't Parser functionality
-    static int InterpretFloatAsInt(float floatval);
-
     Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh);
 
     ErrorType Parse();

@@ -1,109 +1,246 @@
 #include "gtest/gtest.h"
 #include "script2/cc_symboltable.h"
 
+TEST(SymbolTable, GetNameNonExistent)
+{
+    AGS::SymbolTable symt;
 
-TEST(SymbolTable, GetNameNonExistent) {
-    AGS::SymbolTable testSym;
-
-    // symbol must be >= 0. Max symbols 0x10000000 due to type flags
-    EXPECT_STREQ("(invalid symbol)", testSym.GetName(100).c_str());
-    EXPECT_STREQ("(invalid symbol)", testSym.GetName(200).c_str());
+    EXPECT_STREQ("(invalid symbol)", symt.GetName(100).c_str());
+    EXPECT_STREQ("(invalid symbol)", symt.GetName(200).c_str());
 
     // check edge conditions. index immediately after 'c' should be null
-    testSym.Add("a");
-    testSym.Add("b");
-    int const c_sym = testSym.Add("c");
-    EXPECT_STREQ("(invalid symbol)", testSym.GetName(c_sym + 1).c_str());
+    symt.Add("a");
+    symt.Add("b");
+    int const c_sym = symt.Add("c");
+    EXPECT_STREQ("(invalid symbol)", symt.GetName(c_sym + 1).c_str());
 }
 
-TEST(SymbolTable, GetNameNormal) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, GetNameNormal)
+{
+    AGS::SymbolTable symt;
 
-    int const foo_sym = testSym.Add("foo", AGS::SymT::kNoType, 0);
+    // Read out the name that was put in
 
-    EXPECT_STREQ("foo", testSym.GetName(foo_sym).c_str());
+    int const foo_sym = symt.Add("foo");
+
+    EXPECT_STREQ("foo", symt.GetName(foo_sym).c_str());
 }
 
-TEST(SymbolTable, GetNameConverted) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, GetNamePredefined)
+{
+    AGS::SymbolTable symt;
 
-    AGS::Vartype const foo_vartype = testSym.Add("foo", AGS::SymT::kNoType, 0);
-    testSym[foo_vartype].SType = AGS::SymT::kVartype;
-    testSym[foo_vartype].VartypeType = AGS::VTT::kAtomic;
-    AGS::Vartype foo_conv_vartype = foo_vartype;
+    EXPECT_STREQ("return", symt.GetName(AGS::kKW_Return).c_str());
+}
+
+TEST(SymbolTable, GetVartypeName)
+{
+    AGS::SymbolTable symt;
+
+    AGS::Vartype const foo_vartype = symt.Add("foo");
+    symt.MakeEntryVartype(foo_vartype);
+    symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
     EXPECT_STREQ(
         "foo[]",
-        testSym.GetName(testSym.VartypeWith(AGS::VTT::kDynarray, foo_vartype)).c_str());
+        symt.GetName(symt.VartypeWith(AGS::VTT::kDynarray, foo_vartype)).c_str());
 
     EXPECT_STREQ(
         "foo *",
-        testSym.GetName(testSym.VartypeWith(AGS::VTT::kDynpointer, foo_vartype)).c_str());
-
+        symt.GetName(symt.VartypeWith(AGS::VTT::kDynpointer, foo_vartype)).c_str());
 
     std::vector<size_t> const dims = { 3, 5, 7 };
     EXPECT_STREQ(
         "foo[3, 5, 7]",
-        testSym.GetName(testSym.VartypeWithArray(dims, foo_vartype)).c_str());
+        symt.GetName(symt.VartypeWithArray(dims, foo_vartype)).c_str());
 }
 
-TEST(SymbolTable, AddExAlreadyExists) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, VartypeWithWithout)
+{
+    AGS::SymbolTable symt;
 
-    int const a_sym = testSym.Add("a", AGS::SymT::kNoType, 0);
-    ASSERT_EQ(-1, testSym.Add("a", AGS::SymT::kNoType, 0));
+    AGS::Vartype const foo_vartype = symt.Add("foo");
+    symt.MakeEntryVartype(foo_vartype);
+    symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
+
+    AGS::Vartype foo_converted = symt.VartypeWith(AGS::VTT::kDynarray, foo_vartype);
+    EXPECT_EQ(foo_vartype, symt.VartypeWithout(AGS::VTT::kDynarray, foo_converted));
+
+    foo_converted = symt.VartypeWith(AGS::VTT::kConst, foo_vartype);
+    EXPECT_EQ(foo_vartype, symt.VartypeWithout(AGS::VTT::kConst, foo_converted));
+    EXPECT_EQ(foo_converted, symt.VartypeWithout(AGS::VTT::kDynarray, foo_converted));
 }
 
-TEST(SymbolTable, AddExUnique) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, AddSymbolAlreadyExists)
+{
+    AGS::SymbolTable symt;
 
-    int const a_sym = testSym.Add("a", AGS::SymT::kNoType, 0);
-    int const b_sym = testSym.Add("b", AGS::SymT::kNoType, 0);
+    int const a_sym = symt.Add("a");
+    ASSERT_EQ(AGS::kKW_NoSymbol, symt.Add("a"));
+}
+
+TEST(SymbolTable, AddSymbolUnique)
+{
+    AGS::SymbolTable symt;
+
+    int const a_sym = symt.Add("a");
+    int const b_sym = symt.Add("b");
     ASSERT_NE(a_sym, b_sym);
 }
 
-TEST(SymbolTable, AddExDefaultValues) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, FindOrAdd)
+{
+    AGS::SymbolTable symt;
 
-    AGS::SymbolType const stype = AGS::SymT::kAssign;
-    int const ssize = 2;
-    int const a_sym = testSym.Add("a", stype, ssize);
-
-    EXPECT_STREQ("a", testSym.entries.at(a_sym).SName.c_str());
-    EXPECT_EQ(stype, testSym.entries.at(a_sym).SType);
-    EXPECT_EQ(0, testSym.entries.at(a_sym).Flags);
-    EXPECT_EQ(0, testSym.entries.at(a_sym).Vartype);
-    EXPECT_EQ(0, testSym.entries.at(a_sym).SOffset);
-    EXPECT_EQ(ssize, testSym.entries.at(a_sym).SSize);
-    EXPECT_EQ(0u, testSym.entries.at(a_sym).SScope);
-    EXPECT_EQ(0, testSym.entries.at(a_sym).GetNumOfFuncParams());
+    int const a_sym = symt.Add("a");
+    int const b_sym = symt.Add("b");
+    int const a2_sym = symt.FindOrAdd("a");
+    EXPECT_EQ(a_sym, a2_sym);
 }
 
-TEST(SymbolTable, EntriesEnsureModifiable) {
-    AGS::SymbolTable testSym;
+TEST(SymbolTable, FindResetCaches)
+{
+    AGS::SymbolTable symt;
 
-    // ensure reading and writing to entries actually works!
-    int const a_sym = testSym.Add("x", AGS::SymT::kNoType, 0);
-    testSym.entries.at(a_sym).Flags = 10;
-    EXPECT_EQ(10, testSym.entries.at(a_sym).Flags);
-    testSym[a_sym].Flags = 11;
-    EXPECT_EQ(11, testSym.entries.at(a_sym).Flags);
-    EXPECT_EQ(11, testSym[a_sym].Flags);
+    // Even after caches are reset, Find() must work
+
+    EXPECT_EQ(AGS::kKW_NoSymbol, symt.Find("Llanfair­pwllgwyngyll­gogery­chwyrn­drobwll­llan­tysilio­gogo­goch"));
+    ASSERT_EQ(AGS::kKW_Minus, symt.Find("-"));
+    symt.ResetCaches();
+    EXPECT_EQ(AGS::kKW_Minus, symt.Find("-"));
+    EXPECT_EQ(AGS::kKW_NoSymbol, symt.Find("Taumatawhakatangihangakoauauotamateapokaiwhenuakitanatahu"));
+    // BTW those names really exist
 }
 
-TEST(SymbolTable, Operators) {
-    AGS::SymbolTable testSym;
-    int  sym_01 = testSym.AddOp(AGS::kKW_And, "Antiatomkraftprotestplakat", AGS::SymT::kOperator, 7, 77);
-    EXPECT_EQ(7, testSym.GetOperatorOpcode(sym_01));
-    EXPECT_EQ(77, testSym.BinaryOpPrio(sym_01));
+TEST(SymbolTable, EntriesEnsureModifiable)
+{
+    AGS::SymbolTable symt;
 
-    int const sym_02 = testSym.AddOp(AGS::kKW_And, "Betriebsgenehmigung", AGS::SymT::kOperator, 8, 88, 888);
-    EXPECT_EQ(8, testSym.GetOperatorOpcode(sym_02));
-    EXPECT_EQ(88, testSym.BinaryOpPrio(sym_02));
-    EXPECT_EQ(888, testSym.UnaryOpPrio(sym_02));
+    // ensure reading and writing to entries actually works
 
-    int const sym_03 = testSym.AddOp(AGS::kKW_And, "Charaktereignungstest", AGS::SymT::kAssign, 9, 99, 999);
-    EXPECT_EQ(AGS::SymT::kAssign, testSym.GetSymbolType(sym_03));
-    EXPECT_EQ(9, testSym.GetOperatorOpcode(sym_03));
-    EXPECT_EQ(99, testSym.BinaryOpPrio(sym_03));
-    EXPECT_EQ(999, testSym.UnaryOpPrio(sym_03));
+    int const a_sym = symt.Add("x");
+    symt.entries.at(a_sym).Declared = 10;
+    EXPECT_EQ(10, symt.entries.at(a_sym).Declared);
+    symt[a_sym].Declared = 11;
+    EXPECT_EQ(11, symt.entries.at(a_sym).Declared);
+    EXPECT_EQ(11, symt[a_sym].Declared);
+}
+
+TEST(SymbolTable, StringStruct)
+{
+    AGS::SymbolTable symt;
+
+    // set/get a stringstruct symbol
+
+    AGS::Symbol const str_set = symt.Add("String");
+    symt.SetStringStructSym(str_set);
+
+    AGS::Symbol const str_get = symt.GetStringStructSym();
+    EXPECT_EQ(str_set, str_get);
+
+    AGS::Symbol const strptr_get = symt.GetStringStructPtrSym();
+    EXPECT_EQ(str_set, symt.VartypeWithout(AGS::VTT::kDynpointer, strptr_get));
+    EXPECT_TRUE(symt.IsDynpointerVartype(strptr_get));
+}
+
+TEST(SymbolTable, IsInBounds)
+{
+    AGS::SymbolTable symt;
+
+    EXPECT_FALSE(symt.IsInBounds(-1));
+    EXPECT_FALSE(symt.IsInBounds(0));
+    EXPECT_FALSE(symt.IsInBounds(symt.GetLastAllocated() + 1));
+    EXPECT_TRUE(symt.IsInBounds(AGS::kKW_New));
+}
+
+TEST(SymbolTable, CanBePartOfAnExpression)
+{
+    AGS::SymbolTable symt;
+
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Float));     // typical vartype
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Return));    // typical keyword
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_And));        // typical bool operator
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_Divide));     // typical binary operator
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_CloseBrace));        // delimiter 
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenBracket));       // delimiter 
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenParenthesis));    // delimiter
+
+    // Literal
+    AGS::Symbol const lit_sym = symt.Add("4711");
+    symt.MakeEntryLiteral(lit_sym);
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(lit_sym));
+
+    // Constant
+    AGS::Symbol const const_sym = symt.Add("kBoom");
+    symt.MakeEntryConstant(const_sym);
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(const_sym));
+
+    // Function
+    AGS::Symbol const func_sym = symt.Add("Foo");
+    symt.MakeEntryFunction(func_sym);
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(func_sym));
+
+    // Variable
+    AGS::Symbol const var_sym = symt.Add("Damage");
+    symt.MakeEntryVariable(var_sym);
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(var_sym));
+}
+
+TEST(SymbolTable, IsPrimitiveAtomic)
+{
+    AGS::SymbolTable symt;
+
+    EXPECT_TRUE(symt.IsPrimitiveVartype(AGS::kKW_Long));
+    EXPECT_TRUE(symt.IsAtomicVartype(AGS::kKW_Long));
+    EXPECT_FALSE(symt.IsPrimitiveVartype(AGS::kKW_Return));
+    EXPECT_FALSE(symt.IsAtomicVartype(AGS::kKW_Return));
+
+    AGS::Symbol const structy_sym = symt.Add("Structy");
+    symt.MakeEntryVartype(structy_sym);
+    EXPECT_FALSE(symt.IsPrimitiveVartype(structy_sym));
+    EXPECT_TRUE(symt.IsAtomicVartype(structy_sym));
+
+    AGS::Symbol const structy_ptr_sym = symt.VartypeWith(AGS::VTT::kDynpointer, structy_sym);
+    EXPECT_FALSE(symt.IsPrimitiveVartype(structy_ptr_sym));
+    EXPECT_FALSE(symt.IsAtomicVartype(structy_ptr_sym));
+}
+
+TEST(SymbolTable, ArrayClassic)
+{
+    AGS::SymbolTable symt;
+
+    AGS::Symbol const array_sym = symt.Add("HArry");
+    symt.MakeEntryVartype(array_sym);
+    symt[array_sym].VartypeD->BaseVartype = AGS::kKW_Int;
+    symt[array_sym].VartypeD->Dims = { 2, };
+    symt[array_sym].VartypeD->Type = AGS::VTT::kArray;
+
+    EXPECT_TRUE(symt.IsArrayVartype(array_sym));
+    EXPECT_TRUE(symt.IsAnyArrayVartype(array_sym));
+    EXPECT_FALSE(symt.IsDynarrayVartype(array_sym));
+    EXPECT_EQ(2, symt.NumArrayElements(array_sym));
+
+    symt[array_sym].VartypeD->Dims = { 2, 3, 5, 7, };
+    EXPECT_EQ(2 * 3 * 5 * 7, symt.NumArrayElements(array_sym));
+}
+
+TEST(SymbolTable, OperatorPrio)
+{
+    AGS::SymbolTable symt;
+
+    EXPECT_EQ(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_BitNeg));
+    EXPECT_NE(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_BitNeg));
+
+    EXPECT_NE(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_Divide));
+    EXPECT_EQ(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_Divide));
+
+    EXPECT_NE(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_Minus));
+    EXPECT_NE(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_Minus));
+}
+
+TEST(SymbolTable, IsAnyIntegerVartype)
+{
+    AGS::SymbolTable symt;
+
+    EXPECT_TRUE(symt.IsAnyIntegerVartype(AGS::kKW_Long));
+    EXPECT_FALSE(symt.IsAnyIntegerVartype(AGS::kKW_Float));
 }

@@ -6,134 +6,114 @@
 #include "script/script_common.h"       // macro definitions
 #include "script/cc_error.h"            // error processing
 
-AGS::SymbolTableEntry::SymbolTableEntry()
-    : SName("")
-    , SType(SymT::kNoType)
-    , Declared(kNoSrcLocation)
-    , Flags(0)
-    , TypeQualifiers({})
-    , SOffset(0)
-    , Vartype(0)
-    , SSize(0)
-    , SScope(0u)
-    , VartypeType(VTT::kAtomic)
-    , Dims({})
-    , Parent(0)
-    , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
-    , FuncParamDefaultValues(std::vector<ParamDefault>(1))
-    , OperatorOpcode(0)
-    , OperatorBinaryPrio(-1)
-    , OperatorUnaryPrio(-1)
-{ }
-
-
-AGS::SymbolTableEntry::SymbolTableEntry(std::string const &name, SymbolType stype, size_t ssize)
-    : SName(name)
-    , SType(stype)
-    , Declared(kNoSrcLocation)
-    , Flags(0)
-    , TypeQualifiers({})
-    , SOffset(0)
-    , Vartype(0)
-    , SSize(ssize)
-    , SScope(0u)
-    , VartypeType(VTT::kAtomic)
-    , Dims({})
-    , Parent(0)
-    , FuncParamVartypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
-    , FuncParamDefaultValues(std::vector<ParamDefault>(1))
-    , OperatorOpcode(0)
-    , OperatorBinaryPrio(-1)
-    , OperatorUnaryPrio(-1)
-{ }
-
-bool AGS::SymbolTableEntry::IsVTT(AGS::VartypeType vtt, SymbolTable const &symt) const
+AGS::SymbolTableEntry::~SymbolTableEntry()
 {
-    if (SymT::kVartype != SType)
-        return symt.IsVTT(Vartype, vtt);
-
-    // "Constant" always is the outermost vartype qualifier,
-    // so if this is constant and we're checking for something else,
-    // then look for the info one level down.
-    if (VTT::kConst == VartypeType)
-        return (VTT::kConst == vtt) ? true : symt.IsVTT(Vartype, vtt);
-    return vtt == VartypeType;
+    // (note that null pointers may be safely 'delete'd, in contrast to 'free'd)
+    delete this->ConstantD;
+    this->ConstantD = nullptr;
+    delete this->ComponentD;
+    this->ComponentD = nullptr;
+    delete this->DelimeterD;
+    this->DelimeterD = nullptr;
+    delete this->FunctionD;
+    this->FunctionD = nullptr;
+    delete this->LiteralD;
+    this->LiteralD = nullptr;
+    delete this->OperatorD;
+    this->OperatorD = nullptr;
+    delete this->VariableD;
+    this->VariableD = nullptr;
+    delete this->VartypeD;
+    this->VartypeD = nullptr;
 }
 
-size_t AGS::SymbolTableEntry::GetSize(SymbolTable const & symt) const
+AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &orig)
 {
-    return (SymT::kVartype == SType) ? SSize : symt.GetSize(Vartype);
+    this->Name = orig.Name;
+    this->Declared = orig.Declared;
+    this->Scope = orig.Scope;
+    this->Accessed = orig.Accessed;
+
+    // Deep copy semantics.
+    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
+    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
+    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
+    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{ *(orig.LiteralD) } : nullptr;
+    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{ *(orig.OperatorD) } : nullptr;
+    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
+    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{ *(orig.VariableD) } : nullptr;
+    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{ *(orig.VartypeD) } : nullptr;
+
+    return *this;
 }
 
-size_t AGS::SymbolTableEntry::NumArrayElements(SymbolTable const &symt) const
+std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymbolMap() const
 {
-    if (SymT::kVartype != SType)
-        return symt.NumArrayElements(Vartype);
-
-    if (0 == Dims.size())
-        return 0;
-
-    size_t num = 1;
-    for (size_t dims_idx = 0; dims_idx < Dims.size(); ++dims_idx)
-        num *= Dims[dims_idx];
-    return num;
-}
-
-bool AGS::SymbolTableEntry::IsVTF(SymbolTableFlag flag, SymbolTable const &symt) const
-{
-    if (SymT::kVartype != SType && SymT::kUndefinedStruct != SType)
-        return symt.IsVTF(Vartype, flag);
-
-    // Recursively get to the innermost symbol; read that symbol's flags
-    if (VTT::kAtomic == VartypeType)
-        return FlagIsSet(Flags, flag);
-    return symt.IsVTF(Vartype, flag);
-}
-
-bool AGS::SymbolTableEntry::ParamDefault::operator==(const ParamDefault &other) const
-{
-    if (Type != other.Type)
-        return false;
-    switch (Type)
+    // "static" so that we get a singleton that will only be initialized once, at first use
+    static std::map<TypeQualifier, Symbol> const tq2sym =
     {
-    default:            return false;
-    case kDT_None:      return true;
-    case kDT_Int:       return IntDefault == other.IntDefault;
-    case kDT_Float:     return FloatDefault == other.FloatDefault;
-    case kDT_Dyn:       return DynDefault == other.DynDefault;
-    }
+        { TQ::kAttribute,       kKW_Attribute, },
+        { TQ::kAutoptr,         kKW_Autoptr, },
+        { TQ::kBuiltin,         kKW_Builtin, },
+        { TQ::kConst,           kKW_Const, },
+        { TQ::kImport,          kKW_ImportStd, },
+        { TQ::kManaged,         kKW_Managed,  },
+        { TQ::kProtected,       kKW_Protected,  },
+        { TQ::kReadonly,        kKW_Readonly, },
+        { TQ::kStatic,          kKW_Static, },
+        { TQ::kStringstruct,    kKW_Internalstring, },
+        { TQ::kWriteprotected,  kKW_Writeprotected, },
+    };
+
+    return tq2sym;
 }
 
-std::string AGS::SymbolTableEntry::ParamDefault::ToString() const
+void AGS::SymbolTableEntry::Clear()
 {
-    switch (Type)
-    {
-    default:            return "(Illegal default type)";
-    case kDT_None:      return "(No default)";
-    case kDT_Int:       return std::to_string(IntDefault);
-    case kDT_Float:     return std::to_string(FloatDefault);
-    case kDT_Dyn:       return (nullptr == DynDefault) ? "null" : "(A non-null value)";
-    }
+    // Leave the name so that symbols in the main phase equate to symbols in the pre phase.
+    Declared = SymbolTableConstant::kNoSrcLocation;
+    Scope = 0u;
+    // Don't clear Accessed so when a function is first used and then declared, this doesn't clobber the use.
+
+    delete ConstantD;
+    ConstantD = nullptr;
+    delete DelimeterD;
+    DelimeterD = nullptr;
+    delete FunctionD;
+    FunctionD = nullptr;
+    delete LiteralD;
+    LiteralD = nullptr;
+    delete OperatorD;
+    OperatorD = nullptr;
+    delete ComponentD;
+    ComponentD = nullptr;
+    delete VariableD;
+    VariableD = nullptr;
+    delete VartypeD;
+    VartypeD = nullptr;
 }
 
-int32_t AGS::SymbolTableEntry::ParamDefault::ToInt32() const
+AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
+    : Name(orig.Name)
+    , Declared(orig.Declared)
+    , Scope(orig.Scope)
+    , Accessed(orig.Accessed)
 {
-    switch (Type)
-    {
-    default:            return 0;
-    case kDT_Int:       return IntDefault;
-    case kDT_Float:     return *((CodeCell *)&FloatDefault);
-    }
+    // Deep copy semantics.
+    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
+    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
+    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
+    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{ *(orig.LiteralD) } : nullptr;
+    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{ *(orig.OperatorD) } : nullptr;
+    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
+    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{ *(orig.VariableD) } : nullptr;
+    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{ *(orig.VartypeD) } : nullptr;
 }
 
 AGS::SymbolTable::SymbolTable()
-    : _stringStructSym(0)
 {
-    reset();
-}
+    _stringStructSym = _stringStructPtrSym = kKW_NoSymbol;
 
-void AGS::SymbolTable::reset()
-{
     _findCache.clear();
     _vartypesCache.clear();
 
@@ -141,120 +121,273 @@ void AGS::SymbolTable::reset()
     entries.reserve(300);
     entries.resize(kKW_LastPredefined + 1);
 
-    SetStringStructSym(0);
-
-    Add(kKW_NoSymbol, "__dummy_sym_0__", SymT::kNoType);
+    AddNoSymbol(kKW_NoSymbol, "__no_symbol__");
 
     // Primitive types
-    Add(kKW_Char, "char", SymT::kVartype, 1);
-    Add(kKW_Float, "float", SymT::kVartype, 4);
-    Add(kKW_Int, "int", SymT::kVartype, SIZE_OF_INT);
-    Add(kKW_Long, "long", SymT::kVartype, SIZE_OF_INT);
-    Add(kKW_Short, "short", SymT::kVartype, 2);
-    Add(kKW_String, "string", SymT::kVartype, STRINGBUFFER_LENGTH);
-    Add(kKW_Void, "void", SymT::kVartype, 0);
+    AddVartype(kKW_Char, "char", SIZE_OF_CHAR, true);
+    AddVartype(kKW_Float, "float", SIZE_OF_FLOAT);
+    AddVartype(kKW_Int, "int", SIZE_OF_INT, true);
+    AddVartype(kKW_Long, "long", SIZE_OF_LONG, true);
+    AddVartype(kKW_Short, "short", SIZE_OF_SHORT, true);
+    AddVartype(kKW_String, "string", STRINGBUFFER_LENGTH);
+    AddVartype(kKW_Void, "void", 0u);
 
-    Add(kKW_CloseBracket, "]", SymT::kDelimiter);
-    Add(kKW_CloseParenthesis, ")", SymT::kDelimiter);
-    Add(kKW_Dot, ".", SymT::kKeyword);
-    Add(kKW_Null, "null", SymT::kKeyword);
-    Add(kKW_OpenBracket, "[", SymT::kDelimiter);
-    Add(kKW_OpenParenthesis, "(", SymT::kDelimiter);
+    // Delimeters
+    AddDelimeter(kKW_CloseBracket, "]", false, kKW_OpenBracket, true);
+    AddDelimeter(kKW_OpenBracket, "[", true, kKW_CloseBracket, true);
+    AddDelimeter(kKW_CloseBrace, "}", false, kKW_OpenBrace, false);    
+    AddDelimeter(kKW_OpenBrace, "{", true, kKW_CloseBrace, false);    
+    AddDelimeter(kKW_CloseParenthesis, ")", false, kKW_OpenParenthesis, true);
+    AddDelimeter(kKW_OpenParenthesis, "(", true, kKW_CloseParenthesis, true);
 
-    AddOp(kKW_Not, "!", SymT::kOperator, SCMD_NOTREG, -1, 101); // boolean NOT
-    AddOp(kKW_BitNeg, "~", SymT::kOperator, SCMD_NOTREG, -1, 101); // bitwise NOT
-    AddOp(kKW_Multiply, "*", SymT::kOperator, SCMD_MULREG, 103);
-    AddOp(kKW_Divide, "/", SymT::kOperator, SCMD_DIVREG, 103);
-    AddOp(kKW_Modulo, "%", SymT::kOperator, SCMD_MODREG, 103);
-    AddOp(kKW_Plus, "+", SymT::kOperator, SCMD_ADDREG, 105);
-    AddOp(kKW_Minus, "-", SymT::kOperator, SCMD_SUBREG, 105, 101);
-    AddOp(kKW_ShiftLeft, "<<", SymT::kOperator, SCMD_SHIFTLEFT, 107);
-    AddOp(kKW_ShiftRight, ">>", SymT::kOperator, SCMD_SHIFTRIGHT, 107);
-    AddOp(kKW_BitAnd, "&", SymT::kOperator, SCMD_BITAND, 109);
-    AddOp(kKW_BitOr, "|", SymT::kOperator, SCMD_BITOR, 110);
-    AddOp(kKW_BitXor, "^", SymT::kOperator, SCMD_XORREG, 110);
-    AddOp(kKW_Equal, "==", SymT::kOperator, SCMD_ISEQUAL, 112);
-    AddOp(kKW_NotEqual, "!=", SymT::kOperator, SCMD_NOTEQUAL, 112);
-    AddOp(kKW_Greater, ">", SymT::kOperator, SCMD_GREATER, 112);
-    AddOp(kKW_Less, "<", SymT::kOperator, SCMD_LESSTHAN, 112);
-    AddOp(kKW_GreaterEqual, ">=", SymT::kOperator, SCMD_GTE, 112);
-    AddOp(kKW_LessEqual, "<=", SymT::kOperator, SCMD_LTE, 112);
-    AddOp(kKW_And, "&&", SymT::kOperator, SCMD_AND, 118);
-    AddOp(kKW_Or, "||", SymT::kOperator, SCMD_OR, 119);
-    AddOp(kKW_Tern, "?", SymT::kKeyword, -1, 120);
+    // Operators
+    AddOperator(kKW_And, "&&", SCMD_AND, 118, SymbolTable::kNoPrio);
+    AddOperator(kKW_BitAnd, "&", SCMD_BITAND, 109, SymbolTable::kNoPrio);
+    AddOperator(kKW_BitNeg, "~", SCMD_NOTREG, SymbolTable::kNoPrio, 101); // bitwise NOT
+    AddOperator(kKW_BitOr, "|", SCMD_BITOR, 110, SymbolTable::kNoPrio);
+    AddOperator(kKW_BitXor, "^", SCMD_XORREG, 110, SymbolTable::kNoPrio);
+    AddOperator(kKW_Divide, "/", SCMD_DIVREG, 103, SymbolTable::kNoPrio);
+    AddOperator(kKW_Equal, "==", SCMD_ISEQUAL, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_Greater, ">", SCMD_GREATER, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_GreaterEqual, ">=", SCMD_GTE, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_Less, "<", SCMD_LESSTHAN, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_LessEqual, "<=", SCMD_LTE, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_Minus, "-", SCMD_SUBREG, 105, 101);
+    AddOperator(kKW_Modulo, "%", SCMD_MODREG, 103, SymbolTable::kNoPrio);
+    AddOperator(kKW_Multiply, "*", SCMD_MULREG, 103, SymbolTable::kNoPrio);
+    AddOperator(kKW_Not, "!", SCMD_NOTREG, SymbolTable::kNoPrio, 101); // boolean NOT
+    AddOperator(kKW_New, "new", SCMD_NEWUSEROBJECT, SymbolTable::kNoPrio, 101);
+    AddOperator(kKW_NotEqual, "!=", SCMD_NOTEQUAL, 112, SymbolTable::kNoPrio);
+    AddOperator(kKW_Or, "||", SCMD_OR, 119, SymbolTable::kNoPrio);
+    AddOperator(kKW_Plus, "+", SCMD_ADDREG, 105, 101);
+    AddOperator(kKW_ShiftLeft, "<<", SCMD_SHIFTLEFT, 107, SymbolTable::kNoPrio);
+    AddOperator(kKW_ShiftRight, ">>", SCMD_SHIFTRIGHT, 107, SymbolTable::kNoPrio);
+    AddOperator(kKW_Tern, "?", 0, 120, SymbolTable::kNoPrio);    // note, operator and keyword
 
-    Add(kKW_This, "this", SymT::kKeyword);
+    // Assignments
+    AddAssign(kKW_Assign, "=", 120);
 
-    // Assignments and modifiers
-    AddOp(kKW_Assign, "=", SymT::kAssign, 0);
-    AddOp(kKW_AssignPlus, "+=", SymT::kAssignMod, SCMD_ADDREG);
-    AddOp(kKW_AssignMinus, "-=", SymT::kAssignMod, SCMD_SUBREG);
-    AddOp(kKW_AssignMultiply, "*=", SymT::kAssignMod, SCMD_MULREG);
-    AddOp(kKW_AssignDivide, "/=", SymT::kAssignMod, SCMD_DIVREG);
-    AddOp(kKW_AssignBitAnd, "&=", SymT::kAssignMod, SCMD_BITAND);
-    AddOp(kKW_AssignBitOr, "|=", SymT::kAssignMod, SCMD_BITOR);
-    AddOp(kKW_AssignBitXor, "^=", SymT::kAssignMod, SCMD_XORREG);
-    AddOp(kKW_AssignShiftLeft, "<<=", SymT::kAssignMod, SCMD_SHIFTLEFT);
-    AddOp(kKW_AssignShiftRight, ">>=", SymT::kAssignMod, SCMD_SHIFTRIGHT);
-    AddOp(kKW_Increment, "++", SymT::kAssignSOp, SCMD_ADD);
-    AddOp(kKW_Decrement, "--", SymT::kAssignSOp, SCMD_SUB);
+    AddAssignMod(kKW_AssignBitAnd, "&=", SCMD_BITAND, 120);
+    AddAssignMod(kKW_AssignBitOr, "|=", SCMD_BITOR, 120);
+    AddAssignMod(kKW_AssignBitXor, "^=", SCMD_XORREG, 120);
+    AddAssignMod(kKW_AssignDivide, "/=", SCMD_DIVREG, 120);
+    AddAssignMod(kKW_AssignMinus, "-=", SCMD_SUBREG, 120);
+    AddAssignMod(kKW_AssignMultiply, "*=", SCMD_MULREG, 120);
+    AddAssignMod(kKW_AssignPlus, "+=", SCMD_ADDREG, 120);
+    AddAssignMod(kKW_AssignShiftLeft, "<<=", SCMD_SHIFTLEFT, 120);
+    AddAssignMod(kKW_AssignShiftRight, ">>=",SCMD_SHIFTRIGHT, 120);
+
+    // Modifiers
+    AddModifier(kKW_Increment, "++", SCMD_ADD, 101, 101);
+    AddModifier(kKW_Decrement, "--", SCMD_SUB, 101, 101);
 
     // other keywords and symbols
-    Add(kKW_Attribute, "attribute", SymT::kKeyword);
-    Add(kKW_Autoptr, "autoptr", SymT::kKeyword);
-    Add(kKW_Break, "break", SymT::kKeyword);
-    Add(kKW_Builtin, "builtin", SymT::kKeyword);
-    Add(kKW_Case, "case", SymT::kKeyword);
-    Add(kKW_CloseBrace, "}", SymT::kKeyword);
-    Add(kKW_Comma, ",", SymT::kKeyword);
-    Add(kKW_Const, "const", SymT::kKeyword);
-    Add(kKW_Continue, "continue", SymT::kKeyword);
-    Add(kKW_Default, "default", SymT::kKeyword);
-    Add(kKW_Do, "do", SymT::kKeyword);
-    Add(kKW_Else, "else", SymT::kKeyword);
-    Add(kKW_Enum, "enum", SymT::kKeyword);
-    Add(kKW_Export, "export", SymT::kKeyword);
-    Add(kKW_Extends, "extends", SymT::kKeyword);
-    Add(kKW_For, "for", SymT::kKeyword);
-    Add(kKW_If, "if", SymT::kKeyword);
-    Add(kKW_ImportStd, "import", SymT::kImport);     // NOTE: Different keywords, same symbol
-    Add(kKW_ImportTry, "_tryimport", SymT::kImport); // NOTE: Different keywords, same symbol
-    Add(kKW_Internalstring, "internalstring", SymT::kKeyword);
-    Add(kKW_Colon, ":", SymT::kKeyword);
-    Add(kKW_Noloopcheck, "noloopcheck", SymT::kKeyword);
-    Add(kKW_Managed, "managed", SymT::kKeyword);
-    Add(kKW_ScopeRes, "::", SymT::kKeyword);
-    AddOp(kKW_New, "new", SymT::kKeyword, -1, -1, 101); // note, can also be operator
-    Add(kKW_OpenBrace, "{", SymT::kKeyword);
-    Add(kKW_Protected, "protected", SymT::kKeyword);
-    Add(kKW_Readonly, "readonly", SymT::kKeyword);
-    Add(kKW_Return, "return", SymT::kKeyword);
-    Add(kKW_Semicolon, ";", SymT::kKeyword);
-    Add(kKW_Static, "static", SymT::kKeyword);
-    Add(kKW_Struct, "struct", SymT::kKeyword);
-    Add(kKW_Switch, "switch", SymT::kKeyword);
-    Add(kKW_Varargs, "...", SymT::kKeyword);
-    Add(kKW_While, "while", SymT::kKeyword);
-    Add(kKW_Writeprotected, "writeprotected", SymT::kKeyword);
+    AddKeyword(kKW_Dot, ".");
+    AddKeyword(kKW_This, "this");
+    MakeEntryVariable(kKW_This);
+    AddKeyword(kKW_Attribute, "attribute");
+    AddKeyword(kKW_Autoptr, "autoptr");
+    AddKeyword(kKW_Break, "break");
+    AddKeyword(kKW_Builtin, "builtin");
+    AddKeyword(kKW_Case, "case");
+    AddKeyword(kKW_Colon, ":");
+    AddKeyword(kKW_Comma, ",");
+    AddKeyword(kKW_Const, "const");
+    AddKeyword(kKW_Continue, "continue");
+    AddKeyword(kKW_Default, "default");
+    AddKeyword(kKW_Do, "do");
+    AddKeyword(kKW_Else, "else");
+    AddKeyword(kKW_Enum, "enum");
+    AddKeyword(kKW_Export, "export");
+    AddKeyword(kKW_Extends, "extends");
+    AddKeyword(kKW_For, "for");
+    AddKeyword(kKW_If, "if");
+    AddKeyword(kKW_ImportStd, "import");
+    AddKeyword(kKW_ImportTry, "_tryimport");
+    AddKeyword(kKW_Internalstring, "internalstring");
+    AddKeyword(kKW_Managed, "managed");
+    AddKeyword(kKW_Noloopcheck, "noloopcheck");
+    AddKeyword(kKW_Null, "null");
+    MakeEntryLiteral(kKW_Null);
+    entries[kKW_Null].LiteralD->Vartype = kKW_NoSymbol;
+    entries[kKW_Null].LiteralD->Value = 0u;
+    AddKeyword(kKW_Protected, "protected");
+    AddKeyword(kKW_Readonly, "readonly");
+    AddKeyword(kKW_Return, "return");
+    AddKeyword(kKW_ScopeRes, "::");
+    AddKeyword(kKW_Semicolon, ";");
+    AddKeyword(kKW_Static, "static");
+    AddKeyword(kKW_Struct, "struct");
+    AddKeyword(kKW_Switch, "switch");
+    AddKeyword(kKW_Varargs, "...");
+    AddKeyword(kKW_While, "while");
+    AddKeyword(kKW_Writeprotected, "writeprotected");
+
+    // Add some additional symbols that the compiler or scanner will need
+    {
+        Symbol const zero_sym = Add("0");
+        MakeEntryLiteral(zero_sym);
+        entries[zero_sym].LiteralD->Value = 0u;
+        entries[zero_sym].LiteralD->Vartype = kKW_Int;
+    }
+    _lastAllocated = VartypeWith(VTT::kConst, kKW_String);
+}
+
+bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return false;
+
+    // ignore 'const', must be outermost if present
+    if (VTT::kConst != vtt && VTT::kConst == entries.at(s).VartypeD->Type)
+        s = entries.at(s).VartypeD->BaseVartype;
+    return vtt == entries.at(s).VartypeD->Type;
+}
+
+bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return false;
+
+    // Get to the innermost symbol; read that symbol's flags
+    while (VTT::kAtomic != entries.at(s).VartypeD->Type)
+        s = entries.at(s).VartypeD->BaseVartype;
+    return entries.at(s).VartypeD->Flags[flag];
+}
+
+void AGS::SymbolTable::SetStringStructSym(Symbol const s)
+{
+    _stringStructSym = s;
+    _stringStructPtrSym = VartypeWith(VTT::kDynpointer, s);
+}
+
+bool AGS::SymbolTable::IsInUse(Symbol s) const
+{
+    if (s <= kKW_LastPredefined)
+        return true;
+
+    // Don't check for ComponentD. This record is subsidiary
+    // and only makes sense if one of the other records is set.
+    auto const &entry = entries.at(s);
+    return
+        entry.ConstantD ||
+        entry.FunctionD ||
+        entry.LiteralD ||
+        entry.VariableD ||
+        entry.VartypeD;
+}
+
+bool AGS::SymbolTable::IsIdentifier(Symbol s) const
+{
+    if (s <= kKW_LastPredefined || s > static_cast<decltype(s)>(entries.size()))
+        return false;
+    std::string const name = GetName(s);
+    if (0u == name.size())
+        return false;
+    if ('0' <= name[0] && name[0] <= '9')
+        return false;
+    for (size_t idx = 0; idx < name.size(); ++idx)
+    {
+        char const &ch = name[idx];
+        if ('0' <= ch && ch <= '9') continue;
+        if ('A' <= ch && ch <= 'Z') continue;
+        if ('a' <= ch && ch <= 'z') continue;
+        if ('_' == ch) continue;
+        return false;
+    }
+    return true;
+}
+
+bool AGS::SymbolTable::CanBePartOfAnExpression(Symbol s)
+{
+    // Note: Whatever is within delimeters will be completely skipped automatically,
+    // it doesn't need to be considered here.
+    return
+        IsConstant(s) ||
+        (IsDelimeter(s) && entries.at(s).DelimeterD->CanBePartOfAnExpression) ||
+        IsFunction(s) ||
+        IsLiteral(s) ||
+        (IsOperator(s) && entries.at(s).OperatorD->CanBePartOfAnExpression) ||
+        IsVariable(s);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
 {
-    if (s >= kKW_Char && s <= kKW_Short && s != kKW_Float)
-        return true;
-    if (!IsAtomic(s))
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s) || !IsAtomicVartype(s))
         return false;
-    s = entries[s].Vartype;
-    return (s >= kKW_Char && s <= kKW_Short && s != kKW_Float);
+    if (kKW_NoSymbol == entries.at(s).VartypeD->BaseVartype)
+        return entries.at(s).VartypeD->Flags[VTF::kIntegerVartype];
+    return IsAnyIntegerVartype(entries.at(s).VartypeD->BaseVartype);
+}
+
+size_t AGS::SymbolTable::GetSize(Symbol s) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return (0u);
+    return entries.at(s).VartypeD->Size;    
+}
+
+bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return false;
+    if (VTT::kConst == entries.at(s).VartypeD->Type)
+        s = entries.at(s).VartypeD->BaseVartype;
+    if (!IsPredefined(s))
+        return false;
+    if (VTT::kAtomic != entries.at(s).VartypeD->Type)
+        return false;
+    return kKW_NoSymbol == entries.at(s).VartypeD->BaseVartype;
+}
+
+size_t AGS::SymbolTable::NumArrayElements(Symbol s) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return 0u;
+
+    SymbolTableEntry::VartypeDesc const *vdesc = entries.at(s).VartypeD;
+    size_t const dims_size = vdesc->Dims.size();
+    if (0u == dims_size)
+        return 0u;
+
+    size_t num = 1;
+    for (size_t dims_idx = 0; dims_idx < dims_size; ++dims_idx)
+        num *= vdesc->Dims[dims_idx];
+    return num;
+}
+
+bool AGS::SymbolTable::IsManagedVartype(Symbol s) const
+{
+    if (IsVariable(s))
+        s = entries.at(s).VariableD->Vartype;
+    if (!IsVartype(s))
+        return false;
+    
+    while (VTT::kAtomic != entries.at(s).VartypeD->Type)
+        s = entries.at(s).VartypeD->BaseVartype;
+       
+    return entries.at(s).VartypeD->Flags[VTF::kManaged];
 }
 
 std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 {
-    if (symbl < 0)
+    if (symbl <= 0)
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    return entries[symbl].SName;
+    return entries[symbl].Name;
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
@@ -263,7 +396,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     if (IsVTT(vartype, VTT::kArray))
         return vartype;
 
-    std::string conv_name = entries[vartype].SName + "[";
+    std::string conv_name = entries[vartype].Name + "[";
     size_t const last_idx = dims.size() - 1;
     size_t num_elements = 1;
     for (size_t dims_idx = 0; dims_idx <= last_idx; ++dims_idx)
@@ -273,18 +406,21 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
     Vartype const array_vartype = FindOrAdd(conv_name);
-    entries[array_vartype].SType = SymT::kVartype;
-    entries[array_vartype].VartypeType = VTT::kArray;
-    entries[array_vartype].Vartype = vartype;
-    entries[array_vartype].SSize = num_elements * GetSize(vartype);
-    entries[array_vartype].Dims = dims;
+    if (IsVartype(array_vartype))
+        return array_vartype;
+
+    entries[array_vartype].VartypeD = new SymbolTableEntry::VartypeDesc;
+    entries[array_vartype].VartypeD->Type = VTT::kArray;
+    entries[array_vartype].VartypeD->BaseVartype = vartype;
+    entries[array_vartype].VartypeD->Size = num_elements * GetSize(vartype);
+    entries[array_vartype].VartypeD->Dims = dims;
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype)
 {
     // Return cached result if existent 
-    std::pair<Vartype, AGS::VartypeType> const arg = { vartype, vtt };
+    std::pair<Vartype, VartypeType> const arg = { vartype, vtt };
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
@@ -303,68 +439,73 @@ AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, Vartype vartype)
         // (If this turns out to be too ugly, then we need two fields for vartypes:
         // one field that is output to the user, another field that is guaranteed to have different values
         // for different vartypes.)
-    case VTT::kDynpointer: post = FlagIsSet(entries[vartype].Flags, kSFLG_StructAutoPtr) ? " " : " *"; break;
+    case VTT::kDynpointer: post = (IsVartype(vartype) && entries[vartype].VartypeD->Flags[VTF::kAutoptr]) ? " " : " *"; break;
     case VTT::kDynarray: post = "[]"; break;
     }
-    std::string const conv_name = (pre + entries[vartype].SName) + post;
+    std::string const conv_name = (pre + entries[vartype].Name) + post;
     valref = FindOrAdd(conv_name);
+    if (IsVartype(valref))
+        return valref;
+
     SymbolTableEntry &entry = entries[valref];
-    entry.SType = SymT::kVartype;
-    entry.VartypeType = vtt;
-    entry.Vartype = vartype;
-    entry.SSize = (VTT::kConst == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
+    entry.VartypeD = new SymbolTableEntry::VartypeDesc;
+    entry.VartypeD->Type = vtt;
+    entry.VartypeD->BaseVartype = vartype;
+    entry.VartypeD->Size = (VTT::kConst == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
     return valref;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWithout(VartypeType vtt, AGS::Vartype vartype) const
+AGS::Vartype AGS::SymbolTable::VartypeWithout(VartypeType const vtt, AGS::Vartype vartype) const
 {
-    while (
-        IsInBounds(vartype) &&
-        SymT::kVartype == entries[vartype].SType &&
-        entries[vartype].VartypeType == vtt)
-        vartype = entries[vartype].Vartype;
+    if (IsVartype(vartype) && vtt == entries[vartype].VartypeD->Type)
+        vartype = entries[vartype].VartypeD->BaseVartype;
     return vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::BaseVartype(Vartype vartype) const
+void AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const
 {
-    while (!IsAtomic(vartype))
+    if (!IsVartype(strct) || !entries.at(strct).VartypeD->Flags[VTF::kStruct])
+        return;
+
+    // Collect the ancestors of 'struct', i.e., those structs that 'struct' extends
+    std::vector<Symbol> ancestors = {};
+    while(kKW_NoSymbol != strct)
     {
-        VartypeType const vtt = entries[vartype].VartypeType;
-        vartype = VartypeWithout(vtt, vartype);
+        ancestors.push_back(strct);
+        strct = entries.at(strct).VartypeD->Parent;
     }
-    return vartype;
+   
+    for (auto ancestors_it = ancestors.crbegin(); ancestors_it != ancestors.crend(); ancestors_it++)
+    {
+        auto const &components = entries.at(*ancestors_it).VartypeD->Components;
+        for (auto components_it = components.cbegin(); components_it != components.cend(); components_it++)
+            compo_list.push_back(components_it->second);
+    }
 }
 
-int AGS::SymbolTable::GetComponentsOfStruct(Symbol strct, std::vector<Symbol>& compo_list) const
+AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const component, Symbol const ancestor) const
 {
-    compo_list.clear();
-    while (true)
+    // Find the ancestor
+    while (strct != ancestor && strct != kKW_NoSymbol)
+        strct = entries.at(strct).VartypeD->Parent;
+
+    // Start looking for the components
+    while (strct)
     {
-        std::vector<Symbol> const &children = entries.at(strct).Children;
-        for (auto children_it = children.begin(); children_it != children.end(); children_it++)
-            compo_list.push_back(*children_it);
-        if (entries[strct].Parent <= 0)
-            return 0;
-        strct = entries.at(strct).Parent;
+        auto const &components = entries.at(strct).VartypeD->Components;
+        for (auto components_it = components.begin(); components_it != components.end(); components_it++)
+            if (component == components_it->first)
+                return components_it->second;
     }
+    return kKW_NoSymbol;
 }
 
 bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
 {
-    if (!IsInBounds(s))
-        return false;
+    if (IsVariable(s))
+        s = entries[s].VariableD->Vartype;
 
-    // Convert a var to its vartype
-    if (SymT::kLocalVar == entries[s].SType || SymT::kGlobalVar == entries[s].SType)
-    {
-        s = entries[s].Vartype;
-        if (!IsInBounds(s))
-            return false;
-    }
-
-    // Must be vartype at this point
-    if (SymT::kVartype != entries[s].SType)
+    if (!IsVartype(s))
         return false;
 
     // Oldstrings and String * are strings
@@ -381,12 +522,11 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
         return false;
 
     // Convert a var to its vartype
-    if (SymT::kLocalVar == entries[s].SType || SymT::kGlobalVar == entries[s].SType)
-    {
-        s = entries[s].Vartype;
-        if (!IsInBounds(s) || SymT::kVartype != entries[s].SType)
+    if (IsVariable(s))
+        s = entries[s].VariableD->Vartype;
+
+    if (!IsVartype(s))
             return false;
-    }
 
     Vartype const s_without_const =
         VartypeWithout(VTT::kConst, s);
@@ -398,12 +538,13 @@ bool AGS::SymbolTable::IsOldstring(Symbol s) const
     return (IsArrayVartype(s) && kKW_Char == VartypeWithout(VTT::kArray, s_without_const));
 }
 
-AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int ssize)
+AGS::Symbol AGS::SymbolTable::Add(std::string const &name)
 {
     // Note: A very significant portion of computing is spent in this function.
     if (0 != _findCache.count(name))
-        return -1;
+        return kKW_NoSymbol;
 
+    // Extend the entries in chunks instead of one-by-one: Experiments show that this saves time
     if (entries.size() == entries.capacity())
     {
         size_t const new_size1 = entries.capacity() * 2;
@@ -411,33 +552,106 @@ AGS::Symbol AGS::SymbolTable::Add(std::string const &name, SymbolType stype, int
         entries.reserve((new_size1 < new_size2) ? new_size1 : new_size2);
     }
     int const idx_of_new_entry = entries.size();
-    entries.emplace_back(name, stype, ssize);
+    entries.emplace_back();
+    entries.at(idx_of_new_entry).Name = name;
     _findCache[name] = idx_of_new_entry;
     return idx_of_new_entry;
 }
 
-AGS::Symbol AGS::SymbolTable::Add(Predefined kw, std::string const &name, SymbolType stype, int ssize)
+AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name)
 {
-    if (0 != _findCache.count(name))
-        return -1;
-
     SymbolTableEntry &entry = entries[kw];
-    entry.SName = name;
-    entry.SType = stype;
-    entry.SSize = ssize;
+    entry.Name = name;
 
     _findCache[name] = kw;
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddOp(Predefined kw, std::string const &opname, SymbolType sty, CodeCell opcode, int binary_prio, int unary_prio)
+AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio)
 {
-    Symbol symbol_idx = Add(kw, opname, sty);
-    if (symbol_idx >= 0)
-    {
-        entries[symbol_idx].OperatorOpcode = opcode;
-        entries[symbol_idx].OperatorBinaryPrio = binary_prio;
-        entries[symbol_idx].OperatorUnaryPrio = unary_prio;
-    }
-    return symbol_idx;
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
+    entry.OperatorD->BinaryPrio = prio;
+    entry.OperatorD->UnaryPrio = SymbolTable::kNoPrio;
+    entry.OperatorD->Opcode = 0;
+
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddAssignMod(Predefined kw, std::string const &name, CodeCell opcode, size_t prio)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
+    entry.OperatorD->BinaryPrio = prio;
+    entry.OperatorD->UnaryPrio = SymbolTable::kNoPrio;
+    entry.OperatorD->Opcode = opcode;
+
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner, bool can_be_expression)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.DelimeterD = new SymbolTableEntry::DelimeterDesc;
+    entry.DelimeterD->Opening = is_opener;
+    entry.DelimeterD->Partner = partner;
+    entry.DelimeterD->CanBePartOfAnExpression = can_be_expression;
+
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddModifier(Predefined kw, std::string const &name, CodeCell opcode, size_t prefix_prio, size_t postfix_prio)
+{
+    
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
+    entry.OperatorD->BinaryPrio = prefix_prio;
+    entry.OperatorD->UnaryPrio = postfix_prio;
+    entry.OperatorD->Opcode = opcode;
+
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const & name, CodeCell opcode, size_t binary_prio, size_t unary_prio)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
+    entry.OperatorD->BinaryPrio = binary_prio;
+    entry.OperatorD->UnaryPrio = unary_prio;
+    entry.OperatorD->Opcode = opcode;
+    entry.OperatorD->CanBePartOfAnExpression = true;
+
+    _findCache[name] = kw;
+    return kw;
+}
+
+AGS::Symbol AGS::SymbolTable::AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Name = name;
+    entry.VartypeD = new SymbolTableEntry::VartypeDesc;
+    entry.VartypeD->Size = size;
+    entry.VartypeD->Type = VTT::kAtomic;
+    entry.VartypeD->Flags[VTF::kIntegerVartype] = is_integer_vartype;
+
+    _findCache[name] = kw;
+    return kw;
 }

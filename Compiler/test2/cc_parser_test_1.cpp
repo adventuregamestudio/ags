@@ -106,6 +106,22 @@ TEST_F(Compile1, UnaryDivideBy) {
     EXPECT_NE(std::string::npos, msg.find("unary op"));
 }
 
+TEST_F(Compile1, UnaryPlus) {
+
+    // '/' can't be unary
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return +42;                         \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}
+
 TEST_F(Compile1, FloatInt1) {  
 
     // Can't mix float and int
@@ -251,7 +267,7 @@ TEST_F(Compile1, StaticArrayIndex1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+    EXPECT_NE(std::string::npos, msg.find("oo high"));
 }
 
 TEST_F(Compile1, StaticArrayIndex2) {
@@ -266,14 +282,14 @@ TEST_F(Compile1, StaticArrayIndex2) {
         int main()                      \n\
         {                               \n\
             int Var[5];                 \n\
-            Var[MinusFive];            \n\
+            Var[MinusFive];             \n\
         }                               \n\
         ";
     
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+    EXPECT_NE(std::string::npos, msg.find("oo low"));
 }
 
 TEST_F(Compile1, ExpressionArray1) {    
@@ -383,6 +399,7 @@ TEST_F(Compile1, ExtenderExtender1) {
     char *inpl = "\
         struct Struct1                      \n\
         {                                   \n\
+            void Func();                    \n\
         };                                  \n\
         struct Struct2                      \n\
         {                                   \n\
@@ -395,7 +412,7 @@ TEST_F(Compile1, ExtenderExtender1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("static"));
+    EXPECT_NE(std::string::npos, msg.find("'static'"));
 }
 
 TEST_F(Compile1, ExtenderExtender2) {    
@@ -688,7 +705,7 @@ TEST_F(Compile1, FuncNameClash1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("declared as function"));
+    EXPECT_NE(std::string::npos, msg.find("declared as a function"));
 }
 
 TEST_F(Compile1, TypeEqComponent) {
@@ -749,51 +766,6 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("orget a"));
-}
-
-TEST_F(Compile1, AttributeGet1) {    
-
-    // Accept a readonly attribute and a non-readonly getter
-    
-    char *inpl = "\
-        enum bool { false = 0, true = 1 };      \n\
-        struct CameraEx                         \n\
-        {                                       \n\
-            import static readonly attribute bool StaticTarget;  \n\
-        };                                      \n\
-                                                \n\
-        bool get_StaticTarget(static CameraEx)  \n\
-        {                                       \n\
-            return 0;                           \n\
-        }                                       \n\
-        ";
-         
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-}
-
-TEST_F(Compile1, AttributeGet2) {    
-
-    // Do not accept a static attribute and a non-static getter
-
-    char *inpl = "\
-        enum bool { false = 0, true = 1 };      \n\
-        struct CameraEx                         \n\
-        {                                       \n\
-            import static readonly attribute bool StaticTarget;  \n\
-        };                                      \n\
-                                                \n\
-        bool get_StaticTarget(this CameraEx *)  \n\
-        {                                       \n\
-            return 0;                           \n\
-        }                                       \n\
-        ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("static"));
 }
 
 TEST_F(Compile1, NewBuiltin1) {    

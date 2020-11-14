@@ -25,17 +25,15 @@ AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ::ccCompile
 
 ErrorType AGS::Scanner::Scan()
 {
-    while (true)
+    while (!EOFReached() && !Failed())
     {
-        bool eof_encountered = false;
-        bool error_encountered = false;
         Symbol symbol;
         ErrorType retval = GetNextSymbol(symbol);
         if (retval < 0) return retval;
-        if (EOFReached())
-            return _ocMatcher.EndOfInputCheck();
-        _tokenList.Append(symbol);
+        if (kKW_NoSymbol != symbol)
+            _tokenList.Append(symbol);
     }
+    return _ocMatcher.EndOfInputCheck();
 }
 
 void AGS::Scanner::NewLine(size_t lineno)
@@ -51,13 +49,13 @@ void AGS::Scanner::NewSection(std::string const &section)
     NewLine(0);
 }
 
-ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type)
+ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     ErrorType retval = SkipWhitespace();
     if (retval < 0) return kERR_UserError;
     if (EOFReached()) return kERR_None;
 
-    int next_char = Peek();
+    int const next_char = Peek();
     if (EOFReached()) return kERR_None;
     if (Failed())
     {
@@ -69,20 +67,26 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     if (IsDigit(next_char))
     {
         symstring = "";
-        CodeCell value;
         return ReadInNumberLit(symstring, scan_type, value);
+    }
+
+    if ('.' == next_char)
+    {
+        Get();
+        int nextnext = Peek();
+        if (IsDigit(nextnext))
+        {
+            symstring = ".";
+            return ReadInNumberLit(symstring, scan_type, value);
+        }
+        UnGet();
     }
 
     // Character literal
     if ('\'' == next_char)
     {
-        // Note that this converts the literal to an equivalent integer string "'A'" >>-> "65"
         scan_type = kSct_IntLiteral;
-        CodeCell value;
-        ErrorType retval = ReadInCharLit(symstring, value);
-        if (retval < 0) return retval;
-        symstring = std::to_string(value);
-        return kERR_None;
+        return ReadInCharLit(symstring, value);
     }
 
     // Identifier or keyword
@@ -95,17 +99,21 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     // String literal
     if ('"' == next_char)
     {
-        scan_type = kSct_StringLiteral;
-        std::string dummy;
-        ErrorType retval = ReadInStringLit(dummy, symstring);
+        std::string valstring;
+        ErrorType retval = ReadInStringLit(symstring, valstring);
         if (retval < 0) return retval;
-
+        
         size_t const len = kNewSectionLitPrefix.length();
-        if (kNewSectionLitPrefix == symstring.substr(0, len))
+        if (kNewSectionLitPrefix == valstring.substr(0, len))
         {
-            symstring = symstring.substr(len);
+            symstring = valstring.substr(len);
             scan_type = kSct_SectionChange;
+            value = 0;
+            return kERR_None;
         }
+
+        scan_type = kSct_StringLiteral;
+        value = _stringCollector.add_string(valstring.c_str());
         return kERR_None;
     }
 
@@ -150,37 +158,46 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
 
 ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
 {
-    symbol = -1;
+    symbol = kKW_NoSymbol;
     std::string symstring;
     ScanType scan_type;
+    CodeCell value;
 
     while (true)
     {
-        ErrorType retval = GetNextSymstring(symstring, scan_type);
+        ErrorType retval = GetNextSymstring(symstring, scan_type, value);
         if (retval < 0) return retval;
-        if (EOFReached()) return kERR_None;
 
         if (kSct_SectionChange != scan_type)
             break;
+
         retval = _ocMatcher.EndOfInputCheck();
         if (retval < 0) return retval;
 
         NewSection(symstring);
     }
 
-    ErrorType retval = SymstringToSym(symstring, scan_type, symbol);
+    if (symstring.empty())
+    {
+        symbol = kKW_NoSymbol;
+        return _ocMatcher.EndOfInputCheck();
+    }
+
+    ErrorType retval = SymstringToSym(symstring, scan_type, value, symbol);
     if (retval < 0) return retval;
-    if (EOFReached()) return kERR_None;
 
     return CheckMatcherNesting(symbol);
 }
 
 ErrorType AGS::Scanner::SkipWhitespace()
 {
+    if (_eofReached)
+        return kERR_None;
     while (true)
     {
         int const ch = Get();
-        if (EOFReached()) return kERR_None;
+        if (EOFReached())
+            return kERR_None;
         if (Failed())
         {
             Error("Error whilst skipping whitespace (file corrupt?)");
@@ -272,11 +289,12 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
     if ('f' == peek || 'F' == peek)
         symstring.push_back(Get());
 
+    errno = 0;
     long long_value = std::strtol(valstring.c_str(), &endptr, 0);
     bool can_be_long = (valstring.length() == endptr - valstring.c_str());
     if (can_be_long && peek != 'f' && peek != 'F')
     {
-        if (std::numeric_limits<CodeCell>::max() < long_value)
+        if (ERANGE == errno)
         {
             Error(
                 "Literal integer '%s' is out of bounds (maximum is '%s')",
@@ -289,6 +307,7 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
         return kERR_None;
     }
 
+    errno = 0;
     double double_value = std::strtod(valstring.c_str(), &endptr);
     bool can_be_double = (valstring.length() == endptr - valstring.c_str());
     if (!can_be_double)
@@ -297,7 +316,7 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
         return kERR_UserError;
     }
 
-    if (std::numeric_limits<float>::max() < double_value)
+    if (std::numeric_limits<float>::max() < double_value || ERANGE == errno)
     {
         Error(
             "Literal float '%s' is out of bounds (maximum is '%.3G')",
@@ -520,7 +539,7 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &val
         Error("Input ended within a string literal (did you forget a '\"\'?)");
     else if (Failed())
         Error("Read error while scanning a string literal (file corrupt?)");
-    else
+    else  
         Error("Line ended within a string literal, this isn't allowed (use '[' for newline)");
     return kERR_UserError;
 }
@@ -585,13 +604,6 @@ ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_ty
         Error("Read error (file corrupt?)");
         return kERR_UserError;
     }
-
-    if (IsDigit(second_char))
-    {
-        CodeCell value;
-        return ReadInNumberLit(symstring, scan_type, value);
-    }
-
     if ('.' != second_char)
         return kERR_None;
 
@@ -613,7 +625,7 @@ ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
     if (retval < 0) return retval;
     if (EOFReached()) return kERR_None;
 
-    if ((symstring == "<<") && (Peek() == '='))
+    if (("<<" == symstring) && ('=' == Peek()))
         symstring.push_back(Get());
     return kERR_None;
 }
@@ -629,14 +641,14 @@ ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, Symbol &symb)
+ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
 {
-    std::string const name =
-        (kSct_StringLiteral == scan_type) ? MakeStringPrintable(symstring) : symstring;
-    symb = _sym.FindOrAdd(name);
+    static Symbol const const_string_vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
+
+    symb = _sym.FindOrAdd(symstring);
     if (symb < 0)
     {
-        Error("Symbol table overflow - could not add new symbol");
+        Error("!Could not add new symbol to symbol table");
         return kERR_InternalError;
     }
 
@@ -646,27 +658,28 @@ ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType sc
         return kERR_None;
 
     case Scanner::kSct_StringLiteral:
-        _sym[symb].SType = SymT::kLiteralString;
-        _sym[symb].Vartype = kKW_String;
-        _sym[symb].SOffset = _stringCollector.add_string(symstring.c_str());
+        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym[symb].LiteralD->Vartype = const_string_vartype;
+        _sym[symb].LiteralD->Value = value;
         return kERR_None;
 
     case Scanner::kSct_IntLiteral:
-        _sym[symb].SType = SymT::kLiteralInt;
-        return kERR_None;
-
-    case Scanner::kSct_FloatLiteral:
-        _sym[symb].SType = SymT::kLiteralFloat;
+    {
+        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym[symb].LiteralD->Vartype = kKW_Int;
+        _sym[symb].LiteralD->Value = value;
         return kERR_None;
     }
-    // Can't reach.
-}
 
-AGS::Scanner::OpenCloseMatcher::OpenInfo::OpenInfo(std::string const &opener, std::string const &closer, size_t pos)
-    : Opener(opener)
-    , Closer(closer)
-    , Pos(pos)
-{
+    case Scanner::kSct_FloatLiteral:
+    {
+        _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
+        _sym[symb].LiteralD->Vartype = kKW_Float;
+        _sym[symb].LiteralD->Value = value;
+        return kERR_None;
+    }
+    }
+    // Can't reach.
 }
 
 AGS::Scanner::OpenCloseMatcher::OpenCloseMatcher(Scanner &scanner)
@@ -674,22 +687,22 @@ AGS::Scanner::OpenCloseMatcher::OpenCloseMatcher(Scanner &scanner)
 {
 }
 
-void AGS::Scanner::OpenCloseMatcher::Push(std::string const &opener, std::string const &expected_closer, size_t opener_pos)
+void AGS::Scanner::OpenCloseMatcher::Push(Symbol opener, size_t opener_pos)
 {
-    _openInfoStack.emplace_back(opener, expected_closer, opener_pos);
+    _openInfoStack.push_back(OpenInfo{ opener, opener_pos });
 }
 
-ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer, size_t closer_pos)
+ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t closer_pos)
 {
     if (_openInfoStack.empty())
     {
-        _scanner.Error("There isn't any opening symbol that matches the closing '%s'", closer.c_str());
+        _scanner.Error("There isn't any opening symbol that matches the closing '%s'", _scanner._sym.GetName(closer).c_str());
         return kERR_UserError;
     }
 
     struct OpenInfo const oi = _openInfoStack.back();
     _openInfoStack.pop_back();
-    if (closer == oi.Closer)
+    if (closer == _scanner._sym[oi.Opener].DelimeterD->Partner)
         return kERR_None;
 
     size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
@@ -706,8 +719,8 @@ ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(std::string const &closer,
         if (closer_lineno == opener_lineno)
             error_msg = "Found '&closer&', this does not match the '&opener&' on this line";
     }
-    ReplaceToken(error_msg, "&closer&", closer);
-    ReplaceToken(error_msg, "&opener&", oi.Opener);
+    ReplaceToken(error_msg, "&closer&", _scanner._sym.GetName(closer));
+    ReplaceToken(error_msg, "&opener&", _scanner._sym.GetName(oi.Opener));
     if (std::string::npos != error_msg.find("&lineno&"))
         ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
     if (std::string::npos != error_msg.find("&section&"))
@@ -736,7 +749,7 @@ ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
         if (opener_lineno == current_lineno)
             error_msg = "The '&opener&' on this line has not been closed.";
     }
-    ReplaceToken(error_msg, "&opener&", oi.Opener);
+    ReplaceToken(error_msg, "&opener&", _scanner._sym.GetName(oi.Opener));
     if (std::string::npos != error_msg.find("&lineno&"))
         ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
     if (std::string::npos != error_msg.find("&section&"))
@@ -756,18 +769,12 @@ ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
     case kKW_CloseBrace:
     case kKW_CloseBracket:
     case kKW_CloseParenthesis:
-        return _ocMatcher.PopAndCheck(_sym[token].SName, _tokenList.Length());
+        return _ocMatcher.PopAndCheck(token, _tokenList.Length());
 
     case kKW_OpenBrace:
-        _ocMatcher.Push("{", "}", _tokenList.Length());
-        return kERR_None;
-
     case kKW_OpenBracket:
-        _ocMatcher.Push("[", "]", _tokenList.Length());
-        return kERR_None;
-
     case kKW_OpenParenthesis:
-        _ocMatcher.Push("(", ")", _tokenList.Length());
+        _ocMatcher.Push(token, _tokenList.Length());
         return kERR_None;
     }
     // Can't reach

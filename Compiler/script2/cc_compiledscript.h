@@ -65,7 +65,7 @@ struct ccCompiledScript : public ccScript {
     int AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments = INT_MAX);
 
     // Start a new section of the code.
-    std::string start_new_section(std::string const &name);
+    std::string StartNewSection(std::string const &name);
 
     // Write one Bytecode byte    
     void WriteCode(CodeCell cell);

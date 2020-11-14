@@ -190,7 +190,7 @@ void AGS::ccCompiledScript::WriteCode(CodeCell cell)
     codesize++;
 }
 
-std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
+std::string AGS::ccCompiledScript::StartNewSection(std::string const &name)
 {
     if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))

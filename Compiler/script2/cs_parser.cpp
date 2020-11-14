@@ -6744,7 +6744,7 @@ void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
         return;
 
     if (PP::kMain == _pp)
-        _scrip.start_new_section(_src.SectionId2Section(src_section_id));
+        _scrip.StartNewSection(_src.SectionId2Section(src_section_id));
     _lastEmittedSectionId = src_section_id;
 }
 

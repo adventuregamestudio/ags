@@ -82,7 +82,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
         sourcecode += defaultHeaders[header].Content;
     sourcecode += script;
     ccCurScriptName = scriptName;
-    compiled_script->start_new_section(ccCurScriptName);
+    compiled_script->StartNewSection(ccCurScriptName);
     cc_compile(sourcecode, *compiled_script);
 
     if (ccError)

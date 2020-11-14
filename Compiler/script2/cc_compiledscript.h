@@ -30,7 +30,6 @@ struct ccCompiledScript : public ccScript {
     // Needed to prevent a return of a local string
     ScopeType AX_ScopeType;
 
-    void Init();
     void free_extra();
 
     // Reserve siz bytes of memory for global data;

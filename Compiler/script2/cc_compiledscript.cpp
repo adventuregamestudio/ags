@@ -26,9 +26,33 @@ void AGS::ccCompiledScript::pop_reg(CodeCell regg)
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
-ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
+AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 {
-    Init();
+    globaldata = NULL;
+    globaldatasize = 0;
+    code = NULL;
+    codesize = 0;
+    codeallocated = 0;
+    strings = NULL;
+    stringssize = 0;
+    OffsetToLocalVarBlock = 0;
+    fixups = NULL;
+    fixuptypes = NULL;
+    numfixups = 0;
+    numimports = 0;
+    numexports = 0;
+    numSections = 0;
+    importsCapacity = 0;
+    imports = NULL;
+    exportsCapacity = 0;
+    exports = NULL;
+    export_addr = NULL;
+    capacitySections = 0;
+    sectionNames = NULL;
+    sectionOffsets = NULL;
+
+    LastEmittedLineno = INT_MAX;
+    EmitLineNumbers = emit_line_numbers;
     AX_Vartype = 0;
     AX_ScopeType = ScT::kGlobal;
 
@@ -191,35 +215,6 @@ std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
     }
 
     return sectionNames[numSections - 1];
-}
-
-void AGS::ccCompiledScript::Init()
-{
-    globaldata = NULL;
-    globaldatasize = 0;
-    code = NULL;
-    codesize = 0;
-    codeallocated = 0;
-    strings = NULL;
-    stringssize = 0;
-    OffsetToLocalVarBlock = 0;
-    fixups = NULL;
-    fixuptypes = NULL;
-    numfixups = 0;
-    numimports = 0;
-    numexports = 0;
-    numSections = 0;
-    importsCapacity = 0;
-    imports = NULL;
-    exportsCapacity = 0;
-    exports = NULL;
-    export_addr = NULL;
-    capacitySections = 0;
-    sectionNames = NULL;
-    sectionOffsets = NULL;
-    LastEmittedLineno = 0;
-    AX_Vartype = 0;
-    AX_ScopeType = ScT::kGlobal;
 }
 
 // free the extra bits that ccScript doesn't have

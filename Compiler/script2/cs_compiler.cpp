@@ -60,7 +60,6 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
 {
     ccCompiledScript *compiled_script =
         new ccCompiledScript(0 != FlagIsSet(options, SCOPT_LINENUMBERS));
-    compiled_script->Init();
 
     if (scriptName == NULL)
         scriptName = "Main script";

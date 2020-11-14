@@ -70,7 +70,6 @@ protected:
     Bytecode0()
     {
         // Initializations, will be done at the start of each test
-        scrip.Init();
         ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
         ccSetOption(SCOPT_LINENUMBERS, false);
         clear_error();

@@ -18,12 +18,11 @@
 class Compile1 : public ::testing::Test
 {
 protected:
-    AGS::ccCompiledScript scrip;
+    AGS::ccCompiledScript scrip = AGS::ccCompiledScript(); // Note: calls Init();
 
     Compile1()
     {
         // Initializations, will be done at the start of each test
-        scrip.Init();
         ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
         ccSetOption(SCOPT_LINENUMBERS, true);
         clear_error();

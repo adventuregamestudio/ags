@@ -18,6 +18,8 @@ struct ccCompiledScript : public ccScript {
     };
     std::vector<FuncProps> Functions;
 
+    std::unordered_map<std::string, int> ImportIdx;
+
     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
     size_t OffsetToLocalVarBlock;
 
@@ -51,8 +53,10 @@ struct ccCompiledScript : public ccScript {
     // Add a function named 'func_name' to the functions repository
     CodeLoc AddNewFunction(std::string const &func_name, size_t num_of_parameters);
 
-    // Add an import to the import repository; return the index of the import
-    int add_new_import(std::string const &import_name);
+    inline bool IsImport(std::string const &name) const { return 0 < ImportIdx.count(name); }
+
+    // Find or add an import to the import repository; return the index of the import
+    int FindOrAddImport(std::string const &import_name);
 
     // Add an exported entity to the export repository;
     // it has type vartype, resides at location; if it is a function

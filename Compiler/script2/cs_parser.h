@@ -349,27 +349,6 @@ private:
         void Reset();
     };
 
-    // Measurements show that the checks whether imports already exist take up
-    // considerable time. The Import Manager speeds this up by caching the lookups.
-    class ImportMgr
-    {
-    private:
-        std::map<std::string, size_t> _importIdx;
-        ccCompiledScript *_scrip;
-
-    public:
-        ImportMgr();
-
-        void Init(ccCompiledScript *scrip);
-
-        // Whether s is in the import table already (doesn't add)
-        bool IsDeclaredImport(std::string s);
-
-        // Finds s in the import table; adds it if not found;
-        // returns the index of s in the table.
-        int FindOrAdd(std::string s);
-    } _importMgr;
-
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.

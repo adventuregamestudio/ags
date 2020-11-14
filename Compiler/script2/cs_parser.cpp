@@ -601,34 +601,6 @@ void AGS::Parser::ForwardJump::Patch(size_t cur_line)
     _jumpDestParamLocs.clear();
 }
 
-AGS::Parser::ImportMgr::ImportMgr()
-    : _scrip(nullptr)
-{ }
-
-void AGS::Parser::ImportMgr::Init(ccCompiledScript *scrip)
-{
-    _importIdx.clear();
-    _scrip = scrip;
-    for (int import_idx = 0; import_idx < scrip->numimports; import_idx++)
-        _importIdx[scrip->imports[import_idx]] = import_idx;
-}
-
-bool AGS::Parser::ImportMgr::IsDeclaredImport(std::string s)
-{
-    return (_importIdx.end() != _importIdx.find(s));
-}
-
-int AGS::Parser::ImportMgr::FindOrAdd(std::string s)
-{
-    auto it = _importIdx.find(s);
-    if (_importIdx.end() != it)
-        return it->second;
-    // Cache miss
-    int idx = _scrip->add_new_import(s.c_str());
-    _importIdx[s] = idx;
-    return idx;
-}
-
 AGS::Parser::MemoryLocation::MemoryLocation(Parser &parser)
     : _parser(parser)
     , _ScType (ScT::kNone)
@@ -712,7 +684,6 @@ AGS::Parser::Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, Symb
     , _fim(*this)
     , _structRefs({})
 {
-    _importMgr.Init(&scrip);
     _givm.clear();
     _lastEmittedSectionId = 0;
     _lastEmittedLineno = 0;
@@ -1652,7 +1623,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_fun
     }
 
     // Index of the function in the ccScript::imports[] array
-    function_soffs = _importMgr.FindOrAdd(_sym.GetName(name_of_func));
+    function_soffs = _scrip.FindOrAddImport(_sym.GetName(name_of_func));
     return kERR_None;
 }
 
@@ -2918,7 +2889,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     if (func_is_import)
     {   
         _scrip.fixup_previous(kFx_Import); 
-        if (!_importMgr.IsDeclaredImport(_sym.GetName(name_of_func)))
+        if (!_scrip.IsImport(_sym.GetName(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
 
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
@@ -4447,7 +4418,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Import(Symbol var_name)
         return kERR_None; // Skip this since the global non-import decl will come later
 
     _sym[var_name].VariableD->TypeQualifiers[TQ::kImport] = true;
-    int const import_offset = _scrip.add_new_import(_sym.GetName(var_name).c_str());
+    int const import_offset = _scrip.FindOrAddImport(_sym.GetName(var_name));
     if (import_offset < 0)
     {
         Error("!Import table overflow");

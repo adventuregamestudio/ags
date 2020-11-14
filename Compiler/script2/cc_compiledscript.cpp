@@ -55,6 +55,8 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     EmitLineNumbers = emit_line_numbers;
     AX_Vartype = 0;
     AX_ScopeType = ScT::kGlobal;
+    Functions = {};
+    ImportIdx = {};
 
     EmitLineNumbers = emit_line_numbers;
 }
@@ -131,8 +133,11 @@ AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name,
     return codesize;
 }
 
-int AGS::ccCompiledScript::add_new_import(std::string const &import_name)
+int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
 {
+    if (0 < ImportIdx.count(import_name))
+        return ImportIdx[import_name];
+
     if (numimports >= importsCapacity)
     {
         importsCapacity += 1000;
@@ -140,8 +145,7 @@ int AGS::ccCompiledScript::add_new_import(std::string const &import_name)
     }
     imports[numimports] = static_cast<char *>(malloc(import_name.size() + 12));
     strcpy(imports[numimports], import_name.c_str());
-    numimports++;
-    return numimports - 1;
+    return (ImportIdx[import_name] = numimports++);
 }
 
 int AGS::ccCompiledScript::add_new_export(std::string const &name, Exporttype etype, CodeLoc location, size_t num_of_arguments)
@@ -220,4 +224,6 @@ void AGS::ccCompiledScript::free_extra()
 {
     Functions.clear();
     Functions.shrink_to_fit();
+
+    ImportIdx.clear();
 }

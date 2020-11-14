@@ -19,9 +19,9 @@ struct ccCompiledScript : public ccScript {
     long codeallocated; // [fw] Misplaced. Should be in ccScript.
 
      // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
-    size_t offset_to_local_var_block;
+    size_t OffsetToLocalVarBlock;
 
-    int last_emitted_lineno;
+    int LastEmittedLineno;
     bool EmitLineNumbers;
 
     // Variable type of value in AX, usually equiv. to type of the current expression
@@ -89,11 +89,11 @@ struct ccCompiledScript : public ccScript {
     // Write Bytecode that couples this point of the Bytecode with the source code line lno
     void write_lineno(size_t lno);
     // Only write Bytecode for source line no if it differs from the last emitted
-    inline void refresh_lineno(size_t lno) { if (last_emitted_lineno != lno) write_lineno(lno); }
+    inline void refresh_lineno(size_t lno) { if (LastEmittedLineno != lno) write_lineno(lno); }
 
-    // write a PUSH command; track in offset_to_local_var_block the number of bytes pushed to the stack
+    // write a PUSH command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
     void push_reg(CodeCell regg);
-    // write a POP command; track in offset_to_local_var_block the number of bytes pushed to the stack
+    // write a POP command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
     void pop_reg(CodeCell regg);
 
     // Returns the relative distance in a jump instruction

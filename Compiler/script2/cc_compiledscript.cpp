@@ -11,19 +11,19 @@ void AGS::ccCompiledScript::write_lineno(size_t lno)
 {
     if (EmitLineNumbers)
         write_cmd(SCMD_LINENUM, lno);
-    last_emitted_lineno = lno;
+    LastEmittedLineno = lno;
 }
 
 void AGS::ccCompiledScript::push_reg(CodeCell regg)
 {
     write_cmd(SCMD_PUSHREG, regg);
-    offset_to_local_var_block += SIZE_OF_STACK_CELL;
+    OffsetToLocalVarBlock += SIZE_OF_STACK_CELL;
 }
 
 void AGS::ccCompiledScript::pop_reg(CodeCell regg)
 {
     write_cmd(SCMD_POPREG, regg);
-    offset_to_local_var_block -= SIZE_OF_STACK_CELL;
+    OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
 ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
@@ -202,7 +202,7 @@ void AGS::ccCompiledScript::init()
     codeallocated = 0;
     strings = NULL;
     stringssize = 0;
-    offset_to_local_var_block = 0;
+    OffsetToLocalVarBlock = 0;
     fixups = NULL;
     fixuptypes = NULL;
     numfixups = 0;
@@ -217,7 +217,7 @@ void AGS::ccCompiledScript::init()
     capacitySections = 0;
     sectionNames = NULL;
     sectionOffsets = NULL;
-    last_emitted_lineno = 0;
+    LastEmittedLineno = 0;
     ax_vartype = 0;
     ax_scope_type = ScT::kGlobal;
 }

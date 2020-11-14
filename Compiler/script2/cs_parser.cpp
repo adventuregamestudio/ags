@@ -71,7 +71,7 @@ Imported values are treated as if they were global values. However, their exact 
 
 Local variables go into a memory block, the "local memory block", that is reserved on the stack.
  	They are addressed relatively to the start of that block. The start of this block can always be determined at
- 	compile time by subtracting a specific offset from the stack pointer, namely offset_to_local_var_block.
+ 	compile time by subtracting a specific offset from the stack pointer, namely OffsetToLocalVarBlock.
  	This offset changes in the course of the compilation but can always be determined at compile time.
  	The space for local variables is reserved on the stack at runtime when the respective function is called.
     Therefore, local variables can be initialized to any value that can be computed,
@@ -111,7 +111,7 @@ Parameters of a function are local variables; they are assigned the nested depth
 
 Whilst a function is running, its local variable block is as follows:
 ((lower memory addresses))
-		parameter1					<- SP - offset_to_local_var_block
+		parameter1					<- SP - OffsetToLocalVarBlock
 		parameter2
 		parameter3
 		...
@@ -406,7 +406,7 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
 
     // Make the last emitted source line number invalid so that the next command will
     // generate a line number opcode first
-    _scrip.last_emitted_lineno = INT_MAX;
+    _scrip.LastEmittedLineno = INT_MAX;
 }
 
 AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(Parser &parser)
@@ -538,13 +538,13 @@ AGS::Parser::RestorePoint::RestorePoint(ccCompiledScript &scrip)
     : _scrip(scrip)
 {
     _restoreLoc = _scrip.codesize;
-    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+    _lastEmittedSrcLineno = _scrip.LastEmittedLineno;
 }
 
 void AGS::Parser::RestorePoint::Restore()
 {
     _scrip.codesize = _restoreLoc;
-    _scrip.last_emitted_lineno = _lastEmittedSrcLineno;
+    _scrip.LastEmittedLineno = _lastEmittedSrcLineno;
 }
 
 AGS::Parser::BackwardJumpDest::BackwardJumpDest(ccCompiledScript &scrip)
@@ -556,13 +556,13 @@ AGS::Parser::BackwardJumpDest::BackwardJumpDest(ccCompiledScript &scrip)
 void AGS::Parser::BackwardJumpDest::Set(CodeLoc cl)
 {
     _dest = (cl >= 0) ? cl : _scrip.codesize;
-    _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
+    _lastEmittedSrcLineno = _scrip.LastEmittedLineno;
 }
 
 void AGS::Parser::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
 {
     if (SCMD_LINENUM != _scrip.code[_dest] &&
-        _scrip.last_emitted_lineno != _lastEmittedSrcLineno)
+        _scrip.LastEmittedLineno != _lastEmittedSrcLineno)
     {
         _scrip.write_lineno(cur_line);
     }
@@ -580,8 +580,8 @@ void AGS::Parser::ForwardJump::AddParam(int offset)
     // saved value then the saved value won't work for all jumps so it
     // must be set to invalid.
     if (_jumpDestParamLocs.empty())
-        _lastEmittedSrcLineno = _scrip.last_emitted_lineno;
-    else if (_lastEmittedSrcLineno != _scrip.last_emitted_lineno)
+        _lastEmittedSrcLineno = _scrip.LastEmittedLineno;
+    else if (_lastEmittedSrcLineno != _scrip.LastEmittedLineno)
         _lastEmittedSrcLineno = INT_MAX;
     _jumpDestParamLocs.push_back(_scrip.codesize + offset);
 }
@@ -593,8 +593,8 @@ void AGS::Parser::ForwardJump::Patch(size_t cur_line)
         // There are two ways of reaching the bytecode that will be emitted next:
         // through the jump or from the previous bytecode command. If the source line
         // of both isn't identical then a line opcode must be emitted next.
-        if (cur_line != _scrip.last_emitted_lineno || cur_line != _lastEmittedSrcLineno)
-            _scrip.last_emitted_lineno = INT_MAX;
+        if (cur_line != _scrip.LastEmittedLineno || cur_line != _lastEmittedSrcLineno)
+            _scrip.LastEmittedLineno = INT_MAX;
     }
     for (auto loc = _jumpDestParamLocs.cbegin(); loc != _jumpDestParamLocs.cend(); loc++)
         _scrip.code[*loc] = _scrip.RelativeJumpDist(*loc, _scrip.codesize);
@@ -679,7 +679,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
 
     case ScT::kLocal:
         scrip.refresh_lineno(lineno);
-        CodeCell const offset = scrip.offset_to_local_var_block - _startOffs - _componentOffs;
+        CodeCell const offset = scrip.OffsetToLocalVarBlock - _startOffs - _componentOffs;
         if (offset < 0)
         {   // Must be a bug: That memory is unused.
             _parser.Error("!Trying to emit the negative offset %d to the top-of-stack", (int) offset);
@@ -914,7 +914,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &cl
                 continue;
 
             // Set MAR to the start of the construct that contains releasable pointers
-            WriteCmd(SCMD_LOADSPOFFS, _scrip.offset_to_local_var_block - _sym[s].VariableD->SOffset);
+            WriteCmd(SCMD_LOADSPOFFS, _scrip.OffsetToLocalVarBlock - _sym[s].VariableD->SOffset);
             clobbers_mar = true;
             if (_sym.IsDynVartype(s_vartype))
                 WriteCmd(SCMD_MEMZEROPTR);
@@ -1359,7 +1359,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, Va
     // stack has the first parameter. The + 1 is because the
     // call will push the return address onto the stack as well
     param_entry.VariableD->SOffset =
-        _scrip.offset_to_local_var_block - (param_idx + 1) * SIZE_OF_STACK_CELL;
+        _scrip.OffsetToLocalVarBlock - (param_idx + 1) * SIZE_OF_STACK_CELL;
     _sym.SetDeclared(param_name, _src.GetCursor());
     return kERR_None;
 }
@@ -1809,7 +1809,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifie
         // When this function is called, first all the parameters are pushed on the stack
         // and then the address to which the function should return after it has finished.
         // So the first parameter isn't on top of the stack but one address below that
-        _scrip.offset_to_local_var_block += SIZE_OF_STACK_CELL;
+        _scrip.OffsetToLocalVarBlock += SIZE_OF_STACK_CELL;
     }
 
     // Stash away the known info about the function so that we can check whether this declaration is compatible
@@ -2945,7 +2945,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     {
         size_t const size_of_passed_args = num_args * SIZE_OF_STACK_CELL;
         WriteCmd(SCMD_SUB, SREG_SP, size_of_passed_args);
-        _scrip.offset_to_local_var_block -= size_of_passed_args;
+        _scrip.OffsetToLocalVarBlock -= size_of_passed_args;
     }
 }
 
@@ -3037,7 +3037,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
     {
         if (0 == num_args)
         {   // MAR must still be current, so undo the unneeded PUSH above.
-            _scrip.offset_to_local_var_block -= SIZE_OF_STACK_CELL;
+            _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
             _scrip.codesize -= 2;
             mar_pushed = false;
         }
@@ -4488,7 +4488,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     size_t const var_size = _sym.GetSize(vartype);
     bool const is_dyn = _sym.IsDynVartype(vartype);
 
-    _sym[var_name].VariableD->SOffset = _scrip.offset_to_local_var_block;
+    _sym[var_name].VariableD->SOffset = _scrip.OffsetToLocalVarBlock;
 
     if (kKW_Assign != _src.PeekNext())
     {
@@ -4499,7 +4499,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
         else
             WriteCmd(SCMD_ZEROMEMORY, var_size);
         WriteCmd(SCMD_ADD, SREG_SP, var_size);
-        _scrip.offset_to_local_var_block += var_size;
+        _scrip.OffsetToLocalVarBlock += var_size;
         return kERR_None;
     }
 
@@ -4541,7 +4541,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
             is_dyn ? SCMD_MEMWRITEPTR : GetWriteCommandForSize(var_size),
             SREG_AX);
     WriteCmd(SCMD_ADD, SREG_SP, var_size);
-    _scrip.offset_to_local_var_block += var_size;
+    _scrip.OffsetToLocalVarBlock += var_size;
     return kERR_None;
 }
 
@@ -4732,7 +4732,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, 
     WriteCmd(SCMD_RET);
     // This has popped the return address from the stack, 
     // so adjust the offset to the start of the parameters.
-    _scrip.offset_to_local_var_block -= SIZE_OF_STACK_CELL;
+    _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 
     return kERR_None;
 }
@@ -6082,7 +6082,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     else 
         FreeDynpointersOfLocals(0u);
 
-    size_t const save_offset = _scrip.offset_to_local_var_block;
+    size_t const save_offset = _scrip.OffsetToLocalVarBlock;
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
@@ -6094,8 +6094,8 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
 
     // The locals only disappear if control flow actually follows the "return"
     // statement. Otherwise, below the statement, the locals remain on the stack.
-    // So restore the offset_to_local_var_block.
-    _scrip.offset_to_local_var_block = save_offset;
+    // So restore the OffsetToLocalVarBlock.
+    _scrip.OffsetToLocalVarBlock = save_offset;
     return kERR_None;
 }
 
@@ -6297,7 +6297,7 @@ AGS::ErrorType AGS::Parser::ParseFor_InitClause(Symbol peeksym)
 AGS::ErrorType AGS::Parser::ParseFor_WhileClause()
 {
     // Make the last emitted line number invalid so that a linenumber bytecode is emitted
-    _scrip.last_emitted_lineno = INT_MAX;
+    _scrip.LastEmittedLineno = INT_MAX;
     if (kKW_Semicolon == _src.PeekNext())
     {
         // Not having a while clause is tantamount to the while condition "true".
@@ -6471,7 +6471,7 @@ AGS::ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
     size_t const size_of_local_vars = StacksizeOfLocals(nesting_level);
     if (size_of_local_vars > 0)
     {
-        _scrip.offset_to_local_var_block -= size_of_local_vars;
+        _scrip.OffsetToLocalVarBlock -= size_of_local_vars;
         WriteCmd(SCMD_SUB, SREG_SP, size_of_local_vars);
     }
     return kERR_None;
@@ -6613,7 +6613,7 @@ AGS::ErrorType AGS::Parser::ParseBreak()
         return kERR_UserError;
     }
 
-    size_t const save_offset = _scrip.offset_to_local_var_block;
+    size_t const save_offset = _scrip.OffsetToLocalVarBlock;
     FreeDynpointersOfLocals(nesting_level + 1);
     RemoveLocalsFromStack(nesting_level + 1);
     
@@ -6623,8 +6623,8 @@ AGS::ErrorType AGS::Parser::ParseBreak()
 
     // The locals only disappear if control flow actually follows the "break"
     // statement. Otherwise, below the statement, the locals remain on the stack.
-    // So restore the offset_to_local_var_block.
-    _scrip.offset_to_local_var_block = save_offset;
+    // So restore the OffsetToLocalVarBlock.
+    _scrip.OffsetToLocalVarBlock = save_offset;
     return kERR_None;
 }
 
@@ -6649,7 +6649,7 @@ AGS::ErrorType AGS::Parser::ParseContinue()
         return kERR_UserError;
     }
 
-    size_t const save_offset = _scrip.offset_to_local_var_block;
+    size_t const save_offset = _scrip.OffsetToLocalVarBlock;
     FreeDynpointersOfLocals(nesting_level + 1);
     RemoveLocalsFromStack(nesting_level + 1);
 
@@ -6668,8 +6668,8 @@ AGS::ErrorType AGS::Parser::ParseContinue()
 
     // The locals only disappear if control flow actually follows the "continue"
     // statement. Otherwise, below the statement, the locals remain on the stack.
-     // So restore the offset_to_local_var_block.
-    _scrip.offset_to_local_var_block = save_offset;
+     // So restore the OffsetToLocalVarBlock.
+    _scrip.OffsetToLocalVarBlock = save_offset;
     return kERR_None;
 }
 

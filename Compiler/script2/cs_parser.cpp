@@ -389,14 +389,14 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
     // Add a line number opcode so that runtime errors
     // can show the correct originating source line.
     if (0u < item.Code.size() && SCMD_LINENUM != item.Code[0u] && 0u < item.SrcLine)
-        _scrip.write_lineno(item.SrcLine);
+        _scrip.WriteLineno(item.SrcLine);
 
     // The fixups are stored relative to the start of the insertion,
     // so remember what that is
     size_t const start_of_insert = _scrip.codesize;
     size_t const code_size = item.Code.size();
     for (size_t code_idx = 0u; code_idx < code_size; code_idx++)
-        _scrip.write_code(item.Code[code_idx]);
+        _scrip.WriteCode(item.Code[code_idx]);
 
     size_t const fixups_size = item.Fixups.size();
     for (size_t fixups_idx = 0u; fixups_idx < fixups_size; fixups_idx++)
@@ -564,9 +564,9 @@ void AGS::Parser::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
     if (SCMD_LINENUM != _scrip.code[_dest] &&
         _scrip.LastEmittedLineno != _lastEmittedSrcLineno)
     {
-        _scrip.write_lineno(cur_line);
+        _scrip.WriteLineno(cur_line);
     }
-    _scrip.write_cmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
+    _scrip.WriteCmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
 }
 
 AGS::Parser::ForwardJump::ForwardJump(ccCompiledScript &scrip)
@@ -630,12 +630,12 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
         // The start offset is already reached (e.g., when a Dynpointer chain is dereferenced) 
         // but the component offset may need to be processed.
         if (_componentOffs > 0)
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
+            scrip.WriteCmd(SCMD_ADD, SREG_MAR, _componentOffs);
         break;
 
     case ScT::kGlobal:
         scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
+        scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.FixupPrevious(Parser::kFx_GlobalData);
         break;
 
@@ -643,10 +643,10 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
         // Have to convert the import number into a code offset first.
         // Can only then add the offset to it.
         scrip.refresh_lineno(lineno);
-        scrip.write_cmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
+        scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
         scrip.FixupPrevious(Parser::kFx_Import);
         if (_componentOffs != 0)
-            scrip.write_cmd(SCMD_ADD, SREG_MAR, _componentOffs);
+            scrip.WriteCmd(SCMD_ADD, SREG_MAR, _componentOffs);
         break;
 
     case ScT::kLocal:
@@ -658,7 +658,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
             return kERR_InternalError;
         }
 
-        scrip.write_cmd(SCMD_LOADSPOFFS, offset);
+        scrip.WriteCmd(SCMD_LOADSPOFFS, offset);
         break;
     }
     Reset();
@@ -6092,7 +6092,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
     _src.GetNext(); // Eat "else"
     // Match the 'else' clause that is following to this 'if' stmt:
     // So we're at the end of the "then" branch. Jump out.
-    _scrip.write_cmd(SCMD_JMP, -77);
+    _scrip.WriteCmd(SCMD_JMP, -77);
     // So now, we're at the beginning of the "else" branch.
     // The jump after the "if" condition should go here.
     _nest.JumpOut().Patch(_src.GetLineno());
@@ -6367,7 +6367,7 @@ AGS::ErrorType AGS::Parser::ParseSwitch()
     _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
 
     // Jump to the jump table
-    _scrip.write_cmd(SCMD_JMP, -77);
+    _scrip.WriteCmd(SCMD_JMP, -77);
     _nest.SwitchJumptable().AddParam();
 
     // Check that "default" or "case" follows

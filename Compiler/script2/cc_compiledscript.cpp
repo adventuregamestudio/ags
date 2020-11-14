@@ -7,22 +7,22 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void AGS::ccCompiledScript::write_lineno(size_t lno)
+void AGS::ccCompiledScript::WriteLineno(size_t lno)
 {
     if (EmitLineNumbers)
-        write_cmd(SCMD_LINENUM, lno);
+        WriteCmd(SCMD_LINENUM, lno);
     LastEmittedLineno = lno;
 }
 
 void AGS::ccCompiledScript::push_reg(CodeCell regg)
 {
-    write_cmd(SCMD_PUSHREG, regg);
+    WriteCmd(SCMD_PUSHREG, regg);
     OffsetToLocalVarBlock += SIZE_OF_STACK_CELL;
 }
 
 void AGS::ccCompiledScript::pop_reg(CodeCell regg)
 {
-    write_cmd(SCMD_POPREG, regg);
+    WriteCmd(SCMD_POPREG, regg);
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
@@ -179,7 +179,7 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc location, 
     return (ExportIdx[export_name] = numexports++);
 }
 
-void AGS::ccCompiledScript::write_code(CodeCell cell)
+void AGS::ccCompiledScript::WriteCode(CodeCell cell)
 {
     if (codesize >= codeallocated - 2)
     {

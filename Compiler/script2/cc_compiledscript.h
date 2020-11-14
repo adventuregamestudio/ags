@@ -68,30 +68,22 @@ struct ccCompiledScript : public ccScript {
     std::string start_new_section(std::string const &name);
 
     // Write one Bytecode byte    
-    void write_code(CodeCell cell);
+    void WriteCode(CodeCell cell);
 
     // Write a command
-    inline void write_cmd(CodeCell op)
-    {
-        write_code(op);
-    };
-    inline void write_cmd(CodeCell op, CodeCell p1)
-    {
-        write_code(op); write_code(p1);
-    };
-    inline void write_cmd(CodeCell op, CodeCell p1,CodeCell p2)
-    {
-        write_code(op); write_code(p1); write_code(p2);
-    };
-    inline void write_cmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-    {
-        write_code(op); write_code(p1); write_code(p2); write_code(p3);
-    };
+    inline void WriteCmd(CodeCell op) { WriteCode(op); }
+
+    inline void WriteCmd(CodeCell op, CodeCell p1)
+        { WriteCode(op); WriteCode(p1); }
+    inline void WriteCmd(CodeCell op, CodeCell p1,CodeCell p2)
+        { WriteCode(op); WriteCode(p1); WriteCode(p2); };
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
+        { WriteCode(op); WriteCode(p1); WriteCode(p2); WriteCode(p3); };
 
     // Write Bytecode that couples this point of the Bytecode with the source code line lno
-    void write_lineno(size_t lno);
+    void WriteLineno(size_t lno);
     // Only write Bytecode for source line no if it differs from the last emitted
-    inline void refresh_lineno(size_t lno) { if (LastEmittedLineno != lno) write_lineno(lno); }
+    inline void refresh_lineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
 
     // write a PUSH command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
     void push_reg(CodeCell regg);

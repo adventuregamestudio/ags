@@ -127,7 +127,7 @@ AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name,
     fp.Name = func_name;
     fp.CodeOffs = codesize;
     fp.NumOfParams = num_of_parameters;
-    functions.push_back(fp);
+    Functions.push_back(fp);
     return codesize;
 }
 
@@ -218,6 +218,6 @@ std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
 // free the extra bits that ccScript doesn't have
 void AGS::ccCompiledScript::free_extra()
 {
-    functions.clear();
-    functions.shrink_to_fit();
+    Functions.clear();
+    Functions.shrink_to_fit();
 }

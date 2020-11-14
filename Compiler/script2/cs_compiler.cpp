@@ -122,13 +122,13 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
     if (FlagIsSet(options, SCOPT_EXPORTALL))
     {
         // export all functions
-        for (size_t func_num = 0; func_num < compiled_script->functions.size(); func_num++)
+        for (size_t func_num = 0; func_num < compiled_script->Functions.size(); func_num++)
         {
             if (-1 == compiled_script->add_new_export(
-                compiled_script->functions[func_num].Name,
+                compiled_script->Functions[func_num].Name,
                 EXPORT_FUNCTION,
-                compiled_script->functions[func_num].CodeOffs,
-                compiled_script->functions[func_num].NumOfParams))
+                compiled_script->Functions[func_num].CodeOffs,
+                compiled_script->Functions[func_num].NumOfParams))
             {
                 cc_error("Export function failed");
                 delete compiled_script; // Note: delete calls the destructor

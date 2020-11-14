@@ -8,17 +8,17 @@
 
 namespace AGS {
 struct ccCompiledScript : public ccScript {
+    long codeallocated; // [fw] Misplaced. Should be in ccScript.
+
     struct FuncProps
     {
         std::string Name;
         size_t NumOfParams;
         CodeLoc CodeOffs;
     };
-    std::vector<FuncProps> functions;
+    std::vector<FuncProps> Functions;
 
-    long codeallocated; // [fw] Misplaced. Should be in ccScript.
-
-     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
+    // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
     size_t OffsetToLocalVarBlock;
 
     int LastEmittedLineno;

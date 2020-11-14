@@ -176,6 +176,7 @@ TEST_F(Compile0, EnumNegative) {
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
     MessageHandler mh;
+    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         enum TestMyEnums {      \n\
@@ -196,7 +197,7 @@ TEST_F(Compile0, EnumNegative) {
 
     // Call cc_scan() and cc_parse() by hand so that we can see the symbol table
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compileResult = cc_parse(targ, scrip, sym, mh);
+    int compileResult = cc_parse(targ, options, scrip, sym, mh);
     ASSERT_EQ(0, compileResult);
 
     // C enums start with 0, but AGS enums with 1
@@ -226,6 +227,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
     MessageHandler mh;
+    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         import int importedfunc(    \n\
@@ -243,7 +245,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
 
     
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compileResult = cc_parse(targ, scrip, sym, mh);
+    int compileResult = cc_parse(targ, options, scrip, sym, mh);
     ASSERT_EQ(0, compileResult);
 
     Symbol const funcidx = sym.Find("importedfunc");
@@ -284,6 +286,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
     MessageHandler mh;
+    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         struct A                            \n\
@@ -293,7 +296,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
         ";
 
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compileResult = cc_parse(targ, scrip, sym, mh);
+    int compileResult = cc_parse(targ, options, scrip, sym, mh);
     ASSERT_EQ(0, compileResult);
 
     int funcidx;
@@ -982,9 +985,10 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
     MessageHandler mh;
+    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));  
-    ASSERT_EQ(0, cc_parse(targ, scrip, sym, mh));
+    ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
 
     ASSERT_EQ(1u, mh.GetMessages().size());
     EXPECT_EQ(7u, mh.GetMessages()[0].Lineno);
@@ -1715,9 +1719,10 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     SrcList targ(tokens, lh, cursor);
     SymbolTable sym;
     MessageHandler mh;
+    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    ASSERT_EQ(0, cc_parse(targ, scrip, sym, mh));
+    ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
 
     Symbol const idx = sym.Find("J");
     ASSERT_LE(0, idx);

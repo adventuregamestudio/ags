@@ -700,11 +700,12 @@ void AGS::Parser::MemoryLocation::Reset()
     _componentOffs = 0u;
 }
 
-AGS::Parser::Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh)
+AGS::Parser::Parser(SrcList &src, FlagSet options, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh)
     : _nest(scrip)
     , _pp(PP::kPreAnalyze)
     , _sym(symt)
     , _src(src)
+    , _options(options)
     , _scrip(scrip)
     , _msg_handler(mh)
     , _fcm(*this)
@@ -1790,7 +1791,7 @@ ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet 
         _sym.IsFunction(name_of_func) &&
         !_sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
     {
-        if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        if (FlagIsSet(_options, SCOPT_NOIMPORTOVERRIDE))
         {
             std::string const msg = ReferenceMsgSym(
                 "In here, a function with a local body must not have an \"import\" declaration",
@@ -4357,7 +4358,7 @@ ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype v
 
 ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, ScopeType scope_type)
 {
-    if (vartype == kKW_String && ccGetOption(SCOPT_OLDSTRINGS) == 0)
+    if (vartype == kKW_String && FlagIsSet(_options, SCOPT_OLDSTRINGS) == 0)
     {
         Error("Type 'string' is no longer supported; use String instead");
         return kERR_UserError;
@@ -5060,7 +5061,7 @@ ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, S
         _sym.IsFunction(qualified_name) &&
         !_sym[qualified_name].FunctionD->TypeQualifiers[TQ::kImport])
     {
-        if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        if (FlagIsSet(_options, SCOPT_NOIMPORTOVERRIDE))
         {
             std::string const msg = ReferenceMsgSym(
                 "In here, attribute functions may not be defined locally",
@@ -5676,7 +5677,7 @@ ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current
 ErrorType AGS::Parser::ParseExport_Function(Symbol func)
 {
     // If all functions will be exported anyway, skip this here.
-    if (0 != ccGetOption(SCOPT_EXPORTALL))
+    if (FlagIsSet(_options, SCOPT_EXPORTALL))
         return kERR_None;
 
     if (_sym[func].FunctionD->TypeQualifiers[TQ::kImport])
@@ -5857,9 +5858,9 @@ ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Sco
             Error("'%s' is already defined as a global non-import variable", _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
-        else if (ScT::kGlobal == scope_type && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        else if (ScT::kGlobal == scope_type && FlagIsSet(_options, SCOPT_NOIMPORTOVERRIDE))
         {
-            Error("'%s' is defined as an import variable; that cannot be overridden here", _sym.GetName(var_name).c_str());
+            Error("'%s' is defined as an import variable; that can't be overridden here", _sym.GetName(var_name).c_str());
             return kERR_UserError;
         }
     }
@@ -6553,6 +6554,7 @@ ErrorType AGS::Parser::NegateLiteral(Symbol &symb)
     _sym.MakeEntryLiteral(symb);
     _sym[symb].LiteralD->Vartype = vartype;
     _sym[symb].LiteralD->Value = new_value;
+    return kERR_None;
 }
 
 ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &vartype)
@@ -7054,13 +7056,13 @@ int cc_scan(std::string const &inpl, SrcList &src, ccCompiledScript &scrip, Symb
     return scanner.Scan();
 }
 
-int cc_parse(AGS::SrcList &src, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
+int cc_parse(SrcList &src, FlagSet options, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
 {
-    AGS::Parser parser = { src, scrip, symt, mh };
+    AGS::Parser parser = { src, options, scrip, symt, mh };
     return parser.Parse();
 }
 
-int cc_compile(std::string const &inpl, ccCompiledScript &scrip, MessageHandler &mh)
+int cc_compile(std::string const &inpl, FlagSet options, ccCompiledScript &scrip, MessageHandler &mh)
 {
     std::vector<Symbol> symbols;
     LineHandler lh;
@@ -7075,15 +7077,18 @@ int cc_compile(std::string const &inpl, ccCompiledScript &scrip, MessageHandler 
 
     int error_code = cc_scan(inpl, src, scrip, symt, mh);
     if (error_code >= 0)
-        error_code = cc_parse(src, scrip, symt, mh);
+        error_code = cc_parse(src, options, scrip, symt, mh);
     return error_code;
 }
+
+// TODO: Get rid of that as soon as the legacy functions are no longer used
+extern int ccCompOptions;
 
 int cc_compile(std::string const &inpl, ccCompiledScript &scrip)
 {
     MessageHandler mh;
-
-    int error_code = cc_compile(inpl, scrip, mh);
+    FlagSet const options = ccCompOptions;
+    int error_code = cc_compile(inpl, options, scrip, mh);
     if (error_code >= 0)
     {
         // Here if there weren't any errors.

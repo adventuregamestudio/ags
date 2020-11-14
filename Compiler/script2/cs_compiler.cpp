@@ -44,8 +44,22 @@ void ccSetSoftwareVersion(const char *version)
 
 ccScript *ccCompileText(const char *script, const char *scriptName)
 {
-    ccCompiledScript *compiled_script = new ccCompiledScript();
-    compiled_script->init();
+    long const options =
+        SCOPT_EXPORTALL * ccGetOption(SCOPT_EXPORTALL) |
+        SCOPT_SHOWWARNINGS * ccGetOption(SCOPT_SHOWWARNINGS) |
+        SCOPT_LINENUMBERS * ccGetOption(SCOPT_LINENUMBERS) |
+        SCOPT_AUTOIMPORT * ccGetOption(SCOPT_AUTOIMPORT) |
+        SCOPT_DEBUGRUN * ccGetOption(SCOPT_DEBUGRUN) |
+        SCOPT_NOIMPORTOVERRIDE * ccGetOption(SCOPT_NOIMPORTOVERRIDE) |
+        SCOPT_OLDSTRINGS * ccGetOption(SCOPT_OLDSTRINGS) |
+        false;
+    return ccCompileText(script, scriptName, options);
+}
+
+ccScript *ccCompileText(const char *script, const char *scriptName, long options)
+{
+    ccCompiledScript *compiled_script =
+        new ccCompiledScript(0 != FlagIsSet(options, SCOPT_LINENUMBERS));
 
     if (scriptName == NULL)
         scriptName = "Main script";
@@ -108,7 +122,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
         }
     }
 
-    if (ccGetOption(SCOPT_EXPORTALL))
+    if (FlagIsSet(options, SCOPT_EXPORTALL))
     {
         // export all functions
         for (size_t func_num = 0; func_num < compiled_script->functions.size(); func_num++)

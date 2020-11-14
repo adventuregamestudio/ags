@@ -22,6 +22,7 @@ struct ccCompiledScript : public ccScript {
     size_t offset_to_local_var_block;
 
     int last_emitted_lineno;
+    bool EmitLineNumbers;
 
     // Variable type of value in AX, usually equiv. to type of the current expression
     AGS::Vartype ax_vartype;
@@ -93,7 +94,7 @@ struct ccCompiledScript : public ccScript {
     // start of the command but the location of its first parameter
     inline static AGS::CodeLoc RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest) { return dest - here - 1; }
 
-    ccCompiledScript();
+    ccCompiledScript(bool emit_line_numbers = true);
     virtual ~ccCompiledScript();
 };
 

@@ -28,6 +28,7 @@ extern void ccSetSoftwareVersion(const char *version);
 
 // compile the script supplied, returns NULL on failure
 extern ccScript *ccCompileText(const char *script, const char *scriptName);
+extern ccScript *ccCompileText(const char *script, const char *scriptName, long options);
 
 extern const char *ccSoftwareVersion;
 

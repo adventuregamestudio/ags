@@ -9,7 +9,7 @@
 
 void ccCompiledScript::write_lineno(size_t lno)
 {
-    if (ccGetOption(SCOPT_LINENUMBERS))
+    if (EmitLineNumbers)
         write_cmd(SCMD_LINENUM, lno);
     last_emitted_lineno = lno;
 }
@@ -26,11 +26,13 @@ void ccCompiledScript::pop_reg(AGS::CodeCell regg)
     offset_to_local_var_block -= SIZE_OF_STACK_CELL;
 }
 
-ccCompiledScript::ccCompiledScript()
+ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 {
     init();
     ax_vartype = 0;
     ax_scope_type = ScT::kGlobal;
+
+    EmitLineNumbers = emit_line_numbers;
 }
 
 ccCompiledScript::~ccCompiledScript()

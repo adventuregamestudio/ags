@@ -386,6 +386,9 @@ private:
     // List of symbols from the tokenizer
     SrcList &_src;
 
+    // Compile flags, as specified in cc_options
+    FlagSet _options;
+
     // Receives the parsing results
     ::ccCompiledScript &_scrip;
 
@@ -980,7 +983,7 @@ private:
     void Warning(char const *descr, ...);
 
 public:
-    Parser(SrcList &src, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh);
+    Parser(SrcList &src, FlagSet options, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh);
 
     ErrorType Parse();
 
@@ -998,6 +1001,7 @@ extern int cc_scan(
 // Only use this function for googletests. Parse the input
 extern int cc_parse(
     SrcList &src,               // tokenized text
+    FlagSet options,            // as defined in cc_options 
     ccCompiledScript &scrip,    // result of the compilation
     SymbolTable &symt,          // symbol table
     MessageHandler &mh);        // warnings and the error 
@@ -1010,6 +1014,7 @@ extern int cc_compile(
 // Compile the input, return any messages in mh, cc_error() does not get called
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled
+    FlagSet options,            // as defined in cc_options 
     ccCompiledScript &scrip,    // store for the compiled text
     MessageHandler &mh);        // warnings and the error   
 

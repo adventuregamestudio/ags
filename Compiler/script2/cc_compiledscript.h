@@ -31,7 +31,6 @@ struct ccCompiledScript : public ccScript {
     ScopeType AX_ScopeType;
 
     void Init();
-    void shutdown();
     void free_extra();
 
     // Reserve siz bytes of memory for global data;

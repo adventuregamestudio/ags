@@ -37,7 +37,7 @@ ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 
 AGS::ccCompiledScript::~ccCompiledScript()
 {
-    shutdown();
+    free_extra();
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
@@ -226,9 +226,4 @@ void AGS::ccCompiledScript::Init()
 void AGS::ccCompiledScript::free_extra()
 {
     functions.clear();
-}
-
-void AGS::ccCompiledScript::shutdown()
-{
-    free_extra();
 }

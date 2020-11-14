@@ -88,8 +88,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
 
     if (ccError)
     {
-        compiled_script->shutdown();
-        delete compiled_script;
+        delete compiled_script; // Note: delete calls the destructor
         return NULL;
     }
 
@@ -105,8 +104,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
                 "!Fixup #%d references non-existent code offset #%d",
                 fixup_idx,
                 code_idx);
-            compiled_script->shutdown();
-            delete compiled_script;
+            delete compiled_script; // Note: delete calls the destructor
             return NULL;
         }
         int const cv = compiled_script->code[code_idx];
@@ -117,8 +115,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
                 "!Fixup #%d references non-existent import #%d",
                 fixup_idx,
                 cv);
-            compiled_script->shutdown();
-            delete compiled_script;
+            delete compiled_script; // Note: delete calls the destructor
             return NULL;
         }
     }
@@ -134,7 +131,8 @@ ccScript *ccCompileText(const char *script, const char *scriptName, long options
                 compiled_script->functions[func_num].CodeOffs,
                 compiled_script->functions[func_num].NumOfParams))
             {
-                compiled_script->shutdown();
+                cc_error("Export function failed");
+                delete compiled_script; // Note: delete calls the destructor
                 return NULL;
             }
         }

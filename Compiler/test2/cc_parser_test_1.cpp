@@ -23,7 +23,7 @@ protected:
     Compile1()
     {
         // Initializations, will be done at the start of each test
-        scrip.init();
+        scrip.Init();
         ccSetOption(SCOPT_NOIMPORTOVERRIDE, false);
         ccSetOption(SCOPT_LINENUMBERS, true);
         clear_error();

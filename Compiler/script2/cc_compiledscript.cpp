@@ -28,7 +28,7 @@ void AGS::ccCompiledScript::pop_reg(CodeCell regg)
 
 ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 {
-    init();
+    Init();
     AX_Vartype = 0;
     AX_ScopeType = ScT::kGlobal;
 
@@ -193,7 +193,7 @@ std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
     return sectionNames[numSections - 1];
 }
 
-void AGS::ccCompiledScript::init()
+void AGS::ccCompiledScript::Init()
 {
     globaldata = NULL;
     globaldatasize = 0;

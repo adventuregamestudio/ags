@@ -25,10 +25,10 @@ struct ccCompiledScript : public ccScript {
     bool EmitLineNumbers;
 
     // Variable type of value in AX, usually equiv. to type of the current expression
-    Vartype ax_vartype;
+    Vartype AX_Vartype;
 
     // Needed to prevent a return of a local string
-    ScopeType ax_scope_type;
+    ScopeType AX_ScopeType;
 
     void init();
     void shutdown();

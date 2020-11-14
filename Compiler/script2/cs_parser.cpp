@@ -2131,11 +2131,11 @@ bool AGS::Parser::IsBooleanOpcode(CodeCell opcode)
 // then convert AX into a String object and set its type accordingly
 void AGS::Parser::ConvertAXStringToStringObject(Vartype wanted_vartype)
 {
-    if (kKW_String == _sym.VartypeWithout(VTT::kConst, _scrip.ax_vartype) &&
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, _scrip.AX_Vartype) &&
         _sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, wanted_vartype))
     {
         WriteCmd(SCMD_CREATESTRING, SREG_AX); // convert AX
-        _scrip.ax_vartype = _sym.VartypeWith(VTT::kDynpointer, _sym.GetStringStructSym());
+        _scrip.AX_Vartype = _sym.VartypeWith(VTT::kDynpointer, _sym.GetStringStructSym());
     }
 }
 
@@ -2175,7 +2175,7 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
             vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
             vloc = kVL_AX_is_value;
-            _scrip.ax_vartype = vartype;
+            _scrip.AX_Vartype = vartype;
             return kERR_None;
         }
 
@@ -2191,8 +2191,8 @@ AGS::ErrorType AGS::Parser::ResultToAX(ValueLocation &vloc, ScopeType &scope_typ
     if (kVL_MAR_pointsto_value != vloc)
         return kERR_None; // So it's already in AX 
 
-    _scrip.ax_vartype = vartype;
-    _scrip.ax_scope_type = scope_type;
+    _scrip.AX_Vartype = vartype;
+    _scrip.AX_ScopeType = scope_type;
 
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
         WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
@@ -2289,8 +2289,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
     else
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
 
-    _scrip.ax_scope_type = scope_type = ScT::kGlobal;
-    _scrip.ax_vartype = vartype;
+    _scrip.AX_ScopeType = scope_type = ScT::kGlobal;
+    _scrip.AX_Vartype = vartype;
     vloc = kVL_AX_is_value;
     return kERR_None;
 }
@@ -2329,7 +2329,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     if (retval < 0) return retval;
 
     CodeCell opcode = SCMD_SUBREG; 
-    retval = GetOpcodeValidForVartype(_scrip.ax_vartype, _scrip.ax_vartype, opcode);
+    retval = GetOpcodeValidForVartype(_scrip.AX_Vartype, _scrip.AX_Vartype, opcode);
     if (retval < 0) return retval;
 
     // Calculate 0 - AX
@@ -2396,12 +2396,12 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
     retval = ResultToAX(vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    if (!_sym.IsAnyIntegerVartype(_scrip.ax_vartype))
+    if (!_sym.IsAnyIntegerVartype(_scrip.AX_Vartype))
     {
         Error(
             "Expected an integer expression after '%s' but found type %s",
             _sym.GetName(op_sym).c_str(),
-            _sym.GetName(_scrip.ax_vartype).c_str());
+            _sym.GetName(_scrip.AX_Vartype).c_str());
         return kERR_UserError;
     }
     
@@ -2419,7 +2419,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
     }
 
     vloc = kVL_AX_is_value;
-    vartype = _scrip.ax_vartype = kKW_Int;
+    vartype = _scrip.AX_Vartype = kKW_Int;
     return kERR_None;
 }
 
@@ -2511,7 +2511,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
         if (_sym.IsAnyStringVartype(term2_vartype))
         {
             ConvertAXStringToStringObject(_sym.GetStringStructSym());
-            term2_vartype = _scrip.ax_vartype;
+            term2_vartype = _scrip.AX_Vartype;
         }
         // Jump to the end of the ternary expression;
         // We don't know the dest yet, thus the placeholder value -77. Don't
@@ -2528,7 +2528,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
         if (_sym.IsAnyStringVartype(term2_vartype))
         {
             ConvertAXStringToStringObject(_sym.GetStringStructSym());
-            term2_vartype = _scrip.ax_vartype;
+            term2_vartype = _scrip.AX_Vartype;
         }
     }
     ForwardJump jumpdest_after_term2(_scrip); // only valid if second_term_exists
@@ -2550,7 +2550,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     if (_sym.IsAnyStringVartype(term3_vartype))
     {
         ConvertAXStringToStringObject(_sym.GetStringStructSym());
-        term3_vartype = _scrip.ax_vartype;
+        term3_vartype = _scrip.AX_Vartype;
     }
 
     if (second_term_exists)
@@ -2564,12 +2564,12 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
 
     if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
     {
-        vartype = _scrip.ax_vartype = term3_vartype;
+        vartype = _scrip.AX_Vartype = term3_vartype;
         return kERR_None;
     }
     if (!IsVartypeMismatch_Oneway(term3_vartype, term2_vartype))
     {
-        vartype = _scrip.ax_vartype = term2_vartype;
+        vartype = _scrip.AX_Vartype = term2_vartype;
         return kERR_None;
     }
 
@@ -2654,7 +2654,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanOpcode(actual_opcode))
-        _scrip.ax_vartype = vartype = kKW_Int;
+        _scrip.AX_Vartype = vartype = kKW_Int;
 
     return kERR_None;
 }
@@ -2724,7 +2724,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo)
 {
 
-    if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, _scrip.ax_vartype) &&
+    if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, _scrip.AX_Vartype) &&
         kKW_String == _sym.VartypeWithout(VTT::kConst, valTypeTo))
         WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 }
@@ -2813,7 +2813,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &paramete
             // If we need a string object ptr but AX contains a normal string, convert AX
             Vartype const param_vartype = _sym[funcSymbol].FunctionD->Parameters[param_num].Vartype;
             ConvertAXStringToStringObject(param_vartype);
-            vartype = _scrip.ax_vartype;
+            vartype = _scrip.AX_Vartype;
             // If we need a normal string but AX contains a string object ptr, 
             // check that this ptr isn't null
             DoNullCheckOnStringInAXIfNecessary(param_vartype);
@@ -3054,8 +3054,8 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
     AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
 
     // function return type
-    rettype = _scrip.ax_vartype = _sym.FuncReturnVartype(name_of_func);
-    _scrip.ax_scope_type = ScT::kLocal;
+    rettype = _scrip.AX_Vartype = _sym.FuncReturnVartype(name_of_func);
+    _scrip.AX_ScopeType = ScT::kLocal;
 
     if (mar_pushed)
         PopReg(SREG_MAR);
@@ -3264,8 +3264,8 @@ AGS::ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList
         PopReg(SREG_OP); // restore old this ptr after the func call
 
     // attribute return type
-    _scrip.ax_scope_type = ScT::kLocal;
-    _scrip.ax_vartype = vartype = _sym.FuncReturnVartype(qualified_func_name);
+    _scrip.AX_ScopeType = ScT::kLocal;
+    _scrip.AX_Vartype = vartype = _sym.FuncReturnVartype(qualified_func_name);
 
     MarkAcessed(qualified_func_name);
     return kERR_None;
@@ -3528,8 +3528,8 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
             WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
             vloc = kVL_AX_is_value;
             return_scope_type = ScT::kGlobal;
-            _scrip.ax_vartype = vartype = kKW_Null;
-            _scrip.ax_scope_type = ScT::kGlobal;
+            _scrip.AX_Vartype = vartype = kKW_Null;
+            _scrip.AX_ScopeType = ScT::kGlobal;
             return kERR_None;
         }
 
@@ -3810,8 +3810,8 @@ AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueL
 
     if (kVL_AX_is_value == vloc)
     {
-        _scrip.ax_vartype = vartype;
-        _scrip.ax_scope_type = scope_type;
+        _scrip.AX_Vartype = vartype;
+        _scrip.AX_ScopeType = scope_type;
         return kERR_None;
     }
 
@@ -3888,8 +3888,8 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
 
     // AX contains the result of evaluating the RHS of the assignment
     // Save on the stack so that it isn't clobbered
-    Vartype rhsvartype = _scrip.ax_vartype;
-    ScopeType rhs_scope_type = _scrip.ax_scope_type;
+    Vartype rhsvartype = _scrip.AX_Vartype;
+    ScopeType rhs_scope_type = _scrip.AX_ScopeType;
     // Save AX unless we are sure that it won't be clobbered
     bool const may_clobber = AccessData_MayAccessClobberAX(expression);
     if (may_clobber)
@@ -3917,8 +3917,8 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     if (may_clobber)
         PopReg(SREG_AX);
 
-    _scrip.ax_vartype = rhsvartype;
-    _scrip.ax_scope_type = rhs_scope_type;
+    _scrip.AX_Vartype = rhsvartype;
+    _scrip.AX_ScopeType = rhs_scope_type;
 
     if (kVL_Attribute == vloc)
     {
@@ -3943,7 +3943,7 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     }
 
     ConvertAXStringToStringObject(lhsvartype);
-    rhsvartype = _scrip.ax_vartype;
+    rhsvartype = _scrip.AX_Vartype;
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
     {
         Error(
@@ -4136,8 +4136,8 @@ AGS::ErrorType AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &lhs,
     if (kVL_MAR_pointsto_value == vloc)
     {
         // write memory to AX
-        _scrip.ax_vartype = lhstype;
-        _scrip.ax_scope_type = scope_type;
+        _scrip.AX_Vartype = lhstype;
+        _scrip.AX_ScopeType = scope_type;
         WriteCmd(
             GetReadCommandForSize(_sym.GetSize(lhstype)),
             SREG_AX);
@@ -4165,7 +4165,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     if (retval < 0) return retval;
 
     PushReg(SREG_AX);
-    Vartype rhsvartype = _scrip.ax_vartype;
+    Vartype rhsvartype = _scrip.AX_Vartype;
 
     // Parse LHS (moves the cursor to end of LHS, so save it and restore it afterwards)
     ValueLocation vloc;
@@ -4511,7 +4511,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     // Vartypes must match. This is true even if the lhs is readonly.
     // As a special case, a string may be assigned a const string because the const string will be copied, not modified.
     Vartype const lhsvartype = vartype;
-    Vartype const rhsvartype = _scrip.ax_vartype;
+    Vartype const rhsvartype = _scrip.AX_Vartype;
 
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
         !(kKW_String == _sym.VartypeWithout(VTT::kConst, rhsvartype) &&
@@ -6051,11 +6051,11 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
         ConvertAXStringToStringObject(functionReturnType);
 
         // check return type is correct
-        retval = IsVartypeMismatch(_scrip.ax_vartype, functionReturnType, true);
+        retval = IsVartypeMismatch(_scrip.AX_Vartype, functionReturnType, true);
         if (retval < 0) return retval;
 
-        if (_sym.IsOldstring(_scrip.ax_vartype) &&
-            (ScT::kLocal == _scrip.ax_scope_type))
+        if (_sym.IsOldstring(_scrip.AX_Vartype) &&
+            (ScT::kLocal == _scrip.AX_ScopeType))
         {
             Error("Cannot return local string from function");
             return kERR_UserError;
@@ -6391,7 +6391,7 @@ AGS::ErrorType AGS::Parser::ParseSwitch()
     if (retval < 0) return retval;
 
     // Remember the type of this expression to enforce it later
-    Vartype const switch_expr_vartype = _scrip.ax_vartype;
+    Vartype const switch_expr_vartype = _scrip.AX_Vartype;
 
     // Copy the result to the BX register, ready for case statements
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
@@ -6446,7 +6446,7 @@ AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         if (retval < 0) return retval;
 
         // Vartypes of the "case" expression and the "switch" expression must match
-        retval = IsVartypeMismatch(_scrip.ax_vartype, _nest.SwitchExprVartype(), false);
+        retval = IsVartypeMismatch(_scrip.AX_Vartype, _nest.SwitchExprVartype(), false);
         if (retval < 0) return retval;
 
         PopReg(SREG_BX);
@@ -6567,8 +6567,8 @@ AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
         _scrip.fixup_previous(kFx_String);
-    _scrip.ax_vartype = vartype;
-    _scrip.ax_scope_type = ScT::kGlobal;
+    _scrip.AX_Vartype = vartype;
+    _scrip.AX_ScopeType = ScT::kGlobal;
     vl = kVL_AX_is_value;
     return kERR_None;
 }

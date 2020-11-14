@@ -29,8 +29,8 @@ void AGS::ccCompiledScript::pop_reg(CodeCell regg)
 ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 {
     init();
-    ax_vartype = 0;
-    ax_scope_type = ScT::kGlobal;
+    AX_Vartype = 0;
+    AX_ScopeType = ScT::kGlobal;
 
     EmitLineNumbers = emit_line_numbers;
 }
@@ -218,8 +218,8 @@ void AGS::ccCompiledScript::init()
     sectionNames = NULL;
     sectionOffsets = NULL;
     LastEmittedLineno = 0;
-    ax_vartype = 0;
-    ax_scope_type = ScT::kGlobal;
+    AX_Vartype = 0;
+    AX_ScopeType = ScT::kGlobal;
 }
 
 // free the extra bits that ccScript doesn't have

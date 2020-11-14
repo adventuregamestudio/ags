@@ -67,7 +67,7 @@ AGS::ccCompiledScript::~ccCompiledScript()
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
-AGS::GlobalLoc AGS::ccCompiledScript::add_global(size_t siz, void *vall)
+AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t siz, void *vall)
 {
     // The new global variable will be moved to &(globaldata[offset])
     GlobalLoc offset = globaldatasize;
@@ -98,7 +98,7 @@ AGS::GlobalLoc AGS::ccCompiledScript::add_global(size_t siz, void *vall)
     return offset;
 }
 
-AGS::StringsLoc AGS::ccCompiledScript::add_string(std::string const &literal)
+AGS::StringsLoc AGS::ccCompiledScript::AddString(std::string const &literal)
 {
     // Note: processing  of '\\' and '[' combinations moved to the scanner
     // because the scanner must deal with '\\' anyway.

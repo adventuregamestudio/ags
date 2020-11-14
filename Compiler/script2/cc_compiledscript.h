@@ -38,11 +38,11 @@ struct ccCompiledScript : public ccScript {
     // Reserve siz bytes of memory for global data;
     // copy the value at vall into this new memory space if given; 
     // return the offset at which the new space begins.
-    GlobalLoc add_global(size_t siz, void *vall);
+    GlobalLoc AddGlobal(size_t siz, void *vall);
 
     // Add a string literal to the strings[] repository
     // NOTE: Return is the start of the new string, not an error value.
-    StringsLoc add_string(std::string const &literal);
+    StringsLoc AddString(std::string const &literal);
 
     // Set a fixup to the code location given. Depending on the fixup type,
     // where can be an offset to the global memory, too.

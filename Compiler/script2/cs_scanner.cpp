@@ -113,7 +113,7 @@ AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &
         }
 
         scan_type = kSct_StringLiteral;
-        value = _stringCollector.add_string(valstring.c_str());
+        value = _stringCollector.AddString(valstring.c_str());
         return kERR_None;
     }
 

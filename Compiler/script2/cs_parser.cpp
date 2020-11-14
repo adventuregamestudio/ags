@@ -4439,7 +4439,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype
     SymbolTableEntry &entry = _sym[var_name];
     entry.VariableD->Vartype = vartype;
     size_t const var_size = _sym.GetSize(vartype);
-    int const global_offset = _scrip.add_global(var_size, initial_val_ptr);
+    int const global_offset = _scrip.AddGlobal(var_size, initial_val_ptr);
     if (global_offset < 0)
     {
         Error("!Cannot allocate global variable");

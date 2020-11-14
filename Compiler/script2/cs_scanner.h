@@ -71,8 +71,8 @@ private:
     std::string _section;
     SrcList &_tokenList;
     MessageHandler &_messageHandler;
-    struct ::SymbolTable &_sym;
-    struct ::ccCompiledScript &_stringCollector;
+    SymbolTable &_sym;
+    ccCompiledScript &_stringCollector;
 
     // Get the next char from the input stream
     inline int Get() { int ret = _inputStream.get(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
@@ -147,7 +147,7 @@ protected:
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
 
 public:
-    Scanner(std::string const &input, SrcList &token_list, ::ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
+    Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
 
     // Scan the input into token_list; symbols into symt; strings into _string_collector
     ErrorType Scan();
@@ -162,7 +162,7 @@ public:
     inline std::string const GetSection() const { return _section; }
 
     // Get the next symstring from the input. Only exposed for googletests
-    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, AGS::CodeCell &value);
+    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value);
 
     // Get next token from the input. Only exposed for googletests
     ErrorType GetNextSymbol(Symbol &symbol);

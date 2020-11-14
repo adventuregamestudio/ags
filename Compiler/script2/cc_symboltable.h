@@ -239,7 +239,7 @@ struct SymbolTableEntry : public SymbolTableConstant
     struct ComponentDesc
     {
         Symbol Component = kKW_NoSymbol; // the naked symbol name (for a::b, it is b)
-        AGS::Vartype Parent = kKW_NoSymbol; // The vartype of the component (for a::b, it is a)
+        Vartype Parent = kKW_NoSymbol; // The vartype of the component (for a::b, it is a)
         size_t SOffset = 0u; // offset from the start of the struct of where the component is allocated
         bool IsFunction = false;
     } *ComponentD = nullptr;

@@ -137,7 +137,7 @@ private:
 
     // This ought to replace the #defines in script_common.h
     // but we can't touch them since the engine uses them, too
-    enum FxFixupType : AGS::FixupType // see script_common.h
+    enum FxFixupType : FixupType // see script_common.h
     {
         kFx_NoFixup = 0,
         kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
@@ -156,11 +156,11 @@ private:
     class RestorePoint
     {
     private:
-        ::ccCompiledScript &_scrip;
+        ccCompiledScript &_scrip;
         CodeLoc _restoreLoc;
         size_t  _lastEmittedSrcLineno;
     public:
-        RestorePoint(::ccCompiledScript &scrip);
+        RestorePoint(ccCompiledScript &scrip);
         void Restore();
         inline bool IsEmpty() const { return _scrip.codesize == _restoreLoc; }
     };
@@ -173,11 +173,11 @@ private:
     class BackwardJumpDest
     {
     private:
-        ::ccCompiledScript &_scrip;
+        ccCompiledScript &_scrip;
         CodeLoc _dest;
         size_t  _lastEmittedSrcLineno;
     public:
-        BackwardJumpDest(::ccCompiledScript &scrip);
+        BackwardJumpDest(ccCompiledScript &scrip);
         // Set the destination to the location given; default to current location in code
         void Set(CodeLoc cl = -1);
         inline CodeLoc Get() const { return _dest; }
@@ -191,12 +191,12 @@ private:
     class ForwardJump
     {
     private:
-        ::ccCompiledScript &_scrip;
+        ccCompiledScript &_scrip;
         std::vector<CodeLoc> _jumpDestParamLocs;
         size_t  _lastEmittedSrcLineno;
 
     public:
-        ForwardJump(::ccCompiledScript &scrip);
+        ForwardJump(ccCompiledScript &scrip);
         // Add the parameter of a forward jump 
         void AddParam(int offset = -1);
         // Patch all the forward jump parameters to point to _scrip.codesize
@@ -248,14 +248,14 @@ private:
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
             std::map<Symbol, SymbolTableEntry> OldDefinitions;
 
-            NestingInfo(NSType stype, ::ccCompiledScript &scrip);
+            NestingInfo(NSType stype, ccCompiledScript &scrip);
         };
 
         std::vector<NestingInfo> _stack;
-        ::ccCompiledScript &_scrip;
+        ccCompiledScript &_scrip;
 
     public:
-        NestingStack(::ccCompiledScript &scrip);
+        NestingStack(ccCompiledScript &scrip);
 
         // Index of the innermost nesting level
         inline size_t TopLevel() const { return _stack.size() - 1; };
@@ -360,7 +360,7 @@ private:
     public:
         ImportMgr();
 
-        void Init(::ccCompiledScript *scrip);
+        void Init(ccCompiledScript *scrip);
 
         // Whether s is in the import table already (doesn't add)
         bool IsDeclaredImport(std::string s);
@@ -377,7 +377,7 @@ private:
     // Only a global import may be re-defined as a global non-import
     //    (that must be identical except for the "import" declarator),
     //    and this may only happen if the options don't forbid this.
-    typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
+    typedef std::map<Symbol, bool> TGIVM; // Global Import Variable Mgr
     TGIVM _givm; // Global Import Variable Manager
 
     // Main symbol table
@@ -390,7 +390,7 @@ private:
     FlagSet _options;
 
     // Receives the parsing results
-    ::ccCompiledScript &_scrip;
+    ccCompiledScript &_scrip;
 
     // Receives the errors and warnings
     MessageHandler &_msg_handler;
@@ -417,7 +417,7 @@ private:
     // declared is the point in _src where the thing is declared
     std::string const ReferenceMsgLoc(std::string const &msg, size_t declared);
     // Augment the message with a "See ..." indication pointing to the declaration of sym
-    std::string const ReferenceMsgSym(std::string const &msg, AGS::Symbol symb);
+    std::string const ReferenceMsgSym(std::string const &msg, Symbol symb);
 
     // Adds the symbol to the list if it isn't there yet.
     void AddToSymbolList(Symbol symb, SymbolList &list);
@@ -587,10 +587,10 @@ private:
     static int GetWriteCommandForSize(int the_size);
 
     // Handle the cases where a value is a whole array or dynarray or struct
-    ErrorType HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc);
+    ErrorType HandleStructOrArrayResult(Vartype &vartype, Parser::ValueLocation &vloc);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
-    ErrorType ResultToAX(ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ResultToAX(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
@@ -616,32 +616,32 @@ private:
     ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary NEW
-    ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary '-'
-    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is unary '+'
-    ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
-    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is a unary operator
-    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
     ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator a binary operator.
-    ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. The lowest-binding operator is '?' or a binary operator.
-    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression begins with '('
     // Leaves the cursor pointing after the last token that was processed
-    ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, AGS::Vartype &vartype);
+    ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in EXPRESSION. Expression does not contain operators
     // Leaves the cursor pointing after the last token that was processed
@@ -858,7 +858,7 @@ private:
 
     ErrorType ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func, bool &body_follows);
 
-    ErrorType ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, ScopeType scope_type);
+    ErrorType ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
     ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype);
 
@@ -983,7 +983,7 @@ private:
     void Warning(char const *descr, ...);
 
 public:
-    Parser(SrcList &src, FlagSet options, ::ccCompiledScript &scrip, ::SymbolTable &symt, MessageHandler &mh);
+    Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh);
 
     ErrorType Parse();
 
@@ -993,29 +993,29 @@ public:
 // Only use this function for googletests. Scan and tokenize the input.
 extern int cc_scan(
     std::string const &inpl,    // preprocessed text to be tokenized
-    SrcList &src,               // store for the tokenized text
-    ccCompiledScript &scrip,    // repository for the strings in the text
-    SymbolTable &symt,          // symbol table
-    MessageHandler &mh);        // warnings and the error
+    AGS::SrcList &src,               // store for the tokenized text
+    AGS::ccCompiledScript &scrip,    // repository for the strings in the text
+    AGS::SymbolTable &symt,          // symbol table
+    AGS::MessageHandler &mh);        // warnings and the error
 
 // Only use this function for googletests. Parse the input
 extern int cc_parse(
-    SrcList &src,               // tokenized text
-    FlagSet options,            // as defined in cc_options 
-    ccCompiledScript &scrip,    // result of the compilation
-    SymbolTable &symt,          // symbol table
-    MessageHandler &mh);        // warnings and the error 
+    AGS::SrcList &src,               // tokenized text
+    AGS::FlagSet options,            // as defined in cc_options 
+    AGS::ccCompiledScript &scrip,    // result of the compilation
+    AGS::SymbolTable &symt,          // symbol table
+    AGS::MessageHandler &mh);        // warnings and the error 
 
 // Compile the input; in case of error cc_error() gets called
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled
-    ccCompiledScript &scrip);   // store for the compiled text
+    AGS::ccCompiledScript &scrip);   // store for the compiled text
 
 // Compile the input, return any messages in mh, cc_error() does not get called
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled
-    FlagSet options,            // as defined in cc_options 
-    ccCompiledScript &scrip,    // store for the compiled text
-    MessageHandler &mh);        // warnings and the error   
+    AGS::FlagSet options,            // as defined in cc_options 
+    AGS::ccCompiledScript &scrip,    // store for the compiled text
+    AGS::MessageHandler &mh);        // warnings and the error   
 
 #endif // __CS_PARSER_H

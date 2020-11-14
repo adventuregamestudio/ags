@@ -11,7 +11,7 @@
 
 std::string const AGS::Scanner::kNewSectionLitPrefix = "__NEWSCRIPTSTART_";
 
-AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ::ccCompiledScript &string_collector, ::SymbolTable &symt, MessageHandler &messageHandler)
+AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler)
     : _ocMatcher(*this)
     , _lineno(1u)
     , _tokenList(token_list)
@@ -23,7 +23,7 @@ AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ::ccCompile
     _inputStream.str(input);
 }
 
-ErrorType AGS::Scanner::Scan()
+AGS::ErrorType AGS::Scanner::Scan()
 {
     while (!EOFReached() && !Failed())
     {
@@ -49,7 +49,7 @@ void AGS::Scanner::NewSection(std::string const &section)
     NewLine(0);
 }
 
-ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
+AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     ErrorType retval = SkipWhitespace();
     if (retval < 0) return kERR_UserError;
@@ -156,7 +156,7 @@ ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_
     return kERR_UserError;
 }
 
-ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
+AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
 {
     symbol = kKW_NoSymbol;
     std::string symstring;
@@ -189,7 +189,7 @@ ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
     return CheckMatcherNesting(symbol);
 }
 
-ErrorType AGS::Scanner::SkipWhitespace()
+AGS::ErrorType AGS::Scanner::SkipWhitespace()
 {
     if (_eofReached)
         return kERR_None;
@@ -219,7 +219,7 @@ ErrorType AGS::Scanner::SkipWhitespace()
     }
 }
 
-ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
+AGS::ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     static std::string const exponent_leadin = "EePp";
     static std::string const exponent_follow = "0123456789-+";
@@ -330,7 +330,7 @@ ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_t
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
+AGS::ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
 {
     symstring = "";
 
@@ -437,7 +437,7 @@ int AGS::Scanner::HexDigits2Char(std::string &symstring)
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
-ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted)
+AGS::ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted)
 {
     if ('0' <= first_char_after_backslash && first_char_after_backslash < '8')
     {
@@ -494,7 +494,7 @@ std::string AGS::Scanner::MakeStringPrintable(std::string const &inp)
     return out.str();
 }
 
-ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)
+AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)
 {
     symstring = "\"";
     valstring = "";
@@ -544,7 +544,7 @@ ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &val
     return kERR_UserError;
 }
 
-ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
+AGS::ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
 {
     symstring.assign(1, Get());
 
@@ -569,7 +569,7 @@ ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
     }
 }
 
-ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring)
+AGS::ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring)
 {
     symstring.assign(1, Get());
     int const second_char = Peek();
@@ -588,13 +588,13 @@ ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars,
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadIn1Char(std::string &symstring)
+AGS::ErrorType AGS::Scanner::ReadIn1Char(std::string &symstring)
 {
     symstring.assign(1, Get());
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type)
+AGS::ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type)
 {
     symstring.assign(1, Get());
     int const second_char = Peek();
@@ -619,7 +619,7 @@ ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_ty
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
+AGS::ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
 {
     ErrorType retval = ReadIn1or2Char("<=", symstring);
     if (retval < 0) return retval;
@@ -630,7 +630,7 @@ ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
+AGS::ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
 {
     ErrorType retval = ReadIn1or2Char(">=", symstring);
     if (retval < 0) return retval;
@@ -641,7 +641,7 @@ ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
     return kERR_None;
 }
 
-ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
+AGS::ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
 {
     static Symbol const const_string_vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
 
@@ -692,7 +692,7 @@ void AGS::Scanner::OpenCloseMatcher::Push(Symbol opener, size_t opener_pos)
     _openInfoStack.push_back(OpenInfo{ opener, opener_pos });
 }
 
-ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t closer_pos)
+AGS::ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t closer_pos)
 {
     if (_openInfoStack.empty())
     {
@@ -729,7 +729,7 @@ ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t clos
     return kERR_UserError;
 }
 
-ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
+AGS::ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
 {
     if (_openInfoStack.empty())
         return kERR_None;
@@ -759,7 +759,7 @@ ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
 }
 
 // Check the nesting of () [] {}, error if mismatch
-ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
+AGS::ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
 {
     switch (token)
     {

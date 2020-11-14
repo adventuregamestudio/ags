@@ -17,7 +17,7 @@
 class Compile0 : public ::testing::Test
 {
 protected:
-    ::ccCompiledScript scrip;
+    AGS::ccCompiledScript scrip;
 
     Compile0()
     {
@@ -170,13 +170,13 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
 
 TEST_F(Compile0, EnumNegative) {
     
-    std::vector<Symbol> tokens;
-    LineHandler lh;
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-    MessageHandler mh;
-    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         enum TestMyEnums {      \n\
@@ -221,13 +221,13 @@ TEST_F(Compile0, EnumNegative) {
 
 TEST_F(Compile0, DefaultParametersLargeInts) {
     
-    std::vector<Symbol> tokens;
-    LineHandler lh;
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-    MessageHandler mh;
-    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         import int importedfunc(    \n\
@@ -248,45 +248,45 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     int compileResult = cc_parse(targ, options, scrip, sym, mh);
     ASSERT_EQ(0, compileResult);
 
-    Symbol const funcidx = sym.Find("importedfunc");
+    AGS::Symbol const funcidx = sym.Find("importedfunc");
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[1].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[1].Vartype);
     EXPECT_EQ(sym.Find("0"), sym.entries.at(funcidx).FunctionD->Parameters[1].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[2].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[2].Vartype);
     EXPECT_EQ(sym.Find("1"), sym.entries.at(funcidx).FunctionD->Parameters[2].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[3].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[3].Vartype);
     EXPECT_EQ(sym.Find("2"), sym.entries.at(funcidx).FunctionD->Parameters[3].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[4].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[4].Vartype);
     EXPECT_EQ(sym.Find("-32000"), sym.entries.at(funcidx).FunctionD->Parameters[4].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[5].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[5].Vartype);
     EXPECT_EQ(sym.Find("32001"), sym.entries.at(funcidx).FunctionD->Parameters[5].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[6].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[6].Vartype);
     EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[6].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[7].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[7].Vartype);
     EXPECT_EQ(sym.Find("-2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[7].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[8].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[8].Vartype);
     EXPECT_EQ(sym.Find("-1"), sym.entries.at(funcidx).FunctionD->Parameters[8].Default);
 
-    EXPECT_EQ(kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[9].Vartype);
+    EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[9].Vartype);
     EXPECT_EQ(sym.Find("-2"), sym.entries.at(funcidx).FunctionD->Parameters[9].Default);
 }
 
 TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
     
-    std::vector<Symbol> tokens;
-    LineHandler lh;
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-    MessageHandler mh;
-    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     char *inpl = "\
         struct A                            \n\
@@ -979,13 +979,13 @@ TEST_F(Compile0, LocalGlobalSeq2) {
         }                                   \n\
         ";
 
-    std::vector<Symbol> tokens;
-    LineHandler lh;
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-    MessageHandler mh;
-    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));  
     ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
@@ -1713,20 +1713,20 @@ TEST_F(Compile0, Import2GlobalAllocation) {
         int J;          \n\
     ";
 
-    std::vector<Symbol> tokens;
-    LineHandler lh;
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList targ(tokens, lh, cursor);
-    SymbolTable sym;
-    MessageHandler mh;
-    FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
     ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
 
-    Symbol const idx = sym.Find("J");
+    AGS::Symbol const idx = sym.Find("J");
     ASSERT_LE(0, idx);
-    SymbolTableEntry &entry = sym.entries.at(idx);
+    AGS::SymbolTableEntry &entry = sym.entries.at(idx);
     ASSERT_EQ(4, entry.VariableD->SOffset);
 }
 

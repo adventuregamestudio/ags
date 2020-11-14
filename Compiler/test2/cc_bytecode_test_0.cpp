@@ -65,7 +65,7 @@ TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
 class Bytecode0 : public ::testing::Test
 {
 protected:
-    ::ccCompiledScript scrip{ false };
+    AGS::ccCompiledScript scrip{ false };
 
     Bytecode0()
     {

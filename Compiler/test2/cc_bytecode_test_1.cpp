@@ -18,7 +18,7 @@
 class Bytecode1 : public ::testing::Test
 {
 protected:
-    ccCompiledScript scrip{ false };
+    AGS::ccCompiledScript scrip{ false };
 
     Bytecode1()
     {

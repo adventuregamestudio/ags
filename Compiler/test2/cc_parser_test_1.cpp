@@ -18,7 +18,7 @@
 class Compile1 : public ::testing::Test
 {
 protected:
-    ::ccCompiledScript scrip;
+    AGS::ccCompiledScript scrip;
 
     Compile1()
     {

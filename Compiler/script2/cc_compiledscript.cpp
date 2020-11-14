@@ -7,20 +7,20 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void ccCompiledScript::write_lineno(size_t lno)
+void AGS::ccCompiledScript::write_lineno(size_t lno)
 {
     if (EmitLineNumbers)
         write_cmd(SCMD_LINENUM, lno);
     last_emitted_lineno = lno;
 }
 
-void ccCompiledScript::push_reg(AGS::CodeCell regg)
+void AGS::ccCompiledScript::push_reg(CodeCell regg)
 {
     write_cmd(SCMD_PUSHREG, regg);
     offset_to_local_var_block += SIZE_OF_STACK_CELL;
 }
 
-void ccCompiledScript::pop_reg(AGS::CodeCell regg)
+void AGS::ccCompiledScript::pop_reg(CodeCell regg)
 {
     write_cmd(SCMD_POPREG, regg);
     offset_to_local_var_block -= SIZE_OF_STACK_CELL;
@@ -35,17 +35,16 @@ ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     EmitLineNumbers = emit_line_numbers;
 }
 
-ccCompiledScript::~ccCompiledScript()
+AGS::ccCompiledScript::~ccCompiledScript()
 {
     shutdown();
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
-// [fw] TODO: All this should become an STL vector for automatic memory management
-AGS::GlobalLoc ccCompiledScript::add_global(size_t siz, void *vall)
+AGS::GlobalLoc AGS::ccCompiledScript::add_global(size_t siz, void *vall)
 {
     // The new global variable will be moved to &(globaldata[offset])
-    AGS::GlobalLoc offset = globaldatasize;
+    GlobalLoc offset = globaldatasize;
 
     // Extend global data to make space for the new variable; 
     // note that this may change globaldata
@@ -73,7 +72,7 @@ AGS::GlobalLoc ccCompiledScript::add_global(size_t siz, void *vall)
     return offset;
 }
 
-AGS::StringsLoc ccCompiledScript::add_string(std::string const &literal)
+AGS::StringsLoc AGS::ccCompiledScript::add_string(std::string const &literal)
 {
     // Note: processing  of '\\' and '[' combinations moved to the scanner
     // because the scanner must deal with '\\' anyway.
@@ -87,18 +86,18 @@ AGS::StringsLoc ccCompiledScript::add_string(std::string const &literal)
     return start_of_new_string;
 }
 
-void ccCompiledScript::add_fixup(AGS::CodeLoc where, AGS::FixupType ftype)
+void AGS::ccCompiledScript::add_fixup(CodeLoc where, FixupType ftype)
 {
     fixuptypes = (char *) realloc(fixuptypes, numfixups + 5);
-    fixups = static_cast<AGS::CodeLoc *>(realloc(
+    fixups = static_cast<CodeLoc *>(realloc(
         fixups,
-        (numfixups * sizeof(AGS::CodeLoc)) + 10));
+        (numfixups * sizeof(CodeLoc)) + 10));
     fixuptypes[numfixups] = ftype;
     fixups[numfixups] = where;
     numfixups++;
 }
 
-AGS::CodeLoc ccCompiledScript::add_new_function(std::string const &func_name, int *index_allocated)
+AGS::CodeLoc AGS::ccCompiledScript::add_new_function(std::string const &func_name, int *index_allocated)
 {
     FuncProps fp;
     fp.Name = func_name;
@@ -110,7 +109,7 @@ AGS::CodeLoc ccCompiledScript::add_new_function(std::string const &func_name, in
     return codesize;
 }
 
-int ccCompiledScript::add_new_import(std::string const &import_name)
+int AGS::ccCompiledScript::add_new_import(std::string const &import_name)
 {
     if (numimports >= importsCapacity)
     {
@@ -123,8 +122,7 @@ int ccCompiledScript::add_new_import(std::string const &import_name)
     return numimports - 1;
 }
 
-
-int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype etype, AGS::CodeLoc location, size_t num_of_arguments)
+int AGS::ccCompiledScript::add_new_export(std::string const &name, Exporttype etype, CodeLoc location, size_t num_of_arguments)
 {
     // add_new_export(std::string const &name, AGS::Vartype vartype, AGS::CodeLoc location, size_t num_of_arguments = 0);
     if (numexports >= exportsCapacity)
@@ -156,7 +154,7 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     return numexports++;
 }
 
-void ccCompiledScript::write_code(AGS::CodeCell cell)
+void AGS::ccCompiledScript::write_code(CodeCell cell)
 {
     if (codesize >= codeallocated - 2)
     {
@@ -167,7 +165,7 @@ void ccCompiledScript::write_code(AGS::CodeCell cell)
     codesize++;
 }
 
-std::string ccCompiledScript::start_new_section(std::string const &name)
+std::string AGS::ccCompiledScript::start_new_section(std::string const &name)
 {
     if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))
@@ -195,7 +193,7 @@ std::string ccCompiledScript::start_new_section(std::string const &name)
     return sectionNames[numSections - 1];
 }
 
-void ccCompiledScript::init()
+void AGS::ccCompiledScript::init()
 {
     globaldata = NULL;
     globaldatasize = 0;
@@ -225,12 +223,12 @@ void ccCompiledScript::init()
 }
 
 // free the extra bits that ccScript doesn't have
-void ccCompiledScript::free_extra()
+void AGS::ccCompiledScript::free_extra()
 {
     functions.clear();
 }
 
-void ccCompiledScript::shutdown()
+void AGS::ccCompiledScript::shutdown()
 {
     free_extra();
 }

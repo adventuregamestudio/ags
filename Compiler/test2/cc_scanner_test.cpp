@@ -12,16 +12,16 @@
 class Scan : public ::testing::Test
 {
 protected:
-    SymbolTable sym;
-    std::vector<Symbol> script;
-    LineHandler lh;
+    AGS::SymbolTable sym;
+    std::vector<AGS::Symbol> script;
+    AGS::LineHandler lh;
     size_t cursor = 0;
-    SrcList token_list = AGS::SrcList(script, lh, cursor);
-    struct ::ccCompiledScript string_collector;
-    MessageHandler mh;
-    Scanner::ScanType sct;
+    AGS::SrcList token_list = AGS::SrcList(script, lh, cursor);
+    struct AGS::ccCompiledScript string_collector;
+    AGS::MessageHandler mh;
+    AGS::Scanner::ScanType sct;
     std::string symstring;
-    CodeCell value;
+    AGS::CodeCell value;
 };
 
 TEST_F(Scan, ShortInputBackslash1)
@@ -279,7 +279,7 @@ TEST_F(Scan, StringCollect)
 
     std::string text_in_buffer;
     
-    Symbol const s1 = sym.Find("\"Zwiebelkuchen\"");
+    AGS::Symbol const s1 = sym.Find("\"Zwiebelkuchen\"");
     ASSERT_LT(0, s1);
     ASSERT_TRUE(sym.IsLiteral(s1));
     EXPECT_EQ(sym.VartypeWith(AGS::VTT::kConst, AGS::kKW_String), sym[s1].LiteralD->Vartype);
@@ -288,7 +288,7 @@ TEST_F(Scan, StringCollect)
     text_in_buffer.assign(string_collector.strings + pos1);
     ASSERT_EQ("Zwiebelkuchen", text_in_buffer);
 
-    Symbol const s2 = sym.Find("\"Holz\\7schuh\"");
+    AGS::Symbol const s2 = sym.Find("\"Holz\\7schuh\"");
     ASSERT_LT(0, s2);
     int const pos2 = sym[s2].LiteralD->Value;
     ASSERT_LE(0, pos2);
@@ -303,16 +303,16 @@ TEST_F(Scan, LiteralInt1)
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     EXPECT_LE(0, scanner.Scan());
 
-    Symbol const lit15 = token_list[0u];
+    AGS::Symbol const lit15 = token_list[0u];
     ASSERT_TRUE(sym.IsLiteral(lit15));
     EXPECT_EQ(AGS::kKW_Int, sym[lit15].LiteralD->Vartype);
     EXPECT_EQ(15, sym[lit15].LiteralD->Value);
 
-    Symbol const lit3 = token_list[1u];
+    AGS::Symbol const lit3 = token_list[1u];
     ASSERT_TRUE(sym.IsLiteral(lit3));
     EXPECT_EQ(3, sym[lit3].LiteralD->Value);
 
-    Symbol const lit05 = token_list[2u];
+    AGS::Symbol const lit05 = token_list[2u];
     ASSERT_TRUE(sym.IsLiteral(lit05));
     EXPECT_EQ(5, sym[lit05].LiteralD->Value);
 }
@@ -335,58 +335,58 @@ TEST_F(Scan, LiteralFloat)
 
     float f;
 
-    Symbol const lit3v = token_list[0u];
+    AGS::Symbol const lit3v = token_list[0u];
     ASSERT_TRUE(sym.IsLiteral(lit3v));
     EXPECT_EQ(AGS::kKW_Float, sym[lit3v].LiteralD->Vartype);
     f = 3.f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3v].LiteralD->Value);
 
-    Symbol const lit3v0 = token_list[1u];
+    AGS::Symbol const lit3v0 = token_list[1u];
     ASSERT_TRUE(sym.IsLiteral(lit3v0));
     f = 3.0f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3v0].LiteralD->Value);
 
-    Symbol const lit0v0 = token_list[2u];
+    AGS::Symbol const lit0v0 = token_list[2u];
     ASSERT_TRUE(sym.IsLiteral(lit0v0));
     f = 0.0f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit0v0].LiteralD->Value);
 
-    Symbol const lit0v3 = token_list[3u];
+    AGS::Symbol const lit0v3 = token_list[3u];
     ASSERT_TRUE(sym.IsLiteral(lit0v3));
     f = 0.3f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit0v3].LiteralD->Value);
 
-    Symbol const lit33E5 = token_list[4u];
+    AGS::Symbol const lit33E5 = token_list[4u];
     ASSERT_TRUE(sym.IsLiteral(lit33E5));
     f = 33E5f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit33E5].LiteralD->Value);
 
-    Symbol const lit3e_15 = token_list[5u];
+    AGS::Symbol const lit3e_15 = token_list[5u];
     ASSERT_TRUE(sym.IsLiteral(lit3e_15));
     f = 3e-15f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3e_15].LiteralD->Value);
 
-    Symbol const lit3vE5 = token_list[6u];
+    AGS::Symbol const lit3vE5 = token_list[6u];
     ASSERT_TRUE(sym.IsLiteral(lit3vE5));
     f = 3.E5f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3vE5].LiteralD->Value);
 
-    Symbol const lit3vE_5 = token_list[7u];
+    AGS::Symbol const lit3vE_5 = token_list[7u];
     ASSERT_TRUE(sym.IsLiteral(lit3vE_5));
     f = 3.E-5f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3vE_5].LiteralD->Value);
 
-    Symbol const litv3E5 = token_list[8u];
+    AGS::Symbol const litv3E5 = token_list[8u];
     ASSERT_TRUE(sym.IsLiteral(litv3E5));
     f = .3E5f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[litv3E5].LiteralD->Value);
 
-    Symbol const litv3E_5 = token_list[9u];
+    AGS::Symbol const litv3E_5 = token_list[9u];
     ASSERT_TRUE(sym.IsLiteral(litv3E_5));
     f = .3E-5f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[litv3E_5].LiteralD->Value);
 
-    Symbol const lit3v14Ep2 = token_list[10u];
+    AGS::Symbol const lit3v14Ep2 = token_list[10u];
     ASSERT_TRUE(sym.IsLiteral(lit3v14Ep2));
     f = 3.14E+2f;
     EXPECT_EQ(*reinterpret_cast<AGS::CodeCell *>(&f), sym[lit3v14Ep2].LiteralD->Value);
@@ -572,7 +572,7 @@ TEST_F(Scan, BackslashOctHex) {
 
     ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
     ASSERT_LE(0, value);
-    CodeCell value2;
+    AGS::CodeCell value2;
     ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value2));
     ASSERT_LE(0, value2);
 

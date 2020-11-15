@@ -917,17 +917,17 @@ private:
     void HandleSrcSectionChangeAt(size_t pos);
 
     inline void WriteCmd(CodeCell op)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.WriteCmd(op); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op); }
     inline void WriteCmd(CodeCell op, CodeCell p1)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.WriteCmd(op, p1); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2); }
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2, p3); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2, p3); }
     inline void PushReg(CodeCell reg)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.push_reg(reg); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.push_reg(reg); }
     inline void PopReg(CodeCell reg)
-        { _scrip.refresh_lineno(_src.GetLineno()); _scrip.pop_reg(reg); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.pop_reg(reg); }
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);

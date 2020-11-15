@@ -634,7 +634,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
         break;
 
     case ScT::kGlobal:
-        scrip.refresh_lineno(lineno);
+        scrip.RefreshLineno(lineno);
         scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.FixupPrevious(Parser::kFx_GlobalData);
         break;
@@ -642,7 +642,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
     case ScT::kImport:
         // Have to convert the import number into a code offset first.
         // Can only then add the offset to it.
-        scrip.refresh_lineno(lineno);
+        scrip.RefreshLineno(lineno);
         scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
         scrip.FixupPrevious(Parser::kFx_Import);
         if (_componentOffs != 0)
@@ -650,7 +650,7 @@ AGS::ErrorType AGS::Parser::MemoryLocation::MakeMARCurrent(size_t lineno, ccComp
         break;
 
     case ScT::kLocal:
-        scrip.refresh_lineno(lineno);
+        scrip.RefreshLineno(lineno);
         CodeCell const offset = scrip.OffsetToLocalVarBlock - _startOffs - _componentOffs;
         if (offset < 0)
         {   // Must be a bug: That memory is unused.

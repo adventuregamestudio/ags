@@ -106,7 +106,7 @@ public:
     // Write Bytecode that couples this point of the Bytecode with the source code line lno
     void WriteLineno(size_t lno);
     // Only write Bytecode for source line no if it differs from the last emitted
-    inline void refresh_lineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
+    inline void RefreshLineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
 
     // write a PUSH command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
     void push_reg(CodeCell regg);

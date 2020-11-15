@@ -11,13 +11,13 @@ void AGS::ccCompiledScript::WriteLineno(size_t lno)
     LastEmittedLineno = lno;
 }
 
-void AGS::ccCompiledScript::push_reg(CodeCell regg)
+void AGS::ccCompiledScript::PushReg(CodeCell regg)
 {
     WriteCmd(SCMD_PUSHREG, regg);
     OffsetToLocalVarBlock += SIZE_OF_STACK_CELL;
 }
 
-void AGS::ccCompiledScript::pop_reg(CodeCell regg)
+void AGS::ccCompiledScript::PopReg(CodeCell regg)
 {
     WriteCmd(SCMD_POPREG, regg);
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;

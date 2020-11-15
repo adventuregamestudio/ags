@@ -925,9 +925,9 @@ private:
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2, p3); }
     inline void PushReg(CodeCell reg)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.push_reg(reg); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PushReg(reg); }
     inline void PopReg(CodeCell reg)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.pop_reg(reg); }
+        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PopReg(reg); }
 
     // Check whether the qualifiers that accumulated for this decl go together
     ErrorType Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);

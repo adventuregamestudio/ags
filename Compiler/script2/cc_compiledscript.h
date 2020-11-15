@@ -109,9 +109,9 @@ public:
     inline void RefreshLineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
 
     // write a PUSH command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
-    void push_reg(CodeCell regg);
+    void PushReg(CodeCell regg);
     // write a POP command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
-    void pop_reg(CodeCell regg);
+    void PopReg(CodeCell regg);
 
     // Returns the relative distance in a jump instruction
     // "here" is the location of the bytecode that will contain

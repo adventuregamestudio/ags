@@ -100,7 +100,7 @@ AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &
     if ('"' == next_char)
     {
         std::string valstring;
-        ErrorType retval = ReadInStringLit(symstring, valstring);
+        retval = ReadInStringLit(symstring, valstring);
         if (retval < 0) return retval;
         
         size_t const len = kNewSectionLitPrefix.length();

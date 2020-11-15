@@ -47,6 +47,7 @@ ErrorType AGS::ccCompiledScript::ResizeMemory(size_t const needed, size_t const 
 }
 
 AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
+    : EmitLineNumbers(emit_line_numbers)
 {
     globaldata = NULL;
     globaldatasize = 0;
@@ -166,7 +167,7 @@ int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
     if (retval < 0) return -1;
     imports = reinterpret_cast<decltype(imports)>(chunk_start);
     imports[numimports] = static_cast<char *>(malloc(import_name.size() + 12u));
-    if (retval < 0) return -1;
+    if (nullptr == imports[numimports]) return -1;
     strcpy(imports[numimports], import_name.c_str());
     return (ImportIdx[import_name] = numimports++);
 }

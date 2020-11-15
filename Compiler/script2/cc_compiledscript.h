@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+
 #include "script/cc_script.h"
 #include "cs_parser_common.h"   // macro definitions and typedefs
 #include "cc_symboltable.h"     // ScopeType
@@ -38,22 +39,22 @@ public:
         size_t NumOfParams;
         CodeLoc CodeOffs;
     };
-    std::vector<FuncProps> Functions;
+    std::vector<FuncProps> Functions = {};
 
-    std::unordered_map<std::string, int> ImportIdx;
-    std::unordered_map<std::string, int> ExportIdx;
+    std::unordered_map<std::string, int> ImportIdx = {};
+    std::unordered_map<std::string, int> ExportIdx = {};
 
     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
-    size_t OffsetToLocalVarBlock;
+    size_t OffsetToLocalVarBlock = 0u;
 
-    int LastEmittedLineno;
+    int LastEmittedLineno = INT_MAX;
     bool EmitLineNumbers;
 
     // Variable type of value in AX, usually equiv. to type of the current expression
-    Vartype AX_Vartype;
+    Vartype AX_Vartype = kKW_NoSymbol;
 
     // Needed to prevent a return of a local string
-    ScopeType AX_ScopeType;
+    ScopeType AX_ScopeType = ScT::kGlobal;
 
     void FreeExtra();
 

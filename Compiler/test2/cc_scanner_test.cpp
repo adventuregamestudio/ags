@@ -17,7 +17,7 @@ protected:
     AGS::LineHandler lh;
     size_t cursor = 0;
     AGS::SrcList token_list = AGS::SrcList(script, lh, cursor);
-    struct AGS::ccCompiledScript string_collector;
+    AGS::ccCompiledScript string_collector;
     AGS::MessageHandler mh;
     AGS::Scanner::ScanType sct;
     std::string symstring;

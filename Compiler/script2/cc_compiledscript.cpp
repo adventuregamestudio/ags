@@ -1,10 +1,7 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include "cc_compiledscript.h"
 #include "script/script_common.h"   // macro definitions
-#include "cc_symboltable.h"         // SymbolTable
-#include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
 void AGS::ccCompiledScript::WriteLineno(size_t lno)
@@ -26,13 +23,35 @@ void AGS::ccCompiledScript::pop_reg(CodeCell regg)
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
+ErrorType AGS::ccCompiledScript::ResizeMemory(size_t const needed, size_t const min_size, void *&start, size_t &allocated)
+{
+    if (allocated >= needed)
+        return kERR_None; // nothing to be done
+
+    size_t new_size = (allocated < min_size) ? min_size : allocated;
+    while (new_size < needed)
+        new_size += new_size / 2;
+
+    void *new_start = realloc(start, new_size);
+    if (!new_start)
+    {
+        // Note, according to the STL, the old block is NOT freed if allocation fails
+        free(start);
+        start = nullptr;
+        return kERR_InternalError;
+    }
+
+    start = new_start;
+    allocated = new_size;
+    return kERR_None;
+}
+
 AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 {
     globaldata = NULL;
     globaldatasize = 0;
     code = NULL;
     codesize = 0;
-    codeallocated = 0;
     strings = NULL;
     stringssize = 0;
     OffsetToLocalVarBlock = 0;
@@ -42,12 +61,9 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     numimports = 0;
     numexports = 0;
     numSections = 0;
-    importsCapacity = 0;
     imports = NULL;
-    exportsCapacity = 0;
     exports = NULL;
     export_addr = NULL;
-    capacitySections = 0;
     sectionNames = NULL;
     sectionOffsets = NULL;
 
@@ -67,60 +83,65 @@ AGS::ccCompiledScript::~ccCompiledScript()
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
-AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t siz, void *vall)
+AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t value_size, void *value_ptr)
 {
+    if (0u == value_size)
+        return globaldatasize; // nothing to do
+
     // The new global variable will be moved to &(globaldata[offset])
-    GlobalLoc offset = globaldatasize;
+    size_t const offset = (globaldatasize < 0) ? 0u : static_cast<size_t>(globaldatasize);
 
-    // Extend global data to make space for the new variable; 
-    // note that this may change globaldata
-    globaldatasize += siz;
+    void *chunk_start = globaldata;
+    ErrorType retval =
+        ResizeChunk(offset + value_size, 100u, chunk_start, _globaldataAllocated);
+    if (retval < 0) return -1;
+    globaldata = reinterpret_cast<char *>(chunk_start);
 
-    void *new_memoryspace = realloc(globaldata, globaldatasize);
-    if (!new_memoryspace)
-    {
-        // Memory overflow. Note, STL says: "The old memory block is not freed"
-        free((void *)globaldata);
-        globaldata = nullptr;
-        return -1;
-    }
-    globaldata = (char *)new_memoryspace;
-
-    if (vall != NULL)
-    {
-        memcpy(&(globaldata[offset]), vall, siz); // move the global into the new space
-    }
+    if (nullptr != value_ptr)
+        memcpy(&(globaldata[offset]), value_ptr, value_size); // move the global into the new space
     else
-    {
-        memset(&(globaldata[offset]), 0, siz); // fill the new space with 0-bytes
-    }
+        memset(&(globaldata[offset]), 0, value_size); // fill the new space with 0-bytes
 
+    globaldatasize += value_size;
     return offset;
 }
 
 AGS::StringsLoc AGS::ccCompiledScript::AddString(std::string const &literal)
 {
-    // Note: processing  of '\\' and '[' combinations moved to the scanner
-    // because the scanner must deal with '\\' anyway.
-    size_t const literal_len = literal.size() + 1; // length including the terminating '\0'
+    size_t const literal_len = literal.size() + 1u; // length including the terminating '\0'
 
-    strings = (char *) realloc(strings, stringssize + literal_len);
-    size_t const start_of_new_string = stringssize;
+    // The new string will be moved to &(strings[offset])
+    size_t const offset = (stringssize < 0) ? 0u : static_cast<size_t>(stringssize);
 
-    memcpy(&strings[start_of_new_string], literal.c_str(), literal_len);
+    void *chunk_start = strings;
+    ErrorType retval =
+        ResizeChunk(stringssize + literal_len, 100u, chunk_start, _stringsAllocated);
+    if (retval < 0) return -1;
+    strings = reinterpret_cast<char *>(chunk_start);
+
+    memcpy(&(strings[offset]), literal.c_str(), literal_len);
     stringssize += literal_len;
-    return start_of_new_string;
+    return offset;
 }
 
-void AGS::ccCompiledScript::AddFixup(CodeLoc where, FixupType ftype)
+int AGS::ccCompiledScript::AddFixup(CodeLoc where, FixupType ftype)
 {
-    fixuptypes = (char *) realloc(fixuptypes, numfixups + 5);
-    fixups = static_cast<CodeLoc *>(realloc(
-        fixups,
-        (numfixups * sizeof(CodeLoc)) + 10));
+    void *chunk_start = fixuptypes;
+    ErrorType retval =
+        ResizeChunk(numfixups + 1, 10u, chunk_start, _fixupTypesAllocated);
+    if (retval < 0) return -1;
+    fixuptypes = reinterpret_cast<char *>(chunk_start);
     fixuptypes[numfixups] = ftype;
+
+    chunk_start = fixups;
+    constexpr size_t el_size = sizeof(decltype(fixups[0u]));
+    retval =
+        ResizeChunk((numfixups + 1) * el_size, 10u * el_size, chunk_start, _fixupsAllocated);
+    if (retval < 0) return -1;
+    fixups = reinterpret_cast<CodeLoc *>(chunk_start);
     fixups[numfixups] = where;
-    numfixups++;
+
+    return numfixups++;
 }
 
 AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t num_of_parameters)
@@ -138,40 +159,52 @@ int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
     if (0u < ImportIdx.count(import_name))
         return ImportIdx[import_name];
 
-    if (numimports >= importsCapacity)
-    {
-        importsCapacity += 1000;
-        imports = static_cast<char **>(realloc(imports, sizeof(char *) * importsCapacity));
-    }
-    imports[numimports] = static_cast<char *>(malloc(import_name.size() + 12));
+    void *chunk_start = imports;
+    constexpr size_t el_size = sizeof(decltype(imports[0u]));
+    ErrorType retval =
+        ResizeChunk((numimports + 1) * el_size, 10u * el_size, chunk_start, _importsAllocated);
+    if (retval < 0) return -1;
+    imports = reinterpret_cast<decltype(imports)>(chunk_start);
+    imports[numimports] = static_cast<char *>(malloc(import_name.size() + 12u));
+    if (retval < 0) return -1;
     strcpy(imports[numimports], import_name.c_str());
     return (ImportIdx[import_name] = numimports++);
 }
 
-int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments)
+int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const location, size_t const num_of_arguments)
 {
     bool const is_function = (INT_MAX != num_of_arguments);
     // Exported functions get the number of parameters appended
     std::string const export_name =
         is_function ? name + "$" + std::to_string(num_of_arguments) : name;
 
-    if (0u < ExportIdx.count(export_name))
-        return ExportIdx[export_name];
-
-    if (numexports >= exportsCapacity)
-    {
-        exportsCapacity += 1000;
-        exports = static_cast<char **>(realloc(exports, sizeof(char *) * exportsCapacity));
-        export_addr = static_cast<int32_t *>(realloc(export_addr, sizeof(int32_t) * exportsCapacity));
-    }
     if (location >= 0x00ffffff)
     {
         cc_error("export offset too high; script data size too large?");
         return -1;
     }
+
+    if (0u < ExportIdx.count(export_name))
+        return ExportIdx[export_name];
+
+    void *chunk_start = exports;
+    constexpr size_t el_size = sizeof(decltype(exports[0u]));
+    ErrorType retval =
+        ResizeChunk((numexports + 1) * el_size, 10u * el_size, chunk_start, _exportsAllocated);
+    if (retval < 0) return -1;
+    exports = reinterpret_cast<decltype(exports)>(chunk_start);
+    
+    chunk_start = export_addr;
+    constexpr size_t el2_size = sizeof(decltype(export_addr[0u]));
+    retval =
+        ResizeChunk((numexports + 1) * el2_size, 10u * el2_size, chunk_start, _exportAddrAllocated);
+    if (retval < 0) return -1;
+    export_addr = reinterpret_cast<decltype(export_addr)>(chunk_start);
     
     size_t const entry_size = export_name.size() + 1u;
     exports[numexports] = static_cast<char *>(malloc(entry_size));
+    if (nullptr == exports[numexports])
+        return -1;
     strncpy(exports[numexports], export_name.c_str(), entry_size);
     export_addr[numexports] =
         location |
@@ -181,27 +214,37 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc location, 
 
 void AGS::ccCompiledScript::WriteCode(CodeCell cell)
 {
-    if (codesize >= codeallocated - 2)
-    {
-        codeallocated += 500;
-        code = static_cast<int32_t *>(realloc(code, codeallocated * sizeof(int32_t)));
-    }
+    void *chunk_start = code;
+    constexpr size_t el_size = sizeof(decltype(code[0u]));
+    ErrorType retval =
+        ResizeChunk((codesize + 4) * el_size, 500u * el_size, chunk_start, _codeAllocated);
+    if (retval < 0) return;
+    code = reinterpret_cast<decltype(code)>(chunk_start);
     code[codesize] = cell;
     codesize++;
 }
 
-std::string AGS::ccCompiledScript::StartNewSection(std::string const &name)
+int AGS::ccCompiledScript::StartNewSection(std::string const &name)
 {
     if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))
     {
-        if (numSections >= capacitySections)
-        {
-            capacitySections += 100;
-            sectionNames = static_cast<char **>(realloc(sectionNames, sizeof(char *) * capacitySections));
-            sectionOffsets = static_cast<int32_t *>(realloc(sectionOffsets, sizeof(int32_t) * capacitySections));
-        }
-        sectionNames[numSections] = (char *)malloc(name.size() + 1);
+        void *chunk_start = sectionNames;
+        constexpr size_t el_size = sizeof(decltype(sectionNames[0u]));
+        ErrorType retval =
+            ResizeChunk((codesize + 4) * el_size, 10u * el_size, chunk_start, _sectionNamesAllocated);
+        if (retval < 0) return -1;
+        sectionNames = reinterpret_cast<decltype(sectionNames)>(chunk_start);
+        chunk_start = sectionOffsets;
+        constexpr size_t el2_size = sizeof(decltype(sectionOffsets[0u]));
+        retval =
+            ResizeChunk((codesize + 4) * el_size, 10u * el2_size, chunk_start, _sectionOffsetsAllocated);
+        if (retval < 0) return -1;
+        sectionOffsets = reinterpret_cast<decltype(sectionOffsets)>(chunk_start);
+
+        sectionNames[numSections] = (char *) malloc(name.size() + 1);
+        if (nullptr == sectionNames[numSections])
+            return -1;
         strcpy(sectionNames[numSections], name.c_str());
         sectionOffsets[numSections] = codesize;
 
@@ -211,11 +254,13 @@ std::string AGS::ccCompiledScript::StartNewSection(std::string const &name)
     {
         // nothing was in the last section, so overwrite it with this new one
         free(sectionNames[numSections - 1]);
-        sectionNames[numSections - 1] = (char *)malloc(name.size() + 1);
+        sectionNames[numSections - 1] = (char *) malloc(name.size() + 1);
+        if (nullptr == sectionNames[numSections])
+            return -1;
         strcpy(sectionNames[numSections - 1], name.c_str());
     }
 
-    return sectionNames[numSections - 1];
+    return 0;
 }
 
 // free the extra bits that ccScript doesn't have

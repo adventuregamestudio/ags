@@ -2,14 +2,36 @@
 #define __CC_COMPILEDSCRIPT_H
 
 #include <string>
-#include "script/cc_script.h"   
+#include <unordered_map>
+#include "script/cc_script.h"
 #include "cs_parser_common.h"   // macro definitions and typedefs
-#include "cc_symboltable.h"     // SymbolTableEntry
+#include "cc_symboltable.h"     // ScopeType
 
 namespace AGS {
-struct ccCompiledScript : public ccScript {
-    long codeallocated; // [fw] Misplaced. Should be in ccScript.
+class ccCompiledScript : public ccScript {
 
+    // These track how much space has been allocated for the different memory chunks.
+    size_t _globaldataAllocated = 0u;
+    size_t _codeAllocated = 0u;
+    size_t _stringsAllocated = 0u;
+    size_t _fixupsAllocated = 0u;
+    size_t _fixupTypesAllocated = 0u;
+    size_t _importsAllocated = 0u;
+    size_t _exportsAllocated = 0u;
+    size_t _exportAddrAllocated = 0u;
+    size_t _sectionNamesAllocated = 0u;
+    size_t _sectionOffsetsAllocated = 0u;
+
+    // Resize the memory chunk at 'start' that currently has 'allocated' bytes allocated
+    // so that it has at least 'MAX(needed, min_size)' bytes allocated.
+    // The chunk is allocated 'malloc' style, so it needs to be 'free'd after use.
+    // Returns kERR_InternalError if reallocation fails.
+    ErrorType ResizeMemory(size_t needed, size_t min_size, void *&start, size_t &allocated);
+
+    inline ErrorType ResizeChunk(size_t needed, size_t min_size, void *&start, size_t &allocated)
+        { return allocated >= needed ? kERR_None : ResizeMemory(needed, min_size, start, allocated); }
+
+public:
     struct FuncProps
     {
         std::string Name;
@@ -38,7 +60,7 @@ struct ccCompiledScript : public ccScript {
     // Reserve siz bytes of memory for global data;
     // copy the value at vall into this new memory space if given; 
     // return the offset at which the new space begins.
-    GlobalLoc AddGlobal(size_t siz, void *vall);
+    GlobalLoc AddGlobal(size_t value_size, void *value_ptr);
 
     // Add a string literal to the strings[] repository
     // NOTE: Return is the start of the new string, not an error value.
@@ -46,7 +68,8 @@ struct ccCompiledScript : public ccScript {
 
     // Set a fixup to the code location given. Depending on the fixup type,
     // where can be an offset to the global memory, too.
-    void AddFixup(CodeLoc where, FixupType ftype);
+    // Returns -1 on allocation error.
+    int AddFixup(CodeLoc where, FixupType ftype);
 
     // Set a fixup to the last code cell written
     inline void FixupPrevious(FixupType ftype) { AddFixup(codesize - 1, ftype); };
@@ -65,7 +88,7 @@ struct ccCompiledScript : public ccScript {
     int AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments = INT_MAX);
 
     // Start a new section of the code.
-    std::string StartNewSection(std::string const &name);
+    int StartNewSection(std::string const &name);
 
     // Write one Bytecode byte    
     void WriteCode(CodeCell cell);

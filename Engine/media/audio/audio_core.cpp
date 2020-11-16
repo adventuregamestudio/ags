@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include "debug/out.h"
 #include "media/audio/openaldecoder.h"
+#include "util/memory_compat.h"
 
 namespace ags = AGS::Common;
 namespace agsdbg = AGS::Common::Debug;

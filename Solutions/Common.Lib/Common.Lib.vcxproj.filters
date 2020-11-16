@@ -793,5 +793,8 @@
     <ClInclude Include="..\..\libsrc\allegro\src\c\cspr.h">
       <Filter>Library Sources\allegro\c</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\memory_compat.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

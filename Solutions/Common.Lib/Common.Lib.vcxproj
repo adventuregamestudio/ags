@@ -496,6 +496,7 @@
     <ClInclude Include="..\..\Common\util\lzw.h" />
     <ClInclude Include="..\..\Common\util\math.h" />
     <ClInclude Include="..\..\Common\util\memory.h" />
+    <ClInclude Include="..\..\Common\util\memory_compat.h" />
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\multifilelib.h" />
     <ClInclude Include="..\..\Common\util\path.h" />

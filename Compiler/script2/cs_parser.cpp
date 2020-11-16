@@ -6980,6 +6980,52 @@ AGS::ErrorType AGS::Parser::Parse_CheckForUnresolvedStructForwardDecls()
     return kERR_None;
 }
 
+ErrorType AGS::Parser::Parse_CheckFixupSanity()
+{
+    for (size_t fixup_idx = 0; fixup_idx < static_cast<size_t>(_scrip.numfixups); fixup_idx++)
+    {
+        if (FIXUP_IMPORT != _scrip.fixuptypes[fixup_idx])
+            continue;
+        int const code_idx = _scrip.fixups[fixup_idx];
+        if (code_idx < 0 || code_idx >= _scrip.codesize)
+        {
+            Error(
+                "!Fixup #%d references non-existent code offset #%d",
+                fixup_idx,
+                code_idx);
+            return kERR_InternalError;
+        }
+        int const cv = _scrip.code[code_idx];
+        if (cv < 0 || cv >= _scrip.numimports ||
+            '\0' == _scrip.imports[cv][0])
+        {
+            Error(
+                "!Fixup #%d references non-existent import #%d",
+                fixup_idx,
+                cv);
+            return kERR_InternalError;
+        }
+    }
+
+    return kERR_None;
+}
+
+ErrorType AGS::Parser::Parse_ExportAllFunctions()
+{
+    for (size_t func_num = 0; func_num < _scrip.Functions.size(); func_num++)
+    {
+        if (0 > _scrip.AddExport(
+            _scrip.Functions[func_num].Name,
+            _scrip.Functions[func_num].CodeOffs,
+            _scrip.Functions[func_num].NumOfParams))
+        {
+            Error("!Could not export function. Out of memory?");
+            return kERR_InternalError;
+        }
+    }
+    return kERR_None;
+}
+
 AGS::ErrorType AGS::Parser::Parse()
 {
     try
@@ -6999,12 +7045,18 @@ AGS::ErrorType AGS::Parser::Parse()
         if (retval < 0) return retval;
         retval = Parse_CheckForUnresolvedStructForwardDecls();
         if (retval < 0) return retval;
-
-        return Parse_BlankOutUnusedImports();
+        if (FlagIsSet(_options, SCOPT_EXPORTALL))
+        {
+            retval = Parse_ExportAllFunctions();
+            if (retval < 0) return retval;
+        }
+        retval = Parse_BlankOutUnusedImports();
+        if (retval < 0) return retval;
+        return Parse_CheckFixupSanity();
     }
     catch (std::exception const &e)
     {
-        std::string const msg = std::string{ "Exception encountered: currentline %d, " } + e.what();
+        std::string const msg = std::string{ "!Exception encountered: currentline %d, " } + e.what();
         Error(msg.c_str(), currentline);
         return kERR_InternalError;
     }
@@ -7039,38 +7091,5 @@ int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScr
     int error_code = cc_scan(inpl, src, scrip, symt, mh);
     if (error_code >= 0)
         error_code = cc_parse(src, options, scrip, symt, mh);
-    return error_code;
-}
-
-int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
-{
-    AGS::MessageHandler mh;
-    AGS::FlagSet const options =
-        (0 != ccGetOption(SCOPT_EXPORTALL)) * SCOPT_EXPORTALL |
-        (0 != ccGetOption(SCOPT_SHOWWARNINGS)) * SCOPT_SHOWWARNINGS |
-        (0 != ccGetOption(SCOPT_LINENUMBERS)) * SCOPT_LINENUMBERS |
-        (0 != ccGetOption(SCOPT_AUTOIMPORT)) * SCOPT_AUTOIMPORT |
-        (0 != ccGetOption(SCOPT_DEBUGRUN)) * SCOPT_DEBUGRUN |
-        (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE)) * SCOPT_NOIMPORTOVERRIDE |
-        (0 != ccGetOption(SCOPT_OLDSTRINGS)) * SCOPT_OLDSTRINGS |
-        false;
-
-    int error_code = cc_compile(inpl, options, scrip, mh);
-    if (error_code >= 0)
-    {
-        // Here if there weren't any errors.
-        return error_code;
-    }
-
-    // Here if there was an error. Scaffolding around cc_error()
-    ccCurScriptName = SectionNameBuffer;
-    AGS::MessageHandler::Entry const &err = mh.GetError();
-    
-    strncpy_s(
-        SectionNameBuffer,
-        err.Section.c_str(),
-        sizeof(SectionNameBuffer) / sizeof(char) - 1);
-    currentline = err.Lineno;
-    cc_error(err.Message.c_str());
     return error_code;
 }

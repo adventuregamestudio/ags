@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "script/cc_options.h"
+#include "script/cc_error.h"
 
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"
@@ -12,6 +13,40 @@
 
 #include "cc_parser_test_lib.h"
 
+int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
+{
+    AGS::MessageHandler mh;
+    AGS::FlagSet const options =
+        (0 != ccGetOption(SCOPT_EXPORTALL)) * SCOPT_EXPORTALL |
+        (0 != ccGetOption(SCOPT_SHOWWARNINGS)) * SCOPT_SHOWWARNINGS |
+        (0 != ccGetOption(SCOPT_LINENUMBERS)) * SCOPT_LINENUMBERS |
+        (0 != ccGetOption(SCOPT_AUTOIMPORT)) * SCOPT_AUTOIMPORT |
+        (0 != ccGetOption(SCOPT_DEBUGRUN)) * SCOPT_DEBUGRUN |
+        (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE)) * SCOPT_NOIMPORTOVERRIDE |
+        (0 != ccGetOption(SCOPT_OLDSTRINGS)) * SCOPT_OLDSTRINGS |
+        false;
+
+    int const error_code = cc_compile(inpl, options, scrip, mh);
+    if (error_code >= 0)
+    {
+        // Here if there weren't any errors.
+        ccError = 0;
+        ccErrorLine = 0;
+        return error_code;
+    }
+
+    // Here if there was an error. Scaffolding around cc_error()
+    AGS::MessageHandler::Entry const &err = mh.GetError();
+    static char buffer[256];
+    ccCurScriptName = buffer;
+    strncpy_s(
+        buffer,
+        err.Section.c_str(),
+        sizeof(buffer) / sizeof(char) - 1);
+    currentline = err.Lineno;
+    cc_error(err.Message.c_str());
+    return error_code;
+}
 
 // The vars defined here are provided in each test that is in category "Compile0"
 class Compile0 : public ::testing::Test

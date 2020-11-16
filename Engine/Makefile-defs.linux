@@ -3,7 +3,7 @@ USE_MIDI_PATCH = 1
 
 include Makefile-defs.freetype
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Plugins ../Engine/libsrc/glad/include
+INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include $(ALLEGRO_SRCDIR)/include
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -13,7 +13,7 @@ CFLAGS := -O2 -g \
     -Werror=write-strings -Werror=format -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
     -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
-    -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO -DAGS_RUNTIME_PATCH_ALLEGRO \
+    -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
     $(FT_CFLAGS) $(CFLAGS)
 
@@ -21,7 +21,6 @@ CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)
-LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)
 LIBS += $(shell pkg-config --libs ogg)
 LIBS += $(shell pkg-config --libs theora)
@@ -35,14 +34,11 @@ endif
 LIBS += $(shell pkg-config --libs vorbisfile)
 LIBS += -ldl -lpthread -lc -lm -lstdc++
 
-ifneq ($(USE_BUILT_IN_LIBSRC), 1)
-ALDUMB :=
-LIBS += -Wl,--push-state,-Bstatic -laldmb -ldumb -Wl,--pop-state
-endif
+SDL2_CFLAGS = $(shell sdl2-config --cflags)
+SDL2_LIBS = $(shell sdl2-config --libs)
 
-ifeq ($(ALLEGRO_MAGIC_DRV), 1)
-  CFLAGS += -DALLEGRO_MAGIC_DRV
-endif	
+CFLAGS += $(SDL2_CFLAGS)
+LIBS += $(SDL2_LIBS) -lSDL2_sound
 
 ifdef BUILD_STR
   CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"

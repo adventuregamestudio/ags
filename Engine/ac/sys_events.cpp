@@ -359,7 +359,7 @@ int mgetbutton()
     // is this still necessary?
     // find an elegant way to reimplement this; e.g. allow to configure key->mouse mappings?!
 #define AGS_SIMULATE_RIGHT_CLICK (AGS_PLATFORM_OS_MACOS)
-#if AGS_SIMULATE_RIGHT_CLICK__FIXME
+#if defined (AGS_SIMULATE_RIGHT_CLICK__FIXME)
         // j Ctrl-left click should be right-click
         if (ags_iskeypressed(__allegro_KEY_LCONTROL) || ags_iskeypressed(__allegro_KEY_RCONTROL))
         {

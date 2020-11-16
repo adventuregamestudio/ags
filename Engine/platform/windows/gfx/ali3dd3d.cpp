@@ -768,7 +768,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   catch (Ali3DException exception)
   {
     if (exception._message != SDL_GetError())
-      SDL_SetError(exception._message);
+      SDL_SetError("%s", exception._message);
     return false;
   }
   OnInit(loopTimer);

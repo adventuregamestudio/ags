@@ -221,12 +221,17 @@ void Mouse::UnlockFromWindow()
 
 void Mouse::SetMovementControl(bool on)
 {
+#if defined (SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE)
     ControlEnabled = on;
     SDL_SetRelativeMouseMode(static_cast<SDL_bool>(on));
     if (on)
         SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, String::FromFormat("%.2f", Mouse::Speed).GetCStr());
     else
         SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, "1.0");
+#else
+    ControlEnabled = false;
+    Debug::Printf(kDbgMsg_Warn, "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
+#endif
     ags_clear_input_buffer();
 }
 

@@ -29,7 +29,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 #if defined (AGS_HAS_CD_AUDIO)
-#include "libcda.h"
+#include "libsrc/libcda-0.5/libcda.h"
 #endif
 
 // We don't have many places where we delay longer than a frame, but where we

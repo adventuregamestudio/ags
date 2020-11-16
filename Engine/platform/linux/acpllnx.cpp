@@ -20,13 +20,12 @@
 
 #include <stdio.h>
 #include <allegro.h>
-#include <xalleg.h>
 #include "ac/runtime_defines.h"
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/string.h"
-#include <libcda.h>
+#include "libsrc/libcda-0.5/libcda.h"
 
 #include <pwd.h>
 #include <sys/stat.h>

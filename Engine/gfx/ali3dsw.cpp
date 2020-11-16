@@ -30,7 +30,7 @@ namespace ALSW
 
 using namespace Common;
 
-unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
+static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
 RGB faded_out_palette[256];
 
 

@@ -789,7 +789,7 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_a
     for (auto compo_it = compo_list.begin(); compo_it != compo_list.end(); ++compo_it)
     {
         Symbol const &component = *compo_it;
-        int const offset = static_cast<int>(_sym[component].ComponentD->SOffset);
+        int const offset = static_cast<int>(_sym[component].ComponentD->Offset);
         Vartype const vartype = _sym[component].VariableD->Vartype;
         
         // Let MAR point to the component
@@ -885,7 +885,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &cl
                 continue;
 
             // Set MAR to the start of the construct that contains releasable pointers
-            WriteCmd(SCMD_LOADSPOFFS, _scrip.OffsetToLocalVarBlock - _sym[s].VariableD->SOffset);
+            WriteCmd(SCMD_LOADSPOFFS, _scrip.OffsetToLocalVarBlock - _sym[s].VariableD->Offset);
             clobbers_mar = true;
             if (_sym.IsDynVartype(s_vartype))
                 WriteCmd(SCMD_MEMZEROPTR);
@@ -1329,7 +1329,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, Va
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The + 1 is because the
     // call will push the return address onto the stack as well
-    param_entry.VariableD->SOffset =
+    param_entry.VariableD->Offset =
         _scrip.OffsetToLocalVarBlock - (param_idx + 1) * SIZE_OF_STACK_CELL;
     _sym.SetDeclared(param_name, _src.GetCursor());
     return kERR_None;
@@ -1426,7 +1426,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_fo
             continue;
         }
 
-        if (kKW_Varargs == cursym)
+        if (kKW_DotDotDot == cursym)
         {
             _sym[funcsym].FunctionD->IsVariadic = true;
             return Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' following the '...'");
@@ -1460,14 +1460,14 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
 
     if (PP::kPreAnalyze == _pp)
     {
-        // Encode in entry.SOffset the type of function declaration
+        // Encode in entry.Offset the type of function declaration
         FunctionType ft = kFT_PureForward;
         if (tqs[TQ::kImport])
             ft = kFT_Import;
         if (body_follows)
             ft = kFT_LocalBody;
-        if (_sym[name_of_function].FunctionD->SOffset < ft)
-            _sym[name_of_function].FunctionD->SOffset = ft;
+        if (_sym[name_of_function].FunctionD->Offset < ft)
+            _sym[name_of_function].FunctionD->Offset = ft;
     }
     return;
 }
@@ -1675,7 +1675,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol st
     if (PP::kPreAnalyze == _pp &&
         body_follows &&
         _sym.IsFunction(name_of_func) &&
-        kFT_LocalBody == _sym[name_of_func].FunctionD->SOffset)
+        kFT_LocalBody == _sym[name_of_func].FunctionD->Offset)
     {
         Error(
             ReferenceMsgSym("Function '%s' is already defined with body elsewhere", name_of_func).c_str(),
@@ -1708,7 +1708,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
         int func_startoffs;
         ErrorType retval = ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], _sym.NumOfFuncParams(name_of_func), func_startoffs);
         if (retval < 0) return retval;
-        _sym[name_of_func].FunctionD->SOffset = func_startoffs;
+        _sym[name_of_func].FunctionD->Offset = func_startoffs;
     }
 
     if (!tqs[TQ::kImport])
@@ -1717,13 +1717,13 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
     // Imported functions
     _sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport] = true;
     // Import functions have an index into the imports[] array in lieu of a start offset.
-    auto const imports_idx = _sym[name_of_func].FunctionD->SOffset;
+    auto const imports_idx = _sym[name_of_func].FunctionD->Offset;
 
     _sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport] = true;
 
     if (PP::kPreAnalyze == _pp)
     {
-        _sym[name_of_func].FunctionD->SOffset = kFT_Import;
+        _sym[name_of_func].FunctionD->Offset = kFT_Import;
         return kERR_None;
     }
 
@@ -2884,7 +2884,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     }
 
     // Load function address into AX
-    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].FunctionD->SOffset);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].FunctionD->Offset);
 
     if (func_is_import)
     {   
@@ -2933,7 +2933,7 @@ AGS::ErrorType AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_fun
         retval = AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
         if (retval < 0) return retval;
     }
-    if (num_supplied_args > num_func_args && !_sym.IsVarargsFunc(name_of_func))
+    if (num_supplied_args > num_func_args && !_sym.IsVariadicFunc(name_of_func))
     {
         Error("Expected just %d parameters but found %d", num_func_args, num_supplied_args);
         return kERR_UserError;
@@ -3117,7 +3117,7 @@ AGS::ErrorType AGS::Parser::AccessData_StructMember(Symbol component, bool writi
         return kERR_UserError;
     }
 
-    mloc.AddComponentOffset(entry.ComponentD->SOffset);
+    mloc.AddComponentOffset(entry.ComponentD->Offset);
     vartype = _sym.GetVartype(component);
     return kERR_None;
 }
@@ -3433,7 +3433,7 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, bool writi
     if (ScT::kImport == scope_type)
         MarkAcessed(varname);
     SymbolTableEntry &entry = _sym[varname];
-    CodeCell const soffs = entry.VariableD->SOffset;
+    CodeCell const soffs = entry.VariableD->Offset;
     auto const var_tqs = entry.VariableD->TypeQualifiers;
 
     if (writing && var_tqs[TQ::kReadonly])
@@ -4424,7 +4424,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Import(Symbol var_name)
         Error("!Import table overflow");
         return kERR_InternalError;
     }
-    _sym[var_name].VariableD->SOffset = static_cast<size_t>(import_offset);
+    _sym[var_name].VariableD->Offset = static_cast<size_t>(import_offset);
     return kERR_None;
 }
 
@@ -4445,7 +4445,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype
         Error("!Cannot allocate global variable");
         return kERR_InternalError;
     }
-    entry.VariableD->SOffset = static_cast<size_t>(global_offset);
+    entry.VariableD->Offset = static_cast<size_t>(global_offset);
     return kERR_None;
 }
 
@@ -4454,7 +4454,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     size_t const var_size = _sym.GetSize(vartype);
     bool const is_dyn = _sym.IsDynVartype(vartype);
 
-    _sym[var_name].VariableD->SOffset = _scrip.OffsetToLocalVarBlock;
+    _sym[var_name].VariableD->Offset = _scrip.OffsetToLocalVarBlock;
 
     if (kKW_Assign != _src.PeekNext())
     {
@@ -4593,7 +4593,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
         return kERR_UserError;
     }
 
-    if (SymbolTable::kParameterSScope == _sym[var_name].Scope && SymbolTable::kFunctionSScope == _nest.TopLevel())
+    if (SymbolTable::kParameterScope == _sym[var_name].Scope && SymbolTable::kFunctionScope == _nest.TopLevel())
     {
         Error(
             ReferenceMsgSym("'%s' has already been defined as a parameter", var_name).c_str(),
@@ -4666,7 +4666,7 @@ AGS::ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name
         this_entry.VariableD->Vartype = struct_of_func; // Don't declare this as dynpointer
         this_entry.VariableD->TypeQualifiers = {};
         this_entry.VariableD->TypeQualifiers[TQ::kReadonly] = true;
-        this_entry.VariableD->SOffset = 0u;
+        this_entry.VariableD->Offset = 0u;
     }
     return kERR_None;
 }
@@ -4678,9 +4678,9 @@ AGS::ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, 
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
-    RemoveLocalsFromStack(_sym.kFunctionSScope);
+    RemoveLocalsFromStack(_sym.kFunctionScope);
     // All the function variables, _including_ the parameters, become invalid.
-    RestoreLocalsFromSymtable(_sym.kParameterSScope);
+    RestoreLocalsFromSymtable(_sym.kParameterScope);
 
     // Function has ended. Set AX to 0 unless the function doesn't return any value.
     if (kKW_Void != _sym[name_of_current_func].FunctionD->Parameters.at(0u).Vartype)
@@ -5212,7 +5212,7 @@ AGS::ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet
         
         SymbolTableEntry &entry = _sym[vname];
         if (!tqs[TQ::kAttribute])
-            entry.ComponentD->SOffset = _sym[name_of_struct].VartypeD->Size;
+            entry.ComponentD->Offset = _sym[name_of_struct].VartypeD->Size;
 
         _sym.MakeEntryVariable(vname);
         entry.VariableD->Vartype = vartype;
@@ -5654,7 +5654,7 @@ AGS::ErrorType AGS::Parser::ParseExport_Function(Symbol func)
 
     return static_cast<ErrorType>(_scrip.AddExport(
         _sym.GetName(func).c_str(),
-        _sym[func].FunctionD->SOffset,
+        _sym[func].FunctionD->Offset,
         _sym.NumOfFuncParams(func) + 100 * _sym[func].FunctionD->IsVariadic));
 }
 
@@ -5680,7 +5680,7 @@ AGS::ErrorType AGS::Parser::ParseExport_Variable(Symbol var)
     
     return static_cast<ErrorType>(_scrip.AddExport(
         _sym.GetName(var).c_str(),
-        _sym[var].VariableD->SOffset));
+        _sym[var].VariableD->Offset));
 }
 
 AGS::ErrorType AGS::Parser::ParseExport()
@@ -5842,7 +5842,7 @@ AGS::ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scop
         Error("'static' cannot be used in a variable declaration");
         return kERR_UserError;
     }
-    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > _sym.kParameterSScope), _sym.IsComponent(var_name));
+    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > _sym.kParameterScope), _sym.IsComponent(var_name));
     if (retval < 0) return retval;
 
     // Note: Don't make a variable here yet; we haven't checked yet whether we may do so.
@@ -5953,7 +5953,7 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
 AGS::ErrorType AGS::Parser::HandleEndOfCompoundStmts()
 {
     ErrorType retval;
-    while (_nest.TopLevel() > _sym.kFunctionSScope)
+    while (_nest.TopLevel() > _sym.kFunctionScope)
         switch (_nest.Type())
         {
         default:
@@ -6049,11 +6049,11 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     // Pop the local variables proper from the stack but leave the parameters.
     // This is important because the return address is directly above the parameters;
     // we need the return address to return. (The caller will pop the parameters later.)
-    RemoveLocalsFromStack(_sym.kFunctionSScope);
+    RemoveLocalsFromStack(_sym.kFunctionScope);
   
     // Jump to the exit point of the function
     WriteCmd(SCMD_JMP, 0);
-    _nest.JumpOut(_sym.kParameterSScope).AddParam();
+    _nest.JumpOut(_sym.kParameterScope).AddParam();
 
     // The locals only disappear if control flow actually follows the "return"
     // statement. Otherwise, below the statement, the locals remain on the stack.
@@ -6673,7 +6673,7 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
 
     case kKW_CloseBrace:
         // Note that the scanner has already made sure that every close brace has an open brace
-        if (_sym.kFunctionSScope >= _nest.TopLevel())
+        if (_sym.kFunctionScope >= _nest.TopLevel())
             return HandleEndOfFuncBody(struct_of_current_func, name_of_current_func);
 
         retval = ParseCloseBrace();
@@ -6709,7 +6709,7 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
             name_of_current_func = struct_of_current_func = kKW_NoSymbol;
             return SkipToClose(kKW_CloseBrace);
         }
-        if (_sym.kParameterSScope == _nest.TopLevel())
+        if (_sym.kParameterScope == _nest.TopLevel())
              return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
         _nest.Push(NSType::kBraces);
         return kERR_None;
@@ -6834,8 +6834,8 @@ AGS::ErrorType AGS::Parser::Parse_ReinitSymTable(size_t size_after_scanning)
 
         if (_sym.IsFunction(sym_idx))
         {
-            s_entry.FunctionD->TypeQualifiers[TQ::kImport] = (kFT_Import == s_entry.FunctionD->SOffset);
-            s_entry.FunctionD->SOffset = 0;
+            s_entry.FunctionD->TypeQualifiers[TQ::kImport] = (kFT_Import == s_entry.FunctionD->Offset);
+            s_entry.FunctionD->Offset = 0;
             continue;
         }
 
@@ -6864,7 +6864,7 @@ AGS::ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
         if (_sym.IsFunction(entries_idx))
         {
             if(_sym[entries_idx].FunctionD->TypeQualifiers[TQ::kImport])
-                _scrip.imports[_sym[entries_idx].FunctionD->SOffset][0] = '\0';
+                _scrip.imports[_sym[entries_idx].FunctionD->Offset][0] = '\0';
             continue;
         }
         if (_sym.IsVariable(entries_idx))
@@ -6874,7 +6874,7 @@ AGS::ErrorType AGS::Parser::Parse_BlankOutUnusedImports()
             // in the same that way normal functions are.
             if (!_sym[entries_idx].VariableD->TypeQualifiers[TQ::kAttribute] &&
                 _sym[entries_idx].VariableD->TypeQualifiers[TQ::kImport])
-                _scrip.imports[_sym[entries_idx].VariableD->SOffset][0] = '\0';
+                _scrip.imports[_sym[entries_idx].VariableD->Offset][0] = '\0';
             continue;
         }
     }

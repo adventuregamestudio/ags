@@ -219,7 +219,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_Static, "static");
     AddKeyword(kKW_Struct, "struct");
     AddKeyword(kKW_Switch, "switch");
-    AddKeyword(kKW_Varargs, "...");
+    AddKeyword(kKW_DotDotDot, "...");
     AddKeyword(kKW_While, "while");
     AddKeyword(kKW_Writeprotected, "writeprotected");
 

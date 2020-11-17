@@ -1761,7 +1761,7 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     AGS::Symbol const idx = sym.Find("J");
     ASSERT_LE(0, idx);
     AGS::SymbolTableEntry &entry = sym.entries.at(idx);
-    ASSERT_EQ(4, entry.VariableD->SOffset);
+    ASSERT_EQ(4, entry.VariableD->Offset);
 }
 
 TEST_F(Compile0, LocalImportVar) {

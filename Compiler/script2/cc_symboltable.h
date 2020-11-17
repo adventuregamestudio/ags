@@ -169,6 +169,7 @@ enum Predefined : Symbol
     kKW_Continue,       // "continue"
     kKW_Default,        // "cefault"
     kKW_Do,             // "do"
+    kKW_DotDotDot,      // "..."
     kKW_Else,           // "else"
     kKW_Enum,           // "enum"
     kKW_Export,         // "export"
@@ -190,7 +191,6 @@ enum Predefined : Symbol
     kKW_Static,         // "static"
     kKW_Struct,         // "struct"
     kKW_Switch,         // "switch"
-    kKW_Varargs,        // "..."
     kKW_While,          // "while"
     kKW_Writeprotected,  // "writeprotected"
 };
@@ -211,8 +211,8 @@ struct SymbolTableEntry;
 class SymbolTableConstant
 {
 public:
-    static size_t const kParameterSScope = 1;
-    static size_t const kFunctionSScope = 2;
+    static size_t const kParameterScope = 1;
+    static size_t const kFunctionScope = 2;
 
     static size_t const kNoSrcLocation = INT_MAX;
 
@@ -240,7 +240,7 @@ struct SymbolTableEntry : public SymbolTableConstant
     {
         Symbol Component = kKW_NoSymbol; // the naked symbol name (for a::b, it is b)
         Vartype Parent = kKW_NoSymbol; // The vartype of the component (for a::b, it is a)
-        size_t SOffset = 0u; // offset from the start of the struct of where the component is allocated
+        size_t Offset = 0u; // offset from the start of the struct of where the component is allocated
         bool IsFunction = false;
     } *ComponentD = nullptr;
 
@@ -258,7 +258,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         TypeQualifierSet TypeQualifiers = {};
         // [0] describes the return type of the function
         std::vector<FuncParameterDesc> Parameters = {};
-        CodeLoc SOffset = 0;
+        CodeLoc Offset = 0;
         bool IsVariadic = false;
         bool NoLoopCheck = false;
     } *FunctionD = nullptr;
@@ -284,7 +284,7 @@ struct SymbolTableEntry : public SymbolTableConstant
     {
         TypeQualifierSet TypeQualifiers = {};
         AGS::Vartype Vartype = kKW_NoSymbol;
-        size_t SOffset = 0u;
+        size_t Offset = 0u;
         ScopeType ScopeType = ScT::kNone;
     } *VariableD = nullptr;
 
@@ -455,13 +455,13 @@ public:
     // Functions
     inline size_t NumOfFuncParams(Symbol func) const
         { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1 : 0; }
-    inline bool IsVarargsFunc(Symbol func) const { return entries.at(func).FunctionD->IsVariadic; }
+    inline bool IsVariadicFunc(Symbol func) const { return entries.at(func).FunctionD->IsVariadic; }
     inline AGS::Vartype FuncReturnVartype(Symbol func) const
         { return entries.at(func).FunctionD->Parameters[0u].Vartype; }
 
     // Variables
     inline bool IsImport(Symbol s) const { TypeQualifierSet const &TQ = entries.at(s).VariableD->TypeQualifiers; return TQ[TQ::kImport]; }
-    inline bool IsParameter(Symbol s) const { return kParameterSScope == entries.at(s).Scope; };
+    inline bool IsParameter(Symbol s) const { return kParameterScope == entries.at(s).Scope; };
     // The vartype of the variable, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol s) const { return entries.at(s).VariableD->Vartype; }
     inline bool IsAttribute(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }

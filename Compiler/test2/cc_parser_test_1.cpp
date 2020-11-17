@@ -572,9 +572,9 @@ TEST_F(Compile1, FuncParamNumber2) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
 
-TEST_F(Compile1, FuncVarargsCollision) {    
+TEST_F(Compile1, FuncVariadicCollision) {    
 
-    // Varargs / non-Varargs
+    // Variadic / non-variadic
 
     char *inpl = "\
         void Func(int, float, short, ...);      \n\

@@ -1296,7 +1296,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, Symbol 
 
     if (_sym.IsVariable(param_name))
     {
-        if (ScT::kLocal != _sym[param_name].VariableD->ScopeType)
+        if (ScT::kLocal != _sym.GetScopeType(param_name))
             return kERR_None;
 
         Error(
@@ -3524,7 +3524,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
 
         if (_sym.IsVariable(first_sym))
         {
-            ScopeType const scope_type = _sym[first_sym].VariableD->ScopeType;
+            ScopeType const scope_type = _sym.GetScopeType(first_sym);
             // Parameters may be 'return'ed even though they are local because they are allocated
             // outside of the function proper. Therefore return scope type for them is global.
             return_scope_type = _sym.IsParameter(first_sym) ? ScT::kGlobal : scope_type;
@@ -4315,7 +4315,6 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, Vartype v
     SymbolTableEntry &var_entry = _sym[var_name];
     _sym.MakeEntryVariable(var_name);
     var_entry.VariableD->Vartype = vartype;
-    var_entry.VariableD->ScopeType = scope_type;
     var_entry.Scope = _nest.TopLevel();
     _sym.SetDeclared(var_name, _src.GetCursor());
     return kERR_None;
@@ -4415,7 +4414,11 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Import(Symbol var_name)
     }
 
     if (_givm[var_name])
-        return kERR_None; // Skip this since the global non-import decl will come later
+    {
+        // This isn't really an import, so reset the flag and don't mark it for import
+        _sym[var_name].VariableD->TypeQualifiers[TQ::kImport] = false;
+        return kERR_None;
+    }
 
     _sym[var_name].VariableD->TypeQualifiers[TQ::kImport] = true;
     int const import_offset = _scrip.FindOrAddImport(_sym.GetName(var_name));
@@ -5660,21 +5663,22 @@ AGS::ErrorType AGS::Parser::ParseExport_Function(Symbol func)
 
 AGS::ErrorType AGS::Parser::ParseExport_Variable(Symbol var)
 {
-    if (ScT::kGlobal !=_sym[var].VariableD->ScopeType)
+    ScopeType const var_sct =_sym.GetScopeType(var);
+    if (ScT::kImport == var_sct)
+    {
+        Error(
+            ReferenceMsgSym("The Variable '%s' is imported, so it cannot be exported", var).c_str(),
+            _sym.GetName(var).c_str());
+        return kERR_UserError;
+    }
+    if (ScT::kGlobal != var_sct)
     {
         Error(
             ReferenceMsgSym("The variable '%s' isn't global, so it cannot be exported", var).c_str(),
             _sym.GetName(var).c_str());
         return kERR_UserError;
     }
-    if (_sym[var].VariableD->TypeQualifiers[TQ::kImport])
-    {
-        Error(
-            ReferenceMsgSym("Variable '%s' is imported, so it cannot be exported", var).c_str(),
-            _sym.GetName(var).c_str());
-        return kERR_UserError;
-    }
-        
+
     // Note, if this is a string then the compiler keeps track of it by its first byte.
     // AFAICS, this _is_ exportable.
     

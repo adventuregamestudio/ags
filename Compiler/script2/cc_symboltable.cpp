@@ -500,6 +500,15 @@ AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const com
     return kKW_NoSymbol;
 }
 
+AGS::ScopeType AGS::SymbolTable::GetScopeType(Symbol s) const
+{
+    if (0 < entries.at(s).Scope)
+        return ScT::kLocal;
+    if (entries.at(s).VariableD->TypeQualifiers[TQ::kImport])
+        return ScT::kImport;
+    return ScT::kGlobal;
+}
+
 bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
 {
     if (IsVariable(s))

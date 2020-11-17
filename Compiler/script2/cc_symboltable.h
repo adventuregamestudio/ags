@@ -285,7 +285,6 @@ struct SymbolTableEntry : public SymbolTableConstant
         TypeQualifierSet TypeQualifiers = {};
         AGS::Vartype Vartype = kKW_NoSymbol;
         size_t Offset = 0u;
-        ScopeType ScopeType = ScT::kNone;
     } *VariableD = nullptr;
 
     // For vartypes
@@ -465,6 +464,7 @@ public:
     // The vartype of the variable, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol s) const { return entries.at(s).VariableD->Vartype; }
     inline bool IsAttribute(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }
+    ScopeType GetScopeType(Symbol s) const;
 
     // Operators
     inline int BinaryOpPrio(Symbol s) const { return entries.at(s).OperatorD->BinaryPrio; }

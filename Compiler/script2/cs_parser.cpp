@@ -7042,13 +7042,19 @@ int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScr
     return error_code;
 }
 
-// TODO: Get rid of that as soon as the legacy functions are no longer used
-extern int ccCompOptions;
-
 int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
 {
     AGS::MessageHandler mh;
-    AGS::FlagSet const options = ccCompOptions;
+    AGS::FlagSet const options =
+        (0 != ccGetOption(SCOPT_EXPORTALL)) * SCOPT_EXPORTALL |
+        (0 != ccGetOption(SCOPT_SHOWWARNINGS)) * SCOPT_SHOWWARNINGS |
+        (0 != ccGetOption(SCOPT_LINENUMBERS)) * SCOPT_LINENUMBERS |
+        (0 != ccGetOption(SCOPT_AUTOIMPORT)) * SCOPT_AUTOIMPORT |
+        (0 != ccGetOption(SCOPT_DEBUGRUN)) * SCOPT_DEBUGRUN |
+        (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE)) * SCOPT_NOIMPORTOVERRIDE |
+        (0 != ccGetOption(SCOPT_OLDSTRINGS)) * SCOPT_OLDSTRINGS |
+        false;
+
     int error_code = cc_compile(inpl, options, scrip, mh);
     if (error_code >= 0)
     {

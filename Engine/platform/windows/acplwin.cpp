@@ -85,12 +85,11 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetIllegalFileChars();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual const char* GetAllegroFailUserHint();
+  virtual const char* GetBackendFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PostAllegroInit(bool windowed);
-  virtual void PostAllegroExit();
+  virtual void PostBackendInit();
+  virtual void PostBackendExit();
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
@@ -127,43 +126,6 @@ AGSWin32::~AGSWin32() {
     {
         ::FreeConsole();
     }
-}
-
-void check_parental_controls() {
-  /* this doesn't work, it always just returns access depedning
-     on whether unrated games are allowed because of digital signature
-  BOOL bHasAccess = FALSE;
-  IGameExplorer* pFwGameExplorer = NULL;
-
-  CoInitialize(NULL);
-  // Create an instance of the Game Explorer Interface
-  HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
-  if( FAILED(hr) || pFwGameExplorer == NULL ) {
-    // not Vista, do nothing
-  }
-  else {
-    char theexename[MAX_PATH] = "e:\\code\\ags\\acwin\\release\\acwin.exe";
-    WCHAR wstrBinPath[MAX_PATH] = {0};
-    MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH, wstrBinPath, MAX_PATH);
-    BSTR bstrGDFBinPath = SysAllocString(wstrBinPath);
-
-    hr = pFwGameExplorer->VerifyAccess( bstrGDFBinPath, &bHasAccess );
-    SysFreeString(bstrGDFBinPath);
-
-    if( FAILED(hr) || !bHasAccess ) {
-      char buff[300];
-      sprintf(buff, "Parental controls block: %X  b: %d", hr, bHasAccess);
-      quit(buff);
-    }
-    else {
-      platform->DisplayAlert("Parental controls: Access granted.");
-    }
-
-  }
-
-  if( pFwGameExplorer ) pFwGameExplorer->Release();
-  CoUninitialize();
-  */
 }
 
 void AGSWin32::create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath)
@@ -485,10 +447,8 @@ void AGSWin32::UnRegisterGameWithGameExplorer()
   }
 }
 
-void AGSWin32::PostAllegroInit(bool windowed) 
+void AGSWin32::PostBackendInit() 
 {
-  check_parental_controls();
-
   // Set the Windows timer resolution to 1 ms so that calls to
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
@@ -764,11 +724,7 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
   return returnMb;
 }
 
-const char* AGSWin32::GetNoMouseErrorString() {
-  return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
-}
-
-const char* AGSWin32::GetAllegroFailUserHint()
+const char* AGSWin32::GetBackendFailUserHint()
 {
   return "Make sure you have DirectX 5 or above installed.";
 }
@@ -789,7 +745,7 @@ void AGSWin32::AboutToQuitGame()
 {
 }
 
-void AGSWin32::PostAllegroExit() {
+void AGSWin32::PostBackendExit() {
   // Release the timer setting
   timeEndPeriod(win32TimerPeriod);
 }

@@ -105,24 +105,30 @@ ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
-bool engine_init_allegro()
+bool engine_init_backend()
 {
-    Debug::Printf(kDbgMsg_Info, "Initializing allegro");
-
     our_eip = -199;
-    // Initialize allegro
-    set_uformat(U_ASCII);
-    if (install_allegro(SYSTEM_NONE, &errno, atexit))
+    // Initialize SDL
+    Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
+    if (sys_main_init())
     {
-        const char *al_err = SDL_GetError();
-        const char *user_hint = platform->GetAllegroFailUserHint();
-        platform->DisplayAlert("Unable to initialize Allegro system driver.\n%s\n\n%s",
-            al_err[0] ? al_err : "Allegro library provided no further information on the problem.",
+        const char *err = SDL_GetError();
+        const char *user_hint = platform->GetBackendFailUserHint();
+        platform->DisplayAlert("Unable to initialize SDL library.\n%s\n\n%s",
+            (err && err[0]) ? err : "SDL provided no further information on the problem.",
             user_hint);
         return false;
     }
+    
+    // Initialize stripped allegro library
+    set_uformat(U_ASCII);
+    if (install_allegro(SYSTEM_NONE, &errno, atexit))
+    {
+        platform->DisplayAlert("Internal error: unable to initialize stripped Allegro 4 library.");
+        return false;
+    }
 
-    sys_main_init();
+    platform->PostBackendInit();
     return true;
 }
 
@@ -1230,7 +1236,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     //-----------------------------------------------------
     // Install backend
-    if (!engine_init_allegro())
+    if (!engine_init_backend())
         return EXIT_ERROR;
 
     //-----------------------------------------------------

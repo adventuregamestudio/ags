@@ -119,11 +119,8 @@ struct AGSIOS : AGSPlatformDriver {
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
 };
@@ -604,20 +601,12 @@ unsigned long AGSIOS::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSIOS::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
 eScriptSystemOSID AGSIOS::GetSystemOSID() {
   return eOS_iOS;
 }
 
 int AGSIOS::InitializeCDPlayer() {
   return 0;//cd_player_init();
-}
-
-void AGSIOS::PostAllegroExit() {
-  // do nothing
 }
 
 void AGSIOS::SetGameWindowIcon() {

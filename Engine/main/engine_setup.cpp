@@ -331,12 +331,6 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     if (has_driver_changed)
         engine_post_gfxmode_draw_setup(dm);
     engine_post_gfxmode_mouse_setup(dm, init_desktop);
-    
-    // TODO: the only reason this call was put here is that it requires
-    // "windowed" flag to be specified. Find out whether this function
-    // has anything to do with graphics mode at all. It is quite possible
-    // that we may split it into two functions, or remove parameter.
-    platform->PostAllegroInit(scsystem.windowed != 0);
 
     video_on_gfxmode_changed();
     invalidate_screen();

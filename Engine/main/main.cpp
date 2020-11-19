@@ -466,7 +466,7 @@ int ags_entry_point(int argc, char *argv[]) {
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
         sys_main_shutdown();
         allegro_exit();
-        platform->PostAllegroExit();
+        platform->PostBackendExit();
         return result;
     }
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER

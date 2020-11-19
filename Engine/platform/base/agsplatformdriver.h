@@ -74,15 +74,11 @@ struct AGSPlatformDriver
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
-    virtual const char* GetNoMouseErrorString() = 0;
-    // Tells whether this platform's backend library deals with mouse cursor
-    // virtual->real coordinate transformation itself (otherwise AGS engine should do it)
-    virtual bool IsBackendResponsibleForMouseScaling() { return false; }
-    virtual const char* GetAllegroFailUserHint();
+    virtual const char* GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
-    virtual void PostAllegroInit(bool windowed);
-    virtual void PostAllegroExit() = 0;
+    virtual void PostBackendInit() { };
+    virtual void PostBackendExit() { };
     virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out);
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string

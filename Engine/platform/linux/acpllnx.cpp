@@ -47,11 +47,9 @@ struct AGSLinux : AGSPlatformDriver {
   const char *GetUserGlobalConfigDirectory() override;
   const char *GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
-  const char* GetNoMouseErrorString() override;
-  const char* GetAllegroFailUserHint() override;
+  const char* GetBackendFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
-  void PostAllegroExit() override;
   void ShutdownCDPlayer() override;
 };
 
@@ -141,13 +139,9 @@ unsigned long AGSLinux::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSLinux::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
-const char* AGSLinux::GetAllegroFailUserHint()
+const char* AGSLinux::GetBackendFailUserHint()
 {
-  return "Make sure you have latest version of Allegro 4 libraries installed, and X server is running.";
+  return "Make sure you have latest version of SDL2 libraries installed, and X server is running.";
 }
 
 eScriptSystemOSID AGSLinux::GetSystemOSID() {
@@ -156,10 +150,6 @@ eScriptSystemOSID AGSLinux::GetSystemOSID() {
 
 int AGSLinux::InitializeCDPlayer() {
   return cd_player_init();
-}
-
-void AGSLinux::PostAllegroExit() {
-  // do nothing
 }
 
 void AGSLinux::ShutdownCDPlayer() {

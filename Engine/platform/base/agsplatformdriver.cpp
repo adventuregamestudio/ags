@@ -43,16 +43,15 @@ AGSPlatformDriver *platform = nullptr;
 // ******** DEFAULT IMPLEMENTATIONS *******
 
 void AGSPlatformDriver::AboutToQuitGame() { }
-void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 
-const char* AGSPlatformDriver::GetAllegroFailUserHint()
+const char* AGSPlatformDriver::GetBackendFailUserHint()
 {
-    return "Make sure you have latest version of Allegro 4 libraries installed, and your system is running in graphical mode.";
+    return "Make sure you have latest version of SDL2 libraries installed, and your system is running in graphical mode.";
 }
 
 const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()

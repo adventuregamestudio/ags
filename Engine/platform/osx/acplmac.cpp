@@ -44,10 +44,8 @@ struct AGSMac : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual const char* GetNoMouseErrorString() override;
   virtual eScriptSystemOSID GetSystemOSID() override;
   virtual int  InitializeCDPlayer() override;
-  virtual void PostAllegroExit() override;
   virtual void ShutdownCDPlayer() override;
     
   virtual const char *GetUserSavedgamesDirectory() override;
@@ -88,10 +86,6 @@ unsigned long AGSMac::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSMac::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
 eScriptSystemOSID AGSMac::GetSystemOSID() {
   // override performed if `override.os` is set in config.
   return eOS_Mac;
@@ -100,10 +94,6 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
 int AGSMac::InitializeCDPlayer() {
   //return cd_player_init();
   return 0;
-}
-
-void AGSMac::PostAllegroExit() {
-  // do nothing
 }
 
 void AGSMac::ShutdownCDPlayer() {

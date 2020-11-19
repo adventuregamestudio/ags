@@ -289,7 +289,7 @@ void quit(const char *quitmsg)
     sys_main_shutdown();
     allegro_exit();
 
-    platform->PostAllegroExit();
+    platform->PostBackendExit();
 
     our_eip = 9903;
 

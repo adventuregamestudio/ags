@@ -307,11 +307,11 @@ namespace AGS.Types
             set { _compressSprites = value; }
         }
 
-        [DisplayName("Use experimental compiler")]
-        [Description("The experimental compiler has more features but may still have some bugs, too")]
-        [DefaultValue(false)]
+        [DisplayName("Use extended compiler")]
+        [Description("The extended compiler has more features but may still have some bugs, too")]
+        [DefaultValue(true)]
         [Category("Compiler")]
-        public bool ExperimentalCompiler
+        public bool ExtendedCompiler
         {
             get { return _experimentalCompiler; }
             set { _experimentalCompiler = value; }

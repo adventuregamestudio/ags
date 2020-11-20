@@ -208,9 +208,6 @@ extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
 
-// Receives the section name in case of errors
-static char SectionNameBuffer[256];
-
 void AGS::Parser::AddToSymbolList(Symbol symb, SymbolList &list)
 {
     size_t const ssize = list.size();

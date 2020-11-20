@@ -40,29 +40,31 @@ namespace AGS
         if (script->CompiledData != nullptr)
             script->CompiledData = nullptr;
 
-        if (game->Settings->ExperimentalCompiler)
+        if (game->Settings->ExtendedCompiler)
         {
             ccScript *scrpt = NULL;
-            CompileMessage ^exceptionToThrow = nullptr;
 
             // Concatenate the whole thing together
             String^ all_the_script = "";
             for each (String^ header in preProcessedScripts)
                 all_the_script += header;
 
-            ccSetOption(SCOPT_EXPORTALL, 1);
-            ccSetOption(SCOPT_LINENUMBERS, 1);
-            ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript); // Don't allow them to override imports in the room script
-            ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
+            long const options =
+                SCOPT_EXPORTALL |
+                SCOPT_LINENUMBERS |
+                SCOPT_NOIMPORTOVERRIDE * isRoomScript | // Don't allow them to override imports in the room script
+                SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
+                false;
             char *mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
             char *mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-            scrpt = ccCompileText2(mainScript, mainScriptName);
+            scrpt = ccCompileText2(mainScript, mainScriptName, options);
             System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
             System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
 
-            if (scrpt == nullptr)
+            if (nullptr == scrpt)
             {
-                exceptionToThrow = gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                CompileMessage ^exceptionToThrow =
+                    gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
                 throw exceptionToThrow;
             }
             script->CompiledData = gcnew CompiledScript(PScript(scrpt));

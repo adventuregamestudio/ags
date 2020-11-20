@@ -23,10 +23,32 @@
 #define ALLEGRO_COLOR32
 
 
-/* for backward compatibility */
-#ifdef USE_CONSOLE
-   #define ALLEGRO_NO_MAGIC_MAIN
-   #define ALLEGRO_USE_CONSOLE
+/* autodetect platform */
+#if defined(__ANDROID__) || defined(ANDROID)
+   #define ALLEGRO_ANDROID
+#elif defined(_MSC_VER)
+   #define ALLEGRO_MSVC
+#elif defined(__APPLE__)
+   #include "TargetConditionals.h"
+   #ifndef TARGET_OS_SIMULATOR
+      #define TARGET_OS_SIMULATOR (0)
+   #endif
+   #ifndef TARGET_OS_IOS
+      #define TARGET_OS_IOS (0)
+   #endif
+   #ifndef TARGET_OS_OSX
+      #define TARGET_OS_OSX (0)
+   #endif
+
+   #if TARGET_OS_SIMULATOR || TARGET_IPHONE_SIMULATOR
+      #define ALLEGRO_IOS
+   #elif TARGET_OS_IOS || TARGET_OS_IPHONE
+      #define ALLEGRO_IOS
+   #elif TARGET_OS_OSX || TARGET_OS_MAC
+      #define ALLEGRO_MACOSX
+   #endif
+#elif defined(__linux__)
+   #define ALLEGRO_UNIX
 #endif
 
 

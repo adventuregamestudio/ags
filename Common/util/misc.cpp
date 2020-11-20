@@ -48,6 +48,7 @@
 #include <sys/stat.h>
 #if !AGS_PLATFORM_OS_WINDOWS
 #include <dirent.h>
+#include <unistd.h>
 #endif
 
 #include <allegro.h> // file path functions

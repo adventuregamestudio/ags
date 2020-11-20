@@ -19,6 +19,7 @@
 // ********* LINUX PLACEHOLDER DRIVER *********
 
 #include <stdio.h>
+#include <unistd.h>
 #include <allegro.h>
 #include "ac/runtime_defines.h"
 #include "gfx/gfxdefines.h"

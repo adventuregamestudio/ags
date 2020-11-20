@@ -17,6 +17,7 @@ see the license.txt for details.
 #include "scripting.h"
 //#include "cscomp.h"
 #include "script/cs_compiler.h"
+#include "script2/cs_compiler.h"
 #include "script/cc_options.h"
 #include "script/cc_error.h"
 
@@ -34,75 +35,102 @@ namespace AGS
 	namespace Native
 	{
 
-		void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript)
-		{
-			if (script->CompiledData != nullptr)
-			{
-				//script->CompiledData->Dispose();
-				script->CompiledData = nullptr;
-			}
+    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript)
+    {
+        if (script->CompiledData != nullptr)
+            script->CompiledData = nullptr;
 
-      ccRemoveDefaultHeaders();
-
-			  CompileMessage ^exceptionToThrow = nullptr;
-
-        char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
-			  char *mainScript;
-			  char *mainScriptName;
-        ccScript *scrpt = NULL;
-			  int headerCount = 0;
-
-			  for each (String^ header in preProcessedScripts) 
-			  {
-          if (headerCount < preProcessedScripts->Length - 1)
-          {
-				    scriptHeaders[headerCount] = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(header).ToPointer();
-
-            if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header")) 
-            {
-              exceptionToThrow = gcnew CompileError("Too many scripts in game");
-            }
-				    headerCount++;
-          }
-			  }
-			  mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
-			  mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-
-			  ccSetSoftwareVersion(editorVersionNumber);
-
-			  ccSetOption(SCOPT_EXPORTALL, 1);
-			  ccSetOption(SCOPT_LINENUMBERS, 1);
-			  // Don't allow them to override imports in the room script
-			  ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript);
-
-			  ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
-
-        if (exceptionToThrow == nullptr)
+        if (game->Settings->ExperimentalCompiler)
         {
-			    scrpt = ccCompileText(mainScript, mainScriptName);
- 			    if ((scrpt == NULL) || (ccError != 0))
-			    {
-				    exceptionToThrow = gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
-			    }
+            ccScript *scrpt = NULL;
+            CompileMessage ^exceptionToThrow = nullptr;
+
+            // Concatenate the whole thing together
+            String^ all_the_script = "";
+            for each (String^ header in preProcessedScripts)
+                all_the_script += header;
+
+            ccSetOption(SCOPT_EXPORTALL, 1);
+            ccSetOption(SCOPT_LINENUMBERS, 1);
+            ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript); // Don't allow them to override imports in the room script
+            ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
+            char *mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
+            char *mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
+            scrpt = ccCompileText2(mainScript, mainScriptName);
+            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
+            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
+
+            if (scrpt == nullptr)
+            {
+                exceptionToThrow = gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                throw exceptionToThrow;
+            }
+            script->CompiledData = gcnew CompiledScript(PScript(scrpt));
         }
-			  
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
+        else
+        {
+            ccRemoveDefaultHeaders();
 
-        for (int i = 0; i < preProcessedScripts->Length - 1; i++) 
-			  {
-				  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
-			  }
-			  delete scriptHeaders;
+            CompileMessage ^exceptionToThrow = nullptr;
 
-			  if (exceptionToThrow != nullptr) 
-			  {
-				  delete scrpt;
-				  throw exceptionToThrow;
-			  }
+            char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
+            char *mainScript;
+            char *mainScriptName;
+            ccScript *scrpt = NULL;
+            int headerCount = 0;
 
-			  script->CompiledData = gcnew CompiledScript(PScript(scrpt));
-		}
+            for each (String^ header in preProcessedScripts)
+            {
+                if (headerCount < preProcessedScripts->Length - 1)
+                {
+                    scriptHeaders[headerCount] = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(header).ToPointer();
+
+                    if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header"))
+                    {
+                        exceptionToThrow = gcnew CompileError("Too many scripts in game");
+                    }
+                    headerCount++;
+                }
+            }
+            mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
+            mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
+
+            ccSetSoftwareVersion(editorVersionNumber);
+
+            ccSetOption(SCOPT_EXPORTALL, 1);
+            ccSetOption(SCOPT_LINENUMBERS, 1);
+            // Don't allow them to override imports in the room script
+            ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript);
+
+            ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
+
+            if (exceptionToThrow == nullptr)
+            {
+                scrpt = ccCompileText(mainScript, mainScriptName);
+                if ((scrpt == NULL) || (ccError != 0))
+                {
+                    exceptionToThrow = gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                }
+            }
+
+            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
+            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
+
+            for (int i = 0; i < preProcessedScripts->Length - 1; i++)
+            {
+                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
+            }
+            delete scriptHeaders;
+
+            if (exceptionToThrow != nullptr)
+            {
+                delete scrpt;
+                throw exceptionToThrow;
+            }
+
+            script->CompiledData = gcnew CompiledScript(PScript(scrpt));
+        }
+    }
 
 		void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE)
 		{

@@ -206,7 +206,7 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 // Defined in Common/script/script_common.cpp
 extern int currentline;
 
-char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
+char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
 
 // Receives the section name in case of errors
 static char SectionNameBuffer[256];

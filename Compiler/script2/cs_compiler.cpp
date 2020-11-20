@@ -12,39 +12,9 @@
 
 #include "cs_parser.h"
 
-struct ScriptHeader
-{
-    std::string Name;
-    std::string Content;
-};
-
-std::vector<ScriptHeader> defaultHeaders;
-
-int ccAddDefaultHeader(char *hd_content, char *hd_name)
-{
-    struct ScriptHeader head =
-        { std::string(hd_name? hd_name : "Internal Header File"),
-          std::string(hd_content? hd_content : "") };
-    defaultHeaders.push_back(head);
-
-    return 0;
-}
-
-void ccRemoveDefaultHeaders()
-{
-    defaultHeaders.clear();
-}
-
-void ccSetSoftwareVersion(const char *version)
-{
-    // All preprocessing is done elsewhere; only preprocessed files arrive here.
-    // So there's no need to keep track of the version any longer.
-    // Note: Compiler options keep track on whether old-style strings are allowed
-}
-
 // A  wrapper around cc_compile(), in order to squeeze the C++ style parameters 
 // through the limited means of Managed C++ (CLR) into the C# Editor.
-ccScript *ccCompileText(const char *script, const char *scriptName)
+ccScript *ccCompileText2(char const *script, char const *scriptName)
 {
     // All warnings and the error (if present) end up here.
     // TODO: This is what will need to be sqeezed through the interface
@@ -64,13 +34,8 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
     ccCompiledScript *compiled_script =
         new ccCompiledScript(0 != FlagIsSet(options, SCOPT_LINENUMBERS));
 
-    std::string sourcecode = "";
-    for (size_t header = 0; header < defaultHeaders.size(); header++)
-        sourcecode += defaultHeaders[header].Content;
-    sourcecode += script;
-
     compiled_script->StartNewSection(scriptName ? scriptName : "Unnamed script");
-    int const error_code = cc_compile(sourcecode, options, *compiled_script, mh);
+    int const error_code = cc_compile(script, options, *compiled_script, mh);
     if (error_code < 0)
     {
         auto const &err = mh.GetError();
@@ -86,7 +51,7 @@ ccScript *ccCompileText(const char *script, const char *scriptName)
         delete compiled_script; // Note: delete calls the destructor
         return NULL;
     }
-
+    ccCurScriptName = nullptr;
     ccError = 0;
     ccErrorLine = 0;
     compiled_script->FreeExtra();

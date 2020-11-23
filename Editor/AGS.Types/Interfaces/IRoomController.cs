@@ -45,6 +45,12 @@ namespace AGS.Types
         /// <returns>A <see cref="Bitmap"/> instance with the selected mask type.Return null if none is selected.</returns>
         Bitmap GetMask(RoomAreaMaskType mask);
         /// <summary>
+        /// Sets the loaded room specified mask.
+        /// </summary>
+        /// <param name="mask">The mask type to set.</param>
+        /// <param name="bmp">The mask to set.</param>
+        void SetMask(RoomAreaMaskType mask, Bitmap bmp);
+        /// <summary>
         /// Gets the area number on the specified room mask at (x,y)
         /// RequiredAGSVersion: 3.0.1.35
         /// </summary>

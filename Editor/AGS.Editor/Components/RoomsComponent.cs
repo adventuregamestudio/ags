@@ -1550,6 +1550,18 @@ namespace AGS.Editor.Components
             return _nativeProxy.ExportAreaMask(_loadedRoom, mask);
         }
 
+        void IRoomController.SetMask(RoomAreaMaskType mask, Bitmap bmp)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            // TODO Replace with bitmap saving to disk with C# when room is open format
+            _nativeProxy.SetAreaMask(_loadedRoom, mask, bmp);
+            _loadedRoom.Modified = true;
+        }
+
         int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
         {
             if (_loadedRoom == null)

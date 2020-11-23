@@ -70,6 +70,7 @@ namespace AGS
 			void DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color);
 			void CopyWalkableMaskToRegions(Room ^room);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
+      void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
       void CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       bool DoesUndoBufferExist();

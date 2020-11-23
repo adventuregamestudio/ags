@@ -2448,6 +2448,32 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	validate_mask(mask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
 }
 
+void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
+{
+    color oldpale[256];
+    RoomStruct* room = (RoomStruct*)roomptr;
+    AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
+    AGSBitmap* newMask = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
+
+    switch (maskType)
+    {
+    case kRoomAreaHotspot:
+        room->HotspotMask = PBitmap(newMask);
+        break;
+    case kRoomAreaRegion:
+        room->RegionMask = PBitmap(newMask);
+        break;
+    case kRoomAreaWalkable:
+        room->WalkAreaMask = PBitmap(newMask);
+        break;
+    case kRoomAreaWalkBehind:
+        room->WalkBehindMask = PBitmap(newMask);
+        break;
+    default:
+        return;
+    }
+}
+
 SysBitmap ^export_area_mask(void *roomptr, int maskType)
 {
     AGSBitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);

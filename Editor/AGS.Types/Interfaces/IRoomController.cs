@@ -71,6 +71,13 @@ namespace AGS.Types
         /// </summary>
         void CopyWalkableAreaMaskToRegions();
         /// <summary>
+        /// Scales all the room's masks according to the <see cref="Room.MaskResolution"/>,
+        /// execept for the <see cref="RoomAreaMaskType.WalkBehinds"/> which retains the
+        /// resolution of the background image. If the <see cref="Room.MaskResolution"/>
+        /// has a resolution of 2 it will halve the masks in both dimensions.
+        /// </summary>
+        void AdjustMaskResolution();
+        /// <summary>
         /// Sets whether or not to grey out non-selected masks when drawing the background.
         /// </summary>
         bool GreyOutNonSelectedMasks { set; }

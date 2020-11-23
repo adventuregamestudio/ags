@@ -2678,13 +2678,6 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
 }
 
-void FixRoomMasks(Room ^room)
-{
-    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-    roomptr->MaskResolution = room->MaskResolution;
-    AGS::Common::FixRoomMasks(roomptr);
-}
-
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
 {  
 	for each (PaletteEntry ^colour in newPalette) 

@@ -476,11 +476,6 @@ namespace AGS
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
 
-        void NativeMethods::AdjustRoomMaskResolution(Room ^room)
-        {
-            FixRoomMasks(room);
-        }
-
 		void NativeMethods::DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
 		{
 			draw_line_onto_mask((void*)room->_roomStructPtr, (int)maskType, x1, y1, x2, y2, color);

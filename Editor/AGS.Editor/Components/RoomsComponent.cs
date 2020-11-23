@@ -867,7 +867,7 @@ namespace AGS.Editor.Components
                 if (mask != room.MaskResolution)
                 {
                     room.MaskResolution = mask;
-                    NativeProxy.Instance.AdjustRoomMaskResolution(room);
+                    ((IRoomController)this).AdjustMaskResolution();
                     return true;
                 }
             }
@@ -1119,7 +1119,7 @@ namespace AGS.Editor.Components
                 if (Factory.GUIController.ShowQuestion("The new mask resolution is smaller and this will reduce mask's precision and some pixels may be lost in the process. Do you want to proceed?") != DialogResult.Yes)
                     return;
             }
-            _nativeProxy.AdjustRoomMaskResolution(_loadedRoom);
+            ((IRoomController)this).AdjustMaskResolution();
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -1615,6 +1615,37 @@ namespace AGS.Editor.Components
             {
                 ((IRoomController)this).SetMask(RoomAreaMaskType.Regions, bmp);
             }
+            _loadedRoom.Modified = true;
+        }
+
+        void IRoomController.AdjustMaskResolution()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            using (Bitmap bg = ((IRoomController)this).GetBackground(0))
+            {
+                int baseWidth = bg.Width;
+                int baseHeight = bg.Height;
+                int scaledWidth = baseWidth / _loadedRoom.MaskResolution;
+                int scaledHeight = baseHeight / _loadedRoom.MaskResolution;
+
+                foreach (RoomAreaMaskType maskType in Enum.GetValues(typeof(RoomAreaMaskType)))
+                {
+                    if (maskType == RoomAreaMaskType.None) continue;
+
+                    using (Bitmap mask = ((IRoomController)this).GetMask(maskType))
+                    using (Bitmap scaled = maskType == RoomAreaMaskType.WalkBehinds
+                        ? mask.Scale(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
+                        : mask.Scale(scaledWidth, scaledHeight)) // Other masks are 1:x where X is MaskResolution
+                    {
+                        ((IRoomController)this).SetMask(maskType, scaled);
+                    }
+                }
+            }
+
             _loadedRoom.Modified = true;
         }
 

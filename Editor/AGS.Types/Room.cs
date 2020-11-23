@@ -379,7 +379,22 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
+        public double GetMaskScale(RoomAreaMaskType mask)
+        {
+            switch (mask)
+            {
+                case RoomAreaMaskType.WalkBehinds:
+                    return 1.0; // walk-behinds always 1:1 with room size
+                case RoomAreaMaskType.Hotspots:
+                case RoomAreaMaskType.WalkableAreas:
+                case RoomAreaMaskType.Regions:
+                    return 1.0 / MaskResolution;
+                default:
+                    return 0.0;
+            }
+        }
+
+        void IChangeNotification.ItemModified()
 		{
 			this.Modified = true;
 		}

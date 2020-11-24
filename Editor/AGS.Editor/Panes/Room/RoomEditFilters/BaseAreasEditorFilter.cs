@@ -278,7 +278,7 @@ namespace AGS.Editor
             }
             else if (drawMode == AreaDrawMode.Select)
             {
-                int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
+                int area = _roomController.GetAreaMaskPixel(MaskToDraw, x, y);
                 if (area != 0)
                 {
                     SelectedArea = area;

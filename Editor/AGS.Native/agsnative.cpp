@@ -601,13 +601,6 @@ void copy_walkable_to_regions (void *roomptr) {
 	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
 }
 
-int get_mask_pixel(void *roomptr, int maskType, int x, int y)
-{
-    Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
-	return mask->GetPixel(x * scale, y * scale);
-}
-
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);

@@ -322,17 +322,6 @@ namespace AGS.Editor
 			set { _native.SetGreyedOutMasksEnabled(value); }
 		}
 
-        public int GetAreaMaskPixel(Room room, RoomAreaMaskType mask, int x, int y)
-        {
-            int pixel = _native.GetAreaMaskPixel(room, mask, x, y);
-            // if it lies outside the bitmap, just return 0
-            if (pixel < 0)
-            {
-                pixel = 0;
-            }
-            return pixel;
-        }
-
         public void CreateUndoBuffer(Room room, RoomAreaMaskType mask)
         {
             _native.CreateUndoBuffer(room, mask);

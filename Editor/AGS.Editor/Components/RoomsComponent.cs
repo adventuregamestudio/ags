@@ -9,6 +9,7 @@ using System.Xml;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Threading;
+using System.Linq;
 
 namespace AGS.Editor.Components
 {
@@ -1520,15 +1521,26 @@ namespace AGS.Editor.Components
         }
 
         int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
-		{
-			if (_loadedRoom == null)
-			{
-				throw new InvalidOperationException("No room is currently loaded");
-			}
-			return _nativeProxy.GetAreaMaskPixel(_loadedRoom, maskType, x, y);
-		}
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
 
-		void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
+            using (Bitmap bmp = ((IRoomController)this).GetMask(maskType))
+            {
+                double scale = _loadedRoom.GetMaskScale(maskType);
+                int xScaled = (int)(x * scale);
+                int yScaled = (int)(y * scale);
+
+                // Colors on mask areas is set from game palette so do a reverse lookup to find the index
+                return xScaled >= 0 && xScaled < bmp.Width && yScaled >= 0 && yScaled < bmp.Height
+                    ? _agsEditor.CurrentGame.Palette.FirstOrDefault(p => p.Colour == bmp.GetPixel(xScaled, yScaled))?.Index ?? 0
+                    : 0;
+            }
+        }
+
+        void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
 		{
 			((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, scaleFactor, RoomAreaMaskType.None, 0, 0);
 		}

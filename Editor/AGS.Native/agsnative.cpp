@@ -596,13 +596,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
-void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
-{
-	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
-    mask->FillRect(Rect(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
-}
-
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);

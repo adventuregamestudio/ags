@@ -64,7 +64,6 @@ namespace AGS
 			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			void DeleteBackground(Room ^room, int backgroundNumber);
 			Bitmap^ GetBitmapForBackground(Room ^room, int backgroundNumber);
-			void DrawFilledRectOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);
 			void DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);

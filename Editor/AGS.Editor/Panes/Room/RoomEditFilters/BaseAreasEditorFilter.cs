@@ -317,7 +317,7 @@ namespace AGS.Editor
             else if (drawMode == AreaDrawMode.Rectangle)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                DrawFilledRectangleOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
@@ -659,6 +659,20 @@ namespace AGS.Editor
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
             using (Bitmap drawn = mask.DrawLine(start, finish, color, scale))
+            {
+                _roomController.SetMask(MaskToDraw, drawn);
+            }
+        }
+
+        private void DrawFilledRectangleOntoMask()
+        {
+            Point p1 = new Point(_mouseDownX, _mouseDownY);
+            Point p2 = new Point(_currentMouseX, _currentMouseY);
+            Color color = Factory.AGSEditor.CurrentGame.Palette[_drawingWithArea].Colour;
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            using (Bitmap drawn = mask.FillRectangle(p1, p2, color, scale))
             {
                 _roomController.SetMask(MaskToDraw, drawn);
             }

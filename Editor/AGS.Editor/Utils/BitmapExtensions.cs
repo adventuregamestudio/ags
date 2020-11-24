@@ -40,6 +40,27 @@ namespace AGS.Editor
         });
 
         /// <summary>
+        /// Gives back a deep copy of the bitmap with a filled rectangle.
+        /// </summary>
+        /// <param name="bmp">The bitmap we to copy and draw on.</param>
+        /// <param name="p1">The starting point of the rectangle.</param>
+        /// <param name="p2">The end point of the rectangle.</param>
+        /// <param name="color">The color of the rectangle.</param>
+        /// <param name="scale">Adjust coordinates for the input scale.</param>
+        /// <returns></returns>
+        public static Bitmap FillRectangle(this Bitmap bmp, Point p1, Point p2, Color color, double scale = 1.0) => bmp.Mutate(g =>
+        {
+            Point origin = new Point(p1.X < p2.X ? p1.X : p2.X, p1.Y < p2.Y ? p1.Y : p2.Y);
+            Point originScaled = new Point((int)(origin.X * scale), (int)(origin.Y * scale));
+
+            Size size = new Size(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
+            Size sizeScaled = new Size((int)(size.Width * scale), (int)(size.Height * scale));
+
+            g.DrawImage(bmp, 0, 0);
+            g.FillRectangle(new SolidBrush(color), new Rectangle(originScaled, sizeScaled));
+        });
+
+        /// <summary>
         /// Makes a deep copy of the bitmap that we can perform drawing operations on, and preserve the pixel format.
         /// </summary>
         /// <param name="bmp">The bitmap to deep copy.</param>

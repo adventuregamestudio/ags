@@ -292,11 +292,6 @@ namespace AGS.Editor
             _native.DrawSpriteToBuffer(spriteNum, x, y, scale);
         }
 
-        public void DrawLineOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
-        {
-            _native.DrawLineOntoMask(room, mask, x1, y1, x2, y2, color);
-        }
-
 		public void DrawFilledRectOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
 		{
 			_native.DrawFilledRectOntoMask(room, mask, x1, y1, x2, y2, color);

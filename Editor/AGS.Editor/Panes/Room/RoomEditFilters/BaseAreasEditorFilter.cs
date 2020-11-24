@@ -310,7 +310,7 @@ namespace AGS.Editor
             if (drawMode == AreaDrawMode.Line)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                DrawLineOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
@@ -341,7 +341,7 @@ namespace AGS.Editor
             {
                 if (drawMode == AreaDrawMode.Freehand)
                 {
-					Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                    DrawLineOntoMask();
                     _mouseDownX = _currentMouseX;
                     _mouseDownY = _currentMouseY;
                     UpdateUndoButtonEnabledState();
@@ -648,6 +648,20 @@ namespace AGS.Editor
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
                 DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+
+        private void DrawLineOntoMask()
+        {
+            Point start = new Point(_mouseDownX, _mouseDownY);
+            Point finish = new Point(_currentMouseX, _currentMouseY);
+            Color color = Factory.AGSEditor.CurrentGame.Palette[_drawingWithArea].Colour;
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            using (Bitmap drawn = mask.DrawLine(start, finish, color, scale))
+            {
+                _roomController.SetMask(MaskToDraw, drawn);
+            }
         }
     }
 }

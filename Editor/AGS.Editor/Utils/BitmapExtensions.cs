@@ -22,6 +22,24 @@ namespace AGS.Editor
         });
 
         /// <summary>
+        /// Gives back a deep copy of the bitmap with a drawn line.
+        /// </summary>
+        /// <param name="bmp">The bitmap we want to copy and draw on.</param>
+        /// <param name="p1">The starting point for the line.</param>
+        /// <param name="p2">The end point for the line.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="scale">Adjust coordinates for the input scale.</param>
+        /// <returns>A new bitmap with a line drawn on it.</returns>
+        public static Bitmap DrawLine(this Bitmap bmp, Point p1, Point p2, Color color, double scale = 1.0) => bmp.Mutate(g =>
+        {
+            p1 = new Point((int)(p1.X * scale), (int)(p1.Y * scale));
+            p2 = new Point((int)(p2.X * scale), (int)(p2.Y * scale));
+
+            g.DrawImage(bmp, 0, 0);
+            g.DrawLine(new Pen(color), p1, p2);
+        });
+
+        /// <summary>
         /// Makes a deep copy of the bitmap that we can perform drawing operations on, and preserve the pixel format.
         /// </summary>
         /// <param name="bmp">The bitmap to deep copy.</param>

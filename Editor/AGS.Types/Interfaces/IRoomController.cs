@@ -22,6 +22,10 @@ namespace AGS.Types
 		/// </summary>
 		bool LoadRoom(IRoom roomToLoad);
         /// <summary>
+        /// Saves the loaded room to disk.
+        /// </summary>
+        void Save();
+        /// <summary>
         /// Gets the loaded room backround as a <see cref="Bitmap"/> instance.
         /// </summary>
         /// <param name="background">The background index to get.</param>

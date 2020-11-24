@@ -601,8 +601,6 @@ namespace AGS.Editor.Components
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
             _agsEditor.CompileScript(room.Script, headers, null);
 
-            _nativeProxy.SaveRoom(room);
-            room.Modified = false;
             return null;            
         }
 
@@ -1497,6 +1495,17 @@ namespace AGS.Editor.Components
 			}
 			return LoadDifferentRoom((UnloadedRoom)roomToLoad);
 		}
+
+        void IRoomController.Save()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            _nativeProxy.SaveRoom(_loadedRoom);
+            _loadedRoom.Modified = false;
+        }
 
         Bitmap IRoomController.GetBackground(int background)
         {

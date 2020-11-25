@@ -1,8 +1,10 @@
 ﻿using AGS.Types;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace AGS.Editor
@@ -59,6 +61,26 @@ namespace AGS.Editor
             g.DrawImage(bmp, 0, 0);
             g.FillRectangle(new SolidBrush(color), new Rectangle(originScaled, sizeScaled));
         });
+
+        /// <summary>
+        /// Gives back a deep copy of the bitmap with the area matching the position color, filled to
+        /// mathc the input color, like a paint bucket.
+        /// </summary>
+        /// <param name="bmp">The bitmap to copy and draw on.</param>
+        /// <param name="position">The position we want to fill from.</param>
+        /// <param name="color">The color to use for the filling.</param>
+        /// <returns>A new bitmap with the area filled.</returns>
+        public static Bitmap FillArea(this Bitmap bmp, Point position, int color, double scale)
+        {
+            Bitmap result = new Bitmap(bmp.Width, bmp.Height, bmp.PixelFormat);
+            Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
+
+            byte[] rawData = bmp.GetRawData(bmp.PixelFormat);
+            FloodFillImage(rawData, positionScaled, bmp.Size, rawData[(positionScaled.Y * bmp.Width) + positionScaled.X], (byte)color);
+            result.SetRawData(rawData, bmp.PixelFormat);
+
+            return result;
+        }
 
         /// <summary>
         /// Makes a deep copy of the bitmap that we can perform drawing operations on, and preserve the pixel format.
@@ -165,6 +187,50 @@ namespace AGS.Editor
             }
 
             bmp.Palette = palette; // Get Bitmap.Palette is deep copy so we need to set it back
+        }
+
+        /// <summary>
+        /// Checks if the x and y coordinate is within the image.
+        /// </summary>
+        /// <param name="position">The position to check against.</param>
+        /// <returns>True if the position is inside the image. False if outside.</returns>
+        public static bool Intersects(this Bitmap bmp, Point position)
+        {
+            return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
+        }
+
+        /// <summary>
+        /// Flood fill algorithm with for-loop instead of recursion to avoid stack overflow issues.
+        /// </summary>
+        /// <param name="image">The raw byte array of the image.</param>
+        /// <param name="position">The starting position for the fill.</param>
+        /// <param name="size">The dimensions of the image.</param>
+        /// <param name="initial">The color of the starting position.</param>
+        /// <param name="replacement">The color to replace the pixels with.</param>
+        private static void FloodFillImage(byte[] image, Point position, Size size, byte initial, byte replacement)
+        {
+            Queue<Point> queue = new Queue<Point>();
+            queue.Enqueue(position);
+
+            while (queue.Any())
+            {
+                position = queue.Dequeue();
+
+                if (position.X >= 0 && position.X < size.Width && position.Y >= 0 && position.Y < size.Height)
+                {
+                    int i = (position.Y * size.Width) + position.X;
+
+                    if (image[i] == initial)
+                    {
+                        image[i] = replacement;
+
+                        queue.Enqueue(new Point(position.X + 1, position.Y));
+                        queue.Enqueue(new Point(position.X - 1, position.Y));
+                        queue.Enqueue(new Point(position.X, position.Y + 1));
+                        queue.Enqueue(new Point(position.X, position.Y - 1));
+                    }
+                }
+            }
         }
     }
 }

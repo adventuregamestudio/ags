@@ -596,13 +596,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
-void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
-{
-	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    float scale = ((RoomStruct*)roomptr)->GetMaskScale((RoomAreaMask)maskType);
-    mask->FloodFill(x1 * scale, y1 * scale, color);
-}
-
 void create_undo_buffer(void *roomptr, int maskType) 
 {
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);

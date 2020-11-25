@@ -292,11 +292,6 @@ namespace AGS.Editor
             _native.DrawSpriteToBuffer(spriteNum, x, y, scale);
         }
 
-        public void DrawFillOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int color)
-        {
-            _native.DrawFillOntoMask(room, mask, x1, y1, color);
-        }
-
 		public bool GreyOutNonSelectedMasks
 		{
 			set { _native.SetGreyedOutMasksEnabled(value); }

@@ -272,7 +272,7 @@ namespace AGS.Editor
             else if (drawMode == AreaDrawMode.Fill)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawFillOntoMask(_room, this.MaskToDraw, x, y, _drawingWithArea);
+                FillAreaOntoMask(x, y);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
             }
@@ -673,6 +673,19 @@ namespace AGS.Editor
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
             using (Bitmap drawn = mask.FillRectangle(p1, p2, color, scale))
+            {
+                _roomController.SetMask(MaskToDraw, drawn);
+            }
+        }
+
+        private void FillAreaOntoMask(int x, int y)
+        {
+            Point point = new Point(x, y);
+            Color color = Factory.AGSEditor.CurrentGame.Palette[_drawingWithArea].Colour;
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            using (Bitmap drawn = mask.FillArea(point, _drawingWithArea, scale))
             {
                 _roomController.SetMask(MaskToDraw, drawn);
             }

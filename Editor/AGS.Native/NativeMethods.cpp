@@ -78,10 +78,6 @@ extern void FixRoomMasks(Room ^room);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
-extern void create_undo_buffer(void *roomptr, int maskType) ;
-extern bool does_undo_buffer_exist();
-extern void clear_undo_buffer() ;
-extern void restore_from_undo_buffer(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
 extern void transform_string(char *text);
 extern bool enable_greyed_out_masks;
@@ -487,26 +483,6 @@ namespace AGS
     {
         return export_area_mask((void*)room->_roomStructPtr, (int)maskType);
     }
-
-    void NativeMethods::CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType)
-		{
-			create_undo_buffer((void*)room->_roomStructPtr, (int)maskType);
-		}
-
-    bool NativeMethods::DoesUndoBufferExist()
-		{
-			return does_undo_buffer_exist();
-		}
-
-    void NativeMethods::ClearUndoBuffer()
-		{
-			clear_undo_buffer();
-		}
-
-    void NativeMethods::RestoreFromUndoBuffer(Room ^room, RoomAreaMaskType maskType)
-		{
-			restore_from_undo_buffer((void*)room->_roomStructPtr, (int)maskType);
-		}
 
     void NativeMethods::SetGreyedOutMasksEnabled(bool enabled)
     {

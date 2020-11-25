@@ -50,6 +50,7 @@ namespace AGS.Editor
         // Mouse hold/release positions in ROOM's coordinates
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
+        private Bitmap _undoBufferMask;
 
         private static AreaDrawMode _drawMode = AreaDrawMode.Select;
         private static List<MenuCommand> _toolbarIcons = null;
@@ -150,6 +151,16 @@ namespace AGS.Editor
         public bool Locked { get; set; }
         public bool Enabled { get { return _isOn; } }
 
+        private Bitmap UndoBufferMask
+        {
+            get { return _undoBufferMask; }
+            set
+            {
+                _undoBufferMask?.Dispose();
+                _undoBufferMask = value;
+            }
+        }
+
         protected virtual void FilterActivated()
 		{
 		}
@@ -246,7 +257,7 @@ namespace AGS.Editor
 
             if (drawMode == AreaDrawMode.Freehand)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
             }
 
 			_drawingWithArea = _selectedArea;
@@ -271,7 +282,7 @@ namespace AGS.Editor
             }
             else if (drawMode == AreaDrawMode.Fill)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
                 FillAreaOntoMask(x, y);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
@@ -309,14 +320,14 @@ namespace AGS.Editor
 
             if (drawMode == AreaDrawMode.Line)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
                 DrawLineOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
             else if (drawMode == AreaDrawMode.Rectangle)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
                 DrawFilledRectangleOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
@@ -414,9 +425,9 @@ namespace AGS.Editor
 			}
 			else if (command == UNDO_COMMAND)
 			{
-				Factory.NativeProxy.RestoreFromUndoBuffer(_room, this.MaskToDraw);
-				Factory.NativeProxy.ClearUndoBuffer();
-				_room.Modified = true;
+                _roomController.SetMask(MaskToDraw, UndoBufferMask);
+                UndoBufferMask = null;
+                _room.Modified = true;
 				_panel.Invalidate();
 				UpdateUndoButtonEnabledState();
 			}
@@ -474,7 +485,7 @@ namespace AGS.Editor
                     return;
                 }
 
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
                 Factory.NativeProxy.ImportAreaMask(_room, this.MaskToDraw, bmp);
                 bmp.Dispose();
                 _room.Modified = true;
@@ -508,7 +519,7 @@ namespace AGS.Editor
 
         private void UpdateUndoButtonEnabledState()
         {
-            bool shouldBeEnabled = Factory.NativeProxy.DoesUndoBufferExist();
+            bool shouldBeEnabled = UndoBufferMask != null;
 
             if (shouldBeEnabled != _toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled)
             {
@@ -561,6 +572,7 @@ namespace AGS.Editor
         public void Dispose()
         {
             _tooltip.Dispose();
+            UndoBufferMask = null; // Dispose is invoked inside the property setter
         }
 
         public string GetItemName(string id)

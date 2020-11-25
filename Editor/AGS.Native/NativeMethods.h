@@ -67,10 +67,6 @@ namespace AGS
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
-      void CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType);
-      bool DoesUndoBufferExist();
-      void ClearUndoBuffer();
-      void RestoreFromUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       void SetGreyedOutMasksEnabled(bool enabled);
 			void CreateBuffer(int width, int height) ;
 			void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) ;

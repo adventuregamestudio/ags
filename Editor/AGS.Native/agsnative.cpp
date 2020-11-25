@@ -106,7 +106,6 @@ struct NativeRoomTools
     bool roomModified = false;
     int loaded_room_number = -1;
     std::unique_ptr<AGSBitmap> drawBuffer;
-    std::unique_ptr<AGSBitmap> undoBuffer;
     std::unique_ptr<AGSBitmap> roomBkgBuffer;
 };
 std::unique_ptr<NativeRoomTools> RoomTools;
@@ -594,46 +593,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
   // FIXME later
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
-}
-
-void create_undo_buffer(void *roomptr, int maskType) 
-{
-	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    auto &undoBuffer = RoomTools->undoBuffer;
-  if (undoBuffer != NULL)
-  {
-    if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
-    {
-      undoBuffer.reset();
-    }
-  }
-  if (undoBuffer == NULL)
-  {
-    undoBuffer.reset(Common::BitmapHelper::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth()));
-  }
-  undoBuffer->Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
-}
-
-bool does_undo_buffer_exist()
-{
-  return (RoomTools->undoBuffer != NULL);
-}
-
-void clear_undo_buffer() 
-{
-  if (does_undo_buffer_exist()) 
-  {
-      RoomTools->undoBuffer.reset();
-  }
-}
-
-void restore_from_undo_buffer(void *roomptr, int maskType)
-{
-  if (does_undo_buffer_exist())
-  {
-  	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    mask->Blit(RoomTools->undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
-  }
 }
 
 void setup_greyed_out_palette(int selCol) 
@@ -3513,7 +3472,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	CopyInteractions(room->Interactions, thisroom.EventHandlers.get());
 
 	room->GameID = thisroom.GameID;
-  clear_undo_buffer();
 
 	return room;
 }

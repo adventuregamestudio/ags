@@ -297,26 +297,6 @@ namespace AGS.Editor
 			set { _native.SetGreyedOutMasksEnabled(value); }
 		}
 
-        public void CreateUndoBuffer(Room room, RoomAreaMaskType mask)
-        {
-            _native.CreateUndoBuffer(room, mask);
-        }
-
-        public bool DoesUndoBufferExist()
-        {
-            return _native.DoesUndoBufferExist();
-        }
-
-        public void ClearUndoBuffer()
-        {
-            _native.ClearUndoBuffer();
-        }
-
-        public void RestoreFromUndoBuffer(Room room, RoomAreaMaskType mask)
-        {
-            _native.RestoreFromUndoBuffer(room, mask);
-        }
-
         public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {
             _native.ImportAreaMask(room, mask, bmp);

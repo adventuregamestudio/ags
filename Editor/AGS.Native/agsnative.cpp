@@ -103,7 +103,6 @@ int BaseColorDepth = 0;
 
 struct NativeRoomTools
 {
-    bool roomModified = false;
     int loaded_room_number = -1;
     std::unique_ptr<AGSBitmap> drawBuffer;
     std::unique_ptr<AGSBitmap> roomBkgBuffer;
@@ -1433,7 +1432,6 @@ void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) 
        "entry 0 corresponds to No Area, palette index 1 corresponds to area 1, and "
        "so forth.", name);
 	MessageBox(NULL, errorBuf, "Mask Error", MB_OK);
-    RoomTools->roomModified = true;
   }
 }
 
@@ -1483,8 +1481,6 @@ const char* load_room_file(const char*rtlo) {
   if ((thisroom.BgFrames[0].Graphic->GetColorDepth () > 8) &&
       (thisgame.color_depth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
-
-  RoomTools->roomModified = false;
 
   validate_mask(thisroom.HotspotMask.get(), "hotspot", MAX_ROOM_HOTSPOTS);
   validate_mask(thisroom.WalkBehindMask.get(), "walk-behind", MAX_WALK_AREAS + 1);

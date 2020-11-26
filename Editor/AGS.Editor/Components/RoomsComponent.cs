@@ -1571,5 +1571,10 @@ namespace AGS.Editor.Components
         {
             return _agsEditor.CurrentGame.RootRoomFolder;
         }
-	}
+
+        protected override IList<IRoom> GetFlatList()
+        {
+            return null;
+        }
+    }
 }

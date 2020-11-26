@@ -675,10 +675,9 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
     SetCheck(_hThreadedAudio, _winCfg.ThreadedAudio);
+    SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
-    else
-        SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 
     if (INIreadint(_cfgIn, "disabled", "threaded_audio", 0) != 0)
         EnableWindow(_hThreadedAudio, FALSE);
@@ -766,6 +765,8 @@ void WinSetupDialog::OnGfxDriverUpdate()
     DriverDescMap::const_iterator it = _drvDescMap.find(_winCfg.GfxDriverId);
     if (it != _drvDescMap.end())
         _drvDesc = it->second;
+    else
+        _drvDesc.reset();
 
     FillGfxModeList();
     FillGfxFilterList();
@@ -1084,7 +1085,7 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id)
         std::sort(modes.begin(), modes.end(), SizeLess);
         delete gfxm_list;
     }
-    else
+    if (modes.size() == 0)
     {
         // Add two default modes in hope that engine will be able to handle them (or fallbacks to something else)
         modes.push_back(DisplayMode(GraphicResolution(_desktopSize.Width, _desktopSize.Height, drv_desc->UseColorDepth)));

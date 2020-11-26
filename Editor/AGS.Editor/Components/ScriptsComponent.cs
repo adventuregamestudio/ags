@@ -617,5 +617,10 @@ namespace AGS.Editor.Components
         {
             return _agsEditor.CurrentGame.RootScriptFolder;
         }
+
+        protected override IList<ScriptAndHeader> GetFlatList()
+        {
+            return null;
+        }
     }
 }

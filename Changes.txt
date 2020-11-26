@@ -1,5 +1,106 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 5, October 2020
+
+Editor:
+ - Fixed Inventory Item preview could show wrong sprites and/or sprites in wrong scale.
+
+Engine:
+ - Fixed Dictionary.Get() crashing on missing key instead of returning null, as expected.
+ - Dictionary.GetKeysAsArray(), GetValuesAsArray() and Set.GetItemsAsArray() now return null
+   if they have no elements (0-sized arrays are forbidden by AGS Script).
+ - Fixed AudioChannel.SetRoomLocation() parameters lost upon restoring a saved game.
+
+Linux:
+ - Disabled mouse speed control as it cannot be correctly supported. This fixes mouse movement
+   glitches in fullscreen on certain systems.
+
+Compatibility:
+ - Don't error on missing speech animation frames if speaking character is disabled (.on = false)
+ - Fixed legacy Seek/GetMIDIPosition() and Seek/GetMP3PosMillis() not working correctly in threaded
+   audio mode.
+
+
+VERSION 3.5.0 - Patch 4, August 2020
+
+Editor:
+ - Fixed room editor crashing after user changes script name of a character present in opened room.
+ - Fixed modifying any item's name will make a new name assigned to all opened tabs.
+
+Engine:
+ - Fixed OpenGL was taking screenshots incorrectly on certain systems with different alignment
+   of color components in video memory (OSX, iOS).
+
+WinSetup:
+ - Fixed "Use voice pak" option was reset if no speech.vox found.
+
+
+VERSION 3.5.0 - Patch 3, July 2020
+
+Editor:
+ - In room editor adjusted the object selection bar's visual style, made dropdown buttons larger
+   and easier to click on.
+ - Made room editor display "locked" cursor consistently when whole object/area group is locked,
+   and when over locked Edges.
+ - Fixed room editor failing to initialize if currently selected object's name exceeded navigation
+   bar's width.
+ - Fixed some panels were not upscaling sprite previews in low-resolution projects as intended.
+ - Fixed ViewFrame's default Sound value set as "-1 (unknown)" (should be "none").
+ - Fixed "Change ID" command did not affect order of game objects in a compiled game until a
+   project was reloaded in the editor.
+ - Fixed "Change ID" command on a View restricted max ID to a wrong number (lower than normal).
+ - Fixed Character preview was not updated when View ID is changed.
+ - Fixed Room editor displayed character incorrectly when its ID is changed.
+ - Fixed import of room scripts when loading an old game made by AGS 2.72 or earlier.
+ - Fixed another unhandled exception occuring when Editor was about to report "unexpected error".
+
+Engine:
+ - RunAGSGame() will now automatically reset translation to Default before starting new game,
+   to prevent situations when new game will be trying to init a translation from previous game.
+ - Character speech will be now displayed relative to the first found viewport the character is
+   seen in, or the one which camera is closest to the character in the room.
+ - Fixed crash when deleting custom Viewport in a non-software graphics mode.
+ - Fixed Viewport.Camera not handling set null pointer properly (should disable viewport now).
+ - Fixed Screen.RoomToScreenPoint()/ScreenToRoomPoint() functions were converting coordinates
+   always through camera #0, instead of a camera actually linked to the primary viewport.
+ - Fixed Screen.AutoSizeViewportOnRoomLoad property was forcing always camera #0 to align itself
+   to the new room, instead of a camera actually linked to the primary viewport.
+ - Fixed speech vertical position was not correctly calculated if the room camera is zoomed.
+
+Linux:
+ - Fixed script floats were printed according to system locale rules and not in uniform one.
+
+Windows:
+ - Again fixed game becoming minimized when quitting with error from the Direct3D fullscreen.
+
+
+VERSION 3.5.0 - Patch 2, February 2020
+
+Editor:
+ - Fixed mouse cursor flicker above the script editor, again (was fixed first for 3.3.5, but
+   then reverted by mistake).
+ - Fixed bitmap palette was not remapped to game or room palette for 8-bit sprites if they were
+   imported with "Leave as-is" transparency setting.
+ - Fixed an imported palette did not really apply to sprites until reopening a game in the editor.
+
+Engine:
+ - Fixed crash when saving in a game which contains Set or Dictionary in script.
+ - Fixed crash caused by a 32-bit sprite with alpha channel in a 8-bit game.
+ - Fixed occasional regression (since 3.4.3) in OpenGL renderer that caused graphic
+   artifacts at the borders of sprites, but only when nearest-neighbour filter is used.
+
+Windows:
+ - Fixed keyboard and mouse not working when game is run under Wine (or, potentially, particular
+   Windows setups too).
+ - Fixed maximal allowed window size deduction, which works better on Windows 8 and higher.
+ - Fixed game becoming minimized when quitting with error from the fullscreen mode, requiring
+   player to switch back in order to read the error message.
+
+WinSetup:
+ - Fixed crash occuring if the chosen graphics driver does not support any modes for the current
+   game's color depth.
+
+
 VERSION 3.5.0 - Patch 1, December 2019
 
 Editor:

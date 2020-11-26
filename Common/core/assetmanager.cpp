@@ -407,5 +407,22 @@ Stream *AssetManager::OpenAssetAsStream(const String &asset_name, FileOpenMode o
     return nullptr;
 }
 
+
+String GetAssetErrorText(AssetError err)
+{
+    switch (err)
+    {
+    case kAssetNoError:
+        return "No error.";
+    case kAssetErrNoLibFile:
+        return "Asset library file not found or could not be opened.";
+    case kAssetErrLibParse:
+        return "Not an asset library or unsupported format.";
+    case kAssetErrNoManager:
+        return "Asset manager is not initialized.";
+    }
+    return "Unknown error.";
+}
+
 } // namespace Common
 } // namespace AGS

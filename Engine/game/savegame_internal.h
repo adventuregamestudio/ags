@@ -101,6 +101,10 @@ struct RestoredData
         int Pan = 0;
         int PanAsPercent = 0;
         int Speed = 0;
+        // since version 1
+        int XSource = -1;
+        int YSource = -1;
+        int MaxDist = 0;
     };
     ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds

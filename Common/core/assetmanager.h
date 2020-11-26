@@ -146,6 +146,9 @@ private:
     soff_t                  _lastAssetSize;     // size of asset that was opened last time
 };
 
+
+String GetAssetErrorText(AssetError err);
+
 } // namespace Common
 } // namespace AGS
 

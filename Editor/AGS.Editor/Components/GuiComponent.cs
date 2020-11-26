@@ -135,6 +135,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _guiRightClicked.ID = newNumber;
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_guiRightClicked);
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
@@ -196,11 +197,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
+                var docItem = ((GUIEditor)doc.Control).GuiToEdit;
+                doc.Name = docItem.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }
 
@@ -334,6 +336,11 @@ namespace AGS.Editor.Components
         protected override GUIFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootGUIFolder;
+        }
+
+        protected override IList<GUI> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.GUIFlatList;
         }
 
     }

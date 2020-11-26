@@ -273,6 +273,7 @@ namespace AGS.Editor
                             Factory.AGSEditor.CurrentGame.Palette[i] = newPalette[i];
                         }
                         palettePanel.Invalidate();
+                        Factory.NativeProxy.PaletteColoursChanged(Factory.AGSEditor.CurrentGame);
                     }
                 }
             }

@@ -35,7 +35,7 @@ extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(int hdc, int x,int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
 extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
-extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum);
+extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
 extern void SetNewSpriteFromHBitmap(int slot, int hBmp);
@@ -57,8 +57,8 @@ extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
 extern int GetCurrentlyLoadedRoomNumber();
 extern int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
-extern int extract_template_files(const char *templateFileName);
-extern int extract_room_template_files(const char *templateFileName, int newRoomNumber);
+extern HAGSError extract_template_files(const char *templateFileName);
+extern HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
 extern void SaveGame(bool compressSprites);
@@ -204,9 +204,9 @@ namespace AGS
 			return drawFontAt(hDC, fontNum, x, y, width);
 		}
 
-		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum)
+		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
 		{
-			drawSpriteStretch(hDC, x, y, width, height, spriteNum);
+			drawSpriteStretch(hDC, x, y, width, height, spriteNum, flipImage);
 		}
 
 		void NativeMethods::DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum)
@@ -600,19 +600,20 @@ namespace AGS
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
 			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
-			if (!extract_template_files(fileNameAnsi))
+            HAGSError err = extract_template_files(fileNameAnsi);
+			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.");
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
 			}
 		}
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
 			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
-
-			if (!extract_room_template_files(fileNameAnsi, newRoomNumber))
+            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
+			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.");
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
 			}
 		}
 				

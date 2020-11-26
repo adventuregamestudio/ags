@@ -86,7 +86,8 @@ bool Dict_Contains(ScriptDictBase *dic, const char *key)
 
 const char *Dict_Get(ScriptDictBase *dic, const char *key)
 {
-    return CreateNewScriptString(dic->Get(key));
+    auto *str = dic->Get(key);
+    return str ? CreateNewScriptString(str) : nullptr;
 }
 
 bool Dict_Remove(ScriptDictBase *dic, const char *key)
@@ -118,6 +119,8 @@ void *Dict_GetKeysAsArray(ScriptDictBase *dic)
 {
     std::vector<const char*> items;
     dic->GetKeys(items);
+    if (items.size() == 0)
+        return nullptr;
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
     return arr.second;
 }
@@ -126,6 +129,8 @@ void *Dict_GetValuesAsArray(ScriptDictBase *dic)
 {
     std::vector<const char*> items;
     dic->GetValues(items);
+    if (items.size() == 0)
+        return nullptr;
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
     return arr.second;
 }
@@ -270,6 +275,8 @@ void *Set_GetItemsAsArray(ScriptSetBase *set)
 {
     std::vector<const char*> items;
     set->GetItems(items);
+    if (items.size() == 0)
+        return nullptr;
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
     return arr.second;
 }

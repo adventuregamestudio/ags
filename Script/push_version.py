@@ -75,17 +75,6 @@ def main():
 
     # -----------------------------------------------------------------------------
 
-    path = "../Manual/ags.tex"
-    encoding = "utf-8"
-    data = read_file(path, encoding)
-
-    m = re.search(r'\\title\{Adventure Game Studio\s+(.*)\}', data)
-    data = replace_group(m, 1, data, ".".join(version.version_friendly))
-
-    write_file(path, encoding, data)
-
-    # -----------------------------------------------------------------------------
-
     path = "../Android/library/AndroidManifest.xml"
     encoding = "utf-8"
     data = read_file(path, encoding)

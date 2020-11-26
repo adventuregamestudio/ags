@@ -51,7 +51,8 @@ Locations of two latter files differ between running platforms:
 * **\[sound\]** - sound options
   * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
-	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA.
+	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA;
+	  * SDL2 - if alleg-sdl2digi.so is present.
 	* For Windows:
 	  * DXA - pure DirectSound driver;
 	  * AXA - Allegro mixer to DirectSound;
@@ -117,7 +118,7 @@ Following OPTIONS are supported when running from command line:
 * --log - write debug messages to log file.
 * --no-log - prevent from writing to log file.
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
-* --tell - print various information concerning engine and the game, and quits. Output is done in JSON format.
+* --tell - print various information concerning engine and the game, and quits. Output is done in INI format.
   * --tell-config - print contents of merged game config.
   * --tell-configpath - print paths to available config files.
   * --tell-data - print information on game data and its location.

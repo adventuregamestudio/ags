@@ -369,84 +369,89 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   return 1;
 }
 
-int extract_room_template_files(const char *templateFileName, int newRoomNumber) 
+HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber)
 {
-    if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
+  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  if (err != Common::kAssetNoError) 
   {
-    return 0;
+    return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
   }
   if (Common::AssetManager::GetAssetOffset(ROOM_TEMPLATE_ID_FILE) < 1)
   {
     Common::AssetManager::SetDataFile(NULL);
-    return 0;
+    return new AGSError("Template file does not contain necessary metadata.");
   }
 
   int numFile = Common::AssetManager::GetAssetCount();
 
   for (int a = 0; a < numFile; a++) {
-      const char *thisFile = Common::AssetManager::GetAssetFileByIndex(a);
-    if (thisFile == NULL) {
-      Common::AssetManager::SetDataFile(NULL);
-      return 0;
-    }
+    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+    if (thisFile.IsEmpty())
+      continue; // should not normally happen
 
     // don't extract the template metadata file
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    if (!readin)
+    {
+      Common::AssetManager::SetDataFile(NULL);
+      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+    }
     char outputName[MAX_PATH];
     const char *extension = strchr(thisFile, '.');
     sprintf(outputName, "room%d%s", newRoomNumber, extension);
     Stream *wrout = Common::File::CreateFile(outputName);
-    if ((readin == NULL) || (wrout == NULL)) 
+    if (!wrout) 
     {
-      delete wrout;
       delete readin;
       Common::AssetManager::SetDataFile(NULL);
-      return 0;
+      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
-    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
-    char *membuff = (char*)malloc (size);
+    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
+    char *membuff = new char[size];
     readin->Read(membuff, size);
-    wrout->Write (membuff, size );
+    wrout->Write(membuff, size);
     delete readin;
     delete wrout;
-    free (membuff);
+    delete[] membuff;
   }
 
   Common::AssetManager::SetDataFile(NULL);
-  return 1;
+  return HAGSError::None();
 }
 
-int extract_template_files(const char *templateFileName) 
+HAGSError extract_template_files(const char *templateFileName)
 {
-  if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
+  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  if (err != Common::kAssetNoError) 
   {
-    return 0;
+    return new AGSError("Failed to read the template file", Common::GetAssetErrorText(err));
   }
-  
-  if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) < 1))
+  if ((Common::AssetManager::GetAssetOffset(old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset(new_editor_data_file) < 1))
   {
     Common::AssetManager::SetDataFile(NULL);
-    return 0;
+    return new AGSError("Template file does not contain main project data.");
   }
 
   int numFile = Common::AssetManager::GetAssetCount();
-
   for (int a = 0; a < numFile; a++) {
-    const char *thisFile = Common::AssetManager::GetAssetFileByIndex (a);
-    if (thisFile == NULL) {
-      Common::AssetManager::SetDataFile(NULL);
-      return 0;
-    }
+    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+    if (thisFile.IsEmpty())
+      continue; // should not normally happen
 
     // don't extract the dummy template lock file
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
-    Stream *wrout = Common::File::CreateFile (thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    if (!readin)
+    {
+      Common::AssetManager::SetDataFile(NULL);
+      return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+    }
+    Stream *wrout = Common::File::CreateFile(thisFile);
     if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
     {
       // an old template with Music/Sound folder, create the folder
@@ -456,22 +461,23 @@ int extract_template_files(const char *templateFileName)
       mkdir(folderName);
       wrout = Common::File::CreateFile(thisFile);
     }
-    if ((readin == NULL) || (wrout == NULL)) 
+    if (!wrout)
     {
+      delete readin;
       Common::AssetManager::SetDataFile(NULL);
-      return 0;
+      return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
-    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
-    char *membuff = (char*)malloc (size);
-    readin->Read (membuff, size);
-    wrout->Write (membuff, size);
+    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
+    char *membuff = new char[size];
+    readin->Read(membuff, size);
+    wrout->Write(membuff, size);
     delete readin;
     delete wrout;
-    free (membuff);
+    delete[] membuff;
   }
 
   Common::AssetManager::SetDataFile(NULL);
-  return 1;
+  return HAGSError::None();
 }
 
 void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)
@@ -1213,8 +1219,6 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[spriteNum].IsRelativeRes()) ?
-        (thisgame.SpriteInfos[spriteNum].IsLegacyHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1224,16 +1228,16 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
 		flipped->FillTransparent();
 		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
-		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, flipped, x, y, 1);
 		delete flipped;
 	}
 	else 
 	{
-		drawBlockScaledAt(hdc, theSprite, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, theSprite, x, y, 1);
 	}
 }
 
-void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum) {
+void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum, bool flipImage) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
   Common::Bitmap *tempBlock = NULL;
 	
@@ -1247,8 +1251,16 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
 	  todraw = tempBlock;
   }
 
-  // FIXME later
-  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(), x,y, width, height);
+  if (flipImage) {
+    Common::Bitmap* flipped = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), todraw->GetColorDepth());
+    flipped->FillTransparent();
+    flipped->FlipBlt(todraw, 0, 0, Common::kBitmap_HFlip);
+    stretch_blit_to_hdc(flipped->GetAllegroBitmap(), (HDC)hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
+    delete flipped;
+  } else {
+    // FIXME later
+    stretch_blit_to_hdc(todraw->GetAllegroBitmap(), (HDC)hdc, 0, 0, todraw->GetWidth(), todraw->GetHeight(), x, y, width, height);
+  }
 
   delete tempBlock;
 }
@@ -1285,14 +1297,18 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
 #define SIMP_LEAVEALONE 5
 #define SIMP_NONE     6
 
-void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, color*itspal, bool useBgSlots, int importedColourDepth) 
+// Adjusts sprite's transparency using the chosen method
+void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, color*itspal, int importedColourDepth,
+    int &transcol)
 {
   if (sprite_import_method == SIMP_LEAVEALONE)
+  {
+    transcol = 0;
     return;
+  }
 
-  int uu,tt;
   set_palette_range(palette, 0, 255, 0);
-  int transcol=toimp->GetMaskColor();
+  transcol=toimp->GetMaskColor();
   // NOTE: This takes the pixel from the corner of the overall import
   // graphic, NOT just the image to be imported
   if (sprite_import_method == SIMP_TOPLEFT)
@@ -1314,8 +1330,8 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     else
       changeTransparencyTo = transcol - 1;
 
-    for (tt=0;tt<toimp->GetWidth();tt++) {
-      for (uu=0;uu<toimp->GetHeight();uu++) {
+    for (int tt=0;tt<toimp->GetWidth();tt++) {
+      for (int uu=0;uu<toimp->GetHeight();uu++) {
         if (toimp->GetPixel(tt,uu) == transcol)
           toimp->PutPixel(tt,uu, changeTransparencyTo);
       }
@@ -1333,8 +1349,8 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
 		    replaceWithCol = 0;
 	  }
     // swap all transparent pixels with index 0 pixels
-    for (tt=0;tt<toimp->GetWidth();tt++) {
-      for (uu=0;uu<toimp->GetHeight();uu++) {
+    for (int tt=0;tt<toimp->GetWidth();tt++) {
+      for (int uu=0;uu<toimp->GetHeight();uu++) {
         if (toimp->GetPixel(tt,uu)==transcol)
           toimp->PutPixel(tt,uu, bitmapMaskColor);
         else if (toimp->GetPixel(tt,uu) == bitmapMaskColor)
@@ -1342,7 +1358,12 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
       }
     }
   }
+}
 
+// Adjusts 8-bit sprite's palette
+void sort_out_palette(Common::Bitmap *toimp, color*itspal, bool useBgSlots, int transcol)
+{
+  set_palette_range(palette, 0, 255, 0);
   if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
     // 256-colour mode only
     if (transcol!=0)
@@ -1350,7 +1371,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     wsetrgb(0,0,0,0,itspal); // set index 0 to black
     __wremap_keep_transparent = 1;
     color oldpale[256];
-    for (uu=0;uu<255;uu++) {
+    for (int uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
       else if (thisgame.paluses[uu]==PAL_BACKGROUND)
@@ -2589,10 +2610,17 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
   int importedColourDepth;
 	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if ((remapColours) || (thisgame.color_depth > 1)) 
+	if (thisgame.color_depth > 1) 
 	{
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
+    else
+    {
+        int transcol;
+        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, importedColourDepth, transcol);
+        if (remapColours)
+            sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
+    }
 
     int flags = 0;
 	if (alphaChannel)

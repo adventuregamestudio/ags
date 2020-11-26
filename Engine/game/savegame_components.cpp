@@ -376,7 +376,7 @@ HSaveError WriteAudio(PStream out)
 
     // Game content assertion
     out->WriteInt32(game.audioClipTypes.size());
-    out->WriteInt32(game.audioClips.size());
+    out->WriteInt32(game.audioClips.size()); // [ivan-mogilko] not necessary, kept only to avoid changing save format
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
@@ -399,6 +399,10 @@ HSaveError WriteAudio(PStream out)
             out->WriteInt32(ch->volAsPercentage);
             out->WriteInt32(ch->panningAsPercentage);
             out->WriteInt32(ch->get_speed());
+            // since version 1
+            out->WriteInt32(ch->xSource);
+            out->WriteInt32(ch->ySource);
+            out->WriteInt32(ch->maximumPossibleDistanceAway);
         }
         else
         {
@@ -424,8 +428,10 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
     // Game content assertion
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
         return err;
+    in->ReadInt32(); // audio clip count
+    /* [ivan-mogilko] looks like it's not necessary to assert, as there's no data serialized for clips
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClips.size(), "Audio Clips"))
-        return err;
+        return err;*/
 
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
@@ -453,6 +459,12 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
             chan_info.PanAsPercent = in->ReadInt32();
             chan_info.Speed = 1000;
             chan_info.Speed = in->ReadInt32();
+            if (cmp_ver >= 1)
+            {
+                chan_info.XSource = in->ReadInt32();
+                chan_info.YSource = in->ReadInt32();
+                chan_info.MaxDist = in->ReadInt32();
+            }
         }
     }
     crossFading = in->ReadInt32();
@@ -1134,7 +1146,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        0,
+        1,
         0,
         WriteAudio,
         ReadAudio

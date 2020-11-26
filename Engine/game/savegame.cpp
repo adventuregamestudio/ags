@@ -612,6 +612,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             ch->set_speed(chan_info.Speed);
             ch->set_panning(chan_info.Pan);
             ch->panningAsPercentage = chan_info.PanAsPercent;
+            ch->xSource = chan_info.XSource;
+            ch->ySource = chan_info.YSource;
+            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
         }
     }
     if ((cf_in_chan > 0) && (lock.GetChannel(cf_in_chan) != nullptr))
@@ -639,6 +642,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
+    update_directional_sound_vol();
 
     for (int i = 0; i < game.numgui; ++i)
     {

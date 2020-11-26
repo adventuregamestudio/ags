@@ -12,6 +12,8 @@
 //
 //=============================================================================
 #include "util/geometry.h"
+#include <algorithm>
+#include <cmath>
 
 //namespace AGS
 //{
@@ -28,6 +30,20 @@ bool IsRectInsideRect(const Rect &place, const Rect &item)
 {
     return item.Left >= place.Left && item.Right <= place.Right &&
         item.Top >= place.Top && item.Bottom <= place.Bottom;
+}
+
+float DistanceBetween(const Rect &r1, const Rect &r2)
+{
+    // https://gamedev.stackexchange.com/a/154040
+    Rect rect_outer(
+        std::min(r1.Left, r2.Left),
+        std::min(r1.Top, r2.Top),
+        std::max(r1.Right, r2.Right),
+        std::max(r1.Bottom, r2.Bottom)
+    );
+    int inner_width = std::max(0, rect_outer.GetWidth() - r1.GetWidth() - r2.GetWidth());
+    int inner_height = std::max(0, rect_outer.GetHeight() - r1.GetHeight() - r2.GetHeight());
+    return std::sqrt(inner_width ^ 2 + inner_height ^ 2);
 }
 
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h)

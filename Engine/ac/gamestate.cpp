@@ -199,22 +199,21 @@ void GameState::UpdateRoomCamera(int index)
 
 Point GameState::RoomToScreen(int roomx, int roomy)
 {
-    return _roomViewports[0]->GetTransform().Scale(Point(roomx - _roomCameras[0]->GetRect().Left, roomy - _roomCameras[0]->GetRect().Top));
+    return _roomViewports[0]->RoomToScreen(roomx, roomy, false).first;
 }
 
 int GameState::RoomToScreenX(int roomx)
 {
-    return _roomViewports[0]->GetTransform().X.ScalePt(roomx - _roomCameras[0]->GetRect().Left);
+    return _roomViewports[0]->RoomToScreen(roomx, 0, false).first.X;
 }
 
 int GameState::RoomToScreenY(int roomy)
 {
-    return _roomViewports[0]->GetTransform().Y.ScalePt(roomy - _roomCameras[0]->GetRect().Top);
+    return _roomViewports[0]->RoomToScreen(0, roomy, false).first.Y;
 }
 
 VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data)
 {
-    Point screen_pt(scrx, scry);
     PViewport view;
     if (view_index < 0)
     {
@@ -225,26 +224,8 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
     else
     {
         view = _roomViewports[view_index];
-        if (clip_viewport && !view->GetRect().IsInside(screen_pt))
-            return std::make_pair(Point(), -1);
     }
-    
-    auto cam = view->GetCamera();
-    if (!cam)
-        return std::make_pair(Point(), -1);
-
-    Point p = view->GetTransform().UnScale(screen_pt);
-    if (convert_cam_to_data)
-    {
-        p.X += game_to_data_coord(cam->GetRect().Left);
-        p.Y += game_to_data_coord(cam->GetRect().Top);
-    }
-    else
-    {
-        p.X += cam->GetRect().Left;
-        p.Y += cam->GetRect().Top;
-    }
-    return std::make_pair(p, 0);
+    return view->ScreenToRoom(scrx, scry, clip_viewport, convert_cam_to_data);
 }
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry)
@@ -259,20 +240,6 @@ VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry)
     if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
         return ScreenToRoomImpl(scrx, scry, -1, true, true);
     return ScreenToRoomImpl(scrx, scry, 0, false, true);
-}
-
-VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)
-{
-    if ((size_t)view_index >= _roomViewports.size())
-        return VpPoint(Point(), -1);
-    return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, false);
-}
-
-VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport)
-{
-    if ((size_t)view_index >= _roomViewports.size())
-        return VpPoint(Point(), -1);
-    return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, true);
 }
 
 void GameState::CreatePrimaryViewportAndCamera()
@@ -332,6 +299,9 @@ void GameState::DeleteRoomViewport(int index)
     auto scobj = _scViewportRefs[index];
     scobj.first->Invalidate();
     ccReleaseObjectReference(scobj.second);
+    auto cam = _roomViewports[index]->GetCamera();
+    if (cam)
+        cam->UnlinkFromViewport(index);
     _roomViewports.erase(_roomViewports.begin() + index);
     _scViewportRefs.erase(_scViewportRefs.begin() + index);
     for (size_t i = index; i < _roomViewports.size(); ++i)
@@ -394,6 +364,12 @@ void GameState::DeleteRoomCamera(int index)
     auto scobj = _scCameraRefs[index];
     scobj.first->Invalidate();
     ccReleaseObjectReference(scobj.second);
+    for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
+    {
+        auto view = viewref.lock();
+        if (view)
+            view->LinkCamera(nullptr);
+    }
     _roomCameras.erase(_roomCameras.begin() + index);
     _scCameraRefs.erase(_scCameraRefs.begin() + index);
     for (size_t i = index; i < _roomCameras.size(); ++i)

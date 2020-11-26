@@ -75,6 +75,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                GetFlatList().Swap(oldNumber, newNumber);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
@@ -133,11 +134,12 @@ namespace AGS.Editor.Components
         {
             // Refresh tree, property grid and open windows
             RePopulateTreeView();
-            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
-                doc.Name = ((InventoryEditor)doc.Control).ItemToEdit.WindowTitle;
+                var docItem = ((InventoryEditor)doc.Control).ItemToEdit;
+                doc.Name = docItem.WindowTitle;
+                _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(docItem), doc, docItem);
             }
         }
 
@@ -236,6 +238,11 @@ namespace AGS.Editor.Components
         protected override InventoryItemFolder GetRootFolder()
         {
             return _agsEditor.CurrentGame.RootInventoryItemFolder;
+        }
+
+        protected override IList<InventoryItem> GetFlatList()
+        {
+            return _agsEditor.CurrentGame.InventoryFlatList;
         }
     }
 }

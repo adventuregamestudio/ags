@@ -131,7 +131,7 @@ std::vector<String> parse_log_multigroup(const String &group_str)
         switch (group_str[i])
         {
         case 'm': grplist.push_back("main"); break;
-        case 's': grplist.push_back("script"); break;
+        case 'g': grplist.push_back("game"); break;
         case 'c': grplist.push_back("sprcache"); break;
         case 'o': grplist.push_back("manobj"); break;
         }
@@ -241,7 +241,7 @@ void apply_debug_config(const ConfigTree &cfg)
         /* defaults */
         legacy_log_enabled,
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-          DbgGroupOption(kDbgGroup_Script, kDbgMsg_Info),
+          DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
 #ifdef DEBUG_SPRITECACHE
           DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_All),
 #else
@@ -261,7 +261,7 @@ void apply_debug_config(const ConfigTree &cfg)
             /* defaults */
             true,
             { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
+              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All)
             });
         debug_set_console(true);
     }
@@ -272,7 +272,7 @@ void apply_debug_config(const ConfigTree &cfg)
     {
         auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
-            dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
+            dbgout->SetGroupFilter(kDbgGroup_Game, kDbgMsg_Warn);
     }
 
     // We don't need message buffer beyond this point
@@ -314,7 +314,7 @@ void debug_script_print(const String &msg, MessageType mt)
         script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
     }
 
-    Debug::Printf(kDbgGroup_Script, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+    Debug::Printf(kDbgGroup_Game, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
 }
 
 void debug_script_warn(const char *msg, ...)

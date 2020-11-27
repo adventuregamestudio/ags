@@ -12,13 +12,13 @@ RUN cd %TEMP% && \
   curl -fLO http://download.microsoft.com/download/F/1/3/F1300C9C-A120-4341-90DF-8A52509B23AC/standalonesdk/sdksetup.exe && \
   start /wait sdksetup /ceip off /features OptionID.NetFxSoftwareDevelopmentKit /quiet /norestart
 
-ARG NUGET_VERSION=5.1.0
+ARG NUGET_VERSION=5.7.0
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y
 
-ARG INNO_SETUP_VERSION=6.0.2
+ARG INNO_SETUP_VERSION=6.0.5
 RUN cinst innosetup --version %INNO_SETUP_VERSION% -y
 
-ARG CMAKE_VERSION=3.14.5
+ARG CMAKE_VERSION=3.18.4
 RUN cinst cmake --version %CMAKE_VERSION% --installargs ADD_CMAKE_TO_PATH=System -y
 
 RUN pushd %TEMP% && \

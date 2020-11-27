@@ -7,6 +7,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -40,56 +41,64 @@ namespace AGS.Editor
             }
         }
 
-		private bool VerifyPathContainsValidCharacters()
-		{
-			foreach (char c in GetFullPath())
-			{
-				foreach (char invalidChar in Path.GetInvalidPathChars())
-				{
-					if (invalidChar == c)
-					{
-						return false;
-					}
-				}
-			}
-			if (!txtCreateInFolder.Text.Contains(@"\"))
-			{
-				// Path must contain at least one \
-				return false;
-			}
-			if (!txtCreateInFolder.Text.Contains(":"))
-			{
-				// Path must contain at least one :
-				return false;
-			}
-			return true;
-		}
-
         public override bool NextButtonPressed()
         {
-            if ((txtFileName.Text.Length > 0) && 
-				(txtFriendlyName.Text.Length > 0) &&
-				(txtCreateInFolder.Text.Length > 0))
+            if (txtFriendlyName.TextLength == 0)
             {
-                if (!Utilities.DoesFileNameContainOnlyValidCharacters(txtFileName.Text))
-                {
-                    Factory.GUIController.ShowMessage("The file name you have specified includes some invalid characters. Please use just letters and numbers.", MessageBoxIcon.Warning);
-                    return false;
-                }
-				if (!VerifyPathContainsValidCharacters())
-				{
-					Factory.GUIController.ShowMessage("The folder name you have specified includes some invalid characters. Please use just letters and numbers.", MessageBoxIcon.Warning);
-					return false;
-				}
-				if (Directory.Exists(GetFullPath()))
-                {
-                    Factory.GUIController.ShowMessage("The directory '" + GetFullPath() + "', already exists. Please choose another file name.", MessageBoxIcon.Warning);
-                    return false;
-                }
-                return true;
+                Factory.GUIController.ShowMessage("You must enter a name for your game", MessageBoxIcon.Warning);
+                return false;
             }
-            Factory.GUIController.ShowMessage("You must type in a file name and a game name to continue.", MessageBoxIcon.Information);
-            return false;
+
+            if (txtFileName.TextLength == 0)
+            {
+                Factory.GUIController.ShowMessage("You must enter a file name for your game", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (txtCreateInFolder.TextLength == 0)
+            {
+                Factory.GUIController.ShowMessage("You must choose a directory where the game project will be created", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Validation.FilenameIsValid(txtFileName.Text) ||
+                !Validation.StringIsAsciiCharactersOnly(txtFileName.Text))
+            {
+                Factory.GUIController.ShowMessage("The file name you have specified includes some invalid characters. Please use just letters and numbers", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Validation.PathIsValid(txtCreateInFolder.Text))
+            {
+                Factory.GUIController.ShowMessage("The path to the directory you have specified includes some invalid characters", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            string fullpath;
+            try
+            {
+                fullpath = Path.Combine(txtCreateInFolder.Text, txtFileName.Text);
+            }
+            catch
+            {
+                Factory.GUIController.ShowMessage("Error combining full project path" , MessageBoxIcon.Error);
+                return false;
+            }
+
+            if (!Validation.PathIsAbsolute(fullpath) ||
+                !Validation.PathIsAbsoluteDriveLetter(fullpath))
+            {
+                Factory.GUIController.ShowMessage("The project directory must be an absolute path that starts with a drive letter", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Validation.PathIsAvailable(fullpath))
+            {
+                Factory.GUIController.ShowMessage("The chosen project directory already exists", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
         }
 
         public override string TitleText

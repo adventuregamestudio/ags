@@ -15,6 +15,16 @@ option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
+# Tools like ninja don't have a pseudo-terminal so compilers assume no coloured output
+option (AGS_FORCE_COLOURED_OUTPUT "Always produce ANSI-coloured output (GNU/Clang only)." OFF)
+if (${AGS_FORCE_COLOURED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif ()
+
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED on)
 
@@ -28,9 +38,24 @@ else()
     message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
 endif ()
 
+message( "CMAKE_SYSTEM_NAME:" ${CMAKE_SYSTEM_NAME} )
+message( "WIN32:" ${WIN32} )
+message( "LINUX:" ${LINUX} )
+message( "MACOS:" ${MACOS} )
+
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
 endif()
+
+if(LINUX)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
+            # without no-pie we can't double-click run ags in Nautilus
+            # this should only be needed in newer gcc versions
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie -no-pie")
+        endif ()
+    endif ()
+endif (LINUX)
 
 
 include(CheckIPOSupported)
@@ -111,7 +136,12 @@ elseif (LINUX)
     find_package(X11)
 endif()
 
-include(FetchAllegro)
+include(FetchSDL2)
+include(FetchSDL_Sound)
+
+include(FindLocalOpenAL)
+include(FindLocalAllegro)
+
 include(FetchOgg)
 include(FetchVorbis)
 include(FetchTheora)
@@ -121,12 +151,8 @@ add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
 add_subdirectory(Common                         EXCLUDE_FROM_ALL)
 
-add_subdirectory(Engine/libsrc/almp3-2.0.5      EXCLUDE_FROM_ALL)
-add_subdirectory(Engine/libsrc/alogg            EXCLUDE_FROM_ALL)
 add_subdirectory(Engine/libsrc/apeg-1.2.1       EXCLUDE_FROM_ALL)
-add_subdirectory(Engine/libsrc/dumb-0.9.2       EXCLUDE_FROM_ALL)
 add_subdirectory(Engine/libsrc/glad             EXCLUDE_FROM_ALL)
-add_subdirectory(Engine/libsrc/hq2x             EXCLUDE_FROM_ALL)
 add_subdirectory(Engine/libsrc/libcda-0.5       EXCLUDE_FROM_ALL)
 
 add_subdirectory(Engine)

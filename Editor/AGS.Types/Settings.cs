@@ -63,6 +63,7 @@ namespace AGS.Types
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private bool _compressSprites = false;
+        private bool _experimentalCompiler = false;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
@@ -323,6 +324,16 @@ namespace AGS.Types
         {
             get { return _compressSprites; }
             set { _compressSprites = value; }
+        }
+
+        [DisplayName("Use extended compiler")]
+        [Description("The extended compiler has more features but may still have some bugs, too")]
+        [DefaultValue(true)]
+        [Category("Compiler")]
+        public bool ExtendedCompiler
+        {
+            get { return _experimentalCompiler; }
+            set { _experimentalCompiler = value; }
         }
 
         [DisplayName("Save screenshots in save games")]

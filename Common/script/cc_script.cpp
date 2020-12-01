@@ -324,7 +324,7 @@ bool ccScript::Read(Stream *in)
   }
 
   if (in->ReadInt32() != ENDFILESIG) {
-    cc_error("internal error rebuilding script");
+    cc_error("!internal error rebuilding script");
     return false;
   }
   return true;

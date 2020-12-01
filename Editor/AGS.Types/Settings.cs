@@ -63,7 +63,7 @@ namespace AGS.Types
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private bool _compressSprites = false;
-        private bool _experimentalCompiler = false;
+        private bool _experimentalCompiler = true;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;

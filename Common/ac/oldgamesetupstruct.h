@@ -32,7 +32,7 @@ struct OriGameSetupStruct {
     char              gamename[30];
     char              options[20];
     unsigned char     paluses[256];
-    color             defpal[256];
+    RGB               defpal[256];
     InterfaceElement  iface[10];
     int               numiface;
     int               numviews;

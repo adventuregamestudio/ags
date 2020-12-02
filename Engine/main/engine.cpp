@@ -22,6 +22,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif
+#include <allegro.h> // allegro_install and _exit
 
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
@@ -63,8 +64,8 @@
 #include "main/engine_setup.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
-#include "main/main_allegro.h"
-#include "media/audio/audio_system.h"
+#include "media/audio/audio_core.h"
+#include "platform/base/sys_main.h"
 #include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
@@ -94,7 +95,7 @@ extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern color palette[256];
+extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
@@ -104,33 +105,31 @@ ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
-#define ALLEGRO_KEYBOARD_HANDLER
-
-bool engine_init_allegro()
+bool engine_init_backend()
 {
-    Debug::Printf(kDbgMsg_Info, "Initializing allegro");
-
     our_eip = -199;
-    // Initialize allegro
-    set_uformat(U_ASCII);
-    if (install_allegro(SYSTEM_AUTODETECT, &errno, atexit))
+    // Initialize SDL
+    Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
+    if (sys_main_init())
     {
-        const char *al_err = get_allegro_error();
-        const char *user_hint = platform->GetAllegroFailUserHint();
-        platform->DisplayAlert("Unable to initialize Allegro system driver.\n%s\n\n%s",
-            al_err[0] ? al_err : "Allegro library provided no further information on the problem.",
+        const char *err = SDL_GetError();
+        const char *user_hint = platform->GetBackendFailUserHint();
+        platform->DisplayAlert("Unable to initialize SDL library.\n%s\n\n%s",
+            (err && err[0]) ? err : "SDL provided no further information on the problem.",
             user_hint);
         return false;
     }
-    return true;
-}
+    
+    // Initialize stripped allegro library
+    set_uformat(U_ASCII);
+    if (install_allegro(SYSTEM_NONE, &errno, atexit))
+    {
+        platform->DisplayAlert("Internal error: unable to initialize stripped Allegro 4 library.");
+        return false;
+    }
 
-void engine_setup_allegro()
-{
-    // Setup allegro using constructed config string
-    const char *al_config_data = "[mouse]\n"
-        "mouse_accel_factor = 0\n";
-    override_config_data(al_config_data, ustrsize(al_config_data));
+    platform->PostBackendInit();
+    return true;
 }
 
 void winclosehook() {
@@ -144,11 +143,10 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     our_eip = -198;
-    set_window_title("Adventure Game Studio");
-    set_close_button_callback (winclosehook);
+    sys_window_set_title(game.gamename);
+    sys_window_set_icon();
+    sys_evt_set_quit_callback(winclosehook);
     our_eip = -197;
-
-    platform->SetGameWindowIcon();
 }
 
 // Starts up setup application, if capable.
@@ -184,6 +182,7 @@ bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
 
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
+            sys_main_shutdown();
             allegro_exit();
             char quotedpath[MAX_PATH];
             snprintf(quotedpath, MAX_PATH, "\"%s\"", exe_path.GetCStr());
@@ -421,14 +420,7 @@ void engine_locate_audio_pak()
 
 void engine_init_keyboard()
 {
-#ifdef ALLEGRO_KEYBOARD_HANDLER
-    Debug::Printf(kDbgMsg_Info, "Initializing keyboard");
-
-    install_keyboard();
-#endif
-#if AGS_PLATFORM_OS_LINUX
-    setlocale(LC_NUMERIC, "C"); // needed in X platform because install keyboard affects locale of printfs
-#endif
+    /* do nothing */
 }
 
 void engine_init_timer()
@@ -438,158 +430,26 @@ void engine_init_timer()
     skipMissedTicks();
 }
 
-bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
-{
-    Debug::Printf(kDbgMsg_Info, "Trying to init: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
-        AlIDToChars(digi_id).s, digi_id, AlIDToChars(midi_id).s, midi_id);
-
-    if (install_sound(digi_id, midi_id, nullptr) == 0)
-        return true;
-    // Allegro does not let you try digital and MIDI drivers separately,
-    // and does not indicate which driver failed by return value.
-    // Therefore we try to guess.
-    if (p_err_msg)
-        *p_err_msg = get_allegro_error();
-    if (midi_id != MIDI_NONE)
-    {
-        Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without MIDI", get_allegro_error());
-        if (install_sound(digi_id, MIDI_NONE, nullptr) == 0)
-            return true;
-    }
-    if (digi_id != DIGI_NONE)
-    {
-        Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without DIGI", get_allegro_error());
-        if (install_sound(DIGI_NONE, midi_id, nullptr) == 0)
-            return true;
-    }
-    Debug::Printf(kDbgMsg_Error, "Failed to init sound drivers. Error: %s", get_allegro_error());
-    return false;
-}
-
-// Attempts to predict a digital driver Allegro would chose, and get its maximal voices
-std::pair<int, int> autodetect_driver(_DRIVER_INFO *driver_list, int (*detect_audio_driver)(int), const char *type)
-{
-    for (int i = 0; driver_list[i].driver; ++i)
-    {
-        if (driver_list[i].autodetect)
-        {
-            int voices = detect_audio_driver(driver_list[i].id);
-            if (voices != 0)
-                return std::make_pair(driver_list[i].id, voices);
-            Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
-                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
-        }
-    }
-    return std::make_pair(0, 0);
-}
-
-// Decides which audio driver to request from Allegro.
-// Returns a pair of audio card ID and max available voices.
-std::pair<int, int> decide_audiodriver(int try_id, _DRIVER_INFO *driver_list,
-    int(*detect_audio_driver)(int), int &al_drv_id, const char *type)
-{
-    if (try_id == 0) // no driver
-        return std::make_pair(0, 0);
-    al_drv_id = 0; // the driver id will be set by library if one was found
-    if (try_id > 0)
-    {
-        int voices = detect_audio_driver(try_id);
-        if (al_drv_id == try_id && voices != 0) // found and detected
-            return std::make_pair(try_id, voices);
-        if (voices == 0) // found in list but detect failed
-            Debug::Printf(kDbgMsg_Error, "Failed to detect %s driver %s; Error: '%s'.", type, AlIDToChars(try_id).s, get_allegro_error());
-        else // not found at all
-            Debug::Printf(kDbgMsg_Error, "Unknown %s driver: %s, will try to find suitable one.", type, AlIDToChars(try_id).s);
-    }
-    return autodetect_driver(driver_list, detect_audio_driver, type);
-}
-
 void engine_init_audio()
 {
-    Debug::Printf("Initializing sound drivers");
-    int digi_id = usetup.digicard;
-    int midi_id = usetup.midicard;
-    int digi_voices = -1;
-    int midi_voices = -1;
-    // MOD player would need certain minimal number of voices
-    // TODO: find out if this is still relevant?
-    if (usetup.mod_player)
-        digi_voices = NUM_DIGI_VOICES;
-
-    Debug::Printf(kDbgMsg_Info, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
-        AlIDToChars(digi_id).s, digi_id, AlIDToChars(midi_id).s, midi_id);
-
-    // First try if drivers are supported, and switch to autodetect if explicit option failed
-    _DRIVER_INFO *digi_drivers = system_driver->digi_drivers ? system_driver->digi_drivers() : _digi_driver_list;
-    std::pair<int, int> digi_drv = decide_audiodriver(digi_id, digi_drivers, detect_digi_driver, digi_card, "digital");
-    _DRIVER_INFO *midi_drivers = system_driver->midi_drivers ? system_driver->midi_drivers() : _midi_driver_list;
-    std::pair<int, int> midi_drv = decide_audiodriver(midi_id, midi_drivers, detect_midi_driver, midi_card, "MIDI");
-
-    // Now, knowing which drivers we suppose to install, decide on which voices we reserve
-    digi_id = digi_drv.first;
-    midi_id = midi_drv.first;
-    const int max_digi_voices = digi_drv.second;
-    const int max_midi_voices = midi_drv.second;
-    if (digi_voices > max_digi_voices)
-        digi_voices = max_digi_voices;
-    // NOTE: we do not specify number of MIDI voices, so don't have to calculate available here
-
-    reserve_voices(digi_voices, midi_voices);
-    // maybe this line will solve the sound volume? [??? wth is this]
-    set_volume_per_voice(1);
-
-    String err_msg;
-    bool sound_res = try_install_sound(digi_id, midi_id, &err_msg);
-    if (!sound_res)
+    if (usetup.audio_backend != 0)
     {
-        Debug::Printf(kDbgMsg_Error, "Everything failed, disabling sound.");
-        reserve_voices(0, 0);
-        install_sound(DIGI_NONE, MIDI_NONE, nullptr);
+        Debug::Printf("Initializing audio");
+        audio_core_init(); // audio core system
     }
-    // Only display a warning if they wanted a sound card
-    const bool digi_failed = usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE;
-    const bool midi_failed = usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE;
-    if (digi_failed || midi_failed)
+    our_eip = -181;
+
+    if (usetup.audio_backend == 0)
     {
-        platform->DisplayAlert("Warning: cannot enable %s.\nProblem: %s.\n\nYou may supress this message by disabling %s in the game setup.",
-            (digi_failed && midi_failed ? "game audio" : (digi_failed ? "digital audio" : "MIDI audio") ),
-            (err_msg.IsEmpty() ? "No compatible drivers found in the system" : err_msg.GetCStr()),
-            (digi_failed && midi_failed ? "sound" : (digi_failed ? "digital sound" : "MIDI sound") ));
-    }
-
-    usetup.digicard = digi_card;
-    usetup.midicard = midi_card;
-
-    Debug::Printf(kDbgMsg_Info, "Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
-        AlIDToChars(digi_card).s, digi_card, AlIDToChars(midi_card).s, midi_card);
-
-    if (digi_card == DIGI_NONE)
-    {
-        // disable speech and music if no digital sound
-        // therefore the MIDI soundtrack will be used if present,
+        // all audio is disabled
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
         play.separate_music_lib = 0;
     }
-    if (usetup.mod_player && digi_driver->voices < NUM_DIGI_VOICES)
-    {
-        // disable MOD player if there's not enough digital voices
-        // TODO: find out if this is still relevant?
-        usetup.mod_player = 0;
-    }
-
-#if AGS_PLATFORM_OS_WINDOWS
-    if (digi_card == DIGI_DIRECTX(0))
-    {
-        // DirectX mixer seems to buffer an extra sample itself
-        use_extra_sound_offset = 1;
-    }
-#endif
 }
 
 void engine_init_debug()
 {
-    //set_volume(255,-1);
     if ((debug_flags & (~DBG_DEBUGMODE)) >0) {
         platform->DisplayAlert("Engine debugging enabled.\n"
             "\nNOTE: You have selected to enable one or more engine debugging options.\n"
@@ -643,7 +503,6 @@ int engine_load_game_data()
     if (!err)
     {
         proper_exit=1;
-        platform->FinishedUsingGraphicsMode();
         display_game_file_error(err);
         return EXIT_ERROR;
     }
@@ -669,13 +528,6 @@ int engine_check_register_game()
     return 0;
 }
 
-void engine_init_title()
-{
-    our_eip=-91;
-    set_window_title(game.gamename);
-    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
-}
-
 void engine_init_directories()
 {
     Debug::Printf(kDbgMsg_Info, "Data directory: %s", usetup.data_files_dir.GetCStr());
@@ -692,7 +544,7 @@ void engine_init_directories()
 
     ResPaths.DataDir = usetup.data_files_dir;
     ResPaths.GamePak.Path = usetup.main_data_filepath;
-    ResPaths.GamePak.Name = get_filename(usetup.main_data_filepath);
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_filepath);
 
     set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
     if (!usetup.install_dir.IsEmpty())
@@ -789,30 +641,10 @@ int engine_check_font_was_loaded()
     return 0;
 }
 
-void engine_init_modxm_player()
-{
-#ifndef PSP_NO_MOD_PLAYBACK
-    if (game.options[OPT_NOMODMUSIC])
-        usetup.mod_player = 0;
-
-    if (usetup.mod_player) {
-        Debug::Printf(kDbgMsg_Info, "Initializing MOD/XM player");
-
-        if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
-            platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
-            usetup.mod_player=0;
-        }
-    }
-#else
-    usetup.mod_player = 0;
-    Debug::Printf(kDbgMsg_Info, "Compiled without MOD/XM player");
-#endif
-}
-
 // Do the preload graphic if available
 void show_preload()
 {
-    color temppal[256];
+    RGB temppal[256];
 	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != nullptr)
     {
@@ -850,7 +682,7 @@ int engine_init_sprites()
     HError err = spriteset.InitFile(SpriteCache::DefaultSpriteFileName, SpriteCache::DefaultSpriteIndexName);
     if (!err) 
     {
-        platform->FinishedUsingGraphicsMode();
+        sys_main_shutdown();
         allegro_exit();
         proper_exit=1;
         platform->DisplayAlert("Could not load sprite set file %s\n%s",
@@ -1136,42 +968,11 @@ void engine_setup_scsystem_auxiliary()
     }
 }
 
-void engine_update_mp3_thread()
-{
-    update_mp3_thread();
-    platform->Delay(50);
-}
-
-void engine_start_multithreaded_audio()
-{
-  // PSP: Initialize the sound cache.
-  clear_sound_cache();
-
-  // Create sound update thread. This is a workaround for sound stuttering.
-  if (psp_audio_multithreaded)
-  {
-    if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
-    {
-      Debug::Printf(kDbgMsg_Info, "Failed to start audio thread, audio will be processed on the main thread");
-      psp_audio_multithreaded = 0;
-    }
-    else
-    {
-      Debug::Printf(kDbgMsg_Info, "Audio thread started");
-    }
-  }
-  else
-  {
-    Debug::Printf(kDbgMsg_Info, "Audio is processed on the main thread");
-  }
-}
-
 void engine_prepare_to_start_game()
 {
     Debug::Printf("Prepare to start game");
 
     engine_setup_scsystem_auxiliary();
-    engine_start_multithreaded_audio();
 
 #if AGS_PLATFORM_OS_ANDROID
     if (psp_load_latest_savegame)
@@ -1254,11 +1055,11 @@ bool define_gamedata_location(const String &exe_path)
     // derive missing ones from available.
     if (usetup.main_data_filename.IsEmpty())
     {
-        usetup.main_data_filename = get_filename(usetup.main_data_filepath);
+        usetup.main_data_filename = Path::GetFilename(usetup.main_data_filepath);
     }
     else if (usetup.main_data_filepath.IsEmpty())
     {
-        if (usetup.data_files_dir.IsEmpty() || !is_relative_filename(usetup.main_data_filename))
+        if (usetup.data_files_dir.IsEmpty() || !Path::IsRelativePath(usetup.main_data_filename))
             usetup.main_data_filepath = usetup.main_data_filename;
         else
             usetup.main_data_filepath = Path::ConcatPaths(usetup.data_files_dir, usetup.main_data_filename);
@@ -1435,7 +1236,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     //-----------------------------------------------------
     // Install backend
-    if (!engine_init_allegro())
+    if (!engine_init_backend())
         return EXIT_ERROR;
 
     //-----------------------------------------------------
@@ -1465,7 +1266,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     }
     // Set up game options from user config
     engine_set_config(cfg);
-    engine_setup_allegro();
     engine_force_window();
 
     our_eip = -190;
@@ -1484,12 +1284,8 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     our_eip = -193;
 
-    // Assign custom find resource callback for limited Allegro operations
-    system_driver->find_resource = al_find_resource;
-
     //-----------------------------------------------------
     // Begin setting up systems
-    engine_setup_window();    
 
     our_eip = -194;
 
@@ -1536,8 +1332,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (res != 0)
         return res;
 
-    engine_init_title();
-
     our_eip = -189;
 
     res = engine_check_disk_space();
@@ -1553,19 +1347,18 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     our_eip = -179;
 
-    engine_init_modxm_player();
-
     engine_init_resolution_settings(game.GetGameRes());
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
         return EXIT_ERROR;
 
+    // Configure game window after renderer was initialized
+    engine_setup_window();
+
     SetMultitasking(0);
 
-    // [ER] 2014-03-13
-    // Hide the system cursor via allegro
-    show_os_cursor(MOUSE_CURSOR_NONE);
+    sys_window_show_cursor(false); // hide the system cursor
 
     show_preload();
 

@@ -161,7 +161,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     }
     in->Read(&paluses[0], 256);
     // colors are an array of chars
-    in->Read(&defpal[0], sizeof(color)*256);
+    in->Read(&defpal[0], sizeof(RGB)*256);
     numviews = in->ReadInt32();
     numcharacters = in->ReadInt32();
     playercharacter = in->ReadInt32();
@@ -207,7 +207,7 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteArrayOfInt32(options, 100);
     out->Write(&paluses[0], 256);
     // colors are an array of chars
-    out->Write(&defpal[0], sizeof(color)*256);
+    out->Write(&defpal[0], sizeof(RGB)*256);
     out->WriteInt32(numviews);
     out->WriteInt32(numcharacters);
     out->WriteInt32(playercharacter);

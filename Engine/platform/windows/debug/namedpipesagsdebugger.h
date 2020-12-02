@@ -16,7 +16,6 @@
 #define __AC_NAMEDPIPESAGSDEBUGGER_H
 
 #include <windows.h>
-#include <io.h>
 #include "debug/agseditordebugger.h"
 
 struct NamedPipesAGSDebugger : IAGSEditorDebugger

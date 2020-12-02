@@ -11,8 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "aldumb.h"
 #include "ac/asset_helper.h"
 #include "ac/audiocliptype.h"
 #include "ac/file.h"
@@ -254,7 +252,7 @@ String FixSlashAfterToken(const String &path)
 
 String MakeSpecialSubDir(const String &sp_dir)
 {
-    if (is_relative_filename(sp_dir))
+    if (Path::IsRelativePath(sp_dir))
         return sp_dir;
     String full_path = sp_dir;
     if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
@@ -278,7 +276,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
-    bool is_absolute = !is_relative_filename(orig_sc_path);
+    bool is_absolute = !Path::IsRelativePath(orig_sc_path);
     if (is_absolute && !read_only)
     {
         debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
@@ -483,14 +481,6 @@ PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
         obj->remains = asset_size;
         return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
-    return nullptr;
-}
-
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
-{
-    PACKFILE *pf = PackfileFromAsset(path, asset_size);
-    if (pf)
-        return dumbfile_open_packfile(pf);
     return nullptr;
 }
 

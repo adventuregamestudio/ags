@@ -15,6 +15,12 @@
 #include <memory>
 #include <limits>
 #include "core/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
+#endif
+#include <SDL.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
@@ -28,17 +34,13 @@
 #include "debug/messagebuffer.h"
 #include "main/config.h"
 #include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
-
-#if AGS_PLATFORM_OS_WINDOWS
-#include <winalleg.h>
-#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -376,7 +378,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
     char messageToSend[STD_BUFFER_SIZE];
     sprintf(messageToSend, "<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
 #if AGS_PLATFORM_OS_WINDOWS
-    sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)win_get_window());
+    sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)sys_win_get_window());
 #endif
     sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
     if (errorMsg != nullptr)
@@ -536,7 +538,6 @@ bool send_exception_to_editor(const char *qmsg)
 
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
     {
-        update_polled_mp3();
         platform->Delay(10);
     }
 #endif
@@ -610,9 +611,10 @@ void check_debug_keys() {
     if (play.debug_mode) {
         // do the run-time script debugging
 
-        if ((!key[KEY_SCRLOCK]) && (scrlockWasDown))
+        const Uint8 *ks = SDL_GetKeyboardState(NULL);
+        if ((!ks[SDL_SCANCODE_SCROLLLOCK]) && (scrlockWasDown))
             scrlockWasDown = 0;
-        else if ((key[KEY_SCRLOCK]) && (!scrlockWasDown)) {
+        else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown)) {
 
             break_on_next_script_step = 1;
             scrlockWasDown = 1;

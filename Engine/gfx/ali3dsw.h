@@ -12,25 +12,20 @@
 //
 //=============================================================================
 //
-// Software graphics factory, based on Allegro
+// Software graphics factory, draws raw bitmaps onto a virtual screen,
+// converts to SDL_Texture and finally presents with SDL_Renderer.
+//
+// TODO: replace nearest-neighbour software filter with SDL's own accelerated
+// scaling, maybe add more filter types if SDL renderer supports them.
+// Only keep Hqx filter as a software option (might need to change how the 
+// filter code works).
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DSW_H
 #define __AGS_EE_GFX__ALI3DSW_H
-
 #include <memory>
-
+#include <SDL.h>
 #include "core/platform.h"
-#define AGS_DDRAW_GAMMA_CONTROL (AGS_PLATFORM_OS_WINDOWS)
-
-#include <allegro.h>
-
-#if AGS_DDRAW_GAMMA_CONTROL
-#include <winalleg.h>
-#include <ddraw.h>
-#endif
-
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
@@ -43,7 +38,7 @@ namespace Engine
 namespace ALSW
 {
 
-class AllegroGfxFilter;
+class SDLRendererGfxFilter;
 using AGS::Common::Bitmap;
 
 class ALSoftwareBitmap : public IDriverDependantBitmap
@@ -103,23 +98,31 @@ public:
 };
 
 
-class ALSoftwareGfxModeList : public IGfxModeList
+class SDLRendererGfxModeList : public IGfxModeList
 {
 public:
-    ALSoftwareGfxModeList(GFX_MODE_LIST *alsw_gfx_mode_list)
-        : _gfxModeList(alsw_gfx_mode_list)
+    SDLRendererGfxModeList(const std::vector<DisplayMode> &modes)
+        : _modes(modes)
     {
     }
 
     int GetModeCount() const override
     {
-        return _gfxModeList ? _gfxModeList->num_modes : 0;
+        return _modes.size();
     }
 
-    bool GetMode(int index, DisplayMode &mode) const override;
+    bool GetMode(int index, DisplayMode &mode) const override
+    {
+        if (index >= 0 && (size_t)index < _modes.size())
+        {
+            mode = _modes[index];
+            return true;
+        }
+        return false;
+    }
 
 private:
-    GFX_MODE_LIST *_gfxModeList;
+    std::vector<DisplayMode> _modes;
 };
 
 
@@ -139,12 +142,12 @@ struct ALSpriteBatch
 typedef std::vector<ALSpriteBatch> ALSpriteBatches;
 
 
-class ALSoftwareGraphicsDriver : public GraphicsDriverBase
+class SDLRendererGraphicsDriver : public GraphicsDriverBase
 {
 public:
-    ALSoftwareGraphicsDriver();
+    SDLRendererGraphicsDriver();
 
-    const char*GetDriverName() override { return "Software renderer"; }
+    const char*GetDriverName() override { return "SDL 2D Software renderer"; }
     const char*GetDriverID() override { return "Software"; }
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
@@ -173,13 +176,10 @@ public:
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
-#ifndef AGS_NO_VIDEO_PLAYER
-    bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) override;
-#endif
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { }
-    void EnableVsyncBeforeRender(bool enabled) override { _autoVsync = enabled; }
+    void EnableVsyncBeforeRender(bool enabled) override { }
     void Vsync() override;
     void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
@@ -188,43 +188,41 @@ public:
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer() override;
-    ~ALSoftwareGraphicsDriver() override;
+    ~SDLRendererGraphicsDriver() override;
 
-    typedef std::shared_ptr<AllegroGfxFilter> PALSWFilter;
+    typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;
 
-    void SetGraphicsFilter(PALSWFilter filter);
+    void SetGraphicsFilter(PSDLRenderFilter filter);
 
 private:
-    PALSWFilter _filter;
+    PSDLRenderFilter _filter;
 
-    bool _autoVsync;
-    Bitmap *_allegroScreenWrapper;
-    // Virtual screen bitmap is either a wrapper over Allegro's real screen
-    // bitmap, or bitmap provided by the graphics filter. It should not be
-    // disposed by the renderer: it is up to filter object to manage it.
-    Bitmap *_origVirtualScreen;
-    // Current virtual screen bitmap; may be provided either by graphics
-    // filter or by external user. It should not be disposed by the renderer.
+    bool _hasGamma = false;
+    Uint16 _defaultGammaRed[256]{};
+    Uint16 _defaultGammaGreen[256]{};
+    Uint16 _defaultGammaBlue[256]{};
+
+    SDL_RendererFlip _renderFlip = SDL_FLIP_NONE;
+    SDL_Renderer *_renderer = nullptr;
+    SDL_Texture *_screenTex = nullptr;
+    // BITMAP struct for wrapping screen texture locked pixels, so that we may use blit()
+    BITMAP *_fakeTexBitmap = nullptr;
+    unsigned char *_lastTexPixels = nullptr;
+    int _lastTexPitch = -1;
+
+    // Original virtual screen created and managed by the renderer.
+    std::unique_ptr<Bitmap> _origVirtualScreen;
+    // Current virtual screen bitmap; may be either pointing to _origVirtualScreen,
+    // or provided by external user (for example - plugin).
+    // Its pixels are copied to the video texture to be presented by SDL_Renderer.
     Bitmap *virtualScreen;
     // Stage screen meant for particular rendering stages, may be referencing
     // actual virtual screen or separate bitmap of different size that is
     // blitted to virtual screen at the stage finalization.
     Bitmap *_stageVirtualScreen;
-    //Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 
     ALSpriteBatches _spriteBatches;
-    GFX_MODE_LIST *_gfxModeList;
-
-#if AGS_DDRAW_GAMMA_CONTROL
-    IDirectDrawGammaControl* dxGammaControl;
-    // The gamma ramp is a lookup table for each possible R, G and B value
-    // in 32-bit colour (from 0-255) it maps them to a brightness value
-    // from 0-65535. The default gamma ramp just multiplies each value by 256
-    DDGAMMARAMP gammaRamp;
-    DDGAMMARAMP defaultGammaRamp;
-    DDCAPS ddrawCaps;
-#endif
 
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
     void ResetAllBatches() override;
@@ -241,26 +239,29 @@ private:
     void highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void __fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) ;
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
-    int  GetAllegroGfxDriverID(bool windowed);
+    // Copy raw screen bitmap pixels to the SDL texture
+    void BlitToTexture();
+    // Render SDL texture on screen
+    void Present();
 };
 
 
-class ALSWGraphicsFactory : public GfxDriverFactoryBase<ALSoftwareGraphicsDriver, AllegroGfxFilter>
+class SDLRendererGraphicsFactory : public GfxDriverFactoryBase<SDLRendererGraphicsDriver, SDLRendererGfxFilter>
 {
 public:
-    ~ALSWGraphicsFactory() override;
+    ~SDLRendererGraphicsFactory() override;
 
     size_t               GetFilterCount() const override;
     const GfxFilterInfo *GetFilterInfo(size_t index) const override;
     String               GetDefaultFilterID() const override;
 
-    static  ALSWGraphicsFactory *GetFactory();
+    static SDLRendererGraphicsFactory *GetFactory();
 
 private:
-    ALSoftwareGraphicsDriver *EnsureDriverCreated() override;
-    AllegroGfxFilter         *CreateFilter(const String &id) override;
+    SDLRendererGraphicsDriver *EnsureDriverCreated() override;
+    SDLRendererGfxFilter      *CreateFilter(const String &id) override;
 
-    static ALSWGraphicsFactory *_factory;
+    static SDLRendererGraphicsFactory *_factory;
 };
 
 } // namespace ALSW

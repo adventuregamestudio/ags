@@ -24,8 +24,8 @@
 
 #include "core/platform.h"
 #define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
-
 #include <set>
+#include <allegro.h> // allegro_exit
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -37,7 +37,7 @@
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
-#include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "ac/route_finder.h"
 #include "core/assetmanager.h"
 #include "util/directory.h"
@@ -91,13 +91,9 @@ const char *loadSaveGameOnStartup = nullptr;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
-int psp_audio_enabled = 1;
-int psp_midi_enabled = 1;
 int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0;
+int psp_clear_cache_on_room_change = 0; // clear --sprite cache-- when room is unloaded
 
-int psp_midi_preload_patches = 0;
-int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "";
 char psp_translation[] = "default";
 
@@ -418,20 +414,6 @@ String GetPathFromCmdArg(int arg_index)
     return global_argv[arg_index];
 }
 
-const char *get_allegro_error()
-{
-    return allegro_error;
-}
-
-const char *set_allegro_error(const char *format, ...)
-{
-    va_list argptr;
-    va_start(argptr, format);
-    uvszprintf(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text(format), argptr);
-    va_end(argptr);
-    return allegro_error;
-}
-
 int ags_entry_point(int argc, char *argv[]) { 
 
 #ifdef AGS_RUN_TESTS
@@ -482,8 +464,9 @@ int ags_entry_point(int argc, char *argv[]) {
     {
         int result = initialize_engine(startup_opts);
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
+        sys_main_shutdown();
         allegro_exit();
-        platform->PostAllegroExit();
+        platform->PostBackendExit();
         return result;
     }
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER

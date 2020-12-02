@@ -42,10 +42,10 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
 extern GameState play;
-extern color palette[256];
+extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern color old_palette[256];
+extern RGB old_palette[256];
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -291,7 +291,6 @@ void process_event(EventHappened*evp) {
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
                         boxwid, boxhit);
                     render_to_screen();
-                    update_polled_mp3();
                     WaitForNextFrame();
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf);
@@ -325,7 +324,6 @@ void process_event(EventHappened*evp) {
                 WaitForNextFrame();
                 transparency -= 16;
             }
-            saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
             saved_viewport_bitmap = nullptr;
@@ -335,7 +333,7 @@ void process_event(EventHappened*evp) {
         else if (theTransition == FADE_DISSOLVE) {
             int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
             int aa,bb,cc;
-            color interpal[256];
+            RGB interpal[256];
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
             for (aa=0;aa<16;aa++) {

@@ -15,9 +15,10 @@
 //
 // Quit game procedure
 //
-
 #include "core/platform.h"
+#include <allegro.h> // find files, allegro_exit
 #include "ac/cdaudio.h"
+#include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstatus.h"
@@ -36,6 +37,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "media/audio/audio_system.h"
 
@@ -97,7 +99,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
 void quit_shutdown_platform(QuitReason qreason)
 {
     // Be sure to unlock mouse on exit, or users will hate us
-    platform->UnlockMouse();
+    sys_window_lock_mouse(false);
     platform->AboutToQuitGame();
 
     our_eip = 9016;
@@ -105,8 +107,6 @@ void quit_shutdown_platform(QuitReason qreason)
     pl_stop_plugins();
 
     quit_check_dynamic_sprites(qreason);
-
-    platform->FinishedUsingGraphicsMode();
 
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
@@ -116,16 +116,7 @@ void quit_shutdown_audio()
 {
     our_eip = 9917;
     game.options[OPT_CROSSFADEMUSIC] = 0;
-    stopmusic();
-#ifndef PSP_NO_MOD_PLAYBACK
-    if (usetup.mod_player)
-        remove_mod_player();
-#endif
-
-    // Quit the sound thread.
-    audioThread.Stop();
-
-    remove_sound();
+    shutdown_sound();
 }
 
 QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
@@ -212,8 +203,8 @@ void quit_release_data()
 
 void quit_delete_temp_files()
 {
-    al_ffblk	dfb;
-    int	dun = al_findfirst("~ac*.tmp",&dfb,FA_SEARCH);
+    al_ffblk dfb;
+    int	dun = al_findfirst("~ac*.tmp", &dfb, FA_SEARCH);
     while (!dun) {
         ::remove(dfb.name);
         dun = al_findnext(&dfb);
@@ -295,9 +286,10 @@ void quit(const char *quitmsg)
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,
     // if their destruction is called later, program will crash!
+    sys_main_shutdown();
     allegro_exit();
 
-    platform->PostAllegroExit();
+    platform->PostBackendExit();
 
     our_eip = 9903;
 

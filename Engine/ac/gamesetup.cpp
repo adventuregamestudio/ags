@@ -11,15 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "util/wgt2allg.h" // DIGI_AUTODETECT & MIDI_AUTODETECT
 #include "ac/gamesetup.h"
 
 GameSetup::GameSetup()
 {
-    digicard=DIGI_AUTODETECT;
-    midicard=MIDI_AUTODETECT;
-    mod_player=1;
+    audio_backend = 1;
     no_speech_pack = false;
     textheight = 0;
     enable_antialiasing = false;
@@ -30,7 +26,7 @@ GameSetup::GameSetup()
     override_upscale = false;
     mouse_speed = 1.f;
     mouse_ctrl_when = kMouseCtrl_Fullscreen;
-    mouse_ctrl_enabled = true;
+    mouse_ctrl_enabled = false;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     RenderAtScreenRes = false;
     Supersampling = 1;

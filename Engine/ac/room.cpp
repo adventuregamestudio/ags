@@ -105,7 +105,7 @@ extern IDriverDependantBitmap* *actspsbmp;
 extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
-extern color palette[256];
+extern RGB palette[256];
 extern int mouse_z_was;
 
 extern Bitmap **guibg;
@@ -969,7 +969,7 @@ int find_highest_room_entered() {
 void first_room_initialization() {
     starting_room = displayed_room;
     set_loop_counter(0);
-    mouse_z_was = mouse_z;
+    mouse_z_was = sys_mouse_z;
 }
 
 void check_new_room() {
@@ -1019,7 +1019,7 @@ void on_background_frame_change () {
     invalidate_cached_walkbehinds();
 
     // get the new frame's palette
-    memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(color) * 256);
+    memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in

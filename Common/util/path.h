@@ -34,6 +34,10 @@ namespace Path
     // Tells if the given path is file or directory;
     // may be used to check if it's valid to use
     bool    IsFileOrDir(const String &filename);
+    // Returns filename part out of the longer path
+    String  GetFilename(const String &path);
+    // Returns file's extension; file may be a fully qualified path too
+    String  GetFileExtension(const String &path);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and
@@ -48,6 +52,8 @@ namespace Path
     // Tells if the path points to the parent path's location or lower directory;
     // return FALSE if the path points to outside of the parent location.
     bool    IsSameOrSubDir(const String &parent, const String &path);
+    // Tells if the path is relative.
+    bool    IsRelativePath(const String &path);
 
     // Makes a path have only '/' slashes; this is to make it easier to work
     // with path, knowing it contains only one type of directory separators

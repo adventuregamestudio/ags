@@ -26,9 +26,9 @@
 #endif
 
 #include <memory>
-#include <allegro.h>
-#include <winalleg.h>
+#define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
+#undef BITMAP
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
@@ -199,9 +199,6 @@ public:
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
-#ifndef AGS_NO_VIDEO_PLAYER
-    bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen) override;
-#endif
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }

@@ -40,12 +40,9 @@ extern "C" {
 
 /* includes */
 
-#include <allegro.h>
-
 
 /* structs */
 typedef struct ALFONT_FONT ALFONT_FONT;
-
 
 /* API */
 

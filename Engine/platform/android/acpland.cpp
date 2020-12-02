@@ -47,12 +47,9 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PostAllegroExit();
-  virtual void SetGameWindowIcon();
+  virtual void PostBackendExit();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void WriteStdErr(const char *fmt, ...);
@@ -692,10 +689,6 @@ unsigned long AGSAndroid::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSAndroid::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
 eScriptSystemOSID AGSAndroid::GetSystemOSID() {
   return eOS_Android;
 }
@@ -704,12 +697,8 @@ int AGSAndroid::InitializeCDPlayer() {
   return 1;//cd_player_init();
 }
 
-void AGSAndroid::PostAllegroExit() {
+void AGSAndroid::PostBackendExit() {
   java_environment->DeleteGlobalRef(java_class);
-}
-
-void AGSAndroid::SetGameWindowIcon() {
-  // do nothing
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)

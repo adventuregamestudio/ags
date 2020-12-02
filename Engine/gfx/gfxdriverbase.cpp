@@ -11,8 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "util/wgt2allg.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"

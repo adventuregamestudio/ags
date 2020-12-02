@@ -15,11 +15,10 @@
 // Graphics driver interface
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
-
 #include <memory>
+#include <allegro.h> // RGB, PALETTE
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -164,7 +163,6 @@ public:
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   // Runs box-out animation in a blocking manner.
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
-  virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) { return false; }
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-
+#define BITMAP WINDOWS_BITMAP
 #include <windows.h>
+#undef BITMAP
 #include <commctrl.h>
 #include <crtdbg.h>
 #include <shlobj.h>
@@ -28,14 +28,13 @@
 #include "ac/gamestructdefines.h"
 #undef RGB
 #undef PALETTE
-#define RGB void*
-#define PALETTE void*
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "resource/resource.h"
 #include "util/file.h"
 #include "util/string_utils.h"
@@ -51,11 +50,6 @@
 #define MIDI_AUTODETECT       -1 
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
-
-extern "C"
-{
-    HWND win_get_window();
-}
 
 namespace AGS
 {
@@ -92,9 +86,6 @@ struct WinConfig
     bool   RenderAtScreenRes;
     bool   AntialiasSprites;
 
-    int    DigiID;
-    int    MidiID;
-    bool   ThreadedAudio;
     bool   UseVoicePack;
 
     bool   MouseAutoLock;
@@ -136,9 +127,6 @@ void WinConfig::SetDefaults()
     MouseAutoLock = false;
     MouseSpeed = 1.f;
 
-    DigiID = -1; // autodetect
-    MidiID = -1;
-    ThreadedAudio = false;
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
@@ -175,9 +163,6 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
-    DigiID = read_driverid(cfg, "sound", "digiid", DigiID);
-    MidiID = read_driverid(cfg, "sound", "midiid", MidiID);
-    ThreadedAudio = INIreadint(cfg, "sound", "threaded", ThreadedAudio ? 1 : 0) != 0;
     UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
     MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
@@ -210,9 +195,6 @@ void WinConfig::Save(ConfigTree &cfg)
 
     INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
-    write_driverid(cfg, "sound", "digiid", DigiID);
-    write_driverid(cfg, "sound", "midiid", MidiID);
-    INIwriteint(cfg, "sound", "threaded", ThreadedAudio ? 1 : 0);
     INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
     INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
@@ -545,7 +527,7 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree 
                                            const String &data_dir, const String &version_str)
 {
     _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
-    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, win_get_window(),
+    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, (HWND)sys_win_get_window(),
         (DLGPROC)WinSetupDialog::DialogProc, 0L);
     delete _dlg;
     _dlg = NULL;
@@ -619,7 +601,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
     SetText(_hwnd, _winCfg.Title);
-    SetText(win_get_window(), _winCfg.Title);
+    SetText((HWND)sys_win_get_window(), _winCfg.Title);
     SetText(_hGameResolutionText, String::FromFormat("Native game resolution: %d x %d x %d",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth));
 
@@ -642,18 +624,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
 
-    AddString(_hDigiDriverList, "No Digital Sound", DIGI_NONE);
-    AddString(_hDigiDriverList, "Default device (auto)", MIDI_AUTODETECT);
-    AddString(_hDigiDriverList, "Default DirectSound Device", DIGI_DIRECTAMX(0));
-    AddString(_hDigiDriverList, "Default WaveOut Device", DIGI_WAVOUTID(0));
-    AddString(_hDigiDriverList, "DirectSound (Hardware mixer)", DIGI_DIRECTX(0));
-    SetCurSelToItemData(_hDigiDriverList, _winCfg.DigiID);
-
-    AddString(_hMidiDriverList, "No MIDI music", MIDI_NONE);
-    AddString(_hMidiDriverList, "Default device (auto)", MIDI_AUTODETECT);
-    AddString(_hMidiDriverList, "Win32 MIDI Mapper", MIDI_WIN32MAPPER);
-    SetCurSelToItemData(_hMidiDriverList, _winCfg.MidiID);
-
     FillLanguageList();
 
     SetCheck(_hMouseLock, _winCfg.MouseAutoLock);
@@ -674,7 +644,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
-    SetCheck(_hThreadedAudio, _winCfg.ThreadedAudio);
     SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
@@ -1133,15 +1102,11 @@ void WinSetupDialog::SaveSetup()
         _winCfg.UserSaveDir = "";
     }
 
-    _winCfg.DigiID = GetCurItemData(_hDigiDriverList);
-    _winCfg.MidiID = GetCurItemData(_hMidiDriverList);
-
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Language.Empty();
     else
         _winCfg.Language = GetText(_hLanguageList);
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
-    _winCfg.ThreadedAudio = GetCheck(_hThreadedAudio);
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
     _winCfg.VSync = GetCheck(_hVSync);
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
@@ -1239,7 +1204,7 @@ void WinSetupDialog::UpdateMouseSpeedText()
 //=============================================================================
 void SetWinIcon()
 {
-    SetClassLong(win_get_window(),GCL_HICON,
+    SetClassLong((HWND)sys_win_get_window(), GCL_HICON,
         (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
 }
 

@@ -22,6 +22,7 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
 #include "script/cc_error.h"
@@ -713,6 +714,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         AlignedStream align_s(in, Common::kAligned_Read);
         game.GameSetupStructBase::ReadFromFile(&align_s);
     }
+
+    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
 
     if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);

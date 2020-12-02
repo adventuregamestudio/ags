@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cstdio>
+#include <allegro.h> // find files
 #include "gui/guidialog.h"
-
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"

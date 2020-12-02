@@ -17,6 +17,7 @@
 //
 
 #include <algorithm>
+#include <SDL.h>
 #include "core/platform.h"
 #include "ac/draw.h"
 #include "debug/debugger.h"
@@ -29,8 +30,8 @@
 #include "main/config.h"
 #include "main/engine_setup.h"
 #include "main/graphics_mode.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 
 // Don't try to figure out the window size on the mac because the port resizes itself.
 #if AGS_PLATFORM_OS_MACOS || defined(ALLEGRO_SDL2) || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
@@ -92,7 +93,7 @@ DisplayModeSetup::DisplayModeSetup()
 Size get_desktop_size()
 {
     Size sz;
-    get_desktop_resolution(&sz.Width, &sz.Height);
+    sys_get_desktop_resolution(sz.Width, sz.Height);
     return sz;
 }
 
@@ -109,14 +110,14 @@ bool create_gfx_driver(const String &gfx_driver_id)
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory. Error: %s", gfx_driver_id.GetCStr(), get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory. Error: %s", gfx_driver_id.GetCStr(), SDL_GetError());
         return false;
     }
     Debug::Printf("Using graphics factory: %s", gfx_driver_id.GetCStr());
     gfxDriver = GfxFactory->GetDriver();
     if (!gfxDriver)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", SDL_GetError());
         return false;
     }
     Debug::Printf("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -448,7 +449,6 @@ bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
 void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, const int color_depth)
 {
     proper_exit=1;
-    platform->FinishedUsingGraphicsMode();
 
     String main_error;
     ScreenSizeSetup scsz = setup.DisplayMode.ScreenSize;
@@ -465,14 +465,14 @@ void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, con
             "(Problem: '%s')\n"
             "Try to correct the problem, or seek help from the AGS homepage."
             "%s",
-            main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
+            main_error.GetCStr(), SDL_GetError(), platform->GetGraphicsTroubleshootingText());
 }
 
 bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth)
 {
     // Log out display information
     Size device_size;
-    if (get_desktop_resolution(&device_size.Width, &device_size.Height) == 0)
+    if (sys_get_desktop_resolution(device_size.Width, device_size.Height) == 0)
         Debug::Printf("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
         Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
@@ -571,14 +571,10 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
     set_color_depth(dm.ColorDepth);
-    // TODO: this is remains of the old code; find out what it means and do we
-    // need this if we are not using allegro software driver?
-    if (dm.RefreshRate >= 50)
-        request_refresh_rate(dm.RefreshRate);
 
     if (!gfxDriver->SetDisplayMode(dm, nullptr))
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", SDL_GetError());
         return false;
     }
 
@@ -607,7 +603,7 @@ bool graphics_mode_update_render_frame()
     {
         Debug::Printf(kDbgMsg_Error, "Failed to set render frame (%d, %d, %d, %d : %d x %d). Error: %s", 
             render_frame.Left, render_frame.Top, render_frame.Right, render_frame.Bottom,
-            render_frame.GetWidth(), render_frame.GetHeight(), get_allegro_error());
+            render_frame.GetWidth(), render_frame.GetHeight(), SDL_GetError());
         return false;
     }
 
@@ -673,7 +669,4 @@ void graphics_mode_shutdown()
         GfxFactory->Shutdown();
     GfxFactory = nullptr;
     gfxDriver = nullptr;
-
-    // Tell Allegro that we are no longer in graphics mode
-    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
 }

@@ -6,8 +6,6 @@
 
 #include "media/audio/audio.h"
 
-#include "media/audio/soundcache.h"
-
 #include "media/audio/soundclip.h"
 #include "media/audio/sound.h"
 

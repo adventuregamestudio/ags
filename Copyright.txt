@@ -22,6 +22,7 @@ Ferdinand Thiessen
 Francesco Ariis
 Gilad Shaham
 Ivan Mogilko
+James Duong
 Janet Gilbert
 Jochen Schleu
 Joe Lee
@@ -34,6 +35,7 @@ Nick Sonneveld
 Ori Avtalion
 Paul Wilkinson
 Per Olav Flaten
+Peter Bouillon
 Piotr Wieczorek
 rofl0r
 Ryan O'Connor

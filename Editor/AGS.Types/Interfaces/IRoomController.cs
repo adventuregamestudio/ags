@@ -59,17 +59,24 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.0.1.35
         /// </summary>
         int  GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y);
-		/// <summary>
-		/// Draws the room background to the specified graphics context.
-		/// RequiredAGSVersion: 3.0.1.35
-		/// </summary>
-		void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor);
+        /// <summary>
+        /// Draws the room background to the specified graphics context.
+        /// RequiredAGSVersion: 3.0.1.35
+        /// </summary>
+        [Obsolete("The method is deprecated because it takes integer for scale which is inaccurate. Use overload with double for scale instead.")]
+        void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor);
 		/// <summary>
 		/// Draws the room background to the specified graphics context,
 		/// and overlays one of the room masks onto it.
 		/// RequiredAGSVersion: 3.0.1.35
 		/// </summary>
+        [Obsolete("The method is deprecated because it takes integer for scale which is inaccurate. Use overload with double for scale instead.")]
 		void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
+        /// <summary>
+        /// Draws the room background to the specified graphics context,
+        /// and overlays one of the room masks onto it.
+        /// </summary>
+        void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
         /// <summary>
         /// Copies the walkable area into regions mask.
         /// </summary>

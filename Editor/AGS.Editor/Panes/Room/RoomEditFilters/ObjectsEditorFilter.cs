@@ -2,6 +2,8 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -105,36 +107,32 @@ namespace AGS.Editor
 
         public void Invalidate() { _panel.Invalidate(); }
 
-        public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
-        {
-            _objectBaselines.Clear();
-            foreach (RoomObject obj in _room.Objects)
-            {
-                if (obj.Baseline <= 0)
-                {
-                    obj.EffectiveBaseline = obj.StartY;
-                }
-                else
-                {
-                    obj.EffectiveBaseline = obj.Baseline;
-                }
-                _objectBaselines.Add(obj);
-            }
-            _objectBaselines.Sort();
-
-            foreach (RoomObject obj in _objectBaselines)
-            {
-                if (!DesignItems[GetItemID(obj)].Visible) continue;
-                int width, height;
-                Utilities.GetSizeSpriteWillBeRenderedInGame(obj.Image, out width, out height);
-                int ypos = state.RoomYToWindow(obj.StartY - height);
-				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, state.RoomXToWindow(obj.StartX), ypos, state.Scale);
-            }
-            
-        }
-
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
+            _objectBaselines.Clear();
+            _objectBaselines.AddRange(_room.Objects.Select(o =>
+            {
+                o.EffectiveBaseline = o.Baseline <= 0 ? o.StartY : o.Baseline;
+                return o;
+            }));
+            _objectBaselines.Sort();
+
+            foreach (RoomObject obj in _objectBaselines.Where(o => DesignItems[GetItemID(o)].Visible))
+            {
+                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(obj.Image);
+                spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
+                spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
+                int xpos = state.RoomXToWindow(obj.StartX);
+                int ypos = state.RoomYToWindow(obj.StartY) - spriteSize.Height;
+
+                using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(obj.Image))
+                using (Bitmap sprite32bppAlpha = new Bitmap(sprite.Width, sprite.Height, PixelFormat.Format32bppArgb))
+                {
+                    sprite32bppAlpha.SetRawData(sprite.GetRawData());
+                    graphics.DrawImage(sprite32bppAlpha, xpos, ypos, spriteSize.Width, spriteSize.Height);
+                }
+            }
+
             if (!Enabled || _selectedObject == null)
                 return;
 

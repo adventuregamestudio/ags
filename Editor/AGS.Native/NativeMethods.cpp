@@ -68,19 +68,14 @@ extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
-extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void DeleteBackground(Room ^room, int backgroundNumber);
-extern void CreateBuffer(int width, int height);
-extern void RenderBufferToHDC(int hdc);
-extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
 extern void FixRoomMasks(Room ^room);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
 extern void transform_string(char *text);
-extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
 AGSString editorVersionNumber;
@@ -434,26 +429,6 @@ namespace AGS
 			save_crm_file(roomToSave);
 		}
 
-		void NativeMethods::CreateBuffer(int width, int height) 
-		{
-			::CreateBuffer(width, height);
-		}
-
-		void NativeMethods::DrawSpriteToBuffer(int sprNum, int x, int y, float scale) 
-		{
-			::DrawSpriteToBuffer(sprNum, x, y, scale);
-		}
-
-		void NativeMethods::RenderBufferToHDC(int hDC) 
-		{
-			::RenderBufferToHDC(hDC);
-		}
-
-		void NativeMethods::DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
-		{
-			draw_room_background((void*)room->_roomStructPtr, hDC, x, y, backgroundNumber, scaleFactor, (int)maskType, selectedArea, maskTransparency);
-		}
-
 		void NativeMethods::ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette)
 		{
 			::ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
@@ -482,11 +457,6 @@ namespace AGS
     Bitmap ^NativeMethods::ExportAreaMask(Room ^room, RoomAreaMaskType maskType)
     {
         return export_area_mask((void*)room->_roomStructPtr, (int)maskType);
-    }
-
-    void NativeMethods::SetGreyedOutMasksEnabled(bool enabled)
-    {
-      enable_greyed_out_masks = enabled;
     }
 
 		String ^NativeMethods::LoadRoomScript(String ^roomFileName) 

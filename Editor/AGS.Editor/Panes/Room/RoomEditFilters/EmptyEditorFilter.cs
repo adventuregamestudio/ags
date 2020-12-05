@@ -60,10 +60,6 @@ namespace AGS.Editor
 
         public void Invalidate() { _panel.Invalidate(); }
 
-        public void PaintToHDC(IntPtr hDC, RoomEditorState state)
-        {
-        }
-
         public void Paint(Graphics graphics, RoomEditorState state)
         {
         }

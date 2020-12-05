@@ -107,10 +107,6 @@ namespace AGS.Editor
 
         public void Invalidate() { _panel.Invalidate(); }
 
-        public void PaintToHDC(IntPtr hDC, RoomEditorState state)
-        {
-        }
-
 		public bool KeyPressed(Keys key)
 		{
             switch (key)

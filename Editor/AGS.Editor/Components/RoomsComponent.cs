@@ -10,6 +10,7 @@ using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Threading;
 using System.Linq;
+using System.Drawing.Imaging;
 
 namespace AGS.Editor.Components
 {
@@ -39,6 +40,7 @@ namespace AGS.Editor.Components
         private int _rightClickedRoomNumber;
         private Room.RoomModifiedChangedHandler _modifiedChangedHandler;
 		private object _roomLoadingOrSavingLock = new object();
+        private bool _grayOutMasks = true;
 
         public RoomsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, ROOMS_COMMAND_ID)
@@ -1593,25 +1595,64 @@ namespace AGS.Editor.Components
 
         void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
 		{
-			((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, scaleFactor, RoomAreaMaskType.None, 0, 0);
+			((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, (double)scaleFactor, RoomAreaMaskType.None, 0, 0);
 		}
 
 		void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
 		{
-			if (_loadedRoom == null)
-			{
-				throw new InvalidOperationException("No room is currently loaded");
-			}
-			if ((maskTransparency < 0) || (maskTransparency > 100))
-			{
-				throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
-			}
-			_nativeProxy.CreateBuffer((int)g.VisibleClipBounds.Width, (int)g.VisibleClipBounds.Height);
-			IntPtr hdc = g.GetHdc();
-			_nativeProxy.DrawRoomBackground(hdc, _loadedRoom, x, y, backgroundNumber, scaleFactor, maskType, selectedArea, maskTransparency);
-			_nativeProxy.RenderBufferToHDC(hdc);
-			g.ReleaseHdc(hdc);
-		}
+            ((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, (double)scaleFactor, maskType, maskTransparency, selectedArea);
+        }
+
+        void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+            if ((maskTransparency < 0) || (maskTransparency > 100))
+            {
+                throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
+            }
+
+            using (Bitmap background = ((IRoomController)this).GetBackground(backgroundNumber))
+            using (Bitmap mask8bpp = ((IRoomController)this).GetMask(maskType))
+            {
+                // Color not selected mask areas to gray
+                if (_grayOutMasks)
+                {
+                    ColorPalette palette = mask8bpp.Palette;
+
+                    for (int i = 0; i < 256; i++)
+                    {
+                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
+                        palette.Entries[i] = Color.FromArgb(gray, gray, gray);
+                    }
+
+                    // Highlight the currently selected area colour
+                    if (selectedArea > 0)
+                    {
+                        // if a bright colour, use it, else, draw in red
+                        palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
+                            ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
+                            : Color.FromArgb(60, 0, 0);
+                    }
+
+                    mask8bpp.Palette = palette;
+                }
+
+                using (Bitmap mask32bpp = new Bitmap(mask8bpp)) // We need to support transparency
+                {
+                    mask32bpp.SetAlpha(100 - maskTransparency + 155);
+
+                    // x and y is already scaled from outside the method call
+                    Rectangle drawingArea = new Rectangle(
+                        x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+
+                    g.DrawImage(background, drawingArea);
+                    g.DrawImage(mask32bpp, drawingArea);
+                }
+            }
+        }
 
         void IRoomController.CopyWalkableAreaMaskToRegions()
         {
@@ -1660,8 +1701,8 @@ namespace AGS.Editor.Components
 
 		bool IRoomController.GreyOutNonSelectedMasks
 		{
-			set { _nativeProxy.GreyOutNonSelectedMasks = value; }
-		}
+            set { _grayOutMasks = value; }
+        }
 
         protected override bool CanFolderBeDeleted(UnloadedRoomFolder folder)
         {

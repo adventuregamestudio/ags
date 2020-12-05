@@ -71,7 +71,6 @@ void save_room_file(const char *path);
 
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
-bool enable_greyed_out_masks = true;
 bool outlineGuiObjects = false;
 color*palette = NULL;
 GameSetupStruct thisgame;
@@ -104,8 +103,6 @@ int BaseColorDepth = 0;
 struct NativeRoomTools
 {
     int loaded_room_number = -1;
-    std::unique_ptr<AGSBitmap> drawBuffer;
-    std::unique_ptr<AGSBitmap> roomBkgBuffer;
 };
 std::unique_ptr<NativeRoomTools> RoomTools;
 
@@ -592,169 +589,6 @@ void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
   // FIXME later
   blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
-}
-
-void setup_greyed_out_palette(int selCol) 
-{
-    color thisColourOnlyPal[256];
-
-    // The code below makes it so that all the hotspot colours
-    // except the selected one are greyed out. It doesn't work
-    // in 256-colour games.
-
-    // Blank out the temporary palette, and set a shade of grey
-    // for all the hotspot colours
-    for (int aa = 0; aa < 256; aa++) {
-      int lumin = 0;
-      if ((aa < MAX_ROOM_HOTSPOTS) && (aa > 0))
-        lumin = ((MAX_ROOM_HOTSPOTS - aa) % 30) * 2;
-      thisColourOnlyPal[aa].r = lumin;
-      thisColourOnlyPal[aa].g = lumin;
-      thisColourOnlyPal[aa].b = lumin;
-    }
-    // Highlight the currently selected area colour
-    if (selCol > 0) {
-      // if a bright colour, use it
-      if ((selCol < 15) && (selCol != 7) && (selCol != 8))
-        thisColourOnlyPal[selCol] = palette[selCol];
-      else {
-        // else, draw in red
-        thisColourOnlyPal[selCol].r = 60;
-        thisColourOnlyPal[selCol].g = 0;
-        thisColourOnlyPal[selCol].b = 0;
-      }
-    }
-    set_palette(thisColourOnlyPal);
-}
-
-Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h)
-{
-  if ((check != NULL) && (check->GetWidth() == w) && (check->GetHeight() == h) &&
-      (check->GetColorDepth() == colDepth))
-  {
-    return check;
-  }
-  delete check;
-
-  return Common::BitmapHelper::CreateBitmap(w, h, colDepth);
-}
-
-Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
-
-void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
-{
-	Common::Bitmap *source = roomptr->GetMask(maskType);
-
-	if (source == NULL) return;
-
-    int dest_width = ds->GetWidth();
-    int dest_height = ds->GetHeight();
-    int dest_depth =  ds->GetColorDepth();
-	
-	if (source->GetColorDepth() != dest_depth) 
-	{
-    Common::Bitmap *sourceSprite = source;
-    if ((source->GetWidth() != dest_width) || (source->GetHeight() != dest_height))
-    {
-		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), dest_width, dest_height);
-		  stretchedSprite->StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
-			  RectWH(0, 0, stretchedSprite->GetWidth(), stretchedSprite->GetHeight()));
-      sourceSprite = stretchedSprite;
-    }
-
-    if (enable_greyed_out_masks)
-    {
-      setup_greyed_out_palette(selectedArea);
-    }
-
-    if (transparency > 0)
-    {
-      srcAtRightColDep = recycle_bitmap(srcAtRightColDep, dest_depth, dest_width, dest_height);
-      
-      int oldColorConv = get_color_conversion();
-      set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
-
-      srcAtRightColDep->Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
-      set_trans_blender(0, 0, 0, (100 - transparency) + 155);
-      ds->TransBlendBlt(srcAtRightColDep, 0, 0);
-      set_color_conversion(oldColorConv);
-    }
-    else
-    {
-        ds->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
-    }
-
-    set_palette(palette);
-	}
-	else
-	{
-		Cstretch_sprite(ds, source, 0, 0, dest_width, dest_height);
-	}
-}
-
-void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
-{
-	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
-
-  if (bgnum < 0 || (size_t)bgnum >= roomptr->BgFrameCount)
-    return;
-
-  PBitmap srcBlock = roomptr->BgFrames[bgnum].Graphic;
-  if (srcBlock == NULL)
-    return;
-
-    auto &drawBuffer = RoomTools->drawBuffer;
-    auto &roomBkgBuffer = RoomTools->roomBkgBuffer;
-	if (drawBuffer != NULL) 
-	{
-        if (!roomBkgBuffer || roomBkgBuffer->GetSize() != srcBlock->GetSize() || roomBkgBuffer->GetColorDepth() != srcBlock->GetColorDepth())
-		    roomBkgBuffer.reset(new AGSBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth()));
-    if (srcBlock->GetColorDepth() == 8)
-    {
-      select_palette(roomptr->BgFrames[bgnum].Palette);
-    }
-
-    roomBkgBuffer->Blit(srcBlock.get(), 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
-
-    if (srcBlock->GetColorDepth() == 8)
-    {
-      unselect_palette();
-    }
-
-	draw_area_mask(roomptr, roomBkgBuffer.get(), (RoomAreaMask)maskType, selectedArea, maskTransparency);
-
-    int srcX = 0, srcY = 0;
-    int srcWidth = srcBlock->GetWidth();
-    int srcHeight = srcBlock->GetHeight();
-
-    if (x < 0)
-    {
-      srcX = (int)(-x / scaleFactor);
-      x += (int)(srcX * scaleFactor);
-      srcWidth = drawBuffer->GetWidth() / scaleFactor;
-      if (srcX + srcWidth > roomBkgBuffer->GetWidth())
-      {
-        srcWidth = roomBkgBuffer->GetWidth() - srcX;
-      }
-    }
-    if (y < 0)
-    {
-      srcY = (int)(-y / scaleFactor);
-      y += (int)(srcY * scaleFactor);
-      srcHeight = drawBuffer->GetHeight() / scaleFactor;
-      if (srcY + srcHeight > roomBkgBuffer->GetHeight())
-      {
-        srcHeight = roomBkgBuffer->GetHeight() - srcY;
-      }
-    }
-
-		Cstretch_blit(roomBkgBuffer.get(), drawBuffer.get(), srcX, srcY, srcWidth, srcHeight,
-            x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor));
-	}
-	else {
-		drawBlockScaledAt(hdc, srcBlock.get(), x, y, scaleFactor);
-	}
-	
 }
 
 // CLNUP scaling stuff, need to check
@@ -1818,63 +1652,6 @@ public:
 void ThrowManagedException(const char *message) 
 {
 	throw gcnew AGS::Types::AGSEditorException(gcnew String((const char*)message));
-}
-
-void CreateBuffer(int width, int height)
-{
-    auto &drawBuffer = RoomTools->drawBuffer;
-    if (!drawBuffer || drawBuffer->GetWidth() != width || drawBuffer->GetHeight() != height || drawBuffer->GetColorDepth() != 32)
-        drawBuffer.reset(new AGSBitmap(width, height, 32));
-    drawBuffer->Clear(0x00D0D0D0);
-}
-
-void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
-	Common::Bitmap *todraw = spriteset[sprNum];
-	if (todraw == NULL)
-	  todraw = spriteset[0];
-
-	Common::Bitmap *imageToDraw = todraw;
-    auto &drawBuffer = RoomTools->drawBuffer;
-	if (todraw->GetColorDepth() != drawBuffer->GetColorDepth()) 
-	{
-		int oldColorConv = get_color_conversion();
-		set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
-		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmapCopy(todraw, drawBuffer->GetColorDepth());
-		set_color_conversion(oldColorConv);
-
-		imageToDraw = depthConverted;
-	}
-
-	int drawWidth = imageToDraw->GetWidth() * scale;
-	int drawHeight = imageToDraw->GetHeight() * scale;
-
-	if ((thisgame.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0)
-	{
-		if (scale != 1.0f)
-		{
-			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
-			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
-				RectWH(0, 0, resizedImage->GetWidth(), resizedImage->GetHeight()));
-			if (imageToDraw != todraw)
-				delete imageToDraw;
-			imageToDraw = resizedImage;
-		}
-		set_alpha_blender();
-		drawBuffer->TransBlendBlt(imageToDraw, x, y);
-	}
-	else
-	{
-		Cstretch_sprite(drawBuffer.get(), imageToDraw, x, y, drawWidth, drawHeight);
-	}
-
-	if (imageToDraw != todraw)
-		delete imageToDraw;
-}
-
-void RenderBufferToHDC(int hdc) 
-{
-    auto &drawBuffer = RoomTools->drawBuffer;
-	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
 void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)

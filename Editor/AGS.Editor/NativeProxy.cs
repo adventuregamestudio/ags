@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -257,11 +256,6 @@ namespace AGS.Editor
             _native.SaveRoomFile(roomToSave);
         }
 
-        public void DrawRoomBackground(IntPtr hDC, Room room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
-        {
-            _native.DrawRoomBackground((int)hDC, room, x, y, backgroundNumber, scaleFactor, maskType, selectedArea, maskTransparency);
-        }
-
         public void ImportBackground(Room room, int backgroundNumber, Bitmap bmp, bool useExactPalette, bool sharePalette)
         {
             _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
@@ -276,26 +270,6 @@ namespace AGS.Editor
         {
             return _native.GetBitmapForBackground(room, backgroundNumber);
         }
-
-        public void CreateBuffer(int width, int height)
-        {
-            _native.CreateBuffer(width, height);
-        }
-
-        public void RenderBufferToHDC(IntPtr hDC)
-        {
-            _native.RenderBufferToHDC((int)hDC);
-        }
-
-        public void DrawSpriteToBuffer(int spriteNum, int x, int y, float scale)
-        {
-            _native.DrawSpriteToBuffer(spriteNum, x, y, scale);
-        }
-
-		public bool GreyOutNonSelectedMasks
-		{
-			set { _native.SetGreyedOutMasksEnabled(value); }
-		}
 
         public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {

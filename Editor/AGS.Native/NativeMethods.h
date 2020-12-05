@@ -60,17 +60,12 @@ namespace AGS
 			void LoadNewSpriteFile();
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad);
 			void SaveRoomFile(Room ^roomToSave);
-			void DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency);
 			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			void DeleteBackground(Room ^room, int backgroundNumber);
 			Bitmap^ GetBitmapForBackground(Room ^room, int backgroundNumber);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
-      void SetGreyedOutMasksEnabled(bool enabled);
-			void CreateBuffer(int width, int height) ;
-			void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) ;
-			void RenderBufferToHDC(int hDC) ;
 			String ^LoadRoomScript(String ^roomFileName);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game);
 			void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE);

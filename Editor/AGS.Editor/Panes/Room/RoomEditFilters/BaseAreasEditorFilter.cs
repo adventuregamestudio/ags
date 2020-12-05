@@ -167,10 +167,6 @@ namespace AGS.Editor
 
         public void Invalidate() { _panel.Invalidate(); }
 
-        public void PaintToHDC(IntPtr hDC, RoomEditorState state)
-        {
-        }
-
         /// <summary>
         /// Draw hint overlay.
         /// NOTE: this is NOT drawing on actual mask, which is performed when
@@ -455,7 +451,7 @@ namespace AGS.Editor
 			{
 				_greyedOutMasks = !_greyedOutMasks;
 				_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
-				Factory.NativeProxy.GreyOutNonSelectedMasks = _greyedOutMasks;
+                _roomController.GreyOutNonSelectedMasks = _greyedOutMasks;
 				_panel.Invalidate();
 			}
 

@@ -360,6 +360,9 @@ namespace AGS.Editor
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
+                e.Graphics.SetClip(new Rectangle(0, 0, bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth, bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight));
+                e.Graphics.Clear(Color.LightGray);
+
                 e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
 
                 // Adjust co-ordinates using original scale factor so that it lines
@@ -374,19 +377,11 @@ namespace AGS.Editor
                         drawOffsX,
                         drawOffsY,
                         backgroundNumber,
-                        (int)_state.Scale,
-                        maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw,
+                        _state.Scale,
+                        maskFilter?.MaskToDraw ?? RoomAreaMaskType.None,
                         sldTransparency.Value,
                         maskFilter == null || !maskFilter.Enabled ? 0 : maskFilter.SelectedArea);
                 }
-
-                IntPtr hdc = e.Graphics.GetHdc();
-                foreach (IRoomEditorFilter layer in _layers.Where(l => IsVisible(l)))
-                {
-                    layer.PaintToHDC(hdc, _state);
-                }
-                Factory.NativeProxy.RenderBufferToHDC(hdc);
-                e.Graphics.ReleaseHdc(hdc);
 
                 foreach (IRoomEditorFilter layer in _layers.Where(l => IsVisible(l)))
                 {

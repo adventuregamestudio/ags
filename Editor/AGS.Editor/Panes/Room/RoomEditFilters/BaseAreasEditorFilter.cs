@@ -463,28 +463,38 @@ namespace AGS.Editor
         {
             try
             {
-                Bitmap bmp = new Bitmap(fileName);
-
-                if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
+                using (Bitmap bmp = new Bitmap(fileName))
                 {
-                    Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
-                        "\nFile size: " + bmp.Width + " x " + bmp.Height +
-                        "\nRoom size: " + _room.Width + " x " + _room.Height, MessageBoxIcon.Warning);
-                    bmp.Dispose();
-                    return;
+                    if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
+                    {
+                        Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
+                            "\nFile size: " + bmp.Width + " x " + bmp.Height +
+                            "\nRoom size: " + _room.Width + " x " + _room.Height, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+                    {
+                        Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    UndoBufferMask = _roomController.GetMask(MaskToDraw);
+
+                    // allow them to import a double-size or half-size mask, adjust it as appropriate
+                    if (UndoBufferMask.Size != bmp.Size)
+                    {
+                        using (Bitmap scaled = bmp.Scale(bmp.Width, bmp.Height))
+                        {
+                            _roomController.SetMask(MaskToDraw, scaled);
+                        }
+                    }
+                    else
+                    {
+                        _roomController.SetMask(MaskToDraw, bmp);
+                    }
                 }
 
-                if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
-                {
-                    Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
-                    bmp.Dispose();
-                    return;
-                }
-
-                UndoBufferMask = _roomController.GetMask(MaskToDraw);
-                Factory.NativeProxy.ImportAreaMask(_room, this.MaskToDraw, bmp);
-                bmp.Dispose();
-                _room.Modified = true;
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }

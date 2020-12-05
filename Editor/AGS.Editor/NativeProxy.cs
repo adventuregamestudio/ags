@@ -271,11 +271,6 @@ namespace AGS.Editor
             return _native.GetBitmapForBackground(room, backgroundNumber);
         }
 
-        public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
-        {
-            _native.ImportAreaMask(room, mask, bmp);
-        }
-
         public void SetAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {
             _native.SetAreaMask(room, mask, bmp);

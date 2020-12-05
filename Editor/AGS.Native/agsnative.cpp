@@ -2134,32 +2134,14 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	room->ColorDepth = theRoom->BgFrames[0].Graphic->GetColorDepth();
 }
 
-void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
-{
-	color oldpale[256];
-	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-
-	if (mask->GetWidth() != importedImage->GetWidth())
-	{
-		// allow them to import a double-size or half-size mask, adjust it as appropriate
-		Cstretch_blit(importedImage, mask, 0, 0, importedImage->GetWidth(), importedImage->GetHeight(), 0, 0, mask->GetWidth(), mask->GetHeight());
-	}
-	else
-	{
-		mask->Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
-	}
-	delete importedImage;
-
-	validate_mask(mask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
-}
-
 void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
 {
     color oldpale[256];
     RoomStruct* room = (RoomStruct*)roomptr;
     AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
     AGSBitmap* newMask = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
+    if (maskType != kRoomAreaNone)
+        validate_mask(newMask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
 
     switch (maskType)
     {

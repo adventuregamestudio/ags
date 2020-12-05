@@ -71,7 +71,6 @@ extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void DeleteBackground(Room ^room, int backgroundNumber);
 extern void FixRoomMasks(Room ^room);
-extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
@@ -443,11 +442,6 @@ namespace AGS
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
-
-    void NativeMethods::ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp)
-    {
-      import_area_mask((void*)room->_roomStructPtr, (int)maskType, bmp);
-    }
 
     void NativeMethods::SetAreaMask(Room^ room, RoomAreaMaskType maskType, Bitmap^ bmp)
     {

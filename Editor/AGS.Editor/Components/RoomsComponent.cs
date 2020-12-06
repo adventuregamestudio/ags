@@ -601,7 +601,8 @@ namespace AGS.Editor.Components
             Room room = (Room)parameter;
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
-            _agsEditor.CompileScript(room.Script, headers, null);
+            _agsEditor.CompileScript(room.Script, headers, null, true);
+            ((IRoomController)this).Save();
 
             return null;            
         }

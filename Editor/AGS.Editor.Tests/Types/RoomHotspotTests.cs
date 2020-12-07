@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Xml;
 using AGS.Types;
 using NSubstitute;
 using NUnit.Framework;
@@ -90,6 +92,42 @@ namespace AGS.Types
             _changeNotification.DidNotReceive();
             ((IChangeNotification)_roomHotspot).ItemModified();
             _changeNotification.Received();
+        }
+
+        [TestCase("Hotspot 1", "hHotspot1", 0, 0)]
+        [TestCase("Hotspot 2", "hHotspot2", 5, 5)]
+        public void DeserializesFromXml(string description, string name, int walkToX, int walkToY)
+        {
+            string xml = $@"
+            <RoomHotspot>
+              <Description xml:space=""preserve"">{description}</Description>
+              <Name>{name}</Name>
+              <WalkToPoint>{walkToX},{walkToY}</WalkToPoint>
+              <Properties />
+              <Interactions />
+            </RoomHotspot>";
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            _roomHotspot = new RoomHotspot(_changeNotification, doc.SelectSingleNode("RoomHotspot"));
+
+            Assert.That(_roomHotspot.Description, Is.EqualTo(description));
+            Assert.That(_roomHotspot.Name, Is.EqualTo(name));
+            Assert.That(_roomHotspot.WalkToPoint.X, Is.EqualTo(walkToX));
+            Assert.That(_roomHotspot.WalkToPoint.Y, Is.EqualTo(walkToY));
+        }
+
+        [TestCase("Hotspot 1", "hHotspot1", 0, 0)]
+        [TestCase("Hotspot 2", "hHotspot2", 5, 5)]
+        public void SerializeToXml(string description, string name, int walkToX, int walkToY)
+        {
+            _roomHotspot.Description = description;
+            _roomHotspot.Name = name;
+            _roomHotspot.WalkToPoint = new Point(walkToX, walkToY);
+            XmlDocument doc = _roomHotspot.ToXmlDocument();
+
+            Assert.That(doc.SelectSingleNode("/RoomHotspot/Description").InnerText, Is.EqualTo(description));
+            Assert.That(doc.SelectSingleNode("/RoomHotspot/Name").InnerText, Is.EqualTo(name));
+            Assert.That(doc.SelectSingleNode("/RoomHotspot/WalkToPoint").InnerText, Is.EqualTo($"{walkToX},{walkToY}"));
         }
     }
 }

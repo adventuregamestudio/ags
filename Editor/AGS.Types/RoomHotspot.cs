@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("Description")]
-    public class RoomHotspot : IChangeNotification
+    public class RoomHotspot : IChangeNotification, IToXml
 	{
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
 
@@ -36,6 +37,13 @@ namespace AGS.Types
 			_notifyOfModification = changeNotifier;
 		}
 
+        public RoomHotspot(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            Interactions.FromXml(node);
+        }
+
+        [AGSNoSerialize]
         [Description("The ID number of the hotspot")]
         [Category("Design")]
         [ReadOnly(true)]
@@ -86,7 +94,7 @@ namespace AGS.Types
             protected set { _properties = value; }
         }
 
-        [AGSNoSerialize()]
+        [AGSSerializeClass()]
         [Browsable(false)]
         public Interactions Interactions
         {
@@ -97,5 +105,12 @@ namespace AGS.Types
 		{
 			_notifyOfModification.ItemModified();
 		}
-	}
+
+        public void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer, false);
+            Interactions.ToXml(writer);
+            writer.WriteEndElement();
+        }
+    }
 }

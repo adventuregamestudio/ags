@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
     [DefaultProperty("ScalingLevel")]
-    public class RoomWalkableArea : ICustomTypeDescriptor
+    public class RoomWalkableArea : ICustomTypeDescriptor, IToXml
     {
         private int _id;
         private int _areaSpecificView;
@@ -16,6 +17,16 @@ namespace AGS.Types
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
 
+        public RoomWalkableArea()
+        {
+        }
+
+        public RoomWalkableArea(XmlNode node) : this()
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+        }
+
+        [AGSNoSerialize]
         [Description("The ID number of the walkable area")]
         [Category("Design")]
         [ReadOnly(true)]
@@ -165,5 +176,6 @@ namespace AGS.Types
 
         #endregion
 
+        public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
     }
 }

@@ -5,10 +5,11 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Globalization;
+using System.IO;
 
 namespace AGS.Types
 {
-    public class SerializeUtils
+    public static class SerializeUtils
     {
         /// <summary>
         /// Wrapper function for SelectSingleNode that throws an exception
@@ -137,6 +138,10 @@ namespace AGS.Types
                         {
                             writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
                         }
+                        else if (prop.PropertyType == typeof(Point))
+                        {
+                            writer.WriteElementString(prop.Name, PointToCompactString((Point)prop.GetValue(obj, null)));
+                        }
                         // For compatibility with various Custom Resolution beta builds
                         // TODO: find a generic solution for doing a conversions like this without
                         // using hard-coded property name (some serialization attribute perhaps)
@@ -252,6 +257,10 @@ namespace AGS.Types
                         prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
                     }					                    
 				}
+                else if (prop.PropertyType == typeof(Point))
+                {
+                    prop.SetValue(obj, CompactStringToPoint(elementValue));
+                }
                 else if (prop.PropertyType.IsEnum)
                 {
                     prop.SetValue(obj, Enum.Parse(prop.PropertyType, elementValue), null);
@@ -298,6 +307,25 @@ namespace AGS.Types
         public static String ResolutionToCompatString(Size size)
         {
             return String.Format("{0},{1}", size.Width, size.Height);
+        }
+
+        public static Point CompactStringToPoint(string s)
+        {
+            string[] parts = s.Split(',');
+            return new Point(int.Parse(parts[0]), int.Parse(parts[1]));
+        }
+
+        public static string PointToCompactString(Point point) => $"{point.X},{point.Y}";
+
+        public static XmlDocument ToXmlDocument(this IToXml toXml)
+        {
+            XmlDocument res = new XmlDocument();
+            StringWriter rawXml = new StringWriter();
+            XmlTextWriter xmlWriter = new XmlTextWriter(rawXml);
+            toXml.ToXml(xmlWriter);
+            res.LoadXml(rawXml.ToString());
+            xmlWriter.Close();
+            return res;
         }
     }
 }

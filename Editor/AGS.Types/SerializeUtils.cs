@@ -78,6 +78,23 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Serializes enumerable to xml. 
+        /// </summary>
+        /// <typeparam name="T">The type in the collection. Must implement the <see cref="IToXml"/> interface.</typeparam>
+        /// <param name="writer">The xml writer to add the xml to.</param>
+        /// <param name="name">The name of the xml tag that the collection will we wrapped in.</param>
+        /// <param name="collection">The collection to serialize</param>
+        public static void SerializeToXML<T>(XmlTextWriter writer, string name, IEnumerable<T> collection) where T : IToXml
+        {
+            writer.WriteStartElement(name);
+            foreach (var element in collection)
+            {
+                element.ToXml(writer);
+            }
+            writer.WriteEndElement();
+        }
+
+        /// <summary>
         /// Serializes properties of the object into the current node.
         /// </summary>
         /// <param name="obj"></param>

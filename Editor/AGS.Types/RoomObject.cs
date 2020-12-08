@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
+	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
 
@@ -42,6 +43,12 @@ namespace AGS.Types
 		{
 			_notifyOfModification = changeNotifier;
 		}
+
+        public RoomObject(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            Interactions.FromXml(node);
+        }
 
         [Description("The ID number of the object")]
         [Category("Design")]
@@ -285,6 +292,13 @@ namespace AGS.Types
 			return this;
 		}
 
-		#endregion
-	}
+        #endregion
+
+        public void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer, false);
+            _interactions.ToXml(writer);
+            writer.WriteEndElement();
+        }
+    }
 }

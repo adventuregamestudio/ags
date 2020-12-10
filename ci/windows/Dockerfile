@@ -1,3 +1,6 @@
+# increment number to modify file hash but keep the same build configuration
+# 1
+
 # base will already have Chocolatey installed
 FROM cirrusci/windowsservercore:2019
 

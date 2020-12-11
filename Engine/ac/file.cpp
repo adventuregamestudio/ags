@@ -389,8 +389,9 @@ Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
         AssetMgr->SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
-    Stream *asset_stream = AssetMgr->OpenAsset(assetname);
-    asset_size = AssetMgr->GetLastAssetSize();
+    soff_t asset_sz = 0;
+    Stream *asset_stream = AssetMgr->OpenAsset(assetname, &asset_sz);
+    asset_size = asset_sz;
     if (needsetback)
         AssetMgr->SetDataFile(ResPaths.GamePak.Path);
     return asset_stream;

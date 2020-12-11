@@ -102,17 +102,15 @@ public:
     bool         DoesAssetExist(const String &asset_name) const;
     soff_t       GetAssetOffset(const String &asset_name) const;
     soff_t       GetAssetSize(const String &asset_name) const;
-    // TODO: instead of this support streams that work in a file subsection, limited by size
-    soff_t       GetLastAssetSize() const;
     // TODO: review this function later;
     // this is a workaround that lets us use back-end specific kind of streams
     // to read the asset data. This is not ideal, because it limits us to reading from file.
     // The better solution could be returning a kind of "io device" object
     // which may be used to initialize both AGS and back-end compatible stream wrappers.
     bool         GetAssetLocation(const String &asset_name, AssetLocation &loc) const;
-    Stream      *OpenAsset(const String &asset_name,
+    Stream      *OpenAsset(const String &asset_name, soff_t *asset_size = nullptr,
                                    FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read);
+                                   FileWorkMode work_mode = kFile_Read) const;
 
 private:
     AssetError  RegisterAssetLib(const String &data_file);
@@ -127,7 +125,6 @@ private:
 
     AssetLibInfo            &_assetLib;
     String                  _basePath;          // library's parent path (directory)
-    soff_t                  _lastAssetSize;     // size of asset that was opened last time
 };
 
 

@@ -66,7 +66,6 @@ AssetManager::~AssetManager()
 AssetManager::AssetManager()
     : _assetLib(*new AssetLibInfo())
     , _searchPriority(kAssetPriorityDir)
-    , _lastAssetSize(0)
 {
 }
 
@@ -136,11 +135,6 @@ soff_t AssetManager::GetAssetSize(const String &asset_name) const
         return asset->Size;
     }
     return -1;
-}
-
-soff_t AssetManager::GetLastAssetSize() const
-{
-    return _lastAssetSize;
 }
 
 size_t AssetManager::GetAssetCount() const
@@ -286,7 +280,7 @@ bool AssetManager::GetAssetLocation(const String &asset_name, AssetLocation &loc
     return GetAssetByPriority(asset_name, loc, kFile_Open, kFile_Read);
 }
 
-Stream *AssetManager::OpenAsset(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode)
+Stream *AssetManager::OpenAsset(const String &asset_name, soff_t *asset_size, FileOpenMode open_mode, FileWorkMode work_mode) const
 {
     AssetLocation loc;
     if (GetAssetByPriority(asset_name, loc, open_mode, work_mode))
@@ -295,7 +289,8 @@ Stream *AssetManager::OpenAsset(const String &asset_name, FileOpenMode open_mode
         if (s)
         {
             s->Seek(loc.Offset, kSeekBegin);
-            _lastAssetSize = loc.Size;
+            if (asset_size)
+                *asset_size = loc.Size;
         }
         return s;
     }

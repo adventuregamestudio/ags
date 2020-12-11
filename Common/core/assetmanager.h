@@ -38,6 +38,7 @@
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
 #include <memory>
+#include "core/asset.h"
 #include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
 
 namespace AGS
@@ -47,8 +48,6 @@ namespace Common
 
 class Stream;
 struct MultiFileLib;
-struct AssetLibInfo;
-struct AssetInfo;
 
 enum AssetSearchPriority
 {
@@ -81,7 +80,7 @@ class AssetManager
 {
 public:
     AssetManager();
-    ~AssetManager();
+    ~AssetManager() = default;
 
     // Test if given file is main data file
     static bool         IsDataFile(const String &data_file);
@@ -93,15 +92,18 @@ public:
     // Gets current asset search priority
     AssetSearchPriority GetSearchPriority() const;
 
-    AssetError   SetDataFile(const String &data_file);
-    String       GetLibraryBaseFile() const;
-    const AssetLibInfo *GetLibraryTOC() const;
-    size_t       GetAssetCount() const;
-    String       GetLibraryForAsset(const String &asset_name) const;
-    String       GetAssetFileByIndex(size_t index) const;
+    // Add library file to the list of asset locations
+    AssetError   AddLibrary(const String &data_file);
+    // Remove library file from the list of asset locations
+    void         RemoveLibrary(const String &data_file);
+    // Removes all libraries
+    void         RemoveAllLibraries();
+    // Includes or excludes particular library in/from asset search while keeping its TOC registered
+    void         SetLibrarySearch(const String &data_file, bool on);
+
+    size_t       GetLibraryCount() const;
+    const AssetLibInfo *GetLibraryTOC(size_t index) const;
     bool         DoesAssetExist(const String &asset_name) const;
-    soff_t       GetAssetOffset(const String &asset_name) const;
-    soff_t       GetAssetSize(const String &asset_name) const;
     // TODO: review this function later;
     // this is a workaround that lets us use back-end specific kind of streams
     // to read the asset data. This is not ideal, because it limits us to reading from file.
@@ -113,18 +115,20 @@ public:
                                    FileWorkMode work_mode = kFile_Read) const;
 
 private:
-    AssetError  RegisterAssetLib(const String &data_file);
+    // Loads library and registers its contents into the cache
+    AssetError  RegisterAssetLib(const String &data_file, AssetLibInfo *&lib);
 
-    AssetInfo  *FindAssetByFileName(const String &asset_name) const;
-    String      MakeLibraryFileNameForAsset(const AssetInfo *asset) const;
+    // Searchs for asset specifically in the registered lib TOCs
+    bool        FindAssetInLibs(const String &asset_name, const AssetInfo **asset, const AssetLibInfo **lib) const;
+    // Tries to find asset in libs, tests if it's possible to open, and fills in AssetLocation
     bool        GetAssetFromLib(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetFromDir(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetByPriority(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
 
     AssetSearchPriority     _searchPriority;
 
-    AssetLibInfo            &_assetLib;
-    String                  _basePath;          // library's parent path (directory)
+    std::vector<std::unique_ptr<AssetLibInfo>> _libs;
+    std::vector<AssetLibInfo*> _activeLibs;
 };
 
 

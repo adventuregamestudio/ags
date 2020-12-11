@@ -317,7 +317,7 @@ bool search_for_game_data_file(String &filename, String &search_path)
 bool engine_try_init_gamedata(String gamepak_path)
 {
     // Search for an available game package in the known locations
-    AssetError err = AssetMgr->SetDataFile(gamepak_path);
+    AssetError err = AssetMgr->AddLibrary(gamepak_path);
     if (err != kAssetNoError)
     {
         platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
@@ -352,9 +352,8 @@ void engine_locate_speech_pak()
         String speech_filepath = find_assetlib(speech_file);
         if (!speech_filepath.IsEmpty()) {
             Debug::Printf("Initializing speech vox");
-            if (AssetMgr->SetDataFile(speech_filepath)!=Common::kAssetNoError) {
+            if (AssetMgr->AddLibrary(speech_filepath) != Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
-                AssetMgr->SetDataFile(ResPaths.GamePak.Path); // switch back to the main data pack
                 return;
             }
             // TODO: why is this read right here??? move this to InitGameState!
@@ -381,8 +380,9 @@ void engine_locate_speech_pak()
                 }
                 delete speechsync;
             }
-            AssetMgr->SetDataFile(ResPaths.GamePak.Path); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
+            // speech.vox may contain thousands of voice files, therefore we toggle it off by default
+            AssetMgr->SetLibrarySearch(speech_filepath, false);
             play.want_speech=1;
         }
         else if (Path::ComparePaths(ResPaths.DataDir, get_voice_install_dir()) != 0)
@@ -403,9 +403,8 @@ void engine_locate_audio_pak()
     String music_filepath = find_assetlib(music_file);
     if (!music_filepath.IsEmpty())
     {
-        if (AssetMgr->SetDataFile(music_filepath) == kAssetNoError)
+        if (AssetMgr->AddLibrary(music_filepath) == kAssetNoError)
         {
-            AssetMgr->SetDataFile(ResPaths.GamePak.Path);
             Debug::Printf(kDbgMsg_Info, "%s found and initialized.", music_file.GetCStr());
             play.separate_music_lib = 1;
             ResPaths.AudioPak.Name = music_file;

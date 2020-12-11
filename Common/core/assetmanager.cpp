@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "core/assetmanager.h"
+#include <algorithm>
 #include "util/misc.h" // ci_fopen
 #include "util/multifilelib.h"
 #include "util/path.h"
@@ -32,11 +33,6 @@ AssetLocation::AssetLocation()
     : Offset(0)
     , Size(0)
 {
-}
-
-AssetManager::~AssetManager()
-{
-    delete &_assetLib;
 }
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
@@ -64,8 +60,7 @@ AssetManager::~AssetManager()
 }
 
 AssetManager::AssetManager()
-    : _assetLib(*new AssetLibInfo())
-    , _searchPriority(kAssetPriorityDir)
+    : _searchPriority(kAssetPriorityDir)
 {
 }
 
@@ -79,154 +74,115 @@ AssetSearchPriority AssetManager::GetSearchPriority() const
     return _searchPriority;
 }
 
-AssetError AssetManager::SetDataFile(const String &data_file)
+AssetError AssetManager::AddLibrary(const String &data_file)
 {
     if (data_file.IsEmpty())
-    {
         return kAssetErrNoLibFile;
-    }
-    if (Path::ComparePaths(_assetLib.BaseFilePath, data_file) == 0)
+
+    for (const auto &lib : _libs)
     {
-        return kAssetNoError;
+        if (Path::ComparePaths(lib->BaseFilePath, data_file) == 0)
+            return kAssetNoError; // already present
     }
-    AssetError err = RegisterAssetLib(data_file);
-    return err;
+
+    AssetLibInfo *lib;
+    AssetError err = RegisterAssetLib(data_file, lib);
+    if (err != kAssetNoError)
+        return err;
+    _activeLibs.push_back(lib);
+    return kAssetNoError;
 }
 
-String AssetManager::GetLibraryForAsset(const String &asset_name) const
+void AssetManager::RemoveLibrary(const String &data_file)
 {
-    if (asset_name.IsEmpty())
+    for (auto it = _libs.cbegin(); it != _libs.cend(); ++it)
     {
-        return "";
+        if (Path::ComparePaths((*it)->BaseFilePath, data_file) == 0)
+        {
+            std::remove(_activeLibs.begin(), _activeLibs.end(), (*it).get());
+            _libs.erase(it);
+            return;
+        }
     }
-    AssetInfo *asset = FindAssetByFileName(asset_name);
-    if (!asset)
-    {
-        // asset not found
-        return "";
-    }
-
-    return MakeLibraryFileNameForAsset(asset);
 }
 
-soff_t AssetManager::GetAssetOffset(const String &asset_name) const
+void AssetManager::RemoveAllLibraries()
 {
-    if (asset_name.IsEmpty())
+    _libs.clear();
+    _activeLibs.clear();
+}
+
+void AssetManager::SetLibrarySearch(const String &data_file, bool on)
+{
+    for (const auto &lib : _libs)
     {
-        return -1;
+        if (Path::ComparePaths(lib->BaseFilePath, data_file) == 0)
+        {
+            auto it = std::find(_activeLibs.begin(), _activeLibs.end(), lib.get());
+            if (on && it == _activeLibs.end())
+                _activeLibs.push_back(lib.get());
+            else if (!on && it != _activeLibs.end())
+                _activeLibs.erase(it);
+        }
     }
-    AssetInfo *asset = FindAssetByFileName(asset_name);
-    if (asset)
-    {
-        return asset->Offset;
-    }
-    return -1;
 }
 
-soff_t AssetManager::GetAssetSize(const String &asset_name) const
+size_t AssetManager::GetLibraryCount() const
 {
-    if (asset_name.IsEmpty())
-    {
-        return -1;
-    }
-    AssetInfo *asset = FindAssetByFileName(asset_name);
-    if (asset)
-    {
-        return asset->Size;
-    }
-    return -1;
+    return _libs.size();
 }
 
-size_t AssetManager::GetAssetCount() const
+const AssetLibInfo *AssetManager::GetLibraryTOC(size_t index) const
 {
-    return _assetLib.AssetInfos.size();
-}
-
-String AssetManager::GetAssetFileByIndex(size_t index) const
-{
-    if ((index < 0) || ((size_t)index >= _assetLib.AssetInfos.size()))
-        return nullptr;
-
-    return _assetLib.AssetInfos[index].FileName;
-}
-
-String AssetManager::GetLibraryBaseFile() const
-{
-    return _assetLib.BaseFileName;
-}
-
-const AssetLibInfo *AssetManager::GetLibraryTOC() const
-{
-    return &_assetLib;
+    return index < _libs.size() ? _libs[index].get() : nullptr;
 }
 
 bool AssetManager::DoesAssetExist(const String &asset_name) const
 {
-    return FindAssetByFileName(asset_name) != nullptr ||
+    return FindAssetInLibs(asset_name, nullptr, nullptr) ||
         File::TestReadFile(asset_name);
 }
 
-AssetError AssetManager::RegisterAssetLib(const String &data_file)
+AssetError AssetManager::RegisterAssetLib(const String &data_file, AssetLibInfo *&out_lib)
 {
-    // base path is current directory
-    _basePath = ".";
-
     // open data library
     Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
     if (!in)
         return kAssetErrNoLibFile; // can't be opened, return error code
 
-    // read MultiFileLibrary header (CLIB)
-    // PSP: allocate struct on the heap to avoid overflowing the stack.
-    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(_assetLib, in);
+    std::unique_ptr<AssetLibInfo> lib(new AssetLibInfo());
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(*lib, in);
     delete in;
 
     if (mfl_err != MFLUtil::kMFLNoError)
-    {
-        _assetLib.Unload();
         return kAssetErrLibParse;
-    }
 
-    // fixup base library filename
-    String nammwas = data_file;
-    String data_file_fixed = data_file;
-    // TODO: this algorythm should be in path/string utils
-    data_file_fixed.TruncateToRightSection('\\');
-    data_file_fixed.TruncateToRightSection('/');
-    if (data_file_fixed.Compare(nammwas) != 0)
-    {
-        // store complete path
-        _basePath = nammwas;
-        _basePath.TruncateToLeft(nammwas.GetLength() - data_file_fixed.GetLength());
-        _basePath.TrimRight('\\');
-        _basePath.TrimRight('/');
-    }
-
-    // set library filename
-    _assetLib.LibFileNames[0] = data_file_fixed;
-    // make a lowercase backup of the original file name
-    _assetLib.BaseFileName = data_file_fixed;
-    _assetLib.BaseFileName.MakeLower();
-    _assetLib.BaseFilePath = Path::MakeAbsolutePath(data_file);
+    lib->BaseFileName = Path::GetFilename(data_file);
+    lib->LibFileNames[0] = lib->BaseFileName;
+    lib->BaseFilePath = Path::MakeAbsolutePath(data_file);
+    lib->BasePath = Path::GetDirectoryPath(data_file);
+    out_lib = lib.get();
+    _libs.push_back(std::move(lib));
     return kAssetNoError;
 }
 
-AssetInfo *AssetManager::FindAssetByFileName(const String &asset_name) const
+bool AssetManager::FindAssetInLibs(const String &asset_name, const AssetInfo **out_asset, const AssetLibInfo **out_lib) const
 {
-    for (size_t i = 0; i < _assetLib.AssetInfos.size(); ++i)
+    for (const auto *lib : _activeLibs)
     {
-        if (_assetLib.AssetInfos[i].FileName.CompareNoCase(asset_name) == 0)
+        for (const auto &asset : lib->AssetInfos)
         {
-            return &_assetLib.AssetInfos[i];
+            if (asset.FileName.CompareNoCase(asset_name) == 0)
+            {
+                if (out_asset)
+                    *out_asset = &asset;
+                if (out_lib)
+                    *out_lib = lib;
+                return true;
+            }
         }
     }
-    return nullptr;
-}
-
-String AssetManager::MakeLibraryFileNameForAsset(const AssetInfo *asset) const
-{
-    // deduce asset library file containing this asset
-    return String::FromFormat("%s/%s",_basePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
+    return false;
 }
 
 bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode) const
@@ -234,11 +190,12 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
     if (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)
         return false; // creating/writing is allowed only for common files on disk
 
-    AssetInfo *asset = FindAssetByFileName(asset_name);
-    if (!asset)
+    const AssetInfo *asset;
+    const AssetLibInfo *lib;
+    if (!FindAssetInLibs(asset_name, &asset, &lib))
         return false; // asset not found
 
-    String libfile = cbuf_to_string_and_free( ci_find_file(nullptr, MakeLibraryFileNameForAsset(asset)) );
+    String libfile = cbuf_to_string_and_free( ci_find_file(lib->BasePath, lib->LibFileNames[asset->LibUid]) );
     if (libfile.IsEmpty())
         return false;
     loc.FileName = libfile;

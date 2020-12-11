@@ -15,7 +15,6 @@
 // AssetInfo and AssetLibInfo - classes describing generic asset library.
 //
 //=============================================================================
-
 #ifndef __AGS_CN_CORE__ASSET_H
 #define __AGS_CN_CORE__ASSET_H
 
@@ -32,26 +31,23 @@ struct AssetInfo
 {
     // A pair of filename and libuid is assumed to be unique in game scope
     String      FileName;   // filename associated with asset
-    int32_t     LibUid;     // uid of library, containing this asset
+    int32_t     LibUid;     // index of library partition (separate file)
     soff_t      Offset;     // asset's position in library file (in bytes)
     soff_t      Size;       // asset's size (in bytes)
 
     AssetInfo();
 };
 
-typedef std::vector<AssetInfo> AssetVec;
-
 // Information on multifile asset library
 struct AssetLibInfo
 {
     String BaseFileName;               // library's base (head) filename
     String BaseFilePath;               // full path to the base filename
+    String BasePath;                   // library's directory
     std::vector<String> LibFileNames;  // filename for each library part
 
     // Library contents
-    AssetVec AssetInfos; // information on contained assets
-
-    void Unload();
+    std::vector<AssetInfo> AssetInfos; // information on contained assets
 };
 
 } // namespace Common

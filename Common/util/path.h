@@ -34,6 +34,8 @@ namespace Path
     // Tells if the given path is file or directory;
     // may be used to check if it's valid to use
     bool    IsFileOrDir(const String &filename);
+    // Returns filename part out of the longer path
+    String  GetFilename(const String &path);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and

@@ -537,9 +537,9 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
         }
     }
     // Append contents of the main game file
-    const AssetLibInfo *game_lib = AssetMgr->GetLibraryTOC();
-    if (game_lib)
+    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
     {
+        const AssetLibInfo *game_lib = AssetMgr->GetLibraryTOC(i);
         for (const AssetInfo &info : game_lib->AssetInfos)
         {
             if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)

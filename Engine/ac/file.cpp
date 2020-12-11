@@ -381,19 +381,17 @@ Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
     String assetlib = path.first;
     String assetname = path.second;
     bool needsetback = false;
-    // Change to the different library, if required
-    // TODO: teaching AssetManager to register multiple libraries simultaneously
-    // will let us skip this step, and also make this operation much faster.
+    // Enable search in the different library, if required
     if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetMgr->SetDataFile(get_known_assetlib(assetlib));
+        AssetMgr->SetLibrarySearch(assetlib, true);
         needsetback = true;
     }
     soff_t asset_sz = 0;
     Stream *asset_stream = AssetMgr->OpenAsset(assetname, &asset_sz);
     asset_size = asset_sz;
     if (needsetback)
-        AssetMgr->SetDataFile(ResPaths.GamePak.Path);
+        AssetMgr->SetLibrarySearch(assetlib, false);
     return asset_stream;
 }
 
@@ -498,17 +496,15 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
 bool DoesAssetExistInLib(const AssetPath &assetname)
 {
     bool needsetback = false;
-    // Change to the different library, if required
-    // TODO: teaching AssetManager to register multiple libraries simultaneously
-    // will let us skip this step, and also make this operation much faster.
+    // Enable search in the different library, if required
     if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetMgr->SetDataFile(get_known_assetlib(assetname.first));
+        AssetMgr->SetLibrarySearch(assetname.first, true);
         needsetback = true;
     }
     bool res = AssetMgr->DoesAssetExist(assetname.second);
     if (needsetback)
-        AssetMgr->SetDataFile(ResPaths.GamePak.Path);
+        AssetMgr->SetLibrarySearch(assetname.first, false);
     return res;
 }
 
@@ -561,20 +557,6 @@ String find_assetlib(const String &filename)
         return libname;
     }
     return "";
-}
-
-// Looks up for known valid asset library and returns path, or empty string if failed
-String get_known_assetlib(const String &filename)
-{
-    // TODO: write now there's only 3 regular PAKs, so we may do this quick
-    // string comparison, but if we support more maybe we could use a table.
-    if (filename.CompareNoCase(ResPaths.GamePak.Name) == 0)
-        return ResPaths.GamePak.Path;
-    if (filename.CompareNoCase(ResPaths.AudioPak.Name) == 0)
-        return ResPaths.AudioPak.Path;
-    if (filename.CompareNoCase(ResPaths.SpeechPak.Name) == 0)
-        return ResPaths.SpeechPak.Path;
-    return String();
 }
 
 Stream *find_open_asset(const String &filename)

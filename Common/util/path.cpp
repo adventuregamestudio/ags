@@ -39,6 +39,11 @@ bool IsFileOrDir(const String &filename)
     return ags_path_exists(fixed_path.GetCStr()) != 0;
 }
 
+String GetFilename(const String &path)
+{
+    return get_filename(path);
+}
+
 int ComparePaths(const String &path1, const String &path2)
 {
     // Make minimal absolute paths

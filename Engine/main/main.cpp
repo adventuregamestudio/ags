@@ -112,7 +112,7 @@ int psp_gfx_smooth_sprites = 0;
 void main_pre_init()
 {
     our_eip = -999;
-    Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
+    AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
     play.takeover_data = 0;
 }
 
@@ -149,7 +149,7 @@ void main_init(int argc, char*argv[])
     SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
     SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
 
-    Common::AssetManager::CreateInstance();
+    AssetMgr.reset(new AssetManager());
     main_pre_init();
     main_create_platform_driver();
 

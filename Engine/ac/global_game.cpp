@@ -270,7 +270,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
     usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
-    if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
+    if (AssetMgr->SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
 
     show_preload();

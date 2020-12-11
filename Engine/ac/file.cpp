@@ -386,13 +386,13 @@ Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
     // will let us skip this step, and also make this operation much faster.
     if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(get_known_assetlib(assetlib));
+        AssetMgr->SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
-    Stream *asset_stream = AssetManager::OpenAsset(assetname);
-    asset_size = AssetManager::GetLastAssetSize();
+    Stream *asset_stream = AssetMgr->OpenAsset(assetname);
+    asset_size = AssetMgr->GetLastAssetSize();
     if (needsetback)
-        AssetManager::SetDataFile(ResPaths.GamePak.Path);
+        AssetMgr->SetDataFile(ResPaths.GamePak.Path);
     return asset_stream;
 }
 
@@ -502,12 +502,12 @@ bool DoesAssetExistInLib(const AssetPath &assetname)
     // will let us skip this step, and also make this operation much faster.
     if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(get_known_assetlib(assetname.first));
+        AssetMgr->SetDataFile(get_known_assetlib(assetname.first));
         needsetback = true;
     }
-    bool res = AssetManager::DoesAssetExist(assetname.second);
+    bool res = AssetMgr->DoesAssetExist(assetname.second);
     if (needsetback)
-        AssetManager::SetDataFile(ResPaths.GamePak.Path);
+        AssetMgr->SetDataFile(ResPaths.GamePak.Path);
     return res;
 }
 
@@ -578,7 +578,7 @@ String get_known_assetlib(const String &filename)
 
 Stream *find_open_asset(const String &filename)
 {
-    Stream *asset_s = Common::AssetManager::OpenAsset(filename);
+    Stream *asset_s = AssetMgr->OpenAsset(filename);
     if (!asset_s && Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
         // Just in case they're running in Debug, try standalone file in compiled folder

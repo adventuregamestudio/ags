@@ -207,7 +207,7 @@ void quit_release_data()
     _CrtMemCheckpoint(&memstart);
     _CrtMemDumpStatistics( &memstart );*/
 
-    Common::AssetManager::DestroyInstance();
+    AssetMgr.reset();
 }
 
 void quit_delete_temp_files()

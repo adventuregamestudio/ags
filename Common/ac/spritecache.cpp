@@ -760,7 +760,7 @@ HError SpriteCache::InitFile(const char *filename, const char *sprindex_filename
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    _stream.reset(Common::AssetManager::OpenAsset(filename));
+    _stream.reset(AssetMgr->OpenAsset(filename));
     if (_stream == nullptr)
         return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filename));
 
@@ -880,7 +880,7 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
 
 bool SpriteCache::LoadSpriteIndexFile(const char *filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
 {
-    Stream *fidx = Common::AssetManager::OpenAsset(filename);
+    Stream *fidx = AssetMgr->OpenAsset(filename);
     if (fidx == nullptr) 
     {
         return false;
@@ -971,7 +971,7 @@ void SpriteCache::DetachFile()
 
 int SpriteCache::AttachFile(const char *filename)
 {
-    _stream.reset(Common::AssetManager::OpenAsset((char *)filename));
+    _stream.reset(AssetMgr->OpenAsset((char *)filename));
     if (_stream == nullptr)
         return -1;
     return 0;

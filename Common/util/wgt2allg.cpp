@@ -80,7 +80,7 @@ extern "C"
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    Stream *in = Common::AssetManager::OpenAsset(filnam);
+    Stream *in = AssetMgr->OpenAsset(filnam);
     if (in == nullptr)
       return -1;
 

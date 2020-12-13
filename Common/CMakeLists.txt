@@ -6,6 +6,8 @@ add_library(common)
 set_target_properties(common PROPERTIES
     CXX_STANDARD 11
     CXX_EXTENSIONS NO
+    C_STANDARD 11
+    C_EXTENSIONS YES
 )
 
 target_include_directories(common PUBLIC .)

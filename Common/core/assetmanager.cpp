@@ -132,7 +132,7 @@ size_t AssetManager::GetLibraryCount() const
     return _libs.size();
 }
 
-const AssetLibInfo *AssetManager::GetLibraryTOC(size_t index) const
+const AssetLibInfo *AssetManager::GetLibraryInfo(size_t index) const
 {
     return index < _libs.size() ? _libs[index].get() : nullptr;
 }

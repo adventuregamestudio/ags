@@ -102,7 +102,7 @@ public:
     void         SetLibrarySearch(const String &path, bool on);
 
     size_t       GetLibraryCount() const;
-    const AssetLibInfo *GetLibraryTOC(size_t index) const;
+    const AssetLibInfo *GetLibraryInfo(size_t index) const;
     bool         DoesAssetExist(const String &asset_name) const;
     // TODO: review this function later;
     // this is a workaround that lets us use back-end specific kind of streams

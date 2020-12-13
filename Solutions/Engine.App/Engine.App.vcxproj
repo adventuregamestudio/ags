@@ -55,7 +55,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\allegro.props" />
     <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
@@ -64,7 +63,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\allegro.props" />
     <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
@@ -81,7 +79,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\allegro.props" />
     <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>

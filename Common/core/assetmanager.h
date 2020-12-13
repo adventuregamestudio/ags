@@ -93,13 +93,13 @@ public:
     AssetSearchPriority GetSearchPriority() const;
 
     // Add library file to the list of asset locations
-    AssetError   AddLibrary(const String &data_file);
+    AssetError   AddLibrary(const String &path);
     // Remove library file from the list of asset locations
-    void         RemoveLibrary(const String &data_file);
+    void         RemoveLibrary(const String &path);
     // Removes all libraries
     void         RemoveAllLibraries();
     // Includes or excludes particular library in/from asset search while keeping its TOC registered
-    void         SetLibrarySearch(const String &data_file, bool on);
+    void         SetLibrarySearch(const String &path, bool on);
 
     size_t       GetLibraryCount() const;
     const AssetLibInfo *GetLibraryTOC(size_t index) const;
@@ -116,7 +116,7 @@ public:
 
 private:
     // Loads library and registers its contents into the cache
-    AssetError  RegisterAssetLib(const String &data_file, AssetLibInfo *&lib);
+    AssetError  RegisterAssetLib(const String &path, AssetLibInfo *&lib);
 
     // Searchs for asset specifically in the registered lib TOCs
     bool        FindAssetInLibs(const String &asset_name, const AssetInfo **asset, const AssetLibInfo **lib) const;

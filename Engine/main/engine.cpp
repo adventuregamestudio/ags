@@ -323,6 +323,7 @@ bool engine_try_init_gamedata(String gamepak_path)
         platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
         return false;
     }
+    AssetMgr->AddLibrary("."); // TODO: do NOT use cwd! this is only to replicate old behavior
     return true;
 }
 

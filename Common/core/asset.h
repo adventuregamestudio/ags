@@ -41,9 +41,9 @@ struct AssetInfo
 // Information on multifile asset library
 struct AssetLibInfo
 {
+    String BasePath;                   // full path to the base filename
+    String BaseDir;                    // library's directory
     String BaseFileName;               // library's base (head) filename
-    String BaseFilePath;               // full path to the base filename
-    String BasePath;                   // library's directory
     std::vector<String> LibFileNames;  // filename for each library part
 
     // Library contents

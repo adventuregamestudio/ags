@@ -25,6 +25,7 @@ namespace AGS
 			NativeMethods(String ^version);
 
 			void Initialize();
+            void NewWorkingDirSet(String^ workingDir);
 			void NewGameLoaded(Game^ game, List<String^> ^errors);
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);

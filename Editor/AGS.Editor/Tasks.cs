@@ -111,6 +111,7 @@ namespace AGS.Editor
             List<string> errors = new List<string>();
 
             Directory.SetCurrentDirectory(gameDirectory);
+            Factory.NativeProxy.NewWorkingDirSet(gameDirectory);
             AddFontIfNotAlreadyThere(0);
             AddFontIfNotAlreadyThere(1);
             AddFontIfNotAlreadyThere(2);

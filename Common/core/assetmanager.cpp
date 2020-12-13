@@ -74,7 +74,7 @@ AssetSearchPriority AssetManager::GetSearchPriority() const
     return _searchPriority;
 }
 
-AssetError AssetManager::AddLibrary(const String &path)
+AssetError AssetManager::AddLibrary(const String &path, const AssetLibInfo **out_lib)
 {
     if (path.IsEmpty())
         return kAssetErrNoLibFile;
@@ -82,7 +82,11 @@ AssetError AssetManager::AddLibrary(const String &path)
     for (const auto &lib : _libs)
     {
         if (Path::ComparePaths(lib->BasePath, path) == 0)
+        {
+            if (out_lib)
+                *out_lib = lib.get();
             return kAssetNoError; // already present
+        }
     }
 
     AssetLibInfo *lib;
@@ -90,6 +94,8 @@ AssetError AssetManager::AddLibrary(const String &path)
     if (err != kAssetNoError)
         return err;
     _activeLibs.push_back(lib);
+    if (out_lib)
+        *out_lib = lib;
     return kAssetNoError;
 }
 

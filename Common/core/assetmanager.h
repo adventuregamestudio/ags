@@ -93,7 +93,7 @@ public:
     AssetSearchPriority GetSearchPriority() const;
 
     // Add library file to the list of asset locations
-    AssetError   AddLibrary(const String &path);
+    AssetError   AddLibrary(const String &path, const AssetLibInfo **lib = nullptr);
     // Remove library file from the list of asset locations
     void         RemoveLibrary(const String &path);
     // Removes all libraries

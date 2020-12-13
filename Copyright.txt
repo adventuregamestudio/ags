@@ -22,6 +22,7 @@ Ferdinand Thiessen
 Francesco Ariis
 Gilad Shaham
 Ivan Mogilko
+James Duong
 Janet Gilbert
 Jochen Schleu
 Joe Lee

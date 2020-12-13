@@ -15,6 +15,8 @@
  *      See readme.txt for copyright information.
  */
 
+#ifndef ALMSVCFG_H
+#define ALMSVCFG_H
 
 #ifndef SCAN_DEPEND
    #include <io.h>
@@ -89,3 +91,4 @@
    #define S_IWUSR   S_IWRITE
 #endif
 
+#endif //ALMSVCFG_H

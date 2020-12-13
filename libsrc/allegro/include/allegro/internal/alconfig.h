@@ -15,6 +15,8 @@
  *      See readme.txt for copyright information.
  */
 
+#ifndef ALCONFIG_H
+#define ALCONFIG_H
 
 /* which color depths to include? */
 #define ALLEGRO_COLOR8
@@ -434,3 +436,4 @@
    #define ALLEGRO_NO_COLORCOPY
 #endif
 
+#endif //ALCONFIG_H

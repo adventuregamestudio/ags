@@ -238,7 +238,8 @@ set(PLATFORM_SOURCES)
 
 if(ALLEGRO_MSVC)
    list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_WIN_FILES})
-elseif(ALLEGRO_UNIX)
+else()
+    # non-windows platforms are use unixy/posix file handling and have no gdi
    list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_UNIX_FILES})
 endif()
 

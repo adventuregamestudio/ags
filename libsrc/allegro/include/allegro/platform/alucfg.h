@@ -16,6 +16,9 @@
  */
 
 
+#ifndef ALUCFG_H
+#define ALUCFG_H
+
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -73,3 +76,5 @@
 #ifndef ALLEGRO_HAVE_MEMCMP
 #define ALLEGRO_NO_MEMCMP
 #endif
+
+#endif //ALUCFG_H

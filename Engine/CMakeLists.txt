@@ -11,6 +11,8 @@ endif ()
 set_target_properties(engine PROPERTIES
     CXX_STANDARD 11
     CXX_EXTENSIONS NO
+    C_STANDARD 11
+    C_EXTENSIONS YES
 )
 
 target_include_directories(engine PUBLIC .)
@@ -557,10 +559,10 @@ target_link_libraries(engine PUBLIC
     Threads::Threads 
     Allegro::Allegro 
     Cda::Cda
-    SDL2_sound::SDL2_sound
     External::OpenAL
     SDL2::SDL2
-    Glad::Glad 
+    Glad::Glad
+    SDL2_sound::SDL2_sound
 )
 
 # common has a circular dependency on engine

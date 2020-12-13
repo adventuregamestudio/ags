@@ -19,6 +19,9 @@
 #ifndef ALOSXCFG_H
 #define ALOSXCFG_H
 
+#include <fcntl.h>
+#include <unistd.h>
+
 /* Provide implementations of missing functions */
 #define ALLEGRO_NO_STRICMP
 #define ALLEGRO_NO_STRLWR

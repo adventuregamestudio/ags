@@ -53,6 +53,4 @@
    #define ALLEGRO_NO_ASM
 #endif
 
-
-
-#endif
+#endif //ALIOSCFG_H

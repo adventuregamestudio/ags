@@ -1711,11 +1711,13 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
 
     // saved with different game file
-    if (Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
+    // if savegame is modern enough then test game GUIDs, if it's old then do the stupid old-style filename test
+    if (!desc.GameGuid.IsEmpty() && desc.GameGuid.Compare(game.guid) != 0 ||
+        desc.GameGuid.IsEmpty() && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
     {
-        // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
+        // TODO: if GUID is available in the save, scan available game files for their GUIDs also!
         get_install_dir_path(gamefilenamebuf, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
@@ -1723,8 +1725,8 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             load_new_game_restore = slotNumber;
             return HSaveError::None();
         }
-        Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory. Trying to restore in the running game instead.",
-            path.GetCStr(), desc.MainDataFilename.GetCStr());
+        Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s' (title: '%s'), but it cannot be found in the current directory. Trying to restore in the running game instead.",
+            path.GetCStr(), desc.MainDataFilename.GetCStr(), desc.GameTitle.GetCStr());
     }
 
     // do the actual restore

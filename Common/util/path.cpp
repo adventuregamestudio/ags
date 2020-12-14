@@ -50,6 +50,12 @@ int ComparePaths(const String &path1, const String &path2)
     String fixed_path1 = MakeAbsolutePath(path1);
     String fixed_path2 = MakeAbsolutePath(path2);
 
+#if AGS_PLATFORM_OS_WINDOWS
+    // On Windows make sure both are represented as short names (at least until we support wide paths)
+    fixed_path1 = GetPathInASCII(fixed_path1);
+    fixed_path2 = GetPathInASCII(fixed_path2);
+#endif
+
     fixed_path1.TrimRight('/');
     fixed_path2.TrimRight('/');
 

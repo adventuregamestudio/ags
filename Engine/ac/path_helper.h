@@ -70,6 +70,6 @@ void    set_install_dir(const String &path, const String &audio_path, const Stri
 String  get_install_dir();
 String  get_audio_install_dir();
 String  get_voice_install_dir();
-void    get_install_dir_path(char* buffer, const char *fileName);
+String  get_install_dir_path(const String &filename);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

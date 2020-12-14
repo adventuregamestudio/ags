@@ -672,10 +672,6 @@ const char* Game_GetGlobalStrings(int index) {
 }
 
 
-
-char gamefilenamebuf[200];
-
-
 // ** GetGameParameter replacement functions
 
 int Game_GetInventoryItemCount() {
@@ -1712,19 +1708,23 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
 
     // saved with different game file
     // if savegame is modern enough then test game GUIDs, if it's old then do the stupid old-style filename test
+    // TODO: remove filename test after deprecating old saves;
+    // pre-AGS 3.0 games don't have GUID, but they have "uniqueid" field, we only need to add this to saves.
     if (!desc.GameGuid.IsEmpty() && desc.GameGuid.Compare(game.guid) != 0 ||
         desc.GameGuid.IsEmpty() && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
     {
-        // Try to find wanted game's executable; if it does not exist,
-        // continue loading savedgame in current game, and pray for the best
-        // TODO: if GUID is available in the save, scan available game files for their GUIDs also!
-        get_install_dir_path(gamefilenamebuf, desc.MainDataFilename);
-        if (Common::File::TestReadFile(gamefilenamebuf))
+        // Try to find wanted game's executable
+        // TODO: if GUID/uniqueid is available in the save, scan available game files for their IDs also (see preload_game_data)!
+        String gamefile = get_install_dir_path(desc.MainDataFilename);
+        if (Common::File::TestReadFile(gamefile))
         {
-            RunAGSGame (desc.MainDataFilename, 0, 0);
+            RunAGSGame(desc.MainDataFilename, 0, 0);
             load_new_game_restore = slotNumber;
             return HSaveError::None();
         }
+        // if it does not exist, continue loading savedgame in current game, and pray for the best
+        // TODO: actually error on this instead of mere warning, after deprecating old save support,
+        // as new save should be enough to justify game match with GUIDs (or opposite).
         Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s' (title: '%s'), but it cannot be found in the current directory. Trying to restore in the running game instead.",
             path.GetCStr(), desc.MainDataFilename.GetCStr(), desc.GameTitle.GetCStr());
     }

@@ -70,7 +70,6 @@ extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
-extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
@@ -242,10 +241,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     }
 
     if ((mode & RAGMODE_LOADNOW) == 0) {
-        // need to copy, since the script gets destroyed
-        get_install_dir_path(gamefilenamebuf, newgame);
-        ResPaths.GamePak.Path = gamefilenamebuf;
-        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
+        ResPaths.GamePak.Path = get_install_dir_path(newgame);
+        ResPaths.GamePak.Name = newgame;
         play.takeover_data = data;
         load_new_game_restore = -1;
 

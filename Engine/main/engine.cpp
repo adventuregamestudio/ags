@@ -240,7 +240,7 @@ String find_game_data_in_directory(const String &path)
             test_file.CompareRightNoCase(".exe") == 0;
         if (is_std_name || first_nonstd_fn.IsEmpty())
         {
-            test_file.Format("%s/%s", path.GetCStr(), ff.name);
+            test_file = Path::ConcatPaths(path, ff.name);
             if (IsMainGameLibrary(test_file))
             {
                 if (is_std_name)

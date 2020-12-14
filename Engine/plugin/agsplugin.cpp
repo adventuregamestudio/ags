@@ -832,7 +832,8 @@ int IAGSEngine::IsRunningUnderDebugger()
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)
 {
-    get_install_dir_path(buffer, fileName);
+    // TODO: this is very unsafe, deprecate and make a better API function if still necessary
+    strcpy(buffer, get_install_dir_path(fileName).GetCStr());
 }
 
 void IAGSEngine::BreakIntoDebugger()

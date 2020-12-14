@@ -539,9 +539,9 @@ String get_voice_install_dir()
     return installVoiceDirectory;
 }
 
-void get_install_dir_path(char* buffer, const char *fileName)
+String get_install_dir_path(const String &filename)
 {
-    sprintf(buffer, "%s/%s", installDirectory.GetCStr(), fileName);
+    return Path::ConcatPaths(installDirectory, filename);
 }
 
 String find_assetlib(const String &filename)

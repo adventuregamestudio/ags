@@ -644,11 +644,11 @@ void unload_game_file()
     guis.clear();
     free(scrGui);
 
+    free_all_fonts();
+
     pl_stop_plugins();
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
-
-    free_all_fonts();
 
     free_do_once_tokens();
     free(play.gui_draw_order);

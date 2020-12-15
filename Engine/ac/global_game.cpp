@@ -268,8 +268,15 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
     AssetMgr->RemoveAllLibraries();
+
+    // TODO: refactor and share same code with the startup!
     if (AssetMgr->AddLibrary(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
+    AssetMgr->AddLibrary(".");
+    if (!ResPaths.AudioPak.Path.IsEmpty())
+        AssetMgr->AddLibrary(ResPaths.AudioPak.Path);
+    if (!ResPaths.SpeechPak.Path.IsEmpty())
+        AssetMgr->AddLibrary(ResPaths.SpeechPak.Path);
 
     show_preload();
 

@@ -64,6 +64,10 @@ public:
     String(char c, size_t count);
     ~String();
 
+    // TODO: get rid of condition in GetCStr! either make it nullable and test for consequences in engine code,
+    // or make sure it points to "" literal when string is not assigned; also check if GetNullableCStr may be removed.
+    // OR do opposite: make helper function that returns non-null cstr explicitly.
+
     // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
     {
@@ -72,7 +76,7 @@ public:
     // Get C-string or nullptr
     inline const char *GetNullableCStr() const
     {
-        return _cstr ? _cstr : nullptr;
+        return _cstr;
     }
     // Get character count
     inline size_t GetLength() const

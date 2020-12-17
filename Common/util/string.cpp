@@ -418,10 +418,11 @@ String String::Section(char separator, size_t first, size_t last,
 
 std::vector<String> String::Split(char separator) const
 {
+    if (separator == 0)
+        return std::vector<String>{GetCStr()};
+
     std::vector<String> result;
-    if (!_cstr || !separator)
-        return result;
-    const char *ptr = _cstr;
+    const char *ptr = GetCStr();
     while (*ptr)
     {
         const char *found_cstr = strchr(ptr, separator);

@@ -92,9 +92,9 @@ public:
     // Gets current asset search priority
     AssetSearchPriority GetSearchPriority() const;
 
-    // Add library file to the list of asset locations
+    // Add library location to the list of asset locations
     AssetError   AddLibrary(const String &path, const AssetLibInfo **lib = nullptr);
-    // Remove library file from the list of asset locations
+    // Remove library location from the list of asset locations
     void         RemoveLibrary(const String &path);
     // Removes all libraries
     void         RemoveAllLibraries();
@@ -118,17 +118,19 @@ private:
     // Loads library and registers its contents into the cache
     AssetError  RegisterAssetLib(const String &path, AssetLibInfo *&lib);
 
-    // Searchs for asset specifically in the registered lib TOCs
-    bool        FindAssetInLibs(const String &asset_name, const AssetInfo **asset, const AssetLibInfo **lib) const;
-    // Tries to find asset in libs, tests if it's possible to open, and fills in AssetLocation
-    bool        GetAssetFromLib(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
-    bool        GetAssetFromDir(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
-    bool        GetAssetByPriority(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
-
-    AssetSearchPriority     _searchPriority;
+    // Tries to find asset in known locations, tests if it's possible to open, and fills in AssetLocation
+    bool        GetAsset(const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
+    bool        GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
+    bool        GetAssetFromDir(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
 
     std::vector<std::unique_ptr<AssetLibInfo>> _libs;
     std::vector<AssetLibInfo*> _activeLibs;
+
+    struct LibsByPriority : public std::binary_function<const AssetLibInfo*, const AssetLibInfo*, bool>
+    {
+        AssetSearchPriority Priority = kAssetPriorityDir;
+        bool operator()(const AssetLibInfo*, const AssetLibInfo*) const;
+    } _libsByPriority;
 };
 
 

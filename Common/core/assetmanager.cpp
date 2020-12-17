@@ -35,6 +35,24 @@ AssetLocation::AssetLocation()
 {
 }
 
+
+inline static bool IsAssetLibDir(const AssetLibInfo *lib) { return lib->BaseFileName.IsEmpty(); }
+inline static bool IsAssetLibFile(const AssetLibInfo *lib) { return !lib->BaseFileName.IsEmpty(); }
+
+bool AssetManager::LibsByPriority::operator()(const AssetLibInfo *lib1, const AssetLibInfo *lib2) const
+{
+    const bool lib1dir = IsAssetLibDir(lib1);
+    const bool lib2dir = IsAssetLibDir(lib2);
+    if (lib1dir == lib2dir)
+        return false; // both are equal, none is less
+    if (Priority == kAssetPriorityLib)
+        return !lib1dir; // first element is less if it's library file
+    if (Priority == kAssetPriorityDir)
+        return lib1dir; // first element is less if it's directory
+    return false; // unknown priority, just fail
+}
+
+
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
     Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
@@ -60,18 +78,19 @@ AssetLocation::AssetLocation()
 }
 
 AssetManager::AssetManager()
-    : _searchPriority(kAssetPriorityDir)
 {
+    _libsByPriority.Priority = kAssetPriorityDir;
 }
 
 void AssetManager::SetSearchPriority(AssetSearchPriority priority)
 {
-    _searchPriority = priority;
+    _libsByPriority.Priority = kAssetPriorityDir;
+    std::sort(_activeLibs.begin(), _activeLibs.end(), _libsByPriority);
 }
 
 AssetSearchPriority AssetManager::GetSearchPriority() const
 {
-    return _searchPriority;
+    return _libsByPriority.Priority;
 }
 
 AssetError AssetManager::AddLibrary(const String &path, const AssetLibInfo **out_lib)
@@ -93,9 +112,10 @@ AssetError AssetManager::AddLibrary(const String &path, const AssetLibInfo **out
     AssetError err = RegisterAssetLib(path, lib);
     if (err != kAssetNoError)
         return err;
-    _activeLibs.push_back(lib);
     if (out_lib)
         *out_lib = lib;
+    auto place = std::upper_bound(_activeLibs.begin(), _activeLibs.end(), lib, _libsByPriority);
+    _activeLibs.insert(place, lib);
     return kAssetNoError;
 }
 
@@ -126,9 +146,14 @@ void AssetManager::SetLibrarySearch(const String &path, bool on)
         {
             auto it = std::find(_activeLibs.cbegin(), _activeLibs.cend(), lib.get());
             if (on && it == _activeLibs.end())
-                _activeLibs.push_back(lib.get());
+            {
+                auto place = std::upper_bound(_activeLibs.begin(), _activeLibs.end(), lib.get(), _libsByPriority);
+                _activeLibs.insert(place, lib.get());
+            }
             else if (!on && it != _activeLibs.end())
+            {
                 _activeLibs.erase(it);
+            }
         }
     }
 }
@@ -145,8 +170,7 @@ const AssetLibInfo *AssetManager::GetLibraryInfo(size_t index) const
 
 bool AssetManager::DoesAssetExist(const String &asset_name) const
 {
-    return FindAssetInLibs(asset_name, nullptr, nullptr) ||
-        File::TestReadFile(asset_name);
+    return GetAsset(asset_name, nullptr, Common::kFile_Open, Common::kFile_Read);
 }
 
 AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibInfo *&out_lib)
@@ -186,95 +210,74 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibInfo *&out
     return kAssetNoError;
 }
 
-bool AssetManager::FindAssetInLibs(const String &asset_name, const AssetInfo **out_asset, const AssetLibInfo **out_lib) const
+bool AssetManager::GetAsset(const String &asset_name, AssetLocation *loc, FileOpenMode open_mode, FileWorkMode work_mode) const
 {
     for (const auto *lib : _activeLibs)
     {
-        if (lib->BaseFileName.IsEmpty())
-            continue; // this is a directory, not a library
-
-        for (const auto &asset : lib->AssetInfos)
-        {
-            if (asset.FileName.CompareNoCase(asset_name) == 0)
-            {
-                if (out_asset)
-                    *out_asset = &asset;
-                if (out_lib)
-                    *out_lib = lib;
-                return true;
-            }
-        }
+        bool found = false;
+        if (IsAssetLibDir(lib))
+            found = GetAssetFromDir(lib, asset_name, loc, open_mode, work_mode);
+        else
+            found = GetAssetFromLib(lib, asset_name, loc, open_mode, work_mode);
+        if (found)
+            return true;
     }
     return false;
 }
 
-bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode) const
+bool AssetManager::GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, FileOpenMode open_mode, FileWorkMode work_mode) const
 {
     if (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)
         return false; // creating/writing is allowed only for common files on disk
 
-    const AssetInfo *asset;
-    const AssetLibInfo *lib;
-    if (!FindAssetInLibs(asset_name, &asset, &lib))
-        return false; // asset not found
+    const AssetInfo *asset = nullptr;
+    for (const auto &a : lib->AssetInfos)
+    {
+        if (a.FileName.CompareNoCase(asset_name) == 0)
+        {
+            asset = &a;
+            break;
+        }
+    }
+    if (asset == nullptr)
+        return false;
 
     String libfile = cbuf_to_string_and_free( ci_find_file(lib->BaseDir, lib->LibFileNames[asset->LibUid]) );
     if (libfile.IsEmpty())
         return false;
-    loc.FileName = libfile;
-    loc.Offset = asset->Offset;
-    loc.Size = asset->Size;
+    if (loc)
+    {
+        loc->FileName = libfile;
+        loc->Offset = asset->Offset;
+        loc->Size = asset->Size;
+    }
     return true;
 }
 
-bool AssetManager::GetAssetFromDir(const String &file_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode) const
+bool AssetManager::GetAssetFromDir(const AssetLibInfo *lib, const String &file_name, AssetLocation *loc, FileOpenMode open_mode, FileWorkMode work_mode) const
 {
-    String exfile;
-    for (const auto *lib : _activeLibs)
+    String found_file = cbuf_to_string_and_free( ci_find_file(lib->BaseDir, file_name) );
+    if (found_file.IsEmpty() || !Path::IsFile(found_file))
+        return false; // not found, or not a file
+
+    if (loc)
     {
-        if (!lib->BaseFileName.IsEmpty())
-            continue; // this is library, not a directory
-
-        String found_file = cbuf_to_string_and_free( ci_find_file(lib->BaseDir, file_name) );
-        if (found_file.IsEmpty() || !Path::IsFile(found_file))
-            continue; // not found, or not a file
-        exfile = found_file;
+        loc->FileName = found_file;
+        loc->Offset = 0;
+        loc->Size = File::GetFileSize(found_file);
     }
-    if (exfile.IsEmpty())
-        return false;
-
-    loc.FileName = exfile;
-    loc.Offset = 0;
-    loc.Size = File::GetFileSize(exfile);
     return true;
-}
-
-bool AssetManager::GetAssetByPriority(const String &asset_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode) const
-{
-    if (_searchPriority == kAssetPriorityDir)
-    {
-        // check for disk, otherwise use datafile
-        return GetAssetFromDir(asset_name, loc, open_mode, work_mode) ||
-            GetAssetFromLib(asset_name, loc, open_mode, work_mode);
-    }
-    else if (_searchPriority == kAssetPriorityLib)
-    {
-        // check datafile first, then scan directory
-        return GetAssetFromLib(asset_name, loc, open_mode, work_mode) ||
-            GetAssetFromDir(asset_name, loc, open_mode, work_mode);
-    }
-    return false;
 }
 
 bool AssetManager::GetAssetLocation(const String &asset_name, AssetLocation &loc) const
 {
-    return GetAssetByPriority(asset_name, loc, kFile_Open, kFile_Read);
+    return GetAsset(asset_name, &loc, kFile_Open, kFile_Read);
 }
 
 Stream *AssetManager::OpenAsset(const String &asset_name, soff_t *asset_size, FileOpenMode open_mode, FileWorkMode work_mode) const
 {
     AssetLocation loc;
-    if (GetAssetByPriority(asset_name, loc, open_mode, work_mode))
+    if (GetAsset(asset_name, &loc, open_mode, work_mode))
     {
         Stream *s = File::OpenFile(loc.FileName, open_mode, work_mode);
         if (s)

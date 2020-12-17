@@ -374,7 +374,7 @@ void PlayMP3File (const char *filename) {
 
     debug_script_log("PlayMP3File %s", filename);
 
-    AssetPath asset_name("", filename);
+    AssetPath asset_name(filename, "audio");
 
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);

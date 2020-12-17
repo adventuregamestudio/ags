@@ -323,7 +323,6 @@ bool engine_try_init_gamedata(String gamepak_path)
         platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
         return false;
     }
-    AssetMgr->AddLibrary("."); // TODO: do NOT use cwd! this is only to replicate old behavior
     return true;
 }
 
@@ -382,8 +381,6 @@ void engine_locate_speech_pak()
                 delete speechsync;
             }
             Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
-            // speech.vox may contain thousands of voice files, therefore we toggle it off by default
-            AssetMgr->SetLibrarySearch(speech_filepath, false);
             play.want_speech=1;
         }
         else if (Path::ComparePaths(ResPaths.DataDir, get_voice_install_dir()) != 0)
@@ -417,6 +414,24 @@ void engine_locate_audio_pak()
                 music_file.GetCStr());
         }
     }
+}
+
+void engine_assign_assetpaths()
+{
+    AssetMgr->AddLibrary(ResPaths.DataDir, ",audio,voice");
+    if (!ResPaths.AudioPak.Path.IsEmpty())
+        AssetMgr->AddLibrary(ResPaths.AudioPak.Path, "audio");
+    if (!ResPaths.SpeechPak.Path.IsEmpty())
+        AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
+    String dir = get_install_dir();
+    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(dir, ",audio,voice");
+    dir = get_audio_install_dir();
+    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(dir, "audio");
+    dir = get_voice_install_dir();
+    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(dir, "voice");
 }
 
 void engine_init_keyboard()
@@ -1483,6 +1498,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_locate_audio_pak();
 
     our_eip = -193;
+
+    engine_assign_assetpaths();
 
     // Assign custom find resource callback for limited Allegro operations
     system_driver->find_resource = al_find_resource;

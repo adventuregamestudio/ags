@@ -577,7 +577,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         quit("IAGSEngine::PlaySoundChannel: streamed samples cannot loop");
 
     // TODO: find out how engine was supposed to decide on where to load the sound from
-    AssetPath asset_name("", filename);
+    AssetPath asset_name(filename, "audio");
 
     if (soundType == PSND_WAVE)
         newcha = my_load_wave (asset_name, volume, loop);

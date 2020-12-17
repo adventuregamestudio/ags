@@ -55,7 +55,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         return false;
     sprintf(transFileName, "%s.tra", lang.GetCStr());
 
-    Stream *language_file = find_open_asset(transFileName);
+    Stream *language_file = AssetMgr->OpenAsset(transFileName);
     if (language_file == nullptr)
     {
         Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);

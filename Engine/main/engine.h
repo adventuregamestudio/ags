@@ -50,6 +50,9 @@ struct ResourcePaths
 };
 extern ResourcePaths ResPaths;
 
+// (Re-)Assign all known asset search paths to the AssetManager
+void engine_assign_assetpaths();
+
 // Register a callback that will be called before engine is initialised.
 // Used for apps to register their own plugins and other configuration
 typedef void (*t_engine_pre_init_callback)(void);

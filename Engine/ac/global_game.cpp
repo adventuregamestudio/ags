@@ -272,11 +272,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     // TODO: refactor and share same code with the startup!
     if (AssetMgr->AddLibrary(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
-    AssetMgr->AddLibrary(".");
-    if (!ResPaths.AudioPak.Path.IsEmpty())
-        AssetMgr->AddLibrary(ResPaths.AudioPak.Path);
-    if (!ResPaths.SpeechPak.Path.IsEmpty())
-        AssetMgr->AddLibrary(ResPaths.SpeechPak.Path);
+    engine_assign_assetpaths();
 
     show_preload();
 

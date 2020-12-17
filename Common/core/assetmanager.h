@@ -21,14 +21,6 @@
 //-----------------------------------------------------------------------------
 // TODO: consider replace/merge with PhysFS library in the future.
 //
-// TODO:
-// Ideally AssetManager should take care of enumerating all existing data
-// packages and all files in them, while the game itself should not know where
-// it receives the data from.
-// Files should be registered based on their source package and their types.
-// The user must not have access to this information, but is allowed to query
-// all files of certain type (perhaps, filtered and ordered by their id).
-//
 // TODO: support streams that work on a file subsection, limited by size,
 // to avoid having to return an asset size separately from a stream.
 // TODO: return stream as smart pointer.
@@ -94,37 +86,43 @@ public:
 
     // Add library location to the list of asset locations
     AssetError   AddLibrary(const String &path, const AssetLibInfo **lib = nullptr);
+    // Add library location, specifying comma-separated list of filters
+    AssetError   AddLibrary(const String &path, const String &filters, const AssetLibInfo **lib = nullptr);
     // Remove library location from the list of asset locations
     void         RemoveLibrary(const String &path);
     // Removes all libraries
     void         RemoveAllLibraries();
-    // Includes or excludes particular library in/from asset search while keeping its TOC registered
-    void         SetLibrarySearch(const String &path, bool on);
 
     size_t       GetLibraryCount() const;
     const AssetLibInfo *GetLibraryInfo(size_t index) const;
     bool         DoesAssetExist(const String &asset_name) const;
-    // TODO: review this function later;
-    // this is a workaround that lets us use back-end specific kind of streams
-    // to read the asset data. This is not ideal, because it limits us to reading from file.
-    // The better solution could be returning a kind of "io device" object
-    // which may be used to initialize both AGS and back-end compatible stream wrappers.
-    bool         GetAssetLocation(const String &asset_name, AssetLocation &loc) const;
+    bool         DoesAssetExist(const String &asset_name, const String &filter) const;
+    // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened
+    // This method only searches in libraries that do not have any defined filters
     Stream      *OpenAsset(const String &asset_name, soff_t *asset_size = nullptr,
+                                   FileOpenMode open_mode = kFile_Open,
+                                   FileWorkMode work_mode = kFile_Read) const;
+    // Open asset stream, providing a single filter to search in matching libraries
+    Stream      *OpenAsset(const String &asset_name, const String &filter, soff_t *asset_size = nullptr,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read) const;
 
 private:
+    struct AssetLibEx : AssetLibInfo
+    {
+        std::vector<String> Filters; // asset filters this library is matching to
+    };
+
     // Loads library and registers its contents into the cache
-    AssetError  RegisterAssetLib(const String &path, AssetLibInfo *&lib);
+    AssetError  RegisterAssetLib(const String &path, AssetLibEx *&lib);
 
     // Tries to find asset in known locations, tests if it's possible to open, and fills in AssetLocation
-    bool        GetAsset(const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
+    bool        GetAsset(const String &asset_name, const String &filter, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetFromDir(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
 
-    std::vector<std::unique_ptr<AssetLibInfo>> _libs;
-    std::vector<AssetLibInfo*> _activeLibs;
+    std::vector<std::unique_ptr<AssetLibEx>> _libs;
+    std::vector<AssetLibEx*> _activeLibs;
 
     struct LibsByPriority : public std::binary_function<const AssetLibInfo*, const AssetLibInfo*, bool>
     {

@@ -378,20 +378,11 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
 
 Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
 {
-    String assetlib = path.first;
-    String assetname = path.second;
-    bool needsetback = false;
-    // Enable search in the different library, if required
-    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
-    {
-        AssetMgr->SetLibrarySearch(assetlib, true);
-        needsetback = true;
-    }
+    String assetname = path.Name;
+    String filter = path.Filter;
     soff_t asset_sz = 0;
-    Stream *asset_stream = AssetMgr->OpenAsset(assetname, &asset_sz);
+    Stream *asset_stream = AssetMgr->OpenAsset(assetname, filter, &asset_sz);
     asset_size = asset_sz;
-    if (needsetback)
-        AssetMgr->SetLibrarySearch(assetlib, false);
     return asset_stream;
 }
 
@@ -493,19 +484,11 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
     return nullptr;
 }
 
-bool DoesAssetExistInLib(const AssetPath &assetname)
+bool DoesAssetExistInLib(const AssetPath &path)
 {
-    bool needsetback = false;
-    // Enable search in the different library, if required
-    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
-    {
-        AssetMgr->SetLibrarySearch(assetname.first, true);
-        needsetback = true;
-    }
-    bool res = AssetMgr->DoesAssetExist(assetname.second);
-    if (needsetback)
-        AssetMgr->SetLibrarySearch(assetname.first, false);
-    return res;
+    String assetname = path.Name;
+    String filter = path.Filter;
+    return AssetMgr->DoesAssetExist(assetname, filter);
 }
 
 void set_install_dir(const String &path, const String &audio_path, const String &voice_path)
@@ -559,46 +542,18 @@ String find_assetlib(const String &filename)
     return "";
 }
 
-Stream *find_open_asset(const String &filename)
-{
-    Stream *asset_s = AssetMgr->OpenAsset(filename);
-    if (!asset_s && Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
-    {
-        // Just in case they're running in Debug, try standalone file in compiled folder
-        asset_s = ci_fopen(String::FromFormat("%s/%s", installDirectory.GetCStr(), filename.GetCStr()));
-    }
-    return asset_s;
-}
-
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
 {
-    // Special case is explicitly defined audio directory, which should be
-    // tried first regardless of bundling type.
-    if (Path::ComparePaths(ResPaths.DataDir, installAudioDirectory) != 0)
-    {
-        String filepath = String::FromFormat("%s/%s", installAudioDirectory.GetCStr(), filename.GetCStr());
-        if (Path::IsFile(filepath))
-            return AssetPath("", filepath);
-    }
-
     if (bundling_type == AUCL_BUNDLE_EXE)
-        return AssetPath(ResPaths.GamePak.Name, filename);
+        return AssetPath(filename, "");
     else if (bundling_type == AUCL_BUNDLE_VOX)
-        return AssetPath(game.GetAudioVOXName(), filename);
+        return AssetPath(filename, "audio");
     return AssetPath();
 }
 
 AssetPath get_voice_over_assetpath(const String &filename)
 {
-    // Special case is explicitly defined voice-over directory, which should be
-    // tried first.
-    if (Path::ComparePaths(ResPaths.DataDir, installVoiceDirectory) != 0)
-    {
-        String filepath = String::FromFormat("%s/%s", installVoiceDirectory.GetCStr(), filename.GetCStr());
-        if (Path::IsFile(filepath))
-            return AssetPath("", filepath);
-    }
-    return AssetPath(ResPaths.SpeechPak.Name, filename);
+    return AssetPath(filename, "voice");
 }
 
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];

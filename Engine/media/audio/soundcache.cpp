@@ -99,7 +99,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, size_t &size)
 	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
-    Debug::Printf("get_cached_sound(%s %d)\n", asset_name.first.GetCStr(), (unsigned int)is_wave);
+    Debug::Printf("get_cached_sound(%s %d)\n", asset_name.Name.GetCStr(), (unsigned int)is_wave);
 #endif
 
     size = 0;

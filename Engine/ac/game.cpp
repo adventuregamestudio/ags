@@ -125,7 +125,6 @@ extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
-extern char transFileName[MAX_PATH];
 extern color palette[256];
 extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
@@ -896,24 +895,17 @@ int Game_ChangeTranslation(const char *newFilename)
     if ((newFilename == nullptr) || (newFilename[0] == 0))
     {
         close_translation();
-        strcpy(transFileName, "");
         usetup.translation = "";
         return 1;
     }
 
-    String oldTransFileName;
-    oldTransFileName = transFileName;
-
-    if (init_translation(newFilename, oldTransFileName.LeftSection('.'), false))
+    String oldTransFileName = get_translation_name();
+    if (init_translation(newFilename, oldTransFileName, false))
     {
         usetup.translation = newFilename;
         return 1;
     }
-    else
-    {
-        strcpy(transFileName, oldTransFileName);
-        return 0;
-    }
+    return 0;
 }
 
 ScriptAudioClip *Game_GetAudioClip(int index)

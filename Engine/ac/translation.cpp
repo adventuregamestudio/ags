@@ -33,18 +33,16 @@ using namespace AGS::Common;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern char transFileName[MAX_PATH];
 
+String trans_name;
+String trans_filename;
+std::unique_ptr<TreeMap> transtree;
 
-TreeMap *transtree = nullptr;
-long lang_offs_start = 0;
-char transFileName[MAX_PATH] = "\0";
 
 void close_translation () {
-    if (transtree != nullptr) {
-        delete transtree;
-        transtree = nullptr;
-    }
+    transtree.reset();
+    trans_name = "";
+    trans_filename = "";
 }
 
 bool parse_translation(Stream *language_file, String &parse_error);
@@ -53,30 +51,24 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     if (lang.IsEmpty())
         return false;
-    sprintf(transFileName, "%s.tra", lang.GetCStr());
+    trans_filename = String::FromFormat("%s.tra", lang.GetCStr());
 
-    Stream *language_file = AssetMgr->OpenAsset(transFileName);
+    Stream *language_file = AssetMgr->OpenAsset(trans_filename);
     if (language_file == nullptr)
     {
-        Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
+        Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", trans_filename.GetCStr());
         return false;
     }
-    // in case it's inside a library file, record the offset
-    lang_offs_start = language_file->GetPosition();
 
     char transsig[16] = {0};
     language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
-        Debug::Printf(kDbgMsg_Error, "Translation signature mismatch: %s", transFileName);
+        Debug::Printf(kDbgMsg_Error, "Translation signature mismatch: %s", trans_filename.GetCStr());
         delete language_file;
         return false;
     }
 
-    if (transtree != nullptr)
-    {
-        close_translation();
-    }
-    transtree = new TreeMap();
+    transtree.reset(new TreeMap());
 
     String parse_error;
     bool result = parse_translation(language_file, parse_error);
@@ -84,8 +76,8 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     if (!result)
     {
+        parse_error.Prepend(String::FromFormat("Failed to read translation file: %s:\n", trans_filename.GetCStr()));
         close_translation();
-        parse_error.Prepend(String::FromFormat("Failed to read translation file: %s:\n", transFileName));
         if (quit_on_error)
         {
             parse_error.PrependChar('!');
@@ -102,8 +94,23 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
             return false;
         }
     }
-    Debug::Printf("Translation initialized: %s", transFileName);
+    Debug::Printf("Translation initialized: %s", trans_filename.GetCStr());
     return true;
+}
+
+String get_translation_name()
+{
+    return trans_name;
+}
+
+String get_translation_path()
+{
+    return trans_filename;
+}
+
+const TreeMap* get_translation_tree()
+{
+    return transtree.get();
 }
 
 bool parse_translation(Stream *language_file, String &parse_error)

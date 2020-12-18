@@ -90,6 +90,7 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
     if (mp3in == nullptr)
         return nullptr;
 
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)mp3in->userdata;
     char *tmpbuffer = (char *)malloc(MP3CHUNKSIZE);
     if (tmpbuffer == nullptr) {
         pack_fclose(mp3in);
@@ -98,11 +99,11 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
     thistune = new MYMP3();
     thistune->in = mp3in;
     thistune->chunksize = MP3CHUNKSIZE;
-    thistune->filesize = asset_size;
+    thistune->filesize = obj->remains;
     thistune->vol = voll;
 
-    if (thistune->chunksize > thistune->filesize)
-        thistune->chunksize = thistune->filesize;
+    if (thistune->chunksize > obj->remains)
+        thistune->chunksize = obj->remains;
 
     pack_fread(tmpbuffer, thistune->chunksize, mp3in);
 
@@ -110,7 +111,7 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 
     {
         AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (thistune->filesize < 1));
+        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (obj->remains < 1));
     }
 
     if (thistune->stream == nullptr) {
@@ -211,6 +212,7 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     if (mp3in == nullptr)
         return nullptr;
 
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)mp3in->userdata;
     char *tmpbuffer = (char *)malloc(MP3CHUNKSIZE);
     if (tmpbuffer == nullptr) {
         pack_fclose(mp3in);
@@ -225,13 +227,13 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     thisogg->last_ms_offs = 0;
     thisogg->last_but_one_but_one = 0;
 
-    if (thisogg->chunksize > asset_size)
-        thisogg->chunksize = asset_size;
+    if (thisogg->chunksize > obj->remains)
+        thisogg->chunksize = obj->remains;
 
     pack_fread(tmpbuffer, thisogg->chunksize, mp3in);
 
     thisogg->buffer = (char *)tmpbuffer;
-    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (asset_size < 1));
+    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (obj->remains < 1));
 
     if (thisogg->stream == nullptr) {
         free(tmpbuffer);

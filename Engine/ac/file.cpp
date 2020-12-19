@@ -234,7 +234,7 @@ bool FixSlashAfterToken(const String &path, const String &token, String &new_pat
     if (path.CompareLeft(token) == 0 && path.GetLength() > token.GetLength() &&
         path[token.GetLength()] != '/')
     {
-        new_path = String::FromFormat("%s/%s", token.GetCStr(), path.Mid(token.GetLength()).GetCStr());
+        new_path = Path::ConcatPaths(token, path.Mid(token.GetLength()));
         return true;
     }
     return false;
@@ -334,7 +334,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = MakeAppDataPath();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = String::FromFormat("%s/%s", get_install_dir().GetCStr(), sc_path.GetCStr());
+            alt_path = Path::ConcatPaths(get_install_dir(), sc_path);
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation

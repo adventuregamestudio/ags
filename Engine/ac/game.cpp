@@ -408,12 +408,12 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
         if (saveGameParent.IsEmpty())
         {
             base_dir = PathOrCurDir(platform->GetUserSavedgamesDirectory());
-            newSaveGameDir.Format("%s/%s/%s", base_dir.GetCStr(), game.saveGameFolderName, newFolder.GetCStr());
+            newSaveGameDir = Path::ConcatPaths(Path::ConcatPaths(base_dir, game.saveGameFolderName), newFolder);
         }
         else
         {
             base_dir = saveGameParent;
-            newSaveGameDir.Format("%s/%s", saveGameParent.GetCStr(), newFolder.GetCStr());
+            newSaveGameDir = Path::ConcatPaths(saveGameParent, newFolder);
         }
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])

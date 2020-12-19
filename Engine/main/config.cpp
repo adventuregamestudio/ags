@@ -50,29 +50,6 @@ extern GameState play;
 // Filename of the default config file, the one found in the game installation
 const String DefaultConfigFileName = "acsetup.cfg";
 
-// Replace the filename part of complete path WASGV with INIFIL
-// TODO: get rid of this and use proper lib path function instead
-void INIgetdirec(char *wasgv, const char *inifil) {
-    int u = strlen(wasgv) - 1;
-
-    for (u = strlen(wasgv) - 1; u >= 0; u--) {
-        if ((wasgv[u] == '\\') || (wasgv[u] == '/')) {
-            memcpy(&wasgv[u + 1], inifil, strlen(inifil) + 1);
-            break;
-        }
-    }
-
-    if (u <= 0) {
-        // no slashes - either the path is just "f:acwin.exe"
-        if (strchr(wasgv, ':') != nullptr)
-            memcpy(strchr(wasgv, ':') + 1, inifil, strlen(inifil) + 1);
-        // or it's just "acwin.exe" (unlikely)
-        else
-            strcpy(wasgv, inifil);
-    }
-
-}
-
 bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value)
 {
     ConfigNode sec_it = cfg.find(sectn);
@@ -290,32 +267,25 @@ void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, Game
     }
 }
 
-String find_default_cfg_file(const char *alt_cfg_file)
+String find_default_cfg_file(const String &alt_cfg_file)
 {
     // Try current directory for config first; else try exe dir
-    String filename = String::FromFormat("%s/%s", Directory::GetCurrentDirectory().GetCStr(), DefaultConfigFileName.GetCStr());
-    if (!Common::File::TestReadFile(filename))
-    {
-        char conffilebuf[512];
-        strcpy(conffilebuf, alt_cfg_file);
-        fix_filename_case(conffilebuf);
-        fix_filename_slashes(conffilebuf);
-        INIgetdirec(conffilebuf, DefaultConfigFileName);
-        filename = conffilebuf;
-    }
+    String filename = Path::ConcatPaths(Directory::GetCurrentDirectory(), DefaultConfigFileName);
+    if (!File::TestReadFile(filename))
+        filename = Path::ConcatPaths(Path::GetDirectoryPath(alt_cfg_file), DefaultConfigFileName);
     return filename;
 }
 
 String find_user_global_cfg_file()
 {
     String parent_dir = PathOrCurDir(platform->GetUserGlobalConfigDirectory());
-    return String::FromFormat("%s/%s", parent_dir.GetCStr(), DefaultConfigFileName.GetCStr());
+    return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
 }
 
 String find_user_cfg_file()
 {
     String parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetUserConfigDirectory()));
-    return String::FromFormat("%s/%s", parent_dir.GetCStr(), DefaultConfigFileName.GetCStr());
+    return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
 }
 
 void config_defaults()
@@ -335,21 +305,7 @@ void config_defaults()
 void read_game_data_location(const ConfigTree &cfg)
 {
     usetup.data_files_dir = INIreadstring(cfg, "misc", "datadir", usetup.data_files_dir);
-    if (!usetup.data_files_dir.IsEmpty())
-    {
-        // strip any trailing slash
-        // TODO: move this to Path namespace later
-        AGS::Common::Path::FixupPath(usetup.data_files_dir);
-#if AGS_PLATFORM_OS_WINDOWS
-        // if the path is just x:\ don't strip the slash
-        if (!(usetup.data_files_dir.GetLength() == 3 && usetup.data_files_dir[1u] == ':'))
-        {
-            usetup.data_files_dir.TrimRight('/');
-        }
-#else
-        usetup.data_files_dir.TrimRight('/');
-#endif
-    }
+    usetup.data_files_dir = Path::MakePathNoSlash(usetup.data_files_dir);
     usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile", usetup.main_data_filename);
 }
 

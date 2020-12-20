@@ -153,7 +153,7 @@ void engine_setup_window()
 
 // Starts up setup application, if capable.
 // Returns TRUE if should continue running the game, otherwise FALSE.
-bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
+bool engine_run_setup(ConfigTree &cfg, int &app_res)
 {
     app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
@@ -186,8 +186,8 @@ bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
             // problem on Win9x, so let's restart the process.
             allegro_exit();
             char quotedpath[MAX_PATH];
-            snprintf(quotedpath, MAX_PATH, "\"%s\"", exe_path.GetCStr());
-            _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
+            snprintf(quotedpath, MAX_PATH, "\"%s\"", appPath.GetCStr());
+            _spawnl(_P_OVERLAY, appPath, quotedpath, NULL);
     }
 #endif
     return true;
@@ -1219,7 +1219,7 @@ void allegro_bitmap_test_init()
 // - data_path: full path of the main data pack;
 // data_path's directory (may or not be eq to startup_dir) should be considered data directory,
 // and this is where engine look for all game data.
-HError define_gamedata_location_checkall(const String &exe_path, String &data_path, String &startup_dir)
+HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
 {
     // First try if they provided a startup option
     if (!cmdGameDataPath.IsEmpty())
@@ -1254,10 +1254,10 @@ HError define_gamedata_location_checkall(const String &exe_path, String &data_pa
 }
 
 // Define location of the game data
-bool define_gamedata_location(const String &exe_path)
+bool define_gamedata_location()
 {
     String data_path, startup_dir;
-    HError err = define_gamedata_location_checkall(exe_path, data_path, startup_dir);
+    HError err = define_gamedata_location_checkall(data_path, startup_dir);
     if (!err)
     {
         platform->DisplayAlert("ERROR: Unable to determine game data.\n%s", err->FullMessage().GetCStr());
@@ -1276,11 +1276,11 @@ bool define_gamedata_location(const String &exe_path)
 }
 
 // Find and preload main game data
-bool engine_init_gamedata(const String &exe_path)
+bool engine_init_gamedata()
 {
     Debug::Printf(kDbgMsg_Info, "Initializing game data");
     // First, find data location
-    if (!define_gamedata_location(exe_path))
+    if (!define_gamedata_location())
         return false;
 
     // Try init game lib
@@ -1304,10 +1304,10 @@ bool engine_init_gamedata(const String &exe_path)
     return true;
 }
 
-void engine_read_config(const String &exe_path, ConfigTree &cfg)
+void engine_read_config(ConfigTree &cfg)
 {
     // Read default configuration file
-    String def_cfg_file = find_default_cfg_file(exe_path);
+    String def_cfg_file = find_default_cfg_file();
     IniUtil::Read(def_cfg_file, cfg);
 
     // Disabled on Windows because people were afraid that this config could be mistakenly
@@ -1334,11 +1334,11 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
 }
 
 // Gathers settings from all available sources into single ConfigTree
-void engine_prepare_config(ConfigTree &cfg, const String &exe_path, const ConfigTree &startup_opts)
+void engine_prepare_config(ConfigTree &cfg, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Info, "Setting up game configuration");
     // Read configuration files
-    engine_read_config(exe_path, cfg);
+    engine_read_config(cfg);
     // Merge startup options in
     for (const auto &sectn : startup_opts)
         for (const auto &opt : sectn.second)
@@ -1377,7 +1377,7 @@ static bool print_info_needs_game(const std::set<String> &keys)
         keys.count("data") > 0;
 }
 
-static void engine_print_info(const std::set<String> &keys, const String &exe_path, ConfigTree *user_cfg)
+static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)
 {
     const bool all = keys.count("all") > 0;
     ConfigTree data;
@@ -1397,7 +1397,7 @@ static void engine_print_info(const std::set<String> &keys, const String &exe_pa
     }
     if (all || keys.count("configpath") > 0)
     {
-        String def_cfg_file = find_default_cfg_file(exe_path);
+        String def_cfg_file = find_default_cfg_file();
         String gl_cfg_file = find_user_global_cfg_file();
         String user_cfg_file = find_user_cfg_file();
         data["config-path"]["default"] = def_cfg_file;
@@ -1454,27 +1454,26 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
-    const String exe_path = global_argv[0];
     if (justTellInfo && !print_info_needs_game(tellInfoKeys))
     {
-        engine_print_info(tellInfoKeys, exe_path, nullptr);
+        engine_print_info(tellInfoKeys, nullptr);
         return EXIT_NORMAL;
     }
 
-    if (!engine_init_gamedata(exe_path))
+    if (!engine_init_gamedata())
         return EXIT_ERROR;
     ConfigTree cfg;
-    engine_prepare_config(cfg, exe_path, startup_opts);
+    engine_prepare_config(cfg, startup_opts);
     if (justTellInfo)
     {
-        engine_print_info(tellInfoKeys, exe_path, &cfg);
+        engine_print_info(tellInfoKeys, &cfg);
         return EXIT_NORMAL;
     }
     // Test if need to run built-in setup program (where available)
     if (justRunSetup)
     {
         int res;
-        if (!engine_run_setup(exe_path, cfg, res))
+        if (!engine_run_setup(cfg, res))
             return res;
     }
     // Set up game options from user config

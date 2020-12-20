@@ -27,7 +27,7 @@ using AGS::Common::ConfigTree;
 // Set up default config settings
 void config_defaults();
 // Find and default configuration file (usually located in the game installation directory)
-String find_default_cfg_file(const String &alt_cfg_file);
+String find_default_cfg_file();
 // Find all-games user configuration file
 String find_user_global_cfg_file();
 // Find and game-specific user configuration file (located into writable user directory)

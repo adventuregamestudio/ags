@@ -267,13 +267,9 @@ void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, Game
     }
 }
 
-String find_default_cfg_file(const String &alt_cfg_file)
+String find_default_cfg_file()
 {
-    // Try current directory for config first; else try exe dir
-    String filename = Path::ConcatPaths(Directory::GetCurrentDirectory(), DefaultConfigFileName);
-    if (!File::TestReadFile(filename))
-        filename = Path::ConcatPaths(Path::GetDirectoryPath(alt_cfg_file), DefaultConfigFileName);
-    return filename;
+    return Path::ConcatPaths(Directory::GetCurrentDirectory(), DefaultConfigFileName);
 }
 
 String find_user_global_cfg_file()

@@ -59,6 +59,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 String appPath; // engine exe path
+String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
 char **global_argv = nullptr;
@@ -384,12 +385,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 void main_set_gamedir(int argc, char*argv[])
 {
     appPath = GetPathFromCmdArg(0);
+    appDirectory = Path::GetDirectoryPath(appPath);
 
     if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
     {
         // When launched by double-clicking a save game file, the curdir will
         // be the save game folder unless we correct it
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(appPath));
+        Directory::SetCurrentDirectory(appDirectory);
     }
     else
     {

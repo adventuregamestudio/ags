@@ -317,16 +317,15 @@ String search_for_game_data_file(String &was_searching_in)
         return data_path;
 
     // 2.3 Look in executable's directory (if it's different from current dir)
-    String app_dir = Path::GetDirectoryPath(appPath);
-    if (Path::ComparePaths(app_dir, cur_dir) == 0)
+    if (Path::ComparePaths(appDirectory, cur_dir) == 0)
         return ""; // no luck
-    was_searching_in = app_dir;
+    was_searching_in = appDirectory;
     // first scan for config
-    data_path = find_game_data_in_config_and_dir(app_dir);
+    data_path = find_game_data_in_config_and_dir(appDirectory);
     if (!data_path.IsEmpty())
         return data_path;
     // if not found in config, lookup for data in same dir
-    return find_game_data_in_directory(app_dir);
+    return find_game_data_in_directory(appDirectory);
 }
 
 void engine_init_fonts()

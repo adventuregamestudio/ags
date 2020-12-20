@@ -17,23 +17,19 @@ BIT=32
   mkdir $BINDMOUNT/data/lib$BIT
 
   for library in \
-    liballeg.so.4.4 \
-    libaldmb.so.1 \
-    libdumb.so.1 \
     libogg.so.0 \
     libtheora.so.0 \
     libvorbis.so.0 \
-    libvorbisfile.so.3 \
-    allegro/4.4.2/alleg-alsadigi.so \
-    allegro/4.4.2/alleg-alsamidi.so \
-    allegro/4.4.2/modules.lst; do
+    libvorbisfile.so.3; do
       cp -L /usr/lib/$TRIPLET/$library $BINDMOUNT/data/lib$BIT
   done
-
+  
+  for library in \
+    libSDL2-2.0.so.0; do
+      cp -L /usr/local/lib/$library $BINDMOUNT/data/lib$BIT
+  done
 
 for package in \
-  liballegro4.4 \
-  libdumb1 \
   libogg0 \
   libtheora0 \
   libvorbis0a; do

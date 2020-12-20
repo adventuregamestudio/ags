@@ -696,7 +696,8 @@ void engine_init_title()
 
 void engine_init_directories()
 {
-    Debug::Printf(kDbgMsg_Info, "Data directory: %s", usetup.data_files_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Data directory: %s", usetup.main_data_dir.GetCStr());
     if (!usetup.install_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "Optional install directory: %s", usetup.install_dir.GetCStr());
     if (!usetup.install_audio_dir.IsEmpty())
@@ -708,9 +709,9 @@ void engine_init_directories()
     if (!usetup.shared_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
 
-    ResPaths.DataDir = usetup.data_files_dir;
-    ResPaths.GamePak.Path = usetup.main_data_filepath;
-    ResPaths.GamePak.Name = get_filename(usetup.main_data_filepath);
+    ResPaths.DataDir = usetup.main_data_dir;
+    ResPaths.GamePak.Path = usetup.main_data_file;
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
 
     set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
     if (!usetup.install_dir.IsEmpty())
@@ -1266,12 +1267,12 @@ bool define_gamedata_location()
     }
 
     // On success: set all the necessary path and filename settings
-    usetup.main_data_filepath = data_path;
-    usetup.main_data_filename = Path::GetFilename(data_path);
-    usetup.data_files_dir = Path::GetDirectoryPath(data_path);
+    usetup.startup_dir = startup_dir;
+    usetup.main_data_file = data_path;
+    usetup.main_data_dir = Path::GetDirectoryPath(data_path);
 
     // Switch working dir to the game dir
-    Directory::SetCurrentDirectory(usetup.data_files_dir);
+    Directory::SetCurrentDirectory(usetup.main_data_dir);
     return true;
 }
 
@@ -1284,10 +1285,10 @@ bool engine_init_gamedata()
         return false;
 
     // Try init game lib
-    AssetError asset_err = AssetMgr->AddLibrary(usetup.main_data_filepath);
+    AssetError asset_err = AssetMgr->AddLibrary(usetup.main_data_file);
     if (asset_err != kAssetNoError)
     {
-        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.main_data_filepath.GetCStr());
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.main_data_file.GetCStr());
         return false;
     }
 
@@ -1418,7 +1419,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         data["data"]["gamename"] = game.gamename;
         data["data"]["version"] = String::FromFormat("%d", loaded_game_file_version);
         data["data"]["compiledwith"] = game.compiled_with;
-        data["data"]["basepack"] = usetup.main_data_filepath;
+        data["data"]["basepack"] = usetup.main_data_file;
     }
     String full;
     IniUtil::WriteToString(full, data);

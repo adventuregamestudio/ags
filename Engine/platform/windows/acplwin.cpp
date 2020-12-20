@@ -999,7 +999,7 @@ void AGSWin32::PostAllegroExit() {
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.data_files_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.main_data_dir, version_str);
 }
 
 void AGSWin32::SetGameWindowIcon() {

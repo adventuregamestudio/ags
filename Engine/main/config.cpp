@@ -269,7 +269,7 @@ void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, Game
 
 String find_default_cfg_file()
 {
-    return Path::ConcatPaths(Directory::GetCurrentDirectory(), DefaultConfigFileName);
+    return Path::ConcatPaths(usetup.startup_dir, DefaultConfigFileName);
 }
 
 String find_user_global_cfg_file()

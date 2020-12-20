@@ -203,13 +203,6 @@ linux_packaging_task:
       echo Downloading files for ${archbit%-*}
       url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux_debian/data_files/data_${archbit%-*}.tar.gz"
       curl -fLsS "$url" | bsdtar -f - -xvzC $tmp/data
-      echo Downloading Allegro $ALLEGRO_RELEASE ${archbit%-*}
-      mkdir $tmp/allegro_${ALLEGRO_RELEASE}_${archbit%-*}
-      url="https://github.com/adventuregamestudio/lib-allegro/releases/download/$ALLEGRO_RELEASE/lib-allegro_release_${archbit%-*}.tar.gz"
-      curl -fLsS "$url" | bsdtar -f - -xvzC $tmp/allegro_${ALLEGRO_RELEASE}_${archbit%-*} --strip-components 1 -s '|pkgconfig/.*||' lib
-      find $tmp/allegro_${ALLEGRO_RELEASE}_${archbit%-*} \( -name "alleg-*" -or -name "liballeg.so.?.?" \) \
-        -exec cp -v "{}" $tmp/data/lib${archbit#*-}/ \;
-      echo alleg-sdl2digi.so >> $tmp/data/lib${archbit#*-}/modules.lst
     done
     cp -v debian/copyright $tmp/data/licenses/ags-copyright
     cp -v debian/ags+libraries/startgame $tmp/

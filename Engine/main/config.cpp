@@ -302,11 +302,13 @@ void config_defaults()
     usetup.translation = "";
 }
 
-void read_game_data_location(const ConfigTree &cfg)
+void read_game_data_location(const ConfigTree &cfg, String &data_dir, String &data_file)
 {
-    usetup.data_files_dir = INIreadstring(cfg, "misc", "datadir", usetup.data_files_dir);
-    usetup.data_files_dir = Path::MakePathNoSlash(usetup.data_files_dir);
-    usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile", usetup.main_data_filename);
+    data_dir = INIreadstring(cfg, "misc", "datadir");
+    data_dir = Path::MakePathNoSlash(data_dir);
+    data_file = INIreadstring(cfg, "misc", "datafile");
+    if (!data_file.IsEmpty() && is_relative_filename(data_file))
+        data_file = Path::ConcatPaths(data_dir, data_file);
 }
 
 void read_legacy_audio_config(const ConfigTree &cfg)
@@ -371,6 +373,15 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
     }
 
     usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
+}
+
+bool read_config_with_game_location(const String &path, String &data_dir, String &data_file)
+{
+    ConfigTree cfg;
+    String def_cfg_file = Path::ConcatPaths(path, DefaultConfigFileName);
+    IniUtil::Read(def_cfg_file, cfg);
+    read_game_data_location(cfg, data_dir, data_file);
+    return !(data_dir.IsEmpty() && data_file.IsEmpty());
 }
 
 // Variables used for mobile port configs

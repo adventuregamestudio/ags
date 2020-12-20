@@ -33,7 +33,7 @@ extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 extern char **global_argv;
 
 // Location of the engine executable
-extern AGS::Common::String appDirectory;
+extern AGS::Common::String appPath;
 // Game path from the startup options (before reading config)
 extern AGS::Common::String cmdGameDataPath;
 

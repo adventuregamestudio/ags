@@ -179,6 +179,10 @@ String MakeRelativePath(const String &base, const String &path)
 
 String ConcatPaths(const String &parent, const String &child)
 {
+    if (parent.IsEmpty())
+        return child;
+    if (child.IsEmpty())
+        return parent;
     String path = parent;
     if (path.GetLast() != '/' && path.GetLast() != '\\')
         path.AppendChar('/');

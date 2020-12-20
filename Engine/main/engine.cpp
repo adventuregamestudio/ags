@@ -209,6 +209,8 @@ void engine_force_window()
     }
 }
 
+// Scans given directory for game data libraries, returns first found or none.
+// Prioritizes files with standard AGS package names (*.ags etc).
 String find_game_data_in_directory(const String &path)
 {
     al_ffblk ff;
@@ -258,72 +260,73 @@ String find_game_data_in_directory(const String &path)
     return first_nonstd_fn;
 }
 
-bool search_for_game_data_file(String &filename, String &search_path)
+// Scans given directory first for the AGS game config. If such config exists
+// and it contains directions to the game data, then use these settings to find it.
+// Otherwise, scan original directory for the game data.
+// Returns found path to game data, or empty string if failed.
+String find_game_data_in_config_and_dir(const String &path)
 {
-    Debug::Printf("Looking for the game data file");
-    // 1. From command line argument, treated as a directory
-    if (!cmdGameDataPath.IsEmpty())
-    {
-        // set from cmd arg (do any conversions if needed)
-        filename = cmdGameDataPath;
-        if (!filename.IsEmpty() && Path::IsDirectory(filename))
-        {
-            search_path = filename;
-            filename = find_game_data_in_directory(search_path);
-        }
-    }
-    // 2.2. Search in the provided data dir
-    else if (!usetup.data_files_dir.IsEmpty())
-    {
-        search_path = usetup.data_files_dir;
-        filename = find_game_data_in_directory(search_path);
-    }
-    // 3. Look in known locations
-    else
-    {
-        // 3.1. Look for attachment in the running executable
-        //
-        // this will use argument zero, the executable's name
-        filename = GetPathFromCmdArg(0);
-        if (filename.IsEmpty() || !Common::AssetManager::IsDataFile(filename))
-        {
-            // 3.2 Look in current directory
-            search_path = Directory::GetCurrentDirectory();
-            filename = find_game_data_in_directory(search_path);
-            if (filename.IsEmpty())
-            {
-                // 3.3 Look in executable's directory (if it's different from current dir)
-                if (Path::ComparePaths(appDirectory, search_path))
-                {
-                    search_path = appDirectory;
-                    filename = find_game_data_in_directory(search_path);
-                }
-            }
-        }
-    }
-
-    // Finally, store game file's absolute path, or report error
-    if (filename.IsEmpty())
-    {
-        Debug::Printf(kDbgMsg_Error, "Game data file could not be found. Search path used: '%s'", search_path.GetCStr());
-        return false;
-    }
-    filename = Path::MakeAbsolutePath(filename);
-    Debug::Printf(kDbgMsg_Info, "Located game data file: %s", filename.GetCStr());
-    return true;
+    // First look for config
+    String data_dir, data_file;
+    read_config_with_game_location(path, data_dir, data_file);
+    if (!data_file.IsEmpty()) // if explicit data path found, return that
+        return data_file;
+    else if (!data_dir.IsEmpty()) // if data dir setting found, search for game data there
+        return find_game_data_in_directory(data_dir);
+    return ""; // not found in config
 }
 
-// Try to initialize main game package found at the given path
-bool engine_try_init_gamedata(String gamepak_path)
+// Scans for game data in several common locations.
+// When it does so, it first looks for game config file, which contains
+// explicit directions to game data in its settings.
+// If such config is not found, it scans same location for *any* game data instead.
+String search_for_game_data_file(String &was_searching_in)
 {
-    // Search for an available game package in the known locations
-    AssetError err = AssetMgr->AddLibrary(gamepak_path);
-    if (err != kAssetNoError)
+    Debug::Printf("Looking for the game data");
+    // 1. From command line argument, which may be a directory or actual file
+    if (!cmdGameDataPath.IsEmpty())
     {
-        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
-        return false;
+        if (Path::IsFile(cmdGameDataPath))
+            return cmdGameDataPath; // this path is a file
+        if (!Path::IsDirectory(cmdGameDataPath))
+            return ""; // path is neither file nor directory
+        was_searching_in = cmdGameDataPath;
+        // first scan for config
+        String data_path = find_game_data_in_config_and_dir(cmdGameDataPath);
+        if (!data_path.IsEmpty())
+            return data_path;
+        // if not found in config, lookup for data in same dir
+        return find_game_data_in_directory(cmdGameDataPath);
     }
-    return true;
+
+    // 2. Look in other known locations
+    // 2.1. Look for attachment in the running executable
+    if (!appPath.IsEmpty() && Common::AssetManager::IsDataFile(appPath))
+        return appPath;
+
+    // 2.2 Look in current working directory
+    String cur_dir = Directory::GetCurrentDirectory();
+    was_searching_in = cur_dir;
+    // first scan for config
+    String data_path = find_game_data_in_config_and_dir(cur_dir);
+    if (!data_path.IsEmpty())
+        return data_path;
+    // if not found in config, lookup for data in same dir
+    data_path = find_game_data_in_directory(cur_dir);
+    if (!data_path.IsEmpty())
+        return data_path;
+
+    // 2.3 Look in executable's directory (if it's different from current dir)
+    String app_dir = Path::GetDirectoryPath(appPath);
+    if (Path::ComparePaths(app_dir, cur_dir) == 0)
+        return ""; // no luck
+    was_searching_in = app_dir;
+    // first scan for config
+    data_path = find_game_data_in_config_and_dir(app_dir);
+    if (!data_path.IsEmpty())
+        return data_path;
+    // if not found in config, lookup for data in same dir
+    return find_game_data_in_directory(app_dir);
 }
 
 void engine_init_fonts()
@@ -1210,44 +1213,42 @@ void allegro_bitmap_test_init()
 #endif
 
 // Define location of the game data either using direct settings or searching
-// for the available resource packs in common locations
-HError define_gamedata_location_checkall(const String &exe_path)
+// for the available resource packs in common locations.
+// Returns two paths:
+// - startup_dir: this is where engine found game config and/or data;
+// - data_path: full path of the main data pack;
+// data_path's directory (may or not be eq to startup_dir) should be considered data directory,
+// and this is where engine look for all game data.
+HError define_gamedata_location_checkall(const String &exe_path, String &data_path, String &startup_dir)
 {
     // First try if they provided a startup option
     if (!cmdGameDataPath.IsEmpty())
     {
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
-            return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
-        // Switch working dir to this path to be able to look for config and other assets there
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
+            return new Error(String::FromFormat("Provided game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
         // If it's a file, then keep it and proceed
         if (Path::IsFile(cmdGameDataPath))
         {
-            usetup.main_data_filepath = cmdGameDataPath;
+            startup_dir = Path::GetDirectoryPath(cmdGameDataPath);
+            data_path = cmdGameDataPath;
             return HError::None();
         }
     }
-    // Read game data location from the default config file.
-    // This is an optional setting that may instruct which game file to use as a primary asset library.
-    ConfigTree cfg;
-    String def_cfg_file = find_default_cfg_file(exe_path);
-    IniUtil::Read(def_cfg_file, cfg);
-    read_game_data_location(cfg);
-    if (!usetup.main_data_filename.IsEmpty())
-        return HError::None();
 
 #if defined (AGS_SEARCH_FOR_GAME_ON_LAUNCH)
     // No direct filepath provided, search in common locations.
-    String path, search_path;
-    if (search_for_game_data_file(path, search_path))
+    data_path = search_for_game_data_file(startup_dir);
+    if (data_path.IsEmpty())
     {
-        usetup.main_data_filepath = path;
-        return HError::None();
+        return new Error("Engine was not able to find any compatible game data.",
+            startup_dir.IsEmpty() ? String() : String::FromFormat("Searched in: %s", startup_dir.GetCStr()));
     }
-    return new Error("Engine was not able to find any compatible game data.",
-        search_path.IsEmpty() ? String() : String::FromFormat("Searched in: %s", search_path.GetCStr()));
+    data_path = Path::MakeAbsolutePath(data_path);
+    Debug::Printf(kDbgMsg_Info, "Located game data file: %s", data_path.GetCStr());
+    return HError::None();
 #else
+    // No direct filepath provided, bail out.
     return new Error("The game location was not defined by startup settings.");
 #endif
 }
@@ -1255,7 +1256,8 @@ HError define_gamedata_location_checkall(const String &exe_path)
 // Define location of the game data
 bool define_gamedata_location(const String &exe_path)
 {
-    HError err = define_gamedata_location_checkall(exe_path);
+    String data_path, startup_dir;
+    HError err = define_gamedata_location_checkall(exe_path, data_path, startup_dir);
     if (!err)
     {
         platform->DisplayAlert("ERROR: Unable to determine game data.\n%s", err->FullMessage().GetCStr());
@@ -1263,21 +1265,13 @@ bool define_gamedata_location(const String &exe_path)
         return false;
     }
 
-    // On success: set all the necessary path and filename settings,
-    // derive missing ones from available.
-    if (usetup.main_data_filename.IsEmpty())
-    {
-        usetup.main_data_filename = get_filename(usetup.main_data_filepath);
-    }
-    else if (usetup.main_data_filepath.IsEmpty())
-    {
-        if (usetup.data_files_dir.IsEmpty() || !is_relative_filename(usetup.main_data_filename))
-            usetup.main_data_filepath = usetup.main_data_filename;
-        else
-            usetup.main_data_filepath = Path::ConcatPaths(usetup.data_files_dir, usetup.main_data_filename);
-    }
-    if (usetup.data_files_dir.IsEmpty())
-        usetup.data_files_dir = Path::GetDirectoryPath(usetup.main_data_filepath);
+    // On success: set all the necessary path and filename settings
+    usetup.main_data_filepath = data_path;
+    usetup.main_data_filename = Path::GetFilename(data_path);
+    usetup.data_files_dir = Path::GetDirectoryPath(data_path);
+
+    // Switch working dir to the game dir
+    Directory::SetCurrentDirectory(usetup.data_files_dir);
     return true;
 }
 
@@ -1285,10 +1279,17 @@ bool define_gamedata_location(const String &exe_path)
 bool engine_init_gamedata(const String &exe_path)
 {
     Debug::Printf(kDbgMsg_Info, "Initializing game data");
+    // First, find data location
     if (!define_gamedata_location(exe_path))
         return false;
-    if (!engine_try_init_gamedata(usetup.main_data_filepath))
+
+    // Try init game lib
+    AssetError asset_err = AssetMgr->AddLibrary(usetup.main_data_filepath);
+    if (asset_err != kAssetNoError)
+    {
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.main_data_filepath.GetCStr());
         return false;
+    }
 
     // Pre-load game name and savegame folder names from data file
     // TODO: research if that is possible to avoid this step and just

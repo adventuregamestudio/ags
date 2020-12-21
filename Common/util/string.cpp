@@ -720,6 +720,7 @@ void String::Reverse()
 {
     if (!_cstr || GetLength() <= 1)
         return;
+    BecomeUnique();
     for (char *fw = _cstr, *bw = _cstr + _len - 1;
         *fw; ++fw, --bw)
     {

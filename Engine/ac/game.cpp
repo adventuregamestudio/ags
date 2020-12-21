@@ -364,12 +364,8 @@ void set_save_game_suffix(const String &suffix)
 }
 
 String get_save_game_path(int slotNum) {
-    String filename;
-    filename.Format(sgnametemplate, slotNum);
-    String path = saveGameDirectory;
-    path.Append(filename);
-    path.Append(saveGameSuffix);
-    return path;
+    String filename = String::FromFormat(sgnametemplate, slotNum);
+    return Path::MakePath(saveGameDirectory, filename, saveGameSuffix);
 }
 
 // Convert a path possibly containing path tags into acceptable save path
@@ -394,10 +390,8 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
         {
             // If there is a custom save parent directory, then replace
             // not only root token, but also first subdirectory
-            newSaveGameDir.ClipSection('/', 0, 1);
-            if (!newSaveGameDir.IsEmpty())
-                newSaveGameDir.PrependChar('/');
-            newSaveGameDir.Prepend(saveGameParent);
+            newSaveGameDir.ClipSection('/', 0, 1); // TODO: Path helper function for this?
+            newSaveGameDir = Path::ConcatPaths(saveGameParent, newSaveGameDir);
             base_dir = saveGameParent;
         }
     }
@@ -422,8 +416,8 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
                 newFolder.GetCStr(), newSaveGameDir.GetCStr());
         }
     }
-    rp.BaseDir = Path::MakeTrailingSlash(base_dir);
-    rp.FullPath = Path::MakeTrailingSlash(newSaveGameDir);
+    rp.BaseDir = base_dir;
+    rp.FullPath = newSaveGameDir;
     return true;
 }
 
@@ -444,7 +438,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
     String newSaveGameDir;
     if (explicit_path)
     {
-        newSaveGameDir = Path::MakeTrailingSlash(newFolder);
+        newSaveGameDir = newFolder;
         if (!Directory::CreateDirectory(newSaveGameDir))
             return false;
     }
@@ -461,13 +455,13 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         newSaveGameDir = rp.FullPath;
     }
 
-    String newFolderTempFile = String::FromFormat("%s""agstmp.tmp", newSaveGameDir.GetCStr());
-    if (!Common::File::TestCreateFile(newFolderTempFile))
+    String newFolderTempFile = Path::ConcatPaths(newSaveGameDir, "agstmp.tmp");
+    if (!File::TestCreateFile(newFolderTempFile))
         return false;
 
     // copy the Restart Game file, if applicable
-    String restartGamePath = String::FromFormat("%s""agssave.%d%s", saveGameDirectory.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-    Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
+    String restartGamePath = Path::ConcatPaths(saveGameDirectory, String::FromFormat("agssave.%d%s", RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr()));
+    Stream *restartGameFile = File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
     {
         long fileSize = restartGameFile->GetLength();
@@ -475,8 +469,8 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        restartGamePath.Format("%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-        restartGameFile = Common::File::CreateFile(restartGamePath);
+        restartGamePath = Path::ConcatPaths(newSaveGameDir, String::FromFormat("agssave.%d%s", RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr()));
+        restartGameFile = File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
         free(mbuffer);
@@ -1707,7 +1701,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     {
         // Try to find wanted game's executable
         // TODO: if GUID/uniqueid is available in the save, scan available game files for their IDs also (see preload_game_data)!
-        String gamefile = get_install_dir_path(desc.MainDataFilename);
+        String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefile))
         {
             RunAGSGame(desc.MainDataFilename, 0, 0);

@@ -713,12 +713,6 @@ void engine_init_directories()
     ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
 
     set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
-    if (!usetup.install_dir.IsEmpty())
-    {
-        // running in debugger: don't redirect to the game exe folder (_Debug)
-        // TODO: find out why we need to do this (and do we?)
-        ResPaths.DataDir = ".";
-    }
 
     // if end-user specified custom save path, use it
     bool res = false;
@@ -1271,7 +1265,7 @@ bool define_gamedata_location()
     usetup.main_data_dir = Path::GetDirectoryPath(data_path);
 
     // Switch working dir to the game dir
-    Directory::SetCurrentDirectory(usetup.main_data_dir);
+    Directory::SetCurrentDirectory(usetup.startup_dir);
     return true;
 }
 

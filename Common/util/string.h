@@ -270,6 +270,8 @@ public:
     void    MakeLower();
     // Convert string to uppercase equivalent
     void    MakeUpper();
+    // Merges sequences of same characters into one
+    void    MergeSequences(char c = 0);
     // Prepend* methods add content before the string's head, increasing its length
     // Add C-string before string's head
     void    Prepend(const char *cstr);

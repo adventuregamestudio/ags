@@ -256,10 +256,7 @@ String MakeSpecialSubDir(const String &sp_dir)
 {
     if (is_relative_filename(sp_dir))
         return sp_dir;
-    String full_path = sp_dir;
-    if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
-        full_path.AppendChar('/');
-    full_path.Append(game.saveGameFolderName);
+    String full_path = Path::ConcatPaths(sp_dir, game.saveGameFolderName);
     Directory::CreateDirectory(full_path);
     return full_path;
 }
@@ -270,7 +267,6 @@ String MakeAppDataPath()
     if (app_data_path.IsEmpty())
         app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
     Directory::CreateDirectory(app_data_path);
-    app_data_path.AppendChar('/');
     return app_data_path;
 }
 
@@ -304,7 +300,6 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
             return false;
         }
         parent_dir = get_install_dir();
-        parent_dir.AppendChar('/');
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
@@ -345,10 +340,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         }
     }
 
-    if (child_path[0u] == '\\' || child_path[0u] == '/')
-        child_path.ClipLeft(1);
-
-    String full_path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
+    String full_path = Path::ConcatPaths(parent_dir, child_path);
     // don't allow write operations for relative paths outside game dir
     if (!read_only)
     {

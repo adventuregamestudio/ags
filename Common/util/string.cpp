@@ -661,6 +661,23 @@ void String::MakeUpper()
     }
 }
 
+void String::MergeSequences(char c)
+{
+    if (!_cstr || GetLength() <= 1)
+        return;
+    BecomeUnique();
+    char last = 0;
+    char *wp = _cstr;
+    for (char *rp = _cstr; *rp; ++rp)
+    {
+        if ((c && *rp != c) || *rp != last)
+            *(wp++) = *rp;
+        last = *rp;
+    }
+    *wp = 0;
+    _len = wp - _cstr;
+}
+
 void String::Prepend(const char *cstr)
 {
     if (cstr)

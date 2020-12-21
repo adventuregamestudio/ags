@@ -587,11 +587,8 @@ void post_config()
     if (!usetup.Screen.WinGameFrame.IsValid())
         usetup.Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
     
-    // TODO: helper functions to remove slash in paths (or distinct path type)
-    if (usetup.user_data_dir.GetLast() == '/' || usetup.user_data_dir.GetLast() == '\\')
-        usetup.user_data_dir.ClipRight(1);
-    if (usetup.shared_data_dir.GetLast() == '/' || usetup.shared_data_dir.GetLast() == '\\')
-        usetup.shared_data_dir.ClipRight(1);
+    usetup.user_data_dir = Path::MakePathNoSlash(usetup.user_data_dir);
+    usetup.shared_data_dir = Path::MakePathNoSlash(usetup.shared_data_dir);
 }
 
 void save_config_file()

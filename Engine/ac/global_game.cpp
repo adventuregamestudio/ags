@@ -58,6 +58,7 @@
 #include "core/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
@@ -748,9 +749,9 @@ int SaveScreenShot(const char*namm) {
     String svg_dir = get_save_game_directory();
 
     if (strchr(namm,'.') == nullptr)
-        fileName.Format("%s%s.bmp", svg_dir.GetCStr(), namm);
+        fileName = Path::MakePath(svg_dir, namm, "bmp");
     else
-        fileName.Format("%s%s", svg_dir.GetCStr(), namm);
+        fileName = Path::ConcatPaths(svg_dir, namm);
 
     Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     if (!buffer->SaveToFile(fileName, palette) != 0)

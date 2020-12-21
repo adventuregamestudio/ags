@@ -709,6 +709,7 @@ void String::Reverse()
 {
     if (!_meta || GetLength() <= 1)
         return;
+    BecomeUnique();
     for (char *fw = _meta->CStr, *bw = _meta->CStr + _meta->Length - 1;
         *fw; ++fw, --bw)
     {

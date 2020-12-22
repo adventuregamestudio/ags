@@ -302,7 +302,10 @@ String search_for_game_data_file(String &was_searching_in)
     // 2. Look in other known locations
     // 2.1. Look for attachment in the running executable
     if (!appPath.IsEmpty() && Common::AssetManager::IsDataFile(appPath))
+    {
+        was_searching_in = Path::GetDirectoryPath(appPath);
         return appPath;
+    }
 
     // 2.2 Look in current working directory
     String cur_dir = Directory::GetCurrentDirectory();

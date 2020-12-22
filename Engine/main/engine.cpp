@@ -1423,8 +1423,8 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
 // It helps us direct Allegro to our game data location, because it won't know.
 static int al_find_resource(char *dest, const char* resource, int dest_size)
 {
-    String path = Path::ConcatPaths(get_install_dir(), resource);
-    if (File::TestReadFile(path))
+    String path = AssetMgr->FindAssetFileOnly(resource);
+    if (!path.IsEmpty())
     {
         snprintf(dest, dest_size, "%s", path.GetCStr());
         return 0;

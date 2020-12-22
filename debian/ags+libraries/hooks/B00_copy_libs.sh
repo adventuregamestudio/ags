@@ -35,3 +35,5 @@ for package in \
   libvorbis0a; do
     cp /usr/share/doc/$package/copyright $BINDMOUNT/data/licenses/$package-copyright
 done
+
+  cp /usr/local/share/doc/libSDL2-2.0/copyright $BINDMOUNT/data/licenses/libSDL2-2.0-copyright

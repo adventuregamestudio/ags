@@ -46,16 +46,6 @@ extern AGSPlatformDriver *platform;
 
 extern int MAXSTRLEN;
 
-// TODO: the asset path configuration should certainly be revamped at some
-// point, with uniform method of configuring auxiliary paths and packages.
-
-// Installation directory, may contain absolute or relative path
-String installDirectory;
-// Installation directory, containing audio files
-String installAudioDirectory;
-// Installation directory, containing voice-over files
-String installVoiceDirectory;
-
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
@@ -228,7 +218,7 @@ void FixupFilename(char *filename)
 String PathFromInstallDir(const String &path)
 {
     if (is_relative_filename(path))
-        return Path::ConcatPaths(installDirectory, path);
+        return Path::ConcatPaths(ResPaths.DataDir, path);
     return path;
 }
 
@@ -308,7 +298,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
                 sc_path.GetCStr());
             return false;
         }
-        parent_dir = get_install_dir();
+        parent_dir = ResPaths.DataDir;
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
@@ -338,7 +328,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = MakeAppDataPath();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = Path::ConcatPaths(get_install_dir(), sc_path);
+            alt_path = Path::ConcatPaths(ResPaths.DataDir, sc_path);
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation
@@ -492,46 +482,15 @@ bool DoesAssetExistInLib(const AssetPath &path)
     return AssetMgr->DoesAssetExist(assetname, filter);
 }
 
-void set_install_dir(const String &path, const String &audio_path, const String &voice_path)
-{
-    if (path.IsEmpty())
-        installDirectory = ResPaths.DataDir;
-    else
-        installDirectory = Path::MakeAbsolutePath(path);
-    if (audio_path.IsEmpty())
-        installAudioDirectory = ResPaths.DataDir;
-    else
-        installAudioDirectory = Path::MakeAbsolutePath(audio_path);
-    if (voice_path.IsEmpty())
-        installVoiceDirectory = ResPaths.DataDir;
-    else
-        installVoiceDirectory = Path::MakeAbsolutePath(voice_path);
-}
-
-String get_install_dir()
-{
-    return installDirectory;
-}
-
-String get_audio_install_dir()
-{
-    return installAudioDirectory;
-}
-
-String get_voice_install_dir()
-{
-    return installVoiceDirectory;
-}
-
 String find_assetlib(const String &filename)
 {
     String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
     if (AssetManager::IsDataFile(libname))
         return libname;
-    if (Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
       // Hack for running in Debugger
-      libname = cbuf_to_string_and_free( ci_find_file(installDirectory, filename) );
+      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2, filename) );
       if (AssetManager::IsDataFile(libname))
         return libname;
     }

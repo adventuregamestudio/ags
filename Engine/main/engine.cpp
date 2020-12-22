@@ -388,10 +388,10 @@ void engine_locate_speech_pak()
             Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
             play.want_speech=1;
         }
-        else if (Path::ComparePaths(ResPaths.DataDir, get_voice_install_dir()) != 0)
+        else if (Path::ComparePaths(ResPaths.DataDir, ResPaths.VoiceDir2) != 0)
         {
             // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
-            Debug::Printf(kDbgMsg_Info, "Voice pack was not found, but voice installation directory is defined: enabling voice-over.");
+            Debug::Printf(kDbgMsg_Info, "Voice pack was not found, but explicit voice directory is defined: enabling voice-over.");
             play.want_speech=1;
         }
         ResPaths.SpeechPak.Name = speech_file;
@@ -419,24 +419,29 @@ void engine_locate_audio_pak()
                 music_file.GetCStr());
         }
     }
+    else if (Path::ComparePaths(ResPaths.DataDir, ResPaths.AudioDir2) != 0)
+    {
+        Debug::Printf(kDbgMsg_Info, "Audio pack was not found, but explicit audio directory is defined.");
+    }
 }
 
+// Assign asset locations to the AssetManager
 void engine_assign_assetpaths()
 {
+    // NOTE: we add extra optional directories first because they should have higher priority
+    // TODO: maybe change AssetManager library order to stack-like later (last added = top priority)?
+    if (!ResPaths.DataDir2.IsEmpty() && Path::ComparePaths(ResPaths.DataDir2, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(ResPaths.DataDir2, ",audio,voice");
+    if (!ResPaths.AudioDir2.IsEmpty() && Path::ComparePaths(ResPaths.AudioDir2, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(ResPaths.AudioDir2, "audio");
+    if (!ResPaths.VoiceDir2.IsEmpty() && Path::ComparePaths(ResPaths.VoiceDir2, ResPaths.DataDir) != 0)
+        AssetMgr->AddLibrary(ResPaths.VoiceDir2, "voice");
+
     AssetMgr->AddLibrary(ResPaths.DataDir, ",audio,voice");
     if (!ResPaths.AudioPak.Path.IsEmpty())
         AssetMgr->AddLibrary(ResPaths.AudioPak.Path, "audio");
     if (!ResPaths.SpeechPak.Path.IsEmpty())
         AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
-    String dir = get_install_dir();
-    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(dir, ",audio,voice");
-    dir = get_audio_install_dir();
-    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(dir, "audio");
-    dir = get_voice_install_dir();
-    if (!dir.IsEmpty() && Path::ComparePaths(dir, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(dir, "voice");
 }
 
 void engine_init_keyboard()
@@ -698,24 +703,25 @@ void engine_init_title()
 
 void engine_init_directories()
 {
+    ResPaths.GamePak.Path = usetup.main_data_file;
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
+    ResPaths.DataDir = usetup.install_dir.IsEmpty() ? usetup.main_data_dir : Path::MakeAbsolutePath(usetup.install_dir);
+    ResPaths.DataDir2 = Path::MakeAbsolutePath(usetup.opt_data_dir);
+    ResPaths.AudioDir2 = Path::MakeAbsolutePath(usetup.opt_audio_dir);
+    ResPaths.VoiceDir2 = Path::MakeAbsolutePath(usetup.opt_voice_dir);
+
     Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Info, "Data directory: %s", usetup.main_data_dir.GetCStr());
-    if (!usetup.install_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Optional install directory: %s", usetup.install_dir.GetCStr());
-    if (!usetup.install_audio_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Optional audio directory: %s", usetup.install_audio_dir.GetCStr());
-    if (!usetup.install_voice_dir.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Optional voice-over directory: %s", usetup.install_voice_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
+    if (!ResPaths.DataDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s", ResPaths.DataDir2.GetCStr());
+    if (!ResPaths.AudioDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt audio directory: %s", ResPaths.AudioDir2.GetCStr());
+    if (!ResPaths.VoiceDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt voice-over directory: %s", ResPaths.VoiceDir2.GetCStr());
     if (!usetup.user_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "User data directory: %s", usetup.user_data_dir.GetCStr());
     if (!usetup.shared_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
-
-    ResPaths.DataDir = usetup.main_data_dir;
-    ResPaths.GamePak.Path = usetup.main_data_file;
-    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
-
-    set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
 
     // if end-user specified custom save path, use it
     bool res = false;

@@ -41,12 +41,19 @@ struct PackLocation
     String Path; // full path
 };
 // Game resource paths
+// TODO: the asset path configuration should certainly be revamped at some
+// point, with uniform method of configuring auxiliary paths and packages.
 struct ResourcePaths
 {
-    String       DataDir;    // path to the data directory
     PackLocation GamePak;    // main game package
     PackLocation AudioPak;   // audio package
     PackLocation SpeechPak;  // voice-over package
+    String       DataDir;    // path to the data directory
+    // NOTE: optional directories are currently only for compatibility with Editor (game test runs)
+    // This is bit ugly, but remain so until more flexible configuration is designed
+    String       DataDir2;   // optional data directory
+    String       AudioDir2;  // optional audio directory
+    String       VoiceDir2;  // optional voice-over directory
 };
 extern ResourcePaths ResPaths;
 

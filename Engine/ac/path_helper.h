@@ -61,11 +61,4 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp);
 // forbidden for writing, or if failed to create any subdirectories.
 bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp);
 
-// Sets an optional path to treat like game's installation directory
-void    set_install_dir(const String &path, const String &audio_path, const String &voice_path);
-// Returns a path to game installation directory (optionally a custom path could be set)
-String  get_install_dir();
-String  get_audio_install_dir();
-String  get_voice_install_dir();
-
 #endif // __AGS_EE_AC__PATHHELPER_H

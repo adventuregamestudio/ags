@@ -296,12 +296,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             force_window = 1;
             ee++;
         }
-        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 3))
+        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {
             usetup.install_dir = argv[ee + 1];
-            usetup.install_audio_dir = argv[ee + 2];
-            usetup.install_voice_dir = argv[ee + 3];
-            ee += 3;
+            usetup.opt_data_dir = argv[ee + 2];
+            usetup.opt_audio_dir = argv[ee + 3];
+            usetup.opt_voice_dir = argv[ee + 4];
+            ee += 4;
         }
         else if (ags_stricmp(arg,"--takeover")==0) {
             if (argc < ee+2)

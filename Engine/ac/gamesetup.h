@@ -53,8 +53,8 @@ struct GameSetup {
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;
-    String startup_dir; // directory where the default game config is located
-    String main_data_dir; // main data directory (commonly same dir as run_dir)
+    String startup_dir; // directory where the default game config is located (usually same as main_data_dir)
+    String main_data_dir; // main data directory
     String main_data_file; // full path to main data file
     String install_dir; // optional custom install dir path
     String install_audio_dir; // optional custom install audio dir path

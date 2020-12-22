@@ -383,7 +383,7 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
     {
         if (saveGameParent.IsEmpty())
         {
-            base_dir = PathOrCurDir(platform->GetUserSavedgamesDirectory());
+            base_dir = PathFromInstallDir(platform->GetUserSavedgamesDirectory());
             newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(), base_dir);
         }
         else
@@ -401,7 +401,7 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
         // safe save path with default name
         if (saveGameParent.IsEmpty())
         {
-            base_dir = PathOrCurDir(platform->GetUserSavedgamesDirectory());
+            base_dir = PathFromInstallDir(platform->GetUserSavedgamesDirectory());
             newSaveGameDir = Path::ConcatPaths(Path::ConcatPaths(base_dir, game.saveGameFolderName), newFolder);
         }
         else
@@ -438,7 +438,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
     String newSaveGameDir;
     if (explicit_path)
     {
-        newSaveGameDir = newFolder;
+        newSaveGameDir = PathFromInstallDir(newFolder);
         if (!Directory::CreateDirectory(newSaveGameDir))
             return false;
     }

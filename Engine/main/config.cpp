@@ -274,13 +274,13 @@ String find_default_cfg_file()
 
 String find_user_global_cfg_file()
 {
-    String parent_dir = PathOrCurDir(platform->GetUserGlobalConfigDirectory());
+    String parent_dir = PathFromInstallDir(platform->GetUserGlobalConfigDirectory());
     return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
 }
 
 String find_user_cfg_file()
 {
-    String parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetUserConfigDirectory()));
+    String parent_dir = MakeSpecialSubDir(PathFromInstallDir(platform->GetUserConfigDirectory()));
     return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
 }
 

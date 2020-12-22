@@ -27,14 +27,12 @@ extern const String UserSavedgamesRootToken;
 extern const String GameSavedgamesDirToken;
 extern const String GameDataDirToken;
 
-inline const char *PathOrCurDir(const char *path)
-{
-    return path ? path : ".";
-}
-
 // Subsitutes illegal characters with '_'. This function uses illegal chars array
 // specific to current platform.
 void FixupFilename(char *filename);
+// Tests the input path, if it's an absolute path then returns it unchanged;
+// if it's a relative path then resolves it into absolute, using install dir as a base.
+String PathFromInstallDir(const String &path);
 // Checks if there is a slash after special token in the beginning of the
 // file path, and adds one if it is missing. If no token is found, string is
 // returned unchanged.
@@ -69,6 +67,5 @@ void    set_install_dir(const String &path, const String &audio_path, const Stri
 String  get_install_dir();
 String  get_audio_install_dir();
 String  get_voice_install_dir();
-String  get_install_dir_path(const String &filename);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

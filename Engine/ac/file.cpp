@@ -225,6 +225,13 @@ void FixupFilename(char *filename)
     }
 }
 
+String PathFromInstallDir(const String &path)
+{
+    if (is_relative_filename(path))
+        return Path::ConcatPaths(installDirectory, path);
+    return path;
+}
+
 // Tests if there is a special path token in the beginning of the given path;
 // if there is and there is no slash between token and the rest of the string,
 // then assigns new string that has such slash.
@@ -263,9 +270,11 @@ String MakeSpecialSubDir(const String &sp_dir)
 
 String MakeAppDataPath()
 {
-    String app_data_path = usetup.shared_data_dir;
-    if (app_data_path.IsEmpty())
-        app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+    String app_data_path;
+    if (usetup.shared_data_dir.IsEmpty())
+        app_data_path = MakeSpecialSubDir(PathFromInstallDir(platform->GetAllUsersDataDirectory()));
+    else
+        app_data_path = PathFromInstallDir(usetup.shared_data_dir);
     Directory::CreateDirectory(app_data_path);
     return app_data_path;
 }
@@ -486,17 +495,17 @@ bool DoesAssetExistInLib(const AssetPath &path)
 void set_install_dir(const String &path, const String &audio_path, const String &voice_path)
 {
     if (path.IsEmpty())
-        installDirectory = ".";
+        installDirectory = ResPaths.DataDir;
     else
-        installDirectory = Path::MakePathNoSlash(path);
+        installDirectory = Path::MakeAbsolutePath(path);
     if (audio_path.IsEmpty())
-        installAudioDirectory = ".";
+        installAudioDirectory = ResPaths.DataDir;
     else
-        installAudioDirectory = Path::MakePathNoSlash(audio_path);
+        installAudioDirectory = Path::MakeAbsolutePath(audio_path);
     if (voice_path.IsEmpty())
-        installVoiceDirectory = ".";
+        installVoiceDirectory = ResPaths.DataDir;
     else
-        installVoiceDirectory = Path::MakePathNoSlash(voice_path);
+        installVoiceDirectory = Path::MakeAbsolutePath(voice_path);
 }
 
 String get_install_dir()
@@ -512,11 +521,6 @@ String get_audio_install_dir()
 String get_voice_install_dir()
 {
     return installVoiceDirectory;
-}
-
-String get_install_dir_path(const String &filename)
-{
-    return Path::ConcatPaths(installDirectory, filename);
 }
 
 String find_assetlib(const String &filename)

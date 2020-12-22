@@ -387,13 +387,7 @@ void main_set_gamedir(int argc, char*argv[])
     appPath = GetPathFromCmdArg(0);
     appDirectory = Path::GetDirectoryPath(appPath);
 
-    if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
-    {
-        // When launched by double-clicking a save game file, the curdir will
-        // be the save game folder unless we correct it
-        Directory::SetCurrentDirectory(appDirectory);
-    }
-    else
+    // TODO: remove following when supporting unicode paths
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
         // When *not* working in U_UNICODE filepath mode, whenever it gets

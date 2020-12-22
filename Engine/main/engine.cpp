@@ -1266,9 +1266,6 @@ bool define_gamedata_location()
     usetup.startup_dir = startup_dir;
     usetup.main_data_file = data_path;
     usetup.main_data_dir = Path::GetDirectoryPath(data_path);
-
-    // Switch working dir to the game dir
-    Directory::SetCurrentDirectory(usetup.startup_dir);
     return true;
 }
 

@@ -249,24 +249,49 @@ String FixSlashAfterToken(const String &path)
     return path;
 }
 
-String MakeSpecialSubDir(const String &sp_dir)
+String PreparePathForWriting(const FSLocation& fsloc, const String &filename)
 {
-    if (is_relative_filename(sp_dir))
-        return sp_dir;
-    String full_path = Path::ConcatPaths(sp_dir, game.saveGameFolderName);
-    Directory::CreateDirectory(full_path);
-    return full_path;
+    if (Directory::CreateAllDirectories(fsloc.BaseDir, fsloc.FullDir))
+        return Path::ConcatPaths(fsloc.FullDir, filename);
+    return "";
 }
 
-String MakeAppDataPath()
+FSLocation GetGlobalUserConfigDir()
 {
-    String app_data_path;
+    String dir = platform->GetUserGlobalConfigDirectory();
+    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+        return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
+    return FSLocation(dir, dir);
+}
+
+FSLocation GetGameUserConfigDir()
+{
+    String dir = platform->GetUserConfigDirectory();
+    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+        return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
+    // For absolute dir, we assume it's a special directory prepared for AGS engine
+    // and therefore amend it with a game own subdir
+    return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
+}
+
+FSLocation GetGameAppDataDir()
+{
+    // If not location is defined by user config, then use default location
     if (usetup.shared_data_dir.IsEmpty())
-        app_data_path = MakeSpecialSubDir(PathFromInstallDir(platform->GetAllUsersDataDirectory()));
-    else
-        app_data_path = PathFromInstallDir(usetup.shared_data_dir);
-    Directory::CreateDirectory(app_data_path);
-    return app_data_path;
+    {
+        String dir = platform->GetAllUsersDataDirectory();
+        if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+            return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
+        // For absolute dir, we assume it's a special directory prepared for AGS engine
+        // and therefore amend it with a game own subdir
+        return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
+    }
+    // If this location is set up by user config, then use it as is (resolving relative path if necessary)
+    String dir = usetup.shared_data_dir;
+    if (Path::IsSameOrSubDir(ResPaths.DataDir, dir)) // check if it's inside game dir
+        return FSLocation(ResPaths.DataDir, Path::MakeRelativePath(ResPaths.DataDir, dir));
+    dir = Path::MakeAbsolutePath(dir);
+    return FSLocation(dir, dir);
 }
 
 bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp)
@@ -287,7 +312,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     String sc_path = FixSlashAfterToken(orig_sc_path);
-    String parent_dir;
+    FSLocation parent_dir;
     String child_path;
     String alt_path;
     if (sc_path.CompareLeft(GameInstallRootToken, GameInstallRootToken.GetLength()) == 0)
@@ -298,17 +323,17 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
                 sc_path.GetCStr());
             return false;
         }
-        parent_dir = ResPaths.DataDir;
+        parent_dir = FSLocation(ResPaths.DataDir);
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
-        parent_dir = get_save_game_directory();
+        parent_dir = FSLocation(get_save_game_directory()); // FIXME: get FSLocation of save dir 
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
     {
-        parent_dir = MakeAppDataPath();
+        parent_dir = GetGameAppDataDir();
         child_path = sc_path.Mid(GameDataDirToken.GetLength());
     }
     else
@@ -325,7 +350,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         // If no file was written yet, but game is trying to read a pre-created
         // file in the installation directory, then such file will be found
         // following the 'alt_path'.
-        parent_dir = MakeAppDataPath();
+        parent_dir = GetGameAppDataDir();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
             alt_path = Path::ConcatPaths(ResPaths.DataDir, sc_path);
@@ -335,21 +360,21 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         if (!read_only && game.options[OPT_SAFEFILEPATHS])
         {
             debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
-                sc_path.GetCStr(), parent_dir.GetCStr());
+                sc_path.GetCStr(), parent_dir.FullDir.GetCStr());
         }
     }
 
-    String full_path = Path::ConcatPaths(parent_dir, child_path);
+    String full_path = Path::ConcatPaths(parent_dir.FullDir, child_path);
     // don't allow write operations for relative paths outside game dir
     if (!read_only)
     {
-        if (!Path::IsSameOrSubDir(parent_dir, full_path))
+        if (!Path::IsSameOrSubDir(parent_dir.FullDir, full_path))
         {
             debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
             return false;
         }
     }
-    rp.BaseDir = parent_dir;
+    rp.BaseDir = parent_dir.BaseDir;
     rp.FullPath = full_path;
     rp.AltPath = alt_path;
     return true;

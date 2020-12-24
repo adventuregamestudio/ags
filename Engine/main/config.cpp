@@ -274,14 +274,12 @@ String find_default_cfg_file()
 
 String find_user_global_cfg_file()
 {
-    String parent_dir = PathFromInstallDir(platform->GetUserGlobalConfigDirectory());
-    return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
+    return Path::ConcatPaths(GetGlobalUserConfigDir().FullDir, DefaultConfigFileName);
 }
 
 String find_user_cfg_file()
 {
-    String parent_dir = MakeSpecialSubDir(PathFromInstallDir(platform->GetUserConfigDirectory()));
-    return Path::ConcatPaths(parent_dir, DefaultConfigFileName);
+    return Path::ConcatPaths(GetGameUserConfigDir().FullDir, DefaultConfigFileName);
 }
 
 void config_defaults()
@@ -626,7 +624,7 @@ void save_config_file()
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
     cfg["language"]["translation"] = usetup.translation;
 
-    String cfg_file = find_user_cfg_file();
+    String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
     if (!cfg_file.IsEmpty())
         IniUtil::Merge(cfg_file, cfg);
 }

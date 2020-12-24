@@ -701,23 +701,8 @@ void engine_init_title()
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
 }
 
-void engine_init_directories()
+void engine_init_user_directories()
 {
-    ResPaths.GamePak.Path = usetup.main_data_file;
-    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
-    ResPaths.DataDir = usetup.install_dir.IsEmpty() ? usetup.main_data_dir : Path::MakeAbsolutePath(usetup.install_dir);
-    ResPaths.DataDir2 = Path::MakeAbsolutePath(usetup.opt_data_dir);
-    ResPaths.AudioDir2 = Path::MakeAbsolutePath(usetup.opt_audio_dir);
-    ResPaths.VoiceDir2 = Path::MakeAbsolutePath(usetup.opt_voice_dir);
-
-    Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
-    if (!ResPaths.DataDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s", ResPaths.DataDir2.GetCStr());
-    if (!ResPaths.AudioDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt audio directory: %s", ResPaths.AudioDir2.GetCStr());
-    if (!ResPaths.VoiceDir2.IsEmpty())
-        Debug::Printf(kDbgMsg_Info, "Opt voice-over directory: %s", ResPaths.VoiceDir2.GetCStr());
     if (!usetup.user_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "User data directory: %s", usetup.user_data_dir.GetCStr());
     if (!usetup.shared_data_dir.IsEmpty())
@@ -1301,6 +1286,23 @@ bool engine_init_gamedata()
         display_game_file_error(err);
         return false;
     }
+
+    // Setup ResPaths, so that we know out main locations further
+    ResPaths.GamePak.Path = usetup.main_data_file;
+    ResPaths.GamePak.Name = Path::GetFilename(usetup.main_data_file);
+    ResPaths.DataDir = usetup.install_dir.IsEmpty() ? usetup.main_data_dir : Path::MakeAbsolutePath(usetup.install_dir);
+    ResPaths.DataDir2 = Path::MakeAbsolutePath(usetup.opt_data_dir);
+    ResPaths.AudioDir2 = Path::MakeAbsolutePath(usetup.opt_audio_dir);
+    ResPaths.VoiceDir2 = Path::MakeAbsolutePath(usetup.opt_voice_dir);
+
+    Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.startup_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
+    if (!ResPaths.DataDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s", ResPaths.DataDir2.GetCStr());
+    if (!ResPaths.AudioDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt audio directory: %s", ResPaths.AudioDir2.GetCStr());
+    if (!ResPaths.VoiceDir2.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Opt voice-over directory: %s", ResPaths.VoiceDir2.GetCStr());
     return true;
 }
 
@@ -1484,8 +1486,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip = -190;
 
     //-----------------------------------------------------
-    // Init data paths and other directories, locate general data files
-    engine_init_directories();
+    // Init auxiliary data files and other directories, initialize asset manager
+    engine_init_user_directories();
 
     our_eip = -191;
 

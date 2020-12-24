@@ -14,6 +14,10 @@
 //
 // Functions related to constructing game and script paths.
 //
+// TODO: We need some kind of a "file manager" which deals with opening files
+// in defined set of directories. To ensure that rest of the engine code does
+// not work with explicit paths or creates directories on its own.
+//
 //=============================================================================
 #ifndef __AGS_EE_AC__PATHHELPER_H
 #define __AGS_EE_AC__PATHHELPER_H
@@ -37,17 +41,36 @@ String PathFromInstallDir(const String &path);
 // file path, and adds one if it is missing. If no token is found, string is
 // returned unchanged.
 String FixSlashAfterToken(const String &path);
-// Creates a directory path by combining absolute path to special directory with
-// custom game's directory name.
-// If the path is relative, keeps it unmodified (no extra subdir added).
-String MakeSpecialSubDir(const String &sp_dir);
+
+// FSLocation describes a file system location defined by two parts:
+// a secure path that engine does not own, and sub-path that it owns.
+// The meaning of this is that engine is only allowed to create
+// sub-path subdirectories, and only if secure path exists.
+struct FSLocation
+{
+    String BaseDir; // parent part of the full path that is not our responsibility
+    String FullDir; // full path to the directory
+    FSLocation() = default;
+    FSLocation(const String &base) : BaseDir(base), FullDir(base) {}
+    FSLocation(const String &base, const String &full) : BaseDir(base), FullDir(full) {}
+};
+// Makes sure that given system location is available, makes directories if have to (and if it's allowed to)
+// Returns full file path on success, empty string on failure.
+String PreparePathForWriting(const FSLocation& fsloc, const String &filename);
+
+// Returns the directory where global user config is to be found
+FSLocation GetGlobalUserConfigDir();
+// Returns the directory where this game's user config is to be found
+FSLocation GetGameUserConfigDir();
+// Returns the directory where this game's shared app files are to be found
+FSLocation GetGameAppDataDir();
 
 // ResolvedPath describes an actual location pointed by a user path (e.g. from script)
 struct ResolvedPath
 {
-    String BaseDir; // base directory, one of the special path roots
-    String FullPath;// full path
-    String AltPath; // alternative full path, for backwards compatibility
+    String BaseDir;  // base directory, which we assume already exists
+    String FullPath; // full path, including filename
+    String AltPath;  // alternative full path, for backwards compatibility
 };
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.

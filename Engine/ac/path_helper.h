@@ -58,12 +58,15 @@ struct FSLocation
 // Returns full file path on success, empty string on failure.
 String PreparePathForWriting(const FSLocation& fsloc, const String &filename);
 
+// Following functions calculate paths to directories according to game setup
 // Returns the directory where global user config is to be found
 FSLocation GetGlobalUserConfigDir();
 // Returns the directory where this game's user config is to be found
 FSLocation GetGameUserConfigDir();
 // Returns the directory where this game's shared app files are to be found
 FSLocation GetGameAppDataDir();
+// Returns the directory where this game's saves and user data are to be found
+FSLocation GetGameUserDataDir();
 
 // ResolvedPath describes an actual location pointed by a user path (e.g. from script)
 struct ResolvedPath

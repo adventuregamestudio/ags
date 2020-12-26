@@ -274,12 +274,14 @@ FSLocation GetGameUserConfigDir()
     return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
 }
 
-FSLocation GetGameAppDataDir()
+// A helper function that deduces a data directory either using default system location,
+// or user option from config. In case of a default location a path is appended with
+// game's "save folder" name, which is meant to separate files from different games.
+static FSLocation MakeGameDataDir(const String &default_dir, const String &user_option)
 {
-    // If not location is defined by user config, then use default location
-    if (usetup.shared_data_dir.IsEmpty())
+    if (user_option.IsEmpty())
     {
-        String dir = platform->GetAllUsersDataDirectory();
+        String dir = default_dir;
         if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
             return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
         // For absolute dir, we assume it's a special directory prepared for AGS engine
@@ -287,11 +289,21 @@ FSLocation GetGameAppDataDir()
         return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
     }
     // If this location is set up by user config, then use it as is (resolving relative path if necessary)
-    String dir = usetup.shared_data_dir;
+    String dir = user_option;
     if (Path::IsSameOrSubDir(ResPaths.DataDir, dir)) // check if it's inside game dir
         return FSLocation(ResPaths.DataDir, Path::MakeRelativePath(ResPaths.DataDir, dir));
     dir = Path::MakeAbsolutePath(dir);
     return FSLocation(dir, dir);
+}
+
+FSLocation GetGameAppDataDir()
+{
+    return MakeGameDataDir(platform->GetAllUsersDataDirectory(), usetup.shared_data_dir);
+}
+
+FSLocation GetGameUserDataDir()
+{
+    return MakeGameDataDir(platform->GetUserSavedgamesDirectory(), usetup.user_data_dir);
 }
 
 bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp)

@@ -701,6 +701,7 @@ void engine_init_title()
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
 }
 
+// Setup paths and directories that may be affected by user configuration
 void engine_init_user_directories()
 {
     if (!usetup.user_data_dir.IsEmpty())
@@ -730,6 +731,7 @@ void engine_init_user_directories()
 extern char android_base_directory[256];
 #endif // AGS_PLATFORM_OS_ANDROID
 
+// TODO: remake/remove this nonsense
 int check_write_access() {
 
   if (platform->GetDiskFreeSpaceMB() < 2)
@@ -742,7 +744,10 @@ int check_write_access() {
   String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
-      // TODO: move this somewhere else (Android platform driver init?)
+      // TODO: The fallback should be done on all platforms, and there's
+      // already similar procedure found in SetSaveGameDirectoryPath.
+      // If Android has extra dirs to fallback to, they should be provided
+      // by platform driver's method, not right here!
 #if AGS_PLATFORM_OS_ANDROID
   {
 	  put_backslash(android_base_directory);
@@ -1420,7 +1425,22 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         data["data"]["gamename"] = game.gamename;
         data["data"]["version"] = String::FromFormat("%d", loaded_game_file_version);
         data["data"]["compiledwith"] = game.compiled_with;
-        data["data"]["basepack"] = usetup.main_data_file;
+        data["data"]["basepack"] = ResPaths.GamePak.Path;
+    }
+    if (all || keys.count("filepath") > 0)
+    {
+        data["filepath"]["exe"] = appPath;
+        data["filepath"]["cwd"] = Directory::GetCurrentDirectory();
+        data["filepath"]["startup"] = usetup.startup_dir;
+        data["filepath"]["datadir"] = ResPaths.DataDir;
+        if (!ResPaths.DataDir2.IsEmpty())
+        {
+            data["filepath"]["datadir2"] = ResPaths.DataDir2;
+            data["filepath"]["audiodir2"] = ResPaths.AudioDir2;
+            data["filepath"]["voicedir2"] = ResPaths.VoiceDir2;
+        }
+        data["filepath"]["savegamedir"] = GetGameUserDataDir().FullDir;
+        data["filepath"]["appdatadir"] = GetGameAppDataDir().FullDir;
     }
     String full;
     IniUtil::WriteToString(full, data);
@@ -1466,13 +1486,8 @@ int initialize_engine(const ConfigTree &startup_opts)
         return EXIT_ERROR;
     ConfigTree cfg;
     engine_prepare_config(cfg, startup_opts);
-    if (justTellInfo)
-    {
-        engine_print_info(tellInfoKeys, &cfg);
-        return EXIT_NORMAL;
-    }
     // Test if need to run built-in setup program (where available)
-    if (justRunSetup)
+    if (!justTellInfo && justRunSetup)
     {
         int res;
         if (!engine_run_setup(cfg, res))
@@ -1482,6 +1497,11 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_set_config(cfg);
     engine_setup_allegro();
     engine_force_window();
+    if (justTellInfo)
+    {
+        engine_print_info(tellInfoKeys, &cfg);
+        return EXIT_NORMAL;
+    }
 
     our_eip = -190;
 

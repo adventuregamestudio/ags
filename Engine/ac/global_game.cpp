@@ -58,6 +58,7 @@
 #include "core/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
@@ -70,7 +71,6 @@ extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
-extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
@@ -246,10 +246,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     }
 
     if ((mode & RAGMODE_LOADNOW) == 0) {
-        // need to copy, since the script gets destroyed
-        get_install_dir_path(gamefilenamebuf, newgame);
-        ResPaths.GamePak.Path = gamefilenamebuf;
-        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
+        ResPaths.GamePak.Path = PathFromInstallDir(newgame);
+        ResPaths.GamePak.Name = newgame;
         play.takeover_data = data;
         load_new_game_restore = -1;
 
@@ -274,8 +272,12 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
     usetup.translation = ""; // reset to default, prevent from trying translation file of game A in game B
 
-    if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
+    AssetMgr->RemoveAllLibraries();
+
+    // TODO: refactor and share same code with the startup!
+    if (AssetMgr->AddLibrary(ResPaths.GamePak.Path) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
+    engine_assign_assetpaths();
 
     show_preload();
 
@@ -745,9 +747,9 @@ int SaveScreenShot(const char*namm) {
     String svg_dir = get_save_game_directory();
 
     if (strchr(namm,'.') == nullptr)
-        fileName.Format("%s%s.bmp", svg_dir.GetCStr(), namm);
+        fileName = Path::MakePath(svg_dir, namm, "bmp");
     else
-        fileName.Format("%s%s", svg_dir.GetCStr(), namm);
+        fileName = Path::ConcatPaths(svg_dir, namm);
 
     Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     if (!buffer->SaveToFile(fileName, palette) != 0)

@@ -64,6 +64,7 @@ extern void update_sprite_resolution(int spriteNum);
 extern void SaveGame(bool compressSprites);
 extern HAGSError reset_sprite_file();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
+extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
@@ -155,6 +156,11 @@ namespace AGS
 				throw gcnew AGS::Types::InvalidDataException("Native initialization failed.");
 			}
 		}
+
+        void NativeMethods::NewWorkingDirSet(String^ workingDir)
+        {
+            GameDirChanged(workingDir);
+        }
 
 		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
 		{

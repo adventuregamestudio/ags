@@ -170,11 +170,11 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
     src = MainGameSource();
     // Try to find and open main game file
     String filename = MainGameSource::DefaultFilename_v3;
-    PStream in(AssetManager::OpenAsset(filename));
+    PStream in(AssetMgr->OpenAsset(filename));
     if (!in)
     {
         filename = MainGameSource::DefaultFilename_v2;
-        in = PStream(AssetManager::OpenAsset(filename));
+        in = PStream(AssetMgr->OpenAsset(filename));
     }
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));

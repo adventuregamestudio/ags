@@ -34,6 +34,8 @@ namespace Path
     // Tells if the given path is file or directory;
     // may be used to check if it's valid to use
     bool    IsFileOrDir(const String &filename);
+    // Returns filename part out of the longer path
+    String  GetFilename(const String &path);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and
@@ -61,9 +63,14 @@ namespace Path
     String  MakeAbsolutePath(const String &path);
     // Tries to create a relative path that would point to 'path' location
     // if walking out of the 'base'. Returns empty string on failure.
+    // NOTE: the 'base' is only considered a directory if it has a trailing slash.
     String  MakeRelativePath(const String &base, const String &path);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
+    // Creates path by combining directory, file name and extension
+    String  MakePath(const String &parent, const String &filename, const String &ext);
+    // Splits path into components, divided by path separator
+    std::vector<String> Split(const String &path);
 
     // Subsitutes illegal characters with '_'. This function uses a combined set
     // of illegal chars from all the supported platforms to make a name that

@@ -12,8 +12,8 @@
 //
 //=============================================================================
 //
-//
-//
+// TODO: remove and replace with std::map / unordered_map?
+// some helper functions may be required too.
 //=============================================================================
 #ifndef __AGS_EE_AC__TREEMAP_H
 #define __AGS_EE_AC__TREEMAP_H
@@ -26,7 +26,7 @@ struct TreeMap {
     char *translation;
 
     TreeMap();
-    char* findValue (const char* key);
+    const char* findValue (const char* key) const;
     void addText (const char* ntx, char *trans);
     void clear();
     ~TreeMap();

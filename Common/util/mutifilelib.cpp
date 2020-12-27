@@ -96,11 +96,10 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     // (since only base data file may be EXE file, other clib parts are always on their own)
     if (abs_offset > 0)
     {
-        for (AssetVec::iterator it = lib.AssetInfos.begin();
-             it != lib.AssetInfos.end(); ++it)
+        for (auto &asset : lib.AssetInfos)
         {
-            if (it->LibUid == 0)
-                it->Offset += abs_offset;
+            if (asset.LibUid == 0)
+                asset.Offset += abs_offset;
         }
     }
     return err;
@@ -347,12 +346,12 @@ MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* 
     size_t asset_count = in->ReadInt32();
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
-    for (AssetVec::iterator it = lib.AssetInfos.begin(); it != lib.AssetInfos.end(); ++it)
+    for (auto &asset : lib.AssetInfos)
     {
-        it->FileName = String::FromStream(in);
-        it->LibUid = in->ReadInt8();
-        it->Offset = in->ReadInt64();
-        it->Size = in->ReadInt64();
+        asset.FileName = String::FromStream(in);
+        asset.LibUid = in->ReadInt8();
+        asset.Offset = in->ReadInt64();
+        asset.Size = in->ReadInt64();
     }
     return kMFLNoError;
 }
@@ -382,12 +381,12 @@ void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *
 
     // table of contents for all assets in library
     out->WriteInt32(lib.AssetInfos.size());
-    for (AssetVec::const_iterator it = lib.AssetInfos.begin(); it != lib.AssetInfos.end(); ++it)
+    for (const auto &asset : lib.AssetInfos)
     {
-        StrUtil::WriteCStr(it->FileName, out);
-        out->WriteInt8(it->LibUid);
-        out->WriteInt64(it->Offset);
-        out->WriteInt64(it->Size);
+        StrUtil::WriteCStr(asset.FileName, out);
+        out->WriteInt8(asset.LibUid);
+        out->WriteInt64(asset.Offset);
+        out->WriteInt64(asset.Size);
     }
 }
 

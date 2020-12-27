@@ -19,12 +19,14 @@
 #include "ac/global_game.h"
 #include "ac/global_video.h"
 #include "ac/path_helper.h"
+#include "core/assetmanager.h"
 #include "debug/debugger.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/string_compat.h"
 
+using namespace AGS::Common;
 
 void scrPlayVideo(const char* name, int skip, int flags) {
     EndSkippingUntilCharStops();
@@ -59,9 +61,7 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
     }
     else
     {
-        char videoFilePath[MAX_PATH];
-        get_install_dir_path(videoFilePath, name);
-
+        String videoFilePath = AssetMgr->FindAssetFileOnly(name);
         platform->PlayVideo(videoFilePath, skip, flags);
     }
 

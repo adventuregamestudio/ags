@@ -25,13 +25,6 @@ AssetInfo::AssetInfo()
     , Size(0)
 {
 }
-void AssetLibInfo::Unload()
-{
-    BaseFileName = "";
-    BaseFilePath = "";
-    LibFileNames.clear();
-    AssetInfos.clear();
-}
 
 } // namespace Common
 } // namespace AGS

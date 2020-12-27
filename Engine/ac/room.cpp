@@ -218,7 +218,7 @@ bool Room_Exists(int room)
 {
     String room_filename;
     room_filename.Format("room%d.crm", room);
-    return Common::AssetManager::DoesAssetExist(room_filename);
+    return AssetMgr->DoesAssetExist(room_filename);
 }
 
 //=============================================================================

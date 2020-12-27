@@ -821,7 +821,7 @@ HSaveError WriteDynamicSurfaces(PStream out)
 HSaveError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     HSaveError err;
-    if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Drawing Surfaces"))
+    if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
         return err;
     // Load the surfaces into a temporary array since ccUnserialiseObjects will destroy them otherwise
     r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
@@ -1147,7 +1147,7 @@ ComponentHandler ComponentHandlers[] =
         ReadOverlays
     },
     {
-        "Drawing Surfaces",
+        "Dynamic Surfaces",
         0,
         0,
         WriteDynamicSurfaces,

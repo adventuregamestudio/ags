@@ -26,6 +26,7 @@
 #include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/sys_events.h"
+#include "ac/translation.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
@@ -51,10 +52,8 @@ extern CharacterInfo*playerchar;
 extern int convert_16bit_bgr;
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
-extern TreeMap *transtree;
 extern int displayed_room, starting_room;
 extern MoveList *mls;
-extern char transFileName[MAX_PATH];
 
 String GetRuntimeInfo()
 {
@@ -76,9 +75,9 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.want_speech >= 1)
         runtimeInfo.Append("[SPEECH.VOX enabled");
-    if (transtree != nullptr) {
+    if (get_translation_tree() != nullptr) {
         runtimeInfo.Append("[Using translation ");
-        runtimeInfo.Append(transFileName);
+        runtimeInfo.Append(get_translation_name());
     }
     if (usetup.mod_player == 0)
         runtimeInfo.Append("[(mod/xm player discarded)");

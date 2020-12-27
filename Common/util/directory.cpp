@@ -37,14 +37,14 @@ bool CreateAllDirectories(const String &parent, const String &path)
     if (!Path::IsSameOrSubDir(parent, path))
         return false;
 
-    String sub_path = Path::MakeRelativePath(parent, path);
+    String fixup_parent = Path::MakeTrailingSlash(parent);
+    String sub_path = Path::MakeRelativePath(fixup_parent, path);
     String make_path = parent;
-    std::vector<String> dirs = sub_path.Split('/');
+    std::vector<String> dirs = Path::Split(sub_path);
     for (const String &dir : dirs)
     {
         if (dir.IsEmpty() || dir.Compare(".") == 0) continue;
-        make_path.AppendChar('/');
-        make_path.Append(dir);
+        make_path = Path::ConcatPaths(make_path, dir);
         if (!CreateDirectory(make_path))
             return false;
     }

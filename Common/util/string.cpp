@@ -418,10 +418,11 @@ String String::Section(char separator, size_t first, size_t last,
 
 std::vector<String> String::Split(char separator) const
 {
+    if (separator == 0)
+        return std::vector<String>{GetCStr()};
+
     std::vector<String> result;
-    if (!_cstr || !separator)
-        return result;
-    const char *ptr = _cstr;
+    const char *ptr = GetCStr();
     while (*ptr)
     {
         const char *found_cstr = strchr(ptr, separator);
@@ -660,6 +661,23 @@ void String::MakeUpper()
     }
 }
 
+void String::MergeSequences(char c)
+{
+    if (!_cstr || GetLength() <= 1)
+        return;
+    BecomeUnique();
+    char last = 0;
+    char *wp = _cstr;
+    for (char *rp = _cstr; *rp; ++rp)
+    {
+        if ((c && *rp != c) || *rp != last)
+            *(wp++) = *rp;
+        last = *rp;
+    }
+    *wp = 0;
+    _len = wp - _cstr;
+}
+
 void String::Prepend(const char *cstr)
 {
     if (cstr)
@@ -719,6 +737,7 @@ void String::Reverse()
 {
     if (!_cstr || GetLength() <= 1)
         return;
+    BecomeUnique();
     for (char *fw = _cstr, *bw = _cstr + _len - 1;
         *fw; ++fw, --bw)
     {

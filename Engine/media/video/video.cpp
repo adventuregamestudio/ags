@@ -133,11 +133,11 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     String flicname = String::FromFormat("flic%d.flc", numb);
-    Stream *in = AssetManager::OpenAsset(flicname);
+    Stream *in = AssetMgr->OpenAsset(flicname);
     if (!in)
     {
         flicname.Format("flic%d.fli", numb);
-        in = AssetManager::OpenAsset(flicname);
+        in = AssetMgr->OpenAsset(flicname);
     }
     if (!in)
     {
@@ -339,7 +339,7 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 void play_theora_video(const char *name, int skip, int flags)
 {
-    std::unique_ptr<Stream> video_stream(AssetManager::OpenAsset(name));
+    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
     apeg_set_display_depth(game.GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start

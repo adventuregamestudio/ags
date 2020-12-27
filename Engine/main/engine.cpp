@@ -1381,7 +1381,7 @@ extern std::set<String> tellInfoKeys;
 static bool print_info_needs_game(const std::set<String> &keys)
 {
     return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||
-        keys.count("data") > 0;
+        keys.count("data") > 0 || keys.count("filepath") > 0;
 }
 
 static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)

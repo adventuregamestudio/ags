@@ -225,6 +225,7 @@ void main_print_help() {
            "  --tell-config                Print contents of merged game config\n"
            "  --tell-configpath            Print paths to available config files\n"
            "  --tell-data                  Print information on game data and its location\n"
+           "  --tell-gameproperties        Print information on game general settings\n"
            "  --tell-engine                Print engine name and version\n"
            "  --tell-filepath              Print all filepaths engine uses for the game\n"
            "  --tell-graphicdriver         Print list of supported graphic drivers\n"

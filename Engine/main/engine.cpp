@@ -151,9 +151,26 @@ void engine_setup_window()
     platform->SetGameWindowIcon();
 }
 
+// Fills map with game settings, to e.g. let setup application(s)
+// display correct properties to the user
+static void fill_game_properties(StringOrderMap &map)
+{
+    map["title"] = game.gamename;
+    map["guid"] = game.guid;
+    map["legacy_uniqueid"] = StrUtil::IntToString(game.uniqueid);
+    map["legacy_resolution"] = StrUtil::IntToString(game.GetResolutionType());
+    map["legacy_letterbox"] = StrUtil::IntToString(game.options[OPT_LETTERBOX]);;
+    map["resolution_width"] = StrUtil::IntToString(game.GetDefaultRes().Width);
+    map["resolution_height"] = StrUtil::IntToString(game.GetDefaultRes().Height);
+    map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
+    map["render_at_screenres"] = StrUtil::IntToString(
+        game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined ? -1 :
+        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
+}
+
 // Starts up setup application, if capable.
 // Returns TRUE if should continue running the game, otherwise FALSE.
-bool engine_run_setup(ConfigTree &cfg, int &app_res)
+bool engine_run_setup(const ConfigTree &cfg, int &app_res)
 {
     app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
@@ -167,8 +184,10 @@ bool engine_run_setup(ConfigTree &cfg, int &app_res)
 
             Debug::Printf(kDbgMsg_Info, "Running Setup");
 
+            ConfigTree cfg_with_meta = cfg;
+            fill_game_properties(cfg_with_meta["gameproperties"]);
             ConfigTree cfg_out;
-            SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
+            SetupReturnValue res = platform->RunSetup(cfg_with_meta, cfg_out);
             if (res != kSetup_Cancel)
             {
                 if (!IniUtil::Merge(cfg_file, cfg_out))
@@ -1350,20 +1369,6 @@ void engine_prepare_config(ConfigTree &cfg, const ConfigTree &startup_opts)
     for (const auto &sectn : startup_opts)
         for (const auto &opt : sectn.second)
             cfg[sectn.first][opt.first] = opt.second;
-
-    // Add "meta" config settings to let setup application(s)
-    // display correct properties to the user
-    INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
-    INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-    INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
-    INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
-    INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
-    if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
-    {
-        // force enabled/disabled
-        INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
-        INIwriteint(cfg, "disabled", "render_at_screenres", 1);
-    }
 }
 
 // Applies configuration to the running game
@@ -1381,7 +1386,7 @@ extern std::set<String> tellInfoKeys;
 static bool print_info_needs_game(const std::set<String> &keys)
 {
     return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||
-        keys.count("data") > 0 || keys.count("filepath") > 0;
+        keys.count("data") > 0 || keys.count("filepath") > 0 || keys.count("gameproperties") > 0;
 }
 
 static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)
@@ -1423,9 +1428,13 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     if (all || keys.count("data") > 0)
     {
         data["data"]["gamename"] = game.gamename;
-        data["data"]["version"] = String::FromFormat("%d", loaded_game_file_version);
+        data["data"]["version"] = StrUtil::IntToString(loaded_game_file_version);
         data["data"]["compiledwith"] = game.compiled_with;
         data["data"]["basepack"] = ResPaths.GamePak.Path;
+    }
+    if (all || keys.count("gameproperties") > 0)
+    {
+        fill_game_properties(data["gameproperties"]);
     }
     if (all || keys.count("filepath") > 0)
     {

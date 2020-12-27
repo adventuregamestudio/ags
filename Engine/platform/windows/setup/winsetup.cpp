@@ -152,13 +152,13 @@ void WinConfig::Load(const ConfigTree &cfg)
     DataDirectory = INIreadstring(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = INIreadstring(cfg, "misc", "user_data_dir");
     // Backward-compatible resolution type
-    GameResType = (GameResolutionType)INIreadint(cfg, "misc", "defaultres", GameResType);
+    GameResType = (GameResolutionType)INIreadint(cfg, "gameproperties", "legacy_resolution", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
         GameResType = kGameResolution_Undefined;
-    GameResolution.Width = INIreadint(cfg, "misc", "game_width", GameResolution.Width);
-    GameResolution.Height = INIreadint(cfg, "misc", "game_height", GameResolution.Height);
-    GameColourDepth = INIreadint(cfg, "misc", "gamecolordepth", GameColourDepth);
-    LetterboxByDesign = INIreadint(cfg, "misc", "letterbox", 0) != 0;
+    GameResolution.Width = INIreadint(cfg, "gameproperties", "resolution_width", GameResolution.Width);
+    GameResolution.Height = INIreadint(cfg, "gameproperties", "resolution_height", GameResolution.Height);
+    GameColourDepth = INIreadint(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
+    LetterboxByDesign = INIreadint(cfg, "gameproperties", "legacy_letterbox", 0) != 0;
 
     GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
@@ -171,7 +171,11 @@ void WinConfig::Load(const ConfigTree &cfg)
     RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
     Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
     VSync = INIreadint(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
-    RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
+    int locked_render_at_screenres = INIreadint(cfg, "gameproperties", "render_at_screenres", -1);
+    if (locked_render_at_screenres < 0)
+        RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
+    else
+        RenderAtScreenRes = locked_render_at_screenres != 0;
 
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
@@ -685,7 +689,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         EnableWindow(_hUseVoicePack, FALSE);
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
-    if (INIreadint(_cfgIn, "disabled", "render_at_screenres", 0) != 0)
+    if (INIreadint(_cfgIn, "disabled", "render_at_screenres", 0) != 0 ||
+        INIreadint(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect, border;

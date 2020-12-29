@@ -191,10 +191,6 @@ void GameState::UpdateRoomCamera(int index)
             cam->SetAt(x, y);
         }
     }
-    else
-    {
-        cam->SetAt(0, 0);
-    }
 }
 
 Point GameState::RoomToScreen(int roomx, int roomy)

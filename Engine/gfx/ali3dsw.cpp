@@ -410,7 +410,10 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     // Drawing directly on a viewport without transformation (other than offset)
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
-        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+        // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
+        // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)
+        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h
+            || batch.Surface->GetSubOffset() != desc.Viewport.GetLT())
         {
             Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
             batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));

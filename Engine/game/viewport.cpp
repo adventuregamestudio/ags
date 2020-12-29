@@ -42,6 +42,7 @@ void Camera::SetSize(const Size cam_size)
 
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
+    SetAt(_position.Left, _position.Top); // readjust in case went off-room after size changed
     for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
     {
         auto locked_vp = vp->lock();

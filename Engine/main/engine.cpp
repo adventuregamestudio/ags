@@ -1440,16 +1440,15 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     {
         data["filepath"]["exe"] = appPath;
         data["filepath"]["cwd"] = Directory::GetCurrentDirectory();
-        data["filepath"]["startup"] = usetup.startup_dir;
-        data["filepath"]["datadir"] = ResPaths.DataDir;
+        data["filepath"]["datadir"] = Path::MakePathNoSlash(ResPaths.DataDir);
         if (!ResPaths.DataDir2.IsEmpty())
         {
-            data["filepath"]["datadir2"] = ResPaths.DataDir2;
-            data["filepath"]["audiodir2"] = ResPaths.AudioDir2;
-            data["filepath"]["voicedir2"] = ResPaths.VoiceDir2;
+            data["filepath"]["datadir2"] = Path::MakePathNoSlash(ResPaths.DataDir2);
+            data["filepath"]["audiodir2"] = Path::MakePathNoSlash(ResPaths.AudioDir2);
+            data["filepath"]["voicedir2"] = Path::MakePathNoSlash(ResPaths.VoiceDir2);
         }
-        data["filepath"]["savegamedir"] = GetGameUserDataDir().FullDir;
-        data["filepath"]["appdatadir"] = GetGameAppDataDir().FullDir;
+        data["filepath"]["savegamedir"] = Path::MakePathNoSlash(GetGameUserDataDir().FullDir);
+        data["filepath"]["appdatadir"] = Path::MakePathNoSlash(GetGameAppDataDir().FullDir);
     }
     String full;
     IniUtil::WriteToString(full, data);

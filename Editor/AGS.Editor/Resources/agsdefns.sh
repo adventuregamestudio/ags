@@ -389,7 +389,7 @@ enum SortStyle
 };
 #endif
 
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
 enum LogLevel
 {
 	eLogAlert = 1,
@@ -538,12 +538,12 @@ builtin managed struct DrawingSurface {
   import DrawingSurface* CreateCopy();
   /// Draws a circle onto the surface with its centre at (x,y).
   import void DrawCircle(int x, int y, int radius);
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif
-#ifndef SCRIPT_API_v351
+#ifndef SCRIPT_API_v399
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
 #endif
@@ -565,12 +565,12 @@ builtin managed struct DrawingSurface {
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif
-#ifndef SCRIPT_API_v351
+#ifndef SCRIPT_API_v399
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
 #endif
@@ -712,7 +712,7 @@ import int  GetWalkableAreaAtScreen(int screenX, int screenY);
 /// Returns which walkable area is at the specified position within the room.
 import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
 /// Gets the drawing surface for the 8-bit walkable mask
 import DrawingSurface* GetDrawingSurfaceForWalkableArea();
 /// Gets the drawing surface for the 8-bit walk-behind mask
@@ -1035,7 +1035,7 @@ import void Wait(int waitLoops);
 import int  WaitKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless a key is pressed or the mouse is clicked.
 import int  WaitMouseKey(int waitLoops = -1);
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.
@@ -1385,7 +1385,7 @@ builtin managed struct Hotspot {
   /// Returns the hotspot at the specified position within this room.
   import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Gets the drawing surface for the 8-bit hotspots mask
   import static DrawingSurface* GetDrawingSurface();     // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1421,7 +1421,7 @@ builtin managed struct Region {
   /// Returns the region at the specified position on the screen.
   import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Gets the drawing surface for the 8-bit regions mask
   import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1648,7 +1648,7 @@ builtin struct System {
   /// Gets/sets whether sprites are rendered at screen resolution or native game resolution.
   import static attribute bool RenderAtScreenResolution;
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Prints message
   import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1694,11 +1694,11 @@ builtin managed struct Object {
   import function RunInteraction(CursorMode);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=0, int frame=0);
 #endif
-#ifndef SCRIPT_API_v351
+#ifndef SCRIPT_API_v399
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=-1, int frame=-1);
 #endif
@@ -1778,7 +1778,7 @@ builtin managed struct Object {
   /// Returns the object at the specified position within this room.
   import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
-#ifdef SCRIPT_API_v351
+#ifdef SCRIPT_API_v399
   /// Gets/sets whether the object uses manually specified scaling instead of using walkable area scaling.
   import attribute bool ManualScaling;
   /// Gets/sets the object's current scaling level.

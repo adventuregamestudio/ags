@@ -137,8 +137,8 @@ enum GameDataVersion
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
-    kGameVersion_351            = 51,
-    kGameVersion_Current        = kGameVersion_351
+    kGameVersion_399            = 60,
+    kGameVersion_Current        = kGameVersion_399
 };
 
 extern GameDataVersion loaded_game_file_version;

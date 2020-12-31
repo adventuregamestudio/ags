@@ -388,7 +388,7 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
 
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_351)
+    if (data_ver < kGameVersion_399)
     {
         for (size_t font = 0; font < game.numfonts; font++)
         {

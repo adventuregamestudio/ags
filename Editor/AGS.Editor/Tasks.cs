@@ -346,7 +346,7 @@ namespace AGS.Editor
                 }
             }
 
-            if (xmlVersionIndex < 27)
+            if (xmlVersionIndex < 30)
             {
                 foreach (Font font in game.Fonts)
                 {

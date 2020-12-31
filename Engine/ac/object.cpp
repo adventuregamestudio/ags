@@ -86,7 +86,7 @@ void Object_RemoveTint(ScriptObject *objj) {
 }
 
 void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
-    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v351)
+    if (game.options[OPT_BASESCRIPTAPI] <= kScriptAPI_v3507)
     { // Previous version of SetView had negative loop and frame mean "use latest values"
         auto &obj = objs[objj->id];
         if (loop < 0) loop = obj.loop;

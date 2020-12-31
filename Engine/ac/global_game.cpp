@@ -921,12 +921,12 @@ int WaitImpl(int skip_type, int nloops)
 
     GameLoopUntilValueIsZero(&play.wait_counter);
 
-    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v351)
+    if (game.options[OPT_BASESCRIPTAPI] <= kScriptAPI_v3507)
     {
-        // < 3.5.1 return 1 is skipped by user input, otherwise 0
+        // <= 3.5.0 return 1 is skipped by user input, otherwise 0
         return (play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK) != 0) ? 1 : 0;
     }
-    // >= 3.5.1 return positive keycode, negative mouse button code, or 0 as time-out
+    // > 3.5.0 return positive keycode, negative mouse button code, or 0 as time-out
     switch (play.wait_skipped_by)
     {
     case SKIP_KEYPRESS: return play.wait_skipped_by_data;

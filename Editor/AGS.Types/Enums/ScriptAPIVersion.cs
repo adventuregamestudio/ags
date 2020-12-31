@@ -26,10 +26,8 @@ namespace AGS.Types
         v350 = 6,
         [Description("3.5.0 Final")]
         v3507 = 7,
-        [Description("3.5.1")]
-        v351 = 8,
         [Description("3.99.x")]
-        v399 = 99,
+        v399 = 10,
         // Highest constant is used for automatic upgrade to new API when
         // the game is loaded in the newer version of the Editor
         [Description("Latest version")]

@@ -339,7 +339,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     mouse_on_iface = in->ReadInt32();
 
     // Viewports and cameras
-    if (svg_ver < kGSSvgVersion_3510)
+    if (svg_ver < kGSSvgVersion_350_10)
     {
         ReadLegacyCameraState(in.get(), r_data);
         r_data.Cameras[0].Flags = r_data.Camera0_Flags;
@@ -1138,7 +1138,7 @@ ComponentHandler ComponentHandlers[] =
 {
     {
         "Game State",
-        kGSSvgVersion_3510,
+        kGSSvgVersion_350_10,
         kGSSvgVersion_Initial,
         WriteGameState,
         ReadGameState

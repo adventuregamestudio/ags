@@ -546,7 +546,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     digital_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
-    if (svg_ver < kGSSvgVersion_3510)
+    if (svg_ver < kGSSvgVersion_350_10)
     {
         short offsets_locked = in->ReadInt16();
         if (offsets_locked != 0)
@@ -646,11 +646,11 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    if (svg_ver < kGSSvgVersion_3509)
+    if (svg_ver < kGSSvgVersion_350_9)
         in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
     if (old_save)
         in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
-    if (svg_ver >= kGSSvgVersion_3509)
+    if (svg_ver >= kGSSvgVersion_350_9)
     {
         int voice_speech_flags = in->ReadInt32();
         speech_has_voice = voice_speech_flags != 0;

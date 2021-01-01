@@ -339,8 +339,6 @@ struct GameState {
     // Serialization
     //
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
-    void ReadCustomProperties_v340(Common::Stream *in);
-    void WriteCustomProperties_v340(Common::Stream *out) const;
     void ReadFromSavegame(Common::Stream *in,  GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();

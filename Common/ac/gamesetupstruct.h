@@ -150,10 +150,6 @@ struct GameSetupStruct: public GameSetupStructBase {
     void ReadAudioClips_Aligned(Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
-    // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
-                                   WordsDictionary *olddict, char** mesbk);
-
     void ReadFromSavegame(Common::PStream in);
     void WriteForSavegame(Common::PStream out);
 };

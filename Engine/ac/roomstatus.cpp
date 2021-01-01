@@ -65,54 +65,6 @@ void RoomStatus::FreeProperties()
     }
 }
 
-void RoomStatus::ReadFromFile_v321(Stream *in)
-{
-    beenhere = in->ReadInt32();
-    numobj = in->ReadInt32();
-    ReadRoomObjects_Aligned(in);
-    in->ReadArrayOfInt16(flagstates, MAX_FLAGS);
-    tsdatasize = in->ReadInt32();
-    in->ReadInt32(); // tsdata
-    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-    {
-        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
-    }
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
-    }
-    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-    {
-        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
-    }
-    LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
-    in->ReadArrayOfInt8((int8_t*)hotspot_enabled, MAX_ROOM_HOTSPOTS);
-    in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_ROOM_REGIONS);
-    in->ReadArrayOfInt16(walkbehind_base, MAX_WALK_BEHINDS);
-    in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
-
-    Properties::ReadValues(roomProps, in);
-    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-    {
-        Properties::ReadValues(hsProps[i], in);
-    }
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        Properties::ReadValues(objProps[i], in);
-    }
-
-}
-
-void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
-{
-    AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        obj[i].ReadFromFile(&align_s);
-        align_s.Reset();
-    }
-}
-
 void RoomStatus::ReadFromSavegame(Stream *in)
 {
     FreeScriptData();

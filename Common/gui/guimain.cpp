@@ -708,7 +708,7 @@ HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
     return HError::None();
 }
 
-HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
+HError ReadGUI(std::vector<GUIMain> &guis, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -740,7 +740,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
             gui.Height = 2;
 
         // GUI popup style and visibility
-        if (GameGuiVersion < kGuiVersion_350 && !is_savegame)
+        if (GameGuiVersion < kGuiVersion_350)
         {
             // Convert legacy normal-off style into normal one
             if (gui.PopupStyle == kGUIPopupLegacyNormalOff)

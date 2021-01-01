@@ -53,7 +53,7 @@ enum SavegameVersion
     kSvgVersion_350_final = 11,
     kSvgVersion_350_final2= 12,
     kSvgVersion_Current   = kSvgVersion_350_final2,
-    kSvgVersion_LowestSupported = kSvgVersion_321 // change if support dropped
+    kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
 };
 
 // Error codes for save restoration routine

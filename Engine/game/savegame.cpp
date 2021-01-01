@@ -57,9 +57,6 @@
 using namespace Common;
 using namespace Engine;
 
-// function is currently implemented in game.cpp
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
-
 extern GameSetupStruct game;
 extern Bitmap **guibg;
 extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
@@ -75,7 +72,6 @@ namespace AGS
 namespace Engine
 {
 
-const String SavegameSource::LegacySignature = "Adventure Game Studio saved game";
 const String SavegameSource::Signature       = "Adventure Game Studio saved game v2";
 
 SavegameSource::SavegameSource()
@@ -220,53 +216,6 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     return HSaveError::None();
 }
 
-HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
-{
-    // Legacy savegame header
-    if (elems & kSvgDesc_UserText)
-        desc.UserText.Read(in);
-    else
-        StrUtil::SkipCStr(in);
-    svg_ver = (SavegameVersion)in->ReadInt32();
-
-    // Check saved game format version
-    if (svg_ver < kSvgVersion_LowestSupported ||
-        svg_ver > kSvgVersion_Current)
-    {
-        return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
-    }
-
-    if (elems & kSvgDesc_UserImage)
-        desc.UserImage.reset(RestoreSaveImage(in));
-    else
-        SkipSaveImage(in);
-
-    String version_str = String::FromStream(in);
-    Version eng_version(version_str);
-    if (eng_version > EngineVersion ||
-        eng_version < SavedgameLowestBackwardCompatVersion)
-    {
-        // Engine version is either non-forward or non-backward compatible
-        return new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Required: %s, supported: %s - %s.", eng_version.LongString.GetCStr(), SavedgameLowestBackwardCompatVersion.LongString.GetCStr(), EngineVersion.LongString.GetCStr()));
-    }
-    if (elems & kSvgDesc_EnvInfo)
-    {
-        desc.MainDataFilename.Read(in);
-        in->ReadInt32(); // unscaled game height with borders, now obsolete
-        desc.ColorDepth = in->ReadInt32();
-    }
-    else
-    {
-        StrUtil::SkipCStr(in);
-        in->ReadInt32(); // unscaled game height with borders, now obsolete
-        in->ReadInt32(); // color depth
-    }
-
-    return HSaveError::None();
-}
-
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
     UStream in(File::OpenFileRead(filename));
@@ -278,28 +227,15 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
     rich_media_header.ReadFromFile(in.get());
 
     // Check saved game signature
-    bool is_new_save = false;
     size_t pre_sig_pos = in->GetPosition();
     String svg_sig = String::FromStreamCount(in.get(), SavegameSource::Signature.GetLength());
-    if (svg_sig.Compare(SavegameSource::Signature) == 0)
-    {
-        is_new_save = true;
-    }
-    else
-    {
-        in->Seek(pre_sig_pos, kSeekBegin);
-        svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
-        if (svg_sig.Compare(SavegameSource::LegacySignature) != 0)
-            return new SavegameError(kSvgErr_SignatureFailed);
-    }
+    if (svg_sig.Compare(SavegameSource::Signature) != 0)
+        return new SavegameError(kSvgErr_SignatureFailed);
 
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
     HSaveError err;
-    if (is_new_save)
-        err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
-    else
-        err = ReadDescription_v321(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
+    err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
     if (!err)
         return err;
 
@@ -692,11 +628,7 @@ HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    HSaveError err;
-    if (svg_version >= kSvgVersion_Components)
-        err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
-    else
-        err = restore_game_data(in.get(), svg_version, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);

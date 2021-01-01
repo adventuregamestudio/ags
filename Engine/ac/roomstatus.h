@@ -63,8 +63,6 @@ struct RoomStatus {
     void FreeScriptData();
     void FreeProperties();
 
-    void ReadFromFile_v321(Common::Stream *in);
-    void ReadRoomObjects_Aligned(Common::Stream *in);
     void ReadFromSavegame(Common::Stream *in);
     void WriteToSavegame(Common::Stream *out) const;
 };

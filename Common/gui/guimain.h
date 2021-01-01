@@ -195,7 +195,7 @@ namespace GUI
 
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
-    HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
+    HError ReadGUI(std::vector<GUIMain> &guis, Stream *in);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);

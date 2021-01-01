@@ -876,35 +876,6 @@ void GameState::FreeViewportsAndCameras()
     _scCameraRefs.clear();
 }
 
-void GameState::ReadCustomProperties_v340(Common::Stream *in)
-{
-    if (loaded_game_file_version >= kGameVersion_340_4)
-    {
-        // After runtime property values were read we also copy missing default,
-        // because we do not keep defaults in the saved game, and also in case
-        // this save is made by an older game version which had different
-        // properties.
-        for (int i = 0; i < game.numcharacters; ++i)
-            Properties::ReadValues(charProps[i], in);
-        for (int i = 0; i < game.numinvitems; ++i)
-            Properties::ReadValues(invProps[i], in);
-    }
-}
-
-void GameState::WriteCustomProperties_v340(Common::Stream *out) const
-{
-    if (loaded_game_file_version >= kGameVersion_340_4)
-    {
-        // We temporarily remove properties that kept default values
-        // just for the saving data time to avoid getting lots of 
-        // redundant data into saved games
-        for (int i = 0; i < game.numcharacters; ++i)
-            Properties::WriteValues(charProps[i], out);
-        for (int i = 0; i < game.numinvitems; ++i)
-            Properties::WriteValues(invProps[i], out);
-    }
-}
-
 // Converts legacy alignment type used in script API
 HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align)
 {

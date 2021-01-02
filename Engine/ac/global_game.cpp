@@ -894,24 +894,6 @@ void _sc_AbortGame(const char* text) {
     quit(displbuf);
 }
 
-int GetGraphicalVariable (const char *varName) {
-    InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == nullptr) {
-        quitprintf("!GetGraphicalVariable: interaction variable '%s' not found", varName);
-        return 0;
-    }
-    return theVar->Value;
-}
-
-void SetGraphicalVariable (const char *varName, int p_value) {
-    InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == nullptr) {
-        quitprintf("!SetGraphicalVariable: interaction variable '%s' not found", varName);
-    }
-    else
-        theVar->Value = p_value;
-}
-
 int WaitImpl(int skip_type, int nloops)
 {
     play.wait_counter = nloops;

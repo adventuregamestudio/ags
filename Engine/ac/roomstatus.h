@@ -37,25 +37,13 @@ struct RoomStatus {
     short flagstates[MAX_FLAGS];
     int   tsdatasize;
     char* tsdata;
-    // CLNUP old interactions
-    //Interaction intrHotspot[MAX_ROOM_HOTSPOTS];
-    //Interaction intrObject [MAX_ROOM_OBJECTS];
-    //Interaction intrRegion [MAX_ROOM_REGIONS];
-    //Interaction intrRoom;
 
     Common::StringIMap roomProps;
     Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
     Common::StringIMap objProps[MAX_ROOM_OBJECTS];
-    // [IKM] 2012-06-22: not used anywhere
-#ifdef UNUSED_CODE
-    EventBlock hscond[MAX_ROOM_HOTSPOTS];
-    EventBlock objcond[MAX_ROOM_OBJECTS];
-    EventBlock misccond;
-#endif
     char  hotspot_enabled[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
-    int   interactionVariableValues[MAX_GLOBAL_VARIABLES];
 
     RoomStatus();
     ~RoomStatus();

@@ -175,16 +175,13 @@ HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
-    numGlobalVars = 0;
-
-        charScripts.resize(numcharacters);
-        invScripts.resize(numinvitems);
-        for (size_t i = 0; i < (size_t)numcharacters; ++i)
-            charScripts[i].reset(InteractionScripts::CreateFromStream(in));
-        // NOTE: new inventory items' events are loaded starting from 1 for some reason
-        for (size_t i = 1; i < (size_t)numinvitems; ++i)
-            invScripts[i].reset(InteractionScripts::CreateFromStream(in));
-
+    charScripts.resize(numcharacters);
+    invScripts.resize(numinvitems);
+    for (size_t i = 0; i < (size_t)numcharacters; ++i)
+        charScripts[i].reset(InteractionScripts::CreateFromStream(in));
+    // NOTE: new inventory items' events are loaded starting from 1 for some reason
+    for (size_t i = 1; i < (size_t)numinvitems; ++i)
+        invScripts[i].reset(InteractionScripts::CreateFromStream(in));
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)

@@ -35,7 +35,6 @@ RoomStatus::RoomStatus()
     memset(&hotspot_enabled, 0, sizeof(hotspot_enabled));
     memset(&region_enabled, 0, sizeof(region_enabled));
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
-    memset(&interactionVariableValues, 0, sizeof(interactionVariableValues));
 }
 
 RoomStatus::~RoomStatus()

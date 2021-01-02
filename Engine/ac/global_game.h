@@ -77,8 +77,6 @@ void SetNormalFont (int fontnum);
 
 void _sc_AbortGame(const char* text);
 
-int GetGraphicalVariable (const char *varName);
-void SetGraphicalVariable (const char *varName, int p_value);
 void scrWait(int nloops);
 int WaitKey(int nloops);
 int WaitMouse(int nloops);

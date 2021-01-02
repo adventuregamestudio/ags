@@ -149,7 +149,7 @@ struct GameState {
     short mboundx1,mboundx2,mboundy1,mboundy2;
     int   fade_effect;
     int   bg_frame_locked;
-    int   globalscriptvars[MAXGSVALUES];
+    int   globalscriptvars[MAXGSVALUES]; // CLNUP some ancient integer list
     int   cur_music_number,music_repeat;
     int   music_master_volume;
     int   digital_master_volume;

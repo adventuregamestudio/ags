@@ -576,21 +576,6 @@ void quit_with_script_error(const char *functionName)
         quitprintf("Error running function '%s':\n%s\n\n%s", functionName, ccErrorString.GetCStr(), get_cur_script(5).GetCStr());
 }
 
-InteractionVariable *FindGraphicalVariable(const char *varName) {
-    int ii;
-    for (ii = 0; ii < numGlobalVars; ii++) {
-        if (ags_stricmp (globalvars[ii].Name, varName) == 0)
-            return &globalvars[ii];
-    }
-    return nullptr;
-}
-
-#define IPARAM1 get_nivalue(nicl, i, 0)
-#define IPARAM2 get_nivalue(nicl, i, 1)
-#define IPARAM3 get_nivalue(nicl, i, 2)
-#define IPARAM4 get_nivalue(nicl, i, 3)
-#define IPARAM5 get_nivalue(nicl, i, 4)
-
 struct TempEip {
     int oldval;
     TempEip (int newval) {

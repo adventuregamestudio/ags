@@ -560,13 +560,13 @@ RuntimeScriptValue Sc_GetGlobalString(const RuntimeScriptValue *params, int32_t 
 {
     API_SCALL_VOID_PINT_POBJ(GetGlobalString, char);
 }
-*/
 
-// int  (const char *varName)
+// [DEPRECATED] int  (const char *varName)
 RuntimeScriptValue Sc_GetGraphicalVariable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(GetGraphicalVariable, const char);
 }
+*/
 
 // int  (int xx,int yy)
 RuntimeScriptValue Sc_GetGUIAt(const RuntimeScriptValue *params, int32_t param_count)
@@ -1711,11 +1711,13 @@ RuntimeScriptValue Sc_SetGlobalInt(const RuntimeScriptValue *params, int32_t par
 
 //extern RuntimeScriptValue Sc_SetGlobalString(const RuntimeScriptValue *params, int32_t param_count);// [DEPRECATED]
 
-// void  (const char *varName, int p_value)
+// [DEPRECATED] void  (const char *varName, int p_value)
+/*
 RuntimeScriptValue Sc_SetGraphicalVariable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_POBJ_PINT(SetGraphicalVariable, const char);
 }
+*/
 
 // void  (int guin, int slotn)
 RuntimeScriptValue Sc_SetGUIBackgroundPic(const RuntimeScriptValue *params, int32_t param_count)
@@ -2402,7 +2404,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetGameSpeed",             Sc_GetGameSpeed);
 	ccAddExternalStaticFunction("GetGlobalInt",             Sc_GetGlobalInt);
 	//ccAddExternalStaticFunction("GetGlobalString",          Sc_GetGlobalString);// [DEPRECATED]
-	ccAddExternalStaticFunction("GetGraphicalVariable",     Sc_GetGraphicalVariable);
+	//ccAddExternalStaticFunction("GetGraphicalVariable",     Sc_GetGraphicalVariable);// [DEPRECATED]
 	ccAddExternalStaticFunction("GetGUIAt",                 Sc_GetGUIAt);
 	ccAddExternalStaticFunction("GetGUIObjectAt",           Sc_GetGUIObjectAt);
 	ccAddExternalStaticFunction("GetHotspotAt",             Sc_GetHotspotIDAtScreen);
@@ -2602,7 +2604,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetGameSpeed",             Sc_SetGameSpeed);
 	ccAddExternalStaticFunction("SetGlobalInt",             Sc_SetGlobalInt);
 	//ccAddExternalStaticFunction("SetGlobalString",          Sc_SetGlobalString);// [DEPRECATED]
-	ccAddExternalStaticFunction("SetGraphicalVariable",     Sc_SetGraphicalVariable);
+	//ccAddExternalStaticFunction("SetGraphicalVariable",     Sc_SetGraphicalVariable);// [DEPRECATED]
 	ccAddExternalStaticFunction("SetGUIBackgroundPic",      Sc_SetGUIBackgroundPic);
 	ccAddExternalStaticFunction("SetGUIClickable",          Sc_SetGUIClickable);
 	ccAddExternalStaticFunction("SetGUIObjectEnabled",      Sc_SetGUIObjectEnabled);
@@ -2776,7 +2778,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetGameSpeed",             (void*)GetGameSpeed);
     ccAddExternalFunctionForPlugin("GetGlobalInt",             (void*)GetGlobalInt);
     //ccAddExternalFunctionForPlugin("GetGlobalString",          (void*)GetGlobalString);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("GetGraphicalVariable",     (void*)GetGraphicalVariable);
+    //ccAddExternalFunctionForPlugin("GetGraphicalVariable",     (void*)GetGraphicalVariable);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("GetGUIAt",                 (void*)GetGUIAt);
     ccAddExternalFunctionForPlugin("GetGUIObjectAt",           (void*)GetGUIObjectAt);
     ccAddExternalFunctionForPlugin("GetHotspotAt",             (void*)GetHotspotIDAtScreen);
@@ -2972,7 +2974,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetGameSpeed",             (void*)SetGameSpeed);
     ccAddExternalFunctionForPlugin("SetGlobalInt",             (void*)SetGlobalInt);
     //ccAddExternalFunctionForPlugin("SetGlobalString",          (void*)SetGlobalString);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("SetGraphicalVariable",     (void*)SetGraphicalVariable);
+    //ccAddExternalFunctionForPlugin("SetGraphicalVariable",     (void*)SetGraphicalVariable);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("SetGUIBackgroundPic",      (void*)SetGUIBackgroundPic);
     ccAddExternalFunctionForPlugin("SetGUIClickable",          (void*)SetGUIClickable);
     ccAddExternalFunctionForPlugin("SetGUIObjectEnabled",      (void*)SetGUIObjectEnabled);

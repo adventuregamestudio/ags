@@ -33,9 +33,7 @@ namespace AGS
     namespace Common
     {
         struct AssetLibInfo;
-        struct Interaction;
         struct InteractionScripts;
-        typedef std::shared_ptr<Interaction> PInteraction;
         typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
     }
 }

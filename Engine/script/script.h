@@ -28,10 +28,7 @@
 #include "game/interactions.h"
 #include "util/string.h"
 
-//using AGS::Common::Interaction;
-//using AGS::Common::InteractionCommandList;
 using AGS::Common::InteractionScripts;
-using AGS::Common::InteractionVariable;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
@@ -70,11 +67,6 @@ char*   make_ts_func_name(const char*base,int iii,int subd);
 // optimisation and other reasons.
 void    post_script_cleanup();
 void    quit_with_script_error(const char *functionName);
-// CLNUP old interactions
-//int     get_nivalue (InteractionCommandList *nic, int idx, int parm);
-//int     run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
-InteractionVariable *get_interaction_variable (int varindx);
-InteractionVariable *FindGraphicalVariable(const char *varName);
 void    run_unhandled_event (int evnt);
 void    can_run_delayed_command();
 

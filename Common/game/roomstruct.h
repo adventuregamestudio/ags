@@ -41,6 +41,7 @@
 #include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "util/geometry.h"
+#include "util/string_types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 struct ccScript;

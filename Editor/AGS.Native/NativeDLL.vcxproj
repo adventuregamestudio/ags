@@ -185,8 +185,6 @@
   <ItemGroup>
     <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
-    <ClCompile Include="..\Native\ac\actiontype.cpp" />
-    <ClCompile Include="..\Native\ac\scriptmodule.cpp" />
     <ClCompile Include="..\Native\color_native.cpp" />
     <ClCompile Include="..\Native\script_agsnative.cpp" />
     <ClCompile Include="..\Native\sprcache_agsnative.cpp" />
@@ -223,8 +221,6 @@
     <ClCompile Include="ScriptCompiler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Native\ac\actiontype.h" />
-    <ClInclude Include="..\Native\ac\scriptmodule.h" />
     <ClInclude Include="agsnative.h" />
     <ClInclude Include="NativeMethods.h" />
     <ClInclude Include="NativeUtils.h" />

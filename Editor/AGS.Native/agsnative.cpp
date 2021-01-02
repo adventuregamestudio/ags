@@ -10,8 +10,6 @@ extern int Scintilla_LinkLexers();
 #include <winalleg.h>
 #include "util/misc.h"
 #include "ac/spritecache.h"
-#include "ac/actiontype.h"
-#include "ac/scriptmodule.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
@@ -93,8 +91,6 @@ RoomStruct thisroom;
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
 
 // stuff for importing old games
-int numScriptModules = 0;
-ScriptModule* scModules = NULL;
 DialogTopic *dialog = NULL;
 std::vector<GUIMain> guis;
 ViewStruct *newViews = NULL;
@@ -1323,13 +1319,6 @@ int numThisgamePlugins = 0;
 HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     numNewViews = thisgame.numviews;
-    numScriptModules = (int)ents.ScriptModules.size();
-    scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
-    for (int i = 0; i < numScriptModules; i++)
-    {
-        scModules[i].init();
-        scModules[i].compiled = ents.ScriptModules[i];
-    }
 
     numThisgamePlugins = (int)ents.PluginInfos.size();
     for (int i = 0; i < numThisgamePlugins; ++i)
@@ -1383,23 +1372,6 @@ HAGSError load_dta_file_into_thisgame(const char *fileName)
     return init_game_after_import(ents, src.DataVersion);
 }
 
-void free_script_module(int index) {
-  free(scModules[index].name);
-  free(scModules[index].author);
-  free(scModules[index].version);
-  free(scModules[index].description);
-  free(scModules[index].script);
-  free(scModules[index].scriptHeader);
-  scModules[index].compiled.reset();
-}
-
-void free_script_modules() {
-  for (int i = 0; i < numScriptModules; i++)
-    free_script_module(i);
-
-  numScriptModules = 0;
-}
-
 void free_old_game_data()
 {
   int bb;
@@ -1419,7 +1391,6 @@ void free_old_game_data()
   free(newViews);
   guis.clear();
   free(dialog);
-  free_script_modules();
 
   // free game struct last because it contains object counts
   thisgame.Free();
@@ -3029,12 +3000,14 @@ Game^ import_compiled_game_dta(const char *fileName)
 		game->Plugins->Add(plugin);
 	}
 
+    /* CLNUP -- remove OldInteractionVariable?
 	for (i = 0; i < numGlobalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
 		intVar = gcnew OldInteractionVariable(gcnew String(globalvars[i].Name), globalvars[i].Value);
 		game->OldInteractionVariables->Add(intVar);
 	}
+    */
 	
     AGS::Types::IViewFolder ^viewFolder = AGS::Types::FolderHelper::CreateDefaultViewFolder();
 	for (i = 0; i < thisgame.numviews; i++) 

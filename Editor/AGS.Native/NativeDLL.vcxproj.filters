@@ -5,15 +5,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\ac">
-      <UniqueIdentifier>{b4582a3b-8571-44d2-a222-3a586933bb60}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Header Files\ac">
-      <UniqueIdentifier>{7fc36fbe-03d6-4b57-b3e1-830acd633efb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -60,12 +54,6 @@
     </ClCompile>
     <ClCompile Include="..\Native\sprcache_agsnative.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Native\ac\actiontype.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Native\ac\scriptmodule.cpp">
-      <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\scintilla\src\AutoComplete.cxx">
       <Filter>Scintilla</Filter>
@@ -152,12 +140,6 @@
     </ClInclude>
     <ClInclude Include="Scripting.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Native\ac\actiontype.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Native\ac\scriptmodule.h">
-      <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="NativeUtils.h">
       <Filter>Header Files</Filter>

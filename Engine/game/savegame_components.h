@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 #define __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 
@@ -27,6 +26,7 @@ namespace Engine
 {
 
 using Common::Stream;
+using Common::Interaction;
 typedef std::shared_ptr<Stream> PStream;
 
 struct PreservedParams;

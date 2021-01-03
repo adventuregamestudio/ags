@@ -1048,7 +1048,7 @@ ComponentHandler ComponentHandlers[] =
 {
     {
         "Game State",
-        kGSSvgVersion_3510,
+        kGSSvgVersion_350_10,
         kGSSvgVersion_Initial,
         WriteGameState,
         ReadGameState

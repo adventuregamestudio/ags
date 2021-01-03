@@ -51,8 +51,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
     kGSSvgVersion_Initial   = 0,
     kGSSvgVersion_350       = 1,
-    kGSSvgVersion_3509      = 2,
-    kGSSvgVersion_3510      = 3,
+    kGSSvgVersion_350_9     = 2,
+    kGSSvgVersion_350_10    = 3,
 };
 
 

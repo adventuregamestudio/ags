@@ -11,16 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/game.h"
-
 #include "ac/common.h"
 #include "ac/view.h"
-#include "ac/audiocliptype.h"
 #include "ac/audiochannel.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"
-#include "ac/characterextras.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
@@ -29,7 +25,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -37,29 +32,20 @@
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/keycode.h"
 #include "ac/lipsync.h"
 #include "ac/mouse.h"
-#include "ac/movelist.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
-#include "ac/region.h"
 #include "ac/richgamemedia.h"
-#include "ac/room.h"
-#include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/runtime_defines.h"
-#include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
-#include "ac/system.h"
-#include "ac/timer.h"
 #include "ac/translation.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "ac/dynobj/cc_audiochannel.h"
-#include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/statobj/staticgame.h"
 #include "debug/debug_log.h"
@@ -67,69 +53,40 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/savegame.h"
-#include "game/savegame_components.h"
-#include "game/savegame_internal.h"
-#include "gui/animatingguibutton.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
-#include "main/graphics_mode.h"
-#include "main/main.h"
 #include "media/audio/audio_system.h"
-#include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
-#include "script/cc_error.h"
-#include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "util/alignedstream.h"
 #include "util/directory.h"
-#include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "util/file.h"
 #include "util/path.h"
-#include "util/string_utils.h"
-#include "ac/keycode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
-extern CharacterExtras *charextra;
 extern DialogTopic *dialog;
-
-extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
-extern int mouse_on_iface;   // mouse cursor is over this interface
-extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
-
-extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
-extern int numAnimButs;
-
-extern int is_complete_overlay,is_text_overlay;
-
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-extern int psp_gfx_renderer;
-#endif
 
 extern int obj_lowest_yp, char_lowest_yp;
 
+// These are referenced only for deletion in unload_game_file()
 extern int actSpsCount;
 extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
-// temporary cache of walk-behind for this actsps image
 extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
+
 extern color palette[256];
-extern unsigned int loopcounter;
-extern Bitmap *raw_saved_screen;
-extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================

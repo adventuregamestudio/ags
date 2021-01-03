@@ -11,13 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 #define __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 
 #include <memory>
 #include <vector>
 #include "ac/common_defines.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 

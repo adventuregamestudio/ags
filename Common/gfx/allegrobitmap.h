@@ -79,6 +79,11 @@ public:
     {
         return is_linear_bitmap(_alBitmap) != 0;
     }
+    // Is this a subbitmap, referencing a part of another, bigger one?
+    inline bool IsSubBitmap() const
+    {
+        return is_sub_bitmap(_alBitmap) != 0;
+    }
 
     // Checks if bitmap cannot be used
     inline bool IsNull() const
@@ -101,6 +106,11 @@ public:
     inline Size GetSize() const
     {
         return Size(_alBitmap->w, _alBitmap->h);
+    }
+    // Get sub-bitmap's offset position within its parent
+    inline Point GetSubOffset() const
+    {
+        return Point(_alBitmap->x_ofs, _alBitmap->y_ofs);
     }
     inline int  GetColorDepth() const
     {

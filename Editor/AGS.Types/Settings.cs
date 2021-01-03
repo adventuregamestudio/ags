@@ -10,8 +10,6 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [DeserializeIgnore("LastBuildConfiguration")]
-    [DeserializeIgnore("GraphicsDriver")]
     [DeserializeIgnore("LeftToRightPrecedence")]
     [DeserializeIgnore("UseLowResCoordinatesInScript")]
     [DeserializeIgnore("GUIAlphaStyle")]
@@ -1133,6 +1131,14 @@ namespace AGS.Types
             get { return _renderAtScreenRes; }
             set { _renderAtScreenRes = value; }
         }
+
+        [Obsolete]
+        [Browsable(false)]
+        public BuildConfiguration LastBuildConfiguration { get; }
+        [Obsolete]
+        [Browsable(false)]
+        public GraphicsDriver GraphicsDriver { get; }
+
 
         #region ICustomTypeDescriptor Members
 

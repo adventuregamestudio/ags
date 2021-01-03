@@ -1,5 +1,15 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 6, December 2020
+
+Engine:
+ - Fixed Viewport::GetAtScreenXY() causing script errors at runtime.
+ - Fixed Software renderer could freeze the game in case there are multiple room viewports.
+ - Fixed Software renderer could draw room viewport in a wrong position if it was moved.
+ - Fixed RunAGSGame crashed the game if it uses any font plugin (implementing IAGSFontRenderer).
+ - Fixed built-in palgorithms plugin had uninitialized variable that could cause a crash.
+
+
 VERSION 3.5.0 - Patch 5, October 2020
 
 Editor:

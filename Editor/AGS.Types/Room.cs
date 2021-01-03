@@ -390,7 +390,7 @@ namespace AGS.Types
                 case RoomAreaMaskType.Regions:
                     return 1.0 / MaskResolution;
                 default:
-                    return 0.0;
+                    throw new ArgumentException($"Illegal mask type, mask {mask} cannot be scaled.");
             }
         }
 

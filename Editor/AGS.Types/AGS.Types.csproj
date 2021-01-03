@@ -251,7 +251,6 @@
   <ItemGroup>
     <Compile Include="AGSColor.cs" />
     <Compile Include="Attributes\DeserializeConvertValueAttribute.cs" />
-    <Compile Include="Attributes\DeserializeIgnoreAttribute.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="BuildTargetsInfo.cs" />

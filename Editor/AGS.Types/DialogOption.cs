@@ -7,7 +7,6 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Text")]
-    [DeserializeIgnore("EntryPointOffset")]
     public class DialogOption
     {
         private int _id;
@@ -51,6 +50,10 @@ namespace AGS.Types
             get { return _say; }
             set { _say = value; }
         }
+
+        [Obsolete]
+        [Browsable(false)]
+        public short EntryPointOffset { get; }
 
         public DialogOption(XmlNode node)
         {

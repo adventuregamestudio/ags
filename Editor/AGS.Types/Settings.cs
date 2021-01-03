@@ -10,10 +10,6 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [DeserializeIgnore("LeftToRightPrecedence")]
-    [DeserializeIgnore("UseLowResCoordinatesInScript")]
-    [DeserializeIgnore("GUIAlphaStyle")]
-    [DeserializeIgnore("SpriteAlphaStyle")]
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
@@ -1138,7 +1134,18 @@ namespace AGS.Types
         [Obsolete]
         [Browsable(false)]
         public GraphicsDriver GraphicsDriver { get; }
-
+        [Obsolete]
+        [Browsable(false)]
+        public bool LeftToRightPrecedence { get; }
+        [Obsolete]
+        [Browsable(false)]
+        public bool UseLowResCoordinatesInScript { get; }
+        [Obsolete]
+        [Browsable(false)]
+        public GUIAlphaStyle GUIAlphaStyle { get; }
+        [Obsolete]
+        [Browsable(false)]
+        public SpriteAlphaStyle SpriteAlphaStyle { get; }
 
         #region ICustomTypeDescriptor Members
 

@@ -57,7 +57,6 @@ namespace AGS.Types
             GraphicsFilter = "stdscale";
             VSync = false;
             AAScaledSprites = false;
-            DowngradeTo16bit = false;
             RenderAtScreenResolution = false;
             DigitalSound = RuntimeAudioDriver.Default;
             MidiSound = RuntimeAudioDriver.Default;
@@ -183,15 +182,9 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("Limit display mode to 16-bit")]
-        [Description("Tell graphics driver to run 16 and 32-bit games in 16-bit mode. 32-bit graphics will be downgraded and loose much of color precision. This option is only for compatibility with very old systems and may not work well on newer ones.")]
-        [DefaultValue(false)]
-        [Category("Graphics")]
-        public bool DowngradeTo16bit
-        {
-            get;
-            set;
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool DowngradeTo16bit { get { return false; } }
 
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
@@ -424,10 +417,6 @@ namespace AGS.Types
                 bool wantThisProperty = true;
                 if (property.Name == "GameScalingMultiplier")
                     wantThisProperty = GameScaling == GameScaling.Integer;
-                // Downgrade is currently only meaningful for running 16&32-bit games with hardware-accelerated driver
-                // and 32-bit with software accelerated driver
-                else if (property.Name == "DowngradeTo16bit")
-                    wantThisProperty = GraphicsDriver == GraphicsDriver.Software || _gameSettings.ColorDepth != GameColorDepth.Palette;
                 // Only display RenderAtScreenRes if game settings have this property set to UserDefined
                 else if (property.Name == "RenderAtScreenResolution")
                     wantThisProperty = _gameSettings.RenderAtScreenResolution == AGS.Types.RenderAtScreenResolution.UserDefined;

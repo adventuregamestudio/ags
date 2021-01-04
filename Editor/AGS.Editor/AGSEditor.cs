@@ -1508,8 +1508,6 @@ namespace AGS.Editor
 		public void WriteConfigFile(string outputDir)
 		{
             string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
-            NativeProxy.WritePrivateProfileString("misc", "defaultres", null, configFilePath);
-            NativeProxy.WritePrivateProfileString("misc", "letterbox", null, configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "game_height", _game.Settings.CustomResolution.Height.ToString(), configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
@@ -1524,7 +1522,6 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("graphics", "filter", _game.DefaultSetup.GraphicsFilter, configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "vsync", _game.DefaultSetup.VSync ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "antialias", _game.DefaultSetup.AAScaledSprites ? "1" : "0", configFilePath);
-            NativeProxy.WritePrivateProfileString("misc", "notruecolor", _game.DefaultSetup.DowngradeTo16bit ? "1" : "0", configFilePath);
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
                 _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
             NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);

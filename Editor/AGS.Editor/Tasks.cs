@@ -216,7 +216,6 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 18)
             {
-                game.Settings.AllowRelativeAssetResolutions = true;
                 game.Settings.DefaultRoomMaskResolution = 1;
             }
 
@@ -250,11 +249,6 @@ namespace AGS.Editor
                     clip.ID = clipId++;
                 }
                 game.RootAudioClipFolder.Sort(true);
-            }
-
-            if (xmlVersionIndex < 22)
-            {
-                game.Settings.ScaleMovementSpeedWithMaskResolution = true;
             }
 
             if (xmlVersionIndex < 23)

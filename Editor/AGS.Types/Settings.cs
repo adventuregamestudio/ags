@@ -18,10 +18,8 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
-        public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
-        public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
         public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
@@ -40,20 +38,16 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
-        private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
         private bool _pixelPerfect = true;
         private bool _autoMoveInWalkMode = true;
-        private bool _letterboxMode = false;
         private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
         private int _splitResources = 0;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
-        private bool _scaleMovementSpeedWithMaskRes = false;
-        private bool _mouseWheelEnabled = true;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private bool _compressSprites = false;
@@ -65,10 +59,7 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
-        private bool _enforceObjectScripting = true;
-        private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
-        private bool _oldCustomDlgOptsAPI = false;
         private int _playSoundOnScore = -1;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
@@ -85,7 +76,6 @@ namespace AGS.Types
         private string _dialogScriptNarrateFunction;
         private int _textWindowGUI = 0;
         private bool _alwaysDisplayTextAsSpeech = false;
-        private bool _fontsAreHiRes = false;
         private bool _antiAliasFonts = false;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
@@ -256,24 +246,12 @@ namespace AGS.Types
         public Size CustomResolution
         {
             get { return _resolution; }
-            set
-            {
-                _resolution = value;
-                if (LegacyLetterboxResolution == GameResolutions.Custom)
-                    LetterboxMode = false;
-            }
+            set { _resolution = value; }
         }
 
-        [DisplayName("Allow relative asset resolutions")]
-        [Description("Allow sprites and room backgrounds to define whether they are low- or high-resolution assets. If this does not match the game type then images will be scaled up or down in game." +
-            "\nThis option will only be useful when importing games made before AGS 3.1.")]
-        [Category("Backwards Compatibility")]
-        [DefaultValue(false)]
-        public bool AllowRelativeAssetResolutions
-        {
-            get { return _allowRelativeAssetResolution; }
-            set { _allowRelativeAssetResolution = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool AllowRelativeAssetResolutions { get { return false; } }
 
         /// <summary>
         /// Tells if the game should be considered high-resolution.
@@ -290,26 +268,6 @@ namespace AGS.Types
             }
         }
 
-        /// <summary>
-        /// Tells which of the legacy resolution types would be represented by
-        /// the current game resolution if designed in letterboxed mode.
-        /// Returns GameResolutions.Custom if current resolution cannot be used
-        /// for letterboxed design.
-        /// For backwards-compatible logic only.
-        /// </summary>
-        [Browsable(false)]
-        public GameResolutions LegacyLetterboxResolution
-        {
-            get
-            {
-                if (CustomResolution.Width == 320 && CustomResolution.Height == 200)
-                    return GameResolutions.R320x200;
-                if (CustomResolution.Width == 640 && CustomResolution.Height == 400)
-                    return GameResolutions.R640x400;
-                return GameResolutions.Custom;
-            }
-        }
-
         [DisplayName("Compress the sprite file")]
         [Description("Compress the sprite file to reduce its size, at the expense of performance")]
         [DefaultValue(false)]
@@ -320,8 +278,8 @@ namespace AGS.Types
             set { _compressSprites = value; }
         }
 
-        [DisplayName("Use extended compiler")]
-        [Description("The extended compiler has more features but may still have some bugs, too")]
+        [DisplayName("Use extended script compiler")]
+        [Description("The extended script compiler has more features but may still have some bugs, too")]
         [DefaultValue(true)]
         [Category("Compiler")]
         public bool ExtendedCompiler
@@ -350,15 +308,9 @@ namespace AGS.Types
             set { _roomTransition = value; }
         }
 
-        [DisplayName("Enable mouse wheel support")]
-        [Description("Enable mouse wheel events to be sent to on_mouse_click")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        public bool MouseWheelEnabled
-        {
-            get { return _mouseWheelEnabled; }
-            set { _mouseWheelEnabled = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool MouseWheelEnabled { get { return true; } }
 
         [DisplayName("Characters turn to face direction")]
         [Description("Characters will turn on the spot to face their new direction when FaceLocation is used")]
@@ -380,16 +332,9 @@ namespace AGS.Types
             set { _turnBeforeWalking = value; }
         }
 
-        [DisplayName("Scale movement speed with room's mask resolution")]
-        [Description("Character walking and object movement speeds will scale inversely in proportion to the current room's Mask Resolution, for example having 1:2 mask resolution will multiply speed by 2. " +
-            "This is a backward compatible setting that should not be enabled without real need.")]
-        [Category("Character movement")]
-        [DefaultValue(false)]
-        public bool ScaleMovementSpeedWithMaskResolution
-        {
-            get { return _scaleMovementSpeedWithMaskRes; }
-            set { _scaleMovementSpeedWithMaskRes = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool ScaleMovementSpeedWithMaskResolution { get { return false; } }
 
         [DisplayName("Split resource files into X MB-sized chunks")]
         [Description("Resources will be split into files sized with the number of megabytes you enter here (0 to disable)")]
@@ -401,19 +346,9 @@ namespace AGS.Types
             set { _splitResources = value; }
         }
 
-        [DisplayName("Old-style letterbox mode")]
-        [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio. Not recommended unless importing an old project.")]
-        [DefaultValue(false)]
-        [Category("(Basic properties)")]
-        public bool LetterboxMode
-        {
-            get { return _letterboxMode; }
-            set
-            {
-                if (value == false || LegacyLetterboxResolution != GameResolutions.Custom)
-                    _letterboxMode = value;
-            }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool LetterboxMode { get { return false; } }
 
         [DisplayName("Automatically move the player in Walk mode")]
         [Description("When the player clicks somewhere in Walk mode, the player character will be sent there rather than processing it as an interaction")]
@@ -614,45 +549,28 @@ namespace AGS.Types
             get { return _scriptCompatLevelReal; }
         }
 
-        [DisplayName("Enforce object-based scripting")]
-        [Description("Disable old-style AGS 2.62 script commands")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        public bool EnforceObjectBasedScript
-        {
-            get { return _enforceObjectScripting; }
-            set { _enforceObjectScripting = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool EnforceObjectBasedScript { get { return true; } }
 
-        [DisplayName("Enforce new-style strings")]
-        [Description("Disable old-style strings from AGS 2.70 and before")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        public bool EnforceNewStrings
-        {
-            get { return _enforceNewStrings; }
-            set { _enforceNewStrings = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool EnforceNewStrings { get { return true; } }
 
         [DisplayName("Enforce new-style audio scripting")]
         [Description("Disable old-style audio commands like PlaySound, IsChannelPlaying, etc")]
         [DefaultValue(true)]
         [Category("Backwards Compatibility")]
+        // CLNUP : leave for now, because some of the old functions dont have direct alternatives
         public bool EnforceNewAudio
         {
             get { return _enforceNewAudio; }
             set { _enforceNewAudio = value; }
         }
 
-        [DisplayName("Use old-style custom dialog options API")]
-        [Description("Use pre-3.4.0 callback functions to handle custom dialog options GUI")]
-        [DefaultValue(false)]
-        [Category("Backwards Compatibility")]
-        public bool UseOldCustomDialogOptionsAPI
-        {
-            get { return _oldCustomDlgOptsAPI; }
-            set { _oldCustomDlgOptsAPI = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool UseOldCustomDialogOptionsAPI { get { return true; } }
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
@@ -833,17 +751,9 @@ namespace AGS.Types
             set { _alwaysDisplayTextAsSpeech = value; }
         }
 
-        [AGSNoSerialize]
+        [Obsolete]
         [Browsable(false)]
-        [DisplayName(PROPERTY_LEGACY_HIRES_FONTS)]
-        [Description("Tells AGS that your fonts are designed for high resolution (higher than 320x240), and therefore not to scale them up in hi-res game")]
-        [DefaultValue(false)]
-        [Category("Text output")]
-        public bool FontsForHiRes
-        {
-            get { return _fontsAreHiRes; }
-            set { _fontsAreHiRes = value; }
-        }
+        public bool FontsForHiRes { get { return false; } }
 
         [DisplayName(PROPERTY_ANTI_ALIAS_FONTS)]
         [Description("True-type fonts will be anti-aliased in-game, but there is a performance penalty")]
@@ -1212,13 +1122,6 @@ namespace AGS.Types
                     ((property.Name == "InventoryHotspotMarkerDotColor") ||
                      (property.Name == "InventoryHotspotMarkerCrosshairColor")))
                 {
-                    wantThisProperty = false;
-                }
-                // TODO: this must be done other way; leaving for backwards-compatibility only
-                else if (property.Name == "LetterboxMode" &&
-                    LegacyLetterboxResolution == GameResolutions.Custom)
-                {
-                    // Only show letterbox option for 320x200 and 640x400 games
                     wantThisProperty = false;
                 }
                 else if ((property.Name == "GlobalSpeechAnimationDelay") && (!UseGlobalSpeechAnimationDelay))

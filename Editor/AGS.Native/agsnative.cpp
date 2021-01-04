@@ -2110,12 +2110,8 @@ void SaveGame(bool compressSprites)
 
 void SetGameResolution(Game ^game)
 {
-    // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
-    thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
-    if (game->Settings->LetterboxMode)
-        thisgame.SetGameResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
-    else
-        thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+    thisgame.options[OPT_LETTERBOX] = 0; // always disabled now
+    thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
 void GameDirChanged(String ^workingDir)
@@ -2924,17 +2920,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->DialogOptionsGUI = thisgame.options[OPT_DIALOGIFACE];
 	game->Settings->DialogOptionsBullet = thisgame.dialog_bullet;
 	game->Settings->DisplayMultipleInventory = (thisgame.options[OPT_DUPLICATEINV] != 0);
-	game->Settings->EnforceNewStrings = (thisgame.options[OPT_STRICTSTRINGS] != 0);
-  game->Settings->EnforceNewAudio = false;
-	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
-	game->Settings->FontsForHiRes = (thisgame.options[OPT_HIRES_FONTS] != 0);
+    game->Settings->EnforceNewAudio = false;
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
-	game->Settings->LetterboxMode = (thisgame.options[OPT_LETTERBOX] != 0);
 	game->Settings->MaximumScore = thisgame.totalscore;
-	game->Settings->MouseWheelEnabled = (thisgame.options[OPT_MOUSEWHEEL] != 0);
     game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0) ? DialogOptionsNumbering::Normal : DialogOptionsNumbering::KeyShortcutsOnly;
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
@@ -2954,8 +2945,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->UniqueID = thisgame.uniqueid;
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
-    game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
-    game->Settings->ScaleMovementSpeedWithMaskResolution = (thisgame.options[OPT_WALKSPEEDABSOLUTE] == 0);
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;

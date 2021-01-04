@@ -513,7 +513,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
                 game.Settings.GlobalSpeechAnimationDelay : (-game.Settings.GlobalSpeechAnimationDelay - 1));
             options[NativeConstants.GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_MOUSEWHEEL] = (game.Settings.MouseWheelEnabled ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_MOUSEWHEEL] = 1; // always enable
             options[NativeConstants.GameOptions.OPT_DIALOGNUMBERED] = (int)game.Settings.NumberDialogOptions;
             options[NativeConstants.GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
@@ -534,7 +534,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersionReal;
             options[NativeConstants.GameOptions.OPT_SCRIPTCOMPATLEV] = (int)game.Settings.ScriptCompatLevelReal;
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
-            options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = (game.Settings.AllowRelativeAssetResolutions ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = 0; // always disable
             options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = (game.Settings.ScaleMovementSpeedWithMaskResolution ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
@@ -574,16 +574,9 @@ namespace AGS.Editor
             writer.Write(game.Settings.UniqueID);
             writer.Write(game.GUIs.Count);
             writer.Write(game.Cursors.Count);
-            if (game.Settings.LetterboxMode)
-            {
-                writer.Write((int)game.Settings.LegacyLetterboxResolution);
-            }
-            else
-            {
-                writer.Write(NativeConstants.GAME_RESOLUTION_CUSTOM);
-                writer.Write(game.Settings.CustomResolution.Width);
-                writer.Write(game.Settings.CustomResolution.Height);
-            }
+            writer.Write(NativeConstants.GAME_RESOLUTION_CUSTOM);
+            writer.Write(game.Settings.CustomResolution.Width);
+            writer.Write(game.Settings.CustomResolution.Height);
             writer.Write(game.LipSync.DefaultFrame);
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);

@@ -443,7 +443,7 @@ namespace AGS.Editor
 			{
 				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
 				{
-                    _roomController.CopyWalkableAreaMaskToRegions();
+                    CopyWalkableAreaMaskToRegions();
 					_panel.Invalidate();
 				}
 			}
@@ -666,6 +666,20 @@ namespace AGS.Editor
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
                 DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+
+        private void CopyWalkableAreaMaskToRegions()
+        {
+            if (_room == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            using (Bitmap bmp = _roomController.GetMask(RoomAreaMaskType.WalkableAreas))
+            {
+                _roomController.SetMask(RoomAreaMaskType.Regions, bmp);
+            }
+            _room.Modified = true;
         }
 
         private void DrawLineOntoMask()

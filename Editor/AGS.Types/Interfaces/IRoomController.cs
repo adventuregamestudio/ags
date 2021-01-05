@@ -78,10 +78,6 @@ namespace AGS.Types
         /// </summary>
         void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
         /// <summary>
-        /// Copies the walkable area into regions mask.
-        /// </summary>
-        void CopyWalkableAreaMaskToRegions();
-        /// <summary>
         /// Scales all the room's masks according to the <see cref="Room.MaskResolution"/>,
         /// execept for the <see cref="RoomAreaMaskType.WalkBehinds"/> which retains the
         /// resolution of the background image. If the <see cref="Room.MaskResolution"/>

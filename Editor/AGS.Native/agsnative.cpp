@@ -669,11 +669,6 @@ float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 }
 
 
-void copy_walkable_to_regions (void *roomptr) {
-    RoomStruct *theRoom = (RoomStruct*)roomptr;
-	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
-}
-
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
     Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);

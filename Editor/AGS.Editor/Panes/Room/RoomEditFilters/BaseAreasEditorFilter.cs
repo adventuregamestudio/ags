@@ -15,7 +15,6 @@ namespace AGS.Editor
         protected const string DRAW_FREEHAND_COMMAND = "DrawFreehand";
 		protected const string DRAW_RECTANGLE_COMMAND = "DrawRectangle";
 		protected const string DRAW_FILL_COMMAND = "DrawFill";
-        protected const string COPY_WALKABLE_AREA_MASK_COMMAND = "CopyWalkableMaskToRegions";
         protected const string IMPORT_MASK_COMMAND = "ImportAreaMask";
         protected const string EXPORT_MASK_COMMAND = "ExportAreaMask";
         protected const string UNDO_COMMAND = "UndoAreaDraw";
@@ -84,7 +83,6 @@ namespace AGS.Editor
             _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo (Ctrl+Z)", "UndoIcon"));
 			_toolbarIcons.Add(new MenuCommand(IMPORT_MASK_COMMAND, "Import mask from file", "ImportMaskIcon"));
             _toolbarIcons.Add(new MenuCommand(EXPORT_MASK_COMMAND, "Export mask to file", "ExportMaskIcon"));
-            _toolbarIcons.Add(new MenuCommand(COPY_WALKABLE_AREA_MASK_COMMAND, "Copy walkable area mask to regions", "CopyWalkableAreaMaskIcon"));
 			_toolbarIcons.Add(new MenuCommand(GREYED_OUT_MASKS_COMMAND, "Show non-selected masks greyed out", "GreyedOutMasksIcon"));
 			_toolbarIcons[(int)_drawMode].Checked = true;
 			_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
@@ -434,15 +432,6 @@ namespace AGS.Editor
                     ExportMaskFromFile(fileName);
                 }
             }
-            else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
-			{
-				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
-				{
-					Factory.NativeProxy.CopyWalkableAreaMaskToRegions(_room);
-					_room.Modified = true;
-					_panel.Invalidate();
-				}
-			}
 			else if (command == GREYED_OUT_MASKS_COMMAND)
 			{
 				_greyedOutMasks = !_greyedOutMasks;

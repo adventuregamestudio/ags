@@ -26,85 +26,34 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
-#if AGS_PLATFORM_OS_ANDROID
+// OpenGL Mathematics Library. We could include only the features we need to decrease compilation time.
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
+#include "glad/glad.h"
+
+#if AGS_OPENGL_ES2
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
 
-// Defined in Allegro
-extern "C" 
-{
-  void android_swap_buffers();
-  void android_create_screen(int width, int height, int color_depth);
-  void android_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);
-}
-
-extern "C" void android_debug_printf(char* format, ...);
-
-extern unsigned int android_screen_physical_width;
-extern unsigned int android_screen_physical_height;
-extern int android_screen_initialized;
-
-#define device_screen_initialized android_screen_initialized
-#define device_mouse_setup android_mouse_setup
-#define device_swap_buffers android_swap_buffers
-
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
-#define glGenFramebuffersEXT glGenFramebuffersOES
-#define glDeleteFramebuffersEXT glDeleteFramebuffersOES
-#define glBindFramebufferEXT glBindFramebufferOES
-#define glCheckFramebufferStatusEXT glCheckFramebufferStatusOES
-#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameterivOES
-#define glGenerateMipmapEXT glGenerateMipmapOES
-#define glFramebufferTexture2DEXT glFramebufferTexture2DOES
-#define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
-// TODO: probably should use EGL and function eglSwapInterval on Android to support setting swap interval
+#define glGenFramebuffersEXT glGenFramebuffers
+#define glDeleteFramebuffersEXT glDeleteFramebuffers
+#define glBindFramebufferEXT glBindFramebuffer
+#define glCheckFramebufferStatusEXT glCheckFramebufferStatus
+#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameteriv
+#define glGenerateMipmapEXT glGenerateMipmap
+#define glFramebufferTexture2DEXT glFramebufferTexture2D
+#define glFramebufferRenderbufferEXT glFramebufferRenderbuffer
+// TODO: probably should use EGL and function eglSwapInterval on mobile to support setting swap interval
 // For now this is a dummy function pointer which is only used to test that function is not supported
 const void (*glSwapIntervalEXT)(int) = NULL;
 
-#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
-#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
+#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER
+#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0
 
-#elif AGS_PLATFORM_OS_IOS
-
-extern "C" 
-{
-  void ios_swap_buffers();
-  void ios_select_buffer();
-  void ios_create_screen();
-  void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);  
-}
-
-#define glOrtho glOrthof
-#define GL_CLAMP GL_CLAMP_TO_EDGE
-
-extern unsigned int ios_screen_physical_width;
-extern unsigned int ios_screen_physical_height;
-extern int ios_screen_initialized;
-
-#define device_screen_initialized ios_screen_initialized
-#define device_mouse_setup ios_mouse_setup
-#define device_swap_buffers ios_swap_buffers
-
-const char* fbo_extension_string = "GL_OES_framebuffer_object";
-
-#define glGenFramebuffersEXT glGenFramebuffersOES
-#define glDeleteFramebuffersEXT glDeleteFramebuffersOES
-#define glBindFramebufferEXT glBindFramebufferOES
-#define glCheckFramebufferStatusEXT glCheckFramebufferStatusOES
-#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameterivOES
-#define glGenerateMipmapEXT glGenerateMipmapOES
-#define glFramebufferTexture2DEXT glFramebufferTexture2DOES
-#define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
-// TODO: find out how to support swap interval setting on iOS
-// For now this is a dummy function pointer which is only used to test that function is not supported
-const void (*glSwapIntervalEXT)(int) = NULL;
-
-#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
-#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
-
-#endif
+#endif //AGS_OPENGL_ES2
 
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
@@ -138,18 +87,13 @@ void OGLBitmap::Dispose()
 }
 
 
-OGLGraphicsDriver::ShaderProgram::ShaderProgram() : Program(0), SamplerVar(0), ColorVar(0), AuxVar(0) {}
 
 
-OGLGraphicsDriver::OGLGraphicsDriver() 
+OGLGraphicsDriver::OGLGraphicsDriver()
 {
-#if AGS_PLATFORM_OS_WINDOWS
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-#elif AGS_PLATFORM_OS_ANDROID
-  device_screen_physical_width  = android_screen_physical_width;
-  device_screen_physical_height = android_screen_physical_height;
-#elif AGS_PLATFORM_OS_IOS
+#if AGS_PLATFORM_OS_IOS
   device_screen_physical_width  = ios_screen_physical_width;
   device_screen_physical_height = ios_screen_physical_height;
 #endif
@@ -197,8 +141,6 @@ void OGLGraphicsDriver::SetupDefaultVertices()
   defaultVertices[3].tv=1.0;
 }
 
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
-
 void OGLGraphicsDriver::CreateDesktopScreen()
 {
   SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
@@ -206,17 +148,10 @@ void OGLGraphicsDriver::CreateDesktopScreen()
   _mode.Height = device_screen_physical_height;
 }
 
-#elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-
+#if  0
 void OGLGraphicsDriver::UpdateDeviceScreen()
 {
-#if AGS_PLATFORM_OS_ANDROID
-    device_screen_physical_width  = android_screen_physical_width;
-    device_screen_physical_height = android_screen_physical_height;
-#elif AGS_PLATFORM_OS_IOS
-    device_screen_physical_width  = ios_screen_physical_width;
-    device_screen_physical_height = ios_screen_physical_height;
-#endif
+    SDL_GL_GetDrawableSize(this->sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
 
     Debug::Printf("OGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
     _mode.Width = device_screen_physical_width;
@@ -225,10 +160,9 @@ void OGLGraphicsDriver::UpdateDeviceScreen()
     if (_initSurfaceUpdateCallback)
         _initSurfaceUpdateCallback();
 }
-
 #endif
 
-void OGLGraphicsDriver::Vsync() 
+void OGLGraphicsDriver::Vsync()
 {
   // do nothing on OpenGL
 }
@@ -260,7 +194,7 @@ bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   return true;
 }
 
-bool OGLGraphicsDriver::SupportsGammaControl() 
+bool OGLGraphicsDriver::SupportsGammaControl()
 {
   return false;
 }
@@ -292,7 +226,7 @@ void OGLGraphicsDriver::FirstTimeInit()
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
-  
+
   TestRenderToTexture();
   CreateShaders();
   _firstTimeInit = true;
@@ -300,12 +234,6 @@ void OGLGraphicsDriver::FirstTimeInit()
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
-#if AGS_PLATFORM_OS_ANDROID
-  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
-#elif AGS_PLATFORM_OS_IOS
-  ios_create_screen();
-  ios_select_buffer();
-#else
   SDL_Window* window = sys_get_window();
   if (window == nullptr || (SDL_GetWindowFlags(window) & SDL_WINDOW_OPENGL) == 0)
   {
@@ -320,7 +248,6 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
 
   CreateDesktopScreen();
-#endif
   return true;
 }
 
@@ -328,41 +255,29 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 {
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glDisable(GL_LIGHTING);
-  glShadeModel(GL_FLAT);
-
-  glEnable(GL_TEXTURE_2D);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glDisableClientState(GL_COLOR_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
   auto interval = mode.Vsync ? 1 : 0;
   bool vsyncEnabled = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
   if (mode.Vsync && !vsyncEnabled)
     Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
 
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
+#if AGS_PLATFORM_OS_IOS
   // Setup library mouse to have 1:1 coordinate transformation.
   // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
   // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
   // is selected in AGS. This ugly situation causes trouble...
-  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+  float device_scale = 1.0f;
+
+  device_scale = get_device_scale();
+
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, device_scale, device_scale);
 #endif
 }
 
@@ -373,8 +288,16 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_PROFILE_MASK: %s", SDL_GetError());
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MAJOR_VERSION: %s", SDL_GetError());
+#if AGS_OPENGL_ES2
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s", SDL_GetError());
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1) != 0) {
+        Debug::Printf(kDbgMsg_Warn, "Error occured setting attribute SDL_GL_CONTEXT_EGL: %s", SDL_GetError());
+    }
+#else
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s", SDL_GetError());
+#endif
   if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
 
@@ -398,11 +321,16 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
     sys_window_destroy();
     return false;
   }
-
+#if AGS_OPENGL_ES2
+    if (!gladLoadGLES2Loader((GLADloadproc) SDL_GL_GetProcAddress)) {
+        Debug::Printf(kDbgMsg_Error, "Failed to load glad with gladLoadGLES2Loader");
+    }
+#else
   if (!gladLoadGL()) {
     Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
     return false;
   }
+#endif
 
   _sdlWindow = sdl_window;
   _sdlGlContext = sdlgl_ctx;
@@ -411,7 +339,6 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
 
 void OGLGraphicsDriver::DeleteWindowAndGlContext()
 {
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
   SDL_GL_MakeCurrent(nullptr, nullptr);
   if (_sdlGlContext) {
     SDL_GL_DeleteContext(_sdlGlContext);
@@ -419,21 +346,25 @@ void OGLGraphicsDriver::DeleteWindowAndGlContext()
   _sdlGlContext = nullptr;
   sys_window_destroy();
   _sdlWindow = nullptr;
-#endif
 }
 
 inline bool CanDoFrameBuffer()
 {
+// this has to be redone because it's too confusing
+#if AGS_OPENGL_ES2
+    return true;
+#else
 #ifdef GLAPI
   return GLAD_GL_EXT_framebuffer_object != 0;
 #else
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
+#if AGS_PLATFORM_OS_IOS
   const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #else
   const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 #endif
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
   return extensions && strstr(extensions, fbo_extension_string) != NULL;
+#endif
 #endif
 }
 
@@ -465,145 +396,259 @@ void OGLGraphicsDriver::TestSupersampling()
     }
 }
 
+
+
+void CreateTransparencyShader(ShaderProgram &prg);
+void CreateTintShader(ShaderProgram &prg);
+void CreateLightShader(ShaderProgram &prg);
+void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src);
+void DeleteShaderProgram(ShaderProgram &prg);
+void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
+
+
 void OGLGraphicsDriver::CreateShaders()
 {
+#if AGS_OPENGL_ES2
+  if (!GLAD_GL_ES_VERSION_2_0) {
+#else
   if (!GLAD_GL_VERSION_2_0) {
+#endif
     Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
     return;
   }
-  CreateTintShader();
-  CreateLightShader();
+  CreateTransparencyShader(_transparencyShader);
+  CreateTintShader(_tintShader);
+  CreateLightShader(_lightShader);
 }
 
-void OGLGraphicsDriver::CreateTintShader()
-{
-  const char *fragment_shader_src = 
-    // NOTE: this shader emulates "historical" AGS software tinting; it is not
-    // necessarily "proper" tinting in modern terms.
-    // The RGB-HSV-RGB conversion found in the Internet (copyright unknown);
-    // Color processing is replicated from Direct3D shader by Chris Jones
-    // (Engine/resource/tintshaderLegacy.fx).
-    // Uniforms:
-    // textID - texture index (usually 0),
-    // tintHSV - tint color in HSV,
-    // tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
-    "\
-                                #version 120\n\
-                                uniform sampler2D textID;\n\
-                                uniform vec3 tintHSV;\n\
-                                uniform vec3 tintAmnTrsLum;\n\
-                                \
-                                vec3 rgb2hsv(vec3 c)\n\
-                                {\n\
-                                    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\n\
-                                    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\n\
-                                    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\n\
-                                \
-                                    float d = q.x - min(q.w, q.y);\n\
-                                    const float e = 1.0e-10;\n\
-                                    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\n\
-                                }\n\
-                                \
-                                vec3 hsv2rgb(vec3 c)\n\
-                                {\n\
-                                    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\
-                                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\
-                                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\
-                                }\n\
-                                \
-                                float getValue(vec3 color)\n\
-                                {\n\
-                                    float colorMax = max (color[0], color[1]);\n\
-                                    colorMax = max (colorMax, color[2]);\n\
-                                    return colorMax;\n\
-                                }\n\
-                                \
-                                void main()\n\
-                                {\n\
-                                    vec4 src_col = texture2D(textID, gl_TexCoord[0].xy);\n\
-                                    float amount = tintAmnTrsLum[0];\n\
-                                    float lum = getValue(src_col.xyz);\n\
-                                    lum = max(lum - (1.0 - tintAmnTrsLum[2]), 0.0);\n\
-                                    vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * amount + src_col.xyz * (1.0 - amount));\n\
-                                    gl_FragColor = vec4(new_col, src_col.w * tintAmnTrsLum[1]);\n\
-                                }\n\
-    ";
-  CreateShaderProgram(_tintShader, "Tinting", fragment_shader_src, "textID", "tintHSV", "tintAmnTrsLum");
+
+
+static const auto default_vertex_shader_src = R"EOS(
+#version 100
+
+uniform mat4 uMVPMatrix;
+
+attribute vec2 a_Position;
+attribute vec2 a_TexCoord;
+
+varying vec2 v_TexCoord;
+
+void main() {
+  v_TexCoord = a_TexCoord;
+  gl_Position = uMVPMatrix * vec4(a_Position.xy, 0.0, 1.0);
+  // gl_Position = vec4(a_Position.xy, 0.0, 1.0);
 }
 
-void OGLGraphicsDriver::CreateLightShader()
+)EOS";
+
+
+static const auto transparency_fragment_shader_src = R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+void main()
 {
-  const char *fragment_shader_src = 
-    // NOTE: due to how the lighting works in AGS, this is combined MODULATE / ADD shader.
-    // if the light is < 0, then MODULATE operation is used, otherwise ADD is used.
-    // NOTE: it's been said that using branching in shaders produces inefficient code.
-    // If that will ever become a real problem, we can easily split this shader in two.
-    // Uniforms:
-    // textID - texture index (usually 0),
-    // light - light level,
-    // alpha - color alpha value.
-    "\
-                                #version 120\n\
-                                uniform sampler2D textID;\n\
-                                uniform float light;\n\
-                                uniform float alpha;\n\
-                                \
-                                void main()\n\
-                                {\n\
-                                    vec4 src_col = texture2D(textID, gl_TexCoord[0].xy);\n\
-                                    if (light >= 0.0)\n\
-                                        gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);\n\
-                                    else\n\
-                                        gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);\n\
-                                }\n\
-    ";
-  CreateShaderProgram(_lightShader, "Lighting", fragment_shader_src, "textID", "light", "alpha");
+  vec4 src_col = texture2D(textID, v_TexCoord);
+  gl_FragColor = vec4(src_col.xyz, src_col.w * alpha);
+  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+)EOS";
+
+
+// NOTE: this shader emulates "historical" AGS software tinting; it is not
+// necessarily "proper" tinting in modern terms.
+// The RGB-HSV-RGB conversion found in the Internet (copyright unknown);
+// Color processing is replicated from Direct3D shader by Chris Jones
+// (Engine/resource/tintshaderLegacy.fx).
+
+// Uniforms:
+// textID - texture index (usually 0),
+// tintHSV - tint color in HSV,
+// tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
+
+static const auto tint_fragment_shader_src = R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform vec3 tintHSV;
+uniform float tintAmount;
+uniform float tintLuminance;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    const float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
-void OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const char *name, const char *fragment_shader_src,
-                                            const char *sampler_var, const char *color_var, const char *aux_var)
+vec3 hsv2rgb(vec3 c)
 {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float getValue(vec3 color)
+{
+    float colorMax = max (color[0], color[1]);
+    colorMax = max (colorMax, color[2]);
+    return colorMax;
+}
+
+void main()
+{
+    vec4 src_col = texture2D(textID, v_TexCoord);
+
+    float lum = getValue(src_col.xyz);
+    lum = max(lum - (1.0 - tintLuminance), 0.0);
+    vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * tintAmount + src_col.xyz * (1.0 - tintAmount));
+    gl_FragColor = vec4(new_col, src_col.w * alpha);
+
+    // gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+}
+)EOS";
+
+
+// NOTE: due to how the lighting works in AGS, this is combined MODULATE / ADD shader.
+// if the light is < 0, then MODULATE operation is used, otherwise ADD is used.
+// NOTE: it's been said that using branching in shaders produces inefficient code.
+// If that will ever become a real problem, we can easily split this shader in two.
+
+// Uniforms:
+// textID - texture index (usually 0),
+// light - light level,
+// alpha - color alpha value.
+
+static const auto light_fragment_shader_src = R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform float light;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+void main()
+{
+    vec4 src_col = texture2D(textID, v_TexCoord);
+
+   if (light >= 0.0)
+       gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);
+   else
+       gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);
+
+    // gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+}
+)EOS";
+
+
+void CreateTransparencyShader(ShaderProgram &prg)
+{
+  CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src);
+
+  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+}
+
+
+void CreateTintShader(ShaderProgram &prg)
+{
+  CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src);
+
+  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+  prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
+  prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
+  prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
+  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+}
+
+void CreateLightShader(ShaderProgram &prg)
+{
+  CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src);
+
+  prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+  prg.TextureId = glGetUniformLocation(prg.Program, "textID");
+  prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
+  prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+}
+
+
+
+void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src)
+{
+  GLint result;
+
+  GLint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertex_shader, 1, &vertex_shader_src, nullptr);
+  glCompileShader(vertex_shader);
+  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
+  if (result == GL_FALSE)
+  {
+    OutputShaderError(vertex_shader, String::FromFormat("%s program's vertex shader", name), true);
+    return;
+  }
+
   GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragment_shader, 1, &fragment_shader_src, nullptr);
   glCompileShader(fragment_shader);
-  GLint result;
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
   if (result == GL_FALSE)
   {
     OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name), true);
-    glDeleteShader(fragment_shader);
+    glDeleteShader(fragment_shader); //not sure yet if this goes here
     return;
   }
 
   GLuint program = glCreateProgram();
+  glAttachShader(program, vertex_shader);
   glAttachShader(program, fragment_shader);
   glLinkProgram(program);
   glGetProgramiv(program, GL_LINK_STATUS, &result);
   if(result == GL_FALSE)
   {
     OutputShaderError(program, String::FromFormat("%s program", name), false);
-    glDeleteProgram(program);
-    glDeleteShader(fragment_shader);
+    glDeleteProgram(program); //not sure yet if this goes here
+    glDeleteShader(fragment_shader); //not sure yet if this goes here
     return;
   }
+
+  glDetachShader(program, vertex_shader);
+  glDeleteShader(vertex_shader);
+
   glDetachShader(program, fragment_shader);
   glDeleteShader(fragment_shader);
 
   prg.Program = program;
-  prg.SamplerVar = glGetUniformLocation(program, sampler_var);
-  prg.ColorVar = glGetUniformLocation(program, color_var);
-  prg.AuxVar = glGetUniformLocation(program, aux_var);
   Debug::Printf("OGL: %s shader program created successfully", name);
 }
 
-void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
+void DeleteShaderProgram(ShaderProgram &prg)
 {
   if (prg.Program)
     glDeleteProgram(prg.Program);
   prg.Program = 0;
 }
 
-void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
+void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
 {
   GLint log_len;
   if (is_shader)
@@ -778,7 +823,7 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) con
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-    std::vector<DisplayMode> modes;
+    std::vector<DisplayMode> modes {};
     sys_get_desktop_modes(modes);
     return new OGLDisplayModeList(modes);
 }
@@ -803,11 +848,12 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   sys_window_set_style(false);
 }
 
-void OGLGraphicsDriver::UnInit() 
+void OGLGraphicsDriver::UnInit()
 {
   OnUnInit();
   ReleaseDisplayMode();
 
+  DeleteShaderProgram(_transparencyShader);
   DeleteShaderProgram(_tintShader);
   DeleteShaderProgram(_lightShader);
 
@@ -851,11 +897,10 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   }
   else
   {
-#if AGS_PLATFORM_OS_IOS
-    ios_select_buffer();
-#else
+#if !AGS_OPENGL_ES2
     glReadBuffer(GL_FRONT);
 #endif
+
     retr_rect = _dstRect;
   }
 
@@ -870,12 +915,12 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     unsigned char* sourcePtr = buffer;
     for (int y = destination->GetHeight() - 1; y >= 0; y--)
     {
-        unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
-        for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
-        {
-            destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
-        }
-        sourcePtr += retr_rect.GetWidth() * bpp;
+      unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
+      for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
+      {
+        destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
+      }
+      sourcePtr += retr_rect.GetWidth() * bpp;
     }
 
     if (_pollingCallback)
@@ -906,19 +951,24 @@ void OGLGraphicsDriver::_reDrawLastFrame()
     RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const GLMATRIX &matGlobal)
+void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const glm::mat4 &projection, const glm::mat4 &matGlobal)
 {
   OGLBitmap *bmpToDraw = drawListEntry->bitmap;
 
   if (bmpToDraw->_transparency >= 255)
     return;
 
+  ShaderProgram program;
+
   const bool do_tint = bmpToDraw->_tintSaturation > 0 && _tintShader.Program > 0;
   const bool do_light = bmpToDraw->_tintSaturation == 0 && bmpToDraw->_lightLevel > 0 && _lightShader.Program > 0;
+  // const bool can_do_transp_shader =_transparencyShader.Program > 0; if this fails, the whole renderer can't work.
   if (do_tint)
   {
     // Use tinting shader
+    program = _tintShader;
     glUseProgram(_tintShader.Program);
+
     float rgb[3];
     float sat_trs_lum[3]; // saturation / transparency / luminance
     if (_legacyPixelShader)
@@ -935,26 +985,21 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
     sat_trs_lum[0] = (float)bmpToDraw->_tintSaturation / 255.0;
 
-    if (bmpToDraw->_transparency > 0)
-      sat_trs_lum[1] = (float)bmpToDraw->_transparency / 255.0;
-    else
-      sat_trs_lum[1] = 1.0f;
-
     if (bmpToDraw->_lightLevel > 0)
       sat_trs_lum[2] = (float)bmpToDraw->_lightLevel / 255.0;
     else
       sat_trs_lum[2] = 1.0f;
 
-    glUniform1i(_tintShader.SamplerVar, 0);
-    glUniform3f(_tintShader.ColorVar, rgb[0], rgb[1], rgb[2]);
-    glUniform3f(_tintShader.AuxVar, sat_trs_lum[0], sat_trs_lum[1], sat_trs_lum[2]);
+    glUniform3f(_tintShader.TintHSV, rgb[0], rgb[1], rgb[2]);
+    glUniform1f(_tintShader.TintAmount, sat_trs_lum[0]);
+    glUniform1f(_tintShader.TintLuminance, sat_trs_lum[2]);
   }
   else if (do_light)
   {
     // Use light shader
+    program = _lightShader;
     glUseProgram(_lightShader.Program);
     float light_lev = 1.0f;
-    float alpha = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
     // 1/255 (although effectively 1/250, see draw.cpp), but contains two
@@ -972,21 +1017,23 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
       light_lev = ((bmpToDraw->_lightLevel - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
-    if (bmpToDraw->_transparency > 0)
-      alpha = bmpToDraw->_transparency / 255.f;
-
-    glUniform1i(_lightShader.SamplerVar, 0);
-    glUniform1f(_lightShader.ColorVar, light_lev);
-    glUniform1f(_lightShader.AuxVar, alpha);
+    glUniform1f(_lightShader.LightingAmount, light_lev);
   }
   else
   {
     // Use default processing
-    if (bmpToDraw->_transparency == 0)
-      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    else
-      glColor4f(1.0f, 1.0f, 1.0f, bmpToDraw->_transparency / 255.0f);
+    program = _transparencyShader;
+    glUseProgram(_transparencyShader.Program);
   }
+
+
+  glUniform1i(program.TextureId, 0);
+
+  float alpha = 1.0f;
+  if (bmpToDraw->_transparency > 0) {
+    alpha = bmpToDraw->_transparency / 255.0f;
+  }
+  glUniform1f(program.Alpha, alpha);
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
@@ -1022,25 +1069,26 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
       thisX += width;
     }
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
     //
     // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
     //
+    glm::mat4 transform = projection;
     // Origin is at the middle of the surface
     if (_do_render_to_texture)
-      glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
+      transform = glm::translate(transform, {_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f});
     else
-      glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
+      transform = glm::translate(transform, {_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f});
 
     // Global batch transform
-    glMultMatrixf(matGlobal.m);
+    transform = transform * matGlobal;
     // Self sprite transform (first scale, then rotate and then translate, reversed)
-    glTranslatef((float)thisX, (float)thisY, 0.0f);
-    glRotatef(0.f, 0.f, 0.f, 1.f);
-    glScalef(widthToScale, heightToScale, 1.0f);
+    transform = glm::translate(transform, {(float)thisX, (float)thisY, 0.0f});
+    // transform = glm::rotate(transform, 0.f, {0.f, 0.f, 1.f});
+    transform = glm::scale(transform, {widthToScale, heightToScale, 1.0f});
 
+    glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
+
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
@@ -1064,13 +1112,23 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
     if (bmpToDraw->_vertex != nullptr)
     {
-      glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
-      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
+        glEnableVertexAttribArray(0);
+        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
+        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
+
+        glEnableVertexAttribArray(1);
+        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
+        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
     }
     else
     {
-      glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &defaultVertices[0].tu);
-      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &defaultVertices[0].position);
+        glEnableVertexAttribArray(0);
+        GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
+        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
+
+        glEnableVertexAttribArray(1);
+        GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
+        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1080,11 +1138,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
 void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
-#if AGS_PLATFORM_OS_IOS
-  ios_select_buffer();
-#endif
-
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
+#if 0
   // TODO:
   // For some reason, mobile ports initialize actual display size after a short delay.
   // This is why we update display mode and related parameters (projection, viewport)
@@ -1098,6 +1152,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     device_screen_initialized = 1;
   }
 #endif
+  glm::mat4 projection;
 
   if (_do_render_to_texture)
   {
@@ -1106,11 +1161,8 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, _backRenderSize.Width, 0, _backRenderSize.Height, 0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
+    projection = glm::ortho(0.0f, (float)_backRenderSize.Width, 0.0f, (float)_backRenderSize.Height, 0.0f, 1.0f);
   }
   else
   {
@@ -1119,17 +1171,23 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     glEnable(GL_SCISSOR_TEST);
 
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
+    projection = glm::ortho(0.0f, (float)_srcRect.GetWidth(), 0.0f, (float)_srcRect.GetHeight(), 0.0f, 1.0f);
   }
 
-  RenderSpriteBatches();
+  RenderSpriteBatches(projection);
 
   if (_do_render_to_texture)
   {
+    glDisable(GL_BLEND);
+
+    // Use default processing
+    ShaderProgram program = _transparencyShader;
+    glUseProgram(_transparencyShader.Program);
+
+    glUniform1i(program.TextureId, 0);
+    glUniform1f(program.Alpha, 1.0f);
+
     // Texture is ready, now create rectangle in the world space and draw texture upon it
 #if AGS_PLATFORM_OS_IOS
     ios_select_buffer();
@@ -1138,35 +1196,35 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 #endif
 
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
-    glDisable(GL_BLEND);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    projection = glm::ortho(0.0f, (float)_srcRect.GetWidth(), 0.0f, (float)_srcRect.GetHeight(), 0.0f, 1.0f);
+
+    glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(projection));
 
     // use correct sampling method when stretching buffer to the final rect
     _filter->SetFilteringForStandardSprite();
 
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _backbuffer);
 
-    glTexCoordPointer(2, GL_FLOAT, 0, _backbuffer_texture_coordinates);
-    glVertexPointer(2, GL_FLOAT, 0, _backbuffer_vertices);
+    glEnableVertexAttribArray(0);
+    GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
+    glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, 0, _backbuffer_vertices);
+
+    glEnableVertexAttribArray(1);
+    GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
+    glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, 0, _backbuffer_texture_coordinates);
+
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glEnable(GL_BLEND);
+    glUseProgram(0);
   }
 
   glFinish();
 
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-  device_swap_buffers();
-#else
   SDL_GL_SwapWindow(_sdlWindow);
-#endif
 
   if (clearDrawListAfterwards)
   {
@@ -1176,7 +1234,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
   ResetFxPool();
 }
 
-void OGLGraphicsDriver::RenderSpriteBatches()
+void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 {
     // Render all the sprite batches with necessary transformations
     Rect main_viewport = _do_render_to_texture ? _srcRect : _viewportRect;
@@ -1201,7 +1259,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
         _stageVirtualScreen = GetStageScreen(i);
-        RenderSpriteBatch(batch);
+        RenderSpriteBatch(batch, projection);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
@@ -1210,7 +1268,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         glDisable(GL_SCISSOR_TEST);
 }
 
-void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch)
+void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, const glm::mat4 &projection)
 {
   OGLDrawListEntry stageEntry; // raw-draw plugin support
 
@@ -1230,7 +1288,7 @@ void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch)
       sprite = &stageEntry;
     }
 
-    this->_renderSprite(sprite, batch.Matrix);
+    this->_renderSprite(sprite, projection, batch.Matrix);
   }
 }
 
@@ -1242,10 +1300,11 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
 
     Rect orig_viewport = desc.Viewport;
     Rect node_viewport = desc.Viewport;
+
     // Combine both world transform and viewport transform into one matrix for faster perfomance
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glm::mat4 model = glm::mat4(1.0f);  // glLoadIdentity
+
     // Global node transformation (flip and offset)
     int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
     float node_sx = 1.f, node_sy = 1.f;
@@ -1262,27 +1321,43 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         node_sy = -1.f;
     }
     _spriteBatches[index].Viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
-    glTranslatef(node_tx, -(node_ty), 0.0f);
-    glScalef(node_sx, node_sy, 1.f);
+    // glTranslatef(node_tx, -(node_ty), 0.0f);
+    model = glm::translate(model, {(float)node_tx, (float)-(node_ty), 0.0f});
+    // glScalef(node_sx, node_sy, 1.f);
+    model = glm::scale(model, {node_sx, node_sy, 1.f});
+
     // NOTE: before node, translate to viewport position; remove this if this
     // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
+    // glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
+    model = glm::translate(model, {(float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f});
+
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
-    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
-    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
-    glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
-    glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
-    glLoadIdentity();
+    //glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
+    model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
+    //glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
+    model = glm::rotate(model, desc.Transform.Rotate, { 0.f, 0.f, 1.f});
+    //glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
+    model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
+    //glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
+    //glLoadIdentity();
+    _spriteBatches[index].Matrix = model;
 
     // create stage screen for plugin raw drawing
     int src_w = orig_viewport.GetWidth() / desc.Transform.ScaleX;
     int src_h = orig_viewport.GetHeight() / desc.Transform.ScaleY;
     CreateStageScreen(index, Size(src_w, src_h));
+
+    GLenum err;
+    for (;;) {
+      err = glGetError();
+      if (err == GL_NO_ERROR) { break; }
+      Debug::Printf(kDbgMsg_Error, "OGLGraphicsDriver::InitSpriteBatch glerror: %d", err);
+    }
 }
 
 void OGLGraphicsDriver::ResetAllBatches()
@@ -1548,13 +1623,13 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
       thisTile->y = y * tileHeight;
       thisTile->width = tileWidth;
       thisTile->height = tileHeight;
-      if (x == tilesAcross - 1) 
+      if (x == tilesAcross - 1)
       {
         thisTile->width += lastTileExtraWidth;
         thisAllocatedWidth = thisTile->width;
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
-      if (y == tilesDown - 1) 
+      if (y == tilesDown - 1)
       {
         thisTile->height += lastTileExtraHeight;
         thisAllocatedHeight = thisTile->height;
@@ -1596,6 +1671,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
       // NOTE: pay attention that the texture format depends on the **display mode**'s format,
       // rather than source bitmap's color depth!
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     }
   }
@@ -1654,12 +1730,12 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   ResetFxPool();
 }
 
-void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
-void OGLGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void OGLGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
@@ -1715,7 +1791,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       drawList[last    ].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
-    
+
     this->_render(false);
 
     sys_evt_process_pending();
@@ -1739,7 +1815,7 @@ void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 }
 
 void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
-{ 
+{
     if (red == 0 && green == 0 && blue == 0) return;
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),

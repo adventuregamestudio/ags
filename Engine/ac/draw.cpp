@@ -781,14 +781,6 @@ void render_to_screen()
                 gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
             gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
 
-#if AGS_PLATFORM_OS_ANDROID
-            if (game.color_depth == 1)
-                android_render();
-#elif AGS_PLATFORM_OS_IOS
-            if (game.color_depth == 1)
-                ios_render();
-#endif
-
             succeeded = true;
         }
         catch (Ali3DFullscreenLostException) 

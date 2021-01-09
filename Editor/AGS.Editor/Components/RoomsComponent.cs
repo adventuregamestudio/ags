@@ -1641,17 +1641,18 @@ namespace AGS.Editor.Components
                     mask8bpp.Palette = palette;
                 }
 
-                using (Bitmap mask32bpp = new Bitmap(mask8bpp)) // We need to support transparency
-                {
-                    mask32bpp.SetAlpha(100 - maskTransparency + 155);
+                // Prepare alpha component
+                float alpha = (100 - maskTransparency + 155) / 255f;
+                ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
-                    // x and y is already scaled from outside the method call
-                    Rectangle drawingArea = new Rectangle(
-                        x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+                // x and y is already scaled from outside the method call
+                Rectangle drawingArea = new Rectangle(
+                    x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
 
-                    g.DrawImage(background, drawingArea);
-                    g.DrawImage(mask32bpp, drawingArea);
-                }
+                g.DrawImage(background, drawingArea);
+                g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
             }
         }
 

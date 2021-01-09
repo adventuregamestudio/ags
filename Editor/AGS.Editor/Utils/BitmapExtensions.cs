@@ -190,28 +190,6 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Sets alpha for every pixel of the bitmap. Will do nothing if indexed image.
-        /// </summary>
-        /// <param name="bmp">The bitmap to alter the alpha values of.</param>
-        /// <param name="alpha">The alhpa value to put on the image.</param>
-        public static void SetAlpha(this Bitmap bmp, int alpha)
-        {
-            if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
-            {
-                return;
-            }
-
-            for (int y = 0; y < bmp.Height; y++)
-            {
-                for (int x = 0; x < bmp.Width; x++)
-                {
-                    Color pixel = bmp.GetPixel(x, y);
-                    bmp.SetPixel(x, y, Color.FromArgb(alpha, pixel.R, pixel.G, pixel.B));
-                }
-            }
-        }
-
-        /// <summary>
         /// Checks if the x and y coordinate is within the image.
         /// </summary>
         /// <param name="position">The position to check against.</param>

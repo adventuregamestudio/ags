@@ -1616,43 +1616,47 @@ namespace AGS.Editor.Components
             }
 
             using (Bitmap background = ((IRoomController)this).GetBackground(backgroundNumber))
-            using (Bitmap mask8bpp = ((IRoomController)this).GetMask(maskType))
             {
-                // Color not selected mask areas to gray
-                if (_grayOutMasks)
-                {
-                    ColorPalette palette = mask8bpp.Palette;
-
-                    for (int i = 0; i < 256; i++)
-                    {
-                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
-                        palette.Entries[i] = Color.FromArgb(gray, gray, gray);
-                    }
-
-                    // Highlight the currently selected area colour
-                    if (selectedArea > 0)
-                    {
-                        // if a bright colour, use it, else, draw in red
-                        palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
-                            ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
-                            : Color.FromArgb(60, 0, 0);
-                    }
-
-                    mask8bpp.Palette = palette;
-                }
-
-                // Prepare alpha component
-                float alpha = (100 - maskTransparency + 155) / 255f;
-                ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
-                ImageAttributes attributes = new ImageAttributes();
-                attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-
                 // x and y is already scaled from outside the method call
                 Rectangle drawingArea = new Rectangle(
                     x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
 
                 g.DrawImage(background, drawingArea);
-                g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
+
+                if (maskType != RoomAreaMaskType.None)
+                using (Bitmap mask8bpp = ((IRoomController)this).GetMask(maskType))
+                {
+                    // Color not selected mask areas to gray
+                    if (_grayOutMasks)
+                    {
+                        ColorPalette palette = mask8bpp.Palette;
+
+                        for (int i = 0; i < 256; i++)
+                        {
+                            int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
+                            palette.Entries[i] = Color.FromArgb(gray, gray, gray);
+                        }
+
+                        // Highlight the currently selected area colour
+                        if (selectedArea > 0)
+                        {
+                            // if a bright colour, use it, else, draw in red
+                            palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
+                                ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
+                                : Color.FromArgb(60, 0, 0);
+                        }
+
+                        mask8bpp.Palette = palette;
+                    }
+
+                    // Prepare alpha component
+                    float alpha = (100 - maskTransparency + 155) / 255f;
+                    ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
+                    ImageAttributes attributes = new ImageAttributes();
+                    attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                    g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
+                }
             }
         }
 

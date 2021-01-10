@@ -1,7 +1,7 @@
 FetchContent_Declare(
   ogg_content
-  GIT_REPOSITORY https://github.com/xiph/ogg.git
-  GIT_TAG        f7dadaaf75634289f7ead64ed1802b627d761ee3
+  URL https://github.com/xiph/ogg/archive/31bd3f2707fb7dbae539a7093ba1fc4b2b37d84e.tar.gz
+  URL_HASH MD5=b1236d9559e5dd5b68bc1de5999cdcc5
 )
 
 FetchContent_GetProperties(ogg_content)

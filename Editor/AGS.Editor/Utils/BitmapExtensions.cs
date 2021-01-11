@@ -220,7 +220,7 @@ namespace AGS.Editor
                 {
                     int i = (position.Y * size.Width) + position.X;
 
-                    if (image[i] == initial)
+                    if (image[i] == initial && image[i] != replacement)
                     {
                         image[i] = replacement;
 

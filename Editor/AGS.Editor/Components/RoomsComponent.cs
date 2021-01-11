@@ -14,7 +14,7 @@ using System.Drawing.Imaging;
 
 namespace AGS.Editor.Components
 {
-    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, IRoomController
+    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, IDisposable, IRoomController
     {
         private const string ROOMS_COMMAND_ID = "Rooms";
         private const string COMMAND_NEW_ITEM = "NewRoom";
@@ -31,6 +31,9 @@ namespace AGS.Editor.Components
         private const string ROOM_ICON_UNLOADED = "RoomIcon";
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
         private const string SCRIPT_ICON = "ScriptIcon";
+
+        private readonly List<Bitmap> _backgroundCache = new List<Bitmap>(Room.MAX_BACKGROUNDS);
+        private readonly Dictionary<RoomAreaMaskType, Bitmap> _maskCache = new Dictionary<RoomAreaMaskType, Bitmap>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
 
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
@@ -66,6 +69,11 @@ namespace AGS.Editor.Components
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
+        }
+
+        public void Dispose()
+        {
+            ClearImageCache();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -797,7 +805,10 @@ namespace AGS.Editor.Components
             {
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
+
             _loadedRoom = _nativeProxy.LoadRoom(newRoom);
+            LoadImageCache();
+
             // TODO: group these in some UpdateRoomToNewVersion method
             _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
@@ -1518,7 +1529,9 @@ namespace AGS.Editor.Components
             }
 
             // TODO Replace with bitmap loading from disk with C# when room is open format
-            return _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
+            return _backgroundCache.Any()
+                ? (Bitmap)_backgroundCache[background]?.Clone()
+                : _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
         }
 
         void IRoomController.SetBackground(int background, Bitmap bmp)
@@ -1533,6 +1546,17 @@ namespace AGS.Editor.Components
             // TODO Replace with bitmap saving to disk with C# when room is open format
             _nativeProxy.ImportBackground(
                 _loadedRoom, background, bmp, _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+
+            if (background >= _backgroundCache.Count)
+            {
+                _backgroundCache.Add((Bitmap)bmp.Clone());
+            }
+            else
+            {
+                _backgroundCache[background]?.Dispose();
+                _backgroundCache[background] = (Bitmap)bmp.Clone();
+            }
+
             _loadedRoom.Modified = true;
         }
 
@@ -1548,6 +1572,8 @@ namespace AGS.Editor.Components
             {
                 _nativeProxy.DeleteBackground(_loadedRoom, background);
             }
+            _backgroundCache[background]?.Dispose();
+            _backgroundCache.RemoveAt(background);
             _loadedRoom.Modified = true;
         }
 
@@ -1559,7 +1585,10 @@ namespace AGS.Editor.Components
             }
 
             // TODO Replace with bitmap loading from disk with C# when room is open format
-            return _nativeProxy.ExportAreaMask(_loadedRoom, mask);
+            Bitmap cached;
+            return _maskCache.TryGetValue(mask, out cached) && cached != null
+                ? (Bitmap)cached.Clone()
+                : _nativeProxy.ExportAreaMask(_loadedRoom, mask);
         }
 
         void IRoomController.SetMask(RoomAreaMaskType mask, Bitmap bmp)
@@ -1571,6 +1600,8 @@ namespace AGS.Editor.Components
 
             // TODO Replace with bitmap saving to disk with C# when room is open format
             _nativeProxy.SetAreaMask(_loadedRoom, mask, bmp);
+            _maskCache[mask]?.Dispose();
+            _maskCache[mask] = (Bitmap)bmp.Clone();
             _loadedRoom.Modified = true;
         }
 
@@ -1718,6 +1749,55 @@ namespace AGS.Editor.Components
         protected override IList<IRoom> GetFlatList()
         {
             return null;
+        }
+
+        private void LoadImageCache()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            ClearImageCache();
+
+            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+            {
+                _backgroundCache.Add(((IRoomController)this).GetBackground(i));
+            }
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                {
+                    continue;
+                }
+
+                _maskCache[mask] = ((IRoomController)this).GetMask(mask);
+            }
+        }
+
+        private void ClearImageCache()
+        {
+            if (_loadedRoom == null)
+                return;
+
+            for (int i = 0; i < _backgroundCache.Count; i++)
+            {
+                _backgroundCache[i]?.Dispose();
+            }
+            _backgroundCache.Clear();
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                if (_maskCache.ContainsKey(mask))
+                {
+                    _maskCache[mask]?.Dispose();
+                    _maskCache[mask] = null;
+                }
+            }
         }
     }
 }

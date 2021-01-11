@@ -19,7 +19,6 @@ CFLAGS := -O2 -g \
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
-LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)
 LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)

@@ -33,12 +33,13 @@ else
   LIBS += $(shell pkg-config --libs vorbis)
 endif
 LIBS += $(shell pkg-config --libs vorbisfile)
-LIBS += -ldl -lpthread -lm
 
 ifneq ($(USE_BUILT_IN_LIBSRC), 1)
 ALDUMB :=
 LIBS += -Wl,--push-state,-Bstatic -laldmb -ldumb -Wl,--pop-state
 endif
+
+LIBS += -ldl -lpthread -lm
 
 ifeq ($(ALLEGRO_MAGIC_DRV), 1)
   CFLAGS += -DALLEGRO_MAGIC_DRV

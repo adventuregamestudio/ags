@@ -739,7 +739,7 @@ void String::Reverse()
         return;
     BecomeUnique();
     for (char *fw = _cstr, *bw = _cstr + _len - 1;
-        *fw; ++fw, --bw)
+        fw < bw; ++fw, --bw)
     {
         std::swap(*fw, *bw);
     }

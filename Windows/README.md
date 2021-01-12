@@ -8,10 +8,7 @@
     * https://visualstudio.microsoft.com/vs/older-downloads/
   * In theory you may try other tools, using MSVS project for the reference.
 * To work with Engine code and Editor's full solution (see elaboration in related section):
-  * Allegro 4.4.2 library *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.2-agspatch branch which already has necessary patch applied and MSVC projects created.
-    * **OR**, alternatively, you may get original sources and patch yourself (look for instructions below): clone [official git repository](https://github.com/liballeg/allegro5)) and checkout 4.4.2 tag.
-  * Alfont 1.9.1 library *patched sources*: clone [our own Alfont repository](https://github.com/adventuregamestudio/lib-alfont) and checkout alfont-1.9.1-agspatch branch which already has necessary patch applied and MSVC projects created.
-    * **OR**, alternatively, you may get original sources and patch yourself: ([checkout or download from SVN repository](https://sourceforge.net/p/alfont/code/HEAD/tree/trunk/)).
+  * Allegro 4.4.3 library's *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.3.1-agspatch branch which already has necessary patch applied and MSVC projects created.
 * Specifically for the Engine:
   * DirectX SDK August 2007 ([Download](https://www.microsoft.com/en-us/download/details.aspx?id=13287))
   * OpenGL API and Extension Header Files ([Download](https://www.opengl.org/registry/#headers))
@@ -20,7 +17,7 @@
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
-* To make manual and/or Windows installer:
+* To run certain tools and build Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
   * InnoSetup 5.5 or higher ([Download](http://www.jrsoftware.org/isdl.php))
 
@@ -29,25 +26,13 @@
   * https://www.dropbox.com/s/4p6nw6waqwat6co/ags-prebuilt-libs.zip?dl=0
 
 You still have to download library sources though, because you'd need header files.
-If you go this way, then skip **"Patching libraries"** and **"Building libraries"** sections altogether.
+If you go this way skip **"Building libraries"** sections altogether.
 
 
 ## Installing SDKs
 
-You need to have DirectX SDK. "August 2007" version is recommended, that seems to be the last version that still has required libraries and headers compatible with software renderer in AGS.
+You need to have DirectX SDK. "August 2007" version is recommended, that seems to be the last version that still has required libraries and headers compatible with DirectDraw renderer in Allegro 4.
 OpenGL API and Extension headers should be placed wherever Visual Studio can see them (or setup include paths to them in MSVS).
-
-## Patching libraries
-
-Historically AGS was built with slightly modified libraries. To keep backwards compatibility at current point you need to patch two libraries which source you download by the links above.
-
-Diff files can be found in "Windows\patches" directory of AGS repository.
-
-* Allegro 4.4.2 source should be patched with **allegro-4.4.2.patch** file.
-* Alfont 1.9.1 source should be patched with **alfont-1.9.1.patch** file.
-
-If you got these libraries from our own repositories, you do not need to patch them yourself, just checkout allegro-4.4.2-agspatch and alfont-1.9.1-agspatch branches respectively and build from them.
-
 
 ## Building the libraries
 
@@ -66,26 +51,18 @@ DirectX is linked dynamically. You should not be building DirectX libraries, but
 
 Our patched Allegro library branch has ready MSVC solution: you will find it in "build/VS2015" subdirectory.
 
-If you want to go all the way on your own and/or getting sources from official site, following is a brief information on creating one.
+If you want to go all the way on your own, following is a brief information on creating one.
 
-Allegro 4.4 source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
+Allegro 4.4.* source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
 
 Before using CMake you need to create two enviroment variables (for your OS, not Visual Studio) called "INCLUDE" and "LIB", unless these already exist. Add path to DirectX SDK header files into "INCLUDE" variable and path to DirectX *.lib files into "LIB" variable.
 
 When configuring CMake, you may uncheck all Allegro add-ons and examples, because AGS does not need them.
 Also make sure to uncheck SHARED option, for AGS is linking Allegro statically.
 
-If you are using patched sources from our Allegro fork, the MSVC_SHARED_CRT option will also be present. You need that option checked when building library with /MD flag for the Editor, and unchecked when building library with /MT option for the Engine (also see explanation in related section below). If you are using official Allegro source, then you'll have to modify generated projects by hand to setup this flag properly.
+If you are using patched sources from our Allegro fork, the MSVC_SHARED_CRT option will also be present. You need that option checked when building library with /MD flag for the Editor, and unchecked when building library with /MT option for the Engine (also see explanation in related section below). If you are using e.g. official Allegro source, then you'll have to modify generated projects by hand to setup this flag properly.
 
 Static library built with /MD is expected to be named alleg-static.lib, and one with /MT named alleg-static-mt.lib. Debug versions are to be named alleg-debug-static.lib with /MDd flag, and alleg-debug-static-mt.lib for /MTd.
-
-### Alfont
-
-Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are located in "build/VS2015" subdirectory and already have distinct configurations with /MD and /MT flags set appropriately.
-
-You need to build only static library project for AGS.
-
-Static library built with /MD is expected to be named alfont_md.lib, and one with /MT named alfont_mt.lib. Debug versions are to be named alfont_md_d.lib with /MDd flag, and alfont_mt_d.lib for /MTd.
 
 ### OGG, Theora and Vorbis
 
@@ -99,8 +76,7 @@ All of these come with MSVC projects. You may need to make sure there are distin
 You need to build *static* libraries, compiled with **/MT** or **/MTd** option (*statically* linked runtime C library). Latter is important or you may get linking issues.
 
 Build following libraries:
-* Allegro 4.4.2 (patched)
-* Alfont 1.9.1 (patched)
+* Allegro 4.4.3.1 (patched with our changes)
 * libogg
 * libtheora
 * libvorbis and libvorbisfile
@@ -117,8 +93,7 @@ Editor has two related solutions: Solutions\AGS.Editor.Full.sln and Solutions\AG
 If you are working with full solution, you need to first build *static* libraries, compiled with **/MD** or **/MDd** option (*dynamically* linked runtime C library). Latter is important or you may get linking issues.
 
 Build following libraries:
-* Allegro 4.4.2 (patched)
-* Alfont 1.9.1 (patched)
+* Allegro 4.4.3.1 (patched with our changes)
 
 Depending on the version of MSVS you are using you need to setup paths to compiled libraries and their headers either in IDE options (older) or project property pages (newer). Then build the solution.
 

@@ -8,10 +8,9 @@ The following packages are required to build AGS. The versions in
 parentheses are known to work, but other versions will also
 probably work.
 
--   Allegro 4 (>= 4.2.2)
+-   Allegro 4 (>= 4.4.3, but 4.4.2 will also work with minimal differences)
 -   libaldmb (0.9.3)
 -   libdumb (0.9.3)
--   libfreetype (2.4.9)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
@@ -20,11 +19,11 @@ probably work.
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
+    yum -y install git allegro-devel dumb-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libtheora-dev libvorbis-dev libogg-dev
 
 Download and build
 ------------------

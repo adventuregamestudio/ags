@@ -55,7 +55,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'" Label="PropertySheets">
@@ -63,7 +62,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
@@ -71,7 +69,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'" Label="PropertySheets">
@@ -79,7 +76,6 @@
     <Import Project="..\libogg.props" />
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
-    <Import Project="..\directx.props" />
     <Import Project="..\sdl2.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />

@@ -23,6 +23,7 @@
 #include "ac/string.h"
 #include "gui/guimain.h"
 #include "debug/debug_log.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 
@@ -99,7 +100,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   char buff[200];
 
   String svg_dir = get_save_game_directory();
-  String searchPath = String::FromFormat("%s""agssave.*", svg_dir.GetCStr());
+  String searchPath = Path::ConcatPaths(svg_dir, "agssave.*");
 
   int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
   while (!don) {

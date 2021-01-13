@@ -25,6 +25,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "debug/debug_log.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -304,7 +305,7 @@ void preparesavegamelist(int ctrllist)
 
   String svg_dir = get_save_game_directory();
   String svg_suff = get_save_game_suffix();
-  String searchPath = String::FromFormat("%s""agssave.*%s", svg_dir.GetCStr(), svg_suff.GetCStr());
+  String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.*%s", svg_suff.GetCStr()));
 
   int don = al_findfirst(searchPath, &ffb, -1);
   while (!don) {

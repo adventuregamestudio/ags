@@ -10,7 +10,7 @@ CFLAGS := -O2 -g \
     -fsigned-char -fno-strict-aliasing -fwrapv \
     -Wunused-result \
     -Wno-unused-value  \
-    -Werror=write-strings -Werror=format -Werror=format-security -Werror=implicit-function-declaration \
+    -Werror=write-strings -Werror=format -Werror=format-security \
     -DNDEBUG \
     -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
     -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO -DAGS_RUNTIME_PATCH_ALLEGRO \
@@ -19,7 +19,6 @@ CFLAGS := -O2 -g \
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
-LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)
 LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)
@@ -33,12 +32,13 @@ else
   LIBS += $(shell pkg-config --libs vorbis)
 endif
 LIBS += $(shell pkg-config --libs vorbisfile)
-LIBS += -ldl -lpthread -lc -lm -lstdc++
 
 ifneq ($(USE_BUILT_IN_LIBSRC), 1)
 ALDUMB :=
-LIBS += -Wl,--push-state,-Bstatic -laldmb -ldumb -Wl,--pop-state
+LIBS += -laldmb -ldumb
 endif
+
+LIBS += -ldl -lpthread -lm
 
 ifeq ($(ALLEGRO_MAGIC_DRV), 1)
   CFLAGS += -DALLEGRO_MAGIC_DRV
@@ -56,6 +56,7 @@ CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
 LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
+CFLAGS   += -Werror=implicit-function-declaration
 
 ifneq (,$(RPATH))
   LDFLAGS  += -Wl,-rpath,'$$ORIGIN/$(RPATH)'

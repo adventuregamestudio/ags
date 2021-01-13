@@ -12,6 +12,13 @@ namespace AGS.Editor
     public static class BitmapExtensions
     {
         /// <summary>
+        /// Gets an integer with the color depth of the image.
+        /// </summary>
+        /// <param name="bmp">The image to get the color depth from.</param>
+        /// <returns>An integer with the color depth.</returns>
+        public static int GetColorDepth(this Bitmap bmp) => Image.GetPixelFormatSize(bmp.PixelFormat);
+
+        /// <summary>
         /// Gives a scaled deep copy of the input image.
         /// </summary>
         /// <param name="bmp">The image to copy and scale.</param>

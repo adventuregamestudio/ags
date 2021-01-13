@@ -51,7 +51,7 @@ namespace AGS.Types
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private bool _compressSprites = false;
-        private bool _experimentalCompiler = true;
+        private bool _experimentalCompiler = false;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
@@ -280,7 +280,7 @@ namespace AGS.Types
 
         [DisplayName("Use extended script compiler")]
         [Description("The extended script compiler has more features but may still have some bugs, too")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         [Category("Compiler")]
         public bool ExtendedCompiler
         {

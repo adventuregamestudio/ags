@@ -933,3 +933,17 @@ TEST_F(Compile1, ComponentOfNonStruct2) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'.'"));
 }
+
+TEST_F(Compile1, EmptySection) {
+
+    // An empty last section should not result in an endless loop.
+
+    char *inpl = "\
+\"__NEWSCRIPTSTART_FOO\"     \n\
+\"__NEWSCRIPTSTART_BAR\"      \n\
+        ";
+
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}

@@ -198,27 +198,26 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
 
 void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
 {
+    if (max_count == 0)
+        return; // duh
+
     String svg_dir = get_save_game_directory();
     String svg_suff = get_save_game_suffix();
-    String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.*%s", svg_suff.GetCStr()));
+    String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.???%s", svg_suff.GetCStr()));
 
     al_ffblk ffb;
-    int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
-    while (!don)
+    for (int don = al_findfirst(searchPath, &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
     {
-        if (saves.size() >= max_count)
-            break;
-        // only list games .000 to .099 (to allow higher slots for other perposes)
-        if (strstr(ffb.name, ".0") == nullptr) {
-            don = al_findnext(&ffb);
-            continue;
-        }
-        const char *numberExtension = strstr(ffb.name, ".0") + 1;
+        const char *numberExtension = strstr(ffb.name, ".") + 1;
         int saveGameSlot = atoi(numberExtension);
+        // only list games .000 to .099 (to allow higher slots for other perposes)
+        if (saveGameSlot > 99)
+            continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
         saves.push_back(SaveListItem(saveGameSlot, description, ffb.time));
-        don = al_findnext(&ffb);
+        if (saves.size() >= max_count)
+            break;
     }
     al_findclose(&ffb);
 }

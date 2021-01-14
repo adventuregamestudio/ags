@@ -536,11 +536,7 @@ String find_assetlib(const String &filename)
 
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
 {
-    if (bundling_type == AUCL_BUNDLE_EXE)
-        return AssetPath(filename, "");
-    else if (bundling_type == AUCL_BUNDLE_VOX)
-        return AssetPath(filename, "audio");
-    return AssetPath();
+    return AssetPath(filename, "audio");
 }
 
 AssetPath get_voice_over_assetpath(const String &filename)

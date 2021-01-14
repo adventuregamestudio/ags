@@ -153,15 +153,15 @@ int IsGamePaused() {
     return 0;
 }
 
-int GetSaveSlotDescription(int slnum,char*desbuf) {
+int GetSaveSlotDescription(int slnum, char *desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description))
     {
-        strcpy(desbuf, description);
+        snprintf(desbuf, MAX_MAXSTRLEN, "%s", description.GetCStr());
         return 1;
     }
-    sprintf(desbuf,"INVALID SLOT %d", slnum);
+    snprintf(desbuf, MAX_MAXSTRLEN, "INVALID SLOT %d", slnum);
     return 0;
 }
 

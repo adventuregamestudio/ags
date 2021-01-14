@@ -1006,3 +1006,24 @@ TEST_F(Compile1, ImportAutoptr2) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST_F(Compile1, AttribInc) {
+
+    // Import decls of autopointered variables must be processed correctly.
+
+    char *inpl = "\
+        builtin managed struct Object       \n\
+        {                                   \n\
+            import attribute int  Graphic;  \n\
+        } obj;                              \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            obj.Graphic++;                  \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+

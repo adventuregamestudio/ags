@@ -966,3 +966,43 @@ TEST_F(Compile1, AutoptrDisplay) {
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     ASSERT_EQ(std::string::npos, msg.find("'String '"));
 }
+
+TEST_F(Compile1, ImportAutoptr1) {
+
+    // Import decls of funcs with autopointered returns must be processed correctly.
+
+    char *inpl = "\
+        internalstring autoptr builtin      \n\
+            managed struct String           \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        import String foo(int);             \n\
+                                            \n\
+        String foo(int bar)                 \n\
+        {                                   \n\
+            return null;                    \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile1, ImportAutoptr2) {
+
+    // Import decls of autopointered variables must be processed correctly.
+
+    char *inpl = "\
+        internalstring autoptr builtin      \n\
+            managed struct String           \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        import String foo;                  \n\
+        String foo;                         \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}

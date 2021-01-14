@@ -153,16 +153,19 @@ int IsGamePaused() {
     return 0;
 }
 
+bool GetSaveSlotDescription(int slnum, String &description) {
+    if (read_savedgame_description(get_save_game_path(slnum), description))
+        return true;
+    description.Format("INVALID SLOT %d", slnum);
+    return false;
+}
+
 int GetSaveSlotDescription(int slnum, char *desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description))
-    {
-        snprintf(desbuf, MAX_MAXSTRLEN, "%s", description.GetCStr());
-        return 1;
-    }
-    snprintf(desbuf, MAX_MAXSTRLEN, "INVALID SLOT %d", slnum);
-    return 0;
+    bool res = GetSaveSlotDescription(slnum, description);
+    snprintf(desbuf, MAX_MAXSTRLEN, "%s", description.GetCStr());
+    return res ? 1 : 0;
 }
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
@@ -191,6 +194,33 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     add_dynamic_sprite(gotSlot, newPic);
 
     return gotSlot;
+}
+
+void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
+{
+    String svg_dir = get_save_game_directory();
+    String svg_suff = get_save_game_suffix();
+    String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.*%s", svg_suff.GetCStr()));
+
+    al_ffblk ffb;
+    int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
+    while (!don)
+    {
+        if (saves.size() >= max_count)
+            break;
+        // only list games .000 to .099 (to allow higher slots for other perposes)
+        if (strstr(ffb.name, ".0") == nullptr) {
+            don = al_findnext(&ffb);
+            continue;
+        }
+        const char *numberExtension = strstr(ffb.name, ".0") + 1;
+        int saveGameSlot = atoi(numberExtension);
+        String description;
+        GetSaveSlotDescription(saveGameSlot, description);
+        saves.push_back(SaveListItem(saveGameSlot, description, ffb.time));
+        don = al_findnext(&ffb);
+    }
+    al_findclose(&ffb);
 }
 
 void SetGlobalInt(int index,int valu) {

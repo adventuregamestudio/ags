@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <algorithm>
 #include <set>
 #include "ac/listbox.h"
 #include "ac/common.h"
@@ -91,64 +91,29 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
 }
 
 int ListBox_FillSaveGameList(GUIListBox *listbox) {
+  // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
+  std::vector<SaveListItem> saves;
+  FillSaveList(saves, MAXSAVEGAMES);
+  std::sort(saves.rbegin(), saves.rend());
+
+  // fill in the list box
   listbox->Clear();
-
-  int numsaves=0;
-  int bufix=0;
-  al_ffblk ffb; 
-  long filedates[MAXSAVEGAMES];
-  char buff[200];
-
-  String svg_dir = get_save_game_directory();
-  String searchPath = Path::ConcatPaths(svg_dir, "agssave.*");
-
-  int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
-  while (!don) {
-    bufix=0;
-    if (numsaves >= MAXSAVEGAMES)
-      break;
-    // only list games .000 to .099 (to allow higher slots for other perposes)
-    if (strstr(ffb.name,".0")==nullptr) {
-      don = al_findnext(&ffb);
-      continue;
-    }
-    const char *numberExtension = strstr(ffb.name, ".0") + 1;
-    int saveGameSlot = atoi(numberExtension);
-    GetSaveSlotDescription(saveGameSlot, buff);
-    listbox->AddItem(buff);
-    listbox->SavedGameIndex[numsaves] = saveGameSlot;
-    filedates[numsaves]=(long int)ffb.time;
-    numsaves++;
-    don = al_findnext(&ffb);
-  }
-  al_findclose(&ffb);
-
-  int nn;
-  for (nn=0;nn<numsaves-1;nn++) {
-    for (int kk=0;kk<numsaves-1;kk++) {  // Date order the games
-
-      if (filedates[kk] < filedates[kk+1]) {   // swap them round
-        String tempptr = listbox->Items[kk];
-        listbox->Items[kk] = listbox->Items[kk+1];
-        listbox->Items[kk+1] = tempptr;
-        int numtem = listbox->SavedGameIndex[kk];
-        listbox->SavedGameIndex[kk] = listbox->SavedGameIndex[kk+1];
-        listbox->SavedGameIndex[kk+1] = numtem;
-        long numted=filedates[kk]; filedates[kk]=filedates[kk+1];
-        filedates[kk+1]=numted;
-      }
-    }
+  for (const auto &item : saves)
+  {
+    listbox->AddItem(item.Description);
+    listbox->SavedGameIndex[listbox->ItemCount - 1] = item.Slot;
   }
 
   // update the global savegameindex[] array for backward compatibilty
-  for (nn = 0; nn < numsaves; nn++) {
-    play.filenumbers[nn] = listbox->SavedGameIndex[nn];
+  for (size_t n = 0; n < saves.size(); ++n)
+  {
+    play.filenumbers[n] = saves[n].Slot;
   }
 
   guis_need_update = 1;
   listbox->SetSvgIndex(true);
 
-  if (numsaves >= MAXSAVEGAMES)
+  if (saves.size() >= MAXSAVEGAMES)
     return 1;
   return 0;
 }

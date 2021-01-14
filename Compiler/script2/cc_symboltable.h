@@ -424,6 +424,7 @@ public:
 
     // Structs
     inline bool IsStructVartype(Symbol s) const { return IsVTF(s, VTF::kStruct); }
+    inline bool IsAutoptrVartype(Symbol s) const { return IsVTF(s, VTF::kAutoptr); }
     // Fills compo_list with the symbols of all the strct components. Includes the ancestors' components
     void GetComponentsOfStruct(Symbol strct, std::vector<Symbol> &compo_list) const;
     // Find the description of a component.

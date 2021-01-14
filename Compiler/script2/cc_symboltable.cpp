@@ -387,6 +387,14 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
+    if (IsAutoptrVartype(symbl))
+    {
+        std::string name = entries[symbl].Name;
+        int const pos_of_last_ch = name.length() - 1;
+        if (pos_of_last_ch >= 0 && ' ' == name[pos_of_last_ch])
+            name.resize(pos_of_last_ch); // cut off trailing ' '
+        return name;
+    }
     return entries[symbl].Name;
 }
 

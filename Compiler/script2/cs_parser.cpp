@@ -5881,8 +5881,14 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
         (kKW_NoSymbol != name_of_current_func) ? ScT::kLocal :
         (tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
 
-    // Only imply a pointer for a managed entity if it isn't imported.
-    if ((ScT::kImport == scope_type && kKW_Dynpointer == _src.PeekNext()) ||
+    // Imply a pointer for managed vartypes. However, do NOT
+    // do this in import statements. (Reason: automatically
+    // generated code does things like "import Object oFoo;" and
+    // then it really does mean "Object", not "Object *".
+    // This can only happen in automatically generated code:
+    // Users are never allowed to define unpointered managed entities.
+    if (kKW_Dynpointer == _src.PeekNext() ||
+        _sym.IsAutoptrVartype(vartype) ||
         (ScT::kImport != scope_type && _sym.IsManagedVartype(vartype)))
     {
         vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);

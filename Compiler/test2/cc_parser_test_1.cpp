@@ -947,3 +947,22 @@ TEST_F(Compile1, EmptySection) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST_F(Compile1, AutoptrDisplay) {
+
+    // Autopointered types should not be shown with trailing ' ' in messages
+    char *inpl = "\
+        internalstring autoptr builtin      \n\
+            managed struct String           \n\
+        {                                   \n\
+        };                                  \n\
+        void main() {                       \n\
+            String s = 17;                  \n\
+        }                                   \n\
+        ";
+
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    ASSERT_EQ(std::string::npos, msg.find("'String '"));
+}

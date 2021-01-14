@@ -4180,7 +4180,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol ass_symbol, SrcList &
         return kERR_None;
     }
 
-    retval = ParseAssignment_Assign(lhs); // moves cursor to end of LHS
+    retval = AccessData_AssignTo(lhs); // moves cursor to end of LHS
     if (retval < 0) return retval; 
     _src.GetNext(); // Eat ++ or --
     return kERR_None;
@@ -5458,7 +5458,16 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
     }
 
     // Take struct that has just been defined as the vartype of a declaration
-    return ParseVartype(stname, tqs, struct_of_current_func, name_of_current_func);
+    // Take struct that has just been defined as the vartype of a declaration
+    // Those type qualifiers that are used to define the struct type
+    // have been used up, so reset them
+    TypeQualifierSet vardecl_tqs = tqs;
+    vardecl_tqs[TQ::kAutoptr] = false;
+    vardecl_tqs[TQ::kBuiltin] = false;
+    vardecl_tqs[TQ::kManaged] = false;
+    vardecl_tqs[TQ::kStringstruct] = false;
+
+    return ParseVartype(stname, vardecl_tqs, struct_of_current_func, name_of_current_func);
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows

@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <algorithm>
 #include <cstdio>
 #include "gui/guidialog.h"
 
@@ -20,11 +20,13 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "debug/debug_log.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -297,67 +299,22 @@ int savegamedialog()
 
 void preparesavegamelist(int ctrllist)
 {
-  numsaves = 0;
-  toomanygames = 0;
-  al_ffblk ffb;
-  int bufix = 0;
+  // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
+  std::vector<SaveListItem> saves;
+  FillSaveList(saves, MAXSAVEGAMES);
+  std::sort(saves.rbegin(), saves.rend());
 
-  String svg_dir = get_save_game_directory();
-  String svg_suff = get_save_game_suffix();
-  String searchPath = String::FromFormat("%s""agssave.*%s", svg_dir.GetCStr(), svg_suff.GetCStr());
-
-  int don = al_findfirst(searchPath, &ffb, -1);
-  while (!don) {
-    bufix = 0;
-    if (numsaves >= MAXSAVEGAMES) {
-      toomanygames = 1;
-      break;
-    }
-
-    // only list games .000 to .099 (to allow higher slots for other purposes)
-    if (strstr(ffb.name, ".0") == nullptr) {
-      don = al_findnext(&ffb);
-      continue;
-    }
-
-    const char *numberExtension = strstr(ffb.name, ".0") + 1;
-    int sgNumber = atoi(numberExtension);
-
-    String thisGamePath = get_save_game_path(sgNumber);
-
-    // get description
-    String description;
-    read_savedgame_description(thisGamePath, description);
-
-    CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)description.GetCStr());
-    // Select the first item
-    CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
-    filenumbers[numsaves] = sgNumber;
-    filedates[numsaves] = (long int)ffb.time;
-    numsaves++;
-    don = al_findnext(&ffb);
+  // fill in the list box and global savegameindex[] array for backward compatibilty
+  numsaves = (int)saves.size();
+  toomanygames = (numsaves >= MAXSAVEGAMES) ? 1 : 0;
+  for (const auto &item : saves)
+  {
+      CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)item.Description.GetCStr());
+      filenumbers[numsaves] = item.Slot;
+      filedates[numsaves] = (long int)item.FileTime;
   }
-
-  al_findclose(&ffb);
-  if (numsaves >= MAXSAVEGAMES)
-    toomanygames = 1;
-
-  for (int nn = 0; nn < numsaves - 1; nn++) {
-    for (int kk = 0; kk < numsaves - 1; kk++) { // Date order the games
-      if (filedates[kk] < filedates[kk + 1]) {  // swap them round
-        CSCISendControlMessage(ctrllist, CLB_GETTEXT, kk, (long)&buff[0]);
-        CSCISendControlMessage(ctrllist, CLB_GETTEXT, kk + 1, (long)&buffer2[0]);
-        CSCISendControlMessage(ctrllist, CLB_SETTEXT, kk + 1, (long)&buff[0]);
-        CSCISendControlMessage(ctrllist, CLB_SETTEXT, kk, (long)&buffer2[0]);
-        int numtem = filenumbers[kk];
-        filenumbers[kk] = filenumbers[kk + 1];
-        filenumbers[kk + 1] = numtem;
-        long numted = filedates[kk];
-        filedates[kk] = filedates[kk + 1];
-        filedates[kk + 1] = numted;
-      }
-    }
-  }
+  // Select the first item
+  CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
 }
 
 void enterstringwindow(const char *prompttext, char *stouse)

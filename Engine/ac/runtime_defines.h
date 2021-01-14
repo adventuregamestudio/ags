@@ -21,7 +21,7 @@
 #undef MAX_TIMERS
 #endif
 
-// Max script string length
+// Max old-style script string length
 #define MAX_MAXSTRLEN 200
 #define MAXGLOBALVARS 50
 

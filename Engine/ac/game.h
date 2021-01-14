@@ -134,6 +134,7 @@ void restore_after_dialog();
 Common::String get_save_game_directory();
 Common::String get_save_game_suffix();
 void set_save_game_suffix(const Common::String &suffix);
+// Returns full path to the save for the given slot number
 Common::String get_save_game_path(int slotNum);
 void restore_game_dialog();
 void save_game_dialog();

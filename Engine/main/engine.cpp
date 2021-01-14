@@ -447,16 +447,22 @@ void engine_locate_audio_pak()
 // Assign asset locations to the AssetManager
 void engine_assign_assetpaths()
 {
+    AssetMgr->AddLibrary(ResPaths.GamePak.Path, ",audio"); // main pack may have audio bundled too
+    // The asset filters are currently a workaround for limiting search to certain locations;
+    // this is both an optimization and to prevent unexpected behavior.
+    // - empty filter is for regular files
+    // audio - audio clips
+    // voice - voice-over clips
     // NOTE: we add extra optional directories first because they should have higher priority
     // TODO: maybe change AssetManager library order to stack-like later (last added = top priority)?
     if (!ResPaths.DataDir2.IsEmpty() && Path::ComparePaths(ResPaths.DataDir2, ResPaths.DataDir) != 0)
-        AssetMgr->AddLibrary(ResPaths.DataDir2, ",audio,voice");
+        AssetMgr->AddLibrary(ResPaths.DataDir2, ",audio,voice"); // dir may have anything
     if (!ResPaths.AudioDir2.IsEmpty() && Path::ComparePaths(ResPaths.AudioDir2, ResPaths.DataDir) != 0)
         AssetMgr->AddLibrary(ResPaths.AudioDir2, "audio");
     if (!ResPaths.VoiceDir2.IsEmpty() && Path::ComparePaths(ResPaths.VoiceDir2, ResPaths.DataDir) != 0)
         AssetMgr->AddLibrary(ResPaths.VoiceDir2, "voice");
 
-    AssetMgr->AddLibrary(ResPaths.DataDir, ",audio,voice");
+    AssetMgr->AddLibrary(ResPaths.DataDir, ",audio,voice"); // dir may have anything
     if (!ResPaths.AudioPak.Path.IsEmpty())
         AssetMgr->AddLibrary(ResPaths.AudioPak.Path, "audio");
     if (!ResPaths.SpeechPak.Path.IsEmpty())

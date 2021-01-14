@@ -153,17 +153,20 @@ int IsGamePaused() {
     return 0;
 }
 
+bool GetSaveSlotDescription(int slnum, String &description) {
+    if (read_savedgame_description(get_save_game_path(slnum), description))
+        return true;
+    description.Format("INVALID SLOT %d", slnum);
+    return false;
+}
+
 // CLNUP check this, used by ListBox_FillSaveGameList, but Game_GetSaveSlotDescription exist too
-int GetSaveSlotDescription(int slnum,char*desbuf) {
+int GetSaveSlotDescription(int slnum, char *desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description))
-    {
-        strcpy(desbuf, description);
-        return 1;
-    }
-    sprintf(desbuf,"INVALID SLOT %d", slnum);
-    return 0;
+    bool res = GetSaveSlotDescription(slnum, description);
+    snprintf(desbuf, MAX_MAXSTRLEN, "%s", description.GetCStr());
+    return res ? 1 : 0;
 }
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
@@ -191,6 +194,32 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     add_dynamic_sprite(gotSlot, newPic);
 
     return gotSlot;
+}
+
+void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
+{
+    if (max_count == 0)
+        return; // duh
+
+    String svg_dir = get_save_game_directory();
+    String svg_suff = get_save_game_suffix();
+    String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.???%s", svg_suff.GetCStr()));
+
+    al_ffblk ffb;
+    for (int don = al_findfirst(searchPath, &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
+    {
+        const char *numberExtension = strstr(ffb.name, ".") + 1;
+        int saveGameSlot = atoi(numberExtension);
+        // only list games .000 to .099 (to allow higher slots for other perposes)
+        if (saveGameSlot > 99)
+            continue;
+        String description;
+        GetSaveSlotDescription(saveGameSlot, description);
+        saves.push_back(SaveListItem(saveGameSlot, description, ffb.time));
+        if (saves.size() >= max_count)
+            break;
+    }
+    al_findclose(&ffb);
 }
 
 void SetGlobalInt(int index,int valu) {

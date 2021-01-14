@@ -151,7 +151,6 @@ String saveGameDirectory = "./";
 // Custom save game parent directory
 String saveGameParent;
 
-const char* sgnametemplate = "agssave.%03d";
 String saveGameSuffix;
 
 int game_paused=0;
@@ -321,9 +320,14 @@ void set_save_game_suffix(const String &suffix)
     saveGameSuffix = suffix;
 }
 
-String get_save_game_path(int slotNum) {
-    String filename = String::FromFormat(sgnametemplate, slotNum);
-    return Path::MakePath(saveGameDirectory, filename, saveGameSuffix);
+String get_save_game_filename(int slotNum)
+{
+    return String::FromFormat("agssave.%03d%s", slotNum, saveGameSuffix.GetCStr());
+}
+
+String get_save_game_path(int slotNum)
+{
+    return Path::ConcatPaths(saveGameDirectory, get_save_game_filename(slotNum));
 }
 
 // Convert a path possibly containing path tags into acceptable save path
@@ -418,7 +422,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         return false;
 
     // copy the Restart Game file, if applicable
-    String restartGamePath = Path::ConcatPaths(saveGameDirectory, String::FromFormat("agssave.%d%s", RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr()));
+    String restartGamePath = Path::ConcatPaths(saveGameDirectory, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
     Stream *restartGameFile = File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
     {
@@ -427,7 +431,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        restartGamePath = Path::ConcatPaths(newSaveGameDir, String::FromFormat("agssave.%d%s", RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr()));
+        restartGamePath = Path::ConcatPaths(newSaveGameDir, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
         restartGameFile = File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;

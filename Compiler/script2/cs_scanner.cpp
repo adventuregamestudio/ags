@@ -51,6 +51,10 @@ void AGS::Scanner::NewSection(std::string const &section)
 
 AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
+    symstring = "";
+    scan_type = kSct_Unspecified;
+    value = 0;
+
     ErrorType retval = SkipWhitespace();
     if (retval < 0) return kERR_UserError;
     if (EOFReached()) return kERR_None;
@@ -168,6 +172,12 @@ AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
         ErrorType retval = GetNextSymstring(symstring, scan_type, value);
         if (retval < 0) return retval;
 
+        if (symstring.empty())
+        {
+            symbol = kKW_NoSymbol;
+            return _ocMatcher.EndOfInputCheck();
+        }
+
         if (kSct_SectionChange != scan_type)
             break;
 
@@ -175,12 +185,6 @@ AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
         if (retval < 0) return retval;
 
         NewSection(symstring);
-    }
-
-    if (symstring.empty())
-    {
-        symbol = kKW_NoSymbol;
-        return _ocMatcher.EndOfInputCheck();
     }
 
     ErrorType retval = SymstringToSym(symstring, scan_type, value, symbol);

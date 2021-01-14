@@ -5458,7 +5458,6 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
     }
 
     // Take struct that has just been defined as the vartype of a declaration
-    // Take struct that has just been defined as the vartype of a declaration
     // Those type qualifiers that are used to define the struct type
     // have been used up, so reset them
     TypeQualifierSet vardecl_tqs = tqs;

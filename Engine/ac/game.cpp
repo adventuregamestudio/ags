@@ -150,7 +150,6 @@ String saveGameDirectory = "./";
 // Custom save game parent directory
 String saveGameParent;
 
-const char* sgnametemplate = "agssave.%03d";
 String saveGameSuffix;
 
 int game_paused=0;
@@ -321,8 +320,8 @@ void set_save_game_suffix(const String &suffix)
 }
 
 String get_save_game_path(int slotNum) {
-    String filename = String::FromFormat(sgnametemplate, slotNum);
-    return Path::MakePath(saveGameDirectory, filename, saveGameSuffix);
+    String filename = String::FromFormat("agssave.%03d%s", slotNum, saveGameSuffix.GetCStr());
+    return Path::ConcatPaths(saveGameDirectory, filename);
 }
 
 // Convert a path possibly containing path tags into acceptable save path

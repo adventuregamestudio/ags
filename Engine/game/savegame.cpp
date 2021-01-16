@@ -58,7 +58,7 @@
 using namespace Common;
 using namespace Engine;
 
-// function is currently implemented in game.cpp
+// function is currently implemented in savegame_v321.cpp
 HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
 
 extern GameSetupStruct game;

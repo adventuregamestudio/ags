@@ -17,6 +17,7 @@
 #include "ac/global_game.h"
 #include "ac/global_video.h"
 #include "ac/path_helper.h"
+#include "core/assetmanager.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "media/video/video.h"
@@ -24,6 +25,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/string_compat.h"
 
+using namespace AGS::Common;
 
 void scrPlayVideo(const char* name, int skip, int flags) {
     EndSkippingUntilCharStops();

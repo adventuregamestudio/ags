@@ -650,7 +650,7 @@ void detect_roomviewport_overlaps(size_t z_index)
         const int this_id = this_view->GetID();
         bool is_overlap = false;
         if (!this_view->IsVisible()) continue;
-        for (size_t z_index2 = 0; z_index2 < z_index; ++z_index)
+        for (size_t z_index2 = 0; z_index2 < z_index; ++z_index2)
         {
             if (!viewports[z_index2]->IsVisible()) continue;
             if (AreRectsIntersecting(this_view->GetRect(), viewports[z_index2]->GetRect()))

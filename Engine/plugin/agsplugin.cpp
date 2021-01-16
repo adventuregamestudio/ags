@@ -550,7 +550,6 @@ void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int3
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
     debug_script_log("[PLUGIN] %s", text);
-    platform->WriteStdOut("[PLUGIN] %s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {
     return ::IsChannelPlaying (channel);
@@ -569,7 +568,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         quit("IAGSEngine::PlaySoundChannel: streamed samples cannot loop");
 
     // TODO: find out how engine was supposed to decide on where to load the sound from
-    AssetPath asset_name("", filename);
+    AssetPath asset_name(filename, "audio");
 
     if (soundType == PSND_WAVE)
         newcha = my_load_wave (asset_name, volume, loop);
@@ -819,7 +818,8 @@ int IAGSEngine::IsRunningUnderDebugger()
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)
 {
-    get_install_dir_path(buffer, fileName);
+    // TODO: this is very unsafe, deprecate and make a better API function if still necessary
+    strcpy(buffer, PathFromInstallDir(fileName).GetCStr());
 }
 
 void IAGSEngine::BreakIntoDebugger()

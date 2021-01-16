@@ -170,11 +170,11 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
     src = MainGameSource();
     // Try to find and open main game file
     String filename = MainGameSource::DefaultFilename_v3;
-    PStream in(AssetManager::OpenAsset(filename));
+    PStream in(AssetMgr->OpenAsset(filename));
     if (!in)
     {
         filename = MainGameSource::DefaultFilename_v2;
-        in = PStream(AssetManager::OpenAsset(filename));
+        in = PStream(AssetMgr->OpenAsset(filename));
     }
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
@@ -521,37 +521,33 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     audiocliptypes[3].reservedChannels = 0;
 
     audioclips.reserve(1000);
-    // Read audio clip names from "music.vox", then from main library
-    // TODO: this may become inconvenient that this code has to know about
-    // "music.vox"; there might be better ways to handle this.
-    // possibly making AssetManager download several libraries at once will
-    // resolve this (as well as make it unnecessary to switch between them)
     std::vector<String> assets;
-    // Append contents of "music.vox"
-    AssetLibInfo music_lib;
-    if (AssetManager::ReadDataFileTOC("music.vox", music_lib) == kAssetNoError)
+    // Read audio clip names from from registered libraries
+    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
     {
-        for (const AssetInfo &info : music_lib.AssetInfos)
-        {
-            if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)
-                assets.push_back(info.FileName);
-        }
-    }
-    // Append contents of the main game file
-    const AssetLibInfo *game_lib = AssetManager::GetLibraryTOC();
-    if (game_lib)
-    {
+        const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
+        if (Path::IsDirectory(game_lib->BasePath))
+            continue; // might be a directory
+
         for (const AssetInfo &info : game_lib->AssetInfos)
         {
             if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)
                 assets.push_back(info.FileName);
         }
     }
-    // Append contents of the game directory
-    // TODO: use explicit path instead of cwd? keep this consistent with AssetManager!
+    // Append contents of the registered directories
+    // TODO: implement pattern search or asset query with callback (either of two or both)
+    // within AssetManager to avoid doing this in place here. Alternatively we could maybe
+    // make AssetManager to do directory scans by demand and fill AssetInfos...
+    // but that have to be done consistently if done at all.
+    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
     {
+        const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
+        if (!Path::IsDirectory(game_lib->BasePath))
+            continue; // might be a library
+
         al_ffblk ff;
-        if (al_findfirst("*.*", &ff, FA_ALL & ~(FA_DIREC)) == 0)
+        if (al_findfirst(Path::ConcatPaths(game_lib->BasePath, "*.*"), &ff, FA_ALL & ~(FA_DIREC)) == 0)
         {
             do
             {

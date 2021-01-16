@@ -318,6 +318,7 @@ target_sources(engine
     game/savegame_components.cpp
     game/savegame_components.h
     game/savegame_internal.h
+    game/savegame_v321.cpp
     game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h

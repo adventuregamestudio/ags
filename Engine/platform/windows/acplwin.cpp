@@ -41,6 +41,7 @@
 #include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
 #include "util/file.h"
+#include "util/path.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
@@ -573,8 +574,7 @@ void DetermineAppOutputDirectory()
   bool log_to_saves_dir = false;
   if (win32SavedGamesDirectory[0])
   {
-    win32OutputDirectory = win32SavedGamesDirectory;
-    win32OutputDirectory.Append("\\.ags");
+    win32OutputDirectory = Path::ConcatPaths(win32SavedGamesDirectory, ".ags");
     log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
   }
 
@@ -753,7 +753,7 @@ void AGSWin32::PostBackendExit() {
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.data_files_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.main_data_dir, version_str);
 }
 
 void AGSWin32::WriteStdOut(const char *fmt, ...) {

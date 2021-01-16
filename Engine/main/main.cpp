@@ -58,8 +58,9 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-String appDirectory; // Needed for library loading
-String cmdGameDataPath;
+String appPath; // engine exe path
+String appDirectory; // engine dir
+String cmdGameDataPath; // game path received from cmdline
 
 char **global_argv = nullptr;
 int    global_argc = 0;
@@ -108,7 +109,7 @@ int psp_gfx_smooth_sprites = 0;
 void main_pre_init()
 {
     our_eip = -999;
-    Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
+    AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
     play.takeover_data = 0;
 }
 
@@ -145,7 +146,7 @@ void main_init(int argc, char*argv[])
     SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
     SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
 
-    Common::AssetManager::CreateInstance();
+    AssetMgr.reset(new AssetManager());
     main_pre_init();
     main_create_platform_driver();
 
@@ -220,7 +221,9 @@ void main_print_help() {
            "  --tell-config                Print contents of merged game config\n"
            "  --tell-configpath            Print paths to available config files\n"
            "  --tell-data                  Print information on game data and its location\n"
+           "  --tell-gameproperties        Print information on game general settings\n"
            "  --tell-engine                Print engine name and version\n"
+           "  --tell-filepath              Print all filepaths engine uses for the game\n"
            "  --tell-graphicdriver         Print list of supported graphic drivers\n"
            "\n"
            "  --version                    Print engine's version and stop\n"
@@ -291,12 +294,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             force_window = 1;
             ee++;
         }
-        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 3))
+        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {
             usetup.install_dir = argv[ee + 1];
-            usetup.install_audio_dir = argv[ee + 2];
-            usetup.install_voice_dir = argv[ee + 3];
-            ee += 3;
+            usetup.opt_data_dir = argv[ee + 2];
+            usetup.opt_audio_dir = argv[ee + 3];
+            usetup.opt_voice_dir = argv[ee + 4];
+            ee += 4;
         }
         else if (ags_stricmp(arg,"--takeover")==0) {
             if (argc < ee+2)
@@ -379,15 +383,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
 void main_set_gamedir(int argc, char*argv[])
 {
-    appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
+    appPath = GetPathFromCmdArg(0);
+    appDirectory = Path::GetDirectoryPath(appPath);
 
-    if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
-    {
-        // When launched by double-clicking a save game file, the curdir will
-        // be the save game folder unless we correct it
-        Directory::SetCurrentDirectory(appDirectory);
-    }
-    else
+    // TODO: remove following when supporting unicode paths
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
         // When *not* working in U_UNICODE filepath mode, whenever it gets

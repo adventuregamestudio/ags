@@ -86,7 +86,8 @@ namespace AGS.Types
             PropertyInfo[] properties = obj.GetType().GetProperties();
             foreach (PropertyInfo prop in properties)
             {
-                if (prop.GetCustomAttributes(typeof(AGSNoSerializeAttribute), true).Length > 0)
+                if (prop.GetCustomAttributes(typeof(AGSNoSerializeAttribute), true).Length > 0 ||
+                    prop.GetCustomAttributes(typeof(ObsoleteAttribute), true).Length > 0)
                 {
                     continue;
                 }
@@ -180,21 +181,13 @@ namespace AGS.Types
         /// <param name="node"></param>
         public static void DeserializePropertiesFromXML(object obj, XmlNode node)
         {
-            DeserializeIgnoreAttribute[] ignoreAttributes =
-                (DeserializeIgnoreAttribute[])obj.GetType().GetCustomAttributes(typeof(DeserializeIgnoreAttribute), true);
-
             foreach (XmlNode child in node.ChildNodes)
             {
                 string elementValue = child.InnerText;
                 PropertyInfo prop = obj.GetType().GetProperty(child.Name);
                 if (prop == null)
                 {
-                    if (ignoreAttributes.Length == 0 ||
-                        !Array.Exists(ignoreAttributes, DeserializeIgnoreAttribute.MatchesPropertyName(child.Name)))
-                    {
-                        throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
-                    }
-                    continue;
+                    throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
                 }
 
                 // Process any existing value conversions; this helps to upgrade game from older version

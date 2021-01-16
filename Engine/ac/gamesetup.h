@@ -51,12 +51,16 @@ struct GameSetup {
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;
-    String data_files_dir;
-    String main_data_filename;
-    String main_data_filepath;
-    String install_dir; // optional custom install dir path
-    String install_audio_dir; // optional custom install audio dir path
-    String install_voice_dir; // optional custom install voice-over dir path
+    String startup_dir; // directory where the default game config is located (usually same as main_data_dir)
+    String main_data_dir; // main data directory
+    String main_data_file; // full path to main data file
+    // Following 4 optional dirs are currently for compatibility with Editor only (debug runs)
+    // This is bit ugly, but remain so until more flexible configuration is designed
+    String install_dir; // optional custom install dir path (also used as extra data dir)
+    String opt_data_dir; // optional data dir number 2
+    String opt_audio_dir; // optional custom install audio dir path
+    String opt_voice_dir; // optional custom install voice-over dir path
+    //
     String user_data_dir; // directory to write savedgames and user files to
     String shared_data_dir; // directory to write shared game files to
     String translation;

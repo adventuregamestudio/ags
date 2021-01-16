@@ -57,6 +57,11 @@ namespace AGS.Editor
             _native.Initialize();
         }
 
+        public void NewWorkingDirSet(String workingDir)
+        {
+            _native.NewWorkingDirSet(workingDir);
+        }
+
         public void NewGameLoaded(Game game, List<string> errors)
         {
             _native.NewGameLoaded(game, errors);

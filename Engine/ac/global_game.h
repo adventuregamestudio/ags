@@ -21,12 +21,29 @@
 #include "util/string.h"
 using namespace AGS; // FIXME later
 
+struct SaveListItem
+{
+    int    Slot;
+    Common::String Description;
+    time_t FileTime = 0;
+
+    SaveListItem(int slot, const Common::String &desc, time_t ft)
+        : Slot(slot), Description(desc), FileTime(ft) {}
+
+    inline bool operator < (const SaveListItem &other) const
+    {
+        return FileTime < other.FileTime;
+    }
+};
+
+
 void GiveScore(int amnt);
 void restart_game();
 void RestoreGameSlot(int slnum);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);
+void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count = -1);
 void PauseGame();
 void UnPauseGame();
 int  IsGamePaused();

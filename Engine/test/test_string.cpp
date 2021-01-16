@@ -362,6 +362,21 @@ void Test_String()
         assert(strcmp(s3, "insert new string here: NEW STRING") == 0);
     }
 
+    // Test Reverse
+    {
+        String s1 = "Reverse this string";
+        String s2 = s1;
+        s2.Reverse();
+        assert(strcmp(s2, "gnirts siht esreveR") == 0);
+        assert(strcmp(s1, "Reverse this string") == 0);
+        String s3 = "x";
+        s3.Reverse();
+        assert(strcmp(s3, "x") == 0);
+        String s4 = "xy";
+        s4.Reverse();
+        assert(strcmp(s4, "yx") == 0);
+    }
+
     // Test SetAt
     {
         String s1 = "strimg wiyh typos";

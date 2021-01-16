@@ -27,19 +27,19 @@ using AGS::Common::String;
 
 // Looks for valid asset library everywhere and returns path, or empty string if failed
 String  find_assetlib(const String &filename);
-// Looks up for known valid asset library and returns path, or empty string if failed
-String  get_known_assetlib(const String &filename);
-// Looks for asset everywhere and returns opened stream, or NULL if failed
-Stream *find_open_asset(const String &filename);
 
 extern "C" {
     struct PACKFILE; // Allegro 4's own stream type
 }
 
-// AssetPath combines asset library and item names
-// TODO: implement support for registering multiple libraries at once for
-// the AssetManager, then we could remove assetlib parameter.
-typedef std::pair<String, String> AssetPath;
+// AssetPath combines asset name and optional library filter, that serves to narrow down the search
+struct AssetPath
+{
+    String Name;
+    String Filter;
+
+    AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
+};
 
 // Returns the path to the audio asset, considering the given bundling type
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);

@@ -39,6 +39,7 @@
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
 
@@ -109,10 +110,10 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
         DebugLogFile.reset(new LogFile());
-        String logfile_path = !path.IsEmpty() ? path : String::FromFormat("%s/ags.log", platform->GetAppOutputDirectory());
+        String logfile_path = !path.IsEmpty() ? path : Path::ConcatPaths(platform->GetAppOutputDirectory(), "ags.log");
         if (!DebugLogFile->OpenFile(logfile_path, open_mode))
             return nullptr;
-        platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
+        Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
         auto dbgout = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
         return dbgout;
     }

@@ -24,13 +24,12 @@ TreeMap::TreeMap() {
     translation = nullptr;
 }
 
-char* TreeMap::findValue (const char* key) {
+const char* TreeMap::findValue (const char* key) const {
     if (text == nullptr)
         return nullptr;
 
     if (strcmp(key, text) == 0)
         return translation;
-    //debug_script_warn("Compare: '%s' with '%s'", key, text);
 
     if (strcmp (key, text) < 0) {
         if (left == nullptr)

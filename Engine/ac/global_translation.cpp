@@ -18,6 +18,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
+#include "ac/translation.h"
 #include "ac/tree_map.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -29,8 +30,6 @@ using namespace AGS::Common::Memory;
 
 extern GameState play;
 extern AGSPlatformDriver *platform;
-extern TreeMap *transtree;
-extern char transFileName[MAX_PATH];
 
 const char *get_translation (const char *text) {
     if (text == nullptr)
@@ -47,9 +46,10 @@ const char *get_translation (const char *text) {
     }
 #endif
 
+    const auto *transtree = get_translation_tree();
     if (transtree != nullptr) {
         // translate the text using the translation file
-        char * transl = transtree->findValue (text);
+        const char * transl = transtree->findValue (text);
         if (transl != nullptr)
             return transl;
     }
@@ -58,28 +58,13 @@ const char *get_translation (const char *text) {
 }
 
 int IsTranslationAvailable () {
-    if (transtree != nullptr)
+    if (get_translation_tree() != nullptr)
         return 1;
     return 0;
 }
 
 int GetTranslationName (char* buffer) {
     VALIDATE_STRING (buffer);
-    const char *copyFrom = transFileName;
-
-    while (strchr(copyFrom, '\\') != nullptr)
-    {
-        copyFrom = strchr(copyFrom, '\\') + 1;
-    }
-    while (strchr(copyFrom, '/') != nullptr)
-    {
-        copyFrom = strchr(copyFrom, '/') + 1;
-    }
-
-    strcpy (buffer, copyFrom);
-    // remove the ".tra" from the end of the filename
-    if (strstr (buffer, ".tra") != nullptr)
-        strstr (buffer, ".tra")[0] = 0;
-
+    strcpy(buffer, get_translation_name().GetCStr());
     return IsTranslationAvailable();
 }

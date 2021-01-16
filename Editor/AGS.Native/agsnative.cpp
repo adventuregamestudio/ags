@@ -39,6 +39,9 @@ using AGS::Types::AGSEditorException;
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
+using AGS::Common::AssetLibInfo;
+using AGS::Common::AssetManager;
+using AGS::Common::AssetMgr;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
@@ -372,21 +375,21 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
 
 HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber)
 {
-  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  const AssetLibInfo *lib = nullptr;
+  std::unique_ptr<AssetManager> templateMgr(new AssetManager());
+  auto err = templateMgr->AddLibrary(templateFileName, &lib);
   if (err != Common::kAssetNoError) 
   {
     return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
   }
-  if (Common::AssetManager::GetAssetOffset(ROOM_TEMPLATE_ID_FILE) < 1)
+  if (!templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
   {
-    Common::AssetManager::SetDataFile(NULL);
     return new AGSError("Template file does not contain necessary metadata.");
   }
 
-  int numFile = Common::AssetManager::GetAssetCount();
-
-  for (int a = 0; a < numFile; a++) {
-    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+  size_t numFile = lib->AssetInfos.size();
+  for (size_t a = 0; a < numFile; a++) {
+    AGSString thisFile = lib->AssetInfos[a].FileName;
     if (thisFile.IsEmpty())
       continue; // should not normally happen
 
@@ -394,10 +397,10 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    soff_t size = 0;
+    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
     if (!readin)
     {
-      Common::AssetManager::SetDataFile(NULL);
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
     }
     char outputName[MAX_PATH];
@@ -407,10 +410,9 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
     if (!wrout) 
     {
       delete readin;
-      Common::AssetManager::SetDataFile(NULL);
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
-    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
+    
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -419,26 +421,26 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
     delete[] membuff;
   }
 
-  Common::AssetManager::SetDataFile(NULL);
   return HAGSError::None();
 }
 
 HAGSError extract_template_files(const char *templateFileName)
 {
-  auto err = Common::AssetManager::SetDataFile(templateFileName);
+  const AssetLibInfo *lib = nullptr;
+  std::unique_ptr<AssetManager> templateMgr(new AssetManager());
+  auto err = templateMgr->AddLibrary(templateFileName, &lib);
   if (err != Common::kAssetNoError) 
   {
     return new AGSError("Failed to read the template file", Common::GetAssetErrorText(err));
   }
-  if ((Common::AssetManager::GetAssetOffset(old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset(new_editor_data_file) < 1))
+  if ((!templateMgr->DoesAssetExist(old_editor_data_file)) && (!templateMgr->DoesAssetExist(new_editor_data_file)))
   {
-    Common::AssetManager::SetDataFile(NULL);
     return new AGSError("Template file does not contain main project data.");
   }
 
-  int numFile = Common::AssetManager::GetAssetCount();
-  for (int a = 0; a < numFile; a++) {
-    AGSString thisFile = Common::AssetManager::GetAssetFileByIndex(a);
+  size_t numFile = lib->AssetInfos.size();
+  for (size_t a = 0; a < numFile; a++) {
+    AGSString thisFile = lib->AssetInfos[a].FileName;
     if (thisFile.IsEmpty())
       continue; // should not normally happen
 
@@ -446,10 +448,10 @@ HAGSError extract_template_files(const char *templateFileName)
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = Common::AssetManager::OpenAsset(thisFile);
+    soff_t size = 0;
+    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
     if (!readin)
     {
-      Common::AssetManager::SetDataFile(NULL);
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
     }
     Stream *wrout = Common::File::CreateFile(thisFile);
@@ -465,10 +467,8 @@ HAGSError extract_template_files(const char *templateFileName)
     if (!wrout)
     {
       delete readin;
-      Common::AssetManager::SetDataFile(NULL);
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
-    soff_t size = Common::AssetManager::GetAssetSize(thisFile);
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -477,16 +477,15 @@ HAGSError extract_template_files(const char *templateFileName)
     delete[] membuff;
   }
 
-  Common::AssetManager::SetDataFile(NULL);
   return HAGSError::None();
 }
 
-void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)
+void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char **iconDataBuffer, long *bufferSize)
 {
   // make sure we get the icon from the file
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityLib);
-  long sizey = Common::AssetManager::GetAssetSize(iconName);
-  Stream* inpu = Common::AssetManager::OpenAsset (iconName);
+  templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
+  soff_t sizey = 0;
+  Stream* inpu = templateMgr->OpenAsset (iconName, &sizey);
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
@@ -500,75 +499,70 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
     *iconDataBuffer = NULL;
     *bufferSize = 0;
   }
-  // restore to normal setting after NewGameChooser changes it
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
 }
 
 int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
 {
-  if (Common::AssetManager::SetDataFile(fileName) == Common::kAssetNoError)
+  const AssetLibInfo *lib = nullptr;
+  std::unique_ptr<AssetManager> templateMgr(new AssetManager());
+  if (templateMgr->AddLibrary(fileName, &lib) == Common::kAssetNoError)
   {
     if (isRoomTemplate)
     {
-      if (Common::AssetManager::GetAssetOffset((char*)ROOM_TEMPLATE_ID_FILE) > 0)
+      if (templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
       {
-        Stream *inpu = Common::AssetManager::OpenAsset((char*)ROOM_TEMPLATE_ID_FILE);
+        Stream *inpu = templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE);
         if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
         {
           delete inpu;
-		  Common::AssetManager::SetDataFile(NULL);
           return 0;
         }
         int roomNumber = inpu->ReadInt32();
         delete inpu;
         char iconName[MAX_PATH];
         sprintf(iconName, "room%d.ico", roomNumber);
-        if (Common::AssetManager::GetAssetOffset(iconName) > 0) 
+        if (templateMgr->DoesAssetExist(iconName))
         {
-          extract_icon_from_template(iconName, iconDataBuffer, iconDataSize);
+          extract_icon_from_template(templateMgr.get(), iconName, iconDataBuffer, iconDataSize);
         }
-		    Common::AssetManager::SetDataFile(NULL);
         return 1;
       }
-	  Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
-	  else if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) > 0) || (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) > 0))
+	  else if ((templateMgr->DoesAssetExist(old_editor_data_file)) || (templateMgr->DoesAssetExist(new_editor_data_file)))
 	  {
-      Common::String oriname = Common::AssetManager::GetLibraryBaseFile();
+      Common::String oriname = lib->BaseFileName;
       if ((strstr(oriname, ".exe") != NULL) ||
           (strstr(oriname, ".dat") != NULL) ||
           (strstr(oriname, ".ags") != NULL)) 
       {
         // wasn't originally meant as a template
-		  Common::AssetManager::SetDataFile(NULL);
 	      return 0;
       }
 
-	    Stream *inpu = Common::AssetManager::OpenAsset((char*)old_editor_main_game_file);
+	    Stream *inpu = templateMgr->OpenAsset(old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
 		    inpu->Seek(30);
 		    int gameVersion = inpu->ReadInt32();
 		    delete inpu;
+            // TODO: check this out, in theory we still support pre-2.72 game import
 		    if (gameVersion != 32)
 		    {
 			    // older than 2.72 template
-				Common::AssetManager::SetDataFile(NULL);
 			    return 0;
 		    }
 	    }
 
       int useIcon = 0;
       char *iconName = "template.ico";
-      if (Common::AssetManager::GetAssetOffset (iconName) < 1)
+      if (!templateMgr->DoesAssetExist(iconName))
         iconName = "user.ico";
       // the file is a CLIB file, so let's extract the icon to display
-      if (Common::AssetManager::GetAssetOffset (iconName) > 0) 
+      if (templateMgr->DoesAssetExist(iconName))
       {
-        extract_icon_from_template(iconName, iconDataBuffer, iconDataSize);
+        extract_icon_from_template(templateMgr.get(), iconName, iconDataBuffer, iconDataSize);
       }
-	    Common::AssetManager::SetDataFile(NULL);
       return 1;
     }
   }
@@ -1172,7 +1166,8 @@ void new_font () {
 
 bool initialize_native()
 {
-    Common::AssetManager::CreateInstance();
+    AssetMgr.reset(new AssetManager());
+    AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
 
 	set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
 	install_allegro(SYSTEM_NONE, &errno, atexit);
@@ -1207,7 +1202,7 @@ void shutdown_native()
     shutdown_font_renderer();
     spriteset.Reset();
     allegro_exit();
-    Common::AssetManager::DestroyInstance();
+    AssetMgr.reset();
 }
 
 void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
@@ -1753,7 +1748,7 @@ AGSString make_libfilename(const AGSString &data_filename)
 void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
     size_t numfile = filenames.size();
-    AGS::Common::AssetLibInfo lib;
+    AssetLibInfo lib;
 
     lib.LibFileNames.resize(1);
     lib.LibFileNames[0] = make_libfilename(dataFileName);
@@ -1814,20 +1809,20 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     }
 }
 
-Stream* find_file_in_path(char *buffer, const char *fileName)
+Stream* find_file_in_path(AssetManager *assetMgr, char *buffer, const char *fileName)
 {
 	char tomake[MAX_PATH];
 	strcpy(tomake, fileName);
-	Stream* iii = Common::AssetManager::OpenAsset(tomake);
+	Stream* iii = assetMgr->OpenAsset(tomake);
 	if (iii == NULL) {
 	  // try in the Audio folder if not found
 	  sprintf(tomake, "AudioCache\\%s", fileName);
-	  iii = Common::AssetManager::OpenAsset(tomake);
+	  iii = assetMgr->OpenAsset(tomake);
 	}
 	if (iii == NULL) {
 	  // no? maybe Speech then, templates include this
 	  sprintf(tomake, "Speech\\%s", fileName);
-	  iii = Common::AssetManager::OpenAsset(tomake);
+	  iii = assetMgr->OpenAsset(tomake);
 	}
 
 	if (buffer != NULL)
@@ -1841,9 +1836,9 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 {
   Stream*wout;
   char tomake[MAX_PATH];
-  AGS::Common::AssetLibInfo lib;
+  AssetLibInfo lib;
   lib.AssetInfos.resize(numFiles);
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
+  AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
 
   int currentDataFile = 0;
   long sizeSoFar = 0;
@@ -1924,7 +1919,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   // write the correct amount of data
   for (size_t b = 0; b < lib.AssetInfos.size(); b++) 
   {
-	Stream *iii = find_file_in_path(tomake, lib.AssetInfos[b].FileName);
+	Stream *iii = find_file_in_path(AssetMgr.get(), tomake, lib.AssetInfos[b].FileName);
 	if (iii != NULL)
 	{
 		delete iii;
@@ -1965,7 +1960,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
       if (asset.LibUid == a) {
           asset.Offset = wout->GetPosition() - startOffset;
 
-		Stream *iii = find_file_in_path(NULL, asset.FileName);
+		Stream *iii = find_file_in_path(AssetMgr.get(), NULL, asset.FileName);
         if (iii == NULL) {
           delete wout;
           unlink(outputFileName);
@@ -2250,6 +2245,12 @@ void SetGameResolution(Game ^game)
         thisgame.SetDefaultResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
     else
         thisgame.SetDefaultResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+}
+
+void GameDirChanged(String ^workingDir)
+{
+    AssetMgr->RemoveAllLibraries();
+    AssetMgr->AddLibrary(ConvertStringToNativeString(workingDir));
 }
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);

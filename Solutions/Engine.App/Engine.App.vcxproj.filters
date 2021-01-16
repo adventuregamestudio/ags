@@ -828,6 +828,9 @@
     <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\game\savegame_v321.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
       <Filter>Library Sources\MojoAL</Filter>
     </ClCompile>

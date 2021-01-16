@@ -373,6 +373,7 @@
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />
+    <ClCompile Include="..\..\Engine\game\savegame_v321.cpp" />
     <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />

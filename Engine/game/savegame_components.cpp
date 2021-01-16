@@ -339,7 +339,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     mouse_on_iface = in->ReadInt32();
 
     // Viewports and cameras
-    if (svg_ver < kGSSvgVersion_3510)
+    if (svg_ver < kGSSvgVersion_350_10)
     {
         ReadLegacyCameraState(in.get(), r_data);
         r_data.Cameras[0].Flags = r_data.Camera0_Flags;
@@ -881,7 +881,7 @@ HSaveError WriteDynamicSurfaces(PStream out)
 HSaveError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     HSaveError err;
-    if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Drawing Surfaces"))
+    if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
         return err;
     // Load the surfaces into a temporary array since ccUnserialiseObjects will destroy them otherwise
     r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
@@ -1138,7 +1138,7 @@ ComponentHandler ComponentHandlers[] =
 {
     {
         "Game State",
-        kGSSvgVersion_3510,
+        kGSSvgVersion_350_10,
         kGSSvgVersion_Initial,
         WriteGameState,
         ReadGameState
@@ -1207,7 +1207,7 @@ ComponentHandler ComponentHandlers[] =
         ReadOverlays
     },
     {
-        "Drawing Surfaces",
+        "Dynamic Surfaces",
         0,
         0,
         WriteDynamicSurfaces,

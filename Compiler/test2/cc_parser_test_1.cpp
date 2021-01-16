@@ -967,6 +967,28 @@ TEST_F(Compile1, AutoptrDisplay) {
     ASSERT_EQ(std::string::npos, msg.find("'String '"));
 }
 
+TEST_F(Compile1, ReadonlyObjectWritableAttribute)
+{
+    // player is readonly, but player.InventoryQuantity[...] can be written to.
+
+    char *inpl = "\
+        builtin managed struct Character                \n\
+        {                                               \n\
+            import attribute int InventoryQuantity[];   \n\
+        };                                              \n\
+                                                        \n\
+        import readonly Character *player;              \n\
+                                                        \n\
+        void main()                                     \n\
+        {                                               \n\
+            player.InventoryQuantity[15] = 0;           \n\
+        }                                               \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
 TEST_F(Compile1, ImportAutoptr1) {
 
     // Import decls of funcs with autopointered returns must be processed correctly.

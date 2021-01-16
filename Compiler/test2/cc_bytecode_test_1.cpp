@@ -2042,3 +2042,60 @@ TEST_F(Bytecode1, ThisExpression1) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, IncrementAttribute) {
+
+    char inpl[] = "\
+        builtin managed struct Object       \n\
+        {                                   \n\
+            import attribute int Graphic;   \n\
+        } obj;                              \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            obj.Graphic++;                  \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("IncrementAttribute", scrip);
+
+    size_t const codesize = 51;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    2,            0,   48,    2,   52,    // 7
+      29,    6,   45,    2,           39,    0,    6,    3,    // 15
+       0,   33,    3,   30,            6,    1,    3,    1,    // 23
+       6,    2,    0,   48,            2,   52,   29,    6,    // 31
+      34,    3,   45,    2,           39,    1,    6,    3,    // 39
+       1,   33,    3,   35,            1,   30,    6,    6,    // 47
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 4;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       4,   16,   26,   40,        -999
+    };
+    char fixuptypes[] = {
+      1,   4,   1,   4,     '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 2;
+    std::string imports[] = {
+    "Object::get_Graphic^0",      "Object::set_Graphic^1",       "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}

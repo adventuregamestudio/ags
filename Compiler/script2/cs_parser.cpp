@@ -3449,13 +3449,6 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, bool writi
 
 AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type,Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access)
 {
-    if (expression.Length() < 1)
-    {
-        Error("!Empty first clause");
-        return kERR_InternalError;
-    }
-    expression.StartRead();
-
     implied_this_dot = false;
 
     Symbol const first_sym = expression.PeekNext();
@@ -3682,6 +3675,7 @@ AGS::ErrorType AGS::Parser::AccessData_IsClauseLast(SrcList &expression, bool &i
 // _not_ be called and symlist[0] will be the attribute.
 AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
+    expression.StartRead();
     if (0 == expression.Length())
     {
         Error("!empty expression");

@@ -3678,7 +3678,7 @@ AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueL
     expression.StartRead();
     if (0 == expression.Length())
     {
-        Error("!empty expression");
+        Error("!Empty expression");
         return kERR_InternalError;
     }
     

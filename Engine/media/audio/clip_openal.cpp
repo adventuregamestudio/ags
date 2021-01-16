@@ -190,7 +190,7 @@ SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hin
     s->Read(data.data(), asset_size);
     delete s;
 
-    const auto asset_ext = AGS::Common::Path::GetFileExtension(asset_name.second);
+    const auto asset_ext = AGS::Common::Path::GetFileExtension(asset_name.Name);
     const auto ext_hint = asset_ext.IsEmpty() ? String(extension_hint) : asset_ext;
     const auto sound_type = GuessSoundTypeFromExt(asset_ext);
     const auto lengthMs = (int)std::round(audio_core_get_sound_length_ms(data, asset_ext));

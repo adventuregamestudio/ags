@@ -234,7 +234,7 @@ void read_game_data_location(const ConfigTree &cfg, String &data_dir, String &da
     data_dir = INIreadstring(cfg, "misc", "datadir");
     data_dir = Path::MakePathNoSlash(data_dir);
     data_file = INIreadstring(cfg, "misc", "datafile");
-    if (!data_file.IsEmpty() && is_relative_filename(data_file))
+    if (!data_file.IsEmpty() && Path::IsRelativePath(data_file))
         data_file = Path::ConcatPaths(data_dir, data_file);
 }
 

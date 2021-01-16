@@ -215,7 +215,7 @@ void FixupFilename(char *filename)
 
 String PathFromInstallDir(const String &path)
 {
-    if (is_relative_filename(path))
+    if (Path::IsRelativePath(path))
         return Path::ConcatPaths(ResPaths.DataDir, path);
     return path;
 }
@@ -257,7 +257,7 @@ String PreparePathForWriting(const FSLocation& fsloc, const String &filename)
 FSLocation GetGlobalUserConfigDir()
 {
     String dir = platform->GetUserGlobalConfigDirectory();
-    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+    if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
         return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
     return FSLocation(dir, dir);
 }
@@ -265,7 +265,7 @@ FSLocation GetGlobalUserConfigDir()
 FSLocation GetGameUserConfigDir()
 {
     String dir = platform->GetUserConfigDirectory();
-    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+    if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
         return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game own subdir
@@ -280,7 +280,7 @@ static FSLocation MakeGameDataDir(const String &default_dir, const String &user_
     if (user_option.IsEmpty())
     {
         String dir = default_dir;
-        if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+        if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
             return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
         // For absolute dir, we assume it's a special directory prepared for AGS engine
         // and therefore amend it with a game own subdir

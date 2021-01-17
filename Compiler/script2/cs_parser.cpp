@@ -3552,7 +3552,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
         // If this unknown symbol can be interpreted as a component of 'this',
         // treat it that way.
         vartype = _sym.GetVartype(kKW_This);
-        if (_sym[vartype].VartypeD->Components.count(first_sym))
+        if (_sym.IsVartype(vartype) && _sym[vartype].VartypeD->Components.count(first_sym))
         {
             vloc = kVL_MAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);

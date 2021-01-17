@@ -2122,18 +2122,18 @@ TEST_F(Bytecode1, CompareStringToNull) {
     int compileResult = cc_compile(input, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("CompareStringToNull", scrip);
+    // WriteOutput("CompareStringToNull", scrip);
     size_t const codesize = 69;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    2,            0,   48,    3,   29,    // 7
-       3,    6,    3,    0,           30,    4,   66,    4,    // 15
+       3,    6,    3,    0,           30,    4,   16,    4,    // 15
        3,    3,    4,    3,           29,    3,    6,    2,    // 23
        0,   48,    3,   29,            3,    6,    3,    0,    // 31
-      30,    4,   65,    4,            3,    3,    4,    3,    // 39
+      30,    4,   15,    4,            3,    3,    4,    3,    // 39
       29,    3,    6,    3,            0,   29,    3,    6,    // 47
-       2,    0,   48,    3,           30,    4,   66,    4,    // 55
+       2,    0,   48,    3,           30,    4,   16,    4,    // 55
        3,    3,    4,    3,           29,    3,    2,    1,    // 63
       12,    6,    3,    0,            5,  -999
     };
@@ -2161,4 +2161,4 @@ TEST_F(Bytecode1, CompareStringToNull) {
 
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
-   }
+}

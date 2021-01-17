@@ -546,7 +546,7 @@ private:
 
     // Change the generic opcode to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
-    ErrorType GetOpcodeValidForVartype(Vartype vartype1, Vartype vartype2, CodeCell &opcode);
+    ErrorType GetOpcodeValidForVartype(Symbol op_sym, Vartype vartype1, Vartype vartype2, CodeCell &opcode);
 
     // Check for a type mismatch in one direction only
     bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const;

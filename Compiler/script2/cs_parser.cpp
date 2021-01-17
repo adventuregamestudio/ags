@@ -1880,14 +1880,25 @@ AGS::ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int
 
 // Change the generic opcode to the one that is correct for the vartypes
 // Also check whether the operator can handle the types at all
-AGS::ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype vartype2, CodeCell &opcode)
+AGS::ErrorType AGS::Parser::GetOpcodeValidForVartype(Symbol const op_sym, Vartype vartype1, Vartype vartype2, CodeCell &opcode)
 {
     if (kKW_Float == vartype1 || kKW_Float == vartype2)
     {
+        if (vartype1 != kKW_Float)
+        {
+            Error("Can't apply the operator '%s' to a non-float and a float", _sym.GetName(op_sym).c_str());
+            return kERR_UserError;
+        }
+        if (vartype2 != kKW_Float)
+        {
+            Error("Can't apply the operator '%s' to a float and a non-float", _sym.GetName(op_sym).c_str());
+            return kERR_UserError;
+        }
+
         switch (opcode)
         {
         default:
-            Error("The operator cannot be applied to float values");
+            Error("Can't apply the operator '%s' to float values", _sym.GetName(op_sym).c_str());
             return kERR_UserError;
         case SCMD_ADD:      opcode = SCMD_FADD; break;
         case SCMD_ADDREG:   opcode = SCMD_FADDREG; break;
@@ -1910,20 +1921,27 @@ AGS::ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype v
 
     if (iatos1 || iatos2)
     {
+        // Don't use strings comparison against NULL: This will provoke a runtime error
+        if (kKW_Null == vartype1 || kKW_Null == vartype2)
+            return kERR_None; 
+
         switch (opcode)
         {
         default:
-            Error("Operator cannot be applied to string type values");
+            Error("Can't apply the operator '%s' to strings", _sym.GetName(op_sym).c_str());
             return kERR_UserError;
         case SCMD_ISEQUAL:  opcode = SCMD_STRINGSEQUAL; break;
         case SCMD_NOTEQUAL: opcode = SCMD_STRINGSNOTEQ; break;
         }
-        if (kKW_Null == vartype1 || kKW_Null == vartype2)
-            return kERR_None;
-
-        if (iatos1 != iatos2)
+        
+        if (!iatos1)
         {
-            Error("A string type value cannot be compared to a value that isn't a string type");
+            Error("Can only compare 'null' or a string to another string");
+            return kERR_UserError;
+        }
+        if (!iatos2)
+        {
+            Error("Can only compare a string to another string or 'null'");
             return kERR_UserError;
         }
         return kERR_None;
@@ -1937,7 +1955,7 @@ AGS::ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype v
         switch (opcode)
         {
         default:
-            Error("The operator cannot be applied to managed types");
+            Error("Can't apply the operator '%s' to managed types", _sym.GetName(op_sym).c_str());
             return kERR_UserError;
         case SCMD_ISEQUAL:  return kERR_None;
         case SCMD_NOTEQUAL: return kERR_None;
@@ -1947,7 +1965,11 @@ AGS::ErrorType AGS::Parser::GetOpcodeValidForVartype(Vartype vartype1, Vartype v
     // Other combinations of managed types won't mingle
     if (_sym.IsDynpointerVartype(vartype1) || _sym.IsDynpointerVartype(vartype2))
     {
-        Error("The operator cannot be applied to values of these types");
+        Error(
+            "Can't apply the operator '%s' to a '%s' expression and a '%s' expression",
+            _sym.GetName(op_sym).c_str(),
+            _sym.GetName(vartype1).c_str(),
+            _sym.GetName(vartype2).c_str());
         return kERR_UserError;
     }
 
@@ -2292,7 +2314,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     if (retval < 0) return retval;
 
     CodeCell opcode = SCMD_SUBREG; 
-    retval = GetOpcodeValidForVartype(_scrip.AX_Vartype, _scrip.AX_Vartype, opcode);
+    retval = GetOpcodeValidForVartype(kKW_Minus, _scrip.AX_Vartype, _scrip.AX_Vartype, opcode);
     if (retval < 0) return retval;
 
     // Calculate 0 - AX
@@ -2600,12 +2622,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
     // now the result of the left side is in BX, of the right side is in AX
 
-    // Check whether the left side type and right side type match either way
-    retval = IsVartypeMismatch(vartype_lhs, vartype, false);
-    if (retval < 0) return retval;
-
     int actual_opcode = opcode;
-    retval = GetOpcodeValidForVartype(vartype_lhs, vartype, actual_opcode);
+    retval = GetOpcodeValidForVartype(operator_sym, vartype_lhs, vartype, actual_opcode);
     if (retval < 0) return retval;
 
     WriteCmd(actual_opcode, SREG_BX, SREG_AX);
@@ -4134,7 +4152,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
 
     // Use the operator on LHS and RHS
     CodeCell opcode = _sym.OperatorOpcode(ass_symbol);
-    retval = GetOpcodeValidForVartype(lhsvartype, rhsvartype, opcode);
+    retval = GetOpcodeValidForVartype(ass_symbol, lhsvartype, rhsvartype, opcode);
     if (retval < 0) return retval;
     PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
@@ -4152,7 +4170,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
 }
 
 // "var++" or "var--"
-AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol ass_symbol, SrcList &lhs)
+AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol const ass_symbol, SrcList &lhs)
 {
     ValueLocation vloc;
     Vartype lhsvartype;
@@ -4161,7 +4179,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol ass_symbol, SrcList &
 
     // increment or decrement AX, using the correct opcode
     CodeCell opcode = _sym.OperatorOpcode(ass_symbol);
-    retval = GetOpcodeValidForVartype(lhsvartype, lhsvartype, opcode);
+    retval = GetOpcodeValidForVartype(ass_symbol, lhsvartype, lhsvartype, opcode);
     if (retval < 0) return retval;
     WriteCmd(opcode, SREG_AX, 1);
 

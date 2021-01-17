@@ -135,7 +135,7 @@ TEST_F(Compile1, FloatInt1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+    EXPECT_NE(std::string::npos, msg.find("'/'"));
 }
 
 TEST_F(Compile1, FloatInt2) {
@@ -169,7 +169,7 @@ TEST_F(Compile1, StringInt1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+    EXPECT_NE(std::string::npos, msg.find("compare"));
 }
 
 TEST_F(Compile1, ExpressionVoid) {  

@@ -2099,3 +2099,66 @@ TEST_F(Bytecode1, IncrementAttribute) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, CompareStringToNull) {
+
+    // If a String is compared to 'null', the pointer opcodes must be used,
+    // not the String opcodes.
+
+    char inpl[] = "\
+        String S;                           \n\
+        bool func()                         \n\
+        {                                   \n\
+            bool b1 = S != null;            \n\
+            bool b2 = S == null;            \n\
+            bool b3 = null != S;            \n\
+        }                                   \n\
+        ";
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
+    int compileResult = cc_compile(input, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("CompareStringToNull", scrip);
+    size_t const codesize = 69;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    2,            0,   48,    3,   29,    // 7
+       3,    6,    3,    0,           30,    4,   16,    4,    // 15
+       3,    3,    4,    3,           29,    3,    6,    2,    // 23
+       0,   48,    3,   29,            3,    6,    3,    0,    // 31
+      30,    4,   15,    4,            3,    3,    4,    3,    // 39
+      29,    3,    6,    3,            0,   29,    3,    6,    // 47
+       2,    0,   48,    3,           30,    4,   16,    4,    // 55
+       3,    3,    4,    3,           29,    3,    2,    1,    // 63
+      12,    6,    3,    0,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       4,   24,   49,  -999
+    };
+    char fixuptypes[] = {
+      1,   1,   1,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}

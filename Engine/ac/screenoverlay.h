@@ -12,13 +12,12 @@
 //
 //=============================================================================
 //
-//
+// ScreenOverlay is a simple sprite container with no advanced functions.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
-#include <stdint.h>
 #include "core/types.h"
 
 // Forward declaration
@@ -52,7 +51,6 @@ struct ScreenOverlay {
     int associatedOverlayHandle = 0; // script obj handle
     int zorder = INT_MIN;
     bool positionRelativeToScreen = false;
-    bool hasSerializedBitmap = false;
     int transparency = 0;
 
     // Tells if Overlay has graphically changed recently
@@ -62,7 +60,7 @@ struct ScreenOverlay {
     // Clears changed flag
     void ClearChanged() { _hasChanged = false; }
 
-    void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
+    void ReadFromFile(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;
 
 private:

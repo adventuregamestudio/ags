@@ -18,6 +18,7 @@
 // Perhaps the optimal solution would be to have a savegame converter instead.
 //
 //=============================================================================
+#include <vector>
 #include "core/types.h"
 #include "ac/button.h"
 #include "ac/characterextras.h"
@@ -304,12 +305,15 @@ static void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
     }
 }
 
-static void ReadOverlays_Aligned(Stream *in, size_t num_overs)
+static void ReadOverlays_Aligned(Stream *in, std::vector<bool> &has_bitmap, size_t num_overs)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
+    has_bitmap.resize(num_overs);
     for (size_t i = 0; i < num_overs; ++i)
     {
-        screenover[i].ReadFromFile(&align_s, 0);
+        bool has_bm;
+        screenover[i].ReadFromFile(&align_s, has_bm, 0);
+        has_bitmap[i] = has_bm;
         align_s.Reset();
     }
 }
@@ -318,9 +322,10 @@ static void restore_game_overlays(Stream *in)
 {
     size_t num_overs = in->ReadInt32();
     screenover.resize(num_overs);
-    ReadOverlays_Aligned(in, num_overs);
+    std::vector<bool> has_bitmap;
+    ReadOverlays_Aligned(in, has_bitmap, num_overs);
     for (size_t i = 0; i < num_overs; ++i) {
-        if (screenover[i].hasSerializedBitmap)
+        if (has_bitmap[i])
             screenover[i].pic = read_serialized_bitmap(in);
     }
 }

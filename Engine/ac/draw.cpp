@@ -41,7 +41,6 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/sprite.h"
-#include "ac/spritelistentry.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
@@ -152,8 +151,26 @@ struct RoomCameraDrawData
 };
 std::vector<RoomCameraDrawData> CameraDrawData;
 
-std::vector<SpriteListEntry> sprlist;
+
+// A wrap over RenderItem with just a sorting adjustment
+struct SpriteListEntry
+{
+    IDriverDependantBitmap *bmp = nullptr;
+    int transparent = 0;
+    int x = 0, y = 0;
+    int baseline = 0;
+    // Tells if this item should take priority during sort if z1 == z2
+    // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
+    bool takesPriorityIfEqual = false;
+    // Mark for the render stage callback (if >= 0 other fields are ignored)
+    int renderStage = -1;
+};
+
+// Two lists of sprites to push into renderer during next render pass
+// thingsToDrawList - is the main list, unsorted, drawn in the index order
 std::vector<SpriteListEntry> thingsToDrawList;
+// sprlist - will be sorted using baseline and appended to main list
+std::vector<SpriteListEntry> sprlist;
 
 Bitmap **guibg = nullptr;
 IDriverDependantBitmap **guibgbmp = nullptr;
@@ -167,15 +184,6 @@ bool screen_is_dirty = false;
 Bitmap *raw_saved_screen = nullptr;
 Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
-
-SpriteListEntry::SpriteListEntry()
-    : bmp(nullptr)
-    , pic(nullptr)
-    , baseline(0), x(0), y(0)
-    , transparent(0)
-    , takesPriorityIfEqual(false), hasAlphaChannel(false)
-{
-}
 
 void setpal() {
     set_palette_range(palette, 0, 255, 0);
@@ -754,6 +762,60 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap 
     return bimp;
 }
 
+//------------------------------------------------------------------------
+// Functions for filling the lists of sprites to render
+static void clear_draw_list()
+{
+    thingsToDrawList.clear();
+}
+
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans)
+{
+    SpriteListEntry sprite;
+    sprite.bmp = bmp;
+    sprite.x = x;
+    sprite.y = y;
+    sprite.transparent = trans;
+    thingsToDrawList.push_back(sprite);
+}
+
+static void add_render_stage(int stage)
+{
+    SpriteListEntry sprite;
+    sprite.renderStage = stage;
+    thingsToDrawList.push_back(sprite);
+}
+
+static void clear_sprite_list()
+{
+    sprlist.clear();
+}
+
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind)
+{
+    if (spp == nullptr)
+        quit("add_to_sprite_list: attempted to draw NULL sprite");
+    // completely invisible, so don't draw it at all
+    if (trans == 255)
+        return;
+
+    SpriteListEntry sprite;
+    sprite.bmp = spp;
+    sprite.baseline = baseline;
+    sprite.x = xx;
+    sprite.y = yy;
+    sprite.transparent = trans;
+
+    if (walkBehindMethod == DrawAsSeparateSprite)
+        sprite.takesPriorityIfEqual = !isWalkBehind;
+    else
+        sprite.takesPriorityIfEqual = isWalkBehind;
+
+    sprlist.push_back(sprite);
+}
+//
+//------------------------------------------------------------------------
+
 void invalidate_cached_walkbehinds() 
 {
     memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actSpsCount);
@@ -907,56 +969,8 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 
     if (actspswbcache[actspsIndex].isWalkBehindHere)
     {
-        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, 0, -1, true);
+        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, 0, true);
     }
-}
-
-void clear_draw_list() {
-    thingsToDrawList.clear();
-}
-void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, bool alphaChannel) {
-    SpriteListEntry sprite;
-    sprite.pic = nullptr;
-    sprite.bmp = bmp;
-    sprite.x = x;
-    sprite.y = y;
-    sprite.transparent = trans;
-    sprite.hasAlphaChannel = alphaChannel;
-    thingsToDrawList.push_back(sprite);
-}
-
-// the sprite list is an intermediate list used to order 
-// objects and characters by their baselines before everything
-// is added to the Thing To Draw List
-void clear_sprite_list() {
-    sprlist.clear();
-}
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind) {
-
-    if (spp == nullptr)
-        quit("add_to_sprite_list: attempted to draw NULL sprite");
-    // completely invisible, so don't draw it at all
-    if (trans == 255)
-        return;
-
-    SpriteListEntry sprite;
-    if ((sprNum >= 0) && ((game.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0))
-        sprite.hasAlphaChannel = true;
-    else
-        sprite.hasAlphaChannel = false;
-
-    sprite.bmp = spp;
-    sprite.baseline = baseline;
-    sprite.x=xx;
-    sprite.y=yy;
-    sprite.transparent=trans;
-
-    if (walkBehindMethod == DrawAsSeparateSprite)
-        sprite.takesPriorityIfEqual = !isWalkBehind;
-    else
-        sprite.takesPriorityIfEqual = isWalkBehind;
-
-    sprlist.push_back(sprite);
 }
 
 void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
@@ -1019,7 +1033,7 @@ void draw_sprite_list() {
             if (walkBehindBitmap[ee] != nullptr)
             {
                 add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee], walkBehindTop[ee],
-                    croom->walkbehind_base[ee], 0, -1, true);
+                    croom->walkbehind_base[ee], 0, true);
             }
         }
     }
@@ -1027,7 +1041,7 @@ void draw_sprite_list() {
     std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
 
     if(pl_any_want_hook(AGSE_PRESCREENDRAW))
-        add_thing_to_draw(nullptr, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
+        add_render_stage(AGSE_PRESCREENDRAW);
 
     // copy the sorted sprites into the Things To Draw list
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
@@ -1551,7 +1565,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent,objs[aa].num);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false);
     }
 }
 
@@ -1863,7 +1877,7 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, sppic);
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, false);
     }
 }
 
@@ -1893,7 +1907,7 @@ void prepare_room_sprites()
                 update_walk_behind_images();
             }
         }
-        add_thing_to_draw(roomBackgroundBmp, 0, 0, 0, false);
+        add_thing_to_draw(roomBackgroundBmp, 0, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked
 
@@ -2011,17 +2025,17 @@ void draw_fps(const Rect &viewport)
 void draw_gui_and_overlays()
 {
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
-        add_thing_to_draw(nullptr, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
+        add_render_stage(AGSE_PREGUIDRAW);
 
     // draw overlays, except text boxes and portraits
     for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
-            add_thing_to_draw(over.bmp, over.x, over.y, 0, false);
+            add_thing_to_draw(over.bmp, over.x, over.y, 0);
         else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.hasAlphaChannel);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0);
         }
     }
 
@@ -2082,7 +2096,7 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel());
+            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
@@ -2098,7 +2112,7 @@ void draw_gui_and_overlays()
         {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, false);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0);
         }
     }
 
@@ -2108,19 +2122,15 @@ void draw_gui_and_overlays()
 // Push the gathered list of sprites into the active graphic renderer
 void put_sprite_list_on_screen(bool in_room)
 {
-    // *** Draw the Things To Draw List ***
-
-    SpriteListEntry *thisThing;
-
     for (size_t i = 0; i < thingsToDrawList.size(); ++i)
     {
-        thisThing = &thingsToDrawList[i];
+        const auto *thisThing = &thingsToDrawList[i];
 
         if (thisThing->bmp != nullptr) {
             // mark the image's region as dirty
             invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
         }
-        else if ((thisThing->transparent != TRANS_RUN_PLUGIN) &&
+        else if ((thisThing->renderStage < 0) &&
             (thisThing->bmp == nullptr)) 
         {
             quit("Null pointer added to draw list");
@@ -2135,10 +2145,10 @@ void put_sprite_list_on_screen(bool in_room)
 
             gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
         }
-        else if (thisThing->transparent == TRANS_RUN_PLUGIN) 
+        else if (thisThing->renderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(thisThing->x, thisThing->y, nullptr);
+            gfxDriver->DrawSprite(thisThing->renderStage, 0, nullptr);
         }
         else
             quit("Unknown entry in draw list");

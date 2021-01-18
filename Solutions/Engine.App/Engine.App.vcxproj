@@ -617,7 +617,6 @@
     <ClInclude Include="..\..\Engine\ac\slider.h" />
     <ClInclude Include="..\..\Engine\ac\speech.h" />
     <ClInclude Include="..\..\Engine\ac\sprite.h" />
-    <ClInclude Include="..\..\Engine\ac\spritelistentry.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h" />

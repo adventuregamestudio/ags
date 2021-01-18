@@ -1082,9 +1082,6 @@
     <ClInclude Include="..\..\Engine\ac\sprite.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\spritelistentry.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\string.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>

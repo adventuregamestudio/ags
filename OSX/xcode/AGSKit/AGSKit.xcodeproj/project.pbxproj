@@ -460,7 +460,6 @@
 		526F27831D3B5CC300EF4E1F /* sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25001D3B5CC300EF4E1F /* sprite.cpp */; };
 		526F27841D3B5CC300EF4E1F /* sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25011D3B5CC300EF4E1F /* sprite.h */; };
 		526F27851D3B5CC300EF4E1F /* spritecache_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */; };
-		526F27861D3B5CC300EF4E1F /* spritelistentry.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25031D3B5CC300EF4E1F /* spritelistentry.h */; };
 		526F27871D3B5CC300EF4E1F /* agsstaticobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25051D3B5CC300EF4E1F /* agsstaticobject.cpp */; };
 		526F27881D3B5CC300EF4E1F /* agsstaticobject.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25061D3B5CC300EF4E1F /* agsstaticobject.h */; };
 		526F27891D3B5CC300EF4E1F /* staticarray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25071D3B5CC300EF4E1F /* staticarray.cpp */; };
@@ -1209,7 +1208,6 @@
 		526F25001D3B5CC300EF4E1F /* sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sprite.cpp; sourceTree = "<group>"; };
 		526F25011D3B5CC300EF4E1F /* sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sprite.h; sourceTree = "<group>"; };
 		526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = spritecache_engine.cpp; sourceTree = "<group>"; };
-		526F25031D3B5CC300EF4E1F /* spritelistentry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spritelistentry.h; sourceTree = "<group>"; };
 		526F25051D3B5CC300EF4E1F /* agsstaticobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsstaticobject.cpp; sourceTree = "<group>"; };
 		526F25061D3B5CC300EF4E1F /* agsstaticobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsstaticobject.h; sourceTree = "<group>"; };
 		526F25071D3B5CC300EF4E1F /* staticarray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = staticarray.cpp; sourceTree = "<group>"; };

@@ -267,7 +267,6 @@ target_sources(engine
     ac/sprite.cpp
     ac/sprite.h
     ac/spritecache_engine.cpp
-    ac/spritelistentry.h
     ac/statobj/agsstaticobject.cpp
     ac/statobj/agsstaticobject.h
     ac/statobj/staticarray.cpp

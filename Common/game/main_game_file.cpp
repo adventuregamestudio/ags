@@ -22,6 +22,7 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
 #include "script/cc_error.h"
@@ -85,6 +86,12 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
         return "Format version of plugin data is not supported.";
     case kMGFErr_PluginDataSizeTooLarge:
         return "Plugin data size is too large.";
+    case kMGFErr_ExtUnexpectedEOF:
+        return "Unexpected end of file.";
+    case kMGFErr_ExtUnknown:
+        return "Unknown extension.";
+    case kMGFErr_ExtBlockDataOverlapping:
+        return "Block data overlapping.";
     }
     return "Unknown error.";
 }
@@ -483,10 +490,18 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
     return HGameFileError::None();
 }
 
+static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const String &ext_id, soff_t block_len, GameDataVersion data_ver)
+{
+    return HGameFileError::None();
+}
+
 HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
 
+    //-------------------------------------------------------------------------
+    // The classic data section.
+    //-------------------------------------------------------------------------
     {
         AlignedStream align_s(in, Common::kAligned_Read);
         game.GameSetupStructBase::ReadFromFile(&align_s);
@@ -545,7 +560,52 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     if (!err)
         return err;
     game.read_room_names(in, data_ver);
-    return err;
+
+    if (data_ver <= kGameVersion_350)
+        return HGameFileError::None();
+
+    //-------------------------------------------------------------------------
+    // All the extended data, for AGS > 3.5.0.
+    //-------------------------------------------------------------------------
+    // Read list of extension blocks. The block meta format is shared with the room files.
+    //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
+    //               where 0 would indicate following string ID,
+    //               and 0xFF indicates end of extension list.
+    //    - 16 bytes - string ID of an extension.
+    //    - 8 bytes - length of extension data, in bytes.
+    while (true)
+    {
+        int b = in->ReadByte();
+        if (b < 0)
+            return new MainGameFileError(kMGFErr_ExtUnexpectedEOF);
+        if (b == 0xFF)
+            break; // end of list
+        if (b != 0) // we don't support numeric ids here
+            return new MainGameFileError(kMGFErr_ExtUnknown);
+        // Extension meta data
+        String ext_id = String::FromStreamCount(in, 16);
+        soff_t block_len = in->ReadInt64();
+        soff_t block_end = in->GetPosition() + block_len;
+        // Read game data itself
+        err = ReadExtBlock(ents, in, ext_id, block_len, data_ver);
+        if (!err)
+            return err;
+        // After each block test if the stream position is where expected
+        soff_t cur_pos = in->GetPosition();
+        if (cur_pos > block_end)
+        {
+            return new MainGameFileError(kMGFErr_ExtBlockDataOverlapping,
+                String::FromFormat("Extension: %s, expected to end at offset: %u, finished reading at %u.", ext_id.GetCStr(), block_end, cur_pos));
+        }
+        else if (cur_pos < block_end)
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: game data blocks nonsequential, ext %s expected to end at %u, finished reading at %u",
+                ext_id.GetCStr(), block_end, cur_pos);
+            in->Seek(block_end, Common::kSeekBegin);
+        }
+    };
+
+    return HGameFileError::None();
 }
 
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)

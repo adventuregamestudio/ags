@@ -122,6 +122,23 @@ enum RoomFileBlock
     kRoomFile_EOF               = 0xFF
 };
 
+String GetRoomBlockName(RoomFileBlock id)
+{
+    switch (id)
+    {
+    case kRoomFblk_Main: return "Main";
+    case kRoomFblk_Script: return "TextScript";
+    case kRoomFblk_CompScript: return "CompScript";
+    case kRoomFblk_CompScript2: return "CompScript2";
+    case kRoomFblk_ObjectNames: return "ObjNames";
+    case kRoomFblk_AnimBg: return "AnimBg";
+    case kRoomFblk_CompScript3: return "CompScript3";
+    case kRoomFblk_Properties: return "Properties";
+    case kRoomFblk_ObjectScNames: return "ObjScNames";
+    }
+    return "unknown";
+}
+
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
     obj.Sprite = in->ReadInt16();
@@ -422,11 +439,9 @@ HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion
     return HRoomFileError::None();
 }
 
-HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, RoomFileVersion data_ver)
+HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
+    soff_t block_len, RoomFileVersion data_ver)
 {
-    soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
-    soff_t block_end = in->GetPosition() + block_len;
-
     HRoomFileError err;
     switch (block)
     {
@@ -459,46 +474,77 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
         return new RoomFileError(kRoomFileErr_UnknownBlockType,
             String::FromFormat("Type: %d, known range: %d - %d.", block, kRoomFblk_Main, kRoomFblk_ObjectScNames));
     }
+    return err;
+}
 
-    if (!err)
-        return err;
 
-    soff_t cur_pos = in->GetPosition();
-    if (cur_pos > block_end)
-    {
-        return new RoomFileError(kRoomFileErr_BlockDataOverlapping,
-            String::FromFormat("Type: %d, expected to end at offset: %u, finished reading at %u.", block, block_end, cur_pos));
+static HRoomFileError OpenNextBlock(Stream *in, RoomFileVersion data_ver, RoomFileBlock &block_id, String &ext_id, soff_t &block_len)
+{
+    // The block meta format is shared with the main game file extensions
+    //    - 1 byte - an old-style unsigned numeric ID:
+    //               where 0 would indicate following string ID,
+    //               and 0xFF indicates end of extension list.
+    //    - 16 bytes - string ID of an extension (if numeric ID is 0).
+    //    - 4 or 8 bytes - length of extension data, in bytes (size depends on format version).
+    int b = in->ReadByte();
+    if (b < 0)
+        return new RoomFileError(kRoomFileErr_UnexpectedEOF);
+    if (b == 0xFF)
+        return HRoomFileError::None(); // end of list
+    if (b > 0)
+    { // old-style block identified by a numeric id
+        block_id = (RoomFileBlock)b;
+        ext_id = GetRoomBlockName(block_id);
+        block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
     }
-    else if (cur_pos < block_end)
-    {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: room data blocks nonsequential, block type %d expected to end at %u, finished reading at %u",
-            block, block_end, cur_pos);
-        in->Seek(block_end, Common::kSeekBegin);
+    else
+    { // new style block identified by a string id
+        block_id = kRoomFblk_None; // not important
+        ext_id = String::FromStreamCount(in, 16);
+        block_len = in->ReadInt64();
     }
     return HRoomFileError::None();
 }
-
 
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
 
-    RoomFileBlock block;
-    do
+    // Read list of data blocks. The block meta format is shared with the main game file extensions now.
+    //    - 1 byte - old format block ID, 0xFF indicates end of list.
+    //    - 16 bytes - new string ID of an extension. \0 at the first byte indicates end of list.
+    //    - 4 or 8 bytes - length of extension data, in bytes (depends on format version).
+    while (true)
     {
         update_polled_stuff_if_runtime();
-        int b = in->ReadByte();
-        if (b < 0)
-            return new RoomFileError(kRoomFileErr_UnexpectedEOF);
-        block = (RoomFileBlock)b;
-        if (block != kRoomFile_EOF)
+        RoomFileBlock block_id;
+        String ext_id;
+        soff_t block_len;
+        HRoomFileError err = OpenNextBlock(in, data_ver, block_id, ext_id, block_len);
+        if (!err)
+            return err;
+        if (ext_id.IsEmpty())
+            break; // end of list
+
+        soff_t block_end = in->GetPosition() + block_len;
+        err = ReadRoomBlock(room, in, block_id, ext_id, block_len, data_ver);
+        if (!err)
+            return err;
+
+        soff_t cur_pos = in->GetPosition();
+        if (cur_pos > block_end)
         {
-            HRoomFileError err = ReadRoomBlock(room, in, block, data_ver);
-            if (!err)
-                return err;
+            return new RoomFileError(kRoomFileErr_BlockDataOverlapping,
+                String::FromFormat("Block: %s, expected to end at offset: %u, finished reading at %u.",
+                    ext_id.GetCStr(), block_end, cur_pos));
+        }
+        else if (cur_pos < block_end)
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: room data blocks nonsequential, block type %s expected to end at %u, finished reading at %u",
+                ext_id.GetCStr(), block_end, cur_pos);
+            in->Seek(block_end, Common::kSeekBegin);
         }
     }
-    while (block != kRoomFile_EOF);
     return HRoomFileError::None();
 }
 
@@ -558,11 +604,12 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
     RoomFileBlock block;
     do
     {
-        int b = in->ReadByte();
-        if (b < 0)
-            return new RoomFileError(kRoomFileErr_UnexpectedEOF);
-        block = (RoomFileBlock)b;
-        soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
+        RoomFileBlock block_id;
+        String ext_id;
+        soff_t block_len;
+        HRoomFileError err = OpenNextBlock(in, data_ver, block_id, ext_id, block_len);
+        if (!err)
+            return err;
         if (block == kRoomFblk_Script)
         {
             char *buf = nullptr;

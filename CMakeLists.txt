@@ -64,17 +64,28 @@ if(ANDROID)
     set(AGS_OPENGLES2 TRUE)
 endif(ANDROID)
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
-if(ipo_supported)
-    if(${CMAKE_BUILD_TYPE} MATCHES Release)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE          TRUE)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO   TRUE)
+# Unfortunately there's an upstream bug in Android NDK with Clang
+# https://github.com/android/ndk/issues/721
+# https://reviews.llvm.org/D79919
+# The issue has been fixed upstream but hasn't been rolled in Android Studio yet
+# Once it gets fixed, we can remove the Android special case.
+if(NOT ANDROID)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
+    if(ipo_supported)
+        if(${CMAKE_BUILD_TYPE} MATCHES Release)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE          TRUE)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO   TRUE)
+        endif()
+    else()
+        message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
     endif()
 else()
-    message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
+    # it is Android NDK, so we apply LTO on Release Builds
+    if(${CMAKE_BUILD_TYPE} MATCHES Release)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -flto=full")
+    endif()
 endif()
-
 
 add_compile_definitions("_FILE_OFFSET_BITS=64")
 

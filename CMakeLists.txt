@@ -12,8 +12,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
-option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
+option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
+
+
+message("------ AGS selected CMake options ------")
+message(" AGS_NO_MP3_PLAYER: ${AGS_NO_MP3_PLAYER}")
+message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
+message(" AGS_BUILTIN_PLUGINS: ${AGS_BUILTIN_PLUGINS}")
+message("----------------------------------------")
 
 # Tools like ninja don't have a pseudo-terminal so compilers assume no coloured output
 option (AGS_FORCE_COLOURED_OUTPUT "Always produce ANSI-coloured output (GNU/Clang only)." OFF)

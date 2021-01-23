@@ -601,6 +601,22 @@ get_target_property(ENGINE_SOURCES engine SOURCES)
 # Set ROOT to parent directory to include Plugins/
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
 
+# Android helper
+# -----------------------------------------------------------------------------
+
+if(ANDROID)
+    add_library(pe SHARED)
+    set_target_properties(pe PROPERTIES
+            CXX_STANDARD 11
+            CXX_EXTENSIONS NO
+            C_STANDARD 11
+            C_EXTENSIONS YES
+            )
+    target_sources(pe
+            PRIVATE
+            platform/android/helper/pe_jni.c)
+    target_link_libraries(pe PRIVATE engine)
+endif(ANDROID)
 
 # Standalone exe
 # -----------------------------------------------------------------------------

@@ -716,9 +716,14 @@ void AGSAndroid::MainInitAdjustments()
     ReadConfiguration((char*) ANDROID_CONFIG_FILENAME, false);
 
     // Set the screen rotation.
-    if (psp_rotation > 0) {
-        jmethodID method_id = env->GetMethodID(clazz, "AgsSetRotation", "()V");
-        env->CallVoidMethod(activity, method_id, psp_rotation);
+    if (psp_rotation == 0) {
+      // Auto, let the user rotate as wished.
+    } else if(psp_rotation == 1) {
+      // Portrait
+      SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
+    }  else if(psp_rotation == 2) {
+      // Landscape
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
     }
 
     if (config_mouse_longclick > 0) {

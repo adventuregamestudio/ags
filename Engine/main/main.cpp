@@ -149,6 +149,7 @@ void main_init(int argc, char*argv[])
     AssetMgr.reset(new AssetManager());
     main_pre_init();
     main_create_platform_driver();
+    platform->MainInitAdjustments();
 
     global_argv = argv;
     global_argc = argc;

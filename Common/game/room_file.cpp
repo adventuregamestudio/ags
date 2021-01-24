@@ -547,39 +547,44 @@ HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion
 HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
-    HRoomFileError err;
+    //
+    // First check classic block types, identified with a numeric id
+    //
     switch (block)
     {
     case kRoomFblk_Main:
-        err = ReadMainBlock(room, in, data_ver);
-        break;
+        return ReadMainBlock(room, in, data_ver);
     case kRoomFblk_Script:
         in->Seek(block_len); // no longer read source script text into RoomStruct
-        break;
+        return HRoomFileError::None();
     case kRoomFblk_CompScript3:
-        err = ReadCompSc3Block(room, in, data_ver);
-        break;
+        return ReadCompSc3Block(room, in, data_ver);
     case kRoomFblk_ObjectNames:
-        err = ReadObjNamesBlock(room, in, data_ver);
-        break;
+        return ReadObjNamesBlock(room, in, data_ver);
     case kRoomFblk_ObjectScNames:
-        err = ReadObjScNamesBlock(room, in, data_ver);
-        break;
+        return ReadObjScNamesBlock(room, in, data_ver);
     case kRoomFblk_AnimBg:
-        err = ReadAnimBgBlock(room, in, data_ver);
-        break;
+        return ReadAnimBgBlock(room, in, data_ver);
     case kRoomFblk_Properties:
-        err = ReadPropertiesBlock(room, in, data_ver);
-        break;
+        return ReadPropertiesBlock(room, in, data_ver);
     case kRoomFblk_CompScript:
     case kRoomFblk_CompScript2:
         return new RoomFileError(kRoomFileErr_OldBlockNotSupported,
             String::FromFormat("Type: %d.", block));
+    case kRoomFblk_None:
+        break; // continue to string ids
     default:
         return new RoomFileError(kRoomFileErr_UnknownBlockType,
             String::FromFormat("Type: %d, known range: %d - %d.", block, kRoomFblk_Main, kRoomFblk_ObjectScNames));
     }
-    return err;
+
+    // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
+    // if (ext_id.CompareNoCase("REGION_NEWPROPS") == 0)
+    // {
+    //     // read new region properties
+    // }
+    return new RoomFileError(kRoomFileErr_UnknownBlockType,
+        String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
 
 
@@ -837,10 +842,12 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
 // Type of function that writes single room block.
 typedef void(*PfnWriteBlock)(const RoomStruct *room, Stream *out);
 // Generic function that saves a block and automatically adds its size into header
-void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock writer, Stream *out)
+void WriteBlock(const RoomStruct *room, RoomFileBlock block, const String &ext_id, PfnWriteBlock writer, Stream *out)
 {
     // Write block's header
     out->WriteByte(block);
+    if (block == kRoomFblk_None) // new-style string id
+        ext_id.WriteCount(out, 16);
     soff_t sz_at = out->GetPosition();
     out->WriteInt64(0); // block size placeholder
     // Call writer to save actual block contents
@@ -854,6 +861,18 @@ void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock write
     out->WriteInt64(block_size);
     // ...and get back to the end of the file
     out->Seek(0, Common::kSeekEnd);
+}
+
+// Helper for new-style blocks with string id
+void WriteBlock(const RoomStruct *room, const String &ext_id, PfnWriteBlock writer, Stream *out)
+{
+    WriteBlock(room, kRoomFblk_None, ext_id, writer, out);
+}
+
+// Helper for old-style blocks with only numeric id
+void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock writer, Stream *out)
+{
+    WriteBlock(room, block, String(), writer, out);
 }
 
 void WriteInteractionScripts(const InteractionScripts *interactions, Stream *out)

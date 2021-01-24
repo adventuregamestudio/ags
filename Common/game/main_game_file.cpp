@@ -749,7 +749,12 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
 
 static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const String &ext_id, soff_t block_len, GameDataVersion data_ver)
 {
-    return HGameFileError::None();
+    // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
+    // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
+    // {
+    //     // read new gui properties
+    // }
+    return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
 
 HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)

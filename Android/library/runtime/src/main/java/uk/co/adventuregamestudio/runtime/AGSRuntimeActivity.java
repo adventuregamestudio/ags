@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -24,16 +25,9 @@ import androidx.annotation.Keep;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
-import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileNotFoundException;
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -99,6 +93,31 @@ public class AGSRuntimeActivity extends SDLActivity {
             _android_app_directory = getPackageManager().getPackageInfo(getPackageName(), 0).applicationInfo.dataDir;
         }
         catch (PackageManager.NameNotFoundException ignored) { }
+
+        {
+            // this code is a little hack, basically we peer into the android.cfg to look into screen
+            // rotation and if necessary, we pre rotate accordingly before passing along for SDL2
+            // this prevents a problem I had in one of my old devices where SDL had the device screen
+            // before rotation as it's screen size.
+            File game_file = new File(_game_file_name);
+            String game_dir = game_file.getParent();
+            ReadOnlyINI android_cfg = new ReadOnlyINI(game_dir);
+            if (android_cfg.load()) {
+                String isConfigEnabled = android_cfg.get("config_enabled");
+                if (Integer.parseInt(isConfigEnabled) != 0) {
+                    String rotation_string = android_cfg.get("rotation");
+                    int rotation = Integer.parseInt(rotation_string);
+                    if (rotation == 1) {
+                        // portrait
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    } else if (rotation == 2) {
+                        // landscape
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    }
+                }
+            }
+        }
+
 
         super.onCreate(savedInstanceState);
     }

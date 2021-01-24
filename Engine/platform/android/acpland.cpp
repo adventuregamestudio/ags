@@ -672,6 +672,7 @@ void AGSAndroid::MainInitAdjustments()
     if(_game_file_name != nullptr) {
         strcpy(psp_game_file_name, _game_file_name);
     }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_game_file_name), _game_file_name);
 
     jfieldID fid_android_base_directory = env->GetFieldID(clazz, "_android_base_directory", "Ljava/lang/String;");
     jobject jobj_android_base_directory = env->GetObjectField(activity, fid_android_base_directory);
@@ -680,18 +681,20 @@ void AGSAndroid::MainInitAdjustments()
     if(_android_base_directory != nullptr) {
         strcpy(android_base_directory, _android_base_directory);
     }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_base_directory), _android_base_directory);
 
     jfieldID fid_android_app_directory = env->GetFieldID(clazz, "_android_app_directory", "Ljava/lang/String;");
     jobject jobj_android_app_directory = env->GetObjectField(activity, fid_android_app_directory);
     const char * _android_app_directory;
-    _android_base_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
+    _android_app_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
     if(_android_app_directory != nullptr) {
         strcpy(android_app_directory, _android_app_directory);
     }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_app_directory), _android_app_directory);
 
-   // jfieldID fid_loadLastSave = env->GetFieldID(clazz, "_loadLastSave", "Ljava/lang/Boolean");
-  //  jboolean jbool_loadLastSave = env->GetIntField(activity, fid_loadLastSave);
-   // bool loadLastSave = jbool_loadLastSave;
+    jfieldID fid_loadLastSave = env->GetFieldID(clazz, "_loadLastSave", "Z");
+    jboolean jbool_loadLastSave = env->GetBooleanField(activity, fid_loadLastSave);
+    bool loadLastSave = jbool_loadLastSave;
 
     // Reset configuration.
     ResetConfiguration();
@@ -731,7 +734,7 @@ void AGSAndroid::MainInitAdjustments()
         env->CallVoidMethod(activity, method_id);
     }
 
-    psp_load_latest_savegame = false;
+    psp_load_latest_savegame = loadLastSave;
 
     // clean up the local references.
     env->DeleteLocalRef(activity);

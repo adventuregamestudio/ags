@@ -206,7 +206,9 @@ void SDLRendererGraphicsDriver::DestroyVirtualScreen()
 {
   delete[] _fakeTexBitmap; // don't use destroy_bitmap(), because it's a fake structure
   _fakeTexBitmap = nullptr;
-  SDL_DestroyTexture(_screenTex);
+  if(_screenTex != nullptr) {
+      SDL_DestroyTexture(_screenTex);
+  }
   _screenTex = nullptr;
 
   _origVirtualScreen.reset();

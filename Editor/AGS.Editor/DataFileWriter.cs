@@ -1710,9 +1710,41 @@ namespace AGS.Editor
                     else writer.Write((byte)0);
                 }
             }
+
+            //
+            // Extensions list
+            // Use WriteExtension to write them according to format and provide your method
+            // of type WriteExtensionProc that does the actual writing job.
+
+            // End of extensions list
+            writer.Write((byte)0xff);
+
             writer.Close();
             GC.Collect();
             return true;
+        }
+
+        private delegate void WriteExtensionProc(BinaryWriter writer);
+
+        private static void WriteExtension(string ext_id, BinaryWriter writer, WriteExtensionProc proc)
+        {
+            // The block meta format:
+            //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
+            //               where 0 would indicate following string ID,
+            //               and 0xFF indicates end of extension list.
+            //    - 16 bytes - string ID of an extension.
+            //    - 8 bytes - length of extension data, in bytes.
+            writer.Write((byte)0); // required for compatibility
+            WriteString(ext_id, 16, writer);
+            var data_len_pos = writer.BaseStream.Position;
+            writer.Write((long)0);
+            var start_pos = writer.BaseStream.Position;
+            proc(writer);
+            var end_pos = writer.BaseStream.Position;
+            var data_len = end_pos - start_pos;
+            writer.Seek((int)data_len_pos, SeekOrigin.Begin);
+            writer.Write(data_len);
+            writer.Seek((int)end_pos, SeekOrigin.Begin);
         }
     }
 }

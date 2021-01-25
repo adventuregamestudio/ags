@@ -63,18 +63,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
+
+    // maybe this should be a variable set somewhere but testing for this works
+    if (file("./libs/arm64-v8a/libengine.so").exists()) {
         sourceSets.main {
             jniLibs.srcDir 'libs'
         }
+    } else {
         externalNativeBuild {
             cmake {
-                 version "3.16.3"
-                 path '../../../CMakeLists.txt'
+                version "3.16.3"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.14
+                path '../../../CMakeLists.txt'
             }
         }
-
     }
+
     lintOptions {
         abortOnError false
     }

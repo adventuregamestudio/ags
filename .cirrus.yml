@@ -127,32 +127,36 @@ build_macos_task:
 build_android_task:
   container:
     dockerfile: ci/android/Dockerfile
-    docker_arguments:
-      FROM_DEBIAN: debian:buster
+    cpu: 6
+    memory: 6G
   git_submodules_script: git submodule update --init --recursive
-  symlink_nativelibs_script: ln -s /opt/nativelibs Android/nativelibs
-  build_library_script: |
-    export PATH=$PATH:$(echo /opt/android-ndk-*)
-    cd Android/library && ndk-build
-  build_launcher_script: |
-    export ANDROID_HOME=/opt/android-sdk
-    export JAVA_HOME=$(echo /opt/jdk*)
-    export PATH=$PATH:$JAVA_HOME/bin
-    ant=$(echo /opt/apache-ant-*/bin/ant)
-    cd Android/launcher_list && $ant debug && $ant release
+  build_debug_library_and_runtime_script: |
+    pushd Android/agsplayer && ./gradlew assembleDebug && popd
+  build_release_library_and_runtime_script: |
+    pushd Android/agsplayer && ./gradlew assembleRelease && popd
+    bsdtar -f android-libs-release.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/release/out/lib
   rename_apks_script: |
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
-    cd Android/launcher_list/bin
+    pushd Android/agsplayer/app/build/outputs/apk/debug/
     for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
-      mv -v $apk ${apk%%-*}-${version}-${apk#*-}
+      mv -v $apk AGS-${version}-${apk#*-}
     done
+    popd
+    mv Android/agsplayer/app/build/outputs/apk/debug/*.apk .
+    pushd Android/agsplayer/app/build/outputs/apk/release/
+    for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
+      mv -v $apk AGS-${version}-${apk#*-}
+    done
+    popd
+    mv Android/agsplayer/app/build/outputs/apk/release/*.apk .
   apks_artifacts:
-    path: Android/launcher_list/bin/AGS-*.apk
+    path: AGS-*.apk
   create_libs_archive_script: |
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
-    bsdtar -f AGS-${version}-android-libs.zip -acv --strip-components 3 Android/library/libs
+    bsdtar -f AGS-${version}-android-libs-debug.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/debug/out/lib
+    bsdtar -f AGS-${version}-android-libs-release.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/release/out/lib
   libs_artifacts:
-    path: AGS-*-android-libs.zip
+    path: AGS-*-android-libs-*.zip
 
 build_editor_task:
   windows_container:
@@ -332,8 +336,10 @@ make_release_task:
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \
       "build_linux_debian/debian_packages/ags_${version}_i386.deb" \
       "build_linux_debian/debian_packages/ags_${version}_amd64.deb" \
-      "build_android/apks/Android/launcher_list/bin/AGS-${version}-debug.apk" \
-      "build_android/libs/AGS-${version}-android-libs.zip"
+      "build_android/apks/AGS-${version}-debug.apk" \
+      "build_android/apks/AGS-${version}-release.apk" \
+      "build_android/libs/AGS-${version}-android-libs-debug.zip" \
+      "build_android/libs/AGS-${version}-android-libs-release.zip"
     do
       url="$baseurl/$download"
       echo "Downloading $url"

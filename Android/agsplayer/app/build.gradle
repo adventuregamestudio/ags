@@ -24,6 +24,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // this uses debug keys on release so it can be installed on a phone
+            // android blocks installation of unsigned apk
+            // to auto generate this key, on a clean environment, run a debug build first
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {

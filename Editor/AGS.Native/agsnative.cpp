@@ -2082,7 +2082,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
-    theRoom->MaskResolution = theRoom->MaskResolution;
+    theRoom->MaskResolution = room->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{

@@ -2064,15 +2064,19 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-    theRoom->BgFrames[backgroundNumber].Graphic.reset();
+
+ if (theRoom->BgFrames[backgroundNumber].Graphic)
+ {
+     theRoom->BgFrames[backgroundNumber].Graphic.reset();
+     theRoom->BgFrameCount--;
 	
-	theRoom->BgFrameCount--;
 	room->BackgroundCount--;
-	for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++) 
-	{
-		theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
-		theRoom->BgFrames[i].IsPaletteShared = theRoom->BgFrames[i + 1].IsPaletteShared;
-	}
+     for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++)
+     {
+         theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
+         theRoom->BgFrames[i].IsPaletteShared = theRoom->BgFrames[i + 1].IsPaletteShared;
+     }
+ }
 }
 
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 

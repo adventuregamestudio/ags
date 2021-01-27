@@ -497,6 +497,18 @@ static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const S
     // {
     //     // read new gui properties
     // }
+    // Early development version of "ags4"
+    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    {
+        // adjustable font outlines
+        for (int i = 0; i < ents.Game.numfonts; ++i)
+        {
+            ents.Game.fonts[i].AutoOutlineThickness = in->ReadInt32();
+            ents.Game.fonts[i].AutoOutlineStyle =
+                static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+        }
+        return HGameFileError::None();
+    }
     return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
 

@@ -101,7 +101,7 @@ Font custom line spacing.
 Sprites have "real" resolution. Expanded FontInfo data format.
 Option to allow legacy relative asset resolutions.
 
-51 :
+60 :
 Fonts have adjustable outline
 
 */

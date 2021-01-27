@@ -180,6 +180,15 @@ namespace AGS.Editor
         /// <param name="rawData">The raw data to set into the bitmap.</param>
         public static void SetRawData(this Bitmap bmp, byte[] rawData) => bmp.SetRawData(rawData, bmp.PixelFormat);
 
+        public static void SetGlobalPaletteFromPalette(this Bitmap bmp)
+        {
+            PaletteEntry[] palettes = Factory.AGSEditor.CurrentGame.Palette;
+            foreach (PaletteEntry global in palettes.Where(p => p.ColourType == PaletteColourType.Background))
+            {
+                palettes[global.Index].Colour = bmp.Palette.Entries[global.Index];
+            }
+        }
+
         /// <summary>
         /// Sets the current game's global palette to a bitmap.
         /// </summary>

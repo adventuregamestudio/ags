@@ -27,6 +27,7 @@ else {
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.3"
+    ndkVersion '21.3.6528147'
 
     defaultConfig {
         if (buildAsApplication) {

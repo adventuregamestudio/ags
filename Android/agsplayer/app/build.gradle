@@ -6,6 +6,9 @@ plugins {
 android {
     compileSdkVersion 28
     buildToolsVersion "30.0.3"
+    // the android plugin has a bug that requires specifying ndkVersion in every module, even when unused
+    // this version should match what is installed in the CI
+    ndkVersion '21.3.6528147'
 
     defaultConfig {
         applicationId "uk.co.adventuregamestudio.agsplayer"

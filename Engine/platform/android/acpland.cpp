@@ -27,8 +27,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "util/string_compat.h"
-
-
+#include "SDL.h"
 
 #include <jni.h>
 #include <android/log.h>
@@ -37,7 +36,7 @@ using namespace AGS::Common;
 
 #define ANDROID_CONFIG_FILENAME "android.cfg"
 
-bool ReadConfiguration(char* filename, bool read_everything);
+bool ReadConfiguration(const char* filename, bool read_everything);
 void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver {
@@ -57,20 +56,20 @@ struct AGSAndroid : AGSPlatformDriver {
 
 
 //int psp_return_to_menu = 1;
-int psp_ignore_acsetup_cfg_file = 1;
+int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
 int psp_rotation = 0;
 int psp_config_enabled = 0;
 char psp_translation[100];
 char* psp_translations[100];
 
-// Mouse option from Allegro.
-extern int config_mouse_control_mode;
+// Mouse option
+int config_mouse_control_mode;
 
 
-// Graphic options from the Allegro library.
-extern int psp_gfx_scaling;
-extern int psp_gfx_smoothing;
+// Graphic options
+int psp_gfx_scaling;
+int psp_gfx_smoothing;
 
 
 // Audio options from the Allegro library.
@@ -87,7 +86,7 @@ int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 int psp_gfx_smooth_sprites = 0;
 
-int psp_debug_write_to_logcat = 0;
+int psp_debug_write_to_logcat = 1;
 
 int config_mouse_longclick = 0;
 
@@ -95,7 +94,7 @@ extern int display_fps;
 extern int want_exit;
 extern void PauseGame();
 extern void UnPauseGame();
-extern int main(int argc,char*argv[]);
+//extern int main(int argc,char*argv[]);
 
 char android_base_directory[256];
 char android_app_directory[256];
@@ -108,7 +107,7 @@ extern const char *loadSaveGameOnStartup;
 char lastSaveGameName[200];
 
 
-extern JavaVM* android_jni_vm;
+JavaVM* android_jni_vm;
 JNIEnv *java_environment;
 jobject java_object;
 jclass java_class;
@@ -453,7 +452,7 @@ JNIEXPORT jboolean JNICALL
   java_enableLongclick = java_environment->GetMethodID(java_class, "enableLongclick", "()V");
 
   // Initialize JNI for Allegro.
-  android_allegro_initialize_jni(java_environment, java_class, java_object);
+  //android_allegro_initialize_jni(java_environment, java_class, java_object);
 
   // Get the file to run from Java.
   const char* cpath = java_environment->GetStringUTFChars(filename, NULL);
@@ -503,7 +502,7 @@ JNIEXPORT jboolean JNICALL
   psp_load_latest_savegame = loadLastSave;
 
   // Start the engine main function.
-  main(1, &psp_game_file_name_pointer);
+ // main(1, &psp_game_file_name_pointer);
   
   // Explicitly quit here, otherwise the app will hang forever.
   exit(0);
@@ -549,7 +548,7 @@ void selectLatestSavegame()
 }
 
 
-int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name, int minimum, int maximum, int default_value)
+int ReadInteger(int* variable, const ConfigTree &cfg, const char* section, const char* name, int minimum, int maximum, int default_value)
 {
   if (reset_configuration)
   {
@@ -572,7 +571,7 @@ int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name,
 
 
 
-int ReadString(char* variable, const ConfigTree &cfg, char* section, char* name, char* default_value)
+int ReadString(char* variable, const ConfigTree &cfg, const char* section, const char* name, const char* default_value)
 {
   if (reset_configuration)
   {
@@ -602,7 +601,7 @@ void ResetConfiguration()
 
 
 
-bool ReadConfiguration(char* filename, bool read_everything)
+bool ReadConfiguration(const char* filename, bool read_everything)
 {
   ConfigTree cfg;
   if (IniUtil::Read(filename, cfg) || reset_configuration)
@@ -660,15 +659,18 @@ int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
 
 void AGSAndroid::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
+  va_list args;
+  va_start(args, text);
+  vsprintf(displbuf, text, args);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative",displbuf, nullptr);
+  va_end(args);
 
+
+  /*
   // It is possible that this is called from a thread that is not yet known
   // to the Java VM. So attach it first before displaying the message.
   JNIEnv* thread_env;
-  android_jni_vm->AttachCurrentThread(&thread_env, NULL);
+ // android_jni_vm->AttachCurrentThread(&thread_env, NULL);
 
   __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
 
@@ -676,7 +678,7 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
   usleep(1000 * 1000);
   thread_env->CallVoidMethod(java_object, java_blockExecution);
-
+*/
 //  android_jni_vm->DetachCurrentThread();
 }
 
@@ -698,7 +700,7 @@ int AGSAndroid::InitializeCDPlayer() {
 }
 
 void AGSAndroid::PostBackendExit() {
-  java_environment->DeleteGlobalRef(java_class);
+  //java_environment->DeleteGlobalRef(java_class);
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)

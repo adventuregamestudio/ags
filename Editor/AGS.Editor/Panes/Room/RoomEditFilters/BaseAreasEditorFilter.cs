@@ -423,7 +423,6 @@ namespace AGS.Editor
 			{
                 _roomController.SetMask(MaskToDraw, UndoBufferMask);
                 UndoBufferMask = null;
-                _room.Modified = true;
 				_panel.Invalidate();
 				UpdateUndoButtonEnabledState();
 			}

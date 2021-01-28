@@ -1626,17 +1626,15 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            using (Bitmap bmp = ((IRoomController)this).GetMask(maskType))
-            {
-                double scale = _loadedRoom.GetMaskScale(maskType);
-                int xScaled = (int)(x * scale);
-                int yScaled = (int)(y * scale);
+            Bitmap bmp = _maskCache[maskType];
+            double scale = _loadedRoom.GetMaskScale(maskType);
+            int xScaled = (int)(x * scale);
+            int yScaled = (int)(y * scale);
 
-                // Colors on mask areas is set from game palette so do a reverse lookup to find the index
-                return xScaled >= 0 && xScaled < bmp.Width && yScaled >= 0 && yScaled < bmp.Height
-                    ? _agsEditor.CurrentGame.Palette.FirstOrDefault(p => p.Colour == bmp.GetPixel(xScaled, yScaled))?.Index ?? 0
-                    : 0;
-            }
+            // Colors on mask areas is set from game palette so do a reverse lookup to find the index
+            return xScaled >= 0 && xScaled < bmp.Width && yScaled >= 0 && yScaled < bmp.Height
+                ? _agsEditor.CurrentGame.Palette.FirstOrDefault(p => p.Colour == bmp.GetPixel(xScaled, yScaled))?.Index ?? 0
+                : 0;
         }
 
         void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
@@ -1660,48 +1658,48 @@ namespace AGS.Editor.Components
                 throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
             }
 
-            using (Bitmap background = ((IRoomController)this).GetBackground(backgroundNumber))
+            Bitmap background = _backgroundCache[backgroundNumber];
+
+            // x and y is already scaled from outside the method call
+            Rectangle drawingArea = new Rectangle(
+                x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+
+            g.DrawImage(background, drawingArea);
+
+            if (maskType != RoomAreaMaskType.None)
             {
-                // x and y is already scaled from outside the method call
-                Rectangle drawingArea = new Rectangle(
-                    x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+                Bitmap mask8bpp = _maskCache[maskType];
 
-                g.DrawImage(background, drawingArea);
-
-                if (maskType != RoomAreaMaskType.None)
-                using (Bitmap mask8bpp = ((IRoomController)this).GetMask(maskType))
+                // Color not selected mask areas to gray
+                if (_grayOutMasks)
                 {
-                    // Color not selected mask areas to gray
-                    if (_grayOutMasks)
+                    ColorPalette palette = mask8bpp.Palette;
+
+                    for (int i = 0; i < 256; i++)
                     {
-                        ColorPalette palette = mask8bpp.Palette;
-
-                        for (int i = 0; i < 256; i++)
-                        {
-                            int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
-                            palette.Entries[i] = Color.FromArgb(gray, gray, gray);
-                        }
-
-                        // Highlight the currently selected area colour
-                        if (selectedArea > 0)
-                        {
-                            // if a bright colour, use it, else, draw in red
-                            palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
-                                ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
-                                : Color.FromArgb(60, 0, 0);
-                        }
-
-                        mask8bpp.Palette = palette;
+                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
+                        palette.Entries[i] = Color.FromArgb(gray, gray, gray);
                     }
 
-                    // Prepare alpha component
-                    float alpha = (100 - maskTransparency + 155) / 255f;
-                    ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
-                    ImageAttributes attributes = new ImageAttributes();
-                    attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                    // Highlight the currently selected area colour
+                    if (selectedArea > 0)
+                    {
+                        // if a bright colour, use it, else, draw in red
+                        palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
+                            ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
+                            : Color.FromArgb(60, 0, 0);
+                    }
 
-                    g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
+                    mask8bpp.Palette = palette;
                 }
+
+                // Prepare alpha component
+                float alpha = (100 - maskTransparency + 155) / 255f;
+                ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
             }
         }
 
@@ -1712,25 +1710,22 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            using (Bitmap bg = ((IRoomController)this).GetBackground(0))
+            Bitmap bg = _backgroundCache[0];
+            int baseWidth = bg.Width;
+            int baseHeight = bg.Height;
+            int scaledWidth = baseWidth / _loadedRoom.MaskResolution;
+            int scaledHeight = baseHeight / _loadedRoom.MaskResolution;
+
+            foreach (RoomAreaMaskType maskType in Enum.GetValues(typeof(RoomAreaMaskType)))
             {
-                int baseWidth = bg.Width;
-                int baseHeight = bg.Height;
-                int scaledWidth = baseWidth / _loadedRoom.MaskResolution;
-                int scaledHeight = baseHeight / _loadedRoom.MaskResolution;
+                if (maskType == RoomAreaMaskType.None) continue;
 
-                foreach (RoomAreaMaskType maskType in Enum.GetValues(typeof(RoomAreaMaskType)))
-                {
-                    if (maskType == RoomAreaMaskType.None) continue;
-
-                    using (Bitmap mask = ((IRoomController)this).GetMask(maskType))
-                    using (Bitmap scaled = maskType == RoomAreaMaskType.WalkBehinds
-                        ? mask.Scale(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
-                        : mask.Scale(scaledWidth, scaledHeight)) // Other masks are 1:x where X is MaskResolution
-                    {
-                        ((IRoomController)this).SetMask(maskType, scaled);
-                    }
-                }
+                Bitmap mask = _maskCache[maskType];
+                Bitmap scaled = maskType == RoomAreaMaskType.WalkBehinds
+                    ? mask.Scale(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
+                    : mask.Scale(scaledWidth, scaledHeight); // Other masks are 1:x where X is MaskResolution
+                mask.Dispose();
+                _maskCache[maskType] = scaled;
             }
 
             _loadedRoom.Modified = true;

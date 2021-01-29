@@ -24,6 +24,7 @@
 #ifndef __AGS_EE_GFX__GFXUTIL_H
 #define __AGS_EE_GFX__GFXUTIL_H
 
+#include "ac/common_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 

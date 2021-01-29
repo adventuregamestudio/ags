@@ -64,7 +64,6 @@ struct BlendModeSetter
 // NOTE: set NULL function pointer to fallback to common image blitting
 static const BlendModeSetter BlendModeSets[kNumBlendModes] =
 {
-    { nullptr, nullptr, nullptr, nullptr, nullptr }, // kBlendMode_NoAlpha
     { _argb2argb_blender, _argb2rgb_blender, _rgb2argb_blender, _opaque_alpha_blender, nullptr }, // kBlendMode_Alpha
     // NOTE: add new modes here
 };

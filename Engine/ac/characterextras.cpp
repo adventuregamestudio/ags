@@ -38,6 +38,10 @@ void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
     {
         blend_mode = in->ReadInt32();
     }
+    else
+    {
+        blend_mode = 0;
+    }
 }
 
 void CharacterExtras::WriteToFile(Stream *out)

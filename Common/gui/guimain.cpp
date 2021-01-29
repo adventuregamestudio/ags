@@ -45,6 +45,8 @@ GUIMain::GUIMain()
     InitDefaults();
 }
 
+// TODO: remove and use constructor instead,
+// assign constructor result to object when want to clean it up (gui = GUIMain();)
 void GUIMain::InitDefaults()
 {
     ID            = 0;

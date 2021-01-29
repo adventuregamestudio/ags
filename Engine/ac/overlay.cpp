@@ -150,6 +150,8 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
     int ovri = find_overlay_of_type(scover->overlayId);
     if (ovri < 0)
         quit("!invalid overlay ID specified");
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
 
     screenover[ovri].blendMode = (BlendMode)blendMode;
 }

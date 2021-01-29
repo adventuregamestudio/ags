@@ -419,6 +419,8 @@ int Object_GetBlendMode(ScriptObject *objj) {
 }
 
 void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     objs[objj->id].blend_mode = (BlendMode)blendMode;
 }
 

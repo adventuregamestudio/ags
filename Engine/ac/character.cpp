@@ -1564,6 +1564,8 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
 }
 
 void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
 }
 

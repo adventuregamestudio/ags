@@ -15,7 +15,7 @@
 #include "screenoverlay.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
@@ -39,7 +39,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     }
     if (cmp_ver >= 10)
     {
-        blendMode = in->ReadInt32();
+        blendMode = (BlendMode)in->ReadInt32();
     }
 }
 

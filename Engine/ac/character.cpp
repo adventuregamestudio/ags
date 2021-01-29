@@ -1564,7 +1564,7 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
 }
 
 void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
-    charextra[chaa->index_id].blend_mode = blendMode;
+    charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {

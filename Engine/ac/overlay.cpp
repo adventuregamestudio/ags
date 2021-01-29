@@ -151,7 +151,7 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
-    screenover[ovri].blendMode = blendMode;
+    screenover[ovri].blendMode = (BlendMode)blendMode;
 }
 
 //=============================================================================
@@ -207,7 +207,7 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChann
     return add_screen_overlay(x, y, type, piccy, 0, 0, alphaChannel);
 }
 
-size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel, int blendMode)
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel, BlendMode blendMode)
 {
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;

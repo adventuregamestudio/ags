@@ -15,7 +15,7 @@
 #include "ac/characterextras.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
@@ -36,11 +36,11 @@ void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
     animwait = in->ReadInt16();
     if (cmp_ver >= 10)
     {
-        blend_mode = in->ReadInt32();
+        blend_mode = (BlendMode)in->ReadInt32();
     }
     else
     {
-        blend_mode = 0;
+        blend_mode = kBlend_Normal;
     }
 }
 

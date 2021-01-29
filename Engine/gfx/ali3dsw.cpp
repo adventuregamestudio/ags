@@ -534,12 +534,8 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     }
     else
     {
-        Common::BlendMode al_blender_mode = (Common::BlendMode) bitmap->_blendMode;
-        if (al_blender_mode >= Common::kNumBlendModes || al_blender_mode < kBlendMode_Normal)
-            al_blender_mode = Common::kBlendMode_Normal;
-
         // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
-        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, al_blender_mode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
     // NOTE: following is experimental tint code (currently unused)

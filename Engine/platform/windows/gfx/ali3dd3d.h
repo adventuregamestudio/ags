@@ -73,7 +73,7 @@ public:
         _blue = blue;
         _tintSaturation = tintSaturation;
     }
-    void SetBlendMode(int blendMode) override  { _blendMode = blendMode; }
+    void SetBlendMode(Common::BlendMode blendMode) override  { _blendMode = blendMode; }
 
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
@@ -86,7 +86,7 @@ public:
     IDirect3DVertexBuffer9* _vertex;
     D3DTextureTile *_tiles;
     int _numTiles;
-    int _blendMode;
+    Common::BlendMode _blendMode;
 
     D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
@@ -106,7 +106,7 @@ public:
         _vertex = NULL;
         _tiles = NULL;
         _numTiles = 0;
-        _blendMode = 0;
+        _blendMode = Common::kBlend_Normal;
     }
 
     int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }

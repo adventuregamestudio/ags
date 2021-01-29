@@ -419,7 +419,7 @@ int Object_GetBlendMode(ScriptObject *objj) {
 }
 
 void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
-    objs[objj->id].blend_mode = blendMode;
+    objs[objj->id].blend_mode = (BlendMode)blendMode;
 }
 
 

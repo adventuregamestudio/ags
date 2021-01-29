@@ -403,16 +403,16 @@ enum LogLevel
 
 #ifdef SCRIPT_API_v399
 enum BlendMode {
-    eBlendModeNormal = 0,
-    eBlendModeAdd,
-    eBlendModeDarken,
-    eBlendModeLighten,
-    eBlendModeMultiply,
-    eBlendModeScreen,
-    eBlendModeBurn,
-    eBlendModeSubtract,
-    eBlendModeExclusion,
-    eBlendModeDodge
+    eBlendNormal = 0,
+    eBlendAdd,
+    eBlendDarken,
+    eBlendLighten,
+    eBlendMultiply,
+    eBlendScreen,
+    eBlendBurn,
+    eBlendSubtract,
+    eBlendExclusion,
+    eBlendDodge
 };
 #endif
 

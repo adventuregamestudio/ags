@@ -1324,17 +1324,17 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     // Blend modes
     switch (bmpToDraw->_blendMode) {
         // blend mode is always NORMAL at this point
-        //case kBlendMode_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
-        case kBlendMode_Add: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
-        case kBlendMode_Darken: AGS_D3DBLENDOP(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
-        case kBlendMode_Lighten: AGS_D3DBLENDOP(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
-        case kBlendMode_Multiply: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
-        case kBlendMode_Screen: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
-        case kBlendMode_Subtract: AGS_D3DBLENDOP(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
-        case kBlendMode_Exclusion: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
+        //case kBlend_Alpha: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA); break; // ALPHA
+        case kBlend_Add: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // ADD (transparency = strength)
+        case kBlend_Darken: AGS_D3DBLENDOP(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE); break; // DARKEN
+        case kBlend_Lighten: AGS_D3DBLENDOP(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE); break; // LIGHTEN
+        case kBlend_Multiply: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ZERO, D3DBLEND_SRCCOLOR); break; // MULTIPLY
+        case kBlend_Screen: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_INVSRCCOLOR); break; // SCREEN
+        case kBlend_Subtract: AGS_D3DBLENDOP(D3DBLENDOP_REVSUBTRACT, D3DBLEND_SRCALPHA, D3DBLEND_ONE); break; // SUBTRACT (transparency = strength)
+        case kBlend_Exclusion: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_INVDESTCOLOR, D3DBLEND_INVSRCCOLOR); break; // EXCLUSION
         // APPROXIMATIONS (need pixel shaders)
-        case kBlendMode_Burn: AGS_D3DBLENDOP(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
-        case kBlendMode_Dodge: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
+        case kBlend_Burn: AGS_D3DBLENDOP(D3DBLENDOP_SUBTRACT, D3DBLEND_DESTCOLOR, D3DBLEND_INVDESTCOLOR); break; // LINEAR BURN (approximation)
+        case kBlend_Dodge: AGS_D3DBLENDOP(D3DBLENDOP_ADD, D3DBLEND_DESTCOLOR, D3DBLEND_ONE); break; // fake color dodge (half strength of the real thing)
     }
 
     // BLENDMODES WORKAROUNDS - BEGIN
@@ -1345,17 +1345,17 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
         const int alpha = bmpToDraw->_transparency == 0 ? 255 : bmpToDraw->_transparency;
         const int invalpha = 255 - alpha;
         switch (bmpToDraw->_blendMode) {
-        case kBlendMode_Darken:
-        case kBlendMode_Multiply:
-        case kBlendMode_Burn: // FIXME burn is imperfect due to blend mode, darker than normal even when trasparent
+        case kBlend_Darken:
+        case kBlend_Multiply:
+        case kBlend_Burn: // FIXME burn is imperfect due to blend mode, darker than normal even when trasparent
             // fade to white
             direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADDSMOOTH);
             direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(invalpha, invalpha, invalpha, invalpha));
             break;
-        case kBlendMode_Lighten:
-        case kBlendMode_Screen:
-        case kBlendMode_Exclusion:
-        case kBlendMode_Dodge:
+        case kBlend_Lighten:
+        case kBlend_Screen:
+        case kBlend_Exclusion:
+        case kBlend_Dodge:
             // fade to black
             direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
             direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, alpha));
@@ -1366,7 +1366,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
 
     // workaround: since the dodge is only half strength we can get a closer approx by drawing it twice
-    if (bmpToDraw->_blendMode == kBlendMode_Dodge)
+    if (bmpToDraw->_blendMode == kBlend_Dodge)
     {
         hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
         if (hr != D3D_OK)

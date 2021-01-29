@@ -324,7 +324,7 @@ int GUI_GetBlendMode(ScriptGUI *gui) {
 }
 
 void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
-    guis[gui->id].BlendMode = blendMode;
+    guis[gui->id].BlendMode = (BlendMode)blendMode;
 }
 
 //=============================================================================

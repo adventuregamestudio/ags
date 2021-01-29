@@ -22,7 +22,7 @@
 #include "main/update.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 extern ViewStruct*views;
 extern GameState play;
@@ -46,7 +46,7 @@ RoomObject::RoomObject()
     on = 0;
     flags = 0;
     blocking_width = blocking_height = 0;
-    blend_mode = 0;
+    blend_mode = kBlend_Normal;
 }
 
 int RoomObject::get_width() {
@@ -158,11 +158,11 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
     in->ReadArrayOfInt16(&blocking_width, 2);
     if (cmp_ver >= 10)
     {
-        blend_mode = in->ReadInt32();
+        blend_mode = (BlendMode)in->ReadInt32();
     }
     else
     {
-        blend_mode = 0;
+        blend_mode = kBlend_Normal;
     }
 }
 

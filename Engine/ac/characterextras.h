@@ -20,6 +20,7 @@
 
 #include "core/types.h"
 #include "ac/runtime_defines.h"
+#include "gfx/gfx_def.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -44,7 +45,7 @@ struct CharacterExtras {
     char  process_idle_this_time;
     char  slow_move_counter;
     short animwait;
-    short blend_mode;
+    Common::BlendMode blend_mode;
 
     void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);

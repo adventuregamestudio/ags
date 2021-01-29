@@ -73,7 +73,7 @@ void GUIMain::InitDefaults()
     MouseWasAt.X  = -1;
     MouseWasAt.Y  = -1;
 
-    BlendMode     = 0;
+    BlendMode     = kBlend_Normal;
 
     OnClickHandler.Empty();
 
@@ -633,7 +633,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 
     if (svg_version >= kGuiSvgVersion_399)
     {
-        BlendMode = in->ReadInt32();
+        BlendMode = (Common::BlendMode)in->ReadInt32();
     }
 }
 

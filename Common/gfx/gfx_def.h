@@ -26,16 +26,16 @@ namespace Common
 // Blend modes for object sprites
 enum BlendMode
 {
-    kBlendMode_Normal,        // alpha-blend src to dest, combining src & dest alphas
-    kBlendMode_Add,
-    kBlendMode_Darken,
-    kBlendMode_Lighten,
-    kBlendMode_Multiply,
-    kBlendMode_Screen,
-    kBlendMode_Burn,
-    kBlendMode_Subtract,
-    kBlendMode_Exclusion,
-    kBlendMode_Dodge,
+    kBlend_Normal,        // alpha-blend src to dest, combining src & dest alphas
+    kBlend_Add,
+    kBlend_Darken,
+    kBlend_Lighten,
+    kBlend_Multiply,
+    kBlend_Screen,
+    kBlend_Burn,
+    kBlend_Subtract,
+    kBlend_Exclusion,
+    kBlend_Dodge,
     kNumBlendModes
 };
 

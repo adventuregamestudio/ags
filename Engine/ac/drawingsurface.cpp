@@ -191,7 +191,7 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src, int ds
     }
 
     draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, dst_x, dst_y, src, src_has_alpha,
-        kBlendMode_Normal, GfxDef::Trans100ToAlpha255(trans));
+        kBlend_Normal, GfxDef::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();
 

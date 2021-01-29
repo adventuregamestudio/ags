@@ -164,7 +164,7 @@ struct SpriteListEntry
     bool takesPriorityIfEqual = false;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
     int renderStage = -1;
-    int blendMode;
+    BlendMode blendMode = kBlend_Normal;
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -770,7 +770,7 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, int blendMode = 0)
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, BlendMode blendMode = kBlend_Normal)
 {
     SpriteListEntry sprite;
     sprite.bmp = bmp;
@@ -793,7 +793,8 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind, int blendMode = 0)
+void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind,
+    BlendMode blendMode = kBlend_Normal)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");

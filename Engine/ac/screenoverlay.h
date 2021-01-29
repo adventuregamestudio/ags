@@ -18,7 +18,8 @@
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
-#include <stdint.h>
+#include "core/types.h"
+#include "gfx/gfx_def.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; } }
@@ -36,7 +37,7 @@ struct ScreenOverlay {
     int associatedOverlayHandle = 0;
     bool positionRelativeToScreen = false;
     int _offsetX = 0, _offsetY = 0;
-    int blendMode = 0;
+    Common::BlendMode blendMode = Common::kBlend_Normal;
 
     void ReadFromFile(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;

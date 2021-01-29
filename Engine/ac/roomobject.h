@@ -20,11 +20,11 @@
 
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// IMPORTANT: this struct is restricted by plugin API!
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
@@ -42,7 +42,7 @@ struct RoomObject {
     char  on;
     char  flags;
     short blocking_width, blocking_height;
-    short blend_mode;
+    Common::BlendMode blend_mode;
 
     RoomObject();
 

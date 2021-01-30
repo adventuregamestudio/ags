@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"
@@ -20,6 +19,7 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"

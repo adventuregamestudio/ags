@@ -11,13 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <math.h>
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
 #include "ac/charactercache.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI

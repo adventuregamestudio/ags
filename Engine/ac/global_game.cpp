@@ -11,9 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <math.h>
-
 #include "core/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
@@ -61,6 +59,7 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 

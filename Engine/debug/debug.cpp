@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <memory>
 #include <limits>
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"

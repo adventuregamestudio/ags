@@ -54,6 +54,7 @@
 #include "game/savegame.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "gui/guibutton.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
@@ -1543,7 +1544,7 @@ bool unserialize_audio_script_object(int index, const char *objectType, const ch
 void game_sprite_updated(int sprnum)
 {
     // Check if this sprite is assigned to any game object, and update them if necessary
-    // room object cache
+    // room objects cache
     if (croom != nullptr)
     {
         for (size_t i = 0; i < (size_t)croom->numobj; ++i)
@@ -1561,11 +1562,67 @@ void game_sprite_updated(int sprnum)
     // gui backgrounds
     for (size_t i = 0; i < (size_t)game.numgui; ++i)
     {
-        if ((guis[i].BgImage == sprnum) &&
-            (guis[i].IsDisplayed()))
+        if (guis[i].BgImage == sprnum)
         {
             guis_need_update = 1;
-            break;
+            break; // setting gui update flag once is enough
+        }
+    }
+    // gui buttons
+    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    {
+        if (guibuts[i].CurrentImage == sprnum)
+        {
+            guis_need_update = 1;
+            break; // setting gui update flag once is enough
+        }
+    }
+}
+
+void game_sprite_deleted(int sprnum)
+{
+    // Check if this sprite is assigned to any game object, and update them if necessary
+    // room objects and their cache
+    if (croom != nullptr)
+    {
+        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
+        {
+            if (objs[i].num == sprnum)
+            {
+                objs[i].num = 0;
+                objcache[i].sppic = -1;
+            }
+        }
+    }
+    // character cache
+    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
+    {
+        if (charcache[i].sppic == sprnum)
+            charcache[i].sppic = -1;
+    }
+    // gui backgrounds
+    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    {
+        if (guis[i].BgImage == sprnum)
+        {
+            guis[i].BgImage = 0;
+            guis_need_update = 1;
+        }
+    }
+    // gui buttons
+    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    {
+        if (guibuts[i].Image == sprnum)
+            guibuts[i].Image = 0;
+        if (guibuts[i].MouseOverImage == sprnum)
+            guibuts[i].MouseOverImage = 0;
+        if (guibuts[i].PushedImage == sprnum)
+            guibuts[i].PushedImage = 0;
+
+        if (guibuts[i].CurrentImage == sprnum)
+        {
+            guibuts[i].CurrentImage = 0;
+            guis_need_update = 1;
         }
     }
 }

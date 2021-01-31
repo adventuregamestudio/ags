@@ -469,7 +469,6 @@ void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 }
 
 void free_dynamic_sprite (int gotSlot) {
-  int tt;
 
   if ((gotSlot < 0) || (gotSlot >= spriteset.GetSpriteSlotCount()))
     quit("!FreeDynamicSprite: invalid slot number");
@@ -483,34 +482,7 @@ void free_dynamic_sprite (int gotSlot) {
   game.SpriteInfos[gotSlot].Width = 0;
   game.SpriteInfos[gotSlot].Height = 0;
 
-  // ensure it isn't still on any GUI buttons
-  for (tt = 0; tt < numguibuts; tt++) {
-    if (guibuts[tt].IsDeleted())
-      continue;
-    if (guibuts[tt].Image == gotSlot)
-      guibuts[tt].Image = 0;
-    if (guibuts[tt].CurrentImage == gotSlot)
-      guibuts[tt].CurrentImage = 0;
-    if (guibuts[tt].MouseOverImage == gotSlot)
-      guibuts[tt].MouseOverImage = 0;
-    if (guibuts[tt].PushedImage == gotSlot)
-      guibuts[tt].PushedImage = 0;
-  }
-
-  // force refresh of any object caches using the sprite
-  if (croom != nullptr) 
-  {
-    for (tt = 0; tt < croom->numobj; tt++) 
-    {
-      if (objs[tt].num == gotSlot)
-      {
-        objs[tt].num = 0;
-        objcache[tt].sppic = -1;
-      }
-      else if (objcache[tt].sppic == gotSlot)
-        objcache[tt].sppic = -1;
-    }
-  }
+  game_sprite_deleted(gotSlot);
 }
 
 //=============================================================================

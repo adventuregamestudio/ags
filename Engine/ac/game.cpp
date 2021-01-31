@@ -1625,6 +1625,18 @@ void game_sprite_deleted(int sprnum)
             guis_need_update = 1;
         }
     }
+    // views
+    for (size_t v = 0; v < (size_t)game.numviews; ++v)
+    {
+        for (size_t l = 0; l < (size_t)views[v].numLoops; ++l)
+        {
+            for (size_t f = 0; f < (size_t)views[v].loops[l].numFrames; ++f)
+            {
+                if (views[v].loops[l].frames[f].pic == sprnum)
+                    views[v].loops[l].frames[f].pic = 0;
+            }
+        }
+    }
 }
 
 //=============================================================================

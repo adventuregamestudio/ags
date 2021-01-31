@@ -95,16 +95,12 @@ namespace AGS.Editor
         /// <param name="position">The position we want to fill from.</param>
         /// <param name="color">The color to use for the filling.</param>
         /// <returns>A new bitmap with the area filled.</returns>
-        public static Bitmap FillArea(this Bitmap bmp, Point position, int color, double scale)
+        public static void FillIndexedArea(this Bitmap bmp, int color, Point position, double scale)
         {
-            Bitmap result = new Bitmap(bmp.Width, bmp.Height, bmp.PixelFormat);
             Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
-
             byte[] rawData = bmp.GetRawData(bmp.PixelFormat);
             FloodFillImage(rawData, positionScaled, bmp.Size, rawData[(positionScaled.Y * bmp.Width) + positionScaled.X], (byte)color);
-            result.SetRawData(rawData, bmp.PixelFormat);
-
-            return result;
+            bmp.SetRawData(rawData, bmp.PixelFormat);
         }
 
         /// <summary>

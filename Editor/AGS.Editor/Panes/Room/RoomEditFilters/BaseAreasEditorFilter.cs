@@ -715,9 +715,9 @@ namespace AGS.Editor
             double scale = _room.GetMaskScale(MaskToDraw);
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
-            using (Bitmap drawn = mask.FillArea(point, _drawingWithArea, scale))
             {
-                _roomController.SetMask(MaskToDraw, drawn);
+                mask.FillIndexedArea(_drawingWithArea, point, scale);
+                _roomController.SetMask(MaskToDraw, mask);
             }
         }
     }

@@ -35,7 +35,7 @@ namespace AGS
 	namespace Native
 	{
 
-    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript)
+    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game)
     {
         if (script->CompiledData != nullptr)
             script->CompiledData = nullptr;
@@ -52,7 +52,6 @@ namespace AGS
             long const options =
                 SCOPT_EXPORTALL |
                 SCOPT_LINENUMBERS |
-                SCOPT_NOIMPORTOVERRIDE * isRoomScript | // Don't allow them to override imports in the room script
                 SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
                 false;
             char *mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
@@ -101,9 +100,6 @@ namespace AGS
 
             ccSetOption(SCOPT_EXPORTALL, 1);
             ccSetOption(SCOPT_LINENUMBERS, 1);
-            // Don't allow them to override imports in the room script
-            ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript);
-
             ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
 
             if (exceptionToThrow == nullptr)

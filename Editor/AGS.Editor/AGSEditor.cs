@@ -893,7 +893,7 @@ namespace AGS.Editor
 		/// <summary>
 		/// Preprocesses and then compiles the script using the supplied headers.
 		/// </summary>
-		public void CompileScript(Script script, List<Script> headers, CompileMessages errors, bool isRoomScript)
+		public void CompileScript(Script script, List<Script> headers, CompileMessages errors)
 		{
 			IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
 			DefineMacrosAccordingToGameSettings(preprocessor);
@@ -931,7 +931,7 @@ namespace AGS.Editor
 			}
 			else
 			{
-				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game, isRoomScript);
+				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game);
 			}
 		}
 
@@ -966,18 +966,18 @@ namespace AGS.Editor
 
                 foreach (Script script in GetInternalScriptModules())
                 {
-                    CompileScript(script, headers, errors, false);
+                    CompileScript(script, headers, errors);
                     _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
                 }
 
                 foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
                 {
                     headers.Add(scripts.Header);
-                    CompileScript(scripts.Script, headers, errors, false);
+                    CompileScript(scripts.Script, headers, errors);
                     _game.ScriptsToCompile.Add(scripts);					
                 }
 
-                CompileScript(dialogScripts, headers, errors, false);
+                CompileScript(dialogScripts, headers, errors);
                 _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 			}
             catch (CompileMessage ex)

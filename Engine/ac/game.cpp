@@ -1540,6 +1540,36 @@ bool unserialize_audio_script_object(int index, const char *objectType, const ch
     return true;
 }
 
+void game_sprite_updated(int sprnum)
+{
+    // Check if this sprite is assigned to any game object, and update them if necessary
+    // room object cache
+    if (croom != nullptr)
+    {
+        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
+        {
+            if (objs[i].num == sprnum)
+                objcache[i].sppic = -1;
+        }
+    }
+    // character cache
+    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
+    {
+        if (charcache[i].sppic == sprnum)
+            charcache[i].sppic = -1;
+    }
+    // gui backgrounds
+    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    {
+        if ((guis[i].BgImage == sprnum) &&
+            (guis[i].IsDisplayed()))
+        {
+            guis_need_update = 1;
+            break;
+        }
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions

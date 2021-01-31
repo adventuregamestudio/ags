@@ -181,6 +181,10 @@ void get_message_text (int msnum, char *buffer, char giveErr = 1);
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);
 
+// Notifies the game objects that certain sprite was updated.
+// This make them update their render states, caches, and so on.
+void game_sprite_updated(int sprnum);
+
 extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;

@@ -31,6 +31,9 @@ namespace AGS.Types
             set { _lastBuildGameFileName = value; }
         }
 
+        [Browsable(false)]
+        public bool RequiresRebuild { get; set; } = false;
+
         // TODO: generic method of serializing key-value list in a string (or other xml element)
         private static string[] StringListSeparators = new string[] { "," };
         private static string[] KeyValueSeparators = new string[] { "=" };

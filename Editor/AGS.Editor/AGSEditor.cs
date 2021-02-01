@@ -100,7 +100,7 @@ namespace AGS.Editor
          * 2: 3.4.0.1    - WorkspaceState section
          * 3: 3.5.0.11
         */
-        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 3;
+        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 4;
         public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
@@ -1235,6 +1235,8 @@ namespace AGS.Editor
 
             Utilities.EnsureStandardSubFoldersExist();
 
+            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
+
             if (PreCompileGame != null)
             {
 				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
@@ -1269,7 +1271,8 @@ namespace AGS.Editor
 					{
 						CreateCompiledFiles(errors, forceRebuild);
 					}
-				}
+                    _game.WorkspaceState.RequiresRebuild = false;
+                }
 			}
 
             Factory.GUIController.ShowOutputPanel(errors);

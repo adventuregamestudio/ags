@@ -291,6 +291,9 @@ extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
+#if AGS_PLATFORM_OS_ANDROID
+extern int config_mouse_control_mode;
+#endif
 
 void override_config_ext(ConfigTree &cfg)
 {
@@ -340,6 +343,13 @@ void override_config_ext(ConfigTree &cfg)
         INIwriteint(cfg, "graphics", "supersampling", psp_gfx_super_sampling + 1);
     else
         INIwriteint(cfg, "graphics", "supersampling", 0);
+
+#if AGS_PLATFORM_OS_ANDROID
+    // config_mouse_control_mode - enable relative mouse mode
+    //    * 1 - relative mouse touch controls
+    //    * 0 - direct touch mouse control
+    INIwriteint(cfg, "mouse", "control_enabled", config_mouse_control_mode);
+#endif
 
     INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
     INIwritestring(cfg, "language", "translation", psp_translation);

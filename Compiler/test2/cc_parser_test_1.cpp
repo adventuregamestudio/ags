@@ -1049,3 +1049,20 @@ TEST_F(Compile1, AttribInc) {
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
 
+TEST_F(Compile1, ManagedForwardStruct)
+{
+    // If a struct is forward-declared as "managed" then its
+    // actual declaration must be "managed", too.
+
+    char *inpl = "\
+        managed struct Object;              \n\
+        struct Object                       \n\
+        {                                   \n\
+            import attribute int Graphic;   \n\
+        } obj;                              \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'managed'"));
+}

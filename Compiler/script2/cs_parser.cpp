@@ -4442,12 +4442,12 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Import(Symbol var_name)
 
 AGS::ErrorType AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype, void *&initial_val_ptr)
 {
-
     if (kKW_Assign == _src.PeekNext())
     {
         ErrorType retval = ParseVardecl_InitialValAssignment(var_name, initial_val_ptr);
         if (retval < 0) return retval;
     }
+
     SymbolTableEntry &entry = _sym[var_name];
     entry.VariableD->Vartype = vartype;
     size_t const var_size = _sym.GetSize(vartype);
@@ -4470,6 +4470,9 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
     if (kKW_Assign != _src.PeekNext())
     {
+        if (var_size == 0)
+            return kERR_None;
+
         // Initialize the variable with binary zeroes.
         WriteCmd(SCMD_LOADSPOFFS, 0);
         if (is_dyn)
@@ -4530,6 +4533,12 @@ AGS::ErrorType AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, Scop
         ErrorType retval = ParseArray(var_name, vartype);
         if (retval < 0) return retval;
     }
+
+    // Don't warn for builtins or imports, they might have been predefined
+    if (!tqs[TQ::kBuiltin] && ScT::kImport != scope_type && 0 == _sym.GetSize(vartype))
+        Warning(
+            ReferenceMsgSym("Variable '%s' has zero size", vartype).c_str(),
+            _sym.GetName(var_name).c_str());
 
     // Enter the variable into the symbol table
     ErrorType retval = ParseVardecl_Var2SymTable(var_name, vartype, scope_type);

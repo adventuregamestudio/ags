@@ -2217,16 +2217,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype argument_varty
 
     // Note: While it is an error to use a built-in type with new, it is
     // allowed to use a built-in type with new[].
-
-    if (0 == _sym.GetSize(argument_vartype))
-    {   
-        Error(
-            ReferenceMsgSym(
-                "Struct '%s' doesn't contain any variables, cannot use 'new' with it",
-                argument_vartype).c_str(),
-            _sym.GetName(argument_vartype).c_str());
-        return kERR_UserError;
-    }
     return kERR_None;
 }
 

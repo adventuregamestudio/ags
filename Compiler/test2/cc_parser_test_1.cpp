@@ -1096,10 +1096,9 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
 TEST_F(Compile1, ZeroMemoryAllocation1)
 {
 
-    // If a struct type doesn't contain any variables then there are zero
-    // bytes to allocate. The Engine really doesn't like allocating 0 bytes
-    // Note: It would be possible to allocate a block of 10 dynpointers, but
-    // then none of the dynpointers can be initialized.
+    // If a struct type doesn't contain any variables then there are zero bytes 
+    // to allocate. However, it _is_ legal to allocate a dynarray for the
+    // struct. (Its elements could be initialized via other means than new.)
 
     char *inpl = "\
         managed struct Strct                \n\
@@ -1113,8 +1112,7 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
         ";
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'Strct'"));
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
 
 TEST_F(Compile1, ZeroMemoryAllocation2)

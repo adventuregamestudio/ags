@@ -2258,6 +2258,16 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
             Error("Expected '[' after the integer type '%s'", _sym.GetName(argument_vartype).c_str());
             return kERR_UserError;
         }
+        // Only do this check for new, not for new[]. 
+        if (0 == _sym.GetSize(argument_vartype))
+        {
+            Error(
+                ReferenceMsgSym(
+                    "Struct '%s' doesn't contain any variables, cannot use 'new' with it",
+                    argument_vartype).c_str(),
+                _sym.GetName(argument_vartype).c_str());
+            return kERR_UserError;
+        }
         element_vartype = argument_vartype;
         vartype = _sym.VartypeWith(VTT::kDynpointer, argument_vartype);
     }

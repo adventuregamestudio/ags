@@ -1859,7 +1859,7 @@ TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
 
     std::string agscode = "\
         managed struct DynamicSprite            \n\
-        {                                       \n\
+         {                                       \n\
             import static DynamicSprite         \n\
                 *Create(int width, int height, bool hasAlphaChannel = false);   \n\
         };                                      \n\

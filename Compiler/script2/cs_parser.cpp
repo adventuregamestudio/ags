@@ -1996,6 +1996,10 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
             !_sym.IsDynpointerVartype(vartype_wants_to_be) &&
             !_sym.IsDynarrayVartype(vartype_wants_to_be);
 
+    // Can only assign dynarray pointers to dynarray pointers.
+    if (_sym.IsDynarrayVartype(vartype_is) != _sym.IsDynarrayVartype(vartype_wants_to_be))
+        return true;
+
     // can convert String * to const string
     if (_sym.GetStringStructSym() == _sym.VartypeWithout(VTT::kDynpointer, vartype_is) &&
         kKW_String == _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be))
@@ -2213,6 +2217,16 @@ AGS::ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype argument_varty
 
     // Note: While it is an error to use a built-in type with new, it is
     // allowed to use a built-in type with new[].
+
+    if (0 == _sym.GetSize(argument_vartype))
+    {   
+        Error(
+            ReferenceMsgSym(
+                "Struct '%s' doesn't contain any variables, cannot use 'new' with it",
+                argument_vartype).c_str(),
+            _sym.GetName(argument_vartype).c_str());
+        return kERR_UserError;
+    }
     return kERR_None;
 }
 

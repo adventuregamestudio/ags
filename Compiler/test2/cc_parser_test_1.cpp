@@ -1095,7 +1095,11 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
 
 TEST_F(Compile1, ZeroMemoryAllocation1)
 {
-    // 
+
+    // If a struct type doesn't contain any variables then there are zero
+    // bytes to allocate. The Engine really doesn't like allocating 0 bytes
+    // Note: It would be possible to allocate a block of 10 dynpointers, but
+    // then none of the dynpointers can be initialized.
 
     char *inpl = "\
         managed struct Strct                \n\
@@ -1115,7 +1119,8 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
 
 TEST_F(Compile1, ZeroMemoryAllocation2)
 {
-    // It is an error to assign a Dynpointer to a Dynarray variable
+    // If a struct type doesn't contain any variables then there are zero
+    // bytes to allocate. The Engine really doesn't like allocating 0 bytes
 
     char *inpl = "\
         managed struct Strct                \n\

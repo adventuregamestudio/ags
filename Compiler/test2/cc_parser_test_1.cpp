@@ -1029,6 +1029,111 @@ TEST_F(Compile1, ImportAutoptr2) {
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
 
+TEST_F(Compile1, DynptrDynarrayMismatch1)
+{
+    // It is an error to assign a Dynpointer to a Dynarray variable
+
+    char *inpl = "\
+        managed struct Strct                \n\
+        {                                   \n\
+            int Payload;                    \n\
+        };                                  \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Strct *o[] = new Strct;         \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("assign"));
+}
+
+TEST_F(Compile1, DynptrDynarrayMismatch1a)
+{
+    // It is an error to assign a Dynpointer to a Dynarray variable
+
+    char *inpl = "\
+        managed struct Strct                \n\
+        {                                   \n\
+            int Payload;                    \n\
+        };                                  \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Strct *o[];                     \n\
+            o= new Strct;                   \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("assign"));
+}
+
+TEST_F(Compile1, DynptrDynarrayMismatch2)
+{
+    // It is an error to assign a Dynarray to a Dynpointer variable
+
+    char *inpl = "\
+        builtin managed struct Object       \n\
+        {                                   \n\
+            int Payload;                    \n\
+        };                                  \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Object *o = new Object[10];     \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("assign"));
+}
+
+TEST_F(Compile1, ZeroMemoryAllocation1)
+{
+    // 
+
+    char *inpl = "\
+        managed struct Strct                \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Strct *o[] = new Strct[10];     \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'Strct'"));
+}
+
+TEST_F(Compile1, ZeroMemoryAllocation2)
+{
+    // It is an error to assign a Dynpointer to a Dynarray variable
+
+    char *inpl = "\
+        managed struct Strct                \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Strct *o = new Strct;           \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'Strct'"));
+}
+
+
 TEST_F(Compile1, AttribInc) {
 
     // Import decls of autopointered variables must be processed correctly.

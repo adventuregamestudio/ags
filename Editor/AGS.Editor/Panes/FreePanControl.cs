@@ -106,7 +106,11 @@ namespace AGS.Editor
             base.OnMouseMove(e);
         }
 
+        // Override mouse wheel to avoid automatic scrolling: this is conflicting with scrolling done by separate controls now
+        // TODO: perhaps it would be better to move wheel controls here from RoomSettingsEditor_MouseWheel to make things more consistent,
+        // but looks like that would require more refactoring done over both classes.
+        protected override void OnMouseWheel(MouseEventArgs e)
+        { // do nothing here
+        }
     }
 }
-
-

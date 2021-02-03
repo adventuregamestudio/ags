@@ -66,26 +66,27 @@ namespace AGS.Editor
             bmp.SetRawData(rawImage);
         }
 
-        /// <summary>
-        /// Gives back a deep copy of the bitmap with a filled rectangle.
-        /// </summary>
-        /// <param name="bmp">The bitmap we to copy and draw on.</param>
-        /// <param name="p1">The starting point of the rectangle.</param>
-        /// <param name="p2">The end point of the rectangle.</param>
-        /// <param name="color">The color of the rectangle.</param>
-        /// <param name="scale">Adjust coordinates for the input scale.</param>
-        /// <returns></returns>
-        public static Bitmap FillRectangle(this Bitmap bmp, Point p1, Point p2, Color color, double scale = 1.0) => bmp.Mutate(g =>
+        public static void FillIndexedRectangle(this Bitmap bmp, int color, Point p1, Point p2, double scale = 1.0)
         {
+            if (!bmp.IsIndexed())
+                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
+
             Point origin = new Point(p1.X < p2.X ? p1.X : p2.X, p1.Y < p2.Y ? p1.Y : p2.Y);
             Point originScaled = new Point((int)(origin.X * scale), (int)(origin.Y * scale));
 
             Size size = new Size(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
             Size sizeScaled = new Size((int)(size.Width * scale), (int)(size.Height * scale));
+            int paddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
 
-            g.DrawImage(bmp, 0, 0);
-            g.FillRectangle(new SolidBrush(color), new Rectangle(originScaled, sizeScaled));
-        });
+            byte[] rawImage = bmp.GetRawData();
+            byte colorAsByte = (byte)color;
+
+            for (int y = originScaled.Y; y < originScaled.Y + sizeScaled.Height; y++)
+                for (int x = originScaled.X; x < originScaled.X + sizeScaled.Width; x++)
+                    rawImage[(paddedWidth * y) + x] = colorAsByte;
+
+            bmp.SetRawData(rawImage);
+        }
 
         /// <summary>
         /// Gives back a deep copy of the bitmap with the area matching the position color, filled to

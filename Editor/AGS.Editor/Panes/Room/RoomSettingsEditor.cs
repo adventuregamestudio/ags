@@ -118,9 +118,10 @@ namespace AGS.Editor
 
             RepopulateBackgroundList(0);
             UpdateScrollableWindowSize();
-			this.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
-			this.bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
-            this.sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            cmbBackgrounds.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
             bufferedPanel1.PanButtons = MouseButtons.Middle;
 
             _editorConstructed = true;
@@ -274,21 +275,34 @@ namespace AGS.Editor
                 
         private void RoomSettingsEditor_MouseWheel(object sender, MouseEventArgs e)
 		{
-			int movement = e.Delta;
-			if (movement > 0)
-			{
-				if (sldZoomLevel.Value < sldZoomLevel.Maximum)
-				{
-					sldZoomLevel.Value++;
-				}
-			}
-			else
-			{
-				if (sldZoomLevel.Value > sldZoomLevel.Minimum)
-				{
-					sldZoomLevel.Value--;
-				}
-			}
+            // Ctrl + Wheel = zoom
+            if (ModifierKeys == Keys.Control)
+            {
+                if (e.Delta > 0)
+                {
+                    if (sldZoomLevel.Value < sldZoomLevel.Maximum)
+                    {
+                        sldZoomLevel.Value++;
+                    }
+                }
+                else
+                {
+                    if (sldZoomLevel.Value > sldZoomLevel.Minimum)
+                    {
+                        sldZoomLevel.Value--;
+                    }
+                }
+            }
+            // Shift + Wheel = scroll horizontal
+            else if (ModifierKeys == Keys.Shift)
+            {
+                bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X) - e.Delta, Math.Abs(bufferedPanel1.AutoScrollPosition.Y));
+            }
+            // Wheel without modifiers = scroll vertical
+            else if(ModifierKeys == Keys.None)
+            {
+                bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) - e.Delta);
+            }
 			sldZoomLevel_Scroll(null, null);
             // Ridiculous solution, found on stackoverflow.com
             // TODO: check again later, how reliable this is?!

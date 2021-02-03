@@ -4715,6 +4715,52 @@ AGS::ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, 
     return kERR_None;
 }
 
+ErrorType AGS::Parser::ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet tqs, TypeQualifier tq, VartypeFlag vtf)
+{
+    // Name of the type qualifier, e.g. 'builtin'
+    std::string const tq_name =
+        _sym.GetName(tqs.TQ2Symbol(tq));
+
+    std::string const struct_name =
+        _sym.GetName(stname).c_str();
+
+    std::string const msg =
+        tqs[tq] ?
+        "Struct '%s' is '%s' here, not '%s' in a declaration elsewhere" :
+        "Struct '%s' is not '%s' here, '%s' in a declaration elsewhere";
+
+    Error(
+        ReferenceMsgSym(msg.c_str(), stname).c_str(),
+        struct_name.c_str(),
+        tq_name.c_str(),
+        tq_name.c_str());
+    return kERR_UserError;
+}
+
+ErrorType AGS::Parser::ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet tqs)
+{
+    if (!_sym.IsVartype(stname))
+        return kERR_None;
+
+    SymbolTableEntry &entry = _sym[stname];
+    auto &flags = _sym[stname].VartypeD->Flags;
+    if (flags[VTF::kAutoptr] != tqs[TQ::kAutoptr])
+        return ParseStruct_GenerateForwardDeclError(stname, tqs, TQ::kAutoptr, VTF::kAutoptr);
+    if (flags[VTF::kBuiltin] != tqs[TQ::kBuiltin])
+        return ParseStruct_GenerateForwardDeclError(stname, tqs, TQ::kBuiltin, VTF::kBuiltin);
+    if (!tqs[TQ::kManaged])
+    {
+        // Directly point out that 'managed' is missing here.
+        Error(
+            ReferenceMsgSym(
+                "The struct '%s' has been forward-declared, so it must be 'managed'",
+                stname).c_str(),
+            _sym.GetName(stname).c_str());
+        return kERR_UserError;
+    }
+    return kERR_None;
+}
+
 void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs)
 {
     SymbolTableEntry &entry = _sym[stname];
@@ -5360,8 +5406,7 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
 {
     size_t const start_of_struct_decl = _src.GetCursor();
 
-    // get token for name of struct
-    Symbol const stname = _src.GetNext();
+    Symbol const stname = _src.GetNext(); // get token for name of struct
 
     if (!(_sym.IsVartype(stname) && _sym[stname].VartypeD->Flags[VTF::kUndefined]) &&
         _sym.IsInUse(stname))
@@ -5370,6 +5415,9 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
         Error(msg.c_str(), _sym.GetName(stname).c_str());
         return kERR_UserError;
     }
+
+    ErrorType retval = ParseStruct_CheckForwardDecls(stname, tqs);
+    if (retval < 0) return retval;
 
     ParseStruct_SetTypeInSymboltable(stname, tqs);
 
@@ -5386,7 +5434,7 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
 
     if (kKW_Extends == _src.PeekNext())
     {
-        ErrorType retval = ParseStruct_ExtendsClause(stname);
+        retval = ParseStruct_ExtendsClause(stname);
         if (retval < 0) return retval;
     }
 
@@ -5402,7 +5450,7 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
         return kERR_None;
     }
 
-    ErrorType retval = Expect(kKW_OpenBrace, _src.GetNext());
+    retval = Expect(kKW_OpenBrace, _src.GetNext());
     if (retval < 0) return retval;
 
     // Declaration of the components

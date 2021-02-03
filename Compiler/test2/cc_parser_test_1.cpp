@@ -1049,3 +1049,76 @@ TEST_F(Compile1, AttribInc) {
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
 
+TEST_F(Compile1,ForwardStructManaged)
+{
+    // Forward-declared structs must be 'managed', so the
+    // actual declaration must have the 'managed' keyword
+
+    char *inpl = "\
+        managed struct Object;              \n\
+        struct Object                       \n\
+        {                                   \n\
+            import attribute int Graphic;   \n\
+        } obj;                              \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'managed'"));
+}
+
+TEST_F(Compile1, ForwardStructBuiltin)
+{
+    // Either the forward decl and the actual decl must both be 'builtin'
+    // or both be non-'builtin'.
+
+    char *inpl1 = "\
+        managed struct Object;              \n\
+        managed builtin struct Object       \n\
+        {                                   \n\
+        };                                  \n\
+        ";
+    int compile_result1 = cc_compile(inpl1, scrip);
+    std::string msg1 = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
+    EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
+
+    char *inpl2 = "\
+        builtin managed struct Object;      \n\
+        managed struct Object               \n\
+        {                                   \n\
+        };                                  \n\
+        ";
+    int compile_result2 = cc_compile(inpl2, scrip);
+    std::string msg2 = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
+    EXPECT_NE(std::string::npos, msg2.find("'builtin'"));
+}
+
+TEST_F(Compile1, ForwardStructAutoptr)
+{
+    // Either the forward decl and the actual decl must both be 'autoptr'
+    // or both be non-'autoptr'.
+
+    char *inpl1 = "\
+        managed struct Object;              \n\
+        managed builtin struct Object       \n\
+        {                                   \n\
+        };                                  \n\
+        ";
+    int compile_result1 = cc_compile(inpl1, scrip);
+    std::string msg1 = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
+    EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
+
+    char *inpl2 = "\
+        builtin managed struct Object;      \n\
+        managed struct Object               \n\
+        {                                   \n\
+        };                                  \n\
+        ";
+    int compile_result2 = cc_compile(inpl2, scrip);
+    std::string msg2 = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
+    EXPECT_NE(std::string::npos, msg2.find("'builtin'"));
+}

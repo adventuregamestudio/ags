@@ -770,6 +770,12 @@ private:
 
     ErrorType HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
+    // Helper for ParseStruct_CheckForwardDecls()
+    ErrorType ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet tqs, TypeQualifier tq, VartypeFlag vtf);
+
+    // If there are forward declarations, check that their type qualifiers match 
+    ErrorType ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet tqs);
+
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
 
     // We have accepted something like "struct foo" and are waiting for "extends"

@@ -22,7 +22,7 @@ namespace AGS.Types
 		/// </summary>
 		bool LoadRoom(IRoom roomToLoad);
         /// <summary>
-        /// Saves the loaded room to disk.
+        /// Saves the loaded room to disk. Room data, background images, and mask images.
         /// </summary>
         void Save();
         /// <summary>
@@ -32,13 +32,15 @@ namespace AGS.Types
         /// <returns>A <see cref="Bitmap"/> instance with the selected background. Returns null if background doesn't exist.</returns>
         Bitmap GetBackground(int background);
         /// <summary>
-        /// Sets the loaded room's background frame.
+        /// Sets the loaded room's background frame. This change is not permanent until
+        /// <see cref="IRoomController.Save"/> is invoked.
         /// </summary>
         /// <param name="background">The background index to set.</param>
         /// <param name="bmp">The image to use for the frame.</param>
         void SetBackground(int background, Bitmap bmp);
         /// <summary>
-        /// Deletes the loaded room's background frame.
+        /// Deletes the loaded room's background frame. This change is not permanent until
+        /// <see cref="IRoomController.Save"/> is invoked.
         /// </summary>
         /// <param name="background">The background index to delete.</param>
         void DeleteBackground(int background);
@@ -49,7 +51,8 @@ namespace AGS.Types
         /// <returns>A <see cref="Bitmap"/> instance with the selected mask type.Return null if none is selected.</returns>
         Bitmap GetMask(RoomAreaMaskType mask);
         /// <summary>
-        /// Sets the loaded room specified mask.
+        /// Sets the loaded room specified mask. This change is not permanent until <see cref="IRoomController.Save"/>
+        /// is invoked.
         /// </summary>
         /// <param name="mask">The mask type to set.</param>
         /// <param name="bmp">The mask to set.</param>

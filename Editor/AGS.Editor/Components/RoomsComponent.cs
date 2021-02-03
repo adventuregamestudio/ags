@@ -1517,6 +1517,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
+            SaveImages();
             _nativeProxy.SaveRoom(_loadedRoom);
             _loadedRoom.Modified = false;
         }
@@ -1528,10 +1529,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            // TODO Replace with bitmap loading from disk with C# when room is open format
-            return _backgroundCache.Any()
-                ? (Bitmap)_backgroundCache[background]?.Clone()
-                : _nativeProxy.GetBitmapForBackground(_loadedRoom, background);
+            return _backgroundCache[background].Clone() as Bitmap;
         }
 
         void IRoomController.SetBackground(int background, Bitmap bmp)
@@ -1545,20 +1543,38 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            _loadedRoom.Width = bmp.Width;
-            _loadedRoom.Height = bmp.Height;
-            // TODO Replace with bitmap saving to disk with C# when room is open format
-            _nativeProxy.ImportBackground(
-                _loadedRoom, background, bmp, _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+            Bitmap newBmp = (Bitmap)bmp.Clone();
+            _loadedRoom.Width = newBmp.Width;
+            _loadedRoom.Height = newBmp.Height;
+            _loadedRoom.ColorDepth = newBmp.GetColorDepth();
+
+            if (_loadedRoom.ColorDepth == 8)
+            {
+                ColorPalette palette = newBmp.Palette;
+                foreach (var color in _agsEditor.CurrentGame.Palette.Where(p => p.ColourType == PaletteColourType.Locked))
+                {
+                    palette.Entries[color.Index] = color.Colour;
+                }
+                newBmp.Palette = palette;
+
+                newBmp.SetGlobalPaletteFromPalette();
+            }
 
             if (background >= _backgroundCache.Count)
             {
-                _backgroundCache.Add((Bitmap)bmp.Clone());
+                _backgroundCache.Add(newBmp);
+                _loadedRoom.BackgroundCount++;
             }
             else
             {
                 _backgroundCache[background]?.Dispose();
-                _backgroundCache[background] = (Bitmap)bmp.Clone();
+                _backgroundCache[background] = newBmp;
+            }
+
+            // If size or resolution has changed, reset masks
+            if (newBmp.Width != _loadedRoom.Width || newBmp.Height != _loadedRoom.Height)
+            {
+                ClearMaskCache();
             }
 
             _loadedRoom.Modified = true;
@@ -1571,13 +1587,9 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            // TODO Replace with bitmap deleting from disk with C# when room is open format
-            lock (_loadedRoom)
-            {
-                _nativeProxy.DeleteBackground(_loadedRoom, background);
-            }
             _backgroundCache[background]?.Dispose();
             _backgroundCache.RemoveAt(background);
+            _loadedRoom.BackgroundCount--;
             _loadedRoom.Modified = true;
         }
 
@@ -1588,11 +1600,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            // TODO Replace with bitmap loading from disk with C# when room is open format
-            Bitmap cached;
-            return _maskCache.TryGetValue(mask, out cached) && cached != null
-                ? (Bitmap)cached.Clone()
-                : _nativeProxy.ExportAreaMask(_loadedRoom, mask);
+            return _maskCache[mask].Clone() as Bitmap;
         }
 
         void IRoomController.SetMask(RoomAreaMaskType mask, Bitmap bmp)
@@ -1606,10 +1614,8 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            // TODO Replace with bitmap saving to disk with C# when room is open format
-            _nativeProxy.SetAreaMask(_loadedRoom, mask, bmp);
             _maskCache[mask]?.Dispose();
-            _maskCache[mask] = (Bitmap)bmp.Clone();
+            _maskCache[mask] = bmp.Clone() as Bitmap;
             _loadedRoom.Modified = true;
         }
 
@@ -1770,7 +1776,7 @@ namespace AGS.Editor.Components
 
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                _backgroundCache.Add(((IRoomController)this).GetBackground(i));
+                _backgroundCache.Add(_nativeProxy.GetBitmapForBackground(_loadedRoom, i));
             }
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -1780,21 +1786,27 @@ namespace AGS.Editor.Components
                     continue;
                 }
 
-                _maskCache[mask] = ((IRoomController)this).GetMask(mask);
+                _maskCache[mask] = _nativeProxy.ExportAreaMask(_loadedRoom, mask);
             }
         }
 
         private void ClearImageCache()
         {
-            if (_loadedRoom == null)
-                return;
+            ClearBackgroundCache();
+            ClearMaskCache();
+        }
 
+        private void ClearBackgroundCache()
+        {
             for (int i = 0; i < _backgroundCache.Count; i++)
             {
                 _backgroundCache[i]?.Dispose();
             }
             _backgroundCache.Clear();
+        }
 
+        private void ClearMaskCache()
+        {
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
             {
                 if (mask == RoomAreaMaskType.None)
@@ -1804,6 +1816,30 @@ namespace AGS.Editor.Components
                 {
                     _maskCache[mask]?.Dispose();
                     _maskCache[mask] = null;
+                }
+            }
+        }
+
+        // TODO Replace with bitmap saving to disk with C# when room is open format
+        private void SaveImages()
+        {
+            lock (_loadedRoom)
+            {
+                for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
+                {
+                    if (i < _backgroundCache.Count)
+                        _nativeProxy.ImportBackground(
+                            _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                    else
+                        _nativeProxy.DeleteBackground(_loadedRoom, i);
+                }
+
+                foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+                {
+                    if (mask == RoomAreaMaskType.None)
+                        continue;
+
+                    _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
                 }
             }
         }

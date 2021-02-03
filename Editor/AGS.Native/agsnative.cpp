@@ -2069,8 +2069,7 @@ void DeleteBackground(Room ^room, int backgroundNumber)
  {
      theRoom->BgFrames[backgroundNumber].Graphic.reset();
      theRoom->BgFrameCount--;
-	
-	room->BackgroundCount--;
+
      for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++)
      {
          theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
@@ -2133,9 +2132,6 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
         theRoom->WalkBehindMask->Clear();
         theRoom->RegionMask->Clear();
 	}
-
-	room->BackgroundCount = theRoom->BgFrameCount;
-	room->ColorDepth = theRoom->BgFrames[0].Graphic->GetColorDepth();
 }
 
 void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)

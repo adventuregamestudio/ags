@@ -9,12 +9,30 @@ namespace AGS.Editor
     public class FreePanControl : BufferedPanel
     {
         private const int WS_EX_COMPOSITED = 0x02000000;
+        private MouseButtons _panButtons = MouseButtons.Middle; // which buttons trigger panning
         private int _lastX, _lastY; //used to prevent useless mouse move events
         private Point _panGrabPoint = Point.Empty;
+        private MouseButtons _panGrabButton = MouseButtons.None; // which button was used last
         public event EventHandler PanGrabbed;
         public event EventHandler PanReleased;
         public bool IsPanning { get; private set; }
         public Cursor PanCursor { get; private set; } = Cursors.Hand; // We need a better hand cursor, using the "link" hand for now
+
+        /// <summary>
+        /// Which mouse buttons should be panning the image.
+        /// </summary>
+        public MouseButtons PanButtons
+        {
+            get { return _panButtons; }
+            set
+            {
+                _panButtons = value;
+                if (!_panButtons.HasFlag(_panGrabButton))
+                {
+                    OnPanRelease();
+                }
+            }
+        }
 
         // Enabling Composite makes scrolling smoother
         protected override CreateParams CreateParams
@@ -27,27 +45,29 @@ namespace AGS.Editor
             }
         }
 
-        protected virtual void OnPanGrab(EventArgs e)
+        protected virtual void OnPanGrab(Point grabPoint, MouseButtons grabButton)
         {
+            _panGrabPoint = grabPoint;
+            _panGrabButton = grabButton;
+            Cursor = PanCursor;
+            IsPanning = true;
             PanGrabbed?.Invoke(this, EventArgs.Empty);
         }
 
-        protected virtual void OnPanRelease(EventArgs e)
+        protected virtual void OnPanRelease()
         {
+            _panGrabPoint = Point.Empty;
+            _panGrabButton = MouseButtons.None;
+            Cursor = Cursors.Default;
+            IsPanning = false;
             PanReleased?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            // defines the shortcut for click pan Control+Shift+Left Click Hold or
-            // Middle Click Hold without any modifier.
-            if ( (e.Button == MouseButtons.Left   && ModifierKeys == (Keys.Control|Keys.Shift)) ||
-                 (e.Button == MouseButtons.Middle && ModifierKeys == Keys.None) )
+            if (PanButtons.HasFlag(e.Button) && ModifierKeys == Keys.None)
             {
-                OnPanGrab(e);
-                _panGrabPoint = e.Location;
-                Cursor = PanCursor;
-                IsPanning = true;
+                OnPanGrab(e.Location, e.Button);
             }
 
             base.OnMouseDown(e);
@@ -55,12 +75,9 @@ namespace AGS.Editor
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (_panGrabPoint != Point.Empty)
+            if (_panButtons.HasFlag(_panGrabButton))
             {
-                _panGrabPoint = Point.Empty;
-                Cursor = Cursors.Default;
-                IsPanning = false;
-                OnPanRelease(e);
+                OnPanRelease();
             }
 
             base.OnMouseUp(e);

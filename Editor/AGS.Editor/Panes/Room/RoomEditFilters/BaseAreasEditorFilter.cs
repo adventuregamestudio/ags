@@ -483,7 +483,7 @@ namespace AGS.Editor
                     // allow them to import a double-size or half-size mask, adjust it as appropriate
                     if (UndoBufferMask.Size != bmp.Size)
                     {
-                        using (Bitmap scaled = bmp.Scale(bmp.Width, bmp.Height))
+                        using (Bitmap scaled = bmp.ScaleIndexed(bmp.Width, bmp.Height))
                         {
                             _roomController.SetMask(MaskToDraw, scaled);
                         }

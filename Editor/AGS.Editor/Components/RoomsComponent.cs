@@ -1720,12 +1720,12 @@ namespace AGS.Editor.Components
             {
                 if (maskType == RoomAreaMaskType.None) continue;
 
-                Bitmap mask = _maskCache[maskType];
-                Bitmap scaled = maskType == RoomAreaMaskType.WalkBehinds
-                    ? mask.Scale(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
-                    : mask.Scale(scaledWidth, scaledHeight); // Other masks are 1:x where X is MaskResolution
-                mask.Dispose();
-                _maskCache[maskType] = scaled;
+                using (Bitmap mask = _maskCache[maskType])
+                {
+                    _maskCache[maskType] = maskType == RoomAreaMaskType.WalkBehinds
+                        ? mask.ScaleIndexed(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
+                        : mask.ScaleIndexed(scaledWidth, scaledHeight); // Other masks are 1:x where X is MaskResolution
+                }
             }
 
             _loadedRoom.Modified = true;

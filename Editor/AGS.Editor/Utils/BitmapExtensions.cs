@@ -2,7 +2,6 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,10 +24,36 @@ namespace AGS.Editor
         /// <param name="width">Scale the image to this width.</param>
         /// <param name="height">Scale the image to this height.</param>
         /// <returns>A scaled deep copy of the input image.</returns>
-        public static Bitmap Scale(this Bitmap bmp, int width, int height) => bmp.Mutate(width, height, g =>
+        public static Bitmap ScaleIndexed(this Bitmap bmp, int width, int height)
         {
-            g.DrawImage(bmp, 0, 0, width, height);
-        });
+            if (!bmp.IsIndexed()) throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
+            if (width <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(width));
+            if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
+
+            Bitmap res = new Bitmap(width, height, bmp.PixelFormat) { Palette = bmp.Palette };
+            res.SetPaletteFromGlobalPalette();
+            int bmpRowPaddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
+            int resRowPaddedWidth = (int)Math.Floor((res.GetColorDepth() * res.Width + 31.0) / 32.0) * 4;
+            byte[] resultRawData = new byte[resRowPaddedWidth * height];
+            byte[] bmpRawData = bmp.GetRawData();
+
+            // Nearest Neighbor Interpolation
+            double ratioWidth = (double)bmp.Width / width;
+            double ratioHeight = (double)bmp.Height / height;
+            int[] rowMap =
+                Enumerable.Range(0, width).Select(i => (int)Math.Floor((double)(i * ratioWidth))).ToArray();
+            int[] columnMap =
+                Enumerable.Range(0, height).Select(i => (int)Math.Floor((double)(i * ratioHeight))).ToArray();
+
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < resRowPaddedWidth; x++)
+                    resultRawData[(resRowPaddedWidth * y) + x] = x < width
+                        ? bmpRawData[(bmpRowPaddedWidth * columnMap[y]) + rowMap[x]]
+                        : (byte)0; // Padded area 0
+
+            res.SetRawData(resultRawData);
+            return res;
+        }
 
         /// <summary>
         /// Draws a line on a indexed bitmap.
@@ -102,52 +127,6 @@ namespace AGS.Editor
             byte[] rawData = bmp.GetRawData(bmp.PixelFormat);
             FloodFillImage(rawData, positionScaled, bmp.Size, rawData[(positionScaled.Y * bmp.Width) + positionScaled.X], (byte)color);
             bmp.SetRawData(rawData, bmp.PixelFormat);
-        }
-
-        /// <summary>
-        /// Makes a deep copy of the bitmap that we can perform drawing operations on, and preserve the pixel format.
-        /// </summary>
-        /// <param name="bmp">The bitmap to deep copy.</param>
-        /// <param name="mutate">The drawable <see cref="Graphics"/> in a lambda.</param>
-        /// <returns>A deep copy of the bitmap with the executed drawing operations.</returns>
-        public static Bitmap Mutate(this Bitmap bmp, Action<Graphics> mutate) => bmp.Mutate(bmp.Width, bmp.Height, mutate);
-
-        /// <summary>
-        /// Makes a deep copy of the bitmap that we can perform drawing operations on, and preserve the pixel format.
-        /// </summary>
-        /// <param name="bmp">The bitmap to deep copy.</param>
-        /// <param name="width">The width of the resulting bitmap.</param>
-        /// <param name="height">The height of the resulting bitmap.</param>
-        /// <param name="mutate">The drawable <see cref="Graphics"/> in a lambda.</param>
-        /// <returns>A deep copy of the bitmap with the executed drawing operations.</returns>
-        public static Bitmap Mutate(this Bitmap bmp, int width, int height, Action<Graphics> mutate)
-        {
-            if (width <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(width));
-            if (height <= 0) throw new ArgumentException("Scale factor must be greater than 0.", nameof(height));
-
-            // Drawing operations is not supported on 8-bit images so we have to create a default 32-bit image buffer for drawing
-            using (Bitmap drawBuffer = new Bitmap(width, height))
-            {
-                using (Graphics graphics = Graphics.FromImage(drawBuffer))
-                {
-                    graphics.CompositingMode = CompositingMode.SourceCopy;
-                    graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-                    mutate(graphics);
-                }
-
-                Bitmap result = new Bitmap(width, height, bmp.PixelFormat);
-
-                // Make sure we use the correct palette for indexed images
-                if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
-                {
-                    result.SetPaletteFromGlobalPalette();
-                    drawBuffer.Palette = result.Palette;
-                }
-
-                // Write drawing buffer to the result image and retain the pixel format.
-                result.SetRawData(drawBuffer.GetRawData(bmp.PixelFormat), bmp.PixelFormat);
-                return result;
-            }
         }
 
         /// <summary>

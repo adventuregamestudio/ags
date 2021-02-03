@@ -1540,6 +1540,10 @@ namespace AGS.Editor.Components
             {
                 throw new InvalidOperationException("No room is currently loaded");
             }
+            if (bmp == null)
+            {
+                throw new ArgumentNullException(nameof(bmp));
+            }
 
             _loadedRoom.Width = bmp.Width;
             _loadedRoom.Height = bmp.Height;
@@ -1596,6 +1600,10 @@ namespace AGS.Editor.Components
             if (_loadedRoom == null)
             {
                 throw new InvalidOperationException("No room is currently loaded");
+            }
+            if (bmp == null)
+            {
+                throw new ArgumentNullException(nameof(bmp));
             }
 
             // TODO Replace with bitmap saving to disk with C# when room is open format

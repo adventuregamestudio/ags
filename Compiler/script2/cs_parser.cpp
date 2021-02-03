@@ -2118,7 +2118,7 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
             // Interpret the memory address as the result
             vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-            vloc = kVL_AX_is_value;
+            vloc.location = ValueLocation::kAX_is_value;
             return kERR_None;
         }
 
@@ -2131,7 +2131,13 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
 
 void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
 {
-    if (kVL_MAR_pointsto_value != vloc)
+    if (ValueLocation::kCompile_time_constant == vloc.location)
+    {
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[vloc.symbol].LiteralD->Value);
+        vloc.location = ValueLocation::kAX_is_value;
+    }
+
+    if (ValueLocation::kMAR_pointsto_value != vloc.location)
         return; // So it's already in AX 
 
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
@@ -2140,7 +2146,7 @@ void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
         WriteCmd(
             _sym.IsDynVartype(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
-    vloc = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     return;
 }
 
@@ -2240,7 +2246,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
 
     scope_type = ScT::kGlobal;
-    vloc = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
 }
 
@@ -2287,7 +2293,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
     WriteCmd(opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
 }
 
@@ -2367,7 +2373,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
         WriteCmd(SCMD_NOTREG, SREG_AX);
     }
 
-    vloc = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     vartype = kKW_Int;
     return kERR_None;
 }
@@ -2575,7 +2581,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
 
     WriteCmd(actual_opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    vloc = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
 
     to_exit.Patch(_src.GetLineno());
 
@@ -3230,11 +3236,11 @@ AGS::ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList
 // Location contains a pointer to another address. Get that address.
 AGS::ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc,Parser::MemoryLocation &mloc)
 {
-    if (kVL_AX_is_value == vloc)
+    if (ValueLocation::kAX_is_value == vloc.location)
     {
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_MAR_pointsto_value;
+        vloc.location = ValueLocation::kMAR_pointsto_value;
         mloc.Reset();
     }
     else
@@ -3435,8 +3441,9 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, VariableAc
     vartype = _sym.GetVartype(varname);
 
     // Process an array index if it follows
-    ValueLocation vl_dummy = kVL_MAR_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(kVL_MAR_pointsto_value, expression, vl_dummy, mloc, vartype);
+    ValueLocation vl_dummy = { ValueLocation::kMAR_pointsto_value, kKW_NoSymbol };
+    ValueLocation const vl_of_array = { ValueLocation::kMAR_pointsto_value, kKW_NoSymbol };
+    return AccessData_ProcessAnyArrayIndex(vl_of_array, expression, vl_dummy, mloc, vartype);
 }
 
 AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type,Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access)
@@ -3456,7 +3463,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
                 Error("'this' is only legal in non-static struct functions");
                 return kERR_UserError;
             }
-            vloc = kVL_MAR_pointsto_value;
+            vloc.location = ValueLocation::kMAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
@@ -3474,7 +3481,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
         {
             expression.GetNext(); // Eat 'null'
             WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
-            vloc = kVL_AX_is_value;
+            vloc.location = ValueLocation::kAX_is_value;
             return_scope_type = ScT::kGlobal;
             vartype = kKW_Null;
             return_scope_type = ScT::kGlobal;
@@ -3496,7 +3503,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
         if (_sym.IsFunction(first_sym))
         {
             return_scope_type = ScT::kGlobal;
-            vloc = kVL_AX_is_value;
+            vloc.location = ValueLocation::kAX_is_value;
             ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
             if (retval < 0) return retval;
             if (_sym.IsDynarrayVartype(vartype))
@@ -3510,7 +3517,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             // Parameters may be 'return'ed even though they are local because they are allocated
             // outside of the function proper. Therefore return scope type for them is global.
             return_scope_type = _sym.IsParameter(first_sym) ? ScT::kGlobal : scope_type;
-            vloc = kVL_MAR_pointsto_value;
+            vloc.location = ValueLocation::kMAR_pointsto_value;
             return AccessData_Variable(scope_type, access_type, expression, mloc, vartype);
         }
 
@@ -3528,7 +3535,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
         vartype = _sym.GetVartype(kKW_This);
         if (_sym.IsVartype(vartype) && _sym[vartype].VartypeD->Components.count(first_sym))
         {
-            vloc = kVL_MAR_pointsto_value;
+            vloc.location = ValueLocation::kMAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
@@ -3574,7 +3581,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
             return kERR_UserError;
         }
 
-        vloc = kVL_AX_is_value;
+        vloc.location = ValueLocation::kAX_is_value;
         return_scope_type = ScT::kLocal;
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         ErrorType retval = AccessData_FunctionCall(qualified_component, start_of_funccall, mloc, vartype);
@@ -3609,17 +3616,17 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
             // We cannot process the attribute here so return to the assignment that
             // this attribute was originally called from
             vartype = _sym.GetVartype(qualified_component);
-            vloc = kVL_Attribute;
+            vloc.location = ValueLocation::kAttribute;
             return kERR_None;
         }
-        vloc = kVL_AX_is_value;
+        vloc.location = ValueLocation::kAX_is_value;
         bool const is_setter = false;
         return_scope_type = ScT::kLocal;
         return AccessData_CallAttributeFunc(is_setter, expression, vartype);
     }
 
     // So it is a non-attribute variable
-    vloc = kVL_MAR_pointsto_value;
+    vloc.location = ValueLocation::kMAR_pointsto_value;
     ErrorType retval = AccessData_StructMember(qualified_component, access_type, access_via_this, expression, mloc, vartype);
     if (retval < 0) return retval;
     return AccessData_ProcessAnyArrayIndex(vloc, expression, vloc, mloc, vartype);
@@ -3703,7 +3710,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
             expression.GetNext(); // Eat '.'
         // Note: do not reset "implied_this_dot" here, it's still needed.
 
-        // Here, if kVL_MAR_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
+        // Here, if ValueLocation::kMAR_pointsto_value == vloc.location then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
 
@@ -3757,7 +3764,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         static_access = false;
     }
 
-    if (kVL_Attribute == vloc)
+    if (ValueLocation::kAttribute == vloc.location)
     {
         // Caller will do the assignment
         // For this to work, the caller must know the vartype of the struct
@@ -3767,7 +3774,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         return kERR_None;
     }
 
-    if (kVL_AX_is_value == vloc)
+    if (ValueLocation::kAX_is_value == vloc.location)
     return kERR_None;
 
     return mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
@@ -3861,7 +3868,7 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
     ErrorType retval = AccessData(VAC::kWriting, expression, vloc, lhs_scope_type, lhsvartype);
     if (retval < 0) return retval;
 
-    if (kVL_AX_is_value == vloc)
+    if (ValueLocation::kAX_is_value == vloc.location)
     {
         if (!_sym.IsManagedVartype(lhsvartype))
         {
@@ -3870,13 +3877,13 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
         }
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
-        vloc = kVL_MAR_pointsto_value;
+        vloc.location = ValueLocation::kMAR_pointsto_value;
     }
 
     if (may_clobber)
         PopReg(SREG_AX);
 
-    if (kVL_Attribute == vloc)
+    if (ValueLocation::kAttribute == vloc.location)
     {
         // We need to call the attribute setter 
         Vartype struct_of_attribute = lhsvartype;
@@ -4136,7 +4143,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
 
-    if (kVL_MAR_pointsto_value == vloc)
+    if (ValueLocation::kMAR_pointsto_value == vloc.location)
     {
         // Shortcut: Write the result directly back to memory
         CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
@@ -4163,7 +4170,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol const ass_symbol, Src
     if (retval < 0) return retval;
     WriteCmd(opcode, SREG_AX, 1);
 
-    if (kVL_MAR_pointsto_value == vloc)
+    if (ValueLocation::kMAR_pointsto_value == vloc.location)
     {
         _src.GetNext(); // Eat ++ or --
         // write AX back to memory
@@ -6608,7 +6615,7 @@ AGS::ErrorType AGS::Parser::NegateLiteral(Symbol &symb)
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &vartype)
+AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype)
 {
     if (!_sym.IsLiteral(lit))
     {
@@ -6620,7 +6627,7 @@ AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vl, Vartype &
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
         _scrip.FixupPrevious(kFx_String);
-    vl = kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
 }
 

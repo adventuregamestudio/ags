@@ -60,6 +60,16 @@ namespace AGS.Types
 			return false;
 		}
 
+        public bool KeyReleased(Keys keyData)
+        {
+            if (HandleKeyRelease(keyData))
+            {
+                return true;
+            }
+            OnKeyReleased(keyData);
+            return false;
+        }
+
 		/// <summary>
 		/// Attempts to handle a key press, and returns true if it has done.
 		/// </summary>
@@ -76,10 +86,26 @@ namespace AGS.Types
 		{
 		}
 
-		/// <summary>
-		/// This panel has just become the active one
+        /// <summary>
+		/// Attempts to handle a key release, and returns true if it has done.
 		/// </summary>
-		public void WindowActivated()
+		protected virtual bool HandleKeyRelease(Keys keyData)
+        {
+            return false;
+        }
+
+        /// <summary>
+		/// Process a key release, but cannot mark it as handled.
+		/// </summary>
+		/// <param name="keyData"></param>
+        protected virtual void OnKeyReleased(Keys keyData)
+        {
+        }
+
+        /// <summary>
+        /// This panel has just become the active one
+        /// </summary>
+        public void WindowActivated()
 		{
 			OnWindowActivated();
 		}

@@ -362,6 +362,10 @@ namespace AGS.Editor
                 }
                 _flipThroughPanesIndex = 0;
             }
+            else if (_currentPane != null)
+            {
+                return _currentPane.Control.KeyReleased(key);
+            }
             return false;
         }
 

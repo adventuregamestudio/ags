@@ -611,7 +611,7 @@ namespace AGS.Editor
                 }
                 if (!handled)
                 {
-                    if (e.Button == MouseButtons.Middle)
+                    if (e.Button == MouseButtons.Right && ModifierKeys == Keys.Shift)
                     {
                         ShowCoordMenu(e);
                     }

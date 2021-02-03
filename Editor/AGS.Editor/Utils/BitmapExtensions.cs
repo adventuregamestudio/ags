@@ -206,6 +206,16 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Check if <see cref="Bitmap"/> is indexed image.
+        /// </summary>
+        /// <param name="bmp">Check if this argument is indexed image.</param>
+        /// <returns>A bool indicating if this image is indexed.</returns>
+        public static bool IsIndexed(this Bitmap bmp) =>
+            bmp.PixelFormat == PixelFormat.Format1bppIndexed ||
+            bmp.PixelFormat == PixelFormat.Format4bppIndexed ||
+            bmp.PixelFormat == PixelFormat.Format8bppIndexed;
+
+        /// <summary>
         /// Checks if the x and y coordinate is within the image.
         /// </summary>
         /// <param name="position">The position to check against.</param>

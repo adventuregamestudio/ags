@@ -1669,6 +1669,7 @@ namespace AGS.Editor.Components
             if (maskType != RoomAreaMaskType.None)
             {
                 Bitmap mask8bpp = _maskCache[maskType];
+                ColorPalette paletteBackup = mask8bpp.Palette;
 
                 // Color not selected mask areas to gray
                 if (_grayOutMasks)
@@ -1700,6 +1701,7 @@ namespace AGS.Editor.Components
                 attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
                 g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
+                mask8bpp.Palette = paletteBackup;
             }
         }
 

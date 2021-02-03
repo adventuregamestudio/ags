@@ -685,13 +685,12 @@ namespace AGS.Editor
         {
             Point start = new Point(_mouseDownX, _mouseDownY);
             Point finish = new Point(_currentMouseX, _currentMouseY);
-            Color color = Factory.AGSEditor.CurrentGame.Palette[_drawingWithArea].Colour;
             double scale = _room.GetMaskScale(MaskToDraw);
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
-            using (Bitmap drawn = mask.DrawLine(start, finish, color, scale))
             {
-                _roomController.SetMask(MaskToDraw, drawn);
+                mask.DrawIndexedLine(_drawingWithArea, start, finish, scale);
+                _roomController.SetMask(MaskToDraw, mask);
             }
         }
 

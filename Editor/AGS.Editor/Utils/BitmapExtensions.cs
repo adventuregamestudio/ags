@@ -31,22 +31,40 @@ namespace AGS.Editor
         });
 
         /// <summary>
-        /// Gives back a deep copy of the bitmap with a drawn line.
+        /// Draws a line on a indexed bitmap.
         /// </summary>
-        /// <param name="bmp">The bitmap we want to copy and draw on.</param>
+        /// <param name="bmp">The indexed bitmap we want to draw on.</param>
+        /// <param name="color">The color index of the line.</param>
         /// <param name="p1">The starting point for the line.</param>
         /// <param name="p2">The end point for the line.</param>
-        /// <param name="color">The color of the line.</param>
         /// <param name="scale">Adjust coordinates for the input scale.</param>
-        /// <returns>A new bitmap with a line drawn on it.</returns>
-        public static Bitmap DrawLine(this Bitmap bmp, Point p1, Point p2, Color color, double scale = 1.0) => bmp.Mutate(g =>
+        public static void DrawIndexedLine(this Bitmap bmp, int color, Point p0, Point p1, double scale = 1.0)
         {
-            p1 = new Point((int)(p1.X * scale), (int)(p1.Y * scale));
-            p2 = new Point((int)(p2.X * scale), (int)(p2.Y * scale));
+            if (!bmp.IsIndexed())
+                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
 
-            g.DrawImage(bmp, 0, 0);
-            g.DrawLine(new Pen(color), p1, p2);
-        });
+            p0 = new Point((int)(p0.X * scale), (int)(p0.Y * scale));
+            p1 = new Point((int)(p1.X * scale), (int)(p1.Y * scale));
+
+            IEnumerable<Point> pixels;
+            if (Math.Abs(p1.Y - p0.Y) < Math.Abs(p1.X - p0.X))
+                pixels = p0.X > p1.X
+                    ? BresenhamsLineLow(p1, p0)
+                    : BresenhamsLineLow(p0, p1);
+            else
+                pixels = p0.Y > p1.Y
+                    ? BresenhamsLineHigh(p1, p0)
+                    : BresenhamsLineHigh(p0, p1);
+
+            byte[] rawImage = bmp.GetRawData();
+            byte colorAsByte = (byte)color;
+            int paddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
+
+            foreach (int i in pixels.Where(p => bmp.Intersects(p)).Select(p => (paddedWidth * p.Y) + p.X))
+                rawImage[i] = colorAsByte;
+
+            bmp.SetRawData(rawImage);
+        }
 
         /// <summary>
         /// Gives back a deep copy of the bitmap with a filled rectangle.
@@ -223,6 +241,60 @@ namespace AGS.Editor
         public static bool Intersects(this Bitmap bmp, Point position)
         {
             return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
+        }
+
+        private static IEnumerable<Point> BresenhamsLineLow(Point p0, Point p1)
+        {
+            Point delta = new Point(p1.X - p0.X, p1.Y - p0.Y);
+            int yIncrement = 1;
+
+            if (delta.Y < 0)
+            {
+                yIncrement = -1;
+                delta.Y = -delta.Y;
+            }
+
+            int difference = 2 * (delta.Y - delta.X);
+
+            for (Point p = p0; p.X < p1.X; p.X++)
+            {
+                yield return p;
+
+                if (difference > 0)
+                {
+                    p.Y += yIncrement;
+                    difference += 2 * (delta.Y - delta.X);
+                }
+                else
+                    difference += 2 * delta.Y;
+            }
+        }
+
+        private static IEnumerable<Point> BresenhamsLineHigh(Point p0, Point p1)
+        {
+            Point delta = new Point(p1.X - p0.X, p1.Y - p0.Y);
+            int xIncrement = 1;
+
+            if (delta.X < 0)
+            {
+                xIncrement = -1;
+                delta.X = -delta.X;
+            }
+
+            int difference = 2 * (delta.X - delta.Y);
+
+            for (Point p = p0; p.Y < p1.Y; p.Y++)
+            {
+                yield return p;
+
+                if (difference > 0)
+                {
+                    p.X += xIncrement;
+                    difference += 2 * (delta.X - delta.Y);
+                }
+                else
+                    difference += 2 * delta.X;
+            }
         }
 
         /// <summary>

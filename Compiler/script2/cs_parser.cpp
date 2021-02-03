@@ -2131,7 +2131,7 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
 
 void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
 {
-    if (ValueLocation::kCompile_time_constant == vloc.location)
+    if (ValueLocation::kCompile_time_literal == vloc.location)
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[vloc.symbol].LiteralD->Value);
         vloc.location = ValueLocation::kAX_is_value;
@@ -2273,7 +2273,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
             if (retval < 0) return retval;
             scope_type = ScT::kGlobal;
             NegateLiteral(lit);
-            return EmitLiteral(lit, vloc, vartype);
+            return SetCompileTimeLiteral(lit, vloc, vartype);
         }
     };
 
@@ -2319,7 +2319,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, Value
             ErrorType retval = ReadLiteralOrConst(expression, lit);
             if (retval < 0) return retval;
             scope_type = ScT::kGlobal;
-            return EmitLiteral(lit, vloc, vartype);
+            return SetCompileTimeLiteral(lit, vloc, vartype);
         }
     };
 
@@ -3491,7 +3491,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             ErrorType retval = ReadLiteralOrConst(lit);
             if (retval < 0) return retval;
             return_scope_type = ScT::kGlobal;
-            return EmitLiteral(lit, vloc, vartype);
+            return SetCompileTimeLiteral(lit, vloc, vartype);
         }
 
         if (_sym.IsFunction(first_sym))
@@ -6609,7 +6609,7 @@ AGS::ErrorType AGS::Parser::NegateLiteral(Symbol &symb)
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::SetCompileTimeLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype)
 {
     if (!_sym.IsLiteral(lit))
     {
@@ -6618,10 +6618,17 @@ AGS::ErrorType AGS::Parser::EmitLiteral(Symbol lit, ValueLocation &vloc, Vartype
     }
     vartype = _sym[lit].LiteralD->Vartype;
 
-    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
+    {
+        // Can't handle string literals (yet?)
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
         _scrip.FixupPrevious(kFx_String);
-    vloc.location = ValueLocation::kAX_is_value;
+        vloc.location = ValueLocation::kAX_is_value;
+        return kERR_None;
+    }
+   
+    vloc.location = ValueLocation::kCompile_time_literal;
+    vloc.symbol = lit;
     return kERR_None;
 }
 

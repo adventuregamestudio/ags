@@ -124,7 +124,7 @@ private:
     // When reading, we need the value itself.
     // - It can be in AX (kVL_AX_is_value)
     // - or in m(MAR) (kVL_MAR_pointsto_value)
-    // - or a constant float or int value (kVL_compile_time_constant)
+    // - or a constant float or int value (kVL_compile_time_literal)
     //      In this case the symbol that points to the value is in symbol
     // When writing, we need a pointer to the adress that has to be modified.
     // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_MAR_pointsto_value).
@@ -138,9 +138,9 @@ private:
             kAX_is_value,            // The value is in register AX
             kMAR_pointsto_value,     // The value is in m(MAR)
             kAttribute,              // The value must be modified by calling an attribute setter
-            kCompile_time_constant,  // The value is in 'symbol'
+            kCompile_time_literal,   // The value is in 'symbol'
         } location;
-        Symbol symbol; // only meaningful für kVL_compile_time_constant
+        Symbol symbol; // only meaningful für kCompile_time_literal
     };
 
     // This ought to replace the #defines in script_common.h
@@ -439,8 +439,8 @@ private:
     // When 'symb' corresponds to 'value', set it to the symbol that corresponds to -'value'.
     ErrorType NegateLiteral(Symbol &symb);
 
-    // Emit the code that loads the literal into AX.
-    ErrorType EmitLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype);
+    // Record the literal as a compile time literal
+    ErrorType SetCompileTimeLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype);
 
     // Find or create a symbol that is a literal for the value 'value'.
     ErrorType FindOrAddIntLiteral(CodeCell value, Symbol &symb);

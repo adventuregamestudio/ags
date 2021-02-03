@@ -120,6 +120,7 @@ namespace AGS.Editor
 			this.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
 			this.bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
             this.sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            bufferedPanel1.PanButtons = MouseButtons.Middle;
 
             _editorConstructed = true;
         }
@@ -778,63 +779,65 @@ namespace AGS.Editor
 			return (focused == this.ActiveControl);*/
 		}
 
-		private bool ProcessZoomAndPanKeyPresses(Keys keyData)
-		{
-			if (keyData == Keys.Down)
-			{
-				bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) + 50);
-			}
-			else if (keyData == Keys.Up)
-			{
-				bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) - 50);
-			}
-			else if (keyData == Keys.Right)
-			{
-				bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X) + 50, Math.Abs(bufferedPanel1.AutoScrollPosition.Y));
-			}
-			else if (keyData == Keys.Left)
-			{
-				bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X) - 50, Math.Abs(bufferedPanel1.AutoScrollPosition.Y));
-			}
-			else if (keyData == Keys.Space)
-			{
-				if (sldZoomLevel.Value < sldZoomLevel.Maximum)
-				{
-					sldZoomLevel.Value++;
-				}
-				else
-				{
-					sldZoomLevel.Value = sldZoomLevel.Minimum;
-				}
-				sldZoomLevel_Scroll(null, null);
-			}
-			else
-			{
-				return false;
-			}
-
-			return true;
+		private bool ProcessPanKeyPress(Keys keyData)
+        {
+            switch (keyData)
+            {
+            case Keys.Down:
+	            bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) + 50);
+                return true;
+            case Keys.Up:
+	            bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) - 50);
+                return true;
+            case Keys.Right:
+	            bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X) + 50, Math.Abs(bufferedPanel1.AutoScrollPosition.Y));
+                return true;
+            case Keys.Left:
+	            bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X) - 50, Math.Abs(bufferedPanel1.AutoScrollPosition.Y));
+                return true;
+            case Keys.Space:
+                bufferedPanel1.PanButtons |= MouseButtons.Left;
+                return true;
+            }
+			return false;
 		}
+
+        private bool ProcessPanKeyRelease(Keys keyData)
+        {
+            switch (keyData)
+            {
+                case Keys.Space:
+                    bufferedPanel1.PanButtons &= ~MouseButtons.Left;
+                    return true;
+            }
+            return false;
+        }
 
 		protected override bool HandleKeyPress(Keys keyData)
 		{
-			bool returnHandled = true;
-
             if (!DoesThisPanelHaveFocus())
             {
                 return false;
             }
+
             if (_layer != null && !IsLocked(_layer) && _layer.KeyPressed(keyData))
             {
                 bufferedPanel1.Invalidate();
                 Factory.GUIController.RefreshPropertyGrid();
+                return true;
             }
-            else if (!ProcessZoomAndPanKeyPresses(keyData))
-            {
-                returnHandled = false;
-            }			
-			return returnHandled;
+            return ProcessPanKeyPress(keyData);
 		}
+
+        protected override bool HandleKeyRelease(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+            {
+                return false;
+            }
+
+            return ProcessPanKeyRelease(keyData);
+        }
 
         private void ShowCoordMenu(MouseEventArgs e)
         {

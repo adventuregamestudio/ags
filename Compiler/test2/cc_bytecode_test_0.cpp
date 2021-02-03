@@ -1935,42 +1935,40 @@ TEST_F(Bytecode0, Struct05) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct05", scrip);
-    const size_t codesize = 40;
+    size_t const codesize = 33;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,   51,    0,           63,    0,    1,    1,    // 7
-       0,    6,    3,    7,           34,    3,   39,    1,    // 15
-       6,    3,    0,   33,            3,   35,    1,   34,    // 23
-       3,   39,    1,    6,            3,    0,   33,    3,    // 31
-      35,    1,   31,    3,            6,    3,    0,    5,    // 39
-     -999
+      38,    0,    6,    3,            7,   34,    3,   39,    // 7
+       1,    6,    3,    0,           33,    3,   35,    1,    // 15
+      34,    3,   39,    1,            6,    3,    0,   33,    // 23
+       3,   35,    1,   31,            3,    6,    3,    0,    // 31
+       5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 2;
+    size_t const numfixups = 2;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-      18,   29,  -999
+      11,   22,  -999
     };
     char fixuptypes[] = {
       4,   4,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 1;
+    int const numimports = 1;
     std::string imports[] = {
     "StructO::StInt^1",            "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
-
 }
 
 TEST_F(Bytecode0, Struct06) {

@@ -141,41 +141,41 @@ AGS::SymbolTable::SymbolTable()
     AddDelimeter(kKW_OpenParenthesis, "(", true, kKW_CloseParenthesis, true);
 
     // Operators
-    AddOperator(kKW_And, "&&", SCMD_AND, 118, SymbolTable::kNoPrio);
-    AddOperator(kKW_BitAnd, "&", SCMD_BITAND, 109, SymbolTable::kNoPrio);
-    AddOperator(kKW_BitNeg, "~", SCMD_NOTREG, SymbolTable::kNoPrio, 101); // bitwise NOT
-    AddOperator(kKW_BitOr, "|", SCMD_BITOR, 110, SymbolTable::kNoPrio);
-    AddOperator(kKW_BitXor, "^", SCMD_XORREG, 110, SymbolTable::kNoPrio);
-    AddOperator(kKW_Divide, "/", SCMD_DIVREG, 103, SymbolTable::kNoPrio);
-    AddOperator(kKW_Equal, "==", SCMD_ISEQUAL, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_Greater, ">", SCMD_GREATER, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_GreaterEqual, ">=", SCMD_GTE, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_Less, "<", SCMD_LESSTHAN, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_LessEqual, "<=", SCMD_LTE, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_Minus, "-", SCMD_SUBREG, 105, 101);
-    AddOperator(kKW_Modulo, "%", SCMD_MODREG, 103, SymbolTable::kNoPrio);
-    AddOperator(kKW_Multiply, "*", SCMD_MULREG, 103, SymbolTable::kNoPrio);
-    AddOperator(kKW_Not, "!", SCMD_NOTREG, SymbolTable::kNoPrio, 101); // boolean NOT
-    AddOperator(kKW_New, "new", SCMD_NEWUSEROBJECT, SymbolTable::kNoPrio, 101);
-    AddOperator(kKW_NotEqual, "!=", SCMD_NOTEQUAL, 112, SymbolTable::kNoPrio);
-    AddOperator(kKW_Or, "||", SCMD_OR, 119, SymbolTable::kNoPrio);
-    AddOperator(kKW_Plus, "+", SCMD_ADDREG, 105, 101);
-    AddOperator(kKW_ShiftLeft, "<<", SCMD_SHIFTLEFT, 107, SymbolTable::kNoPrio);
-    AddOperator(kKW_ShiftRight, ">>", SCMD_SHIFTRIGHT, 107, SymbolTable::kNoPrio);
-    AddOperator(kKW_Tern, "?", 0, 120, SymbolTable::kNoPrio);    // note, operator and keyword
+    AddOperator(kKW_And, "&&", 118, kNoPrio, SCMD_AND);
+    AddOperator(kKW_BitAnd, "&", 109, kNoPrio, SCMD_BITAND);
+    AddOperator(kKW_BitNeg, "~", kNoPrio, 101, kSpecialLogic); // bitwise NOT
+    AddOperator(kKW_BitOr, "|", 110, kNoPrio, SCMD_BITOR);
+    AddOperator(kKW_BitXor, "^", 110, kNoPrio, SCMD_XORREG);
+    AddOperator(kKW_Divide, "/", 103, kNoPrio, SCMD_DIVREG, SCMD_FDIVREG);
+    AddOperator(kKW_Equal, "==", 112, kNoPrio, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
+    AddOperator(kKW_Greater, ">", 112, kNoPrio, SCMD_GREATER, SCMD_FGREATER);
+    AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, SCMD_GTE, SCMD_FGTE);
+    AddOperator(kKW_Less, "<", 112, kNoPrio, SCMD_LESSTHAN, SCMD_FLESSTHAN);
+    AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, SCMD_LTE, SCMD_FLTE);
+    AddOperator(kKW_Minus, "-", 105, 101, SCMD_SUBREG, SCMD_FSUBREG);
+    AddOperator(kKW_Modulo, "%", 103, kNoPrio, SCMD_MODREG);
+    AddOperator(kKW_Multiply, "*", 103, kNoPrio, SCMD_MULREG, SCMD_FMULREG);
+    AddOperator(kKW_Not, "!", kNoPrio, 101, SCMD_NOTREG); // boolean NOT
+    AddOperator(kKW_New, "new", kNoPrio, 101, kSpecialLogic);
+    AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
+    AddOperator(kKW_Or, "||", 119, kNoPrio, SCMD_OR);
+    AddOperator(kKW_Plus, "+", 105, 101, SCMD_ADDREG, SCMD_FADDREG);
+    AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, SCMD_SHIFTLEFT);
+    AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, SCMD_SHIFTRIGHT);
+    AddOperator(kKW_Tern, "?", 120, kNoPrio, kSpecialLogic);    // note, operator and keyword
 
     // Assignments
-    AddAssign(kKW_Assign, "=", 120);
+    AddAssign(kKW_Assign, "=", 120, kSpecialLogic, kSpecialLogic, kSpecialLogic, kSpecialLogic);
 
-    AddAssignMod(kKW_AssignBitAnd, "&=", SCMD_BITAND, 120);
-    AddAssignMod(kKW_AssignBitOr, "|=", SCMD_BITOR, 120);
-    AddAssignMod(kKW_AssignBitXor, "^=", SCMD_XORREG, 120);
-    AddAssignMod(kKW_AssignDivide, "/=", SCMD_DIVREG, 120);
-    AddAssignMod(kKW_AssignMinus, "-=", SCMD_SUBREG, 120);
-    AddAssignMod(kKW_AssignMultiply, "*=", SCMD_MULREG, 120);
-    AddAssignMod(kKW_AssignPlus, "+=", SCMD_ADDREG, 120);
-    AddAssignMod(kKW_AssignShiftLeft, "<<=", SCMD_SHIFTLEFT, 120);
-    AddAssignMod(kKW_AssignShiftRight, ">>=",SCMD_SHIFTRIGHT, 120);
+    AddAssign(kKW_AssignBitAnd, "&=", 120, SCMD_BITAND);
+    AddAssign(kKW_AssignBitOr, "|=", 120, SCMD_BITOR);
+    AddAssign(kKW_AssignBitXor, "^=", 120, SCMD_XORREG);
+    AddAssign(kKW_AssignDivide, "/=", 120, SCMD_DIVREG, SCMD_FDIVREG);
+    AddAssign(kKW_AssignMinus, "-=", 120, SCMD_SUBREG, SCMD_FSUBREG);
+    AddAssign(kKW_AssignMultiply, "*=", 120, SCMD_MULREG, SCMD_FMULREG);
+    AddAssign(kKW_AssignPlus, "+=", 120, SCMD_ADDREG, SCMD_FADDREG);
+    AddAssign(kKW_AssignShiftLeft, "<<=", 120, SCMD_SHIFTLEFT);
+    AddAssign(kKW_AssignShiftRight, ">>=", 120, SCMD_SHIFTRIGHT);
 
     // Modifiers
     AddModifier(kKW_Increment, "++", SCMD_ADD, 101, 101);
@@ -584,27 +584,16 @@ AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio)
+AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Name = name;
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = prio;
-    entry.OperatorD->UnaryPrio = SymbolTable::kNoPrio;
-    entry.OperatorD->Opcode = 0;
-
-    _findCache[name] = kw;
-    return kw;
-}
-
-AGS::Symbol AGS::SymbolTable::AddAssignMod(Predefined kw, std::string const &name, CodeCell opcode, size_t prio)
-{
-    SymbolTableEntry &entry = entries.at(kw);
-    entry.Name = name;
-    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
-    entry.OperatorD->BinaryPrio = prio;
-    entry.OperatorD->UnaryPrio = SymbolTable::kNoPrio;
-    entry.OperatorD->Opcode = opcode;
+    entry.OperatorD->UnaryPrio = kNoPrio;
+    entry.OperatorD->IntOpcode = int_opcode;
+    entry.OperatorD->FloatOpcode = float_opcode;
+    entry.OperatorD->DynOpcode = dyn_opcode;
 
     _findCache[name] = kw;
     return kw;
@@ -640,20 +629,23 @@ AGS::Symbol AGS::SymbolTable::AddModifier(Predefined kw, std::string const &name
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = prefix_prio;
     entry.OperatorD->UnaryPrio = postfix_prio;
-    entry.OperatorD->Opcode = opcode;
+    entry.OperatorD->IntOpcode = opcode;
 
     _findCache[name] = kw;
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const & name, CodeCell opcode, size_t binary_prio, size_t unary_prio)
+AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Name = name;
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = binary_prio;
     entry.OperatorD->UnaryPrio = unary_prio;
-    entry.OperatorD->Opcode = opcode;
+    entry.OperatorD->IntOpcode = int_opcode;
+    entry.OperatorD->FloatOpcode = float_opcode;
+    entry.OperatorD->DynOpcode = dyn_opcode;
+    entry.OperatorD->StringOpcode = string_opcode;
     entry.OperatorD->CanBePartOfAnExpression = true;
 
     _findCache[name] = kw;

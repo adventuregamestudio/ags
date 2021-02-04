@@ -3666,6 +3666,7 @@ TEST_F(Bytecode0, FuncStart1) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+
 TEST_F(Bytecode0, Export) {
     
     char *inpl = "\

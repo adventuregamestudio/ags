@@ -219,6 +219,8 @@ public:
     static size_t const kNoSrcLocation = INT_MAX;
 
     static size_t const kNoPrio = -1;
+    static size_t const kNoOpcode = -1;
+    static size_t const kSpecialLogic = -2;
 };
 
 struct SymbolTableEntry : public SymbolTableConstant
@@ -275,7 +277,10 @@ struct SymbolTableEntry : public SymbolTableConstant
     // For operators
     struct OperatorDesc
     {
-        CodeCell Opcode = 0;
+        CodeCell IntOpcode = kNoOpcode;
+        CodeCell FloatOpcode = kNoOpcode;
+        CodeCell DynOpcode = kNoOpcode;
+        CodeCell StringOpcode = kNoOpcode;
         int BinaryPrio = kNoPrio; 
         int UnaryPrio = kNoPrio;
         bool CanBePartOfAnExpression = false;
@@ -333,10 +338,7 @@ private:
     Symbol AddNoSymbol(Predefined kw, std::string const &name);
 
     // Add the assign symbol to the symbol table at [kw]. Priority as yet unused.
-    Symbol AddAssign(Predefined kw, std::string const &name, size_t prio);
-
-    // Add the modifying assign symbol to the symbol table at [kw]. Priority as yet unused.
-    Symbol AddAssignMod(Predefined kw, std::string const &name, CodeCell opcode, size_t prio);
+    Symbol AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
 
     // Add the delimeter symbol to the symbol table at [kw]. 'partner' is the closer to the opener or vice versa.
     Symbol AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner, bool can_be_expression);
@@ -349,8 +351,8 @@ private:
 
     // Add the operator symbol to the symbol table at [kw]. 
     // Priorities: lower value = higher prio.
-    Symbol AddOperator(Predefined kw, std::string const &name, CodeCell opcode, size_t binary_prio, size_t unary_prio);
-
+    Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
+   
     // Add the vartype symbol to the symbol table at [kw].
     Symbol AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype = false);
 
@@ -478,8 +480,6 @@ public:
         { return IsOperator(s) ? entries.at(s).OperatorD->BinaryPrio : 0; }
     inline int UnaryOpPrio(Symbol s) const
         { return IsOperator(s) ? entries.at(s).OperatorD->UnaryPrio : 0; }
-    inline CodeCell OperatorOpcode(Symbol s) const
-        { return IsOperator(s) ? entries.at(s).OperatorD->Opcode : 0; }
 
     // Strings
     bool IsAnyStringVartype(Symbol s) const;

@@ -12,6 +12,7 @@ using AGS.Editor.Panes.Room;
 using AddressBarExt;
 using AddressBarExt.Controls;
 using System.Linq;
+using System.Drawing.Drawing2D;
 
 namespace AGS.Editor
 {
@@ -362,7 +363,8 @@ namespace AGS.Editor
             {
                 e.Graphics.SetClip(new Rectangle(0, 0, bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth, bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight));
                 e.Graphics.Clear(Color.LightGray);
-
+                e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+                e.Graphics.SmoothingMode = SmoothingMode.None;
                 e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
 
                 // Adjust co-ordinates using original scale factor so that it lines

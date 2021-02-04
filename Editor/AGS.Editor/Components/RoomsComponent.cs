@@ -1676,7 +1676,7 @@ namespace AGS.Editor.Components
                 {
                     ColorPalette palette = mask8bpp.Palette;
 
-                    for (int i = 0; i < 256; i++)
+                    for (int i = 1; i < 256; i++) // Skip i == 0 because no area should be transparent
                     {
                         int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
                         palette.Entries[i] = Color.FromArgb(gray, gray, gray);

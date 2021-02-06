@@ -183,10 +183,9 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 
 
 #include <string>
-#include <cstring>
-#include <limits>
 #include <fstream>
 #include <cmath>
+#include <climits>
 
 #include "util/string.h"
 
@@ -201,12 +200,16 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 #include "cs_scanner.h"
 #include "cs_parser.h"
 
-
 // Declared in Common/script/script_common.h 
 // Defined in Common/script/script_common.cpp
 extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
+
+// Used when generating Bytecode jump statements where the destination of
+// the jump is not yet known. There's nothing special with that number other
+// than that it is easy to spot in listings. Don't build logic on that number
+int const kDestinationPlaceholder = -77;
 
 void AGS::Parser::AddToSymbolList(Symbol symb, SymbolList &list)
 {
@@ -944,7 +947,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfSwitch()
     CodeLoc const lastcmd_loc = _scrip.codesize - 2;
     if (SCMD_JMP != _scrip.code[lastcmd_loc])
     {
-        WriteCmd(SCMD_JMP, -77);
+        WriteCmd(SCMD_JMP, kDestinationPlaceholder);
         _nest.JumpOut().AddParam();
     }
 
@@ -2437,13 +2440,10 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
         return kERR_InternalError;
     }
 
-    // We jump either to the start of the third term or to the end of the ternary
-    // expression. We don't know where this is yet, thus -77. This is just a
-    // random number that's easy to spot in debugging outputs (where it's a clue
-    // that it probably hasn't been replaced by a proper value). Don't use for anything.
+    // We jump either to the start of the third term or to the end of the ternary expression.
     WriteCmd(
         (term2.Length() > 0) ? SCMD_JZ : SCMD_JNZ,
-        -77);
+        kDestinationPlaceholder);
     ForwardJump test_jumpdest(_scrip);
     test_jumpdest.AddParam();
 
@@ -2464,10 +2464,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
             ConvertAXStringToStringObject(_sym.GetStringStructSym());
             term2_vartype = _scrip.AX_Vartype;
         }
-        // Jump to the end of the ternary expression;
-        // We don't know the dest yet, thus the placeholder value -77. Don't
-        // test for this random magic number or use it in code
-        WriteCmd(SCMD_JMP, -77);
+        // Jump to the end of the ternary expression
+        WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     }
     else
     {
@@ -2557,7 +2555,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
         // "&&" operator lazy evaluation: if AX is 0 then the AND has failed, 
         // so just jump directly past the AND instruction;
         // AX will still be 0 so that will do as the result of the calculation
-        WriteCmd(SCMD_JZ, -77);
+        WriteCmd(SCMD_JZ, kDestinationPlaceholder);
         // We don't know the end of the instruction yet, so remember the location we need to patch
         to_exit.AddParam();
     }
@@ -2566,7 +2564,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
         // "||" operator lazy evaluation: if AX is non-zero then the OR has succeeded, 
         // so just jump directly past the OR instruction; 
         // AX will still be non-zero so that will do as the result of the calculation
-        WriteCmd(SCMD_JNZ, -77);
+        WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
         // We don't know the end of the instruction yet, so remember the location we need to patch
         to_exit.AddParam();
     }
@@ -3852,7 +3850,7 @@ void AGS::Parser::AccessData_StrCpy()
     WriteCmd(SCMD_MEMREAD, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
     WriteCmd(SCMD_MEMWRITE, SREG_AX);
-    WriteCmd(SCMD_JZ, -77);  // if (AX == 0) jumpto LOOP_END
+    WriteCmd(SCMD_JZ, kDestinationPlaceholder);  // if (AX == 0) jumpto LOOP_END
     CodeLoc const jumpout_pos = _scrip.codesize - 1;
     WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
     WriteCmd(SCMD_ADD, SREG_CX, 1);
@@ -6186,7 +6184,7 @@ AGS::ErrorType AGS::Parser::ParseIf()
 
     // The code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-    WriteCmd(SCMD_JZ, -77);
+    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
     _nest.JumpOut().AddParam();
 
     return kERR_None;
@@ -6206,7 +6204,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
     _src.GetNext(); // Eat "else"
     // Match the 'else' clause that is following to this 'if' stmt:
     // So we're at the end of the "then" branch. Jump out.
-    _scrip.WriteCmd(SCMD_JMP, -77);
+    _scrip.WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     // So now, we're at the beginning of the "else" branch.
     // The jump after the "if" condition should go here.
     _nest.JumpOut().Patch(_src.GetLineno());
@@ -6230,7 +6228,7 @@ AGS::ErrorType AGS::Parser::ParseWhile()
 
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-    WriteCmd(SCMD_JZ, -77);
+    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
     _nest.JumpOut().AddParam();
     _nest.Start().Set(condition_eval_loc);
 
@@ -6455,7 +6453,7 @@ AGS::ErrorType AGS::Parser::ParseFor()
     _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
 
     // Code for "If the expression we just evaluated is false, jump over the loop body."
-    WriteCmd(SCMD_JZ, -77);
+    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
     _nest.JumpOut().AddParam();
 
     return kERR_None;
@@ -6481,7 +6479,7 @@ AGS::ErrorType AGS::Parser::ParseSwitch()
     _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
 
     // Jump to the jump table
-    _scrip.WriteCmd(SCMD_JMP, -77);
+    _scrip.WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     _nest.SwitchJumptable().AddParam();
 
     // Check that "default" or "case" follows
@@ -6695,7 +6693,7 @@ AGS::ErrorType AGS::Parser::ParseBreak()
     RemoveLocalsFromStack(nesting_level + 1);
     
     // Jump out of the loop or switch
-    WriteCmd(SCMD_JMP, -77);
+    WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     _nest.JumpOut(nesting_level).AddParam();
 
     // The locals only disappear if control flow actually follows the "break"

@@ -1739,6 +1739,65 @@ TEST_F(Bytecode1, Ternary4) {
     CompareStrings(&scrip, stringssize, strings);
 }
 
+TEST_F(Bytecode1, Ternary5) {
+
+    // Compile-time evaluation
+
+    char inpl[] = "\
+        float main()                    \n\
+        {                               \n\
+            int I1a = 0 ? 10 : 20;      \n\
+            int I1b = 2 ? 30 : 40;      \n\
+            int I2a = 0 ?: 50;          \n\
+            int I2b = 3 ?: 60;          \n\
+            int I3a = 0 ? I1a : (7 + I1b);    \n\
+            int I3b = 4 ? I2a : (7 + I2b);    \n\
+            int I4a = 0 ? 70 : I3a;     \n\
+            int I4b = 4 ? 80 : I3b;     \n\
+            int I5a = 0 ? I4a : 90;     \n\
+            int I5b = 5 ? I4b : 100;    \n\
+            int I6 = 0 ? : I5a;         \n\
+        }                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Ternary5", scrip);
+    size_t const codesize = 82;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,           20,   29,    3,    6,    // 7
+       3,   30,   29,    3,            6,    3,   50,   29,    // 15
+       3,    6,    3,    3,           29,    3,    6,    3,    // 23
+       7,   29,    3,   51,           16,    7,    3,   30,    // 31
+       4,   11,    4,    3,            3,    4,    3,   29,    // 39
+       3,   51,   12,    7,            3,   29,    3,   51,    // 47
+       8,    7,    3,   29,            3,    6,    3,   80,    // 55
+      29,    3,    6,    3,           90,   29,    3,   51,    // 63
+       8,    7,    3,   29,            3,   51,    8,    7,    // 71
+       3,   29,    3,    2,            1,   44,    6,    3,    // 79
+       0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
 TEST_F(Bytecode1, AssignToString) {
     
     // Definition of global string with assignment

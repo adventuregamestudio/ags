@@ -572,6 +572,9 @@ private:
     // Parse the term given in EXPRESSION. The lowest-binding operator is a unary operator
     ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
+    AGS::ErrorType ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1,
+        bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc_term2, AGS::ScopeType &scope_type_term2, AGS::Vartype &vartype_term2);
+
     // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
     ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 

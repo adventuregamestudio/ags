@@ -2405,7 +2405,43 @@ AGS::ErrorType AGS::Parser::ParseExpression_Unary(SrcList &expression, ValueLoca
 
 }
 
-// The least binding operator is '?'
+AGS::ErrorType AGS::Parser::ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1, bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc, AGS::ScopeType &scope_type, AGS::Vartype &vartype)
+{
+    bool const second_term_exists = (term2.Length() > 0);
+    if (second_term_exists)
+    {
+        ErrorType retval = ParseExpression_Term(term2, vloc, scope_type, vartype);
+        if (retval < 0) return retval;
+        if (!term2.ReachedEOF())
+        {
+            Error("!Unexpected '%s' after 1st term of ternary", _sym.GetName(term2.GetNext()).c_str());
+            return kERR_InternalError;
+        }
+        ValueLocation vloc_dummy = vloc;
+        ResultToAX(vartype, vloc_dummy); // don't clobber vloc
+    }
+    else
+    {
+        // Take the first expression as the result of the missing second expression
+        vartype = vartype_term1;
+        scope_type = scope_type_term1;
+        vloc = vloc_term1;
+        if (term1_has_been_ripped_out)
+        {   // Still needs to be moved to AX
+            ValueLocation vloc_dummy = vloc;
+            ResultToAX(vartype, vloc_dummy); // Don't clobber vloc
+        }
+    }
+
+    // If term2 and term3 evaluate to a 'string', we might in theory make this
+    //  a 'string' expression. However, at this point we don't know yet whether
+    // term3 will evaluate to a 'string', and we need to generate code here,
+    // so to be on the safe side, convert any 'string' into 'String'.
+    // Note that the result of term2 has already been moved to AX
+    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), vartype);
+    return kERR_None;
+}
+
 AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     // First term ends before the '?'
@@ -2426,99 +2462,146 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     size_t const term3_start = after_term1.GetCursor() + 1;
     SrcList term3 = SrcList(after_term1, term3_start, after_term1.Length() - term3_start);
     SrcList term2 = SrcList(after_term1, 0u, after_term1.GetCursor());
-
-    Vartype term1_vartype, term2_vartype, term3_vartype;
-    ScopeType term1_scope_type, term2_scope_type, term3_scope_type;
-
-    // First term of ternary
-    ErrorType retval = ParseExpression_Term(term1, vloc, term1_scope_type, term1_vartype);
-    if (retval < 0) return retval;
-    ResultToAX(term1_vartype, vloc);
-    if (!term1.ReachedEOF())
-    {
-        Error("!Unexpected '%s' after 1st term of ternary", _sym.GetName(term1.GetNext()).c_str());
-        return kERR_InternalError;
-    }
-
-    // We jump either to the start of the third term or to the end of the ternary expression.
-    WriteCmd(
-        (term2.Length() > 0) ? SCMD_JZ : SCMD_JNZ,
-        kDestinationPlaceholder);
-    ForwardJump test_jumpdest(_scrip);
-    test_jumpdest.AddParam();
-
-    // Second term of ternary
-    bool const second_term_exists = (term2.Length() > 0);
-    if (second_term_exists)
-    {
-        retval = ParseExpression_Term(term2, vloc, term2_scope_type, term2_vartype);
-        if (retval < 0) return retval;
-        if (!term2.ReachedEOF())
-        {
-            Error("!Unexpected '%s' after 1st term of ternary", _sym.GetName(term2.GetNext()).c_str());
-            return kERR_InternalError;
-        }
-        ResultToAX(term2_vartype, vloc);
-        ConvertAXStringToStringObject(_sym.GetStringStructSym(), term2_vartype);
-
-        // Jump to the end of the ternary expression
-        WriteCmd(SCMD_JMP, kDestinationPlaceholder);
-    }
-    else
-    {
-        // Take the first expression as the result of the missing second expression
-        // No code is generated; instead, the conditional jump after the test goes
-        // to the end of the expression if the test does NOT yield zero
-        term2_vartype = term1_vartype;
-        term2_scope_type = term1_scope_type;
-        ResultToAX(term2_vartype, vloc);
-        ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), term2_vartype);
-    }
-    ForwardJump jumpdest_after_term2(_scrip); // only valid if second_term_exists
-    jumpdest_after_term2.AddParam();
-
-    // Third term of ternary
     if (0 == term3.Length())
     {
         expression.SetCursor(tern_idx);
         Error("The third expression of this ternary is empty");
         return kERR_UserError;
     }
-    if (second_term_exists)
-        test_jumpdest.Patch(_src.GetLineno());
 
-    retval = ParseExpression_Term(term3, vloc, term3_scope_type, term3_vartype);
+    bool const second_term_exists = (term2.Length() > 0);
+
+    ValueLocation vloc_term1, vloc_term2, vloc_term3;
+    ScopeType scope_type_term1, scope_type_term2, scope_type_term3;
+    Vartype vartype_term1, vartype_term2, vartype_term3;
+
+    // Note: Cannot use the same jump-collector for the end of term1
+    // and the end of term2 although both jump to the same destination,
+    // i.e., out of the ternary. Reason is, term2 might be ripped out 
+    // of the codebase. In this case its jump out of the ternary would 
+    // be ripped out too, and when afterwards the jumps are patched,
+    // a wrong, random location would get patched.
+    ForwardJump jumpdest_out_of_ternary(_scrip);
+    ForwardJump jumpdest_after_term2(_scrip);
+    ForwardJump jumpdest_to_term3(_scrip);
+
+    int const start_of_term1 = _scrip.codesize;
+
+    // First term of ternary (i.e, the test of the ternary)
+    ErrorType retval = ParseExpression_Term(term1, vloc_term1, scope_type_term1, vartype_term1);
     if (retval < 0) return retval;
-    ResultToAX(term3_vartype, vloc);
-    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), term3_vartype);
 
+    bool const term1_known =
+        ValueLocation::kCompile_time_literal == vloc_term1.location &&
+        (vartype_term1 == kKW_Float || _sym.IsAnyIntegerVartype(vartype_term1));
+    CodeCell const term1_value = term1_known ? _sym[vloc_term1.symbol].LiteralD->Value : false;
+    ValueLocation vloc_dummy = vloc_term1;
+    ResultToAX(vartype_term1, vloc_dummy); // Don't clobber vloc_term1
+   
+    if (!term1.ReachedEOF())
+    {
+        Error("!Unexpected '%s' after 1st term of ternary", _sym.GetName(term1.GetNext()).c_str());
+        return kERR_InternalError;
+    }
+
+    // Jump either to the start of the third term or to the end of the ternary expression.
+    WriteCmd(
+        second_term_exists ? SCMD_JZ : SCMD_JNZ,
+        kDestinationPlaceholder);
     if (second_term_exists)
-        jumpdest_after_term2.Patch(_src.GetLineno());
+        jumpdest_to_term3.AddParam();
     else
-        test_jumpdest.Patch(_src.GetLineno());
+        jumpdest_out_of_ternary.AddParam();
+
+    bool term1_has_been_ripped_out = false;
+    if (term1_known)
+    {   // Don't need to do the test at runtime
+        _scrip.codesize = start_of_term1; 
+        term1_has_been_ripped_out = true;
+    }
+
+    // Second term of the ternary
+    int const start_of_term2 = _scrip.codesize;
+    retval = ParseExpression_Ternary_Term2(
+        vloc_term1, scope_type_term1, vartype_term1,
+        term1_has_been_ripped_out,
+        term2, vloc_term2, scope_type_term2, vartype_term2);
+    if (retval < 0) return retval;
+
+    // Needs to be here so that the jump after term2 is ripped out whenever
+    // term3 is ripped out so there isn't any term that would need to be jumped over.
+    int const start_of_term3 = _scrip.codesize;
+    if (second_term_exists)
+    {
+        WriteCmd(SCMD_JMP, kDestinationPlaceholder);
+        jumpdest_after_term2.AddParam();
+    }
+
+    bool term2_has_been_ripped_out = false;
+    if (term1_known && !term1_value)
+    {
+        _scrip.codesize = start_of_term2; // Don't need term2, it will never be evaluated
+        term2_has_been_ripped_out = true;
+    }
+
+    // Third term of ternary
+    jumpdest_to_term3.Patch(_src.GetLineno());
+
+    retval = ParseExpression_Term(term3, vloc_term3, scope_type_term3, vartype_term3);
+    if (retval < 0) return retval;
+    vloc_dummy = vloc_term3;
+    ResultToAX(vartype_term3, vloc_dummy); // don't clobber vloc_term3
+    ConvertAXStringToStringObject(_sym.GetStringStructPtrSym(), vartype_term3);
+
+    bool term3_has_been_ripped_out = false;
+    if (term1_known && term1_value)
+    {
+        _scrip.codesize = start_of_term3; // Don't need term3, will never be evaluated
+        term3_has_been_ripped_out = true;
+    }
+
+    if (!term2_has_been_ripped_out && !term3_has_been_ripped_out)
+        jumpdest_after_term2.Patch(_src.GetLineno());
+    jumpdest_out_of_ternary.Patch(_src.GetLineno());
 
     scope_type =
-        (ScT::kLocal == term2_scope_type || ScT::kLocal == term3_scope_type) ?
+        (ScT::kLocal == scope_type_term2 || ScT::kLocal == scope_type_term3) ?
         ScT::kLocal : ScT::kGlobal;
 
-    if (!IsVartypeMismatch_Oneway(term2_vartype, term3_vartype))
+    vartype = vartype_term2;
+    if (IsVartypeMismatch_Oneway(vartype_term3, vartype_term2))
     {
-        vartype = term3_vartype;
-        return kERR_None;
-    }
-    if (!IsVartypeMismatch_Oneway(term3_vartype, term2_vartype))
-    {
-        vartype = term2_vartype;
-        return kERR_None;
+        if (IsVartypeMismatch_Oneway(vartype_term2, vartype_term3))
+        {
+            expression.SetCursor(tern_idx);
+            Error("An expression of type '%s' is incompatible with an expression of type '%s'",
+                _sym.GetName(vartype_term2).c_str(), _sym.GetName(vartype_term3).c_str());
+            return kERR_UserError;
+        }
+        vartype = vartype_term3;
     }
 
-    term3.SetCursor(0);
-    Error("An expression of type '%s' is incompatible with an expression of type '%s'",
-        _sym.GetName(term2_vartype).c_str(), _sym.GetName(term3_vartype).c_str());
-    return kERR_UserError;
+    if (term1_known)
+    {
+        if (term1_value && ValueLocation::kCompile_time_literal == vloc_term2.location)
+        {
+            _scrip.codesize = start_of_term1; // Don't need the ternary at all
+            vloc = vloc_term2;
+            return kERR_None;
+        }
+        if (!term1_value && ValueLocation::kCompile_time_literal == vloc_term3.location)
+        {
+            _scrip.codesize = start_of_term1; // Don't need the ternary at all
+            vloc = vloc_term3;
+            return kERR_None;
+        }
+    }
+
+    // Each branch has been putting the result into AX so that's where it's now
+    vloc.location = ValueLocation::kAX_is_value;
+    return kERR_None;
 }
 
-// The least binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
 AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     // process the left hand side
@@ -2544,7 +2627,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
         // so just jump directly past the AND instruction;
         // AX will still be 0 so that will do as the result of the calculation
         WriteCmd(SCMD_JZ, kDestinationPlaceholder);
-        // We don't know the end of the instruction yet, so remember the location we need to patch
         to_exit.AddParam();
     }
     else if (kKW_Or == operator_sym)
@@ -2553,7 +2635,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
         // so just jump directly past the OR instruction; 
         // AX will still be non-zero so that will do as the result of the calculation
         WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
-        // We don't know the end of the instruction yet, so remember the location we need to patch
         to_exit.AddParam();
     }
 
@@ -6132,7 +6213,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     RemoveLocalsFromStack(_sym.kFunctionScope);
   
     // Jump to the exit point of the function
-    WriteCmd(SCMD_JMP, 0);
+    WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     _nest.JumpOut(_sym.kParameterScope).AddParam();
 
     // The locals only disappear if control flow actually follows the "return"

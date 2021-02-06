@@ -343,8 +343,6 @@ private:
     // Buffer for ccCurScriptName
     std::string _scriptNameBuffer;
 
-    void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
-
     // Augment the message with a "See ..." indication
     // declared is the point in _src where the thing is declared
     std::string const ReferenceMsgLoc(std::string const &msg, size_t declared);
@@ -510,9 +508,10 @@ private:
     // Whether this operator's vartype is always bool
     static bool IsBooleanOpcode(CodeCell opcode);
 
-    // If we need a StringStruct but AX contains a string, 
+    // 'current_vartype' must be the vartype of AX. If it is 'string' and
+    // wanted_vartype is 'String', then AX will be converted to 'String'.
     // then convert AX into a String object and set its type accordingly
-    void ConvertAXStringToStringObject(Vartype wanted_vartype);
+    void ConvertAXStringToStringObject(Vartype current_vartype, Vartype &wanted_vartype);
 
     static int GetReadCommandForSize(int the_size);
 
@@ -522,7 +521,7 @@ private:
     ErrorType HandleStructOrArrayResult(Vartype &vartype, Parser::ValueLocation &vloc);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
-    ErrorType ResultToAX(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ResultToAX(Vartype vartype, ValueLocation &vloc);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
@@ -593,6 +592,7 @@ private:
 
     // Evaluate the supplied expression, putting the result into AX
     // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
+    ErrorType ParseExpression(ScopeType &scope_type, Vartype &vartype);
     ErrorType ParseExpression();
 
     ErrorType AccessData_ReadBracketedIntExpression(SrcList &expression);
@@ -676,12 +676,12 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    ErrorType AccessData_AssignTo(SrcList &expression);
+    ErrorType AccessData_AssignTo(ScopeType sct, Vartype vartype, SrcList &expression);
 
     ErrorType SkipToEndOfExpression();
 
     // We are parsing the left hand side of a += or similar statement.
-    ErrorType ParseAssignment_ReadLHSForModification(SrcList &lhs, ValueLocation &vloc, Vartype &lhstype);
+    ErrorType ParseAssignment_ReadLHSForModification(SrcList &lhs, ScopeType &scope_type, ValueLocation &vloc, Vartype &lhstype);
 
     // "var = expression"; lhs is the variable
     ErrorType ParseAssignment_Assign(SrcList &lhs);

@@ -70,8 +70,6 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
 
     LastEmittedLineno = INT_MAX;
     EmitLineNumbers = emit_line_numbers;
-    AX_Vartype = 0;
-    AX_ScopeType = ScT::kGlobal;
     Functions = {};
     ImportIdx = {};
 }

@@ -50,12 +50,6 @@ public:
     int LastEmittedLineno = INT_MAX;
     bool EmitLineNumbers;
 
-    // Variable type of value in AX, usually equiv. to type of the current expression
-    Vartype AX_Vartype = kKW_NoSymbol;
-
-    // Needed to prevent a return of a local string
-    ScopeType AX_ScopeType = ScT::kGlobal;
-
     void FreeExtra();
 
     // Reserve siz bytes of memory for global data;

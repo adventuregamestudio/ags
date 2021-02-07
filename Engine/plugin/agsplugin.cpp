@@ -398,7 +398,7 @@ void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 tran
     if (gfxDriver->UsesMemoryBackBuffer())
         GfxUtil::DrawSpriteWithTransparency(ds, &wrap, x, y, trans);
     else
-        GfxUtil::DrawSpriteBlend(ds, Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
+        GfxUtil::DrawSpriteBlend(ds, Point(x,y), &wrap, kBlend_Normal, true, false, trans);
 }
 
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)

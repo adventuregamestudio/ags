@@ -130,6 +130,16 @@ namespace AGS.Types
             set { _blinkingView = value; }
         }
 
+        [Description("The blend mode for the character")]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        [DefaultValue(BlendMode.Normal)]
+        public BlendMode BlendMode
+        {
+            get;
+            set;
+        }
+
         [Description("Room number that the character starts in")]
         [Category("Design")]
         [TypeConverter(typeof(RoomListTypeConverter))]

@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_GFX__DDB_H
 #define __AGS_EE_GFX__DDB_H
 
+#include "gfx/gfx_def.h"
+
 namespace AGS
 {
 namespace Engine
@@ -33,6 +35,7 @@ public:
   virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
   virtual void SetLightLevel(int light_level) = 0;   // 0-255
   virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;  // 0-255
+  virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
 
   virtual int GetWidth() = 0;
   virtual int GetHeight() = 0;

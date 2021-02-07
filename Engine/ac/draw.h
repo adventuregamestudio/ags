@@ -109,12 +109,12 @@ void construct_game_screen_overlay(bool draw_mouse = true);
 void construct_engine_overlay();
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
-                               Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
+                               Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
 void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
-                                    Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
+                                    Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
-//void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
+//void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlend_Alpha);
 // Render game on screen
 void render_to_screen();
 // Callbacks for the graphics driver

@@ -109,7 +109,7 @@ struct CharacterInfo {
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
     void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 

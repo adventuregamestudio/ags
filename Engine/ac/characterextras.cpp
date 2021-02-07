@@ -15,9 +15,9 @@
 #include "ac/characterextras.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
-void CharacterExtras::ReadFromFile(Stream *in)
+void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -34,9 +34,31 @@ void CharacterExtras::ReadFromFile(Stream *in)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    if (cmp_ver >= 10)
+    {
+        blend_mode = (BlendMode)in->ReadInt32();
+        // Reserved for colour options
+        in->ReadInt32(); // colour flags
+        // Reserved for transform options
+        in->ReadInt32(); // sprite transform flags1
+        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
+    }
+    else
+    {
+        blend_mode = kBlend_Normal;
+    }
 }
 
-void CharacterExtras::WriteToFile(Stream *out)
+void CharacterExtras::WriteToSavegame(Stream *out) const
 {
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);
@@ -53,4 +75,20 @@ void CharacterExtras::WriteToFile(Stream *out)
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
+    // since version 10
+    out->WriteInt32(blend_mode);
+    // Reserved for colour options
+    out->WriteInt32(0); // colour flags
+    // Reserved for transform options
+    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
 }

@@ -23,13 +23,19 @@ namespace AGS
 namespace Common
 {
 
+// Blend modes for object sprites
 enum BlendMode
 {
-    // free blending (ARGB -> ARGB) modes
-    kBlendMode_NoAlpha        = 0, // ignore alpha channel
-    kBlendMode_Alpha,              // alpha-blend src to dest, combining src & dest alphas
-    // NOTE: add new modes here
-
+    kBlend_Normal,        // alpha-blend src to dest, combining src & dest alphas
+    kBlend_Add,
+    kBlend_Darken,
+    kBlend_Lighten,
+    kBlend_Multiply,
+    kBlend_Screen,
+    kBlend_Burn,
+    kBlend_Subtract,
+    kBlend_Exclusion,
+    kBlend_Dodge,
     kNumBlendModes
 };
 

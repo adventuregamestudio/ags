@@ -62,4 +62,27 @@ void set_opaque_alpha_blender();
 // Sets argb2argb for 32-bit mode, and provides appropriate funcs for blending 32-bit onto 15/16/24-bit destination
 void set_argb2any_blender();
 
+// ===============================
+// [AVD] Custom blenders for software BlendMode implementation
+// If we ditch software rendering we can remove this whole section
+// not very pretty but forces the original alpha of "x" to "blender_result"
+unsigned long _blender_mask_alpha24(unsigned long blender_result, unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_dodge24(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_burn24(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_lighten24(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_darken24(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_exclusion24(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _my_blender_subtract24(unsigned long x, unsigned long y, unsigned long n);
+
+unsigned long _blender_masked_add32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_dodge32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_burn32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_lighten32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_darken32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_exclusion32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_subtract32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_screen32(unsigned long x, unsigned long y, unsigned long n);
+unsigned long _blender_masked_multiply32(unsigned long x, unsigned long y, unsigned long n);
+// ===============================
+
 #endif // __AC_BLENDER_H

@@ -18,7 +18,9 @@
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
+#include "core/types.h"
 #include "ac/runtime_defines.h"
+#include "gfx/gfx_def.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -43,9 +45,10 @@ struct CharacterExtras {
     char  process_idle_this_time;
     char  slow_move_counter;
     short animwait;
+    Common::BlendMode blend_mode;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

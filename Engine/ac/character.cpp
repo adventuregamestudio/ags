@@ -1558,6 +1558,17 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
+int Character_GetBlendMode(CharacterInfo *chaa) {
+
+    return charextra[chaa->index_id].blend_mode;
+}
+
+void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
+    charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
+}
+
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
 
     if (chaa->flags & CHF_NOTURNING)
@@ -3760,6 +3771,18 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetZ);
 }
 
+// int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetBlendMode);
+}
+
+// void (CharacterInfo *chaa, int blend_mode)
+RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
+}
+
 //=============================================================================
 //
 // Exclusive API for Plugins
@@ -3942,6 +3965,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::get_TintRed",               Sc_Character_GetTintRed);
     ccAddExternalObjectFunction("Character::get_TintSaturation",        Sc_Character_GetTintSaturation);
     ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
+    ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
+    ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

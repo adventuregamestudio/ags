@@ -1728,10 +1728,30 @@ namespace AGS.Editor
         private static void WriteExt_Ags399(BinaryWriter writer, Game game, CompileMessages errors)
         {
             // adjustable font outlines
-            for (int i = 0; i < game.Fonts.Count; ++i)
+            foreach (var font in game.Fonts)
             {
-                writer.Write(game.Fonts[i].AutoOutlineThickness);
-                writer.Write((int)game.Fonts[i].AutoOutlineStyle);
+                writer.Write(font.AutoOutlineThickness);
+                writer.Write((int)font.AutoOutlineStyle);
+            }
+
+            // new character properties
+            foreach (var ch in game.Characters)
+            {
+                writer.Write((int)ch.BlendMode);
+                // Reserved for colour options
+                writer.Write(new byte[3 * 4]); // flags + tint rgbs + light level
+                // Reserved for transform options (see brief list in the engine)
+                writer.Write(new byte[11 * 4]);
+            }
+
+            // new gui properties
+            foreach (var gui in game.GUIs)
+            {
+                writer.Write((int)gui.BlendMode);
+                // Reserved for colour options
+                writer.Write(new byte[3 * 4]); // flags + tint rgbs + light level
+                // Reserved for transform options (see brief list in the engine)
+                writer.Write(new byte[11 * 4]);
             }
         }
 

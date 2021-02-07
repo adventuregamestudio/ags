@@ -319,6 +319,16 @@ void GUI_ProcessClick(int x, int y, int mbut)
     }
 }
 
+int GUI_GetBlendMode(ScriptGUI *gui) {
+    return guis[gui->id].BlendMode;
+}
+
+void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
+    guis[gui->id].BlendMode = (BlendMode)blendMode;
+}
+
 //=============================================================================
 
 void remove_popup_interface(int ifacenum) {
@@ -928,6 +938,18 @@ RuntimeScriptValue Sc_GUI_ProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(GUI_ProcessClick);
 }
 
+// int (ScriptGUI *gui)
+RuntimeScriptValue Sc_GUI_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBlendMode);
+}
+
+// void (ScriptGUI *gui, int blendMode)
+RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBlendMode);
+}
+
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
@@ -969,6 +991,8 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::set_Y",                   Sc_GUI_SetY);
     ccAddExternalObjectFunction("GUI::get_ZOrder",              Sc_GUI_GetZOrder);
     ccAddExternalObjectFunction("GUI::set_ZOrder",              Sc_GUI_SetZOrder);
+    ccAddExternalObjectFunction("GUI::get_BlendMode",           Sc_GUI_GetBlendMode);
+    ccAddExternalObjectFunction("GUI::set_BlendMode",           Sc_GUI_SetBlendMode);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

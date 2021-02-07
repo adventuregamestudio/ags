@@ -439,6 +439,22 @@ HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion
     return HRoomFileError::None();
 }
 
+// Early development version of "ags4"
+HRoomFileError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+{
+    // New room object properties
+    for (size_t i = 0; i < room->ObjectCount; ++i)
+    {
+        room->Objects[i].BlendMode = (BlendMode)in->ReadInt32();
+        // Reserved for colour options
+        in->Seek(sizeof(int32_t) * 4); // flags, transparency, tint rbgs, light level
+        // Reserved for transform options (see list in savegame format)
+        in->Seek(sizeof(int32_t) * 11);
+    }
+
+    return HRoomFileError::None();
+}
+
 HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -478,6 +494,13 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
     // {
     //     // read new region properties
     // }
+
+    // Early development version of "ags4"
+    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    {
+        return ReadExt399(room, in, data_ver);
+    }
+
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
         String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
@@ -824,6 +847,19 @@ void WritePropertiesBlock(const RoomStruct *room, Stream *out)
         Properties::WriteValues(room->Objects[i].Properties, out);
 }
 
+void WriteExt399(const RoomStruct *room, Stream *out)
+{
+    // New object properties
+    for (size_t i = 0; i < room->ObjectCount; i++)
+    {
+        out->WriteInt32(room->Objects[i].BlendMode);
+        // Reserved for colour options
+        out->WriteByteCount(0, sizeof(int32_t) * 4); // flags, transparency, tint rgbs, light level
+        // Reserved for transform options (see list in savegame format)
+        out->WriteByteCount(0, sizeof(int32_t) * 11);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
@@ -847,6 +883,9 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
         WriteBlock(room, kRoomFblk_AnimBg, WriteAnimBgBlock, out);
     // Custom properties
     WriteBlock(room, kRoomFblk_Properties, WritePropertiesBlock, out);
+
+    // Early development version of "ags4"
+    WriteBlock(room, "ext_ags399", WriteExt399, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

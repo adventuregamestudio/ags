@@ -450,7 +450,7 @@ HSaveError WriteCharacters(PStream out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToFile(out.get());
-        charextra[i].WriteToFile(out.get());
+        charextra[i].WriteToSavegame(out.get());
         Properties::WriteValues(play.charProps[i], out.get());
         // character movement path cache
         mls[CHMLSOFFS + i].WriteToFile(out.get());
@@ -466,7 +466,7 @@ HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].ReadFromFile(in.get());
-        charextra[i].ReadFromFile(in.get());
+        charextra[i].ReadFromSavegame(in.get(), cmp_ver);
         Properties::ReadValues(play.charProps[i], in.get());
         // character movement path cache
         err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
@@ -891,7 +891,7 @@ HSaveError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams &pp
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
-            roomstat->ReadFromSavegame(in.get());
+            roomstat->ReadFromSavegame(in.get(), cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;
         }
@@ -994,7 +994,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())
-        troom.ReadFromSavegame(in.get());
+        troom.ReadFromSavegame(in.get(), cmp_ver);
 
     return HSaveError::None();
 }
@@ -1063,7 +1063,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        1,
+        10,
         0,
         WriteCharacters,
         ReadCharacters
@@ -1077,7 +1077,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_350,
+        kGuiSvgVersion_399,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI
@@ -1112,7 +1112,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        1,
+        10,
         0,
         WriteOverlays,
         ReadOverlays
@@ -1133,7 +1133,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        0,
+        10,
         0,
         WriteRoomStates,
         ReadRoomStates

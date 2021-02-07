@@ -51,7 +51,7 @@ struct RoomStatus {
     void FreeScriptData();
     void FreeProperties();
 
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

@@ -401,6 +401,20 @@ enum LogLevel
 };
 #endif
 
+#ifdef SCRIPT_API_v399
+enum BlendMode {
+    eBlendNormal = 0,
+    eBlendAdd,
+    eBlendDarken,
+    eBlendLighten,
+    eBlendMultiply,
+    eBlendScreen,
+    eBlendBurn,
+    eBlendSubtract,
+    eBlendExclusion,
+    eBlendDodge
+};
+#endif
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -542,6 +556,9 @@ builtin managed struct DrawingSurface {
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
   import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+  /// Blends a sprite onto the surface with its top-left corner at (x,y).
+  import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif
 #ifndef SCRIPT_API_v399
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
@@ -569,6 +586,9 @@ builtin managed struct DrawingSurface {
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
+  /// Blends the specified surface onto this surface.
+  import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif
 #ifndef SCRIPT_API_v399
   /// Draws the specified surface onto this surface.
@@ -584,8 +604,6 @@ builtin managed struct DrawingSurface {
   import attribute int DrawingColor;
   /// Gets the height of this surface.
   readonly import attribute int Height;
-#ifdef SCRIPT_COMPAT_v341
-#endif
   /// Gets the width of the surface.
   readonly import attribute int Width;
 };
@@ -919,6 +937,10 @@ builtin managed struct Overlay {
   import attribute int X;
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode of this overlay.
+  import attribute BlendMode BlendMode;
+#endif
 };
 
 builtin managed struct DynamicSprite {
@@ -1344,6 +1366,10 @@ builtin managed struct GUI {
   import readonly attribute GUIPopupStyle PopupStyle;
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
+#endif
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode for this GUI.
+  import attribute BlendMode BlendMode;
 #endif
 };
 
@@ -1784,7 +1810,10 @@ builtin managed struct Object {
   /// Gets/sets the object's current scaling level.
   import attribute int  Scaling;
 #endif
-
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the blending mode for this object.
+  import attribute BlendMode BlendMode;
+#endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2008,6 +2037,10 @@ builtin managed struct Character {
   import attribute int  y;
   /// The character's current Z-position.
   import attribute int  z;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the character's current blend mode.
+  import attribute BlendMode BlendMode;
+#endif
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
   readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$

@@ -69,7 +69,7 @@ void CharacterInfo::ReadFromFile(Stream *in)
     on = in->ReadInt8();
 }
 
-void CharacterInfo::WriteToFile(Stream *out)
+void CharacterInfo::WriteToFile(Stream *out) const
 {
     out->WriteInt32(defview);
     out->WriteInt32(talkview);

@@ -158,6 +158,7 @@ public:
     GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this
     int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
+    Common::BlendMode BlendMode; // render blend mode
     int32_t ZOrder;
 
     int32_t FocusCtrl;      // which control has the focus
@@ -216,7 +217,7 @@ extern bool is_sprite_alpha(int spr);
 
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
-                            Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
+                            Common::BlendMode blend_mode = Common::kBlend_Normal);
 
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);

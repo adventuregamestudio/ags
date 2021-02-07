@@ -18,12 +18,13 @@
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
+#include "core/types.h"
 #include "ac/common_defines.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// IMPORTANT: this struct is restricted by plugin API!
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
@@ -41,6 +42,7 @@ struct RoomObject {
     char  on;
     char  flags;
     short blocking_width, blocking_height;
+    Common::BlendMode blend_mode;
 
     RoomObject();
 
@@ -55,7 +57,7 @@ struct RoomObject {
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;
 };
 

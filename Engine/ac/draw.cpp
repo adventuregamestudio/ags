@@ -164,6 +164,7 @@ struct SpriteListEntry
     bool takesPriorityIfEqual = false;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
     int renderStage = -1;
+    BlendMode blendMode = kBlend_Normal;
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -769,13 +770,14 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans)
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, BlendMode blendMode = kBlend_Normal)
 {
     SpriteListEntry sprite;
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
     sprite.transparent = trans;
+    sprite.blendMode = blendMode;
     thingsToDrawList.push_back(sprite);
 }
 
@@ -791,7 +793,8 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind)
+void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind,
+    BlendMode blendMode = kBlend_Normal)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
@@ -805,6 +808,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     sprite.x = xx;
     sprite.y = yy;
     sprite.transparent = trans;
+    sprite.blendMode = blendMode;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
@@ -1565,7 +1569,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false, objs[aa].blend_mode);
     }
 }
 
@@ -1877,7 +1881,7 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, false);
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, false, charextra[chin->index_id].blend_mode);
     }
 }
 
@@ -2030,12 +2034,12 @@ void draw_gui_and_overlays()
     // draw overlays, except text boxes and portraits
     for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
-        if (over.type == OVER_COMPLETE)
-            add_thing_to_draw(over.bmp, over.x, over.y, 0);
-        else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
+        if (over.type == OVER_COMPLETE) {
+            add_thing_to_draw(over.bmp, over.x, over.y, 0, over.blendMode);
+        } else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, 0);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.blendMode);
         }
     }
 
@@ -2096,7 +2100,7 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency);
+            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].BlendMode);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
@@ -2142,7 +2146,7 @@ void put_sprite_list_on_screen(bool in_room)
             {
                 thisThing->bmp->SetTransparency(thisThing->transparent);
             }
-
+            thisThing->bmp->SetBlendMode(thisThing->blendMode);
             gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
         }
         else if (thisThing->renderStage >= 0)

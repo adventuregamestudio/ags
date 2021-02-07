@@ -414,6 +414,17 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
     return 0;
 }
 
+int Object_GetBlendMode(ScriptObject *objj) {
+    return objs[objj->id].blend_mode;
+}
+
+void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
+    if ((blendMode < 0) || (blendMode >= kNumBlendModes))
+        quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
+    objs[objj->id].blend_mode = (BlendMode)blendMode;
+}
+
+
 void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     if (!is_valid_object(objj))
@@ -932,6 +943,17 @@ RuntimeScriptValue Sc_Object_SetY(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetY);
 }
 
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlendMode);
+}
+
+// void (ScriptObject *objj, int blendMode)
+RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
+}
 
 
 void RegisterObjectAPI()
@@ -1006,6 +1028,9 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::get_TintRed",              Sc_Object_GetTintRed);
     ccAddExternalObjectFunction("Object::get_TintSaturation",       Sc_Object_GetTintSaturation);
     ccAddExternalObjectFunction("Object::get_TintLuminance",        Sc_Object_GetTintLuminance);
+
+    ccAddExternalObjectFunction("Object::get_BlendMode",            Sc_Object_GetBlendMode);
+    ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

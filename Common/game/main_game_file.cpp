@@ -501,12 +501,33 @@ static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const S
     if (ext_id.CompareNoCase("ext_ags399") == 0)
     {
         // adjustable font outlines
-        for (int i = 0; i < ents.Game.numfonts; ++i)
+        for (size_t i = 0; i < (size_t)ents.Game.numfonts; ++i)
         {
             ents.Game.fonts[i].AutoOutlineThickness = in->ReadInt32();
             ents.Game.fonts[i].AutoOutlineStyle =
                 static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
         }
+
+        // new character properties
+        for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
+        {
+            ents.CharEx[i].BlendMode = (BlendMode)in->ReadInt32();
+            // Reserved for colour options
+            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            // Reserved for transform options (see brief list in savegame format)
+            in->Seek(sizeof(int32_t) * 11);
+        }
+
+        // new gui properties
+        for (size_t i = 0; i < guis.size(); ++i)
+        {
+            guis[i].BlendMode = (BlendMode)in->ReadInt32();
+            // Reserved for colour options
+            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            // Reserved for transform options (see list in savegame format)
+            in->Seek(sizeof(int32_t) * 11);
+        }
+
         return HGameFileError::None();
     }
     return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
@@ -581,6 +602,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     if (data_ver <= kGameVersion_350)
         return HGameFileError::None();
 
+    ents.CharEx.resize(game.numcharacters);
     //-------------------------------------------------------------------------
     // All the extended data, for AGS > 3.5.0.
     //-------------------------------------------------------------------------

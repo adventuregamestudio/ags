@@ -22,7 +22,7 @@
 #include "main/update.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 extern ViewStruct*views;
 extern GameState play;
@@ -46,6 +46,7 @@ RoomObject::RoomObject()
     on = 0;
     flags = 0;
     blocking_width = blocking_height = 0;
+    blend_mode = kBlend_Normal;
 }
 
 int RoomObject::get_width() {
@@ -149,12 +150,34 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(Stream *in)
+void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     in->ReadArrayOfInt32(&x, 3);
     in->ReadArrayOfInt16(&tint_r, 15);
     in->ReadArrayOfInt8((int8_t*)&cycling, 4);
     in->ReadArrayOfInt16(&blocking_width, 2);
+    if (cmp_ver >= 10)
+    {
+        blend_mode = (BlendMode)in->ReadInt32();
+        // Reserved for colour options
+        in->ReadInt32(); // colour flags
+        // Reserved for transform options
+        in->ReadInt32(); // sprite transform flags1
+        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
+    }
+    else
+    {
+        blend_mode = kBlend_Normal;
+    }
 }
 
 void RoomObject::WriteToFile(Stream *out) const
@@ -163,4 +186,20 @@ void RoomObject::WriteToFile(Stream *out) const
     out->WriteArrayOfInt16(&tint_r, 15);
     out->WriteArrayOfInt8((int8_t*)&cycling, 4);
     out->WriteArrayOfInt16(&blocking_width, 2);
+    // since version 10
+    out->WriteInt32(blend_mode);
+    // Reserved for colour options
+    out->WriteInt32(0); // colour flags
+    // Reserved for transform options
+    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
 }

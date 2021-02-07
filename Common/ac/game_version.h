@@ -103,6 +103,7 @@ Option to allow legacy relative asset resolutions.
 
 60 :
 Fonts have adjustable outline
+BlendModes
 
 */
 

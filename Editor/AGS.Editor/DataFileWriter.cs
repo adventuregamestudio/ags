@@ -1528,7 +1528,7 @@ namespace AGS.Editor
                 writer.Write(character.IdleView - 1);                  // idleview
                 writer.Write((short)0);                                // idletime
                 writer.Write((short)0);                                // idleleft
-                writer.Write((short)0);                                // transparency
+                writer.Write((short)character.Transparency);           // transparency
                 writer.Write((short)0);                                // baseline
                 writer.Write(0);                                       // activeinv
                 writer.Write(character.SpeechColor);                   // talkcolor

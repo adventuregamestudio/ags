@@ -140,6 +140,14 @@ namespace AGS.Types
             set;
         }
 
+        [Description("This character's transparency")]
+        [Category("Appearance")]
+        public int Transparency
+        {
+            get;
+            set;
+        }
+
         [Description("Room number that the character starts in")]
         [Category("Design")]
         [TypeConverter(typeof(RoomListTypeConverter))]

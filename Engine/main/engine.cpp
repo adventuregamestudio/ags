@@ -953,7 +953,6 @@ void engine_init_game_settings()
         game.chars[ee].followinfo=97 | (10 << 8);
         game.chars[ee].idletime=20;  // can be overridden later with SetIdle or summink
         game.chars[ee].idleleft=game.chars[ee].idletime;
-        game.chars[ee].transparency = 0;
         game.chars[ee].baseline = -1;
         game.chars[ee].walkwaitcounter = 0;
         game.chars[ee].z = 0;

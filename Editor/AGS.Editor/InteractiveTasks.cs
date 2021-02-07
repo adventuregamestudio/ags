@@ -84,7 +84,8 @@ namespace AGS.Editor
 					Factory.GUIController.ShowMessage("This game was last saved with " +
                         ((game.SavedXmlEditorVersion == null) ? "an older version" : ("version " + game.SavedXmlEditorVersion))
                         + " of AGS. If you save it now, the game will be upgraded and previous versions of AGS will be unable to open it.", MessageBoxIcon.Information);
-				}
+                    game.WorkspaceState.RequiresRebuild = true;
+                }
 
 				return success;
             }

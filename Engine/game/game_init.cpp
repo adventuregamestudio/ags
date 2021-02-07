@@ -147,7 +147,7 @@ void InitAndRegisterAudioObjects()
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters()
+void InitAndRegisterCharacters(const LoadedGameEntities &ents)
 {
     characterScriptObjNames.resize(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
@@ -170,6 +170,15 @@ void InitAndRegisterCharacters()
         // export the character's script object
         characterScriptObjNames[i] = game.chars[i].scrname;
         ccAddExternalDynamicObject(characterScriptObjNames[i], &game.chars[i], &ccDynamicCharacter);
+    }
+
+    // extra character properties (because the characters are split into 2 structs now)
+    if (ents.CharEx.size() > 0)
+    {
+        for (int i = 0; i < game.numcharacters; ++i)
+        {
+            charextra[i].blend_mode = ents.CharEx[i].BlendMode;
+        }
     }
 }
 
@@ -307,10 +316,10 @@ void RegisterStaticArrays()
 }
 
 // Initializes various game entities and registers them in the script system
-HError InitAndRegisterGameEntities()
+HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 {
     InitAndRegisterAudioObjects();
-    InitAndRegisterCharacters();
+    InitAndRegisterCharacters(ents);
     InitAndRegisterDialogs();
     InitAndRegisterDialogOptions();
     HError err = InitAndRegisterGUI();
@@ -405,7 +414,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     play.charProps.resize(game.numcharacters);
-    HError err = InitAndRegisterGameEntities();
+    HError err = InitAndRegisterGameEntities(ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(data_ver);

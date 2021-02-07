@@ -17,7 +17,7 @@
 
 using namespace AGS::Common;
 
-void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
+void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -44,7 +44,7 @@ void CharacterExtras::ReadFromFile(Stream *in, int32_t cmp_ver)
     }
 }
 
-void CharacterExtras::WriteToFile(Stream *out)
+void CharacterExtras::WriteToSavegame(Stream *out) const
 {
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);

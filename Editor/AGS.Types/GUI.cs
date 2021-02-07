@@ -82,6 +82,16 @@ namespace AGS.Types
             set { _bgimage = value; }
         }
 
+        [Description("The blend mode for the GUI")]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        [DefaultValue(BlendMode.Normal)]
+        public BlendMode BlendMode
+        {
+            get;
+            set;
+        }
+
         [Description("The ID number of the GUI")]
         [Category("Design")]
         [ReadOnly(true)]

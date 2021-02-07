@@ -450,7 +450,7 @@ HSaveError WriteCharacters(PStream out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToFile(out.get());
-        charextra[i].WriteToFile(out.get());
+        charextra[i].WriteToSavegame(out.get());
         Properties::WriteValues(play.charProps[i], out.get());
         // character movement path cache
         mls[CHMLSOFFS + i].WriteToFile(out.get());
@@ -466,7 +466,7 @@ HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].ReadFromFile(in.get());
-        charextra[i].ReadFromFile(in.get(), cmp_ver);
+        charextra[i].ReadFromSavegame(in.get(), cmp_ver);
         Properties::ReadValues(play.charProps[i], in.get());
         // character movement path cache
         err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);

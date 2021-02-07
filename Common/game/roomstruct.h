@@ -40,6 +40,7 @@
 #include <memory>
 #include "ac/common_defines.h"
 #include "game/interactions.h"
+#include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
@@ -171,6 +172,7 @@ struct RoomObjectInfo
     int32_t         X;
     int32_t         Y;
     int32_t         Sprite;
+    Common::BlendMode BlendMode;
     bool            IsOn;
     // Object's z-order in the room, or -1 (use Y)
     int32_t         Baseline;

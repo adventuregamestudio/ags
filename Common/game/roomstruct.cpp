@@ -61,6 +61,7 @@ RoomObjectInfo::RoomObjectInfo()
     , IsOn(false)
     , Baseline(0xFF)
     , Flags(0)
+    , BlendMode(kBlend_Normal)
 {
 }
 

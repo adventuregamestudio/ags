@@ -46,6 +46,7 @@
 31:  v3.4.1.5 - removed room object and hotspot name length limits
 32:  v3.5.0 - 64-bit file offsets
 33:  v3.5.0.8 - deprecated room resolution, added mask resolution
+40:  v3.9.9 - room object blend modes
 */
 enum RoomFileVersion
 {
@@ -80,7 +81,8 @@ enum RoomFileVersion
     kRoomVersion_3415 = 31,
     kRoomVersion_350 = 32,
     kRoomVersion_3508 = 33,
-    kRoomVersion_Current = kRoomVersion_3508
+    kRoomVersion_399 = 40,
+    kRoomVersion_Current = kRoomVersion_399
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

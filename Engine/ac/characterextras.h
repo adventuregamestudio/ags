@@ -47,8 +47,8 @@ struct CharacterExtras {
     short animwait;
     Common::BlendMode blend_mode;
 
-    void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

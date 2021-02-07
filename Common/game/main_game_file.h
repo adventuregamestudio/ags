@@ -26,6 +26,7 @@
 #include <vector>
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
+#include "gfx/gfx_def.h"
 #include "script/cc_script.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -98,6 +99,15 @@ struct MainGameSource
     MainGameSource();
 };
 
+// Struct contains an extended data loaded for chars.
+// At the runtime it goes into CharacterExtras struct, which is currently
+// not exposed. This may be fixed by future refactoring, such as merging
+// CharacterExtras with CharacterInfo structs.
+struct CharDataEx
+{
+    Common::BlendMode BlendMode = kBlend_Normal;
+};
+
 // LoadedGameEntities is meant for keeping objects loaded from the game file.
 // Because copying/assignment methods are not properly implemented for some
 // of these objects yet, they have to be attached using references to be read
@@ -106,6 +116,7 @@ struct MainGameSource
 struct LoadedGameEntities
 {
     GameSetupStruct        &Game;
+    std::vector<CharDataEx> CharEx;
     DialogTopic           *&Dialogs;
     ViewStruct            *&Views;
     PScript                 GlobalScript;

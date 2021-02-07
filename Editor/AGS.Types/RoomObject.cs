@@ -61,6 +61,16 @@ namespace AGS.Types
             set { _image = Math.Max(value, 0); }  // ignore negative values
         }
 
+        [Description("The blend mode for the object")]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        [DefaultValue(BlendMode.Normal)]
+        public BlendMode BlendMode
+        {
+            get;
+            set;
+        }
+
         [Description("Is the object initially visible?")]
         [Category("Design")]
         public bool Visible

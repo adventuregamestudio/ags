@@ -3410,6 +3410,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		RoomObject ^obj = gcnew RoomObject(room);
 		obj->ID = i;
 		obj->Image = thisroom.Objects[i].Sprite;
+        obj->BlendMode = (BlendMode)thisroom.Objects[i].BlendMode;
 		obj->StartX = thisroom.Objects[i].X;
 		obj->StartY = thisroom.Objects[i].Y;
 		obj->Visible = (thisroom.Objects[i].IsOn != 0);
@@ -3549,6 +3550,7 @@ void save_crm_file(Room ^room)
 		thisroom.Objects[i].ScriptName = ConvertStringToNativeString(obj->Name);
 
 		thisroom.Objects[i].Sprite = obj->Image;
+        thisroom.Objects[i].BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
 		thisroom.Objects[i].X = obj->StartX;
 		thisroom.Objects[i].Y = obj->StartY;
 		thisroom.Objects[i].IsOn = obj->Visible;

@@ -524,8 +524,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].blocking_width = 0;
             croom->obj[cc].blocking_height = 0;
             if (thisroom.Objects[cc].Baseline>=0)
-                //        croom->obj[cc].baseoffs=thisroom.Objects.Baseline[cc]-thisroom.Objects[cc].y;
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
+            croom->obj[cc].blend_mode = thisroom.Objects[cc].BlendMode;
         }
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;

@@ -446,6 +446,10 @@ HRoomFileError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver
     for (size_t i = 0; i < room->ObjectCount; ++i)
     {
         room->Objects[i].BlendMode = (BlendMode)in->ReadInt32();
+        // Reserved for colour options
+        in->Seek(sizeof(int32_t) * 4); // flags, transparency, tint rbgs, light level
+        // Reserved for transform options (see list in savegame format)
+        in->Seek(sizeof(int32_t) * 11);
     }
 
     return HRoomFileError::None();
@@ -849,6 +853,10 @@ void WriteExt399(const RoomStruct *room, Stream *out)
     for (size_t i = 0; i < room->ObjectCount; i++)
     {
         out->WriteInt32(room->Objects[i].BlendMode);
+        // Reserved for colour options
+        out->WriteByteCount(0, sizeof(int32_t) * 4); // flags, transparency, tint rgbs, light level
+        // Reserved for transform options (see list in savegame format)
+        out->WriteByteCount(0, sizeof(int32_t) * 11);
     }
 }
 

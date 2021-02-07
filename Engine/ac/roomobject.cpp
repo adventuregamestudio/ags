@@ -159,6 +159,20 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
     if (cmp_ver >= 10)
     {
         blend_mode = (BlendMode)in->ReadInt32();
+        // Reserved for colour options
+        in->ReadInt32(); // colour flags
+        // Reserved for transform options
+        in->ReadInt32(); // sprite transform flags1
+        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
     }
     else
     {
@@ -174,4 +188,18 @@ void RoomObject::WriteToFile(Stream *out) const
     out->WriteArrayOfInt16(&blocking_width, 2);
     // since version 10
     out->WriteInt32(blend_mode);
+    // Reserved for colour options
+    out->WriteInt32(0); // colour flags
+    // Reserved for transform options
+    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
 }

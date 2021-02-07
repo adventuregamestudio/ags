@@ -512,12 +512,20 @@ static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const S
         for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
         {
             ents.CharEx[i].BlendMode = (BlendMode)in->ReadInt32();
+            // Reserved for colour options
+            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            // Reserved for transform options (see brief list in savegame format)
+            in->Seek(sizeof(int32_t) * 11);
         }
 
         // new gui properties
         for (size_t i = 0; i < guis.size(); ++i)
         {
             guis[i].BlendMode = (BlendMode)in->ReadInt32();
+            // Reserved for colour options
+            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            // Reserved for transform options (see list in savegame format)
+            in->Seek(sizeof(int32_t) * 11);
         }
 
         return HGameFileError::None();

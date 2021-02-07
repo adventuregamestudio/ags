@@ -634,6 +634,23 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     if (svg_version >= kGuiSvgVersion_399)
     {
         BlendMode = (Common::BlendMode)in->ReadInt32();
+
+        // Reserved for colour options
+        in->ReadInt32(); // colour flags
+        in->ReadInt32(); // tint rgb + s
+        in->ReadInt32(); // tint light (or light level)
+        // Reserved for transform options
+        in->ReadInt32(); // sprite transform flags1
+        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32(); // transform scale x
+        in->ReadInt32(); // transform scale y
+        in->ReadInt32(); // transform skew x
+        in->ReadInt32(); // transform skew y
+        in->ReadInt32(); // transform rotate
+        in->ReadInt32(); // sprite pivot x
+        in->ReadInt32(); // sprite pivot y
+        in->ReadInt32(); // sprite anchor x
+        in->ReadInt32(); // sprite anchor y
     }
 }
 
@@ -661,6 +678,22 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(MouseWasAt.Y);
     // since version 10 (kGuiSvgVersion_399)
     out->WriteInt32(BlendMode);
+    // Reserved for colour options
+    out->WriteInt32(0); // colour flags
+    out->WriteInt32(0); // tint rgb + s
+    out->WriteInt32(0); // tint light (or light level)
+    // Reserved for transform options
+    out->WriteInt32(0); // sprite transform flags1
+    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0); // transform scale x
+    out->WriteInt32(0); // transform scale y
+    out->WriteInt32(0); // transform skew x
+    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0); // transform rotate
+    out->WriteInt32(0); // sprite pivot x
+    out->WriteInt32(0); // sprite pivot y
+    out->WriteInt32(0); // sprite anchor x
+    out->WriteInt32(0); // sprite anchor y
 }
 
 

@@ -123,6 +123,9 @@ namespace AGS.Editor
         /// <returns>A new bitmap with the area filled.</returns>
         public static void FillIndexedArea(this Bitmap bmp, int color, Point position, double scale)
         {
+            if (!bmp.IsIndexed())
+                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
+
             Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
             byte[] rawData = bmp.GetRawData(bmp.PixelFormat);
             FloodFillImage(rawData, positionScaled, bmp.Size, rawData[(positionScaled.Y * bmp.Width) + positionScaled.X], (byte)color);

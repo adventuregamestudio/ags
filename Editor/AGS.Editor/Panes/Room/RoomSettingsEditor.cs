@@ -370,15 +370,13 @@ namespace AGS.Editor
 
                 // Adjust co-ordinates using original scale factor so that it lines
                 // up with objects, etc
-                int drawOffsX = _state.RoomXToWindow(0);
-                int drawOffsY = _state.RoomYToWindow(0);
+                Point drawOffs = new Point(_state.RoomXToWindow(0), _state.RoomYToWindow(0));
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
                 lock (_room)
                 {
                     _roomController.DrawRoomBackground(
                         e.Graphics,
-                        drawOffsX,
-                        drawOffsY,
+                        drawOffs,
                         backgroundNumber,
                         _state.Scale,
                         maskFilter?.MaskToDraw ?? RoomAreaMaskType.None,

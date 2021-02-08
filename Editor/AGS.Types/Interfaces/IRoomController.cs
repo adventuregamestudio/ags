@@ -79,7 +79,7 @@ namespace AGS.Types
         /// Draws the room background to the specified graphics context,
         /// and overlays one of the room masks onto it.
         /// </summary>
-        void DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
+        void DrawRoomBackground(Graphics g, Point point, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
         /// <summary>
         /// Scales all the room's masks according to the <see cref="Room.MaskResolution"/>,
         /// execept for the <see cref="RoomAreaMaskType.WalkBehinds"/> which retains the

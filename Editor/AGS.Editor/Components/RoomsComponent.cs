@@ -1639,15 +1639,15 @@ namespace AGS.Editor.Components
 
         void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
 		{
-			((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, (double)scaleFactor, RoomAreaMaskType.None, 0, 0);
+			((IRoomController)this).DrawRoomBackground(g, new Point(x, y), backgroundNumber, (double)scaleFactor, RoomAreaMaskType.None, 0, 0);
 		}
 
 		void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
 		{
-            ((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, (double)scaleFactor, maskType, maskTransparency, selectedArea);
+            ((IRoomController)this).DrawRoomBackground(g, new Point(x, y), backgroundNumber, (double)scaleFactor, maskType, maskTransparency, selectedArea);
         }
 
-        void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
+        void IRoomController.DrawRoomBackground(Graphics g, Point point, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
         {
             if (_loadedRoom == null)
             {
@@ -1662,7 +1662,7 @@ namespace AGS.Editor.Components
 
             // x and y is already scaled from outside the method call
             Rectangle drawingArea = new Rectangle(
-                x, y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+                point.X, point.Y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
 
             g.DrawImage(background, drawingArea);
 

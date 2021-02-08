@@ -105,10 +105,10 @@ namespace AGS.Editor
 
             byte[] rawImage = bmp.GetRawData();
             byte colorAsByte = (byte)color;
+            IEnumerable<Point> pixels = CalculatRecanglePixels(originScaled, sizeScaled);
 
-            for (int y = originScaled.Y; y < originScaled.Y + sizeScaled.Height; y++)
-                for (int x = originScaled.X; x < originScaled.X + sizeScaled.Width; x++)
-                    rawImage[(paddedWidth * y) + x] = colorAsByte;
+            foreach (int i in pixels.Where(p => bmp.Intersects(p)).Select(p => (paddedWidth * p.Y) + p.X))
+                rawImage[i] = colorAsByte;
 
             bmp.SetRawData(rawImage);
         }
@@ -271,6 +271,13 @@ namespace AGS.Editor
                 else
                     difference += 2 * delta.X;
             }
+        }
+
+        private static IEnumerable<Point> CalculatRecanglePixels(Point origin, Size size)
+        {
+            for (int y = origin.Y; y < origin.Y + size.Height; y++)
+                for (int x = origin.X; x < origin.X + size.Width; x++)
+                    yield return new Point(x, y);
         }
 
         /// <summary>

@@ -66,6 +66,8 @@ namespace AGS.Editor
 
         private string _timerScriptName;
         private string _timerSearchForText;
+        // Custom color table for the ColorDialog
+        private int[] _customColors = null;
 
         private GUIController()
         {
@@ -835,6 +837,7 @@ namespace AGS.Editor
                 ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
                 RoomMessagesUIEditor.ShowRoomMessagesEditor = new RoomMessagesUIEditor.RoomMessagesEditorType(ShowRoomMessageEditorFromPropertyGrid);
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
+                ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
             }
         }
 
@@ -1364,6 +1367,18 @@ namespace AGS.Editor
         private Size ShowCustomResolutionChooserFromPropertyGrid(Size currentSize)
         {
             return CustomResolutionDialog.Show(currentSize);
+        }
+
+        private Color ShowColorDialog(Color color)
+        {
+            ColorDialog dialog = new ColorDialog();
+            dialog.Color = color;
+            dialog.FullOpen = true;
+            dialog.SolidColorOnly = true;
+            dialog.CustomColors = _customColors;
+            dialog.ShowDialog();
+            _customColors = (int[])dialog.CustomColors.Clone();
+            return dialog.Color;
         }
 
         private void ShowPropertiesEditorFromPropertyGrid(CustomProperties props, object objectThatHasProperties)

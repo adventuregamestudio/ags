@@ -813,7 +813,7 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
-            _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+            _loadedRoom.Modified |= ApplyDefaultMaskResolution();
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -868,18 +868,17 @@ namespace AGS.Editor.Components
             return scriptModified;
         }
 
-        private bool ApplyDefaultMaskResolution(Room room)
+        private bool ApplyDefaultMaskResolution()
         {
             // TODO: currently the only way to know if the room was not affected by
             // game's settings is to test whether it has game's ID. Investigate for
             // a better way later?
-            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
             {
                 int mask = _agsEditor.CurrentGame.Settings.DefaultRoomMaskResolution;
-                if (mask != room.MaskResolution)
+                if (mask != _loadedRoom.MaskResolution)
                 {
-                    room.MaskResolution = mask;
-                    ((IRoomController)this).AdjustMaskResolution();
+                    ((IRoomController)this).AdjustMaskResolution(mask);
                     return true;
                 }
             }
@@ -1131,7 +1130,7 @@ namespace AGS.Editor.Components
                 if (Factory.GUIController.ShowQuestion("The new mask resolution is smaller and this will reduce mask's precision and some pixels may be lost in the process. Do you want to proceed?") != DialogResult.Yes)
                     return;
             }
-            ((IRoomController)this).AdjustMaskResolution();
+            ((IRoomController)this).AdjustMaskResolution(newValue);
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -1705,13 +1704,14 @@ namespace AGS.Editor.Components
             }
         }
 
-        void IRoomController.AdjustMaskResolution()
+        void IRoomController.AdjustMaskResolution(int maskResolution)
         {
             if (_loadedRoom == null)
             {
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
+            _loadedRoom.MaskResolution = maskResolution;
             Bitmap bg = _backgroundCache[0];
             int baseWidth = bg.Width;
             int baseHeight = bg.Height;

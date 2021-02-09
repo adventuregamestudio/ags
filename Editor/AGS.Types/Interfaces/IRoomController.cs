@@ -81,12 +81,13 @@ namespace AGS.Types
         /// </summary>
         void DrawRoomBackground(Graphics g, Point point, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea);
         /// <summary>
-        /// Scales all the room's masks according to the <see cref="Room.MaskResolution"/>,
-        /// execept for the <see cref="RoomAreaMaskType.WalkBehinds"/> which retains the
+        /// Sets the mask resolution and scales all the room's masks according to the
+        /// <see cref="Room.MaskResolution"/>, execept for the
+        /// <see cref="RoomAreaMaskType.WalkBehinds"/> which retains the
         /// resolution of the background image. If the <see cref="Room.MaskResolution"/>
         /// has a resolution of 2 it will halve the masks in both dimensions.
         /// </summary>
-        void AdjustMaskResolution();
+        void AdjustMaskResolution(int maskResolution);
         /// <summary>
         /// Sets whether or not to grey out non-selected masks when drawing the background.
         /// </summary>

@@ -96,7 +96,7 @@ namespace AGS.Editor
             if (!bmp.IsIndexed())
                 throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
 
-            Point origin = new Point(p1.X < p2.X ? p1.X : p2.X, p1.Y < p2.Y ? p1.Y : p2.Y);
+            Point origin = new Point(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y));
             Point originScaled = new Point((int)(origin.X * scale), (int)(origin.Y * scale));
 
             Size size = new Size(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
@@ -278,8 +278,8 @@ namespace AGS.Editor
 
         private static IEnumerable<Point> CalculatRecanglePixels(Point origin, Size size)
         {
-            for (int y = origin.Y; y < origin.Y + size.Height; y++)
-                for (int x = origin.X; x < origin.X + size.Width; x++)
+            for (int y = origin.Y; y <= origin.Y + size.Height; y++)
+                for (int x = origin.X; x <= origin.X + size.Width; x++)
                     yield return new Point(x, y);
         }
 

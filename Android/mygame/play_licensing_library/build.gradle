@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    jcenter()
+}
+
+android {
+    useLibrary 'org.apache.http.legacy'
+    compileSdkVersion = 28
+    buildToolsVersion = '28.0.3'
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 28
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: '*.jar')
+}

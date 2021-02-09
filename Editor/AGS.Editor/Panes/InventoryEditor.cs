@@ -172,14 +172,10 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("inventory-editor/background");
-            ForeColor = t.GetColor("inventory-editor/foreground");
-            currentItemGroupBox.BackColor = t.GetColor("inventory-editor/current-item-box/background");
-            currentItemGroupBox.ForeColor = t.GetColor("inventory-editor/current-item-box/foreground");
-            groupBox1.BackColor = t.GetColor("inventory-editor/left-box/background");
-            groupBox1.ForeColor= t.GetColor("inventory-editor/left-box/foreground");
-            groupBox2.BackColor = t.GetColor("inventory-editor/right-box/background");
-            groupBox2.ForeColor = t.GetColor("inventory-editor/right-box/foreground");
+            t.ControlHelper(this, "inventory-editor");
+            t.GroupBoxHelper(currentItemGroupBox, "inventory-editor/current-item-box");
+            t.GroupBoxHelper(groupBox1, "inventory-editor/left-box");
+            t.GroupBoxHelper(groupBox2, "inventory-editor/right-box");
         }
 
         private void zoomSlider_ValueChanged(object sender, EventArgs e)

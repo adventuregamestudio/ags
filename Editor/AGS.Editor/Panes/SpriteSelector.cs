@@ -1562,13 +1562,13 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("sprite-selector/background");
-            ForeColor = t.GetColor("sprite-selector/foreground");
-            spriteList.BackColor = t.GetColor("sprite-selector/list/background");
-            spriteList.ForeColor = t.GetColor("sprite-selector/list/foreground");
-            folderList.BackColor = t.GetColor("sprite-selector/tree/background");
-            folderList.ForeColor = t.GetColor("sprite-selector/tree/foreground");
-            folderList.LineColor = t.GetColor("sprite-selector/tree/line");
+            t.ControlHelper(this, "sprite-selector");
+
+            t.SetColor("sprite-selector/list/background", c => spriteList.BackColor = c);
+            t.SetColor("sprite-selector/list/foreground", c => spriteList.ForeColor = c);
+            t.SetColor("sprite-selector/tree/background", c => folderList.BackColor = c);
+            t.SetColor("sprite-selector/tree/foreground", c => folderList.ForeColor = c);
+            t.SetColor("sprite-selector/tree/line", c => folderList.LineColor = c);
         }
 
         private void sliderPreviewSize_ValueChanged(object sender, EventArgs e)

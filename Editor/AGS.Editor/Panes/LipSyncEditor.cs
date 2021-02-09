@@ -90,8 +90,7 @@ namespace AGS.Editor
 
         public void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("lip-sync-editor/background");
-            ForeColor = t.GetColor("lip-sync-editor/foreground");
+            t.ControlHelper(this, "lip-sync-editor");
 
             foreach (Control control in Controls)
             {
@@ -99,9 +98,7 @@ namespace AGS.Editor
 
                 if (textBox != null)
                 {
-                    textBox.BackColor = t.GetColor("lip-sync-editor/text-boxes/background");
-                    textBox.ForeColor = t.GetColor("lip-sync-editor/text-boxes/foreground");
-                    textBox.BorderStyle = (BorderStyle)t.GetInt("lip-sync-editor/text-boxes/border-style");
+                    t.TextBoxHelper(textBox, "lip-sync-editor/text-boxes");
                 }
             }
         }

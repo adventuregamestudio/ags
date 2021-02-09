@@ -1227,8 +1227,7 @@ namespace AGS.Editor
 		
 	private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("gui-editor/background");
-            ForeColor = t.GetColor("gui-editor/foreground");
+            t.ControlHelper(this, "gui-editor");
         }
         private void sldZoomLevel_Scroll(object sender, EventArgs e)
         {

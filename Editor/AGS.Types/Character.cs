@@ -245,6 +245,7 @@ namespace AGS.Types
         [DisplayName("SpeechColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color SpeechColorRGB
         {
             get

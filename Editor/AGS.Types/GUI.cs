@@ -61,6 +61,7 @@ namespace AGS.Types
         [DisplayName("BackgroundColour")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color BackgroundColorRGB
         {
             get

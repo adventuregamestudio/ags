@@ -26,6 +26,7 @@ namespace AGS.Types
         [Description("The colour represented by this palette index")]
         [Category("Appearance")]
         [DisplayName(PROPERTY_COLOR_RGB)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color Colour
         {
             get { return _color; }

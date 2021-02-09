@@ -183,6 +183,7 @@ namespace AGS.Types
         [DisplayName("BorderColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color BorderColorRGB
         {
             get

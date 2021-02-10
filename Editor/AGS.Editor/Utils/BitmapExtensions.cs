@@ -56,83 +56,6 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Draws a line on a indexed bitmap.
-        /// </summary>
-        /// <param name="bmp">The indexed bitmap we want to draw on.</param>
-        /// <param name="color">The color index of the line.</param>
-        /// <param name="p1">The starting point for the line.</param>
-        /// <param name="p2">The end point for the line.</param>
-        /// <param name="scale">Adjust coordinates for the input scale.</param>
-        public static void DrawIndexedLine(this Bitmap bmp, int color, Point p0, Point p1, double scale = 1.0)
-        {
-            if (!bmp.IsIndexed())
-                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
-
-            p0 = new Point((int)(p0.X * scale), (int)(p0.Y * scale));
-            p1 = new Point((int)(p1.X * scale), (int)(p1.Y * scale));
-
-            IEnumerable<Point> pixels;
-            if (Math.Abs(p1.Y - p0.Y) < Math.Abs(p1.X - p0.X))
-                pixels = p0.X > p1.X
-                    ? BresenhamsLineLow(p1, p0)
-                    : BresenhamsLineLow(p0, p1);
-            else
-                pixels = p0.Y > p1.Y
-                    ? BresenhamsLineHigh(p1, p0)
-                    : BresenhamsLineHigh(p0, p1);
-
-            byte[] rawImage = bmp.GetRawData();
-            byte colorAsByte = (byte)color;
-            int paddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
-
-            foreach (int i in pixels.Where(p => bmp.Intersects(p)).Select(p => (paddedWidth * p.Y) + p.X))
-                rawImage[i] = colorAsByte;
-
-            bmp.SetRawData(rawImage);
-        }
-
-        public static void FillIndexedRectangle(this Bitmap bmp, int color, Point p1, Point p2, double scale = 1.0)
-        {
-            if (!bmp.IsIndexed())
-                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
-
-            Point origin = new Point(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y));
-            Point originScaled = new Point((int)(origin.X * scale), (int)(origin.Y * scale));
-
-            Size size = new Size(Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
-            Size sizeScaled = new Size((int)(size.Width * scale), (int)(size.Height * scale));
-            int paddedWidth = (int)Math.Floor((bmp.GetColorDepth() * bmp.Width + 31.0) / 32.0) * 4;
-
-            byte[] rawImage = bmp.GetRawData();
-            byte colorAsByte = (byte)color;
-            IEnumerable<Point> pixels = CalculatRecanglePixels(originScaled, sizeScaled);
-
-            foreach (int i in pixels.Where(p => bmp.Intersects(p)).Select(p => (paddedWidth * p.Y) + p.X))
-                rawImage[i] = colorAsByte;
-
-            bmp.SetRawData(rawImage);
-        }
-
-        /// <summary>
-        /// Gives back a deep copy of the bitmap with the area matching the position color, filled to
-        /// mathc the input color, like a paint bucket.
-        /// </summary>
-        /// <param name="bmp">The bitmap to copy and draw on.</param>
-        /// <param name="position">The position we want to fill from.</param>
-        /// <param name="color">The color to use for the filling.</param>
-        /// <returns>A new bitmap with the area filled.</returns>
-        public static void FillIndexedArea(this Bitmap bmp, int color, Point position, double scale)
-        {
-            if (!bmp.IsIndexed())
-                throw new ArgumentException($"{nameof(bmp)} must be a indexed bitmap.");
-
-            Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
-            byte[] rawData = bmp.GetRawData(bmp.PixelFormat);
-            FloodFillImage(rawData, positionScaled, bmp.Size, rawData[(positionScaled.Y * bmp.Width) + positionScaled.X], (byte)color);
-            bmp.SetRawData(rawData, bmp.PixelFormat);
-        }
-
-        /// <summary>
         /// Gets the raw data from the bitmap as a byte array.
         /// </summary>
         /// <param name="bmp">The image to get the raw data from.</param>
@@ -221,6 +144,105 @@ namespace AGS.Editor
         {
             return position.X >= 0 && position.X < bmp.Width && position.Y >= 0 && position.Y < bmp.Height;
         }
+    }
+
+    /// <summary>
+    /// A graphics API similar to <see cref="Graphics"/> that supports indexed images. Drawing operations
+    /// are not written back to the image until Dispose is invoked.
+    /// </summary>
+    public class IndexedGraphics : IDisposable
+    {
+        private readonly Bitmap _bmp;
+        private readonly byte[] _pixels;
+        private readonly int _paddedWidth; // Bitmap data width is rounded up to a multiple of 4
+
+        private IndexedGraphics(Bitmap bmp)
+        {
+            if (bmp == null) throw new ArgumentNullException(nameof(bmp));
+            if (!bmp.IsIndexed()) throw new ArgumentException(
+                $"{nameof(bmp)} must be a indexed bitmap. Use {nameof(Graphics)} instead for non-indexed images.");
+
+            _bmp = bmp;
+            _pixels = _bmp.GetRawData();
+            _paddedWidth = (int)Math.Floor((_bmp.GetColorDepth() * _bmp.Width + 31.0) / 32.0) * 4;
+        }
+
+        public static IndexedGraphics FromBitmap(Bitmap bmp) => new IndexedGraphics(bmp);
+
+        public void Dispose()
+        {
+            _bmp.SetRawData(_pixels);
+        }
+
+        /// <summary>
+        /// Draws a line.
+        /// </summary>
+        /// <param name="color">The color index of the line.</param>
+        /// <param name="p0">The starting point for the line.</param>
+        /// <param name="p1">The end point for the line.</param>
+        /// <param name="scale">Adjust coordinates for the input scale.</param>
+        public void DrawLine(int color, Point p0, Point p1, double scale = 1.0)
+        {
+            p0 = new Point((int)(p0.X * scale), (int)(p0.Y * scale));
+            p1 = new Point((int)(p1.X * scale), (int)(p1.Y * scale));
+
+            IEnumerable<Point> pixels;
+            if (Math.Abs(p1.Y - p0.Y) < Math.Abs(p1.X - p0.X))
+                pixels = p0.X > p1.X
+                    ? BresenhamsLineLow(p1, p0)
+                    : BresenhamsLineLow(p0, p1);
+            else
+                pixels = p0.Y > p1.Y
+                    ? BresenhamsLineHigh(p1, p0)
+                    : BresenhamsLineHigh(p0, p1);
+
+            byte colorAsByte = (byte)color;
+
+            foreach (int i in pixels.Where(p => _bmp.Intersects(p)).Select(p => (_paddedWidth * p.Y) + p.X))
+                _pixels[i] = colorAsByte;
+        }
+
+        /// <summary>
+        /// Draws a rectangle.
+        /// </summary>
+        /// <param name="color">The color index of the line.</param>
+        /// <param name="p0">The starting point for the line.</param>
+        /// <param name="p1">The end point for the line.</param>
+        /// <param name="scale">Adjust coordinates for the input scale.</param>
+        public void FillRectangle(int color, Point p0, Point p1, double scale = 1.0)
+        {
+            Point origin = new Point(Math.Min(p0.X, p1.X), Math.Min(p0.Y, p1.Y));
+            Point originScaled = new Point((int)(origin.X * scale), (int)(origin.Y * scale));
+
+            Size size = new Size(Math.Abs(p0.X - p1.X), Math.Abs(p0.Y - p1.Y));
+            Size sizeScaled = new Size((int)(size.Width * scale), (int)(size.Height * scale));
+
+            byte colorAsByte = (byte)color;
+            IEnumerable<Point> pixels = CalculatRecanglePixels(originScaled, sizeScaled);
+
+            foreach (int i in pixels.Where(p => _bmp.Intersects(p)).Select(p => (_paddedWidth * p.Y) + p.X))
+                _pixels[i] = colorAsByte;
+        }
+
+        /// <summary>
+        /// Fills the area with the target color
+        /// </summary>
+        /// <param name="color">The color to use for the filling.</param>
+        /// <param name="position">The position we want to fill from.</param>
+        /// <param name="scale">Adjust coordinates for the input scale.</param>
+        /// <returns>A new bitmap with the area filled.</returns>
+        public void FillArea(int color, Point position, double scale)
+        {
+            Point positionScaled = new Point((int)(position.X * scale), (int)(position.Y * scale));
+            FloodFillImage(_pixels, positionScaled, _bmp.Size, _pixels[(positionScaled.Y * _bmp.Width) + positionScaled.X], (byte)color);
+        }
+
+        private static IEnumerable<Point> CalculatRecanglePixels(Point origin, Size size)
+        {
+            for (int y = origin.Y; y <= origin.Y + size.Height; y++)
+                for (int x = origin.X; x <= origin.X + size.Width; x++)
+                    yield return new Point(x, y);
+        }
 
         private static IEnumerable<Point> BresenhamsLineLow(Point p0, Point p1)
         {
@@ -274,13 +296,6 @@ namespace AGS.Editor
                 else
                     difference += 2 * delta.X;
             }
-        }
-
-        private static IEnumerable<Point> CalculatRecanglePixels(Point origin, Size size)
-        {
-            for (int y = origin.Y; y <= origin.Y + size.Height; y++)
-                for (int x = origin.X; x <= origin.X + size.Width; x++)
-                    yield return new Point(x, y);
         }
 
         /// <summary>

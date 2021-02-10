@@ -689,7 +689,8 @@ namespace AGS.Editor
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
             {
-                mask.DrawIndexedLine(_drawingWithArea, start, finish, scale);
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.DrawLine(_drawingWithArea, start, finish, scale);
                 _roomController.SetMask(MaskToDraw, mask);
             }
         }
@@ -702,7 +703,8 @@ namespace AGS.Editor
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
             {
-                mask.FillIndexedRectangle(_drawingWithArea, p1, p2, scale);
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.FillRectangle(_drawingWithArea, p1, p2, scale);
                 _roomController.SetMask(MaskToDraw, mask);
             }
         }
@@ -715,7 +717,8 @@ namespace AGS.Editor
 
             using (Bitmap mask = _roomController.GetMask(MaskToDraw))
             {
-                mask.FillIndexedArea(_drawingWithArea, point, scale);
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.FillArea(_drawingWithArea, point, scale);
                 _roomController.SetMask(MaskToDraw, mask);
             }
         }

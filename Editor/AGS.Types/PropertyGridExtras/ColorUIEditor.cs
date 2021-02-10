@@ -24,5 +24,19 @@ namespace AGS.Types
             }
             return color;
         }
+
+        public override bool GetPaintValueSupported(ITypeDescriptorContext context)
+        {
+            return true;
+        }
+
+        public override void PaintValue(PaintValueEventArgs e)
+        {
+            Color color = (Color)e.Value;
+            using (SolidBrush brush = new SolidBrush(color))
+            {
+                e.Graphics.FillRectangle(brush, e.Bounds);
+            }
+        }
     }
 }

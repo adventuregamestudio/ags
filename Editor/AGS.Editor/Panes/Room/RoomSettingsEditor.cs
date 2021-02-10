@@ -955,8 +955,8 @@ namespace AGS.Editor
 
             // Update offset
             Point newOffset = RoomEditorState.RecalcOffset(bufferedPanel1.ClientSize, oldOffset, oldScale, newScale, anchor);
-            newOffset.X = Math.Min(bufferedPanel1.AutoScrollMinSize.Width, newOffset.X);
-            newOffset.Y = Math.Min(bufferedPanel1.AutoScrollMinSize.Height, newOffset.Y);
+            newOffset.X = Math.Min(bufferedPanel1.AutoScrollMinSize.Width - 1, newOffset.X);
+            newOffset.Y = Math.Min(bufferedPanel1.AutoScrollMinSize.Height - 1, newOffset.Y);
             newOffset.X = Math.Max(0, newOffset.X);
             newOffset.Y = Math.Max(0, newOffset.Y);
             _state.Offset = newOffset;

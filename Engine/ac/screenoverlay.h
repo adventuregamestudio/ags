@@ -38,6 +38,7 @@ struct ScreenOverlay {
     bool positionRelativeToScreen = false;
     bool hasSerializedBitmap = false;
     int _offsetX = 0, _offsetY = 0;
+    int transparency = 0;
 
     void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;

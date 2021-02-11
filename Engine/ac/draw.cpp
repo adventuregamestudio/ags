@@ -793,7 +793,7 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind,
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind,
     BlendMode blendMode = kBlend_Normal)
 {
     if (spp == nullptr)
@@ -816,6 +816,26 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
         sprite.takesPriorityIfEqual = isWalkBehind;
 
     sprlist.push_back(sprite);
+}
+
+// function to sort the sprites into baseline order
+static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
+{
+    if (e1.baseline == e2.baseline)
+    {
+        if (e1.takesPriorityIfEqual)
+            return false;
+        if (e2.takesPriorityIfEqual)
+            return true;
+    }
+    return e1.baseline < e2.baseline;
+}
+
+// copy the sorted sprites into the Things To Draw list
+static void draw_sprite_list()
+{
+    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
+    thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
 }
 //
 //------------------------------------------------------------------------
@@ -1012,44 +1032,6 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
     }
 }
 
-// function to sort the sprites into baseline order
-bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
-{
-    if (e1.baseline == e2.baseline) 
-    { 
-        if (e1.takesPriorityIfEqual)
-            return false;
-        if (e2.takesPriorityIfEqual)
-            return true;
-    }
-    return e1.baseline < e2.baseline;
-}
-
-
-
-
-void draw_sprite_list() {
-
-    if (walkBehindMethod == DrawAsSeparateSprite)
-    {
-        for (int ee = 1; ee < MAX_WALK_BEHINDS; ee++)
-        {
-            if (walkBehindBitmap[ee] != nullptr)
-            {
-                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee], walkBehindTop[ee],
-                    croom->walkbehind_base[ee], 0, true);
-            }
-        }
-    }
-
-    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
-
-    if(pl_any_want_hook(AGSE_PRESCREENDRAW))
-        add_render_stage(AGSE_PRESCREENDRAW);
-
-    // copy the sorted sprites into the Things To Draw list
-    thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
-}
 
 // Avoid freeing and reallocating the memory if possible
 Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {
@@ -1925,6 +1907,22 @@ void prepare_room_sprites()
         if ((debug_flags & DBG_NODRAWSPRITES) == 0)
         {
             our_eip = 34;
+
+            if (walkBehindMethod == DrawAsSeparateSprite)
+            {
+                for (int ee = 1; ee < MAX_WALK_BEHINDS; ee++)
+                {
+                    if (walkBehindBitmap[ee] != nullptr)
+                    {
+                        add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee], walkBehindTop[ee],
+                            croom->walkbehind_base[ee], 0, true);
+                    }
+                }
+            }
+
+            if (pl_any_want_hook(AGSE_PRESCREENDRAW))
+                add_render_stage(AGSE_PRESCREENDRAW);
+
             draw_sprite_list();
         }
     }

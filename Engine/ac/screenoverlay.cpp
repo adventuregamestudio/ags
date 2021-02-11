@@ -42,7 +42,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
         blendMode = (BlendMode)in->ReadInt32();
         // Reserved for colour options
         in->ReadInt32(); // colour flags
-        in->ReadInt32(); // transparency / alpha
+        transparency = in->ReadInt32();
         in->ReadInt32(); // tint rgb + s
         in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
@@ -79,6 +79,7 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     out->WriteInt32(blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
+    out->WriteInt32(transparency);
     out->WriteInt32(0); // tint rgb + s
     out->WriteInt32(0); // tint light (or light level)
     // Reserved for transform options

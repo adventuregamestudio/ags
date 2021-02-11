@@ -156,6 +156,24 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blendMode) {
     screenover[ovri].blendMode = (BlendMode)blendMode;
 }
 
+int Overlay_GetTransparency(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+
+    return GfxDef::LegacyTrans255ToTrans100(screenover[ovri].transparency);
+}
+
+void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    if ((trans < 0) | (trans > 100))
+        quit("!SetTransparency: transparency value must be between 0 and 100");
+
+    screenover[ovri].transparency = GfxDef::Trans100ToLegacyTrans255(trans);
+}
+
 //=============================================================================
 
 void dispose_overlay(ScreenOverlay &over)
@@ -377,6 +395,17 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
+}
+
+// void (ScriptOverlay *scover, int blendMode)
+RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
+}
+
 //=============================================================================
 //
 // Exclusive API for Plugins
@@ -411,6 +440,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
     ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
     ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
+    ccAddExternalObjectFunction("Overlay::get_Transparency",    Sc_Overlay_GetTransparency);
+    ccAddExternalObjectFunction("Overlay::set_Transparency",    Sc_Overlay_SetTransparency);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

@@ -940,6 +940,8 @@ builtin managed struct Overlay {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the transparency of this overlay.
+  import attribute int Transparency;
 #endif
 };
 

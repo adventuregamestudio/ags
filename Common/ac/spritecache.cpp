@@ -636,13 +636,13 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
 
             if (compressOutput)
             {
-                size_t lenloc = output->GetPosition();
+                soff_t lenloc = output->GetPosition();
                 // write some space for the length data
                 output->WriteInt32(0);
 
                 CompressSprite(image, output);
 
-                size_t fileSizeSoFar = output->GetPosition();
+                soff_t fileSizeSoFar = output->GetPosition();
                 // write the length of the compressed data
                 output->Seek(lenloc, kSeekBegin);
                 output->WriteInt32((fileSizeSoFar - lenloc) - 4);

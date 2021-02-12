@@ -148,7 +148,7 @@ struct SpriteListEntry
 {
     IDriverDependantBitmap *bmp = nullptr;
     int x = 0, y = 0;
-    int baseline = 0;
+    int zorder = 0;
     // Tells if this item should take priority during sort if z1 == z2
     // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
     bool takesPriorityIfEqual = false;
@@ -959,7 +959,7 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, bool isWalkBehind)
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
@@ -969,7 +969,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 
     SpriteListEntry sprite;
     sprite.bmp = spp;
-    sprite.baseline = baseline;
+    sprite.zorder = zorder;
     sprite.x = xx;
     sprite.y = yy;
 
@@ -984,14 +984,14 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 // function to sort the sprites into baseline order
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    if (e1.baseline == e2.baseline)
+    if (e1.zorder == e2.zorder)
     {
         if (e1.takesPriorityIfEqual)
             return false;
         if (e2.takesPriorityIfEqual)
             return true;
     }
-    return e1.baseline < e2.baseline;
+    return e1.zorder < e2.zorder;
 }
 
 // copy the sorted sprites into the Things To Draw list
@@ -2231,20 +2231,27 @@ void draw_gui_and_overlays()
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
         add_render_stage(AGSE_PREGUIDRAW);
 
-    // draw overlays, except text boxes and portraits
-    for (const auto &over : screenover) {
+    clear_sprite_list();
+
+    // Add active overlays to the sprite list
+    for (auto &over : screenover)
+    {
+        int tdxp, tdyp;
+        get_overlay_position(over, &tdxp, &tdyp);
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
-            add_thing_to_draw(over.bmp, over.x, over.y);
-        else if (!is_over_above_gui(over.type)) {
-            int tdxp, tdyp;
-            get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp);
+        {
+            add_to_sprite_list(over.bmp, tdxp, tdyp, INT_MIN, false);
+        }
+        else
+        {
+            // draw speech and portraits over GUI and the rest under GUI
+            int zorder = is_over_above_gui(over.type) ? INT_MAX : INT_MIN;
+            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false);
         }
     }
 
-    // Draw GUIs - they should always be on top of overlays like
-    // speech background text
+    // Add GUIs
     our_eip=35;
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
         int aa;
@@ -2311,7 +2318,7 @@ void draw_gui_and_overlays()
                 continue;
 
             guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y);
+            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
@@ -2320,16 +2327,8 @@ void draw_gui_and_overlays()
         }
     }
 
-    // draw speech and portraits (so that they appear over GUIs)
-    for (const auto &over : screenover) 
-    {
-        if (is_over_above_gui(over.type))
-        {
-            int tdxp, tdyp;
-            get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp);
-        }
-    }
+    // sort and append ui sprites to the global draw things list
+    draw_sprite_list();
 
     our_eip = 1099;
 }

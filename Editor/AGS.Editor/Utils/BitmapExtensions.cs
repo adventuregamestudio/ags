@@ -257,7 +257,7 @@ namespace AGS.Editor
 
             int difference = 2 * (delta.Y - delta.X);
 
-            for (Point p = p0; p.X < p1.X; p.X++)
+            for (Point p = p0; p.X <= p1.X; p.X++)
             {
                 yield return p;
 
@@ -284,7 +284,7 @@ namespace AGS.Editor
 
             int difference = 2 * (delta.X - delta.Y);
 
-            for (Point p = p0; p.Y < p1.Y; p.Y++)
+            for (Point p = p0; p.Y <= p1.Y; p.Y++)
             {
                 yield return p;
 

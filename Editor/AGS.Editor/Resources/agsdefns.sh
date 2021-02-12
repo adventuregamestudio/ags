@@ -1273,6 +1273,8 @@ builtin managed struct Overlay {
   import readonly attribute int Width;
   /// Gets the height of this overlay.
   import readonly attribute int Height;
+  /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
+  import attribute int ZOrder;
 #endif
 };
 

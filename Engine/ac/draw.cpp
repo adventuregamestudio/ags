@@ -2220,11 +2220,6 @@ void draw_fps(const Rect &viewport)
     invalidate_sprite_glob(1, yp, ddb);
 }
 
-static inline bool is_over_above_gui(int type)
-{
-    return type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH;
-}
-
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
@@ -2238,17 +2233,7 @@ void draw_gui_and_overlays()
     {
         int tdxp, tdyp;
         get_overlay_position(over, &tdxp, &tdyp);
-        // complete overlay draw in non-transparent mode
-        if (over.type == OVER_COMPLETE)
-        {
-            add_to_sprite_list(over.bmp, tdxp, tdyp, INT_MIN, false);
-        }
-        else
-        {
-            // draw speech and portraits over GUI and the rest under GUI
-            int zorder = is_over_above_gui(over.type) ? INT_MAX : INT_MIN;
-            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false);
-        }
+        add_to_sprite_list(over.bmp, tdxp, tdyp, over.zorder, false);
     }
 
     // Add GUIs

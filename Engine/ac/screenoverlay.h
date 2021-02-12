@@ -35,6 +35,7 @@ struct ScreenOverlay {
     int type = 0, x = 0, y = 0, timeout = 0;
     int bgSpeechForChar = 0;
     int associatedOverlayHandle = 0;
+    int zorder = INT_MIN;
     bool positionRelativeToScreen = false;
     int _offsetX = 0, _offsetY = 0;
     Common::BlendMode blendMode = Common::kBlend_Normal;

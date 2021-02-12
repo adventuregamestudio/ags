@@ -2044,7 +2044,7 @@ void draw_gui_and_overlays()
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
             // draw speech and portraits over GUI and the rest under GUI
-            int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE) ? INT_MAX : INT_MIN;
+            int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
             add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false, over.transparency, over.blendMode);
         }
     }

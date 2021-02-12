@@ -261,7 +261,7 @@ namespace AGS.Editor
             {
                 yield return p;
 
-                if (difference > 0)
+                if (difference >= 0)
                 {
                     p.Y += yIncrement;
                     difference += 2 * (delta.Y - delta.X);
@@ -288,7 +288,7 @@ namespace AGS.Editor
             {
                 yield return p;
 
-                if (difference > 0)
+                if (difference >= 0)
                 {
                     p.X += xIncrement;
                     difference += 2 * (delta.X - delta.Y);

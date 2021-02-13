@@ -255,7 +255,7 @@ namespace AGS.Editor
                 delta.Y = -delta.Y;
             }
 
-            int difference = 2 * (delta.Y - delta.X);
+            int difference = (2 * delta.Y) - delta.X;
 
             for (Point p = p0; p.X <= p1.X; p.X++)
             {
@@ -282,7 +282,7 @@ namespace AGS.Editor
                 delta.X = -delta.X;
             }
 
-            int difference = 2 * (delta.X - delta.Y);
+            int difference = (2 * delta.X) - delta.Y;
 
             for (Point p = p0; p.Y <= p1.Y; p.Y++)
             {

@@ -86,6 +86,7 @@ SavegameSource::SavegameSource()
 SavegameDescription::SavegameDescription()
     : MainDataVersion(kGameVersion_Undefined)
     , ColorDepth(0)
+    , LegacyID(0)
 {
 }
 
@@ -185,6 +186,8 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
             String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
     // Enviroment information
+    if (svg_ver >= kSvgVersion_351)
+        in->ReadInt32(); // enviroment info size
     if (elems & kSvgDesc_EnvInfo)
     {
         desc.EngineName = StrUtil::ReadString(in);
@@ -195,17 +198,21 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         if (svg_ver >= kSvgVersion_Cmp_64bit)
             desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
         desc.ColorDepth = in->ReadInt32();
+        if (svg_ver >= kSvgVersion_351)
+            desc.LegacyID = in->ReadInt32();
     }
     else
     {
-        StrUtil::SkipString(in);
-        StrUtil::SkipString(in);
-        StrUtil::SkipString(in);
-        StrUtil::SkipString(in);
-        StrUtil::SkipString(in);
+        StrUtil::SkipString(in); // engine name
+        StrUtil::SkipString(in); // engine version
+        StrUtil::SkipString(in); // game guid
+        StrUtil::SkipString(in); // game title
+        StrUtil::SkipString(in); // main data filename
         if (svg_ver >= kSvgVersion_Cmp_64bit)
             in->ReadInt32(); // game data version
         in->ReadInt32(); // color depth
+        if (svg_ver >= kSvgVersion_351)
+            in->ReadInt32(); // game legacy id
     }
     // User description
     if (elems & kSvgDesc_UserText)
@@ -316,6 +323,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             desc->EngineName = temp_desc.EngineName;
             desc->EngineVersion = temp_desc.EngineVersion;
             desc->GameGuid = temp_desc.GameGuid;
+            desc->LegacyID = temp_desc.LegacyID;
             desc->GameTitle = temp_desc.GameTitle;
             desc->MainDataFilename = temp_desc.MainDataFilename;
             desc->MainDataVersion = temp_desc.MainDataVersion;
@@ -721,6 +729,8 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
 {
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
+    soff_t env_pos = out->GetPosition();
+    out->WriteInt32(0);
     // Enviroment information
     StrUtil::WriteString("Adventure Game Studio run-time engine", out);
     StrUtil::WriteString(EngineVersion.LongString, out);
@@ -729,6 +739,11 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(ResPaths.GamePak.Name, out);
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
+    out->WriteInt32(game.uniqueid);
+    soff_t env_end_pos = out->GetPosition();
+    out->Seek(env_pos, kSeekBegin);
+    out->WriteInt32(env_end_pos - env_pos);
+    out->Seek(env_end_pos, kSeekBegin);
     // User description
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);

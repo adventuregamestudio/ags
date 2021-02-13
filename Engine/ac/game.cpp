@@ -1149,9 +1149,9 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     // saved with different game file
     // if savegame is modern enough then test game GUIDs, if it's old then do the stupid old-style filename test
     // TODO: remove filename test after deprecating old saves;
-    // pre-AGS 3.0 games don't have GUID, but they have "uniqueid" field, we only need to add this to saves.
     if (!desc.GameGuid.IsEmpty() && desc.GameGuid.Compare(game.guid) != 0 ||
-        desc.GameGuid.IsEmpty() && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
+        (desc.GameGuid.IsEmpty() && desc.LegacyID != 0) && (desc.LegacyID != game.uniqueid) ||
+        (desc.GameGuid.IsEmpty() && desc.LegacyID == 0) && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
     {
         // Try to find wanted game's executable
         // TODO: if GUID/uniqueid is available in the save, scan available game files for their IDs also (see preload_game_data)!

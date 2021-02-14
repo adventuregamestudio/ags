@@ -247,6 +247,40 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
     EXPECT_NE(std::string::npos, msg.find("right hand side"));
 }
 
+TEST_F(Compile1, LocalTypes1)
+{
+    char *inpl = "\
+        void Test1()            \n\
+        {                       \n\
+            struct MyStruct     \n\
+            {                   \n\
+                int a;          \n\
+            };                  \n\
+        }                       \n\
+        ";
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("struct type"));
+}
+
+TEST_F(Compile1, LocalTypes2)
+{
+    char *inpl = "\
+        void Test1()            \n\
+        {                       \n\
+            enum Foo            \n\
+            {                   \n\
+                a,              \n\
+            };                  \n\
+        }                       \n\
+        ";
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("enum type"));
+}
+
 TEST_F(Compile1, StaticArrayIndex1) {
 
     // Constant array index, is out ouf bounds

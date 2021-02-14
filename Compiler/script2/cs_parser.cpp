@@ -5442,6 +5442,12 @@ AGS::ErrorType AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_
     ErrorType retval = ParseStruct_CheckForwardDecls(stname, tqs);
     if (retval < 0) return retval;
 
+    if (name_of_current_func > 0)
+    {
+        Error("Cannot define a struct type within a function");
+        return kERR_UserError;
+    }
+
     ParseStruct_SetTypeInSymboltable(stname, tqs);
 
     // Declare the struct type that implements new strings
@@ -5617,7 +5623,7 @@ AGS::ErrorType AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_cu
     size_t const start_of_enum_decl = _src.GetCursor();
     if (kKW_NoSymbol !=  name_of_current_func)
     {
-        Error("Enum declaration is not allowed within a function body");
+        Error("Cannot define an enum type within a function");
         return kERR_UserError;
     }
     if (tqs[TQ::kBuiltin])

@@ -2143,6 +2143,42 @@ TEST_F(Compile0, StringOldstyle03) {
     EXPECT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
 
+TEST_F(Compile0, ConstOldstringReturn)
+{
+    // A 'const string' should be a valid return
+    // from a 'const string' function.
+
+    char *inpl = "\
+        const string GetLiteral()       \n\
+        {                               \n\
+            return \"string literal\";  \n\
+        }                               \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile0, ConstOldstringReturn2)
+{
+    // Must not pass a const string return as a
+    // non-const parameter of another function.
+
+    char *inpl = "\
+        import const string GetConstString();   \n\
+        import void UseString(string s);        \n\
+                                                \n\
+        void game_start()                       \n\
+        {                                       \n\
+            UseString(GetConstString());        \n\
+        }                                       \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'const string'"));
+}
+
 TEST_F(Compile0, StructPointerAttribute) {
 
     // It's okay for a managed struct to have a pointer import attribute.

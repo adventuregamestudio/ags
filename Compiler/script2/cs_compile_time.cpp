@@ -114,14 +114,16 @@ AGS::ErrorType AGS::CTF_IntMultiply::Evaluate(MessageHandler &mh, std::string co
     CodeCell const i1 = _sym[arg1].LiteralD->Value;
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
-    // Overflow detection - unsigned values cannot generate overflow by definition
+    // Overflow detection - unsigned values cannot generate overflow by definition;
+    // leverage the fact that they have inherent wrap-around 
     if (i1 != 0 && i2 != 0)
     {
         uint32_t const ui1 = abs(i1);
         uint32_t const ui2 = abs(i2);
         uint32_t const product = ui1 * ui2;
 
-        if (product < ui1 || product < ui2)
+        bool const wraparound_happened = product < ui1 || product < ui2;
+        if (wraparound_happened || product > INT_MAX)
         {
             Error(mh, section, line,
                 "Overflow when calculating '%s * %s'",
@@ -171,6 +173,7 @@ AGS::ErrorType AGS::CTF_IntShiftLeft::Evaluate(MessageHandler &mh, std::string c
         return kERR_UserError;
     }
 
+    // The Engine calculates shifts by using signed values, so overflow is possible. 
     size_t const digitnum = std::numeric_limits<CodeCell>::digits - 1;
     if (0 != i1 >> (digitnum - i2))
     {
@@ -216,7 +219,7 @@ AGS::ErrorType AGS::CTF_IntModulo::Evaluate(MessageHandler &mh, std::string cons
     if (0 == i2)
     {
         Error(mh, section, line,
-            "Modulo is zero when calculating '%s %% %s'",
+            "Modulo zero encountered when calculating '%s %% %s'",
             std::to_string(i1).c_str(),
             std::to_string(i2).c_str());
         return kERR_UserError;

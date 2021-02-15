@@ -306,7 +306,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_Noloopcheck, "noloopcheck");
     AddKeyword(kKW_Null, "null");
     MakeEntryLiteral(kKW_Null);
-    entries[kKW_Null].LiteralD->Vartype = kKW_NoSymbol;
+    entries[kKW_Null].LiteralD->Vartype = kKW_Null;
     entries[kKW_Null].LiteralD->Value = 0u;
     AddKeyword(kKW_Protected, "protected");
     AddKeyword(kKW_Readonly, "readonly");

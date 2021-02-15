@@ -1669,6 +1669,12 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol st
         return kERR_UserError;
     }
 
+    if (tqs[TQ::kConst] && kKW_String != return_vartype)
+    {
+        Error("Can only return a 'const' type when it is 'const string'");
+        return kERR_UserError;
+    }
+
     if (PP::kPreAnalyze == _pp &&
         body_follows &&
         _sym.IsFunction(name_of_func) &&
@@ -1746,6 +1752,13 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifie
 
     retval = ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
     if (retval < 0) return retval;
+
+    if (tqs[TQ::kConst])
+    {
+        return_vartype = _sym.VartypeWith(VTT::kConst, return_vartype);
+        tqs[TQ::kConst] = false;
+    }
+
    
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
@@ -4347,7 +4360,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, Sco
 {
     if (vartype == kKW_String && FlagIsSet(_options, SCOPT_OLDSTRINGS) == 0)
     {
-        Error("Type 'string' is no longer supported; use String instead");
+        Error("Variables of type 'string' aren't supported any longer (use the type 'String' instead)");
         return kERR_UserError;
     }
 

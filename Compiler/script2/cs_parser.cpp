@@ -2605,12 +2605,16 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
 
 AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    // process the left hand side
+    int const start_of_term = _scrip.codesize;
+    Symbol const operator_sym = expression[op_idx];
+
+    // Process the left hand side
     // This will be in vain if we find out later on that there isn't any right hand side,
     // but doing the left hand side first means that any errors will be generated from left to right
     Vartype vartype_lhs = 0;
     SrcList lhs = SrcList(expression, 0, op_idx);
     ErrorType retval = ParseExpression_Term(lhs, vloc, scope_type, vartype_lhs);
+    ValueLocation vloc_lhs = vloc;
     if (retval < 0) return retval;
     ResultToAX(vartype_lhs, vloc);
     if (!lhs.ReachedEOF())
@@ -2620,8 +2624,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     }
 
     ForwardJump to_exit(_scrip);
-    Symbol const operator_sym = expression[op_idx];
-
+    
     if (kKW_And == operator_sym)
     {
         // "&&" operator lazy evaluation: if AX is 0 then the AND has failed, 
@@ -2650,6 +2653,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
 
     retval = ParseExpression_Term(rhs, vloc, scope_type, vartype);
     if (retval < 0) return retval;
+    ValueLocation vloc_rhs = vloc;
     ResultToAX(vartype, vloc);
 
     PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
@@ -2670,6 +2674,35 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     if (IsBooleanOpcode(opcode))
         vartype = kKW_Int;
 
+    if (ValueLocation::kCompile_time_literal == vloc_lhs.location)
+    {
+        if ((kKW_And == operator_sym &&
+                ValueLocation::kCompile_time_literal == vloc_lhs.location &&
+                0 == _sym[vloc_lhs.symbol].LiteralD->Value) ||
+            (kKW_Or == operator_sym &&
+                ValueLocation::kCompile_time_literal == vloc_lhs.location &&
+                0 != _sym[vloc_lhs.symbol].LiteralD->Value))
+        {   // We don't need the calculation at runtime: The result is the LHS
+            _scrip.codesize = start_of_term;
+            vloc = vloc_lhs;
+            _sym[vloc_lhs.symbol].LiteralD->Vartype = kKW_Int;
+            return kERR_None;
+        }
+
+        if (ValueLocation::kCompile_time_literal == vloc_rhs.location)
+        {
+            Vartype vartype_lhs = _sym[vloc_lhs.symbol].LiteralD->Vartype;
+            Vartype vartype_rhs = _sym[vloc_rhs.symbol].LiteralD->Vartype;
+            if (vartype_lhs == vartype_rhs)
+            {   // Instead of doing the calculation at runtime, do it now.
+                bool can_do_it_now = false;
+                retval = ParseExpression_CompileTime(operator_sym, vartype_lhs, vloc_lhs, vloc_rhs, can_do_it_now, vloc);
+                if (retval < 0) return retval;
+                if (can_do_it_now)
+                    _scrip.codesize = start_of_term;
+            }
+        }
+    }
     return kERR_None;
 }
 
@@ -3100,6 +3133,23 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
         PopReg(SREG_OP);
 
     MarkAcessed(name_of_func);
+    return kERR_None;
+}
+
+ErrorType AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, Vartype const vartype, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc)
+{
+    CompileTimeFunc *const ctf =
+        (kKW_Float == vartype) ?              _sym[op_sym].OperatorD->FloatCTFunc :
+        (_sym.IsAnyIntegerVartype(vartype)) ? _sym[op_sym].OperatorD->IntCTFunc :
+        nullptr;
+    possible = (ctf != nullptr);
+    if (!possible)
+        return kERR_None;
+    ErrorType retval = ctf->Evaluate(
+        _msg_handler, _src.SectionId2Section(_src.GetSectionId()), _src.GetLineno(),
+        vloc_lhs.symbol, vloc_rhs.symbol, vloc.symbol);
+    if (retval < 0) return retval;
+    vloc.location = ValueLocation::kCompile_time_literal;
     return kERR_None;
 }
 
@@ -3568,7 +3618,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             if (VAC::kReading != access_type) break; // to error msg
 
             Symbol lit;
-            ErrorType retval = ReadLiteralOrConst(lit);
+            ErrorType retval = ReadLiteralOrConst(expression, lit);
             if (retval < 0) return retval;
             return_scope_type = ScT::kGlobal;
             return SetCompileTimeLiteral(lit, vloc, vartype);

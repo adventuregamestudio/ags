@@ -554,6 +554,8 @@ private:
     // Process a function call. The parameter list begins with expression[1].
     ErrorType AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype);
 
+    ErrorType ParseExpression_CompileTime(Symbol op_sym, Vartype vartype, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc);
+
     // Check the vartype following "new"
     ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);
 

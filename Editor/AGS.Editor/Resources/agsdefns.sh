@@ -701,7 +701,7 @@ import void CallRoomScript(int value);
 /// Transfers gameplay into a separate AGS game.
 import int  RunAGSGame(const string filename, int mode, int data);
 /// Gets the translated version of the specified text.
-import string GetTranslation (const string originalText);
+import const string GetTranslation (const string originalText);
 /// Checks if a translation is currently in use.
 import int  IsTranslationAvailable ();
 /// Displays the default built-in Restore Game dialog.

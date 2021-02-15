@@ -433,20 +433,12 @@ private:
     // Remove at nesting_level or higher.
     ErrorType RemoveLocalsFromStack(size_t nesting_level);
 
-    // Read a symbol that must be a literal or a const. If it is a const, dereference it until it becomes a literal.
-    ErrorType ReadLiteralOrConst(SrcList &src, Symbol &lit);
-    inline ErrorType ReadLiteralOrConst(Symbol &lit) { return ReadLiteralOrConst(_src, lit); }
-    ErrorType ReadIntLiteralOrConst(Symbol &lit, std::string const &msg);
-
-    // When 'symb' corresponds to 'value', set it to the symbol that corresponds to -'value'.
-    ErrorType NegateLiteral(Symbol &symb);
-
-    // Record the literal as a compile time literal
+    // Record the literal as a compile time literal in vloc
+    // If the literal is a string, move it to AX instead.
     ErrorType SetCompileTimeLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype);
 
     // Find or create a symbol that is a literal for the value 'value'.
     ErrorType FindOrAddIntLiteral(CodeCell value, Symbol &symb);
-
 
     // We're parsing a parameter list and we have accepted something like "(...int i"
     // We accept a default value clause like "= 15" if it follows at this point.
@@ -600,18 +592,26 @@ private:
     // Leaves the cursor pointing after the last token that was processed
     ErrorType ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
+    // Parse an expression that must evaluate to a constant at compile time.
+    ErrorType ParseConstantExpression(SrcList &expression, Symbol &lit, std::string const &msg = "");
+
+    // Parse an integer expression in brackets.
+    ErrorType ParseBracketedIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type);
+
+    // Parse an expression that must convert to an int.
+    ErrorType ParseIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, std::string const &msg = "");
+    
     // Parse expression in parentheses
     // leaves src pointing after last token in expression, so do getnext() to get the following ; or whatever
     ErrorType ParseParenthesizedExpression();
 
-    // Evaluate the supplied expression, putting the result into AX
+    // Parse and evaluate an expression
+    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
+    ErrorType ParseExpression(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // Parse and evaluate an expression, putting the result into AX
     // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
     ErrorType ParseExpression(ScopeType &scope_type, Vartype &vartype);
     ErrorType ParseExpression();
-
-    ErrorType AccessData_ReadBracketedIntExpression(SrcList &expression);
-
-    ErrorType AccessData_ReadIntExpression(SrcList &expression);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
@@ -627,7 +627,7 @@ private:
     // Memory location contains a pointer to another address. Get that address.
     ErrorType AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
 
-    ErrorType AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, bool negate, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
+    ErrorType AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
 
     // Process one index in a sequence of array indexes
     ErrorType AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc);

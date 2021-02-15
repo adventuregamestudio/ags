@@ -991,17 +991,18 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
 
     _src.GetNext();   // Eat '='
 
-    Symbol default_symbol = _src.GetNext(); 
-    bool is_negative = false;
-    if (kKW_Minus == default_symbol &&
-        (kKW_Float == param_vartype || _sym.IsAnyIntegerVartype(param_vartype)))
+    ValueLocation vloc;
+    ScopeType scope_type;
+    Vartype vartype;
+    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+    if (!vloc.IsCompileTimeLiteral())
     {
-        is_negative = true;
-        default_symbol = _src.GetNext();
+        Error("Cannot evaluate expression at compile time, it cannot be used as parameter default");
+        return kERR_UserError;
     }
 
-    while (_sym.IsConstant(default_symbol))
-        default_symbol = _sym[default_symbol].ConstantD->ValueSym;
+    Symbol const default_symbol = vloc.symbol;
 
     if (_sym.IsDynVartype(param_vartype))
     {
@@ -1039,13 +1040,11 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
         if (!_sym.IsLiteral(default_symbol) || kKW_Int != _sym[default_symbol].LiteralD->Vartype)
         {
             Error(
-                "Expected a constant or literal integer as a parameter default, found '%s' instead",
-                ((is_negative ? "-" : "") + _sym.GetName(default_symbol)).c_str());
+                "Expected a constant integer expression as a parameter default, found '%s' instead",
+                _sym.GetName(default_symbol).c_str());
             return kERR_UserError;
         }
         default_value = default_symbol;
-        if (is_negative)
-            return NegateLiteral(default_value);
         return kERR_None;
     }
 
@@ -1058,13 +1057,11 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
         else if (!_sym.IsLiteral(default_symbol) || kKW_Float != _sym[default_symbol].LiteralD->Vartype)
         {
             Error(
-                "Expected a constant or literal float as a parameter default, found '%s' instead",
-                ((is_negative ? "-" : "") + _sym.GetName(default_symbol)).c_str());
+                "Expected a constant float expression as a parameter default, found '%s' instead",
+                _sym.GetName(default_symbol).c_str());
             return kERR_UserError;
         }
         default_value = default_symbol;
-        if (is_negative)
-            return NegateLiteral(default_value);
         return kERR_None;
     }
 
@@ -2130,10 +2127,12 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
 
 void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
 {
-    if (ValueLocation::kCompile_time_literal == vloc.location)
+    if (vloc.IsCompileTimeLiteral())
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[vloc.symbol].LiteralD->Value);
-        vloc.location = ValueLocation::kAX_is_value;
+        if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
+            _scrip.FixupPrevious(kFx_String);
+        vloc.location = ValueLocation::kAX_is_value;        
     }
 
     if (ValueLocation::kMAR_pointsto_value != vloc.location)
@@ -2197,11 +2196,14 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
     Vartype element_vartype = 0;
     if (with_bracket_expr)
     {
-        // Note that in AGS, you can write "new Struct[]" but what you mean then is "new Struct*[]".
+        // Note that in AGS, you can write "new Struct[...]" but what you mean then is "new Struct*[...]".
         retval = EatDynpointerSymbolIfPresent(argument_vartype);
         if (retval < 0) return retval;
 
-        retval = AccessData_ReadBracketedIntExpression(expression);
+        ValueLocation bracketed_vloc;
+        ScopeType scope_type;
+        retval = ParseBracketedIntegerExpression(expression, bracketed_vloc, scope_type);
+        ResultToAX(kKW_Int, bracketed_vloc);
         if (retval < 0) return retval;
         element_vartype = is_managed ? _sym.VartypeWith(VTT::kDynpointer, argument_vartype) : argument_vartype;
         vartype = _sym.VartypeWith(VTT::kDynarray, element_vartype);
@@ -2262,7 +2264,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
 
     expression.EatFirstSymbol(); // Eat '-'
     expression.StartRead();
-
+    
     // parse the rest of the expression into AX
     ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
@@ -2307,7 +2309,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, Value
 
     expression.EatFirstSymbol(); // Eat '+'
     expression.StartRead();
-
+    
     ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
@@ -2357,7 +2359,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
     }
 
     ResultToAX(vartype, vloc);
-
+    
     if (bitwise_negation)
     {
         // There isn't any opcode for this, so calculate -1 - AX
@@ -2401,7 +2403,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Unary(SrcList &expression, ValueLoca
     }
     // Can't reach.
     return kERR_None;
-
 }
 
 AGS::ErrorType AGS::Parser::ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1, bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc, AGS::ScopeType &scope_type, AGS::Vartype &vartype)
@@ -3201,19 +3202,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocat
     return HandleStructOrArrayResult(vartype, vloc);
 }
 
-// symlist starts a sequence of bracketed expressions; parse it
-AGS::ErrorType AGS::Parser::AccessData_ReadIntExpression(SrcList &expression)
-{
-    ValueLocation vloc;
-    ScopeType scope_type;
-    Vartype vartype;
-    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
-    if (retval < 0) return retval;
-    ResultToAX(vartype, vloc);
-
-    return IsVartypeMismatch(vartype, kKW_Int, true);
-}
-
 // We access a component of a struct in order to read or write it.
 AGS::ErrorType AGS::Parser::AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression,Parser::MemoryLocation &mloc, Vartype &vartype)
 {
@@ -3327,8 +3315,11 @@ AGS::ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList
         // The index to be set is in the [...] clause; push it as the first parameter
         if (attrib_uses_this)
             PushReg(SREG_MAR); // must not be clobbered
-        retval = AccessData_ReadBracketedIntExpression(expression);
+        ValueLocation vloc;
+        ScopeType scope_type;
+        retval = ParseBracketedIntegerExpression(expression, vloc, scope_type);
         if (retval < 0) return retval;
+        ResultToAX(kKW_Int, vloc);
 
         if (attrib_uses_this)
             PopReg(SREG_MAR);
@@ -3378,28 +3369,9 @@ AGS::ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc,Parser::M
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, bool negate, size_t num_array_elements, size_t element_size, MemoryLocation &mloc)
+AGS::ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Symbol const lit, size_t num_array_elements, size_t element_size, MemoryLocation &mloc)
 {
-    Symbol lit = index_symbol;
-    while (_sym.IsConstant(lit))
-        lit = _sym[lit].ConstantD->ValueSym;
-    Vartype vartype = _sym[lit].LiteralD->Vartype;
-    if (!_sym.IsAnyIntegerVartype(vartype))
-    {
-        Error(
-            "Expected an integer expression in array index #%u but found '%s' instead which is type '%s'",
-            idx + 1u,
-            _sym.GetName(index_symbol),
-            _sym.GetName(vartype));
-        return kERR_UserError;
-    }
-
-    if (negate)
-    {
-        ErrorType retval = NegateLiteral(lit);
-        if (retval < 0) return retval;
-    }
-
+    
     CodeCell const array_index = _sym[lit].LiteralD->Value;
     if (array_index < 0)
     {
@@ -3425,6 +3397,10 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessArrayIndexConstant(size_t idx, Sym
 
 AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc)
 {
+    // For giving details in error messages
+    std::string msg = "In array index #<idx>: ";
+    msg.replace(msg.find("<idx>"), 5u, std::to_string(idx));
+
     // Get the index
     size_t const index_start = expression.GetCursor();
     SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket }, expression);
@@ -3432,34 +3408,28 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
     SrcList current_index = SrcList(expression, index_start, index_end - index_start);
     if (0 == current_index.Length())
     {
-        Error("Empty array index is not supported");
+        Error("Empty array index is not supported here");
         return kERR_UserError;
     }
 
-    // If the index is a literal or constant or a negation thereof, process it at compile time
-    if (1 == current_index.Length())
-    {
-        Symbol const index_sym = current_index[0];
-        if (_sym.IsLiteral(index_sym) || _sym.IsConstant(index_sym))
-            return AccessData_ProcessArrayIndexConstant(idx, index_sym, false, dim, factor, mloc);
-    }
-    if (2 == current_index.Length() && kKW_Minus == current_index[0])
-    {
-        Symbol const index_sym = current_index[1];
-        if (_sym.IsLiteral(index_sym) || _sym.IsConstant(index_sym))
-            return AccessData_ProcessArrayIndexConstant(idx, index_sym, true, dim, factor, mloc);
-    }
+    // Parse the index on the off-chance that it can be completely calculated at compile time.
+    int const codesize_at_start_of_index = _scrip.codesize;
+    ValueLocation vloc;
+    ScopeType scope_type;
+    ErrorType retval = ParseIntegerExpression(current_index, vloc, scope_type, msg);
+    if (retval < 0) return retval;
+    if (vloc.IsCompileTimeLiteral())
+        return AccessData_ProcessArrayIndexConstant(idx, vloc.symbol, dim, factor, mloc);
 
+    // So it cannot. We have to redo this in order to save MAR out of the way first.
+    _scrip.codesize = codesize_at_start_of_index;
     ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
     if (retval < 0) return retval;
     PushReg(SREG_MAR);
-    
-    retval = AccessData_ReadIntExpression(current_index);
-    if (retval < 0) return retval;
-
+    retval = ParseIntegerExpression(current_index, vloc, scope_type, msg);
+    if (retval < 0) return retval; // This can't happen, probably.
     PopReg(SREG_MAR);
     
-
     // Note: DYNAMICBOUNDS compares the offset into the memory block;
     // it mustn't be larger than the size of the allocated memory. 
     // On the other hand, CHECKBOUNDS checks the index; it mustn't be
@@ -3600,25 +3570,15 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             return kERR_None;
         }
 
-        if (kKW_Null == first_sym)
-        {
-            expression.GetNext(); // Eat 'null'
-            WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
-            vloc.location = ValueLocation::kAX_is_value;
-            return_scope_type = ScT::kGlobal;
-            vartype = kKW_Null;
-            return_scope_type = ScT::kGlobal;
-            return kERR_None;
-        }
-
-        if (_sym.IsConstant(first_sym) ||
+        if (kKW_Null == first_sym ||
+            _sym.IsConstant(first_sym) ||
             _sym.IsLiteral(first_sym))
         {
             if (VAC::kReading != access_type) break; // to error msg
 
-            Symbol lit;
-            ErrorType retval = ReadLiteralOrConst(expression, lit);
-            if (retval < 0) return retval;
+            Symbol lit = first_sym;
+            while (_sym.IsConstant(lit))
+                lit = _sym[lit].ConstantD->ValueSym;
             return_scope_type = ScT::kGlobal;
             return SetCompileTimeLiteral(lit, vloc, vartype);
         }
@@ -4148,7 +4108,7 @@ AGS::ErrorType AGS::Parser::SkipToEndOfExpression()
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseExpression(ScopeType &scope_type, Vartype &vartype)
+ErrorType AGS::Parser::ParseExpression(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     size_t const expr_start = _src.GetCursor();
     ErrorType retval = SkipToEndOfExpression();
@@ -4159,11 +4119,15 @@ ErrorType AGS::Parser::ParseExpression(ScopeType &scope_type, Vartype &vartype)
         Error("Expected an expression, found '%s' instead", _sym.GetName(_src.GetNext()).c_str());
         return kERR_UserError;
     }
-    
+
+    return ParseExpression_Term(expression, vloc, scope_type, vartype);
+}
+
+ErrorType AGS::Parser::ParseExpression(ScopeType &scope_type, Vartype &vartype)
+{
     ValueLocation vloc;
-    
-    retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
-    if (retval < 0) return retval;
+
+    ParseExpression(vloc, scope_type, vartype);
 
     ResultToAX(vartype, vloc);
     return kERR_None;
@@ -4177,7 +4141,30 @@ AGS::ErrorType AGS::Parser::ParseExpression()
     return ParseExpression(scope_type, vartype);
 }
 
-AGS::ErrorType AGS::Parser::AccessData_ReadBracketedIntExpression(SrcList &expression)
+ErrorType AGS::Parser::ParseConstantExpression(SrcList &expression, Symbol &lit, std::string const &msg)
+{
+    if (!expression.Length())
+    {
+        Error("!Empty expression");
+        return kERR_InternalError;
+    }
+    Symbol const first_sym = expression.PeekNext();
+
+    ValueLocation vloc;
+    ScopeType scope_type;
+    Vartype vartype;
+    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    if (!vloc.IsCompileTimeLiteral())
+    {
+        Error(
+            (msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
+            _sym.GetName(first_sym).c_str());
+        return kERR_UserError;
+    }
+    lit = vloc.symbol;
+}
+
+AGS::ErrorType AGS::Parser::ParseBracketedIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type)
 {
     ErrorType retval = Expect(kKW_OpenBracket, expression.GetNext());
     if (retval < 0) return retval;
@@ -4186,7 +4173,7 @@ AGS::ErrorType AGS::Parser::AccessData_ReadBracketedIntExpression(SrcList &expre
     SkipTo(SymbolList{}, expression);
     SrcList in_brackets = SrcList(expression, start, expression.GetCursor() - start);
 
-    retval = AccessData_ReadIntExpression(in_brackets);
+    retval = ParseIntegerExpression(in_brackets, vloc, scope_type);
     if (retval < 0) return retval;
 
     if (!in_brackets.ReachedEOF())
@@ -4195,6 +4182,29 @@ AGS::ErrorType AGS::Parser::AccessData_ReadBracketedIntExpression(SrcList &expre
         return kERR_UserError;
     }
     return Expect(kKW_CloseBracket, expression.GetNext());
+}
+
+AGS::ErrorType AGS::Parser::ParseIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, std::string const &msg)
+{
+    Vartype vartype = kKW_NoSymbol;
+    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+
+    if (_sym.IsAnyArrayVartype(vartype))
+    {
+        Error((msg + "Expected an integer expression, found an array instead").c_str());
+        return kERR_UserError;
+    }
+
+    if (!_sym.IsAnyIntegerVartype(vartype))
+    {
+        Error(
+            (msg + "Expected an integer expression, found type '%d' instead").c_str(),
+            _sym.GetName(vartype).c_str());
+        return kERR_UserError;
+    }
+
+    return IsVartypeMismatch(vartype, kKW_Int, true);
 }
 
 AGS::ErrorType AGS::Parser::ParseParenthesizedExpression()
@@ -4310,14 +4320,20 @@ AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol const ass_symbol, Src
 
 AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype const wanted_vartype, void *&initial_val_ptr)
 {
-    bool const negate = (kKW_Minus == _src.PeekNext());
-    if (negate)
-        _src.GetNext(); // Eat '-'
-
-    Symbol lit;
-    ErrorType retval = ReadLiteralOrConst(lit);
+    ValueLocation vloc;
+    ScopeType scope_type;
+    Vartype vartype = kKW_NoSymbol;
+    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
     if (retval < 0) return retval;
-    Vartype vartype = _sym[lit].LiteralD->Vartype;
+
+    if (!vloc.IsCompileTimeLiteral())
+    {
+        Error("Cannot evaluate this expression at compile time, it can't be used as initializer");
+        return kERR_UserError;
+    }
+
+    CodeCell const litval = _sym[vloc.symbol].LiteralD->Value;
+
     if ((kKW_Float == wanted_vartype) != (kKW_Float == vartype))
     {
         Error(
@@ -4326,12 +4342,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(
             _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
-    if (negate)
-    {
-        retval = NegateLiteral(lit);
-        if (retval < 0) return retval;
-    }
-
+    
     size_t const wanted_size = _sym.GetSize(wanted_vartype);
     initial_val_ptr = malloc(sizeof(wanted_size));
     if (!initial_val_ptr)
@@ -4346,13 +4357,13 @@ AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(
         Error("Cannot give an initial value to a variable of type '%s' here", _sym.GetName(wanted_vartype));
         return kERR_None;
     case 1:
-        (static_cast<int8_t *>(initial_val_ptr))[0] = _sym[lit].LiteralD->Value;
+        (static_cast<int8_t *>(initial_val_ptr))[0] = litval;
         return kERR_None;
     case 2:
-        (static_cast<int16_t *>(initial_val_ptr))[0] = _sym[lit].LiteralD->Value;
+        (static_cast<int16_t *>(initial_val_ptr))[0] = litval;
         return kERR_None;
     case 4:
-        (static_cast<int32_t *>(initial_val_ptr))[0] = _sym[lit].LiteralD->Value;
+        (static_cast<int32_t *>(initial_val_ptr))[0] = litval;
         return kERR_None;
     }
 
@@ -5334,9 +5345,19 @@ AGS::ErrorType AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
         std::string msg = "For dimension #<dim> of array '<arr>': ";
         msg.replace(msg.find("<dim>"), 5u, std::to_string(dims.size()));
         msg.replace(msg.find("<arr>"), 5u, _sym.GetName(vname).c_str());
-        
-        ErrorType retval = ReadIntLiteralOrConst(lit, msg);
+        Symbol const first_sym = _src.PeekNext();
+
+        ValueLocation vloc;
+        ScopeType scope_type;
+        ErrorType retval = ParseIntegerExpression(_src, vloc, scope_type, msg);
         if (retval < 0) return retval;
+        if (!vloc.IsCompileTimeLiteral())
+        {
+            Error(
+                (msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
+                _sym.GetName(first_sym).c_str());
+            return kERR_UserError;
+        }
         
         CodeCell const dimension_as_int = _sym[lit].LiteralD->Value;
         if (dimension_as_int < 1)
@@ -5671,7 +5692,7 @@ AGS::ErrorType AGS::Parser::ParseEnum_AssignedValue(Symbol vname, CodeCell &valu
     Symbol lit;
     std::string msg = "In the assignment to <name>: ";
     msg.replace(msg.find("<name>"), 6u, _sym.GetName(vname));
-    ErrorType retval = ReadIntLiteralOrConst(lit, msg);
+    ErrorType retval = ParseConstantExpression(_src, lit, msg);
     if (retval < 0) return retval;
 
     value = _sym[lit].LiteralD->Value;
@@ -6660,85 +6681,7 @@ AGS::ErrorType AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ReadLiteralOrConst(SrcList &src, Symbol &lit)
-{
-    Symbol const litconst = lit = src.GetNext();
-    while (_sym.IsConstant(lit))
-        lit = _sym[lit].ConstantD->ValueSym;
-
-    if (!_sym.IsLiteral(lit))
-    {
-        Error("Expected a constant or a literal, found '%s' instead", _sym.GetName(litconst).c_str());
-        return kERR_UserError;
-    }
-    return kERR_None;
-}
-
-AGS::ErrorType AGS::Parser::ReadIntLiteralOrConst(Symbol &lit, std::string const &msg)
-{
-    bool const negate = (kKW_Minus == _src.PeekNext());
-    if (negate)
-        _src.GetNext(); // Eat '-'
-
-    ErrorType retval = ReadLiteralOrConst(lit);
-    if (retval < 0) return retval;
-    Vartype const vartype = _sym[lit].LiteralD->Vartype;
-    if (_sym.IsAnyArrayVartype(vartype))
-    {
-        Error((msg + "Expected an integer, found an array instead").c_str());
-        return kERR_UserError;
-    }
-    if (!_sym.IsAnyIntegerVartype(vartype))
-    {
-        Error((msg + "Expected an integer, found type '%d' instead").c_str(), _sym.GetName(vartype).c_str());
-        return kERR_UserError;
-    }
-
-    if (negate)
-        return NegateLiteral(lit);
-    return kERR_None;
-}
-
-AGS::ErrorType AGS::Parser::NegateLiteral(Symbol &symb)
-{
-    if (!_sym.IsLiteral(symb))
-    {
-        Error("!Expected literal");
-        return kERR_InternalError;
-    }
-    Vartype vartype = _sym[symb].LiteralD->Vartype;
-
-    CodeCell new_value;
-    std::string new_value_string;
-    if (_sym.IsAnyIntegerVartype(vartype))
-    {
-        new_value = -_sym[symb].LiteralD->Value;
-        new_value_string = std::to_string(new_value);
-    }
-    else if (kKW_Float == vartype)
-    {
-        CodeCell const old_value = _sym[symb].LiteralD->Value;
-        float const old_fvalue = *reinterpret_cast<float const *>(&old_value);
-        float const new_fvalue = -old_fvalue;
-        new_value = *reinterpret_cast<CodeCell const *>(&new_fvalue);
-        new_value_string = std::to_string(new_fvalue);
-    }
-    else
-    {
-        Error("!Can't negate vartype '%s'", _sym.GetName(vartype).c_str());
-        return kERR_InternalError;
-    }
-
-    symb = _sym.FindOrAdd(new_value_string);
-    if (_sym.IsLiteral(symb))
-        return kERR_None;
-    _sym.MakeEntryLiteral(symb);
-    _sym[symb].LiteralD->Vartype = vartype;
-    _sym[symb].LiteralD->Value = new_value;
-    return kERR_None;
-}
-
-AGS::ErrorType AGS::Parser::SetCompileTimeLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::SetCompileTimeLiteral(Symbol const lit, ValueLocation &vloc, Vartype &vartype)
 {
     if (!_sym.IsLiteral(lit))
     {
@@ -6749,10 +6692,8 @@ AGS::ErrorType AGS::Parser::SetCompileTimeLiteral(Symbol lit, ValueLocation &vlo
 
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
     {
-        // Can't handle string literals (yet?)
-        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[lit].LiteralD->Value);
-        _scrip.FixupPrevious(kFx_String);
-        vloc.location = ValueLocation::kAX_is_value;
+        // Can't handle string literals
+        ResultToAX(vartype, vloc); 
         return kERR_None;
     }
    

@@ -1681,7 +1681,8 @@ TEST_F(Bytecode1, Ternary4) {
         String main()                       \n\
         {                                   \n\
             String test = \"Test\";         \n\
-            return 2 < 1 ? test : \"Foo\";  \n\
+            readonly int zajin = 7;         \n\
+            return zajin ? test : \"Foo\";  \n\
         }                                   \n\
         ";
     std::string input = g_Input_Bool;
@@ -1692,44 +1693,43 @@ TEST_F(Bytecode1, Ternary4) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Ternary4", scrip);
-    const size_t codesize = 74;
+    size_t const codesize = 67;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,   64,    3,   51,    // 7
        0,   47,    3,    1,            1,    4,    6,    3,    // 15
-       2,   29,    3,    6,            3,    1,   30,    4,    // 23
-      18,    4,    3,    3,            4,    3,   28,    6,    // 31
-      51,    4,   48,    3,           31,    5,    6,    3,    // 39
-       5,   64,    3,   29,            3,   51,    4,   50,    // 47
-       3,   51,    8,   49,           51,    4,   48,    3,    // 55
-      69,   30,    4,    2,            1,    4,   31,    9,    // 63
-      51,    4,   49,    2,            1,    4,    6,    3,    // 71
-       0,    5,  -999
+       7,   29,    3,   51,            4,    7,    3,   28,    // 23
+       6,   51,    8,   48,            3,   31,    5,    6,    // 31
+       3,    5,   64,    3,           29,    3,   51,    4,    // 39
+      50,    3,   51,   12,           49,   51,    4,   48,    // 47
+       3,   69,   30,    4,            2,    1,    8,   31,    // 55
+       9,   51,    8,   49,            2,    1,    8,    6,    // 63
+       3,    0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 2;
+    size_t const numfixups = 2;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       4,   40,  -999
+       4,   33,  -999
     };
     char fixuptypes[] = {
       3,   3,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 9;
+    size_t const stringssize = 9;
     EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {

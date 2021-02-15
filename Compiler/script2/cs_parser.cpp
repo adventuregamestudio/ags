@@ -3423,7 +3423,7 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
 
     // So it cannot. We have to redo this in order to save MAR out of the way first.
     _scrip.codesize = codesize_at_start_of_index;
-    ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
+    retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
     if (retval < 0) return retval;
     PushReg(SREG_MAR);
     retval = ParseIntegerExpression(current_index, vloc, scope_type, msg);
@@ -3577,6 +3577,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             if (VAC::kReading != access_type) break; // to error msg
 
             Symbol lit = first_sym;
+            expression.GetNext(); // eat the literal
             while (_sym.IsConstant(lit))
                 lit = _sym[lit].ConstantD->ValueSym;
             return_scope_type = ScT::kGlobal;
@@ -4127,7 +4128,8 @@ ErrorType AGS::Parser::ParseExpression(ScopeType &scope_type, Vartype &vartype)
 {
     ValueLocation vloc;
 
-    ParseExpression(vloc, scope_type, vartype);
+    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    if (retval < 0) return retval;
 
     ResultToAX(vartype, vloc);
     return kERR_None;
@@ -5349,7 +5351,10 @@ AGS::ErrorType AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
 
         ValueLocation vloc;
         ScopeType scope_type;
-        ErrorType retval = ParseIntegerExpression(_src, vloc, scope_type, msg);
+        int const cursor = _src.GetCursor();
+        SkipTo(SymbolList{ kKW_Comma }, _src);
+        SrcList expression = SrcList(_src, cursor, _src.GetCursor() - cursor);
+        ErrorType retval = ParseIntegerExpression(expression, vloc, scope_type, msg);
         if (retval < 0) return retval;
         if (!vloc.IsCompileTimeLiteral())
         {
@@ -5359,7 +5364,7 @@ AGS::ErrorType AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
             return kERR_UserError;
         }
         
-        CodeCell const dimension_as_int = _sym[lit].LiteralD->Value;
+        CodeCell const dimension_as_int = _sym[vloc.symbol].LiteralD->Value;
         if (dimension_as_int < 1)
         {
             Error(

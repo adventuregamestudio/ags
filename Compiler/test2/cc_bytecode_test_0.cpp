@@ -449,65 +449,55 @@ TEST_F(Bytecode0, Float04) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Float04", scrip);
-    const size_t codesize = 244;
+    size_t const codesize = 164;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,         1102158234,   29,    3,    6,    // 7
-       3, 1078523331,   29,    3,            6,    3, 1068205343,   30,    // 15
-       4,   60,    4,    3,            3,    4,    3,   29,    // 23
-       3,    6,    3,    1,           30,    4,   15,    4,    // 31
-       3,    3,    4,    3,           29,    3,    6,    3,    // 39
-       0,   29,    3,    6,            3, 1150963712,   29,    3,    // 47
-       6,    3, 1084227584,   30,            4,   59,    4,    3,    // 55
-       3,    4,    3,   30,            4,   15,    4,    3,    // 63
-       3,    4,    3,   28,           13,   29,    3,    6,    // 71
-       3,    1,   30,    4,           21,    4,    3,    3,    // 79
-       4,    3,   51,    0,           27,    3,    1,    1,    // 87
-       2,    6,    2,    0,            7,    3,   29,    3,    // 95
-       6,    3, 1110546842,   30,            4,   62,    4,    3,    // 103
-       3,    4,    3,   29,            3,    6,    3, 1113456640,    // 111
-      29,    3,    6,    3,         1110546842,   30,    4,   61,    // 119
-       4,    3,    3,    4,            3,   51,    0,   26,    // 127
-       3,    1,    1,    1,            6,    2,    0,    7,    // 135
-       3,   29,    3,   51,           19,    7,    3,   30,    // 143
-       4,   15,    4,    3,            3,    4,    3,   70,    // 151
-      29,   29,    3,    6,            2,    0,    7,    3,    // 159
-      29,    3,   51,   23,            7,    3,   30,    4,    // 167
-      16,    4,    3,    3,            4,    3,   30,    4,    // 175
-      22,    4,    3,    3,            4,    3,   29,    3,    // 183
-       6,    2,    0,    7,            3,   29,    3,   51,    // 191
-      23,    7,    3,   29,            3,    6,    2,    0,    // 199
-       7,    3,   29,    3,           51,   31,    7,    3,    // 207
-      30,    4,   56,    4,            3,    3,    4,    3,    // 215
-      30,    4,   55,    4,            3,    3,    4,    3,    // 223
-      30,    4,   58,    4,            3,    3,    4,    3,    // 231
-       2,    1,   19,   31,            6,    2,    1,   19,    // 239
+       3,    0,   29,    3,            6,    3,    0,   51,    // 15
+       0,   27,    3,    1,            1,    2,    6,    2,    // 23
+       0,    7,    3,   29,            3,    6,    3, 1110546842,    // 31
+      30,    4,   62,    4,            3,    3,    4,    3,    // 39
+      29,    3,    6,    3,            1,   51,    0,   26,    // 47
+       3,    1,    1,    1,            6,    2,    0,    7,    // 55
+       3,   29,    3,   51,           19,    7,    3,   30,    // 63
+       4,   15,    4,    3,            3,    4,    3,   70,    // 71
+      29,   29,    3,    6,            2,    0,    7,    3,    // 79
+      29,    3,   51,   23,            7,    3,   30,    4,    // 87
+      16,    4,    3,    3,            4,    3,   30,    4,    // 95
+      22,    4,    3,    3,            4,    3,   29,    3,    // 103
+       6,    2,    0,    7,            3,   29,    3,   51,    // 111
+      23,    7,    3,   29,            3,    6,    2,    0,    // 119
+       7,    3,   29,    3,           51,   31,    7,    3,    // 127
+      30,    4,   56,    4,            3,    3,    4,    3,    // 135
+      30,    4,   55,    4,            3,    3,    4,    3,    // 143
+      30,    4,   58,    4,            3,    3,    4,    3,    // 151
+       2,    1,   19,   31,            6,    2,    1,   19,    // 159
        6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 5;
+    size_t const numfixups = 5;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-      91,  134,  157,  186,        199,  -999
+      24,   54,   77,  106,        119,  -999
     };
     char fixuptypes[] = {
       1,   1,   1,   1,      1,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -516,7 +506,8 @@ TEST_F(Bytecode0, FlowIfThenElse1) {
     char *inpl = "\
     int Foo()               \n\
     {                       \n\
-        int a = 15 - 4 * 2; \n\
+        readonly int vier = 4; \n\
+        int a = 15 - vier * 2; \n\
         if (a < 5)          \n\
             a >>= 2;        \n\
         else                \n\
@@ -528,39 +519,40 @@ TEST_F(Bytecode0, FlowIfThenElse1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowIfThenElse1", scrip);
-    const size_t codesize = 102;
+    size_t const codesize = 108;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,    6,    3,           15,   29,    3,    6,    // 7
-       3,    4,   29,    3,            6,    3,    2,   30,    // 15
-       4,    9,    4,    3,            3,    4,    3,   30,    // 23
-       4,   12,    4,    3,            3,    4,    3,   29,    // 31
-       3,   51,    4,    7,            3,   29,    3,    6,    // 39
-       3,    5,   30,    4,           18,    4,    3,    3,    // 47
-       4,    3,   28,   18,            6,    3,    2,   29,    // 55
-       3,   51,    8,    7,            3,   30,    4,   44,    // 63
-       3,    4,    8,    3,           31,   16,    6,    3,    // 71
-       3,   29,    3,   51,            8,    7,    3,   30,    // 79
-       4,   43,    3,    4,            8,    3,   51,    4,    // 87
-       7,    3,    2,    1,            4,   31,    6,    2,    // 95
-       1,    4,    6,    3,            0,    5,  -999
+      38,    0,    6,    3,            4,   29,    3,    6,    // 7
+       3,   15,   29,    3,           51,    8,    7,    3,    // 15
+      29,    3,    6,    3,            2,   30,    4,    9,    // 23
+       4,    3,    3,    4,            3,   30,    4,   12,    // 31
+       4,    3,    3,    4,            3,   29,    3,   51,    // 39
+       4,    7,    3,   29,            3,    6,    3,    5,    // 47
+      30,    4,   18,    4,            3,    3,    4,    3,    // 55
+      28,   18,    6,    3,            2,   29,    3,   51,    // 63
+       8,    7,    3,   30,            4,   44,    3,    4,    // 71
+       8,    3,   31,   16,            6,    3,    3,   29,    // 79
+       3,   51,    8,    7,            3,   30,    4,   43,    // 87
+       3,    4,    8,    3,           51,    4,    7,    3,    // 95
+       2,    1,    8,   31,            6,    2,    1,    8,    // 103
+       6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -569,12 +561,12 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
     char *inpl = "\
     int Foo()               \n\
     {                       \n\
-        int a = 15 - 4 % 2; \n\
+        readonly int deux = 2; \n\
+        int a = 15 - 4 % deux; \n\
         if (a >= 5) {       \n\
             a -= 2;         \n\
-        } else {            \n\
+        } else              \n\
             a += 3;         \n\
-        }                   \n\
         return a;           \n\
     }";
    
@@ -582,39 +574,40 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowIfThenElse2", scrip);
-    const size_t codesize = 102;
+    size_t const codesize = 108;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,    6,    3,           15,   29,    3,    6,    // 7
-       3,    4,   29,    3,            6,    3,    2,   30,    // 15
-       4,   40,    4,    3,            3,    4,    3,   30,    // 23
-       4,   12,    4,    3,            3,    4,    3,   29,    // 31
-       3,   51,    4,    7,            3,   29,    3,    6,    // 39
-       3,    5,   30,    4,           19,    4,    3,    3,    // 47
-       4,    3,   28,   18,            6,    3,    2,   29,    // 55
-       3,   51,    8,    7,            3,   30,    4,   12,    // 63
-       3,    4,    8,    3,           31,   16,    6,    3,    // 71
-       3,   29,    3,   51,            8,    7,    3,   30,    // 79
-       4,   11,    3,    4,            8,    3,   51,    4,    // 87
-       7,    3,    2,    1,            4,   31,    6,    2,    // 95
-       1,    4,    6,    3,            0,    5,  -999
+      38,    0,    6,    3,            2,   29,    3,    6,    // 7
+       3,   15,   29,    3,            6,    3,    4,   29,    // 15
+       3,   51,   12,    7,            3,   30,    4,   40,    // 23
+       4,    3,    3,    4,            3,   30,    4,   12,    // 31
+       4,    3,    3,    4,            3,   29,    3,   51,    // 39
+       4,    7,    3,   29,            3,    6,    3,    5,    // 47
+      30,    4,   19,    4,            3,    3,    4,    3,    // 55
+      28,   18,    6,    3,            2,   29,    3,   51,    // 63
+       8,    7,    3,   30,            4,   12,    3,    4,    // 71
+       8,    3,   31,   16,            6,    3,    3,   29,    // 79
+       3,   51,    8,    7,            3,   30,    4,   11,    // 87
+       3,    4,    8,    3,           51,    4,    7,    3,    // 95
+       2,    1,    8,   31,            6,    2,    1,    8,    // 103
+       6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -3696,17 +3689,15 @@ TEST_F(Bytecode0, Export) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Export", scrip);
-    size_t const codesize = 51;
+    size_t const codesize = 38;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,   51,    0,           63,    8,    1,    1,    // 7
        8,    6,    3,    3,           51,    4,    8,    3,    // 15
-       6,    3, 1066192077,   29,            3,    6,    3, 1074580685,    // 23
-      30,    4,   56,    4,            3,    3,    4,    3,    // 31
-      51,    8,    8,    3,            6,    3,   -2,    2,    // 39
-       1,    8,   31,    6,            2,    1,    8,    6,    // 47
-       3,    0,    5,  -999
+       6,    3, 1056964608,   51,            8,    8,    3,    6,    // 23
+       3,   -2,    2,    1,            8,   31,    6,    2,    // 31
+       1,    8,    6,    3,            0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3827,7 +3818,7 @@ TEST_F(Bytecode0, ArrayOfPointers2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers2", scrip);
-    const size_t codesize = 147;
+    size_t const codesize = 121;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -3841,31 +3832,28 @@ TEST_F(Bytecode0, ArrayOfPointers2) {
        3,   30,    3,   47,            3,   51,    4,    7,    // 63
        3,    1,    3,    1,            8,    3,   31,  -58,    // 71
        2,    1,    4,    6,            3, 1074580685,   29,    3,    // 79
-       6,    3,    0,   29,            3,    6,    3, 1079194419,    // 87
-      30,    4,   55,    4,            3,    3,    4,    3,    // 95
-      30,    4,   58,    4,            3,    3,    4,    3,    // 103
-      29,    3,   51,  184,           48,    2,   52,   30,    // 111
-       3,    8,    3,    6,            3,    0,   29,    3,    // 119
-      51,  188,   30,    3,           47,    3,   51,  200,    // 127
-       6,    3,   50,   49,            1,    2,    4,    2,    // 135
-       3,    1,   70,   -9,            2,    1,  200,    6,    // 143
-       3,    0,    5,  -999
+      51,  184,   48,    2,           52,   30,    3,    8,    // 87
+       3,    6,    3,    0,           29,    3,   51,  188,    // 95
+      30,    3,   47,    3,           51,  200,    6,    3,    // 103
+      50,   49,    1,    2,            4,    2,    3,    1,    // 111
+      70,   -9,    2,    1,          200,    6,    3,    0,    // 119
+       5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 

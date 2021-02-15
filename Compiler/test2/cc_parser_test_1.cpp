@@ -1332,3 +1332,42 @@ TEST_F(Compile1, ReadonlyParameters1) {
     EXPECT_EQ(std::string::npos, msg.find("parameter list"));
     EXPECT_NE(std::string::npos, msg.find("readonly"));
 }
+TEST_F(Compile1, BinaryCompileTimeEval1) {
+
+    // Checks binary compile time evaluations for integers.
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (4 + 3) / 0;                 \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'7 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (1073741824 + 1073741824);   \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Overflow"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (1073741824 + 1073741823);   \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}

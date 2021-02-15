@@ -112,16 +112,6 @@ HGameFileError game_file_first_open(MainGameSource &src)
     return HGameFileError::None();
 }
 
-void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
-{
-    AlignedStream align_s(in, Common::kAligned_Read);
-    game.ReadFromFile(&align_s);
-    // Discard game messages we do not need here
-    delete [] game.load_messages;
-    game.load_messages = nullptr;
-    game.read_savegame_info(in, data_ver);
-}
-
 HError preload_game_data()
 {
     MainGameSource src;
@@ -129,7 +119,7 @@ HError preload_game_data()
     if (!err)
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
-    PreReadSaveFileInfo(src.InputStream.get(), src.DataVersion);
+    PreReadGameData(game, src.InputStream.get(), src.DataVersion);
     game.compiled_with = src.CompiledWith;
     FixupSaveDirectory(game);
     return HError::None();

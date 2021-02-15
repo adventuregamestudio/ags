@@ -129,12 +129,16 @@ struct LoadedGameEntities
 
 // Tells if the given path (library filename) contains main game file
 bool               IsMainGameLibrary(const String &filename);
+// Scans given directory path for a package containing main game data, returns first found or none.
+String             FindGameData(const String &path);
 // Opens main game file for reading from an arbitrary file
 HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src);
 // Opens main game file for reading from the asset library (uses default asset name)
 HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src);
 // Reads game data, applies necessary conversions to match current format version
 HGameFileError     ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
+// Pre-reads the heading game data, just enough to identify the game and its special file locations
+void               PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);

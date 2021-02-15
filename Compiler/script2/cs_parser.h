@@ -141,6 +141,8 @@ private:
             kCompile_time_literal,   // The value is in 'symbol'
         } location;
         Symbol symbol; // only meaningful für kCompile_time_literal
+
+        inline bool IsCompileTimeLiteral() const { return kCompile_time_literal == location; }
     };
 
     // This ought to replace the #defines in script_common.h

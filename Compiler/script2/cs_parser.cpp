@@ -2261,24 +2261,22 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     }
 
     expression.EatFirstSymbol(); // Eat '-'
-    if (expression.Length() == 1)
-    {
-        expression.StartRead();
-        Symbol const peek = expression.PeekNext();
-        if (_sym.IsConstant(peek) || _sym.IsLiteral(peek))
-        {
-            Symbol lit;
-            ErrorType retval = ReadLiteralOrConst(expression, lit);
-            if (retval < 0) return retval;
-            scope_type = ScT::kGlobal;
-            NegateLiteral(lit);
-            return SetCompileTimeLiteral(lit, vloc, vartype);
-        }
-    };
+    expression.StartRead();
 
     // parse the rest of the expression into AX
     ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
+
+    if (vloc.IsCompileTimeLiteral())
+    {
+        // Do the operation right now
+        ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
+        bool can_do_it_now = false;
+        retval = ParseExpression_CompileTime(kKW_Minus, vartype, vloc_lhs, vloc, can_do_it_now, vloc);
+        if (retval < 0) return retval;
+        if (can_do_it_now)
+            return kERR_None;
+    }
 
     ResultToAX(vartype, vloc);
 
@@ -2296,7 +2294,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     return kERR_None;
 }
 
-// We're parsing an expression that starts with '+' (unary minus)
+// We're parsing an expression that starts with '+' (unary plus)
 AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     if (expression.Length() < 2)
@@ -2308,19 +2306,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, Value
     }
 
     expression.EatFirstSymbol(); // Eat '+'
-    if (expression.Length() == 1)
-    {
-        expression.StartRead();
-        Symbol const peek = expression.PeekNext();
-        if (_sym.IsConstant(peek) || _sym.IsLiteral(peek))
-        {
-            Symbol lit;
-            ErrorType retval = ReadLiteralOrConst(expression, lit);
-            if (retval < 0) return retval;
-            scope_type = ScT::kGlobal;
-            return SetCompileTimeLiteral(lit, vloc, vartype);
-        }
-    };
+    expression.StartRead();
 
     ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
@@ -2336,6 +2322,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, Value
 AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     Symbol const op_sym = expression[0];
+    bool const bitwise_negation = kKW_BitNeg == op_sym;
+
     if (expression.Length() < 2)
     {
         Error(
@@ -2348,8 +2336,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
     ErrorType retval = ParseExpression_Term(after_not, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    ResultToAX(vartype, vloc);
-
     if (!_sym.IsAnyIntegerVartype(vartype))
     {
         Error(
@@ -2358,8 +2344,20 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
             _sym.GetName(vartype));
         return kERR_UserError;
     }
-    
-    bool const bitwise_negation = (0 != _sym.GetName(op_sym).compare("!"));
+
+    if (vloc.IsCompileTimeLiteral())
+    {
+        // Try to do the negation now
+        ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
+        bool can_do_it_now = false;
+        retval = ParseExpression_CompileTime(op_sym, vartype, vloc_lhs, vloc, can_do_it_now, vloc);
+        if (retval < 0) return retval;
+        if (can_do_it_now)
+            return kERR_None;
+    }
+
+    ResultToAX(vartype, vloc);
+
     if (bitwise_negation)
     {
         // There isn't any opcode for this, so calculate -1 - AX
@@ -2372,8 +2370,9 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
         WriteCmd(SCMD_NOTREG, SREG_AX);
     }
 
-    vloc.location = ValueLocation::kAX_is_value;
     vartype = kKW_Int;
+
+    vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
 }
 

@@ -1,7 +1,8 @@
 #ifndef __CC_SYMBOLTABLE_H
 #define __CC_SYMBOLTABLE_H
 
-#include "cs_parser_common.h"   // macro definitions          
+#include "cs_parser_common.h"   
+#include "cs_compile_time.h"
 
 #include <unordered_map>
 #include <map>
@@ -278,7 +279,9 @@ struct SymbolTableEntry : public SymbolTableConstant
     struct OperatorDesc
     {
         CodeCell IntOpcode = kNoOpcode;
+        CompileTimeFunc *IntCTFunc = nullptr;
         CodeCell FloatOpcode = kNoOpcode;
+        CompileTimeFunc *FloatCTFunc = nullptr;
         CodeCell DynOpcode = kNoOpcode;
         CodeCell StringOpcode = kNoOpcode;
         int BinaryPrio = kNoPrio; 
@@ -352,7 +355,10 @@ private:
     // Add the operator symbol to the symbol table at [kw]. 
     // Priorities: lower value = higher prio.
     Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
-   
+
+    // Augment the operator symbol with compile time functions
+    void OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func);
+
     // Add the vartype symbol to the symbol table at [kw].
     Symbol AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype = false);
 
@@ -493,6 +499,9 @@ public:
 
     // Add to the symbol table if not present already; in any case return the symbol
     inline Symbol FindOrAdd(std::string const &name) { Symbol ret = Find(name); return (kKW_NoSymbol != ret ) ? ret : Add(name); }
+
+    // See to it that a literal of the given type is in the symbol table and return the symbol for it
+    Symbol FindOrMakeLiteral(std::string const &name, Vartype vartype, CodeCell value);
 
     // Set/get the position in the source where the item is declared
     inline void SetDeclared(int idx, size_t declared) { entries[idx].Declared = declared; }

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "cc_symboltable.h"
 #include "script/script_common.h"       // macro definitions
-#include "script/cc_error.h"            // error processing
 
 AGS::SymbolTableEntry::~SymbolTableEntry()
 {
@@ -142,27 +142,124 @@ AGS::SymbolTable::SymbolTable()
 
     // Operators
     AddOperator(kKW_And, "&&", 118, kNoPrio, SCMD_AND);
+    // No compile time functions defined here; those are done with special logic.
+
     AddOperator(kKW_BitAnd, "&", 109, kNoPrio, SCMD_BITAND);
+    OperatorCtFunctions(
+        kKW_BitAnd,
+        new CTF_IntToInt(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }),
+        nullptr);
+
     AddOperator(kKW_BitNeg, "~", kNoPrio, 101, kSpecialLogic); // bitwise NOT
+    OperatorCtFunctions(
+        kKW_BitNeg,
+        new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i1; }),
+        nullptr);
+
     AddOperator(kKW_BitOr, "|", 110, kNoPrio, SCMD_BITOR);
+    OperatorCtFunctions(
+        kKW_BitOr,
+        new CTF_IntToInt(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
+        nullptr);
+
     AddOperator(kKW_BitXor, "^", 110, kNoPrio, SCMD_XORREG);
+    OperatorCtFunctions(
+        kKW_BitXor,
+        new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }),
+        nullptr);
+
     AddOperator(kKW_Divide, "/", 103, kNoPrio, SCMD_DIVREG, SCMD_FDIVREG);
+    OperatorCtFunctions(
+        kKW_Divide,
+        new CTF_IntDivide(*this),
+        new CTF_FloatDivide(*this));
+
     AddOperator(kKW_Equal, "==", 112, kNoPrio, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
+    OperatorCtFunctions(
+        kKW_Equal,
+        new CTF_IntToBool(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
+        new CTF_FloatToBool(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
+
     AddOperator(kKW_Greater, ">", 112, kNoPrio, SCMD_GREATER, SCMD_FGREATER);
+    OperatorCtFunctions(
+        kKW_Greater,
+        new CTF_IntToBool(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
+        new CTF_FloatToBool(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
+
     AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, SCMD_GTE, SCMD_FGTE);
+    OperatorCtFunctions(
+        kKW_GreaterEqual,
+        new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
+        new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
+
     AddOperator(kKW_Less, "<", 112, kNoPrio, SCMD_LESSTHAN, SCMD_FLESSTHAN);
+    OperatorCtFunctions(
+        kKW_Less,
+        new CTF_IntToBool(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
+        new CTF_FloatToBool(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
+
     AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, SCMD_LTE, SCMD_FLTE);
+    OperatorCtFunctions(
+        kKW_LessEqual,
+        new CTF_IntToBool(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
+        new CTF_FloatToBool(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
+
     AddOperator(kKW_Minus, "-", 105, 101, SCMD_SUBREG, SCMD_FSUBREG);
+    OperatorCtFunctions(
+        kKW_Minus,
+        new CTF_IntToInt(*this, kKW_Minus, [](CodeCell i1, CodeCell i2) -> CodeCell { return i1 - i2; }),
+        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) -> float { return f1 - f2; }));
+
     AddOperator(kKW_Modulo, "%", 103, kNoPrio, SCMD_MODREG);
+    OperatorCtFunctions(
+        kKW_Modulo,
+        new CTF_IntModulo(*this),
+        nullptr);
+
     AddOperator(kKW_Multiply, "*", 103, kNoPrio, SCMD_MULREG, SCMD_FMULREG);
+    OperatorCtFunctions(
+        kKW_Multiply,
+        new CTF_IntMultiply(*this),
+        new CTF_FloatToFloat(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
+
     AddOperator(kKW_Not, "!", kNoPrio, 101, SCMD_NOTREG); // boolean NOT
+    OperatorCtFunctions(
+        kKW_Not,
+        new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i1; }),
+        nullptr);
+
     AddOperator(kKW_New, "new", kNoPrio, 101, kSpecialLogic);
+    // No compile time functions defined here, will be handled by special logic
+
     AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
+    OperatorCtFunctions(
+        kKW_NotEqual,
+        new CTF_IntToBool(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
+        new CTF_FloatToBool(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
+
     AddOperator(kKW_Or, "||", 119, kNoPrio, SCMD_OR);
+    // No compile time functions defined here; those are handled with special logic.
+
     AddOperator(kKW_Plus, "+", 105, 101, SCMD_ADDREG, SCMD_FADDREG);
+    OperatorCtFunctions(
+        kKW_Plus,
+        new CTF_IntPlus(*this),
+        new CTF_FloatToFloat(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
+        
     AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, SCMD_SHIFTLEFT);
+    OperatorCtFunctions(
+        kKW_ShiftLeft,
+        new CTF_IntShiftLeft(*this),
+        nullptr);
+
     AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, SCMD_SHIFTRIGHT);
+    OperatorCtFunctions(
+        kKW_ShiftRight,
+        new CTF_IntShiftRight(*this),
+        nullptr);
+
     AddOperator(kKW_Tern, "?", 120, kNoPrio, kSpecialLogic);    // note, operator and keyword
+    // No compile time functions defined here; those are handled with special logic.
 
     // Assignments
     AddAssign(kKW_Assign, "=", 120, kSpecialLogic, kSpecialLogic, kSpecialLogic, kSpecialLogic);
@@ -575,6 +672,19 @@ AGS::Symbol AGS::SymbolTable::Add(std::string const &name)
     return idx_of_new_entry;
 }
 
+AGS::Symbol AGS::SymbolTable::FindOrMakeLiteral(std::string const &name, Vartype vartype, CodeCell value)
+{
+    Symbol lit = Find(name);
+    if (kKW_NoSymbol == lit)
+    {
+        lit = Add(name);
+        MakeEntryLiteral(lit);
+        entries[lit].LiteralD->Vartype = vartype;
+        entries[lit].LiteralD->Value = value;
+    }
+    return lit;
+}
+
 AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name)
 {
     SymbolTableEntry &entry = entries[kw];
@@ -650,6 +760,13 @@ AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name
 
     _findCache[name] = kw;
     return kw;
+}
+
+void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, CompileTimeFunc * int_ct_func, CompileTimeFunc * float_ct_func)
+{
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.OperatorD->IntCTFunc = int_ct_func;
+    entry.OperatorD->FloatCTFunc = float_ct_func;
 }
 
 AGS::Symbol AGS::SymbolTable::AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype)

@@ -2485,7 +2485,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     ForwardJump jumpdest_after_term2(_scrip);
     ForwardJump jumpdest_to_term3(_scrip);
 
-    int const start_of_term1 = _scrip.codesize;
+    RestorePoint start_of_term1(_scrip);
+
 
     // First term of ternary (i.e, the test of the ternary)
     ErrorType retval = ParseExpression_Term(term1, vloc_term1, scope_type_term1, vartype_term1);
@@ -2516,12 +2517,12 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     bool term1_has_been_ripped_out = false;
     if (term1_known)
     {   // Don't need to do the test at runtime
-        _scrip.codesize = start_of_term1; 
+        start_of_term1.Restore();
         term1_has_been_ripped_out = true;
     }
 
     // Second term of the ternary
-    int const start_of_term2 = _scrip.codesize;
+    RestorePoint start_of_term2(_scrip);
     retval = ParseExpression_Ternary_Term2(
         vloc_term1, scope_type_term1, vartype_term1,
         term1_has_been_ripped_out,
@@ -2530,7 +2531,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
 
     // Needs to be here so that the jump after term2 is ripped out whenever
     // term3 is ripped out so there isn't any term that would need to be jumped over.
-    int const start_of_term3 = _scrip.codesize;
+    RestorePoint start_of_term3 (_scrip);
     if (second_term_exists)
     {
         WriteCmd(SCMD_JMP, kDestinationPlaceholder);
@@ -2540,7 +2541,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     bool term2_has_been_ripped_out = false;
     if (term1_known && !term1_value)
     {
-        _scrip.codesize = start_of_term2; // Don't need term2, it will never be evaluated
+        start_of_term2.Restore(); // Don't need term2, it will never be evaluated
         term2_has_been_ripped_out = true;
     }
 
@@ -2556,7 +2557,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     bool term3_has_been_ripped_out = false;
     if (term1_known && term1_value)
     {
-        _scrip.codesize = start_of_term3; // Don't need term3, will never be evaluated
+         start_of_term3.Restore(); // Don't need term3, will never be evaluated
         term3_has_been_ripped_out = true;
     }
 
@@ -2585,13 +2586,13 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
     {
         if (term1_value && ValueLocation::kCompile_time_literal == vloc_term2.location)
         {
-            _scrip.codesize = start_of_term1; // Don't need the ternary at all
+            start_of_term1.Restore(); // Don't need the ternary at all
             vloc = vloc_term2;
             return kERR_None;
         }
         if (!term1_value && ValueLocation::kCompile_time_literal == vloc_term3.location)
         {
-            _scrip.codesize = start_of_term1; // Don't need the ternary at all
+            start_of_term1.Restore(); // Don't need the ternary at all
             vloc = vloc_term3;
             return kERR_None;
         }

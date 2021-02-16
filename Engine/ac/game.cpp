@@ -1126,6 +1126,20 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     return true;
 }
 
+
+bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
+{
+    MainGameSource src;
+    HGameFileError err = OpenMainGameFileFromDefaultAsset(src);
+    if (!err)
+        return false;
+    GameSetupStruct g;
+    PreReadGameData(g, src.InputStream.get(), src.DataVersion);
+    if (!guid.IsEmpty())
+        return guid.CompareNoCase(g.guid);
+    return legacy_id == g.uniqueid;
+}
+
 HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
 {
     data_overwritten = false;
@@ -1147,14 +1161,27 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
 
     // saved with different game file
-    // if savegame is modern enough then test game GUIDs, if it's old then do the stupid old-style filename test
-    // TODO: remove filename test after deprecating old saves;
-    if (!desc.GameGuid.IsEmpty() && desc.GameGuid.Compare(game.guid) != 0 ||
-        (desc.GameGuid.IsEmpty() && desc.LegacyID != 0) && (desc.LegacyID != game.uniqueid) ||
-        (desc.GameGuid.IsEmpty() && desc.LegacyID == 0) && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
+    // if savegame is modern enough then test game GUIDs
+    if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
     {
-        // Try to find wanted game's executable
-        // TODO: if GUID/uniqueid is available in the save, scan available game files for their IDs also (see preload_game_data)!
+        if (desc.GameGuid.Compare(game.guid) != 0 && desc.LegacyID != game.uniqueid)
+        {
+            // Try to find wanted game's data using game id
+            String gamefile = FindGameData(ResPaths.DataDir,
+                [&desc](const String &filepath) { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
+            if (Common::File::TestReadFile(gamefile))
+            {
+                RunAGSGame(desc.MainDataFilename, 0, 0);
+                load_new_game_restore = slotNumber;
+                return HSaveError::None();
+            }
+            return new SavegameError(kSvgErr_GameGuidMismatch);
+        }
+    }
+    // if it's old then do the stupid old-style filename test
+    // TODO: remove filename test after deprecating old saves
+    else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
+    {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefile))
         {
@@ -1163,8 +1190,6 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             return HSaveError::None();
         }
         // if it does not exist, continue loading savedgame in current game, and pray for the best
-        // TODO: actually error on this instead of mere warning, after deprecating old save support,
-        // as new save should be enough to justify game match with GUIDs (or opposite).
         Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s' (title: '%s'), but it cannot be found in the current directory. Trying to restore in the running game instead.",
             path.GetCStr(), desc.MainDataFilename.GetCStr(), desc.GameTitle.GetCStr());
     }

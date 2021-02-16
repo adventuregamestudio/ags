@@ -2330,3 +2330,21 @@ TEST_F(Bytecode1, DynarrayLength2) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, IncrementInExpressions) {
+
+    char inpl[] = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int I, J;                       \n\
+                                            \n\
+            if (++I == (J)--)               \n\
+                --J;                        \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("IncrementInExpressions", scrip);
+}

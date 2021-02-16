@@ -3812,29 +3812,29 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
 // Stop when encountering a 0
 void AGS::Parser::AccessData_StrCpy()
 {
+    BackwardJumpDest loop_start(_scrip);
+    ForwardJump out_of_loop(_scrip);
+
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
     WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
     WriteCmd(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
-    CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
+    loop_start.Set();   // Label LOOP_START
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
     WriteCmd(SCMD_MEMREAD, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
     WriteCmd(SCMD_MEMWRITE, SREG_AX);
     WriteCmd(SCMD_JZ, kDestinationPlaceholder);  // if (AX == 0) jumpto LOOP_END
-    CodeLoc const jumpout_pos = _scrip.codesize - 1;
+    out_of_loop.AddParam();
     WriteCmd(SCMD_ADD, SREG_BX, 1); // BX++, CX++, DX--
     WriteCmd(SCMD_ADD, SREG_CX, 1);
     WriteCmd(SCMD_SUB, SREG_DX, 1);
     WriteCmd(SCMD_REGTOREG, SREG_DX, SREG_AX); // if (DX != 0) jumpto LOOP_START
-    WriteCmd(
-        SCMD_JNZ,
-        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
     WriteCmd(SCMD_ADD, SREG_CX, 1); // Force a 0-terminated dest string
     WriteCmd(SCMD_REGTOREG, SREG_CX, SREG_MAR);
     WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     WriteCmd(SCMD_MEMWRITE, SREG_AX);
-    CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
-    _scrip.code[jumpout_pos] = ccCompiledScript::RelativeJumpDist(jumpout_pos, loop_end);
+    out_of_loop.Patch(_src.GetLineno());
 }
 
 // We are typically in an assignment LHS = RHS; the RHS has already been

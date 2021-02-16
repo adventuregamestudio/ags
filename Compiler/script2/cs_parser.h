@@ -444,7 +444,7 @@ private:
     // We accept a default value clause like "= 15" if it follows at this point.
     // If there isn't any default, kKW_NoSymbol is returned.
     // Otherwise, a symbol is returned that is a literal.
-    ErrorType ParseParamlist_Param_DefaultValue(Vartype param_type, Symbol &default_value);
+    ErrorType ParseParamlist_Param_DefaultValue(Vartype param_vartype, Symbol &default_value);
 
     // process a dynamic array declaration, when present
     // We have accepted something like "int foo" and we might expect a trailing "[]" here

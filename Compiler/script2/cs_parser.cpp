@@ -978,7 +978,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfSwitch()
 }
 
 // Must return a symbol that is a literal.
-AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type, Symbol &default_value)
+AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vartype, Symbol &default_value)
 {
     if (kKW_Assign != _src.PeekNext())
     {
@@ -991,7 +991,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type
     Symbol default_symbol = _src.GetNext(); 
     bool is_negative = false;
     if (kKW_Minus == default_symbol &&
-        (kKW_Float == param_type || _sym.IsAnyIntegerVartype(param_type)))
+        (kKW_Float == param_vartype || _sym.IsAnyIntegerVartype(param_vartype)))
     {
         is_negative = true;
         default_symbol = _src.GetNext();
@@ -1000,7 +1000,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type
     while (_sym.IsConstant(default_symbol))
         default_symbol = _sym[default_symbol].ConstantD->ValueSym;
 
-    if (_sym.IsDynVartype(param_type))
+    if (_sym.IsDynVartype(param_vartype))
     {
         default_value = kKW_Null;
         if (kKW_Null == default_symbol)
@@ -1014,7 +1014,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type
         return kERR_UserError;
     }
 
-    if (_sym.IsAnyStringVartype(param_type))
+    if (_sym.IsAnyStringVartype(param_vartype))
     {
         default_value = default_symbol;
         if (_sym.Find("0") == default_symbol)
@@ -1031,7 +1031,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type
         }
     }   
 
-    if (_sym.IsAnyIntegerVartype(param_type))
+    if (_sym.IsAnyIntegerVartype(param_vartype))
     {
         if (!_sym.IsLiteral(default_symbol) || kKW_Int != _sym[default_symbol].LiteralD->Vartype)
         {
@@ -1046,7 +1046,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_type
         return kERR_None;
     }
 
-    if (kKW_Float == param_type)
+    if (kKW_Float == param_vartype)
     {
         if (_sym.Find("0") == default_symbol)
         {

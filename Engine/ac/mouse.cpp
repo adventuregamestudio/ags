@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/mouse.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
@@ -33,6 +32,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -453,22 +453,24 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 
     int wdd = _stream->ReadInt16();
     int htt = _stream->ReadInt16();
-    // update the stored width/height
-    _sprInfos[index].Width = wdd;
-    _sprInfos[index].Height = htt;
-
-    _spriteData[index].Image = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
-    if (_spriteData[index].Image == nullptr)
+    Bitmap *image = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
+    if (image == nullptr)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn, "LoadSprite: failed to init sprite %d, remapping to sprite 0.", index);
         RemapSpriteToSprite0(index);
         return 0;
     }
 
-    Bitmap *image = _spriteData[index].Image;
     if (this->_compressed) 
     {
-        _stream->ReadInt32(); // skip data size
+        size_t data_size = _stream->ReadInt32();
+        if (data_size == 0)
+        {
+            Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn, "LoadSprite: bad compressed data for sprite %d, remapping to sprite 0.", index);
+            delete image;
+            RemapSpriteToSprite0(index);
+            return 0;
+        }
         UnCompressSprite(image, _stream.get());
     }
     else
@@ -489,6 +491,11 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
                 _stream->ReadArrayOfInt32((int32_t*)&image->GetScanLineForWriting(hh)[0], wdd);
         }
     }
+
+    // update the stored width/height
+    _sprInfos[index].Width = wdd;
+    _sprInfos[index].Height = htt;
+    _spriteData[index].Image = image;
 
     _lastLoad = load_index;
 
@@ -610,7 +617,7 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
     spriteheights.resize(numsprits);
     spriteoffs.resize(numsprits);
 
-    const int memBufferSize = 100000;
+    const size_t memBufferSize = 100000;
     char *memBuffer = new char[memBufferSize];
 
     for (sprkey_t i = 0; i <= lastslot; ++i)
@@ -635,13 +642,13 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
 
             if (compressOutput)
             {
-                size_t lenloc = output->GetPosition();
+                soff_t lenloc = output->GetPosition();
                 // write some space for the length data
                 output->WriteInt32(0);
 
                 CompressSprite(image, output);
 
-                size_t fileSizeSoFar = output->GetPosition();
+                soff_t fileSizeSoFar = output->GetPosition();
                 // write the length of the compressed data
                 output->Seek(lenloc, kSeekBegin);
                 output->WriteInt32((fileSizeSoFar - lenloc) - 4);
@@ -693,11 +700,13 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
         output->WriteInt16(width);
         output->WriteInt16(height);
 
-        int sizeToCopy;
+        size_t sizeToCopy;
         if (this->_compressed)
         {
             sizeToCopy = _stream->ReadInt32();
             output->WriteInt32(sizeToCopy);
+            if (sizeToCopy == 0)
+                continue; // bad data?
         }
         else
         {

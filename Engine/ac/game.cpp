@@ -55,9 +55,11 @@
 #include "game/savegame.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "gui/guibutton.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -1121,6 +1123,20 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     return true;
 }
 
+
+bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
+{
+    MainGameSource src;
+    HGameFileError err = OpenMainGameFileFromDefaultAsset(src);
+    if (!err)
+        return false;
+    GameSetupStruct g;
+    PreReadGameData(g, src.InputStream.get(), src.DataVersion);
+    if (!guid.IsEmpty())
+        return guid.CompareNoCase(g.guid);
+    return legacy_id == g.uniqueid;
+}
+
 HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
 {
     data_overwritten = false;
@@ -1142,14 +1158,27 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
 
     // saved with different game file
-    // if savegame is modern enough then test game GUIDs, if it's old then do the stupid old-style filename test
-    // TODO: remove filename test after deprecating old saves;
-    // pre-AGS 3.0 games don't have GUID, but they have "uniqueid" field, we only need to add this to saves.
-    if (!desc.GameGuid.IsEmpty() && desc.GameGuid.Compare(game.guid) != 0 ||
-        desc.GameGuid.IsEmpty() && Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
+    // if savegame is modern enough then test game GUIDs
+    if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
     {
-        // Try to find wanted game's executable
-        // TODO: if GUID/uniqueid is available in the save, scan available game files for their IDs also (see preload_game_data)!
+        if (desc.GameGuid.Compare(game.guid) != 0 && desc.LegacyID != game.uniqueid)
+        {
+            // Try to find wanted game's data using game id
+            String gamefile = FindGameData(ResPaths.DataDir,
+                [&desc](const String &filepath) { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
+            if (Common::File::TestReadFile(gamefile))
+            {
+                RunAGSGame(desc.MainDataFilename, 0, 0);
+                load_new_game_restore = slotNumber;
+                return HSaveError::None();
+            }
+            return new SavegameError(kSvgErr_GameGuidMismatch);
+        }
+    }
+    // if it's old then do the stupid old-style filename test
+    // TODO: remove filename test after deprecating old saves
+    else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
+    {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefile))
         {
@@ -1158,8 +1187,6 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             return HSaveError::None();
         }
         // if it does not exist, continue loading savedgame in current game, and pray for the best
-        // TODO: actually error on this instead of mere warning, after deprecating old save support,
-        // as new save should be enough to justify game match with GUIDs (or opposite).
         Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s' (title: '%s'), but it cannot be found in the current directory. Trying to restore in the running game instead.",
             path.GetCStr(), desc.MainDataFilename.GetCStr(), desc.GameTitle.GetCStr());
     }
@@ -1532,6 +1559,104 @@ bool unserialize_audio_script_object(int index, const char *objectType, const ch
         return false;
     }
     return true;
+}
+
+void game_sprite_updated(int sprnum)
+{
+    // Check if this sprite is assigned to any game object, and update them if necessary
+    // room objects cache
+    if (croom != nullptr)
+    {
+        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
+        {
+            if (objs[i].num == sprnum)
+                objcache[i].sppic = -1;
+        }
+    }
+    // character cache
+    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
+    {
+        if (charcache[i].sppic == sprnum)
+            charcache[i].sppic = -1;
+    }
+    // gui backgrounds
+    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    {
+        if (guis[i].BgImage == sprnum)
+        {
+            guis_need_update = 1;
+            break; // setting gui update flag once is enough
+        }
+    }
+    // gui buttons
+    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    {
+        if (guibuts[i].CurrentImage == sprnum)
+        {
+            guis_need_update = 1;
+            break; // setting gui update flag once is enough
+        }
+    }
+}
+
+void game_sprite_deleted(int sprnum)
+{
+    // Check if this sprite is assigned to any game object, and update them if necessary
+    // room objects and their cache
+    if (croom != nullptr)
+    {
+        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
+        {
+            if (objs[i].num == sprnum)
+            {
+                objs[i].num = 0;
+                objcache[i].sppic = -1;
+            }
+        }
+    }
+    // character cache
+    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
+    {
+        if (charcache[i].sppic == sprnum)
+            charcache[i].sppic = -1;
+    }
+    // gui backgrounds
+    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    {
+        if (guis[i].BgImage == sprnum)
+        {
+            guis[i].BgImage = 0;
+            guis_need_update = 1;
+        }
+    }
+    // gui buttons
+    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    {
+        if (guibuts[i].Image == sprnum)
+            guibuts[i].Image = 0;
+        if (guibuts[i].MouseOverImage == sprnum)
+            guibuts[i].MouseOverImage = 0;
+        if (guibuts[i].PushedImage == sprnum)
+            guibuts[i].PushedImage = 0;
+
+        if (guibuts[i].CurrentImage == sprnum)
+        {
+            guibuts[i].CurrentImage = 0;
+            guis_need_update = 1;
+        }
+    }
+    // views
+    for (size_t v = 0; v < (size_t)game.numviews; ++v)
+    {
+        for (size_t l = 0; l < (size_t)views[v].numLoops; ++l)
+        {
+            for (size_t f = 0; f < (size_t)views[v].loops[l].numFrames; ++f)
+            {
+                if (views[v].loops[l].frames[f].pic == sprnum)
+                    views[v].loops[l].frames[f].pic = 0;
+            }
+        }
+    }
 }
 
 //=============================================================================

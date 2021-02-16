@@ -76,30 +76,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     {
         if (sds->modified)
         {
-            int tt;
-            // force a refresh of any cached object or character images
-            if (croom != nullptr) 
-            {
-                for (tt = 0; tt < croom->numobj; tt++) 
-                {
-                    if (objs[tt].num == sds->dynamicSpriteNumber)
-                        objcache[tt].sppic = -31999;
-                }
-            }
-            for (tt = 0; tt < game.numcharacters; tt++) 
-            {
-                if (charcache[tt].sppic == sds->dynamicSpriteNumber)
-                    charcache[tt].sppic = -31999;
-            }
-            for (tt = 0; tt < game.numgui; tt++) 
-            {
-                if ((guis[tt].BgImage == sds->dynamicSpriteNumber) &&
-                    (guis[tt].IsDisplayed()))
-                {
-                    guis_need_update = 1;
-                    break;
-                }
-            }
+            game_sprite_updated(sds->dynamicSpriteNumber);
         }
 
         sds->dynamicSpriteNumber = -1;

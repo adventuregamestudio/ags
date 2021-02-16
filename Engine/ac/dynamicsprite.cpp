@@ -11,13 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <math.h>
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
 #include "ac/charactercache.h"
 #include "ac/draw.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI
@@ -113,6 +114,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
@@ -135,6 +137,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite) {
@@ -165,6 +168,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     }
 
     BitmapHelper::CopyTransparency(target, source, dst_has_alpha, src_has_alpha);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y) 
@@ -182,6 +186,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int height) {
@@ -201,6 +206,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height) {
@@ -240,6 +246,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance) 
@@ -252,6 +259,7 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
     delete source;
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    game_sprite_updated(sds->slot);
 }
 
 int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
@@ -438,7 +446,6 @@ void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 }
 
 void free_dynamic_sprite (int gotSlot) {
-  int tt;
 
   if ((gotSlot < 0) || (gotSlot >= spriteset.GetSpriteSlotCount()))
     quit("!FreeDynamicSprite: invalid slot number");
@@ -452,34 +459,7 @@ void free_dynamic_sprite (int gotSlot) {
   game.SpriteInfos[gotSlot].Width = 0;
   game.SpriteInfos[gotSlot].Height = 0;
 
-  // ensure it isn't still on any GUI buttons
-  for (tt = 0; tt < numguibuts; tt++) {
-    if (guibuts[tt].IsDeleted())
-      continue;
-    if (guibuts[tt].Image == gotSlot)
-      guibuts[tt].Image = 0;
-    if (guibuts[tt].CurrentImage == gotSlot)
-      guibuts[tt].CurrentImage = 0;
-    if (guibuts[tt].MouseOverImage == gotSlot)
-      guibuts[tt].MouseOverImage = 0;
-    if (guibuts[tt].PushedImage == gotSlot)
-      guibuts[tt].PushedImage = 0;
-  }
-
-  // force refresh of any object caches using the sprite
-  if (croom != nullptr) 
-  {
-    for (tt = 0; tt < croom->numobj; tt++) 
-    {
-      if (objs[tt].num == gotSlot)
-      {
-        objs[tt].num = 0;
-        objcache[tt].sppic = -1;
-      }
-      else if (objcache[tt].sppic == gotSlot)
-        objcache[tt].sppic = -1;
-    }
-  }
+  game_sprite_deleted(gotSlot);
 }
 
 //=============================================================================

@@ -68,7 +68,7 @@ RUN curl -fLOJ "https://dl.google.com/android/repository/tools_r${BUILD_TOOLS_AN
   rm tools_r${BUILD_TOOLS_ANT_VERSION}-linux.zip
 
 # Get Ant
-ARG ANT_VERSION=1.10.7
+ARG ANT_VERSION=1.10.9
 RUN curl -fLSs "https://www.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz" | \
   tar -f - -xvzC /opt
 

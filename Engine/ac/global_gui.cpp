@@ -11,11 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/gui.h"

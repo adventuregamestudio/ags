@@ -126,6 +126,45 @@ bool IsMainGameLibrary(const String &filename)
     return false;
 }
 
+// Scans given directory for game data libraries, returns first found or none.
+// Tracks files with standard AGS package names:
+// - *.ags is a standart cross-platform file pattern for AGS games,
+// - ac2game.dat is a legacy file name for very old games,
+// - *.exe is a MS Win executable; it is included to this case because
+//   users often run AGS ports with Windows versions of games.
+String FindGameData(const String &path, std::function<bool(const String&)> fn_testfile)
+{
+    al_ffblk ff;
+    String test_file;
+    String pattern = path;
+    pattern.Append("/*");
+
+    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+        return "";
+    do
+    {
+        test_file = ff.name;
+        if (test_file.CompareRightNoCase(".ags") == 0 ||
+            test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareRightNoCase(".exe") == 0)
+        {
+            test_file = Path::ConcatPaths(path, test_file);
+            if (IsMainGameLibrary(test_file) && fn_testfile(path))
+            {
+                al_findclose(&ff);
+                return test_file;
+            }
+        }
+    } while (al_findnext(&ff) == 0);
+    al_findclose(&ff);
+    return "";
+}
+
+String FindGameData(const String &path)
+{
+    return FindGameData(path, [](const String&){ return true; });
+}
+
 // Begins reading main game file from a generic stream
 HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
@@ -669,6 +708,18 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     }
     FixupSaveDirectory(game);
     return HGameFileError::None();
+}
+
+void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver)
+{
+    {
+        AlignedStream align_s(in, Common::kAligned_Read);
+        game.ReadFromFile(&align_s);
+    }
+    // Discard game messages we do not need here
+    delete[] game.load_messages;
+    game.load_messages = nullptr;
+    game.read_savegame_info(in, data_ver);
 }
 
 } // namespace Common

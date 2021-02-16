@@ -1,5 +1,11 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 8, February 2021
+
+Common:
+ - Fixed compressed sprite file was not built properly if exceeded 2 GB.
+
+
 VERSION 3.5.0 - Patch 7, January 2021
 
 Editor:

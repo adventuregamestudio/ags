@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_region.h"
 #include "ac/common.h"
 #include "ac/game_version.h"
+#include "ac/gamestate.h"
 #include "ac/region.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"

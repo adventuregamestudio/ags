@@ -11,11 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_walkablearea.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/draw.h"
+#include "ac/gamestate.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"

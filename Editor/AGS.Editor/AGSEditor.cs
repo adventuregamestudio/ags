@@ -100,6 +100,7 @@ namespace AGS.Editor
          * 1: 3.0.2.1
          * 2: 3.4.0.1    - WorkspaceState section
          * 3: 3.5.0.11
+         * 4: 3.5.1 (?)
         */
         public const int LATEST_USER_DATA_XML_VERSION_INDEX = 4;
         public const string AUDIO_VOX_FILE_NAME = "audio.vox";

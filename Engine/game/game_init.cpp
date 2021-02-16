@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialog.h"
@@ -35,6 +34,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/exports.h"

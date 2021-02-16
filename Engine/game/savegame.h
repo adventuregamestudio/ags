@@ -52,6 +52,7 @@ enum SavegameVersion
     kSvgVersion_Cmp_64bit = 10,
     kSvgVersion_350_final = 11,
     kSvgVersion_350_final2= 12,
+    kSvgVersion_351       = 13,
     kSvgVersion_399       = 20,
     kSvgVersion_Current   = kSvgVersion_399,
     kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
@@ -130,6 +131,8 @@ struct SavegameDescription
     Version             EngineVersion;
     // Guid of the game which made this save
     String              GameGuid;
+    // Legacy uniqueid of the game, for use in older games with no GUID
+    int                 LegacyID;
     // Title of the game which made this save
     String              GameTitle;
     // Name of the main data file used; this is needed to properly

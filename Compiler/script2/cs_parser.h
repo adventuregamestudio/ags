@@ -148,61 +148,6 @@ private:
         kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
     };
 
-    // Remember a code generation point.
-    // If at some later time, Restore() is called,
-    // then all bytecode that has been generated in the meantime is discarded.
-    // This is useful if code is generated and it turns out later that it was in vain.
-    // Currently only undoes the bytecode, not the fixups.
-    class RestorePoint
-    {
-    private:
-        ccCompiledScript &_scrip;
-        CodeLoc _restoreLoc;
-        size_t  _lastEmittedSrcLineno;
-    public:
-        RestorePoint(ccCompiledScript &scrip);
-        void Restore();
-        inline bool IsEmpty() const { return _scrip.codesize == _restoreLoc; }
-    };
-
-    // Remember a point of the bytecode that is going to be the destination
-    // of a backward jump. When at some later time, WriteJump() is called,
-    // then the appropriate instruction(s) for a backward jump are generated.
-    // This may entail a SCMD_LINENUM command.
-    // This may make the last emitted src line invalid.
-    class BackwardJumpDest
-    {
-    private:
-        ccCompiledScript &_scrip;
-        CodeLoc _dest;
-        size_t  _lastEmittedSrcLineno;
-    public:
-        BackwardJumpDest(ccCompiledScript &scrip);
-        // Set the destination to the location given; default to current location in code
-        void Set(CodeLoc cl = -1);
-        inline CodeLoc Get() const { return _dest; }
-        // Write a jump to the code location that I represent
-        void WriteJump(CodeCell jump_op, size_t cur_line);
-    };
-
-    // A storage for parameters of forward jumps. When at some later time,
-    // Patch() is called, then all the jumps will be patched to point to the current
-    // point in code. If appropriate, the last emitted src line will be invalidated, too.
-    class ForwardJump
-    {
-    private:
-        ccCompiledScript &_scrip;
-        std::vector<CodeLoc> _jumpDestParamLocs;
-        size_t  _lastEmittedSrcLineno;
-
-    public:
-        ForwardJump(ccCompiledScript &scrip);
-        // Add the parameter of a forward jump 
-        void AddParam(int offset = -1);
-        // Patch all the forward jump parameters to point to _scrip.codesize
-        void Patch(size_t cur_line);
-    };
-
     // The stack of nesting compound statements 
     class NestingStack
     {

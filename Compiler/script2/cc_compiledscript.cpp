@@ -316,3 +316,65 @@ void AGS::ccCompiledScript::FreeExtra()
     ImportIdx.clear();
     ExportIdx.clear();
 }
+
+void AGS::RestorePoint::Restore()
+{
+    if (_scrip.codesize <= static_cast<int>(_rememberedCodeLocation))
+        return; // all done
+
+    _scrip.codesize = _rememberedCodeLocation;
+
+    while (_scrip.numfixups > 0)
+    {
+        size_t const last_fixup = _scrip.numfixups - 1;
+        if (_scrip.fixups[last_fixup] < static_cast<int>(_rememberedCodeLocation))
+            return;
+        _scrip.fixups[last_fixup] = 0;
+        _scrip.fixuptypes[last_fixup] = '\0';
+        --_scrip.numfixups;
+    }
+}
+
+void AGS::ForwardJump::AddParam(int offset)
+{
+    // If the current value for the last emitted lineno doesn't match the
+    // saved value then the saved value won't work for all jumps so it
+    // must be set to invalid.
+    if (_jumpDestParamLocs.empty())
+        _lastEmittedSrcLineno = _scrip.LastEmittedLineno;
+    else if (_lastEmittedSrcLineno != _scrip.LastEmittedLineno)
+        _lastEmittedSrcLineno = INT_MAX;
+    _jumpDestParamLocs.push_back(_scrip.codesize + offset);
+}
+
+void AGS::ForwardJump::Patch(size_t cur_line)
+{
+    if (!_jumpDestParamLocs.empty())
+    {
+        // There are two ways of reaching the bytecode that will be emitted next:
+        // through the jump or from the previous bytecode command. If the source line
+        // of both isn't identical then a line opcode must be emitted next.
+        if (cur_line != _scrip.LastEmittedLineno || cur_line != _lastEmittedSrcLineno)
+            _scrip.LastEmittedLineno = INT_MAX;
+    }
+    for (auto loc = _jumpDestParamLocs.cbegin(); loc != _jumpDestParamLocs.cend(); loc++)
+        _scrip.code[*loc] = _scrip.RelativeJumpDist(*loc, _scrip.codesize);
+    _jumpDestParamLocs.clear();
+}
+
+void AGS::BackwardJumpDest::Set(CodeLoc cl)
+{
+    _dest = (cl >= 0) ? cl : _scrip.codesize;
+    _lastEmittedSrcLineno = _scrip.LastEmittedLineno;
+}
+
+void AGS::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
+{
+    if (SCMD_LINENUM != _scrip.code[_dest] &&
+        _scrip.LastEmittedLineno != _lastEmittedSrcLineno)
+    {
+        _scrip.WriteLineno(cur_line);
+    }
+    _scrip.WriteCmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
+}
+

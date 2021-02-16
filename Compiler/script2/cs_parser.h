@@ -550,7 +550,7 @@ private:
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return in 'possible' whether this is possible.
-    ErrorType ParseExpression_CompileTime(Symbol op_sym, Vartype vartype, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc);
+    ErrorType ParseExpression_CompileTime(Symbol op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc);
 
     // Check the vartype following "new"
     ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);

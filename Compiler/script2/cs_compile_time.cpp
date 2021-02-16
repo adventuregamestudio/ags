@@ -94,7 +94,7 @@ AGS::ErrorType AGS::CTF_IntMinus::Evaluate(MessageHandler &mh, std::string const
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (((i1 > 0 && i2 < 0) || (i1 < 0 && i2 > 0)) &&
-        (std::numeric_limits<CodeCell>::max() - abs(i1) > abs(i2)))
+        (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
     {
         Error(mh, section, line,
             "Overflow when calculating '%s - %s'",
@@ -175,7 +175,7 @@ AGS::ErrorType AGS::CTF_IntShiftLeft::Evaluate(MessageHandler &mh, std::string c
 
     // The Engine calculates shifts by using signed values, so overflow is possible. 
     size_t const digitnum = std::numeric_limits<CodeCell>::digits - 1;
-    if (0 != i1 >> (digitnum - i2))
+    if (0 != abs(i1) >> (digitnum - i2))
     {
         Error(mh, section, line,
             "Overflow when calculating '%s << %s'",

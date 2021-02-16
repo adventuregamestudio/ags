@@ -153,7 +153,7 @@ AGS::SymbolTable::SymbolTable()
     AddOperator(kKW_BitNeg, "~", kNoPrio, 101, kSpecialLogic); // bitwise NOT
     OperatorCtFunctions(
         kKW_BitNeg,
-        new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i1; }),
+        new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i2; }),
         nullptr);
 
     AddOperator(kKW_BitOr, "|", 110, kNoPrio, SCMD_BITOR);
@@ -207,8 +207,8 @@ AGS::SymbolTable::SymbolTable()
     AddOperator(kKW_Minus, "-", 105, 101, SCMD_SUBREG, SCMD_FSUBREG);
     OperatorCtFunctions(
         kKW_Minus,
-        new CTF_IntToInt(*this, kKW_Minus, [](CodeCell i1, CodeCell i2) -> CodeCell { return i1 - i2; }),
-        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) -> float { return f1 - f2; }));
+        new CTF_IntMinus(*this),
+        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
 
     AddOperator(kKW_Modulo, "%", 103, kNoPrio, SCMD_MODREG);
     OperatorCtFunctions(
@@ -225,7 +225,7 @@ AGS::SymbolTable::SymbolTable()
     AddOperator(kKW_Not, "!", kNoPrio, 101, SCMD_NOTREG); // boolean NOT
     OperatorCtFunctions(
         kKW_Not,
-        new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i1; }),
+        new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i2; }),
         nullptr);
 
     AddOperator(kKW_New, "new", kNoPrio, 101, kSpecialLogic);
@@ -322,10 +322,22 @@ AGS::SymbolTable::SymbolTable()
 
     // Add some additional symbols that the compiler or scanner will need
     {
-        Symbol const zero_sym = Add("0");
-        MakeEntryLiteral(zero_sym);
-        entries[zero_sym].LiteralD->Value = 0u;
-        entries[zero_sym].LiteralD->Vartype = kKW_Int;
+        Symbol const int_zero_sym = Add("0");
+        MakeEntryLiteral(int_zero_sym);
+        entries[int_zero_sym].LiteralD->Value = 0;
+        entries[int_zero_sym].LiteralD->Vartype = kKW_Int;
+    }
+    {
+        Symbol const one_sym = Add("1");
+        MakeEntryLiteral(one_sym);
+        entries[one_sym].LiteralD->Value = 1;
+        entries[one_sym].LiteralD->Vartype = kKW_Int;
+    }
+    {
+        Symbol const float_zero_sym = Add("0.0");
+        MakeEntryLiteral(float_zero_sym);
+        entries[float_zero_sym].LiteralD->Value = 0;
+        entries[float_zero_sym].LiteralD->Vartype = kKW_Float;
     }
     _lastAllocated = VartypeWith(VTT::kConst, kKW_String);
 }

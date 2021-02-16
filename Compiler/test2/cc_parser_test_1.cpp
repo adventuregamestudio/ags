@@ -1371,3 +1371,401 @@ TEST_F(Compile1, BinaryCompileTimeEval1) {
     msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST_F(Compile1, CTEvalIntPlus) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (4 + 3) / 0;                 \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'7 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (1073741824 + 1073741824);   \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Overflow"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (-1073741824 + -1073741823); \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
+}
+
+TEST_F(Compile1, CTEvalIntMinus) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (83 - 95) / 0;               \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'-12 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (-1073741824 - 1073741824);  \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Overflow"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (-1073741824 - 1073741823);  \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
+}
+
+TEST_F(Compile1, CTEvalIntMultiply) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (33 * -39) / 0;              \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'-1287 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (46341 * 46341);             \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Overflow"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (46341 * 46340);             \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
+}
+
+TEST_F(Compile1, CTEvalIntDivide) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (52 / 8) / 0;                \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'6 /"));
+}
+
+TEST_F(Compile1, CTEvalIntModulo) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (95 % 17) / 0;               \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'10 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (46341 % -0);                \n\
+        }                                       \n\
+        ";
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Modulo zero"));
+}
+
+TEST_F(Compile1, CTEvalIntShiftLeft) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (60 << 3) / 0;               \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'480 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return 536870912 << 2;              \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Overflow"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (-1073 << 4) / 0; \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'-17168 /"));
+    
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (1073 << 0) / 0; \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok4", (compileResult >= 0) ? "Ok4" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'1073 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return 1073 << -5;                  \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok5", (compileResult >= 0) ? "Ok5" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("egative shift"));
+}
+
+TEST_F(Compile1, CTEvalIntShiftRight) {
+
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (60 >> 3) / 0;               \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'7 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (-10730 >> 4) / 0; \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok3", (compileResult >= 0) ? "Ok3" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'-671 /"));
+    
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (1073 >> 0) / 0; \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok4", (compileResult >= 0) ? "Ok4" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'1073 /"));
+
+    inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return 1073 >> -5;                  \n\
+        }                                       \n\
+        ";
+
+    compileResult = cc_compile(inpl, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok5", (compileResult >= 0) ? "Ok5" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("egative shift"));
+}
+
+TEST_F(Compile1, CTEvalIntComparisons) {
+
+    // Will fail as soon as any one of those comparisons go awry
+
+    char *inpl = "\
+        int main()                          \n\
+        {                                   \n\
+            return                          \n\
+                (          (7 == 77)        \n\
+                + 2 *      (7 >= 77)        \n\
+                + 4 *      (7 >  77)        \n\
+                + 8 *      (7 <= 77)        \n\
+                + 16 *     (7 <  77)        \n\
+                + 32 *     (7 != 77)        \n\
+                + 64 *     (77 == 7)        \n\
+                + 128 *    (77 >= 7)        \n\
+                + 256 *    (77 >  7)        \n\
+                + 512 *    (77 <= 7)        \n\
+                + 1024 *   (77 <  7)        \n\
+                + 2048 *   (77 != 7)        \n\
+                + 4096 *   (77 == 77)       \n\
+                + 81928 *  (77 >= 77)       \n\
+                + 16384 *  (77 >  77)       \n\
+                + 32768 *  (77 <= 77)       \n\
+                + 65536 *  (77 <  77)       \n\
+                + 131072 * (77 != 77)) / 0; \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'121280 /"));
+}
+
+TEST_F(Compile1, CTEvalBitOps) {
+
+    char *inpl = "\
+        int main()                        \n\
+        {                                 \n\
+            return                        \n\
+                (          (0 & 0)        \n\
+                + 2 *      (0 | 0)        \n\
+                + 4 *      (0 ^ 0)        \n\
+                + 8 *      (0 & 3)        \n\
+                + 16 *     (0 | 3)        \n\
+                + 32 *     (0 ^ 3)        \n\
+                + 64 *     (3 & 0)        \n\
+                + 128 *    (3 | 0)        \n\
+                + 256 *    (3 ^ 0)        \n\
+                + 512 *    (3 & 3)        \n\
+                + 1024 *   (3 | 3)        \n\
+                + 2048 *   (3 ^ 3)) / 0;  \n\
+        }                                 \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'5904 /"));
+}
+
+TEST_F(Compile1, CTEvalBitNeg) {
+
+    char *inpl = "\
+        int main()                        \n\
+        {                                 \n\
+            return (~660753869) / 0;      \n\
+        }                                 \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'-660753870 /"));
+}
+
+TEST_F(Compile1, CTEvalLogicalOps) {
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            return (  100000000 *   (!!7) +     \n\
+                      10000000 *    (! 7) +     \n\
+                      1000000 *     (! 0) +     \n\
+                      100000 *      (5 || 7) +  \n\
+                      10000 *       (7 || 0) +  \n\
+                      1000 *        (0 || 7) +  \n\
+                      100 *         (5 && 7) +  \n\
+                      10 *          (7 && 0) +  \n\
+                                    (0 && 7) ) / 0;   \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok1", (compileResult >= 0) ? "Ok1" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'101577700 /"));
+}
+
+TEST_F(Compile1, EnumConstantExpressions)
+{
+    // Enum values to be evaluated at compile time
+
+    char *inpl = "\
+        enum Bytes              \n\
+        {                       \n\
+            zero = 1 << 0,      \n\
+            one = 1 << 1,       \n\
+            two = 1 << 2,       \n\
+        };                      \n\
+                                \n\
+        int main() {            \n\
+            int i = two / 0;    \n\
+        }                       \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'4 /"));
+}

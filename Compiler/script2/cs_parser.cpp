@@ -2279,9 +2279,12 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     if (vloc.IsCompileTimeLiteral())
     {
         // Do the operation right now
-        ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
+        ValueLocation const vloc_lhs
+            = ValueLocation {
+                ValueLocation::kCompile_time_literal,
+                kKW_Float == _sym[vloc.symbol].LiteralD->Vartype? _sym.Find("0.0") : _sym.Find("0") };
         bool can_do_it_now = false;
-        retval = ParseExpression_CompileTime(kKW_Minus, vartype, vloc_lhs, vloc, can_do_it_now, vloc);
+        retval = ParseExpression_CompileTime(kKW_Minus, vloc_lhs, vloc, can_do_it_now, vloc);
         if (retval < 0) return retval;
         if (can_do_it_now)
             return kERR_None;
@@ -2359,7 +2362,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
         // Try to do the negation now
         ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
         bool can_do_it_now = false;
-        retval = ParseExpression_CompileTime(op_sym, vartype, vloc_lhs, vloc, can_do_it_now, vloc);
+        retval = ParseExpression_CompileTime(op_sym, vloc_lhs, vloc, can_do_it_now, vloc);
         if (retval < 0) return retval;
         if (can_do_it_now)
             return kERR_None;
@@ -2618,11 +2621,11 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     // Process the left hand side
     // This will be in vain if we find out later on that there isn't any right hand side,
     // but doing the left hand side first means that any errors will be generated from left to right
-    Vartype vartype_lhs = 0;
-    SrcList lhs = SrcList(expression, 0, op_idx);
+    Vartype vartype_lhs = kKW_NoSymbol;
+    SrcList lhs = SrcList(expression, 0u, op_idx);
     ErrorType retval = ParseExpression_Term(lhs, vloc, scope_type, vartype_lhs);
-    ValueLocation vloc_lhs = vloc;
     if (retval < 0) return retval;
+    ValueLocation vloc_lhs = vloc; // Save original value location before moving the result into AX    
     ResultToAX(vartype_lhs, vloc);
    
     ForwardJump to_exit(_scrip);
@@ -2630,7 +2633,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     if (kKW_And == operator_sym)
     {
         // "&&" operator lazy evaluation: if AX is 0 then the AND has failed, 
-        // so just jump directly past the AND instruction;
+        // so just jump directly to the end of the term; 
         // AX will still be 0 so that will do as the result of the calculation
         WriteCmd(SCMD_JZ, kDestinationPlaceholder);
         to_exit.AddParam();
@@ -2638,7 +2641,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     else if (kKW_Or == operator_sym)
     {
         // "||" operator lazy evaluation: if AX is non-zero then the OR has succeeded, 
-        // so just jump directly past the OR instruction; 
+        // so just jump directly to the end of the term; 
         // AX will still be non-zero so that will do as the result of the calculation
         WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
         to_exit.AddParam();
@@ -2649,13 +2652,13 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     if (0 == rhs.Length())
     {
         // there is no right hand side for the expression
-        Error("Binary operator '%s' doesn't have a right hand side", _sym.GetName(expression[op_idx]).c_str());
+        Error("Binary operator '%s' doesn't have a right hand side", _sym.GetName(operator_sym).c_str());
         return kERR_UserError;
     }
 
     retval = ParseExpression_Term(rhs, vloc, scope_type, vartype);
     if (retval < 0) return retval;
-    ValueLocation vloc_rhs = vloc;
+    ValueLocation vloc_rhs = vloc; // Save original value location before moving the result into AX 
     ResultToAX(vartype, vloc);
 
     PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
@@ -2671,40 +2674,37 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
 
     to_exit.Patch(_src.GetLineno());
 
-    // Operators like == return a bool (in our case, that's an int);
-    // other operators like + return the type that they're operating on
     if (IsBooleanOpcode(opcode))
         vartype = kKW_Int;
 
-    if (ValueLocation::kCompile_time_literal == vloc_lhs.location)
+    if (!vloc_lhs.IsCompileTimeLiteral() || !vloc_rhs.IsCompileTimeLiteral())
+        return kERR_None;
+
+    // Attempt to do this at compile-time
+
+    if (kKW_And == operator_sym || kKW_Or == operator_sym)
     {
-        if ((kKW_And == operator_sym &&
-                ValueLocation::kCompile_time_literal == vloc_lhs.location &&
-                0 == _sym[vloc_lhs.symbol].LiteralD->Value) ||
-            (kKW_Or == operator_sym &&
-                ValueLocation::kCompile_time_literal == vloc_lhs.location &&
-                0 != _sym[vloc_lhs.symbol].LiteralD->Value))
-        {   // We don't need the calculation at runtime: The result is the LHS
-            start_of_term.Restore();
-            vloc = vloc_lhs;
-            _sym[vloc_lhs.symbol].LiteralD->Vartype = kKW_Int;
-            return kERR_None;
+        bool const left = (0 != _sym[vloc_lhs.symbol].LiteralD->Value);
+        if (kKW_And == operator_sym)
+            vloc = left ? vloc_rhs : vloc_lhs;
+        else 
+            vloc = left ? vloc_lhs : vloc_rhs;
+        
+        if (!_sym.IsAnyIntegerVartype(_sym[vloc.symbol].LiteralD->Vartype))
+        {   // Swap an int literal in (note: Don't change the vartype of the pre-existing literal)
+            bool const result = (0 != _sym[vloc.symbol].LiteralD->Value);
+            vloc.symbol = result ? _sym.Find("1") : _sym.Find("0");
         }
 
-        if (ValueLocation::kCompile_time_literal == vloc_rhs.location)
-        {
-            Vartype vartype_lhs = _sym[vloc_lhs.symbol].LiteralD->Vartype;
-            Vartype vartype_rhs = _sym[vloc_rhs.symbol].LiteralD->Vartype;
-            if (vartype_lhs == vartype_rhs)
-            {   // Instead of doing the calculation at runtime, do it now.
-                bool can_do_it_now = false;
-                retval = ParseExpression_CompileTime(operator_sym, vartype_lhs, vloc_lhs, vloc_rhs, can_do_it_now, vloc);
-                if (retval < 0) return retval;
-                if (can_do_it_now)
-                    start_of_term.Restore();
-            }
-        }
+        start_of_term.Restore();
+        return kERR_None;
     }
+ 
+    bool done_at_compile_time = false;
+    retval = ParseExpression_CompileTime(operator_sym, vloc_lhs, vloc_rhs, done_at_compile_time, vloc);
+    if (retval < 0) return retval;
+    if (done_at_compile_time)
+        start_of_term.Restore();
     return kERR_None;
 }
 
@@ -3146,13 +3146,34 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, Vartype const vartype, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc)
+ErrorType AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc)
 {
+    Vartype const vartype_lhs = _sym[vloc_lhs.symbol].LiteralD->Vartype;
+    Vartype const vartype_rhs = _sym[vloc_rhs.symbol].LiteralD->Vartype;
+    possible = false;
+    Vartype vartype;
+    if (kKW_Float == vartype_lhs)
+    {
+        if (kKW_Float != vartype_rhs)
+            return kERR_None;
+        vartype = kKW_Float;
+    }
+    else if (_sym.IsAnyIntegerVartype(vartype_lhs))
+    {
+        if (!_sym.IsAnyIntegerVartype(vartype_rhs))
+            return kERR_None;
+        vartype = kKW_Int;
+    }
+    else
+    {
+        return kERR_None;
+    }
+
     CompileTimeFunc *const ctf =
-        (kKW_Float == vartype) ?              _sym[op_sym].OperatorD->FloatCTFunc :
-        (_sym.IsAnyIntegerVartype(vartype)) ? _sym[op_sym].OperatorD->IntCTFunc :
+        (kKW_Float == vartype) ? _sym[op_sym].OperatorD->FloatCTFunc :
+        (kKW_Int == vartype) ?   _sym[op_sym].OperatorD->IntCTFunc :
         nullptr;
-    possible = (ctf != nullptr);
+    possible = (nullptr != ctf);
     if (!possible)
         return kERR_None;
     ErrorType retval = ctf->Evaluate(
@@ -3183,14 +3204,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocat
     }
 
     Symbol const first_sym = expression[0];
-    if (kKW_CloseParenthesis == first_sym || kKW_CloseBracket == first_sym || kKW_CloseBrace == first_sym)
-    {   // Shouldn't happen: the scanner sees to it that nesting symbols match
-        Error(
-            "!Unexpected '%s' at start of expression",
-            _sym.GetName(first_sym).c_str());
-        return kERR_InternalError;
-    }
-
     int least_binding_op_idx;
     ErrorType retval = IndexOfLeastBondingOperator(expression, least_binding_op_idx);  // can be < 0
     if (retval < 0) return retval;

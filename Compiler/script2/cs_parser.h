@@ -444,7 +444,7 @@ private:
     // We accept a default value clause like "= 15" if it follows at this point.
     // If there isn't any default, kKW_NoSymbol is returned.
     // Otherwise, a symbol is returned that is a literal.
-    ErrorType ParseParamlist_Param_DefaultValue(Vartype param_vartype, Symbol &default_value);
+    ErrorType ParseParamlist_Param_DefaultValue(size_t idx, Vartype param_vartype, Symbol &default_value);
 
     // process a dynamic array declaration, when present
     // We have accepted something like "int foo" and we might expect a trailing "[]" here
@@ -548,70 +548,86 @@ private:
     // Process a function call. The parameter list begins with expression[1].
     ErrorType AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype);
 
+    // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
+    // Return in 'possible' whether this is possible.
     ErrorType ParseExpression_CompileTime(Symbol op_sym, Vartype vartype, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc);
 
     // Check the vartype following "new"
     ErrorType ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is unary NEW
+    // Parse the term given in 'expression'. The lowest-binding operator is unary NEW
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is unary '-'
+    // Parse the term given in 'expression'. The lowest-binding operator is unary '-'
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is unary '+'
+    // Parse the term given in 'expression'. The lowest-binding operator is unary '+'
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is a boolean or bitwise negation
+    // Parse the term given in 'expression'. The lowest-binding operator is a boolean or bitwise negation
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is a unary operator
+    // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     AGS::ErrorType ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1,
         bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc_term2, AGS::ScopeType &scope_type_term2, AGS::Vartype &vartype_term2);
 
-    // Parse the term given in EXPRESSION. Expression is a ternary a ? b : c
+    // Parse the term given in 'expression'. Expression is a ternary a ? b : c
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator a binary operator.
+    // Parse the term given in 'expression'. The lowest-binding operator a binary operator.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. The lowest-binding operator is '?' or a binary operator.
+    // Parse the term given in 'expression'. The lowest-binding operator is '?' or a binary operator.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. Expression begins with '('
-    // Leaves the cursor pointing after the last token that was processed
+    // Parse the term given in 'expression'. Expression begins with '('
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION. Expression does not contain operators
-    // Leaves the cursor pointing after the last token that was processed
+    // Parse the term given in 'expression'. Expression does not contain operators
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in EXPRESSION.
-    // Leaves the cursor pointing after the last token that was processed
+    AGS::ErrorType ParseExpression_CheckUsedUp(AGS::SrcList &expression);
+
+    // Parse the term given in 'expression'.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse an expression that must evaluate to a constant at compile time.
-    ErrorType ParseConstantExpression(SrcList &expression, Symbol &lit, std::string const &msg = "");
-
-    // Parse an integer expression in brackets.
-    ErrorType ParseBracketedIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type);
+    // Return the symbol that signifies the constant in 'lit'.
+    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // If 'msg' is specified, it is used for targeted error messages.
+    // 'src' is parsed from the point where the cursor is.
+    ErrorType ParseConstantExpression(SrcList &src, Symbol &lit, std::string const &msg = "");
 
     // Parse an expression that must convert to an int.
-    ErrorType ParseIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, std::string const &msg = "");
+    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src'  is parsed from the point where the cursor is.
+    ErrorType ParseIntegerExpression(SrcList &src, ValueLocation &vloc, std::string const &msg = "");
     
-    // Parse expression in parentheses
-    // leaves src pointing after last token in expression, so do getnext() to get the following ; or whatever
-    ErrorType ParseParenthesizedExpression();
+    // Parse expression in delimiters, e.g., parentheses
+    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src'  is parsed from the point where the cursor is.
+    ErrorType ParseDelimitedExpression(SrcList &src, Symbol opener, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseDelimitedExpression(SrcList &src, Symbol opener);
 
-    // Parse and evaluate an expression
-    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
-    ErrorType ParseExpression(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
     // Parse and evaluate an expression, putting the result into AX
-    // leaves src pointing to last token in expression, so do getnext() to get the following ; or whatever
-    ErrorType ParseExpression(ScopeType &scope_type, Vartype &vartype);
-    ErrorType ParseExpression();
+    // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
+    // 'src'  is parsed from the point where the cursor is.
+    ErrorType ParseExpression(SrcList &src, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression(SrcList &src, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression(SrcList &src);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.

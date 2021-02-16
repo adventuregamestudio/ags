@@ -918,7 +918,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfDo()
         "Expected the 'while' of a 'do ... while(...)' statement");
     if (retval < 0) return retval;
 
-    retval = ParseParenthesizedExpression();
+    retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis);
     if (retval < 0) return retval;
 
     retval = Expect(kKW_Semicolon, _src.GetNext());
@@ -981,7 +981,7 @@ AGS::ErrorType AGS::Parser::HandleEndOfSwitch()
 }
 
 // Must return a symbol that is a literal.
-AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vartype, Symbol &default_value)
+AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const param_vartype, Symbol &default_value)
 {
     if (kKW_Assign != _src.PeekNext())
     {
@@ -989,20 +989,17 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
         return kERR_None;
     }
 
+    // For giving specifics in error messages
+    std::string msg = "In parameter #<idx>: ";
+    msg.replace(msg.find("<idx>"), 5u, std::to_string(idx));
+
     _src.GetNext();   // Eat '='
 
-    ValueLocation vloc;
-    ScopeType scope_type;
-    Vartype vartype;
-    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    Symbol default_symbol = kKW_NoSymbol;
+    ErrorType retval = ParseConstantExpression(_src, default_symbol, msg);
     if (retval < 0) return retval;
-    if (!vloc.IsCompileTimeLiteral())
-    {
-        Error("Cannot evaluate expression at compile time, it cannot be used as parameter default");
-        return kERR_UserError;
-    }
+    
 
-    Symbol const default_symbol = vloc.symbol;
 
     if (_sym.IsDynVartype(param_vartype))
     {
@@ -1011,7 +1008,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
             return kERR_None;
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as a parameter default for a dynamic object (prefer 'null')");
+            Warning("Found '0' as the default for a dynamic object (prefer 'null')");
             return kERR_None;
         }
         Error("Expected the parameter default 'null', found '%s' instead", _sym.GetName(default_symbol).c_str());
@@ -1023,7 +1020,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
         default_value = default_symbol;
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as a parameter default for a string (prefer '\"\"')");
+            Warning("Found '0' as the default for a string (prefer '\"\"')");
             return kERR_None;
         }
         if (!_sym.IsLiteral(default_value) || kKW_String != _sym[default_value].LiteralD->Vartype)
@@ -1052,7 +1049,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(Vartype param_vart
     {
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as a parameter default for a float (prefer '0.0')");
+            Warning("Found '0' as the default for a float (prefer '0.0')");
         }
         else if (!_sym.IsLiteral(default_symbol) || kKW_Float != _sym[default_symbol].LiteralD->Vartype)
         {
@@ -1280,7 +1277,7 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_
     if (retval < 0) return retval;
 
     Symbol param_default;
-    retval = ParseParamlist_Param_DefaultValue(param_vartype, param_default);
+    retval = ParseParamlist_Param_DefaultValue(param_idx, param_vartype, param_default);
     if (retval < 0) return retval;
 
     _sym[name_of_func].FunctionD->Parameters.push_back({});
@@ -2200,11 +2197,21 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
         retval = EatDynpointerSymbolIfPresent(argument_vartype);
         if (retval < 0) return retval;
 
+        // Check for '[' with a handcrafted error message so that the user isn't led to 
+        // fix their code by defining a dynamic array when this would be the wrong thing to do
+        Symbol const open_bracket = _src.GetNext();
+        if (kKW_OpenBracket != open_bracket)
+        {
+            Error("Unexpected '%s'", _sym.GetName(open_bracket).c_str());
+            return kERR_UserError;
+        }
+
         ValueLocation bracketed_vloc;
-        ScopeType scope_type;
-        retval = ParseBracketedIntegerExpression(expression, bracketed_vloc, scope_type);
+        retval = ParseIntegerExpression(_src, bracketed_vloc);
         ResultToAX(kKW_Int, bracketed_vloc);
         if (retval < 0) return retval;
+        retval = Expect(kKW_CloseBracket, _src.GetNext());
+
         element_vartype = is_managed ? _sym.VartypeWith(VTT::kDynpointer, argument_vartype) : argument_vartype;
         vartype = _sym.VartypeWith(VTT::kDynarray, element_vartype);
     }
@@ -2617,12 +2624,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     ValueLocation vloc_lhs = vloc;
     if (retval < 0) return retval;
     ResultToAX(vartype_lhs, vloc);
-    if (!lhs.ReachedEOF())
-    {
-        Error("!Unexpected '%s' after LHS of binary expression", _sym.GetName(lhs.GetNext()).c_str());
-        return kERR_InternalError;
-    }
-
+   
     ForwardJump to_exit(_scrip);
     
     if (kKW_And == operator_sym)
@@ -2714,6 +2716,20 @@ AGS::ErrorType AGS::Parser::ParseExpression_BinaryOrTernary(size_t op_idx, SrcLi
     return ParseExpression_Binary(op_idx, expression, vloc, scope_type, vartype);
 }
 
+AGS::ErrorType AGS::Parser::ParseExpression_CheckUsedUp(AGS::SrcList &expression)
+{
+    if (expression.ReachedEOF())
+        return kERR_None;
+
+    // e.g. "4 3" or "(5) 3".
+    // This is most probably due to the user having forgotten an operator
+    Error(
+        "Expected an operator, found '%s' instead",
+        _sym.GetName(expression.GetNext()).c_str());
+    return kERR_UserError;
+
+}
+
 AGS::ErrorType AGS::Parser::ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     // find the corresponding closing parenthesis
@@ -2726,14 +2742,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_InParens(SrcList &expression, ValueL
     ErrorType retval = ParseExpression_Term(between_parens, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    if (!between_parens.ReachedEOF())
-    {
-        Error("Expected ')', found '%s' instead.", _sym.GetName(between_parens.GetNext()).c_str());
-        return kERR_UserError;
-    }
-
     expression.GetNext(); // Eat ')'
-    return kERR_None;
+    return ParseExpression_CheckUsedUp(expression);
 }
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
@@ -3158,7 +3168,10 @@ AGS::ErrorType AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLoca
     if (kKW_OpenParenthesis == expression[0])
         return ParseExpression_InParens(expression, vloc, scope_type, vartype);
 
-    return AccessData(VAC::kReading, expression, vloc, scope_type, vartype);
+    ErrorType retval = AccessData(VAC::kReading, expression, vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+
+    return ParseExpression_CheckUsedUp(expression);
 }
 
 AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
@@ -3190,15 +3203,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocat
         retval = ParseExpression_NoOps(expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
-    if (!expression.ReachedEOF())
-    {
-        // e.g. "4 3" or "(5) 3".
-        // This is most probably due to the user having forgotten an operator
-        Error(
-            "Expected an operator, found '%s' instead",
-            _sym.GetName(expression.GetNext()).c_str());
-        return kERR_UserError;
-    }
+    retval = ParseExpression_CheckUsedUp(expression);
+    if (retval < 0) return retval;
     return HandleStructOrArrayResult(vartype, vloc);
 }
 
@@ -3316,8 +3322,11 @@ AGS::ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList
         if (attrib_uses_this)
             PushReg(SREG_MAR); // must not be clobbered
         ValueLocation vloc;
-        ScopeType scope_type;
-        retval = ParseBracketedIntegerExpression(expression, vloc, scope_type);
+        retval = Expect(kKW_OpenBracket, _src.GetNext());
+        if (retval < 0) return retval; 
+        retval = ParseIntegerExpression(expression, vloc);
+        if (retval < 0) return retval;
+        retval = Expect(kKW_CloseBracket, _src.GetNext());
         if (retval < 0) return retval;
         ResultToAX(kKW_Int, vloc);
 
@@ -3413,21 +3422,23 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
     }
 
     // Parse the index on the off-chance that it can be completely calculated at compile time.
-    int const codesize_at_start_of_index = _scrip.codesize;
+    RestorePoint start_of_index(_scrip);
     ValueLocation vloc;
-    ScopeType scope_type;
-    ErrorType retval = ParseIntegerExpression(current_index, vloc, scope_type, msg);
+    current_index.StartRead();
+    ErrorType retval = ParseIntegerExpression(current_index, vloc, msg);
     if (retval < 0) return retval;
     if (vloc.IsCompileTimeLiteral())
         return AccessData_ProcessArrayIndexConstant(idx, vloc.symbol, dim, factor, mloc);
 
     // So it cannot. We have to redo this in order to save MAR out of the way first.
-    _scrip.codesize = codesize_at_start_of_index;
+    start_of_index.Restore();
     retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
     if (retval < 0) return retval;
     PushReg(SREG_MAR);
-    retval = ParseIntegerExpression(current_index, vloc, scope_type, msg);
-    if (retval < 0) return retval; // This can't happen, probably.
+    current_index.StartRead();
+    retval = ParseIntegerExpression(current_index, vloc, msg);
+    if (retval < 0) return retval;
+    ResultToAX(kKW_Int, vloc);
     PopReg(SREG_MAR);
     
     // Note: DYNAMICBOUNDS compares the offset into the memory block;
@@ -3576,6 +3587,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
         {
             if (VAC::kReading != access_type) break; // to error msg
 
+            expression.GetNext();
             Symbol lit = first_sym;
             expression.GetNext(); // eat the literal
             while (_sym.IsConstant(lit))
@@ -4109,7 +4121,7 @@ AGS::ErrorType AGS::Parser::SkipToEndOfExpression()
     return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseExpression(ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+ErrorType AGS::Parser::ParseExpression(SrcList &src, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     size_t const expr_start = _src.GetCursor();
     ErrorType retval = SkipToEndOfExpression();
@@ -4124,38 +4136,43 @@ ErrorType AGS::Parser::ParseExpression(ValueLocation &vloc, ScopeType &scope_typ
     return ParseExpression_Term(expression, vloc, scope_type, vartype);
 }
 
-ErrorType AGS::Parser::ParseExpression(ScopeType &scope_type, Vartype &vartype)
+ErrorType AGS::Parser::ParseExpression(SrcList &src, ScopeType &scope_type, Vartype &vartype)
 {
     ValueLocation vloc;
 
-    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    ErrorType retval = ParseExpression(_src, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
     ResultToAX(vartype, vloc);
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseExpression()
+AGS::ErrorType AGS::Parser::ParseExpression(SrcList &src)
 {
+    ValueLocation vloc;
     ScopeType scope_type;
     Vartype vartype;
 
-    return ParseExpression(scope_type, vartype);
+    ErrorType retval =  ParseExpression(src, vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+
+    ResultToAX(vartype, vloc);
+    return kERR_None;
 }
 
-ErrorType AGS::Parser::ParseConstantExpression(SrcList &expression, Symbol &lit, std::string const &msg)
+ErrorType AGS::Parser::ParseConstantExpression(SrcList &src, Symbol &lit, std::string const &msg)
 {
-    if (!expression.Length())
+    if (!src.Length())
     {
         Error("!Empty expression");
         return kERR_InternalError;
     }
-    Symbol const first_sym = expression.PeekNext();
+    Symbol const first_sym = src.PeekNext();
 
     ValueLocation vloc;
     ScopeType scope_type;
     Vartype vartype;
-    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    ErrorType retval = ParseExpression(src, vloc, scope_type, vartype);
     if (!vloc.IsCompileTimeLiteral())
     {
         Error(
@@ -4164,32 +4181,15 @@ ErrorType AGS::Parser::ParseConstantExpression(SrcList &expression, Symbol &lit,
         return kERR_UserError;
     }
     lit = vloc.symbol;
+    return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseBracketedIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type)
-{
-    ErrorType retval = Expect(kKW_OpenBracket, expression.GetNext());
-    if (retval < 0) return retval;
 
-    size_t start = expression.GetCursor();
-    SkipTo(SymbolList{}, expression);
-    SrcList in_brackets = SrcList(expression, start, expression.GetCursor() - start);
-
-    retval = ParseIntegerExpression(in_brackets, vloc, scope_type);
-    if (retval < 0) return retval;
-
-    if (!in_brackets.ReachedEOF())
-    {
-        Error("Expected ']', found '%s' instead", _sym.GetName(in_brackets.GetNext()).c_str());
-        return kERR_UserError;
-    }
-    return Expect(kKW_CloseBracket, expression.GetNext());
-}
-
-AGS::ErrorType AGS::Parser::ParseIntegerExpression(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, std::string const &msg)
+AGS::ErrorType AGS::Parser::ParseIntegerExpression(SrcList &src, ValueLocation &vloc, std::string const &msg)
 {
     Vartype vartype = kKW_NoSymbol;
-    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+    ScopeType scope_type_dummy = ScT::kNone;
+    ErrorType retval = ParseExpression(src, vloc, scope_type_dummy, vartype);
     if (retval < 0) return retval;
 
     if (_sym.IsAnyArrayVartype(vartype))
@@ -4205,19 +4205,26 @@ AGS::ErrorType AGS::Parser::ParseIntegerExpression(SrcList &expression, ValueLoc
             _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
-
-    return IsVartypeMismatch(vartype, kKW_Int, true);
+    return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseParenthesizedExpression()
+AGS::ErrorType AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener, ScopeType &scope_type, Vartype &vartype)
 {
-    ErrorType retval = Expect(kKW_OpenParenthesis, _src.GetNext());
+    ErrorType retval = Expect(opener, src.GetNext());
     if (retval < 0) return retval;
     
-    retval = ParseExpression();
+    retval = ParseExpression(src, scope_type, vartype);
     if (retval < 0) return retval;
 
-    return Expect(kKW_CloseParenthesis, _src.GetNext());
+    Symbol const closer = _sym[opener].DelimeterD->Partner;
+    return Expect(closer, src.GetNext());
+}
+
+ErrorType AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener)
+{
+    ScopeType scope_type_dummy;
+    Vartype vartype_dummy;
+    return ParseDelimitedExpression(src, opener, scope_type_dummy, vartype_dummy);
 }
 
 // We are parsing the left hand side of a += or similar statement.
@@ -4243,7 +4250,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_Assign(SrcList &lhs)
     _src.GetNext(); // Eat '='
     ScopeType sct;
     Vartype vartype;
-    ErrorType retval = ParseExpression(sct, vartype); // RHS of the assignment
+    ErrorType retval = ParseExpression(_src, sct, vartype); // RHS of the assignment
     if (retval < 0) return retval;
     
     return AccessData_AssignTo(sct, vartype, lhs);
@@ -4257,7 +4264,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     // Parse RHS
     ScopeType sct;
     Vartype vartype;
-    ErrorType retval = ParseExpression(sct, vartype);
+    ErrorType retval = ParseExpression(_src, sct, vartype);
     if (retval < 0) return retval;
 
     PushReg(SREG_AX);
@@ -4325,7 +4332,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(
     ValueLocation vloc;
     ScopeType scope_type;
     Vartype vartype = kKW_NoSymbol;
-    ErrorType retval = ParseExpression(vloc, scope_type, vartype);
+    ErrorType retval = ParseExpression(_src, vloc, scope_type, vartype);
     if (retval < 0) return retval;
 
     if (!vloc.IsCompileTimeLiteral())
@@ -4618,7 +4625,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     _src.GetNext(); // Eat '='
     ScopeType scope_type;
     Vartype rhsvartype;
-    ErrorType retval = ParseExpression(scope_type, rhsvartype);
+    ErrorType retval = ParseExpression(_src, scope_type, rhsvartype);
     if (retval < 0) return retval;
 
     // Vartypes must match. This is true even if the lhs is readonly.
@@ -5254,7 +5261,7 @@ AGS::ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet t
 }
 
 // We're in a struct declaration, parsing a struct attribute
-AGS::ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype)
+AGS::ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const stname, Symbol const vname, Vartype const vartype)
 {
     size_t const declaration_start = _src.GetCursor();
     // "readonly" means that there isn't a setter function. The individual vartypes are not readonly.
@@ -5343,18 +5350,17 @@ AGS::ErrorType AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
     // Static array
     while (true)
     {
-        Symbol lit;
         std::string msg = "For dimension #<dim> of array '<arr>': ";
         msg.replace(msg.find("<dim>"), 5u, std::to_string(dims.size()));
         msg.replace(msg.find("<arr>"), 5u, _sym.GetName(vname).c_str());
         Symbol const first_sym = _src.PeekNext();
 
         ValueLocation vloc;
-        ScopeType scope_type;
         int const cursor = _src.GetCursor();
         SkipTo(SymbolList{ kKW_Comma }, _src);
         SrcList expression = SrcList(_src, cursor, _src.GetCursor() - cursor);
-        ErrorType retval = ParseIntegerExpression(expression, vloc, scope_type, msg);
+        expression.StartRead();
+        ErrorType retval = ParseIntegerExpression(expression, vloc, msg);
         if (retval < 0) return retval;
         if (!vloc.IsCompileTimeLiteral())
         {
@@ -6245,7 +6251,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
         // parse what is being returned
         ScopeType scope_type;
         Vartype vartype;
-        ErrorType retval = ParseExpression(scope_type, vartype);
+        ErrorType retval = ParseExpression(_src, scope_type, vartype);
         if (retval < 0) return retval;
 
         ConvertAXStringToStringObject(functionReturnType, vartype);
@@ -6302,7 +6308,9 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
 // Evaluate the header of an "if" clause, e.g. "if (i < 0)".
 AGS::ErrorType AGS::Parser::ParseIf()
 {
-    ErrorType retval = ParseParenthesizedExpression();
+    ScopeType scope_type;
+    Vartype vartype;
+    ErrorType retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis, scope_type, vartype);
     if (retval < 0) return retval;
 
     _nest.Push(NSType::kIf);
@@ -6346,7 +6354,7 @@ AGS::ErrorType AGS::Parser::ParseWhile()
     // point to the start of the code that evaluates the condition
     CodeLoc const condition_eval_loc = _scrip.codesize;
 
-    ErrorType retval = ParseParenthesizedExpression();
+    ErrorType retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis);
     if (retval < 0) return retval;
 
     _nest.Push(NSType::kWhile);
@@ -6507,7 +6515,7 @@ AGS::ErrorType AGS::Parser::ParseFor_WhileClause()
         return kERR_None;
     }
 
-    return ParseExpression();
+    return ParseExpression(_src);
 }
 
 AGS::ErrorType AGS::Parser::ParseFor_IterateClause()
@@ -6592,7 +6600,7 @@ AGS::ErrorType AGS::Parser::ParseSwitch()
     if (retval < 0) return retval;
     ScopeType scope_type;
     Vartype vartype; 
-    retval = ParseExpression(scope_type, vartype);
+    retval = ParseExpression(_src, scope_type, vartype);
     if (retval < 0) return retval;
     retval = Expect(kKW_CloseParenthesis, _src.GetNext());
     if (retval < 0) return retval;
@@ -6651,7 +6659,7 @@ AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 
         ScopeType scope_type;
         Vartype vartype;
-        ErrorType retval = ParseExpression(scope_type, vartype); // case n: label expression
+        ErrorType retval = ParseExpression(_src, scope_type, vartype); // case n: label expression
         if (retval < 0) return retval;
 
         // Vartypes of the "case" expression and the "switch" expression must match
@@ -6694,16 +6702,12 @@ AGS::ErrorType AGS::Parser::SetCompileTimeLiteral(Symbol const lit, ValueLocatio
         return kERR_InternalError;
     }
     vartype = _sym[lit].LiteralD->Vartype;
-
-    if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
-    {
-        // Can't handle string literals
-        ResultToAX(vartype, vloc); 
-        return kERR_None;
-    }
-   
     vloc.location = ValueLocation::kCompile_time_literal;
     vloc.symbol = lit;
+
+    if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
+        ResultToAX(vartype, vloc); // Can't handle string literals
+    
     return kERR_None;
 }
 

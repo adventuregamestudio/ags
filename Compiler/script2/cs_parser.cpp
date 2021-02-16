@@ -2605,7 +2605,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &ex
 
 AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    int const start_of_term = _scrip.codesize;
+    RestorePoint start_of_term(_scrip);
     Symbol const operator_sym = expression[op_idx];
 
     // Process the left hand side
@@ -2683,7 +2683,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
                 ValueLocation::kCompile_time_literal == vloc_lhs.location &&
                 0 != _sym[vloc_lhs.symbol].LiteralD->Value))
         {   // We don't need the calculation at runtime: The result is the LHS
-            _scrip.codesize = start_of_term;
+            start_of_term.Restore();
             vloc = vloc_lhs;
             _sym[vloc_lhs.symbol].LiteralD->Vartype = kKW_Int;
             return kERR_None;
@@ -2699,7 +2699,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
                 retval = ParseExpression_CompileTime(operator_sym, vartype_lhs, vloc_lhs, vloc_rhs, can_do_it_now, vloc);
                 if (retval < 0) return retval;
                 if (can_do_it_now)
-                    _scrip.codesize = start_of_term;
+                    start_of_term.Restore();
             }
         }
     }

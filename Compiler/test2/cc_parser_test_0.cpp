@@ -343,7 +343,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
 
 TEST_F(Compile0, DoubleNegatedConstant) {
     
-    // Can handle compile time calculations
+    // Parameter default can be evaluated at compile time
 
     char *inpl = "\
         import int MyFunction(  \n\

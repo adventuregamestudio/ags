@@ -1804,10 +1804,11 @@ TEST_F(Bytecode1, AssignToString) {
 
     char inpl[] = "\
         string Payload = \"Holzschuh\";     \n\
+        readonly int una = 1;               \n\
         String main()                       \n\
         {                                   \n\
             String test = Payload;          \n\
-            return (~~1 == 2) ? test : Payload;  \n\
+            return (~~una == 2) ? test : Payload;  \n\
         }                                   \n\
         ";
     std::string input = g_Input_Bool;
@@ -1821,47 +1822,47 @@ TEST_F(Bytecode1, AssignToString) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("AssignToString", scrip);
-    const size_t codesize = 98;
+    size_t const codesize = 100;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    2,            0,    3,    2,    3,    // 7
       64,    3,   51,    0,           47,    3,    1,    1,    // 15
-       4,    6,    3,    1,            6,    4,   -1,   12,    // 23
-       4,    3,    3,    4,            3,    6,    4,   -1,    // 31
-      12,    4,    3,    3,            4,    3,   29,    3,    // 39
-       6,    3,    2,   30,            4,   15,    4,    3,    // 47
-       3,    4,    3,   28,            6,   51,    4,   48,    // 55
-       3,   31,    8,    6,            2,    0,    3,    2,    // 63
-       3,   64,    3,   29,            3,   51,    4,   50,    // 71
-       3,   51,    8,   49,           51,    4,   48,    3,    // 79
-      69,   30,    4,    2,            1,    4,   31,    9,    // 87
-      51,    4,   49,    2,            1,    4,    6,    3,    // 95
-       0,    5,  -999
+       4,    6,    2,  200,            7,    3,    6,    4,    // 23
+      -1,   12,    4,    3,            3,    4,    3,    6,    // 31
+       4,   -1,   12,    4,            3,    3,    4,    3,    // 39
+      29,    3,    6,    3,            2,   30,    4,   15,    // 47
+       4,    3,    3,    4,            3,   28,    6,   51,    // 55
+       4,   48,    3,   31,            8,    6,    2,    0,    // 63
+       3,    2,    3,   64,            3,   29,    3,   51,    // 71
+       4,   50,    3,   51,            8,   49,   51,    4,    // 79
+      48,    3,   69,   30,            4,    2,    1,    4,    // 87
+      31,    9,   51,    4,           49,    2,    1,    4,    // 95
+       6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 2;
+    size_t const numfixups = 3;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       4,   61,  -999
+       4,   19,   63,  -999
     };
     char fixuptypes[] = {
-      1,   1,  '\0'
+      1,   1,   1,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 10;
+    size_t const stringssize = 10;
     EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {

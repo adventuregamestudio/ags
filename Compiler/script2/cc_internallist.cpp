@@ -82,12 +82,19 @@ AGS::Symbol AGS::SrcList::GetNext()
     return p;
 }
 
-void AGS::SrcList::EatFirstSymbols(size_t num)
+void AGS::SrcList::EatFirstSymbol()
 {
-    if (_len < num)
-        num = _len;
-    _len -= num;
-    _offset += num;
+    if (_len < 1)
+        return;
+    _len--;
+    _offset++;
     if (_cursor < _offset)
         _cursor = _offset;
+}
+
+void AGS::SrcList::EatLastSymbol()
+{
+    if (_len < 1)
+        return;
+    _len--;
 }

@@ -92,10 +92,10 @@ public:
 
     // Whether the index is within the list
     inline bool InRange(size_t idx) const { return idx < _len; }
-    
-    // Drop the first n symbols (so that this now starts with the (n+1)st one).
-    void EatFirstSymbols(size_t num);
-    inline void EatFirstSymbol() { EatFirstSymbols(1); }
+
+    // Shorten *this
+    void EatFirstSymbol();
+    void EatLastSymbol();
 
     // Note that when this is a sub-list of an original list, the line numbers and sections
     // will still be relative to the original list. This is intentional.

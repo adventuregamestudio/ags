@@ -158,7 +158,7 @@ struct SpriteListEntry
     IDriverDependantBitmap *bmp = nullptr;
     int transparent = 0;
     int x = 0, y = 0;
-    int baseline = 0;
+    int zorder = 0;
     // Tells if this item should take priority during sort if z1 == z2
     // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
     bool takesPriorityIfEqual = false;
@@ -793,7 +793,7 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, bool isWalkBehind,
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind, int trans = 0,
     BlendMode blendMode = kBlend_Normal)
 {
     if (spp == nullptr)
@@ -804,7 +804,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 
     SpriteListEntry sprite;
     sprite.bmp = spp;
-    sprite.baseline = baseline;
+    sprite.zorder = zorder;
     sprite.x = xx;
     sprite.y = yy;
     sprite.transparent = trans;
@@ -821,14 +821,14 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 // function to sort the sprites into baseline order
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    if (e1.baseline == e2.baseline)
+    if (e1.zorder == e2.zorder)
     {
         if (e1.takesPriorityIfEqual)
             return false;
         if (e2.takesPriorityIfEqual)
             return true;
     }
-    return e1.baseline < e2.baseline;
+    return e1.zorder < e2.zorder;
 }
 
 // copy the sorted sprites into the Things To Draw list
@@ -993,7 +993,7 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 
     if (actspswbcache[actspsIndex].isWalkBehindHere)
     {
-        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, 0, true);
+        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, true);
     }
 }
 
@@ -1551,7 +1551,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent, false, objs[aa].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false, objs[aa].transparent, objs[aa].blend_mode);
     }
 }
 
@@ -1863,7 +1863,7 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, false, charextra[chin->index_id].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false, chin->transparency, charextra[chin->index_id].blend_mode);
     }
 }
 
@@ -1915,7 +1915,7 @@ void prepare_room_sprites()
                     if (walkBehindBitmap[ee] != nullptr)
                     {
                         add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee], walkBehindTop[ee],
-                            croom->walkbehind_base[ee], 0, true);
+                            croom->walkbehind_base[ee], true);
                     }
                 }
             }
@@ -2029,15 +2029,23 @@ void draw_gui_and_overlays()
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
         add_render_stage(AGSE_PREGUIDRAW);
 
-    // draw overlays, except text boxes and portraits
-    for (const auto &over : screenover) {
+    clear_sprite_list();
+
+    // prepare overlays
+    for (const auto &over : screenover)
+    {
         // complete overlay draw in non-transparent mode
-        if (over.type == OVER_COMPLETE) {
-            add_thing_to_draw(over.bmp, over.x, over.y, over.transparency, over.blendMode);
-        } else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
+        if (over.type == OVER_COMPLETE)
+        {
+            add_to_sprite_list(over.bmp, over.x, over.y, INT_MIN, false, over.transparency, over.blendMode);
+        }
+        else
+        {
             int tdxp, tdyp;
             get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, over.transparency, over.blendMode);
+            // draw speech and portraits over GUI and the rest under GUI
+            int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
+            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false, over.transparency, over.blendMode);
         }
     }
 
@@ -2098,7 +2106,7 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].BlendMode);
+            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false, guis[aa].Transparency, guis[aa].BlendMode);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
@@ -2107,16 +2115,8 @@ void draw_gui_and_overlays()
         }
     }
 
-    // draw speech and portraits (so that they appear over GUIs)
-    for (const auto &over : screenover) 
-    {
-        if (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE)
-        {
-            int tdxp, tdyp;
-            get_overlay_position(over, &tdxp, &tdyp);
-            add_thing_to_draw(over.bmp, tdxp, tdyp, over.transparency, over.blendMode);
-        }
-    }
+    // sort and append ui sprites to the global draw things list
+    draw_sprite_list();
 
     our_eip = 1099;
 }

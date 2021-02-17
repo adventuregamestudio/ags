@@ -174,6 +174,22 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
     screenover[ovri].transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
+int Overlay_GetZOrder(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+
+    return screenover[ovri].zorder;
+}
+
+void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+
+    screenover[ovri].zorder = zorder;
+}
+
 //=============================================================================
 
 void dispose_overlay(ScreenOverlay &over)
@@ -383,13 +399,11 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
-// int (ScriptOverlay *scover)
 RuntimeScriptValue Sc_Overlay_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetBlendMode);
 }
 
-// void (ScriptOverlay *scover, int blendMode)
 RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
@@ -400,10 +414,19 @@ RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptVal
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
 }
 
-// void (ScriptOverlay *scover, int blendMode)
 RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
+}
+
+RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetZOrder);
+}
+
+RuntimeScriptValue Sc_Overlay_SetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetZOrder);
 }
 
 //=============================================================================
@@ -442,6 +465,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
     ccAddExternalObjectFunction("Overlay::get_Transparency",    Sc_Overlay_GetTransparency);
     ccAddExternalObjectFunction("Overlay::set_Transparency",    Sc_Overlay_SetTransparency);
+    ccAddExternalObjectFunction("Overlay::get_ZOrder",          Sc_Overlay_GetZOrder);
+    ccAddExternalObjectFunction("Overlay::set_ZOrder",          Sc_Overlay_SetZOrder);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

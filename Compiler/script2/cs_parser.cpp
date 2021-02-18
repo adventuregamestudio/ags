@@ -4557,14 +4557,21 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
     if (kKW_Assign != _src.PeekNext())
     {
-        if (var_size == 0)
+        if (0u == var_size)
             return kERR_None;
 
         // Initialize the variable with binary zeroes.
+        if (4u == var_size && !is_dyn)
+        {
+            WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+            PushReg(SREG_AX);
+            return kERR_None;
+        }
+
         WriteCmd(SCMD_LOADSPOFFS, 0);
         if (is_dyn)
             WriteCmd(SCMD_MEMZEROPTR);
-        else
+        else 
             WriteCmd(SCMD_ZEROMEMORY, var_size);
         WriteCmd(SCMD_ADD, SREG_SP, var_size);
         _scrip.OffsetToLocalVarBlock += var_size;

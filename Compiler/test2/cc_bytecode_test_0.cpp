@@ -900,66 +900,65 @@ TEST_F(Bytecode0, FlowFor2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowFor2", scrip);
-    const size_t codesize = 312;
+    size_t const codesize = 308;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,   51,    0,           63,    4,    1,    1,    // 7
-       4,   51,    0,   63,            4,    1,    1,    4,    // 15
-       6,    3,    1,   28,           35,   51,    8,    7,    // 23
-       3,   29,    3,   51,            8,    7,    3,   30,    // 31
-       4,   11,    3,    4,            8,    3,    6,    3,    // 39
-       1,   29,    3,   51,           12,    7,    3,   30,    // 47
-       4,   11,    3,    4,            8,    3,   31,  -40,    // 55
-       6,    3,    1,   28,           19,   51,    8,    7,    // 63
-       3,   29,    3,   51,            8,    7,    3,   30,    // 71
-       4,   12,    3,    4,            8,    3,   31,  -24,    // 79
-      51,    8,    7,    3,           29,    3,    6,    3,    // 87
-       2,   30,    4,   18,            4,    3,    3,    4,    // 95
-       3,   28,   35,   51,            8,    7,    3,   29,    // 103
-       3,   51,    8,    7,            3,   30,    4,    9,    // 111
-       3,    4,    8,    3,            6,    3,    3,   29,    // 119
-       3,   51,   12,    7,            3,   30,    4,   11,    // 127
-       3,    4,    8,    3,           31,  -54,   51,    8,    // 135
-       7,    3,   29,    3,            6,    3,    4,   30,    // 143
-       4,   18,    4,    3,            3,    4,    3,   28,    // 151
-      19,   51,    8,    7,            3,   29,    3,   51,    // 159
-       8,    7,    3,   30,            4,   10,    3,    4,    // 167
-       8,    3,   31,  -38,            6,    3,    5,   51,    // 175
-       8,    8,    3,    6,            3,    1,   28,   35,    // 183
-      51,    8,    7,    3,           29,    3,   51,    8,    // 191
-       7,    3,   30,    4,           10,    3,    4,    8,    // 199
-       3,    6,    3,    6,           29,    3,   51,   12,    // 207
-       7,    3,   30,    4,           11,    3,    4,    8,    // 215
-       3,   31,  -40,    6,            3,    7,   29,    3,    // 223
-       6,    3,    1,   28,           19,   51,    4,    7,    // 231
-       3,   29,    3,   51,           12,    7,    3,   30,    // 239
-       4,   13,    3,    4,            8,    3,   31,  -24,    // 247
-       2,    1,    4,    6,            3,    8,   29,    3,    // 255
-      51,    4,    7,    3,           29,    3,    6,    3,    // 263
-       9,   30,    4,   18,            4,    3,    3,    4,    // 271
-       3,   28,   19,   51,            4,    7,    3,   29,    // 279
-       3,   51,   12,    7,            3,   30,    4,   14,    // 287
-       3,    4,    8,    3,           31,  -38,    2,    1,    // 295
-       4,    6,    3,    0,            2,    1,    8,   31,    // 303
-       6,    2,    1,    8,            6,    3,    0,    5,    // 311
-     -999
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,    0,   29,    3,            6,    3,    1,   28,    // 15
+      35,   51,    8,    7,            3,   29,    3,   51,    // 23
+       8,    7,    3,   30,            4,   11,    3,    4,    // 31
+       8,    3,    6,    3,            1,   29,    3,   51,    // 39
+      12,    7,    3,   30,            4,   11,    3,    4,    // 47
+       8,    3,   31,  -40,            6,    3,    1,   28,    // 55
+      19,   51,    8,    7,            3,   29,    3,   51,    // 63
+       8,    7,    3,   30,            4,   12,    3,    4,    // 71
+       8,    3,   31,  -24,           51,    8,    7,    3,    // 79
+      29,    3,    6,    3,            2,   30,    4,   18,    // 87
+       4,    3,    3,    4,            3,   28,   35,   51,    // 95
+       8,    7,    3,   29,            3,   51,    8,    7,    // 103
+       3,   30,    4,    9,            3,    4,    8,    3,    // 111
+       6,    3,    3,   29,            3,   51,   12,    7,    // 119
+       3,   30,    4,   11,            3,    4,    8,    3,    // 127
+      31,  -54,   51,    8,            7,    3,   29,    3,    // 135
+       6,    3,    4,   30,            4,   18,    4,    3,    // 143
+       3,    4,    3,   28,           19,   51,    8,    7,    // 151
+       3,   29,    3,   51,            8,    7,    3,   30,    // 159
+       4,   10,    3,    4,            8,    3,   31,  -38,    // 167
+       6,    3,    5,   51,            8,    8,    3,    6,    // 175
+       3,    1,   28,   35,           51,    8,    7,    3,    // 183
+      29,    3,   51,    8,            7,    3,   30,    4,    // 191
+      10,    3,    4,    8,            3,    6,    3,    6,    // 199
+      29,    3,   51,   12,            7,    3,   30,    4,    // 207
+      11,    3,    4,    8,            3,   31,  -40,    6,    // 215
+       3,    7,   29,    3,            6,    3,    1,   28,    // 223
+      19,   51,    4,    7,            3,   29,    3,   51,    // 231
+      12,    7,    3,   30,            4,   13,    3,    4,    // 239
+       8,    3,   31,  -24,            2,    1,    4,    6,    // 247
+       3,    8,   29,    3,           51,    4,    7,    3,    // 255
+      29,    3,    6,    3,            9,   30,    4,   18,    // 263
+       4,    3,    3,    4,            3,   28,   19,   51,    // 271
+       4,    7,    3,   29,            3,   51,   12,    7,    // 279
+       3,   30,    4,   14,            3,    4,    8,    3,    // 287
+      31,  -38,    2,    1,            4,    6,    3,    0,    // 295
+       2,    1,    8,   31,            6,    2,    1,    8,    // 303
+       6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -1338,41 +1337,41 @@ TEST_F(Bytecode0, FlowContinue1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowContinue1", scrip);
-    const size_t codesize = 114;
+    size_t const codesize = 112;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,   51,    0,           63,    4,    1,    1,    // 7
-       4,    6,    3,   -1,           51,    4,    8,    3,    // 15
-      51,    4,    7,    3,           29,    3,    6,    3,    // 23
-       1,   30,    4,   18,            4,    3,    3,    4,    // 31
-       3,   28,   63,    6,            3,    7,   29,    3,    // 39
-       6,    3,   77,   29,            3,   51,   12,    7,    // 47
-       3,   29,    3,    6,            3,    0,   30,    4,    // 55
-      19,    4,    3,    3,            4,    3,   28,   14,    // 63
-       2,    1,    8,   51,            4,    7,    3,    1,    // 71
-       3,    1,    8,    3,           31,  -62,   51,    8,    // 79
-       7,    3,   29,    3,            2,    1,   12,   51,    // 87
-       4,    7,    3,    1,            3,    1,    8,    3,    // 95
-      31,  -82,   51,    4,            7,    3,    2,    1,    // 103
-       4,   31,    6,    2,            1,    4,    6,    3,    // 111
-       0,    5,  -999
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,   -1,   51,    4,            8,    3,   51,    4,    // 15
+       7,    3,   29,    3,            6,    3,    1,   30,    // 23
+       4,   18,    4,    3,            3,    4,    3,   28,    // 31
+      63,    6,    3,    7,           29,    3,    6,    3,    // 39
+      77,   29,    3,   51,           12,    7,    3,   29,    // 47
+       3,    6,    3,    0,           30,    4,   19,    4,    // 55
+       3,    3,    4,    3,           28,   14,    2,    1,    // 63
+       8,   51,    4,    7,            3,    1,    3,    1,    // 71
+       8,    3,   31,  -62,           51,    8,    7,    3,    // 79
+      29,    3,    2,    1,           12,   51,    4,    7,    // 87
+       3,    1,    3,    1,            8,    3,   31,  -82,    // 95
+      51,    4,    7,    3,            2,    1,    4,   31,    // 103
+       6,    2,    1,    4,            6,    3,    0,    5,    // 111
+     -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -1397,49 +1396,49 @@ TEST_F(Bytecode0, FlowIfDoWhile) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowIfDoWhile", scrip);
-    const size_t codesize = 179;
+    size_t const codesize = 177;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,    6,    3,            5,   29,    3,   51,    // 7
-       0,   63,    4,    1,            1,    4,    6,    3,    // 15
-      -2,   29,    3,   51,           12,    7,    3,   29,    // 23
-       3,    6,    3,   10,           30,    4,   18,    4,    // 31
-       3,    3,    4,    3,           28,   91,    6,    3,    // 39
-       0,   51,    4,    8,            3,   51,    4,    7,    // 47
-       3,   29,    3,    6,            3,   10,   30,    4,    // 55
-      18,    4,    3,    3,            4,    3,   28,   63,    // 63
-      51,    4,    7,    3,           29,    3,   51,   12,    // 71
-       7,    3,   30,    4,           11,    3,    4,    8,    // 79
-       3,   51,    4,    7,            3,   29,    3,    6,    // 87
-       3,    6,   30,    4,           15,    4,    3,    3,    // 95
-       4,    3,   28,    9,           51,    4,    7,    3,    // 103
-       2,    1,   12,   31,           69,    6,    3,    3,    // 111
-      29,    3,   51,    8,            7,    3,   30,    4,    // 119
-      11,    3,    4,    8,            3,   31,  -82,   31,    // 127
-      35,    6,    3,    1,           29,    3,   51,    8,    // 135
-       7,    3,   30,    4,           11,    3,    4,    8,    // 143
-       3,   51,    4,    7,            3,   29,    3,    6,    // 151
-       3,  100,   30,    4,           18,    4,    3,    3,    // 159
-       4,    3,   70,  -35,            6,    3,    0,    2,    // 167
-       1,   12,   31,    6,            2,    1,   12,    6,    // 175
-       3,    0,    5,  -999
+      38,    0,    6,    3,            5,   29,    3,    6,    // 7
+       3,    0,   29,    3,            6,    3,   -2,   29,    // 15
+       3,   51,   12,    7,            3,   29,    3,    6,    // 23
+       3,   10,   30,    4,           18,    4,    3,    3,    // 31
+       4,    3,   28,   91,            6,    3,    0,   51,    // 39
+       4,    8,    3,   51,            4,    7,    3,   29,    // 47
+       3,    6,    3,   10,           30,    4,   18,    4,    // 55
+       3,    3,    4,    3,           28,   63,   51,    4,    // 63
+       7,    3,   29,    3,           51,   12,    7,    3,    // 71
+      30,    4,   11,    3,            4,    8,    3,   51,    // 79
+       4,    7,    3,   29,            3,    6,    3,    6,    // 87
+      30,    4,   15,    4,            3,    3,    4,    3,    // 95
+      28,    9,   51,    4,            7,    3,    2,    1,    // 103
+      12,   31,   69,    6,            3,    3,   29,    3,    // 111
+      51,    8,    7,    3,           30,    4,   11,    3,    // 119
+       4,    8,    3,   31,          -82,   31,   35,    6,    // 127
+       3,    1,   29,    3,           51,    8,    7,    3,    // 135
+      30,    4,   11,    3,            4,    8,    3,   51,    // 143
+       4,    7,    3,   29,            3,    6,    3,  100,    // 151
+      30,    4,   18,    4,            3,    3,    4,    3,    // 159
+      70,  -35,    6,    3,            0,    2,    1,   12,    // 167
+      31,    6,    2,    1,           12,    6,    3,    0,    // 175
+       5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -1666,7 +1665,7 @@ TEST_F(Bytecode0, Struct01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct01", scrip);
-    const size_t codesize = 140;
+    size_t const codesize = 138;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -1680,38 +1679,38 @@ TEST_F(Bytecode0, Struct01) {
        8,   49,   51,    4,           48,    3,   69,   30,    // 63
        4,    2,    1,    4,           31,    9,   51,    4,    // 71
       49,    2,    1,    4,            6,    3,    0,    5,    // 79
-      38,   80,   51,    0,           63,    4,    1,    1,    // 87
-       4,   51,    4,   29,            2,    6,    3,   -1,    // 95
-      29,    3,   51,    8,            7,    2,   45,    2,    // 103
-       6,    3,    0,   23,            3,    2,    1,    4,    // 111
-      30,    2,   51,    0,           47,    3,    1,    1,    // 119
-       4,   51,    4,   48,            2,   52,    1,    2,    // 127
-      12,    7,    3,   29,            3,   51,    8,   49,    // 135
-       2,    1,   12,    5,          -999
+      38,   80,    6,    3,            0,   29,    3,   51,    // 87
+       4,   29,    2,    6,            3,   -1,   29,    3,    // 95
+      51,    8,    7,    2,           45,    2,    6,    3,    // 103
+       0,   23,    3,    2,            1,    4,   30,    2,    // 111
+      51,    0,   47,    3,            1,    1,    4,   51,    // 119
+       4,   48,    2,   52,            1,    2,   12,    7,    // 127
+       3,   29,    3,   51,            8,   49,    2,    1,    // 135
+      12,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 1;
+    size_t const numfixups = 1;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-     106,  -999
+     104,  -999
     };
     char fixuptypes[] = {
       2,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -2002,33 +2001,33 @@ TEST_F(Bytecode0, Struct06) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct06", scrip);
-    const size_t codesize = 50;
+    size_t const codesize = 48;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,   51,    0,           63,    4,    1,    1,    // 7
-       4,    6,    3,    5,           72,    3,    4,    1,    // 15
-      51,    4,   47,    3,            6,    3,   77,   29,    // 23
-       3,   51,    8,   48,            2,   52,    1,    2,    // 31
-      12,   48,    2,   52,           30,    3,    8,    3,    // 39
-      51,    4,   49,    2,            1,    4,    6,    3,    // 47
-       0,    5,  -999
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,    5,   72,    3,            4,    1,   51,    4,    // 15
+      47,    3,    6,    3,           77,   29,    3,   51,    // 23
+       8,   48,    2,   52,            1,    2,   12,   48,    // 31
+       2,   52,   30,    3,            8,    3,   51,    4,    // 39
+      49,    2,    1,    4,            6,    3,    0,    5,    // 47
+     -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 0;
+    size_t const numfixups = 0;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
@@ -2417,7 +2416,7 @@ TEST_F(Bytecode0, Struct12) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Struct12", scrip);
+    // WriteOutput("Struct12", scrip);
 
     size_t const codesize = 49;
     EXPECT_EQ(codesize, scrip.codesize);
@@ -3177,42 +3176,42 @@ TEST_F(Bytecode0, Func10) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func10", scrip);
-    const size_t codesize = 60;
+    size_t const codesize = 58;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            5,   31,    3,    6,    // 7
-       3,    0,    5,   38,           11,   51,    0,   63,    // 15
-       4,    1,    1,    4,           51,    4,   45,    2,    // 23
-       6,    3,    0,   23,            3,   29,    3,    6,    // 31
-       3,    3,   30,    4,           40,    4,    3,    3,    // 39
-       4,    3,   29,    3,           51,    4,    7,    3,    // 47
-       2,    1,    8,   31,            6,    2,    1,    8,    // 55
-       6,    3,    0,    5,          -999
+       3,    0,    5,   38,           11,    6,    3,    0,    // 15
+      29,    3,   51,    4,           45,    2,    6,    3,    // 23
+       0,   23,    3,   29,            3,    6,    3,    3,    // 31
+      30,    4,   40,    4,            3,    3,    4,    3,    // 39
+      29,    3,   51,    4,            7,    3,    2,    1,    // 47
+       8,   31,    6,    2,            1,    8,    6,    3,    // 55
+       0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 1;
+    size_t const numfixups = 1;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-      26,  -999
+      24,  -999
     };
     char fixuptypes[] = {
       2,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 0;
+    size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 

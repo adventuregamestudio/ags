@@ -85,7 +85,7 @@ TEST_F(Compile1, BinaryNot)
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("inary op"));
+    EXPECT_NE(std::string::npos, msg.find("inary or postfix op"));
 }
 
 TEST_F(Compile1, UnaryDivideBy) { 
@@ -102,7 +102,7 @@ TEST_F(Compile1, UnaryDivideBy) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("unary op"));
+    EXPECT_NE(std::string::npos, msg.find("refix operator"));
 }
 
 TEST_F(Compile1, UnaryPlus) {
@@ -244,7 +244,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("right hand side"));
+    EXPECT_NE(std::string::npos, msg.find("ollowing"));
 }
 
 TEST_F(Compile1, LocalTypes1)
@@ -342,25 +342,6 @@ TEST_F(Compile1, ExpressionArray1) {
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
-}
-
-TEST_F(Compile1, ExpressionArray2) { 
-
-    // Can't mix void
-
-    char *inpl = "\
-        import void Func();                     \n\
-        int main()                              \n\
-        {                                       \n\
-            int Var[8];                         \n\
-            Var;                                \n\
-        }                                       \n\
-        ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("array as a whole"));
 }
 
 TEST_F(Compile1, FuncTypeClash1) {
@@ -1768,4 +1749,33 @@ TEST_F(Compile1, EnumConstantExpressions)
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'4 /"));
+}
+
+TEST_F(Compile1, IncrementReadonly)
+{
+    // No incrementing readonly vars
+
+    char *inpl = "\
+        readonly int I;         \n\
+                                \n\
+        int main() {            \n\
+            return ++I;         \n\
+        }                       \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("eadonly"));
+}
+
+TEST_F(Compile1, SpuriousExpression)
+{
+    char *inpl = "\
+        int main() {            \n\
+            77;                 \n\
+        }                       \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }

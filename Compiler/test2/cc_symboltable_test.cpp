@@ -227,14 +227,14 @@ TEST(SymbolTable, OperatorPrio)
 {
     AGS::SymbolTable symt;
 
-    EXPECT_EQ(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_BitNeg));
-    EXPECT_NE(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_BitNeg));
+    EXPECT_EQ(symt.kNoPrio, symt.BinaryOrPostfixOpPrio(AGS::kKW_BitNeg));
+    EXPECT_NE(symt.kNoPrio, symt.PrefixOpPrio(AGS::kKW_BitNeg));
 
-    EXPECT_NE(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_Divide));
-    EXPECT_EQ(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_Divide));
+    EXPECT_NE(symt.kNoPrio, symt.BinaryOrPostfixOpPrio(AGS::kKW_Divide));
+    EXPECT_EQ(symt.kNoPrio, symt.PrefixOpPrio(AGS::kKW_Divide));
 
-    EXPECT_NE(symt.kNoPrio, symt.BinaryOpPrio(AGS::kKW_Minus));
-    EXPECT_NE(symt.kNoPrio, symt.UnaryOpPrio(AGS::kKW_Minus));
+    EXPECT_NE(symt.kNoPrio, symt.BinaryOrPostfixOpPrio(AGS::kKW_Minus));
+    EXPECT_NE(symt.kNoPrio, symt.PrefixOpPrio(AGS::kKW_Minus));
 }
 
 TEST(SymbolTable, IsAnyIntegerVartype)

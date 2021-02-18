@@ -2103,7 +2103,7 @@ TEST_F(Bytecode1, ThisExpression1) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode1, IncrementAttribute) {
+TEST_F(Bytecode1, CrementAttribute1) {
 
     char inpl[] = "\
         builtin managed struct Object       \n\
@@ -2120,7 +2120,7 @@ TEST_F(Bytecode1, IncrementAttribute) {
     int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("IncrementAttribute", scrip);
+    // WriteOutput("CrementAttribute1", scrip);
 
     size_t const codesize = 51;
     EXPECT_EQ(codesize, scrip.codesize);
@@ -2158,6 +2158,168 @@ TEST_F(Bytecode1, IncrementAttribute) {
 
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, CrementAttribute2) {
+
+    char inpl[] = "\
+        builtin managed struct Object       \n\
+        {                                   \n\
+            import attribute int Graphic;   \n\
+        } obj;                              \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            return obj.Graphic++;           \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("CrementAttribute2", scrip);
+    size_t const codesize = 57;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    2,            0,   48,    2,   52,    // 7
+      29,    6,   45,    2,           39,    0,    6,    3,    // 15
+       0,   33,    3,   30,            6,   29,    3,    1,    // 23
+       3,    1,    6,    2,            0,   48,    2,   52,    // 31
+      29,    6,   34,    3,           45,    2,   39,    1,    // 39
+       6,    3,    1,   33,            3,   35,    1,   30,    // 47
+       6,   30,    3,   31,            3,    6,    3,    0,    // 55
+       5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 4;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       4,   16,   28,   42,        -999
+    };
+    char fixuptypes[] = {
+      1,   4,   1,   4,     '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 2;
+    std::string imports[] = {
+    "Object::get_Graphic^0",      "Object::set_Graphic^1",       "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, CrementInExpression1) {
+
+    char inpl[] = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int I;                          \n\
+            return 1 + --I;                 \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("CementInExpression1", scrip);
+    size_t const codesize = 43;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,    1,   29,    3,           51,    8,    7,    3,    // 15
+       2,    3,    1,    8,            3,    7,    3,   30,    // 23
+       4,   11,    4,    3,            3,    4,    3,    2,    // 31
+       1,    4,   31,    6,            2,    1,    4,    6,    // 39
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, CrementInExpression2) {
+
+    char inpl[] = "\
+        int foo ()                          \n\
+        {                                   \n\
+            char Ch;                        \n\
+            return Ch-- - 1;                \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("CrementInExpression2", scrip);
+    size_t const codesize = 46;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   51,    0,           63,    1,    1,    1,    // 7
+       1,   51,    1,   24,            3,    2,    3,    1,    // 15
+      26,    3,    1,    3,            1,   29,    3,    6,    // 23
+       3,    1,   30,    4,           12,    4,    3,    3,    // 31
+       4,    3,    2,    1,            1,   31,    6,    2,    // 39
+       1,    1,    6,    3,            0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, CrementInExpression3) {
+
+    char inpl[] = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int I = 7;                      \n\
+            short J = 9;                    \n\
+                                            \n\
+            if (++I == (J)--)               \n\
+                --J;                        \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("CrementInExpression3", scrip);
 }
 
 TEST_F(Bytecode1, CompareStringToNull) {
@@ -2329,22 +2491,4 @@ TEST_F(Bytecode1, DynarrayLength2) {
 
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode1, IncrementInExpressions) {
-
-    char inpl[] = "\
-        int foo ()                          \n\
-        {                                   \n\
-            int I, J;                       \n\
-                                            \n\
-            if (++I == (J)--)               \n\
-                --J;                        \n\
-        }                                   \n\
-        ";
-
-    int compileResult = cc_compile(inpl, scrip);
-    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("IncrementInExpressions", scrip);
 }

@@ -125,11 +125,13 @@ private:
     // - It can be in AX (kVL_AX_is_value)
     // - or in m(MAR) (kVL_MAR_pointsto_value)
     // - or a constant float or int value (kVL_compile_time_literal)
-    //      In this case the symbol that points to the value is in symbol
+    //      In this case the symbol that points to the value is in 'symbol'
     // When writing, we need a pointer to the adress that has to be modified.
     // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_MAR_pointsto_value).
     // - or AX, i.e., the value to modify is in m(AX) (kVL_AX_is_value)
     // - attributes must be modified by calling their setter function (kVL_Attribute)
+    //      In this case the qualified attribute is in 'symbol'
+
 
     struct ValueLocation
     {
@@ -561,19 +563,29 @@ private:
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary '-'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    ErrorType ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression_PrefixMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary '+'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    ErrorType ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression_PrefixPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a boolean or bitwise negation
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    ErrorType ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression_PrefixNegate(Symbol operation, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+
+    // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    ErrorType ParseExpression_PrefixModifier(Symbol op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression_PostfixModifier(Symbol op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+
+    // If consecutive parentheses surround the expression, strip them.
+    void StripOutermostParens(SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    ErrorType ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType ParseExpression_Prefix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+
+    ErrorType ParseExpression_Postfix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     AGS::ErrorType ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1,
         bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc_term2, AGS::ScopeType &scope_type_term2, AGS::Vartype &vartype_term2);
@@ -586,10 +598,6 @@ private:
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is '?' or a binary operator.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    ErrorType ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
-
     // Parse the term given in 'expression'. Expression begins with '('
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
@@ -598,7 +606,13 @@ private:
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     ErrorType ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
-    AGS::ErrorType ParseExpression_CheckUsedUp(AGS::SrcList &expression);
+    // Check whether spurious symbols exist after a subterm is processed
+    ErrorType ParseExpression_CheckUsedUp(AGS::SrcList &expression);
+
+    // Parse the term given in 'expression'.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // The term must either be a modifying operation or a function call.
+    ErrorType ParseSideEffectExpression(SrcList &expression);
 
     // Parse the term given in 'expression'.
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
@@ -662,12 +676,12 @@ private:
     // The "return_scope_type" is used for deciding what values can be returned from a function.
     // implied_this_dot is set if subsequent processing should imply that
     // the expression starts with "this.", with the '.' already read in
-    ErrorType AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access);
+    ErrorType AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access, bool &func_was_called);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &func_was_called);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
@@ -689,7 +703,9 @@ private:
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
     // _not_ be called and symlist[0] will be the attribute.
-    ErrorType AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype, bool &func_was_called);
+    inline ErrorType AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+        { bool dummy; return AccessData(access_type, expression, vloc, scope_type, vartype, dummy); }
 
     // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
     bool AccessData_MayAccessClobberAX(SrcList &expression);

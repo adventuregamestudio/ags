@@ -1759,8 +1759,10 @@ AGS::ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int
     size_t nesting_depth = 0;
 
     int largest_prio_found = INT_MIN; // note: largest number == lowest priority
-    bool largest_is_binary = true;
-    int index_of_largest_prio = -1;
+    bool largest_is_prefix = false;
+    int index_of_largest = -1;
+
+    // Tracks whether the preceding iteration had an operand
     bool encountered_operand = false;
 
     expression.StartRead();
@@ -1768,62 +1770,69 @@ AGS::ErrorType AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int
     {
         Symbol const current_sym = expression.GetNext();
 
-        if (kKW_CloseBracket == current_sym ||
-            kKW_CloseParenthesis == current_sym)
+        if (kKW_CloseBracket == current_sym || kKW_CloseParenthesis == current_sym)
         {
             encountered_operand = true;
             if (nesting_depth > 0)
                 nesting_depth--;
             continue;
         }
-        else if (kKW_OpenBracket == current_sym ||
-            kKW_OpenParenthesis == current_sym)
+
+        if (kKW_OpenBracket == current_sym || kKW_OpenParenthesis == current_sym)
         {
             nesting_depth++;
             continue;
         }
-        else if (!_sym.IsOperator(current_sym))
+
+        if (!_sym.IsOperator(current_sym))
         {
             encountered_operand = true;
+            continue;
         }
 
         // Continue if we aren't at zero nesting depth, since ()[] take priority
         if (nesting_depth > 0)
             continue;
 
-        if (!_sym.IsOperator(current_sym))
-            continue;
-
-        // a binary operator has an operand to its left
-        bool const is_binary = encountered_operand;
+        bool const is_prefix = !encountered_operand;
         encountered_operand = false;
 
-        Symbol const current_op = current_sym;
+        if (kKW_Increment == current_sym || kKW_Decrement == current_sym)
+        {
+            // These can be postfix as well as prefix. Assume they are postfix here
+            // This means that they operate on a preceding operand, so in the next
+            // loop, we will have encountered an operand.
+            encountered_operand = true;
+        }
+
         int const current_prio =
-            is_binary ? _sym.BinaryOpPrio(current_op) : _sym.UnaryOpPrio(current_op);
+            is_prefix ?
+            _sym.PrefixOpPrio(current_sym) : _sym.BinaryOrPostfixOpPrio(current_sym);
         if (current_prio < 0)
         {
             Error(
-                "'%s' cannot be used as %s operator",
-                _sym.GetName(current_op).c_str(),
-                is_binary ? "binary" : "unary");
+                is_prefix ?
+                    "Cannot use '%s' as a prefix operator" :
+                    "Cannot use '%s' as a binary or postfix operator", 
+                _sym.GetName(current_sym).c_str());
             return kERR_UserError;
         }
+
         if (current_prio < largest_prio_found)
             continue; // can't be lowest priority
 
-        // remember this and continue looking
         largest_prio_found = current_prio;
         // The cursor has already moved to the next symbol, so the index is one less
-        index_of_largest_prio = expression.GetCursor() - 1;
-        largest_is_binary = is_binary;
+        index_of_largest = expression.GetCursor() - 1;
+        largest_is_prefix = is_prefix;
     }
 
-    // unary operators are prefix, so if the least binding operator
-    // turns out to be unary and not in first position, it must be
-    // a chain of unary operators and the first should be evaluated
-    // first
-    idx = largest_is_binary ? index_of_largest_prio : 0;
+    idx = index_of_largest;
+    if (largest_is_prefix)
+        // If this prefix operator turns out not to be in first position,
+        // it must be the end of a chain of unary operators and the first
+        // of those should be evaluated first
+        idx = 0;
     return kERR_None;
 }
 
@@ -2174,9 +2183,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_CheckArgOfNew(Vartype argument_varty
 
 AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    expression.StartRead();
-    expression.GetNext(); // Eat "new"
-
     if (expression.ReachedEOF())
     {
         Error("Expected a type after 'new' but didn't find any");
@@ -2259,23 +2265,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
 }
 
 // We're parsing an expression that starts with '-' (unary minus)
-AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::ParseExpression_PrefixMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    if (expression.Length() < 2)
-    {
-        Error(
-            "Expected a term after '%s' but didn't find any",
-            _sym.GetName(expression[0]).c_str());
-        return kERR_UserError;
-    }
-
-    expression.EatFirstSymbol(); // Eat '-'
-    expression.StartRead();
-    
-    // parse the rest of the expression into AX
-    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
-    if (retval < 0) return retval;
-
     if (vloc.IsCompileTimeLiteral())
     {
         // Do the operation right now
@@ -2284,7 +2275,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
                 ValueLocation::kCompile_time_literal,
                 kKW_Float == _sym[vloc.symbol].LiteralD->Vartype? _sym.Find("0.0") : _sym.Find("0") };
         bool can_do_it_now = false;
-        retval = ParseExpression_CompileTime(kKW_Minus, vloc_lhs, vloc, can_do_it_now, vloc);
+        ErrorType retval = ParseExpression_CompileTime(kKW_Minus, vloc_lhs, vloc, can_do_it_now, vloc);
         if (retval < 0) return retval;
         if (can_do_it_now)
             return kERR_None;
@@ -2293,7 +2284,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
     ResultToAX(vartype, vloc);
 
     CodeCell opcode = SCMD_SUBREG;
-    retval = GetOpcode(kKW_Minus, vartype, vartype, opcode);
+    ErrorType retval = GetOpcode(kKW_Minus, vartype, vartype, opcode);
     if (retval < 0) return retval;
 
     // Calculate 0 - AX
@@ -2307,17 +2298,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryMinus(SrcList &expression, Valu
 }
 
 // We're parsing an expression that starts with '+' (unary plus)
-AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::ParseExpression_PrefixPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    if (expression.Length() < 2)
-    {
-        Error(
-            "Expected a term after '%s' but didn't find any",
-            _sym.GetName(expression[0]).c_str());
-        return kERR_UserError;
-    }
-
-    expression.EatFirstSymbol(); // Eat '+'
     expression.StartRead();
     
     ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
@@ -2331,22 +2313,9 @@ AGS::ErrorType AGS::Parser::ParseExpression_UnaryPlus(SrcList &expression, Value
 }
 
 // We're parsing an expression that starts with '!' (boolean NOT) or '~' (bitwise Negate)
-AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    Symbol const op_sym = expression[0];
     bool const bitwise_negation = kKW_BitNeg == op_sym;
-
-    if (expression.Length() < 2)
-    {
-        Error(
-            "Expected a term after '%s' but didn't find any",
-            _sym.GetName(op_sym).c_str());
-        return kERR_UserError;
-    }
-
-    SrcList after_not = SrcList(expression, 1, expression.Length() - 1);
-    ErrorType retval = ParseExpression_Term(after_not, vloc, scope_type, vartype);
-    if (retval < 0) return retval;
 
     if (!_sym.IsAnyIntegerVartype(vartype))
     {
@@ -2362,7 +2331,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
         // Try to do the negation now
         ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
         bool can_do_it_now = false;
-        retval = ParseExpression_CompileTime(op_sym, vloc_lhs, vloc, can_do_it_now, vloc);
+        ErrorType retval = ParseExpression_CompileTime(op_sym, vloc_lhs, vloc, can_do_it_now, vloc);
         if (retval < 0) return retval;
         if (can_do_it_now)
             return kERR_None;
@@ -2388,31 +2357,162 @@ AGS::ErrorType AGS::Parser::ParseExpression_Negate(SrcList &expression, ValueLoc
     return kERR_None;
 }
 
+AGS::ErrorType AGS::Parser::ParseExpression_PrefixModifier(Symbol op_sym, AGS::SrcList &expression, AGS::Parser::ValueLocation &vloc, AGS::ScopeType &scope_type, AGS::Vartype &vartype)
+{
+    bool const op_is_inc = (kKW_Increment == op_sym);
+
+    expression.StartRead();
+
+    ErrorType retval = ParseAssignment_ReadLHSForModification(expression, scope_type, vloc, vartype);
+    if (retval < 0) return retval;
+
+    retval = IsVartypeMismatch(vartype, kKW_Int, true);
+    if (retval < 0) return retval;
+
+    WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+
+    // Really do the assignment the long way so that all the checks and safeguards will run.
+    // If a shortcut is possible then undo this and generate the shortcut instead.
+    RestorePoint before_long_way_modification = RestorePoint(_scrip);
+
+    retval = AccessData_AssignTo(scope_type, vartype, expression);
+    if (retval < 0) return retval;
+
+    if (ValueLocation::kMAR_pointsto_value == vloc.location)
+    {
+        before_long_way_modification.Restore();
+        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(vartype));
+        WriteCmd(memwrite, SREG_AX);
+    }
+
+    return kERR_None;
+}
+
 // The least binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-AGS::ErrorType AGS::Parser::ParseExpression_Unary(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::ParseExpression_Prefix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    switch (expression[0])
+    Symbol const op_sym = expression[0];
+
+    if (expression.Length() < 2)
     {
-    default:
-        Error("Can't use '%s' as a prefix operator", _sym.GetName(expression[0]).c_str());
+        Error(
+            "Expected a term after '%s' but didn't find any",
+            _sym.GetName(op_sym).c_str());
         return kERR_UserError;
+    }
 
-    case kKW_BitNeg:
-    case kKW_Not:
-        return ParseExpression_Negate(expression, vloc, scope_type, vartype);
+    expression.EatFirstSymbol();
 
-    case kKW_Minus:
-        return ParseExpression_UnaryMinus(expression, vloc, scope_type, vartype);
-
-    case kKW_New:
+    if (kKW_New == op_sym)
         return ParseExpression_New(expression, vloc, scope_type, vartype);
 
-    case kKW_Plus:
-        return ParseExpression_UnaryPlus(expression, vloc, scope_type, vartype);
+    if (kKW_Decrement == op_sym || kKW_Increment == op_sym)
+    {
+        StripOutermostParens(expression);
+        return ParseExpression_PrefixModifier(op_sym, expression, vloc, scope_type, vartype);
     }
-    // Can't reach.
+
+    ErrorType retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+    if (retval < 0) return retval;
+
+    switch (op_sym)
+    {
+    case kKW_BitNeg:
+    case kKW_Not:
+        return ParseExpression_PrefixNegate(op_sym, expression, vloc, scope_type, vartype);
+
+    case kKW_Minus:
+        return ParseExpression_PrefixMinus(expression, vloc, scope_type, vartype);
+
+    case kKW_Plus:
+        return ParseExpression_PrefixPlus(expression, vloc, scope_type, vartype);
+    }
+
+    Error("!Illegal prefix op '%s'", _sym.GetName(op_sym).c_str());
+    return kERR_InternalError;
+}
+
+void AGS::Parser::StripOutermostParens(SrcList &expression)
+{
+    while (expression[0] == kKW_OpenParenthesis)
+    {
+        size_t const last = expression.Length() - 1;
+        if (kKW_CloseParenthesis != expression[last])
+            return;
+        expression.SetCursor(1u);
+        SkipTo(SymbolList{}, expression);
+        if (expression.GetCursor() != last)
+            return;
+        expression.EatFirstSymbol();
+        expression.EatLastSymbol();
+    }
+}
+
+ErrorType AGS::Parser::ParseExpression_PostfixModifier(Symbol const op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+{
+    bool const op_is_inc = kKW_Increment == op_sym;
+
+    StripOutermostParens(expression);
+    expression.StartRead();
+
+    bool const for_writing = true;
+    ErrorType retval = ParseAssignment_ReadLHSForModification(expression, scope_type, vloc, vartype);
+    if (retval < 0) return retval;
+
+    retval = IsVartypeMismatch(vartype, kKW_Int, true);
+    if (retval < 0) return retval;
+
+    // Really do the assignment the long way so that all the checks and safeguards will run.
+    // If a shortcut is possible then undo this and generate the shortcut instead.
+    RestorePoint before_long_way_modification{ _scrip };
+
+    PushReg(SREG_AX);
+    WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+    retval = AccessData_AssignTo(scope_type, vartype, expression);
+    if (retval < 0) return retval;
+    PopReg(SREG_AX);
+
+    if (ValueLocation::kMAR_pointsto_value == vloc.location)
+    {   // We know the memory where the var resides. Do modify this memory directly.
+        before_long_way_modification.Restore();
+        WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+        CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(vartype));
+        WriteCmd(memwrite, SREG_AX);
+        WriteCmd((!op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+    }
+    vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
+}
+
+ErrorType AGS::Parser::ParseExpression_Postfix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+{
+    size_t const len = expression.Length();
+
+    if (0u == len)
+    {
+        Error("!Empty expression");
+        return kERR_InternalError;
+    }
+
+    Symbol const op_sym = expression[len - 1u];
+    if (1u == len)
+    {
+        Error("'%s' must either precede or follow some term to be modified", _sym.GetName(op_sym).c_str());
+        return kERR_UserError;
+    }
+
+    expression.EatLastSymbol();
+
+    switch (op_sym)
+    {
+    case kKW_Decrement:
+    case kKW_Increment:
+        return ParseExpression_PostfixModifier(op_sym, expression, vloc, scope_type, vartype);
+    }
+
+    Error("Expected a term following the '%s', didn't find it", _sym.GetName(op_sym).c_str());
+    return kERR_UserError;
 }
 
 AGS::ErrorType AGS::Parser::ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1, bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc, AGS::ScopeType &scope_type, AGS::Vartype &vartype)
@@ -2705,24 +2805,23 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     if (retval < 0) return retval;
     if (done_at_compile_time)
         start_of_term.Restore();
+
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseExpression_BinaryOrTernary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
-{
-    Symbol const operator_sym = expression[op_idx];
-    if (kKW_Tern == operator_sym)
-        return ParseExpression_Ternary(op_idx, expression, vloc, scope_type, vartype);
-    return ParseExpression_Binary(op_idx, expression, vloc, scope_type, vartype);
-}
-
-AGS::ErrorType AGS::Parser::ParseExpression_CheckUsedUp(AGS::SrcList &expression)
+AGS::ErrorType AGS::Parser::ParseExpression_CheckUsedUp(SrcList &expression)
 {
     if (expression.ReachedEOF())
         return kERR_None;
 
     // e.g. "4 3" or "(5) 3".
-    // This is most probably due to the user having forgotten an operator
+
+    // Some calls don't promise to use up all its expression, so we need a check
+    // whether some spurious symbols follow. These spurious symbols can't be operators
+    // or else the operators would have been caught in the term segmentation.
+    // So this happens when several identifiers or literals follow each other.
+    // The best guess for this case is that an operator is missing in between.
+
     Error(
         "Expected an operator, found '%s' instead",
         _sym.GetName(expression.GetNext()).c_str());
@@ -2732,18 +2831,15 @@ AGS::ErrorType AGS::Parser::ParseExpression_CheckUsedUp(AGS::SrcList &expression
 
 AGS::ErrorType AGS::Parser::ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
-    // find the corresponding closing parenthesis
-    size_t const bp_start = 1;
-    expression.SetCursor(bp_start); // Skip the '('
+    // Check for spurious symbols after the closing paren.
+    expression.SetCursor(1u);
     SkipTo(SymbolList{}, expression);
-    size_t const bp_end = expression.GetCursor();
-    
-    SrcList between_parens = SrcList(expression, bp_start, bp_end - bp_start);
-    ErrorType retval = ParseExpression_Term(between_parens, vloc, scope_type, vartype);
+    expression.GetNext(); // Eat the closing parenthesis
+    ErrorType retval = ParseExpression_CheckUsedUp(expression);
     if (retval < 0) return retval;
 
-    expression.GetNext(); // Eat ')'
-    return ParseExpression_CheckUsedUp(expression);
+    StripOutermostParens(expression);
+    return ParseExpression_Term(expression, vloc, scope_type, vartype);
 }
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
@@ -3195,6 +3291,78 @@ AGS::ErrorType AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLoca
     return ParseExpression_CheckUsedUp(expression);
 }
 
+ErrorType AGS::Parser::ParseSideEffectExpression(SrcList &expression)
+{
+    if (expression.Length() == 0)
+    {
+        Error("!Cannot parse empty subexpression");
+        return kERR_InternalError;
+    }
+
+    ValueLocation vloc;
+    ScopeType scope_type;
+    Vartype vartype;
+
+    int least_binding_op_idx;
+    ErrorType retval = IndexOfLeastBondingOperator(expression, least_binding_op_idx);  // can be < 0
+    if (retval < 0) return retval;
+
+    Symbol const op_sym = expression[least_binding_op_idx];
+
+    if (0 > least_binding_op_idx)
+    {
+        if (kKW_OpenParenthesis == expression[0u])
+        {
+            expression.EatFirstSymbol();
+            expression.EatLastSymbol();
+            return ParseSideEffectExpression(expression);
+        }
+
+        bool function_was_called;
+        ErrorType retval = AccessData(VAC::kWriting, expression, vloc, scope_type, vartype, function_was_called);
+        if (retval < 0) return retval;
+        if (function_was_called)
+            return ParseExpression_CheckUsedUp(expression);
+    }
+    else if (0 == least_binding_op_idx)
+    {
+        if (kKW_Decrement == op_sym || kKW_Increment == op_sym)
+            return ParseExpression_Term(expression, vloc, scope_type, vartype);
+    }
+    else if (expression.Length() - 1u == least_binding_op_idx)
+    {
+        if (kKW_Decrement == op_sym || kKW_Increment == op_sym)
+        {
+            // The prefix versions of those are more efficient
+            SrcList param = SrcList(expression, 0, expression.Length() - 1);
+            retval = ParseExpression_PrefixModifier(op_sym, param, vloc, scope_type, vartype);
+            if (retval < 0) return retval;
+            retval = ParseExpression_CheckUsedUp(param);
+            if (retval < 0) return retval;
+            expression.SetCursor(expression.Length()); // Eat the operator
+            return kERR_None;
+        }
+    }
+    else if (0 > least_binding_op_idx)
+    {
+        if (kKW_OpenParenthesis == expression[0u])
+        {
+            expression.EatFirstSymbol();
+            expression.EatLastSymbol();
+            return ParseSideEffectExpression(expression);
+        }
+
+        bool function_was_called;
+        ErrorType retval = AccessData(VAC::kWriting, expression, vloc, scope_type, vartype, function_was_called);
+        if (retval < 0) return retval;
+        if (function_was_called)
+            return ParseExpression_CheckUsedUp(expression);
+    }
+
+    Error("Unexpected expression (Is this an incomplete assignment or function call?)");
+    return kERR_UserError;
+}
+
 AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     if (expression.Length() == 0)
@@ -3203,21 +3371,22 @@ AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocat
         return kERR_InternalError;
     }
 
-    Symbol const first_sym = expression[0];
-    int least_binding_op_idx;
-    ErrorType retval = IndexOfLeastBondingOperator(expression, least_binding_op_idx);  // can be < 0
+    int least_binding_op_idx; // can be < 0
+    ErrorType retval = IndexOfLeastBondingOperator(expression, least_binding_op_idx);  
     if (retval < 0) return retval;
 
-    if (0 == least_binding_op_idx)
-        retval = ParseExpression_Unary(expression, vloc, scope_type, vartype);
-    else if (0 < least_binding_op_idx)
-        retval = ParseExpression_BinaryOrTernary(static_cast<size_t>(least_binding_op_idx), expression, vloc, scope_type, vartype);
-    else
+    if (0 > least_binding_op_idx)
         retval = ParseExpression_NoOps(expression, vloc, scope_type, vartype);
+    else if (0 == least_binding_op_idx)
+        retval = ParseExpression_Prefix(expression, vloc, scope_type, vartype);
+    else if (expression.Length() - 1u == least_binding_op_idx)
+        retval = ParseExpression_Postfix(expression, vloc, scope_type, vartype);
+    else if (kKW_Tern == expression[least_binding_op_idx])
+        retval = ParseExpression_Ternary(least_binding_op_idx, expression, vloc, scope_type, vartype);
+    else
+        retval = ParseExpression_Binary(least_binding_op_idx, expression, vloc, scope_type, vartype);        
     if (retval < 0) return retval;
 
-    retval = ParseExpression_CheckUsedUp(expression);
-    if (retval < 0) return retval;
     return HandleStructOrArrayResult(vartype, vloc);
 }
 
@@ -3563,7 +3732,7 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, VariableAc
     return AccessData_ProcessAnyArrayIndex(vl_of_array, expression, vl_dummy, mloc, vartype);
 }
 
-AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type,Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access)
+AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access, bool &func_was_called)
 {
     implied_this_dot = false;
 
@@ -3611,6 +3780,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
 
         if (_sym.IsFunction(first_sym))
         {
+            func_was_called = true;
             return_scope_type = ScT::kGlobal;
             vloc.location = ValueLocation::kAX_is_value;
             ErrorType retval = AccessData_FunctionCall(first_sym, expression, mloc, vartype);
@@ -3668,7 +3838,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &func_was_called)
 {
     Symbol const unqualified_component = expression.PeekNext();
     Symbol const qualified_component = FindComponentInStruct(vartype, unqualified_component);
@@ -3684,6 +3854,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
 
     if (_sym.IsFunction(qualified_component))
     {
+        func_was_called = true;
         if (static_access && !_sym[qualified_component].FunctionD->TypeQualifiers[TQ::kStatic])
         {
             Error("Must specify a specific object for non-static function %s", _sym.GetName(qualified_component).c_str());
@@ -3717,6 +3888,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
 
     if (_sym.IsAttribute(qualified_component))
     {
+        func_was_called = true;
         // make MAR point to the struct of the attribute
         ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
@@ -3726,6 +3898,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
             // this attribute was originally called from
             vartype = _sym.GetVartype(qualified_component);
             vloc.location = ValueLocation::kAttribute;
+            vloc.symbol = qualified_component;
             return kERR_None;
         }
         vloc.location = ValueLocation::kAX_is_value;
@@ -3782,7 +3955,7 @@ AGS::ErrorType AGS::Parser::AccessData_IsClauseLast(SrcList &expression, bool &i
 // that has not been processed yet
 // NOTE: If this selects an attribute for writing, then the corresponding function will
 // _not_ be called and symlist[0] will be the attribute.
-AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype, bool &func_was_called)
 {
     expression.StartRead();
     if (0 == expression.Length())
@@ -3790,7 +3963,9 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         Error("!Empty expression");
         return kERR_InternalError;
     }
-    
+
+    func_was_called = false;
+
     // For memory accesses, we set the MAR register lazily so that we can
     // accumulate offsets at runtime instead of compile time.
     // This object tracks what we will need to do to set the MAR register.
@@ -3806,7 +3981,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause(clause_is_last? access_type : VAC::kReading, expression, vloc, scope_type, mloc, vartype, implied_this_dot, static_access);
+    retval = AccessData_FirstClause(clause_is_last? access_type : VAC::kReading, expression, vloc, scope_type, mloc, vartype, implied_this_dot, static_access, func_was_called);
     if (retval < 0) return retval;
 
     Vartype outer_vartype = kKW_NoSymbol;
@@ -3863,7 +4038,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause(clause_is_last ? access_type : VAC::kReading, implied_this_dot, static_access, expression, vloc, scope_type, mloc, vartype);
+        retval = AccessData_SubsequentClause(clause_is_last ? access_type : VAC::kReading, implied_this_dot, static_access, expression, vloc, scope_type, mloc, vartype, func_was_called);
         if (retval < 0) return retval;
 
         // Next component access, if there is any, is dependent on
@@ -3871,16 +4046,6 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         implied_this_dot = false;
         // Next component access, if there is any, won't be static.
         static_access = false;
-    }
-
-    if (ValueLocation::kAttribute == vloc.location)
-    {
-        // Caller will do the assignment
-        // For this to work, the caller must know the vartype of the struct
-        // in which the attribute resides. Ignore "const" and "dynptr" to find the vartype
-        vartype = _sym.VartypeWithout(VTT::kConst, outer_vartype);
-        vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype);
-        return kERR_None;
     }
 
     if (ValueLocation::kAX_is_value == vloc.location)
@@ -3994,8 +4159,10 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
 
     if (ValueLocation::kAttribute == vloc.location)
     {
-        // We need to call the attribute setter 
-        Vartype struct_of_attribute = lhsvartype;
+        // We need to call the attribute setter
+        Symbol attribute = vloc.symbol;
+
+        Vartype struct_of_attribute = _sym[attribute].ComponentD->Parent;
 
         bool const is_setter = true;
         retval =  AccessData_CallAttributeFunc(is_setter, expression, struct_of_attribute);
@@ -4146,7 +4313,10 @@ ErrorType AGS::Parser::ParseExpression(SrcList &src, ValueLocation &vloc, ScopeT
         return kERR_UserError;
     }
 
-    return ParseExpression_Term(expression, vloc, scope_type, vartype);
+    size_t const expr_end = _src.GetCursor();
+    retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+    _src.SetCursor(expr_end);
+    return retval;
 }
 
 ErrorType AGS::Parser::ParseExpression(SrcList &src, ScopeType &scope_type, Vartype &vartype)
@@ -4241,19 +4411,16 @@ ErrorType AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opene
 }
 
 // We are parsing the left hand side of a += or similar statement.
-AGS::ErrorType AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &lhs, ScopeType &scope_type, ValueLocation &vloc, Vartype &lhsvartype)
+AGS::ErrorType AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &expression, ScopeType &scope_type, ValueLocation &vloc, Vartype &vartype)
 {
-    ErrorType retval = AccessData(VAC::kReadingForLaterWriting, lhs, vloc, scope_type, lhsvartype);
+    ErrorType retval = AccessData(VAC::kReadingForLaterWriting, expression, vloc, scope_type, vartype);
     if (retval < 0) return retval;
-    if (!lhs.ReachedEOF())
-    {
-        Error("!Unexpected symbols following expression");
-        return kERR_InternalError;
-    }
+    retval = ParseExpression_CheckUsedUp(expression);
+    if (retval < 0) return retval;
 
     // Also put the value into AX so that it can be read/modified as well as written
     ValueLocation vloc_dummy = vloc; // Don't clobber vloc
-    ResultToAX(lhsvartype, vloc_dummy);
+    ResultToAX(vartype, vloc_dummy);
     return kERR_None;
 }
 
@@ -4298,16 +4465,19 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
 
+    RestorePoint before_write = RestorePoint(_scrip);
+    retval = AccessData_AssignTo(sct, vartype, lhs);
+    if (retval < 0) return retval;
+
     if (ValueLocation::kMAR_pointsto_value == vloc.location)
     {
+        before_write.Restore();
         // Shortcut: Write the result directly back to memory
         CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
         WriteCmd(memwrite, SREG_AX);
-        return kERR_None;
     }
 
-    // Do a conventional assignment
-    return AccessData_AssignTo(sct, vartype, lhs);
+    return kERR_None;
 }
 
 // "var++" or "var--"
@@ -6449,12 +6619,8 @@ AGS::ErrorType AGS::Parser::ParseAssignmentOrExpression(Symbol cursym)
     default:
     {
         // No assignment symbol following: This is an isolated expression, e.g., a function call
-        ValueLocation vloc;
-        ScopeType scope_type;
-        Vartype vartype;
-        retval = ParseExpression_Term(expression, vloc, scope_type, vartype);
+        retval = ParseSideEffectExpression(expression);
         if (retval < 0) return retval;
-        ResultToAX(vartype, vloc);
         return kERR_None;
     }
     case kKW_Assign:

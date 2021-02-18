@@ -168,6 +168,9 @@ AGS::SymbolTable::SymbolTable()
         new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }),
         nullptr);
 
+    AddOperator(kKW_Decrement, "--", 101, 101, SCMD_SUB);
+    // No compile time functions defined here; those are done with special logic.
+
     AddOperator(kKW_Divide, "/", 103, kNoPrio, SCMD_DIVREG, SCMD_FDIVREG);
     OperatorCtFunctions(
         kKW_Divide,
@@ -191,6 +194,9 @@ AGS::SymbolTable::SymbolTable()
         kKW_GreaterEqual,
         new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
         new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
+
+    AddOperator(kKW_Increment, "++", 101, 101, SCMD_ADD);
+    // No compile time functions defined here; those are done with special logic.
 
     AddOperator(kKW_Less, "<", 112, kNoPrio, SCMD_LESSTHAN, SCMD_FLESSTHAN);
     OperatorCtFunctions(
@@ -273,10 +279,6 @@ AGS::SymbolTable::SymbolTable()
     AddAssign(kKW_AssignPlus, "+=", 120, SCMD_ADDREG, SCMD_FADDREG);
     AddAssign(kKW_AssignShiftLeft, "<<=", 120, SCMD_SHIFTLEFT);
     AddAssign(kKW_AssignShiftRight, ">>=", 120, SCMD_SHIFTRIGHT);
-
-    // Modifiers
-    AddModifier(kKW_Increment, "++", SCMD_ADD, 101, 101);
-    AddModifier(kKW_Decrement, "--", SCMD_SUB, 101, 101);
 
     // other keywords and symbols
     AddKeyword(kKW_Dot, ".");
@@ -739,20 +741,6 @@ AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
     SymbolTableEntry &entry = entries.at(kw);
     entry.Name = name;
     
-    _findCache[name] = kw;
-    return kw;
-}
-
-AGS::Symbol AGS::SymbolTable::AddModifier(Predefined kw, std::string const &name, CodeCell opcode, size_t prefix_prio, size_t postfix_prio)
-{
-    
-    SymbolTableEntry &entry = entries.at(kw);
-    entry.Name = name;
-    entry.OperatorD = new SymbolTableEntry::OperatorDesc;
-    entry.OperatorD->BinaryPrio = prefix_prio;
-    entry.OperatorD->UnaryPrio = postfix_prio;
-    entry.OperatorD->IntOpcode = opcode;
-
     _findCache[name] = kw;
     return kw;
 }

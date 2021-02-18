@@ -349,9 +349,6 @@ private:
     // Add the keyword symbol to the symbol table at [kw].
     Symbol AddKeyword(Predefined kw, std::string const &name);
 
-    // Add the modifier symbol to the symbol table at [kw]. Priorities as yet unused.
-    Symbol AddModifier(Predefined kw, std::string const &name, CodeCell opcode, size_t prefix_prio, size_t postfix_prio);
-
     // Add the operator symbol to the symbol table at [kw]. 
     // Priorities: lower value = higher prio.
     Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
@@ -482,9 +479,9 @@ public:
     ScopeType GetScopeType(Symbol s) const;
 
     // Operators
-    inline int BinaryOpPrio(Symbol s) const
+    inline int BinaryOrPostfixOpPrio(Symbol s) const
         { return IsOperator(s) ? entries.at(s).OperatorD->BinaryPrio : 0; }
-    inline int UnaryOpPrio(Symbol s) const
+    inline int PrefixOpPrio(Symbol s) const
         { return IsOperator(s) ? entries.at(s).OperatorD->UnaryPrio : 0; }
 
     // Strings

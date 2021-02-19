@@ -1248,8 +1248,8 @@ void start_skipping_cutscene () {
         remove_popup_interface(ifacepopped);
 
     // if a text message is currently displayed, remove it
-    if (is_text_overlay > 0)
-        remove_screen_overlay(OVER_TEXTMSG);
+    if (play.text_overlay_on > 0)
+        remove_screen_overlay(play.text_overlay_on);
 
 }
 

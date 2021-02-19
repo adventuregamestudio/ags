@@ -43,7 +43,6 @@ extern IGraphicsDriver *gfxDriver;
 
 
 std::vector<ScreenOverlay> screenover;
-int is_complete_overlay=0,is_text_overlay=0;
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -209,8 +208,8 @@ void remove_screen_overlay_index(size_t over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
     dispose_overlay(over);
-    if (over.type==OVER_COMPLETE) is_complete_overlay--;
-    if (over.type==OVER_TEXTMSG) is_text_overlay--;
+    if (over.type == play.complete_overlay_on) play.complete_overlay_on = 0;
+    if (over.type == play.text_overlay_on) play.text_overlay_on = 0;
     screenover.erase(screenover.begin() + over_idx);
     // if an overlay before the sierra-style speech one is removed,
     // update the index
@@ -245,9 +244,9 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChann
 
 size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel, BlendMode blendMode)
 {
-    if (type==OVER_COMPLETE) is_complete_overlay++;
-    if (type==OVER_TEXTMSG) is_text_overlay++;
-    if (type==OVER_CUSTOM) {
+    if (type == OVER_COMPLETE) play.complete_overlay_on = type;
+    if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH) play.text_overlay_on = type;
+    if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
         for (int id = OVER_CUSTOM + 1; id < screenover.size() + OVER_CUSTOM + 1; ++id) {
             if (find_overlay_of_type(id) == -1) { type=id; break; }

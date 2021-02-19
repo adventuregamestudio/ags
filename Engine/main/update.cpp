@@ -61,7 +61,6 @@ extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
-extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
@@ -284,11 +283,11 @@ void update_speech_and_messages()
     {
       if (play.fast_forward > 0)
       {
-        remove_screen_overlay(OVER_TEXTMSG);
+        remove_screen_overlay(play.text_overlay_on);
       }
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
-        remove_screen_overlay(OVER_TEXTMSG);
+        remove_screen_overlay(play.text_overlay_on);
         play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
       }
     }
@@ -412,7 +411,7 @@ void update_sierra_speech()
     }
 
     // is_text_overlay might be 0 if it was only just destroyed this loop
-    if ((updatedFrame) && (is_text_overlay > 0)) {
+    if ((updatedFrame) && (play.text_overlay_on > 0)) {
 
       if (updatedFrame & 1)
         CheckViewFrame (facetalkview, facetalkloop, facetalkframe);

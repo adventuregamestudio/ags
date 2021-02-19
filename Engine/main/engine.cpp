@@ -1062,6 +1062,8 @@ void engine_init_game_settings()
     play.speech_has_voice = false;
     play.speech_voice_blocking = false;
     play.speech_in_post_state = false;
+    play.complete_overlay_on = 0;
+    play.text_overlay_on = 0;
     play.narrator_speech = game.playercharacter;
     play.crossfading_out_channel = 0;
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];

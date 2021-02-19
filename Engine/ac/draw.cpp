@@ -107,7 +107,6 @@ extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
-extern int is_complete_overlay;
 extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
 extern int lastmx,lastmy;
@@ -2387,7 +2386,7 @@ void construct_game_scene(bool full_redraw)
         play.UpdateRoomCameras();
 
     // Stage: room viewports
-    if (play.screen_is_faded_out == 0 && is_complete_overlay == 0)
+    if (play.screen_is_faded_out == 0 && play.complete_overlay_on == 0)
     {
         if (displayed_room >= 0)
         {

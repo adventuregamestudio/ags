@@ -235,6 +235,13 @@ struct GameState {
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
 
+    // Special overlays
+    //
+    // Is there a QFG4-style dialog overlay on screen (contains overlay ID)
+    int  complete_overlay_on;
+    // Is there a blocking text overlay on screen (contains overlay ID)
+    int  text_overlay_on;
+
     int shake_screen_yoff; // y offset of the shaking screen
 
 

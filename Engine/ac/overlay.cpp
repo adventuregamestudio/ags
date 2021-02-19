@@ -44,7 +44,6 @@ extern IGraphicsDriver *gfxDriver;
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 int numscreenover=0;
-int is_complete_overlay=0,is_text_overlay=0;
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -161,8 +160,8 @@ void remove_screen_overlay_index(int over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
     dispose_overlay(over);
-    if (over.type==OVER_COMPLETE) is_complete_overlay--;
-    if (over.type==OVER_TEXTMSG) is_text_overlay--;
+    if (over.type == play.complete_overlay_on) play.complete_overlay_on = 0;
+    if (over.type == play.text_overlay_on) play.text_overlay_on = 0;
     numscreenover--;
     for (int i = over_idx; i < numscreenover; ++i)
         screenover[i] = screenover[i + 1];
@@ -199,9 +198,9 @@ int add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChannel)
 
 int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
 {
-    if (type==OVER_COMPLETE) is_complete_overlay++;
-    if (type==OVER_TEXTMSG) is_text_overlay++;
-    if (type==OVER_CUSTOM) {
+    if (type == OVER_COMPLETE) play.complete_overlay_on = type;
+    if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH) play.text_overlay_on = type;
+    if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
         for (int id = OVER_CUSTOM + 1; id < OVER_CUSTOM + 100; ++id) {
             if (find_overlay_of_type(id) == -1) { type=id; break; }

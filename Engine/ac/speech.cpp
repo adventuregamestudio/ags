@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
+#include "ac/dynobj/scriptoverlay.h"
 #include "debug/debug_log.h"
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval)
@@ -94,6 +95,11 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 
 extern GameSetupStruct game;
 extern GameState play;
+
+ScriptOverlay* Speech_GetTextOverlay()
+{
+    return play.speech_text_scover;
+}
 
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -218,6 +224,11 @@ RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int3
     API_SCALL_INT(GetVoiceMode);
 }
 
+RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetTextOverlay);
+}
+
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
@@ -245,6 +256,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
         ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment_Old);
     else
         ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment);
+    ccAddExternalStaticFunction("Speech::get_TextOverlay",            Sc_Speech_GetTextOverlay);
 	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);

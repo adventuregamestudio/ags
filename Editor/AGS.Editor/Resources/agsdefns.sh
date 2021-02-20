@@ -2289,6 +2289,10 @@ builtin struct Speech {
   import static attribute bool            UseGlobalSpeechAnimationDelay;
   /// Gets/sets whether voice and/or text are used in the game.
   import static attribute eVoiceMode      VoiceMode;
+#ifdef SCRIPT_API_v399
+  /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
+  import static readonly attribute Overlay* TextOverlay;
+#endif
 };
 
 #ifdef SCRIPT_API_v3507

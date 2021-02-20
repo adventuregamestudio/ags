@@ -2253,6 +2253,7 @@ builtin struct GameState {
   };
   
 enum SkipSpeechStyle {
+  eSkipNone         = -1,
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
   eSkipTime         = 2,

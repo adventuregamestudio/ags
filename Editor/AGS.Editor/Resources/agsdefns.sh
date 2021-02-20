@@ -2292,6 +2292,8 @@ builtin struct Speech {
 #ifdef SCRIPT_API_v399
   /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
   import static readonly attribute Overlay* TextOverlay;
+  /// Gets the overlay representing displayed portrait, or null if it is not displayed at the moment.
+  import static readonly attribute Overlay* PortraitOverlay;
 #endif
 };
 

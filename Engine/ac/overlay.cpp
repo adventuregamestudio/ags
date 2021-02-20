@@ -234,21 +234,24 @@ static void dispose_overlay(ScreenOverlay &over)
 void remove_screen_overlay_index(size_t over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
+    // TODO: move these custom settings outside of this function
     if (over.type == play.complete_overlay_on)
     {
         play.complete_overlay_on = 0;
     }
-    else if (over.type == play.text_overlay_on)
+    else if (over.type == play.text_overlay_on || over.type == OVER_PICTURE)
     {
         play.text_overlay_on = 0;
         if (play.speech_text_scover)
             invalidate_and_subref(over, play.speech_text_scover);
+        if (play.speech_face_scover)
+            invalidate_and_subref(over, play.speech_face_scover);
     }
     dispose_overlay(over);
     screenover.erase(screenover.begin() + over_idx);
-    // if an overlay before the sierra-style speech one is removed, update the index
-    if (face_talking >= 0 && (size_t)face_talking > over_idx)
-        face_talking--;
+    // TODO: this is bad, need more generic system to store overlay references
+    if (face_talking >= 0)
+        face_talking = find_overlay_of_type(OVER_PICTURE);
 }
 
 void remove_screen_overlay(int type)
@@ -298,6 +301,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
     over.blendMode = blendMode;
+    // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
     {
@@ -306,6 +310,10 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
             play.speech_text_scover = create_scriptobj_addref(over);
+    }
+    else if (type == OVER_PICTURE)
+    {
+        play.speech_face_scover = create_scriptobj_addref(over);
     }
     screenover.push_back(over);
     return screenover.size() - 1;

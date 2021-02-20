@@ -101,6 +101,11 @@ ScriptOverlay* Speech_GetTextOverlay()
     return play.speech_text_scover;
 }
 
+ScriptOverlay* Speech_GetPortraitOverlay()
+{
+    return play.speech_face_scover;
+}
+
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_VARGET_INT(play.close_mouth_speech_time);
@@ -229,6 +234,11 @@ RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, in
     API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetTextOverlay);
 }
 
+RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetPortraitOverlay);
+}
+
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
@@ -241,6 +251,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
     ccAddExternalStaticFunction("Speech::set_DisplayPostTimeMs",      Sc_Speech_SetDisplayPostTimeMs);
 	ccAddExternalStaticFunction("Speech::get_GlobalSpeechAnimationDelay", Sc_Speech_GetGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_GlobalSpeechAnimationDelay", Sc_Speech_SetGlobalSpeechAnimationDelay);
+    ccAddExternalStaticFunction("Speech::get_PortraitOverlay",        Sc_Speech_GetPortraitOverlay);
     ccAddExternalStaticFunction("Speech::get_PortraitXOffset",        Sc_Speech_GetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::set_PortraitXOffset",        Sc_Speech_SetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::get_PortraitY",              Sc_Speech_GetPortraitY);

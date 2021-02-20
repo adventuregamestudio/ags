@@ -41,6 +41,7 @@ extern ScriptSystem scsystem;
 GameState::GameState()
 {
     speech_text_scover = nullptr;
+    speech_face_scover = nullptr;
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
 }

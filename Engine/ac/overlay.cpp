@@ -186,21 +186,29 @@ static void dispose_overlay(ScreenOverlay &over)
 void remove_screen_overlay_index(int over_idx)
 {
     ScreenOverlay &over = screenover[over_idx];
+    // TODO: move these custom settings outside of this function
     if (over.type == play.complete_overlay_on)
     {
         play.complete_overlay_on = 0;
     }
     else if (over.type == play.text_overlay_on)
     {
-        play.text_overlay_on = 0;
         if (play.speech_text_scover)
             invalidate_and_subref(over, play.speech_text_scover);
+        play.text_overlay_on = 0;
+    }
+    else if (over.type == OVER_PICTURE)
+    {
+        if (play.speech_face_scover)
+            invalidate_and_subref(over, play.speech_face_scover);
+        face_talking = -1;
     }
     dispose_overlay(over);
     numscreenover--;
     for (int i = over_idx; i < numscreenover; ++i)
         screenover[i] = screenover[i + 1];
     // if an overlay before the sierra-style speech one is removed, update the index
+    // TODO: this is bad, need more generic system to store overlay references
     if (face_talking > over_idx)
         face_talking--;
 }
@@ -252,6 +260,7 @@ int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_of
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
     return numscreenover - 1;
+    // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
     {
@@ -260,6 +269,10 @@ int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_of
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
             play.speech_text_scover = create_scriptobj_addref(over);
+    }
+    else if (type == OVER_PICTURE)
+    {
+        play.speech_face_scover = create_scriptobj_addref(over);
     }
 }
 

@@ -2804,6 +2804,9 @@ builtin struct GameState {
   
 #ifdef SCRIPT_API_v330
 enum SkipSpeechStyle {
+#ifdef SCRIPT_API_v360
+  eSkipNone         = -1,
+#endif
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
   eSkipTime         = 2,

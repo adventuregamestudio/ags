@@ -1157,8 +1157,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
     if ((loaded == nullptr) && (mnum > 0)) 
     {
-        debug_script_warn("Music %d not found",mnum);
-        debug_script_log("FAILED to load music %d", mnum);
+        debug_script_warn("Warning: failed to load music %d", mnum);
     }
 
     return loaded;

@@ -925,7 +925,7 @@ void _sc_AbortGame(const char* text) {
 int WaitImpl(int skip_type, int nloops)
 {
     play.wait_counter = nloops;
-    play.wait_skipped_by = SKIP_AUTOTIMER; // we set timer flag by default to simplify that case
+    play.wait_skipped_by = SKIP_NONE;
     play.wait_skipped_by_data = 0;
     play.key_skip_wait = skip_type;
 
@@ -937,12 +937,7 @@ int WaitImpl(int skip_type, int nloops)
         return (play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK) != 0) ? 1 : 0;
     }
     // > 3.5.0 return positive keycode, negative mouse button code, or 0 as time-out
-    switch (play.wait_skipped_by)
-    {
-    case SKIP_KEYPRESS: return play.wait_skipped_by_data;
-    case SKIP_MOUSECLICK: return -(play.wait_skipped_by_data + 1); // convert to 1-based code and negate
-    default: return 0;
-    }
+    return play.GetWaitSkipResult();
 }
 
 void scrWait(int nloops) {

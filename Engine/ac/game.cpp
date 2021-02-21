@@ -893,6 +893,11 @@ void Game_SimulateKeyPress(int key)
     }
 }
 
+int Game_BlockingWaitSkipped()
+{
+    return play.GetWaitSkipResult();
+}
+
 //=============================================================================
 
 // save game functions
@@ -1249,8 +1254,10 @@ void start_skipping_cutscene () {
 
     // if a text message is currently displayed, remove it
     if (play.text_overlay_on > 0)
+    {
         remove_screen_overlay(play.text_overlay_on);
-
+        play.SetWaitSkipResult(SKIP_AUTOTIMER);
+    }
 }
 
 bool check_skip_cutscene_keypress (int kgn) {
@@ -1983,6 +1990,11 @@ RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, in
     API_SCALL_VOID_PINT(Game_SimulateKeyPress);
 }
 
+RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitSkipped);
+}
+
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2035,6 +2047,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
     ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
     ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
+    ccAddExternalStaticFunction("Game::get_BlockingWaitSkipped",                Sc_Game_BlockingWaitSkipped);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

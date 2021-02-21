@@ -937,9 +937,6 @@ int AGSWin32::InitializeCDPlayer() {
 
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
-  char useloc[250];
-  sprintf(useloc, "%s\\%s", ResPaths.DataDir.GetCStr(), name);
-
   bool useSound = true;
   if (flags >= 10) {
     flags -= 10;
@@ -952,14 +949,14 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   }
 
   bool isError = false;
-  if (Common::File::TestReadFile(useloc))
+  if (Common::File::TestReadFile(name))
   {
-    isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
+    isError = (gfxDriver->PlayVideo(name, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
   }
   else
   {
     isError = true;
-    sprintf(lastError, "File not found: %s", useloc);
+    sprintf(lastError, "File not found: %s", name);
   }
   
   if (isError) {

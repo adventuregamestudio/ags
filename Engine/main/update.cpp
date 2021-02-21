@@ -278,10 +278,12 @@ void update_speech_and_messages()
       if (play.fast_forward > 0)
       {
         remove_screen_overlay(play.text_overlay_on);
+        play.SetWaitSkipResult(SKIP_AUTOTIMER);
       }
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(play.text_overlay_on);
+        play.SetWaitSkipResult(SKIP_AUTOTIMER);
         play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
       }
     }

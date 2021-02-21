@@ -2681,6 +2681,10 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
+#ifdef SCRIPT_API_v360
+  /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
+  import static readonly attribute int BlockingWaitSkipped;
+#endif
 };
 
 builtin struct GameState {

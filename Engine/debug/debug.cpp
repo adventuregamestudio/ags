@@ -255,8 +255,8 @@ void apply_debug_config(const ConfigTree &cfg)
 #endif
         });
 
-    // Init game console if the game was compiled in Debug mode
-    if (game.options[OPT_DEBUGMODE] != 0)
+    // Init game console if the game was compiled in Debug mode or is run in test mode
+    if (game.options[OPT_DEBUGMODE] != 0 || (debug_flags & DBG_DEBUGMODE) != 0)
     {
         apply_log_config(cfg, OutputGameConsoleID,
             /* defaults */

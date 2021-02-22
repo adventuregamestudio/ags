@@ -73,8 +73,10 @@ struct RoomDataSource
     RoomDataSource();
 };
 
-// Opens room file for reading from an arbitrary file
+// Opens room data for reading from an arbitrary file
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
+// Opens room data for reading from asset of a given name
+HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src);
 // Reads room data
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data

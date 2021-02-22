@@ -241,7 +241,7 @@ void load_room(const char *filename, RoomStruct *room, bool game_is_hires, const
     update_polled_stuff_if_runtime();
 
     RoomDataSource src;
-    HRoomFileError err = OpenRoomFile(filename, src);
+    HRoomFileError err = OpenRoomFileFromAsset(filename, src);
     if (err)
     {
         update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes

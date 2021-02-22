@@ -1063,14 +1063,14 @@ void save_game(int slotn, const char*descript) {
     // Screenshot
     create_savegame_screenshot(screenShot);
 
-    Common::PStream out = StartSavegame(nametouse, descript, screenShot);
+    Engine::UStream out(StartSavegame(nametouse, descript, screenShot));
     if (out == nullptr)
         quit("save_game: unable to open savegame file for writing");
 
     update_polled_stuff_if_runtime();
 
     // Actual dynamic game data is saved here
-    SaveGameState(out);
+    SaveGameState(out.get());
 
     if (screenShot != nullptr)
     {
@@ -1195,7 +1195,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     }
 
     // do the actual restore
-    err = RestoreGameState(src.InputStream, src.Version);
+    err = RestoreGameState(src.InputStream.get(), src.Version);
     data_overwritten = true;
     if (!err)
         return err;

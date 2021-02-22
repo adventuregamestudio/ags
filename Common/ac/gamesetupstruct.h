@@ -153,8 +153,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                    WordsDictionary *olddict, char** mesbk);
 
-    void ReadFromSavegame(Common::PStream in);
-    void WriteForSavegame(Common::PStream out);
+    void ReadFromSavegame(Common::Stream *in);
+    void WriteForSavegame(Common::Stream *out);
 };
 
 //=============================================================================

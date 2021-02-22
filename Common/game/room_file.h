@@ -57,7 +57,7 @@ String GetRoomFileErrorText(RoomFileErrorType err);
 
 typedef TypedCodeError<RoomFileErrorType, GetRoomFileErrorText> RoomFileError;
 typedef ErrorHandle<RoomFileError> HRoomFileError;
-typedef std::shared_ptr<Stream> PStream;
+typedef std::unique_ptr<Stream> UStream;
 
 
 // RoomDataSource defines a successfully opened room file
@@ -68,7 +68,7 @@ struct RoomDataSource
     // Room file format version
     RoomFileVersion     DataVersion;
     // A ponter to the opened stream
-    PStream             InputStream;
+    UStream             InputStream;
 
     RoomDataSource();
 };

@@ -104,7 +104,7 @@ struct SavegameSource
     // Savegame format version
     SavegameVersion     Version;
     // A ponter to the opened stream
-    PStream             InputStream;
+    UStream             InputStream;
 
     SavegameSource();
 };
@@ -158,13 +158,13 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 
 // Reads the game data from the save stream and reinitializes game state
-HSaveError     RestoreGameState(PStream in, SavegameVersion svg_version);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version);
 
 // Opens savegame for writing and puts in savegame description
-PStream        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
+Stream*        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 
 // Prepares game for saving state and writes game data into the save stream
-void           SaveGameState(PStream out);
+void           SaveGameState(Stream *out);
 
 } // namespace Engine
 } // namespace AGS

@@ -260,33 +260,31 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             justDisplayVersion = true;
             return 0;
         }
-        else if (ags_stricmp(arg,"-updatereg") == 0)
+        else if (ags_stricmp(arg,"--updatereg") == 0)
             debug_flags |= DBG_REGONLY;
-#if AGS_PLATFORM_DEBUG
         else if ((ags_stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
             override_start_room = atoi(argv[ee+1]);
             ee++;
         }
-#endif
         else if ((ags_stricmp(arg,"--testre") == 0) && (ee < argc-2)) {
             strcpy(return_to_roomedit, argv[ee+1]);
             strcpy(return_to_room, argv[ee+2]);
             ee+=2;
         }
-        else if (ags_stricmp(arg,"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
+        else if (ags_stricmp(arg,"--noexceptionhandler")==0) usetup.disable_exception_handling = true;
         else if (ags_stricmp(arg, "--setup") == 0)
         {
             justRunSetup = true;
         }
-        else if (ags_stricmp(arg,"-registergame") == 0)
+        else if (ags_stricmp(arg,"--registergame") == 0)
         {
             justRegisterGame = true;
         }
-        else if (ags_stricmp(arg,"-unregistergame") == 0)
+        else if (ags_stricmp(arg,"--unregistergame") == 0)
         {
             justUnRegisterGame = true;
         }
-        else if ((ags_stricmp(arg,"-loadsavedgame") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg,"--loadsavedgame") == 0) && (argc > ee + 1))
         {
             loadSaveGameOnStartup = argv[ee + 1];
             ee++;
@@ -323,15 +321,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         //
         // Config overrides
         //
-        else if (ags_stricmp(arg, "-windowed") == 0 || ags_stricmp(arg, "--windowed") == 0)
+        else if (ags_stricmp(arg, "--windowed") == 0)
             force_window = 1;
-        else if (ags_stricmp(arg, "-fullscreen") == 0 || ags_stricmp(arg, "--fullscreen") == 0)
+        else if (ags_stricmp(arg, "--fullscreen") == 0)
             force_window = 2;
-        else if ((ags_stricmp(arg, "-gfxdriver") == 0 || ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
         {
             INIwritestring(cfg, "graphics", "driver", argv[++ee]);
         }
-        else if ((ags_stricmp(arg, "-gfxfilter") == 0 || ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
             // NOTE: we make an assumption here that if user provides scaling factor,
             // this factor means to be applied to windowed mode only.
@@ -343,15 +341,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
-        else if (ags_stricmp(arg, "-noiface") == 0) debug_flags |= DBG_NOIFACE;
-        else if (ags_stricmp(arg, "-nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
-        else if (ags_stricmp(arg, "-nospr") == 0) debug_flags |= DBG_NOOBJECTS;
-        else if (ags_stricmp(arg, "-noupdate") == 0) debug_flags |= DBG_NOUPDATE;
-        else if (ags_stricmp(arg, "-nosound") == 0) debug_flags |= DBG_NOSFX;
-        else if (ags_stricmp(arg, "-nomusic") == 0) debug_flags |= DBG_NOMUSIC;
-        else if (ags_stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
-        else if (ags_stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
-        else if (ags_stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
+        else if (ags_stricmp(arg, "--noiface") == 0) debug_flags |= DBG_NOIFACE;
+        else if (ags_stricmp(arg, "--nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
+        else if (ags_stricmp(arg, "--nospr") == 0) debug_flags |= DBG_NOOBJECTS;
+        else if (ags_stricmp(arg, "--noupdate") == 0) debug_flags |= DBG_NOUPDATE;
+        else if (ags_stricmp(arg, "--nosound") == 0) debug_flags |= DBG_NOSFX;
+        else if (ags_stricmp(arg, "--nomusic") == 0) debug_flags |= DBG_NOMUSIC;
+        else if (ags_stricmp(arg, "--noscript") == 0) debug_flags |= DBG_NOSCRIPT;
+        else if (ags_stricmp(arg, "--novideo") == 0) debug_flags |= DBG_NOVIDEO;
+        else if (ags_stricmp(arg, "--dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
         {
             String logarg = arg + 6;

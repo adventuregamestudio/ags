@@ -37,12 +37,6 @@ extern RoomObject*objs;
 Bitmap *walkareabackup=nullptr, *walkable_areas_temp = nullptr;
 
 void redo_walkable_areas() {
-
-    // since this is an 8-bit memory bitmap, we can just use direct 
-    // memory access
-    if ((!thisroom.WalkAreaMask->IsLinearBitmap()) || (thisroom.WalkAreaMask->GetColorDepth() != 8))
-        quit("Walkable areas bitmap not linear");
-
     thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight());
 
     int hh,ww;

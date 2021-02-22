@@ -134,7 +134,20 @@ HError load_game_file()
     {
         load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);
         if (load_err)
+        {
+            // Upscale mode -- for old games that supported it.
+            // NOTE: this must be done before UpdateGameData, or resolution-dependant
+            // adjustments won't be applied correctly.
+            if (usetup.override_upscale)
+            {
+                if (game.GetResolutionType() == kGameResolution_320x200)
+                    game.SetGameResolution(kGameResolution_640x400);
+                else if (game.GetResolutionType() == kGameResolution_320x240)
+                    game.SetGameResolution(kGameResolution_640x480);
+            }
+
             load_err = UpdateGameData(ents, src.DataVersion);
+        }
     }
     if (!load_err)
         return (HError)load_err;

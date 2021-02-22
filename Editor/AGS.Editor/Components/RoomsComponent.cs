@@ -1677,7 +1677,8 @@ namespace AGS.Editor.Components
 
                     for (int i = 1; i < 256; i++) // Skip i == 0 because no area should be transparent
                     {
-                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * 2 : 0;
+                        const int intensity = 6; // Force the gray scale lighter so that it's easier to see
+                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * intensity : 0;
                         palette.Entries[i] = Color.FromArgb(gray, gray, gray);
                     }
 

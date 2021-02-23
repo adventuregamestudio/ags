@@ -428,7 +428,8 @@ bool run_service_key_controls(int &out_key)
         return false;
     }
 
-    if ((agskey == eAGSKeyCodeAltV) && ((cur_key_mods & KMOD_CTRL) != 0) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+    if (((agskey == eAGSKeyCodeCtrlV) && (cur_key_mods & KMOD_ALT) != 0)
+        && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;

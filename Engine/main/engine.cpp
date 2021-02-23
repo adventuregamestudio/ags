@@ -34,6 +34,7 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -66,6 +67,7 @@
 #include "main/main.h"
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
+#include "platform/base/agsplatformdriver.h"
 #include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
@@ -173,13 +175,6 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
     app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
     {
-            String cfg_file = find_user_cfg_file();
-            if (cfg_file.IsEmpty())
-            {
-                app_res = EXIT_ERROR;
-                return false;
-            }
-
             Debug::Printf(kDbgMsg_Info, "Running Setup");
 
             ConfigTree cfg_with_meta = cfg;
@@ -188,7 +183,13 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             SetupReturnValue res = platform->RunSetup(cfg_with_meta, cfg_out);
             if (res != kSetup_Cancel)
             {
-                if (!IniUtil::Merge(cfg_file, cfg_out))
+                String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
+                if (cfg_file.IsEmpty())
+                {
+                    platform->DisplayAlert("Unable to write into directory '%s'.\n%s",
+                        GetGameUserConfigDir().FullDir.GetCStr(), platform->GetDiskWriteAccessTroubleshootingText());
+                }
+                else if (!IniUtil::Merge(cfg_file, cfg_out))
                 {
                     platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
                         platform->GetLastSystemError(), platform->GetDiskWriteAccessTroubleshootingText());
@@ -227,57 +228,6 @@ void engine_force_window()
     }
 }
 
-// Scans given directory for game data libraries, returns first found or none.
-// Prioritizes files with standard AGS package names (*.ags etc).
-String find_game_data_in_directory(const String &path)
-{
-    al_ffblk ff;
-    String test_file;
-    String first_nonstd_fn;
-    String pattern = path;
-    pattern.Append("/*");
-
-    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
-        return "";
-    // Select first found data file; files with standart names (*.ags) have
-    // higher priority over files with custom names.
-    do
-    {
-        test_file = ff.name;
-        // Add a bit of sanity and do not parse contents of the 10k-files-large
-        // digital sound libraries.
-        // NOTE: we could certainly benefit from any kind of flag in file lib
-        // that would tell us this is the main lib without extra parsing.
-        if (test_file.CompareRightNoCase(".vox") == 0)
-            continue;
-
-        // *.ags is a standart cross-platform file pattern for AGS games,
-        // ac2game.dat is a legacy file name for very old games,
-        // *.exe is a MS Win executable; it is included to this case because
-        // users often run AGS ports with Windows versions of games.
-        bool is_std_name = test_file.CompareRightNoCase(".ags") == 0 ||
-            test_file.CompareNoCase("ac2game.dat") == 0 ||
-            test_file.CompareRightNoCase(".exe") == 0;
-        if (is_std_name || first_nonstd_fn.IsEmpty())
-        {
-            test_file = Path::ConcatPaths(path, ff.name);
-            if (IsMainGameLibrary(test_file))
-            {
-                if (is_std_name)
-                {
-                    al_findclose(&ff);
-                    return test_file;
-                }
-                else
-                    first_nonstd_fn = test_file;
-            }
-        }
-    }
-    while(al_findnext(&ff) == 0);
-    al_findclose(&ff);
-    return first_nonstd_fn;
-}
-
 // Scans given directory first for the AGS game config. If such config exists
 // and it contains directions to the game data, then use these settings to find it.
 // Otherwise, scan original directory for the game data.
@@ -290,7 +240,7 @@ String find_game_data_in_config_and_dir(const String &path)
     if (!data_file.IsEmpty()) // if explicit data path found, return that
         return data_file;
     else if (!data_dir.IsEmpty()) // if data dir setting found, search for game data there
-        return find_game_data_in_directory(data_dir);
+        return FindGameData(data_dir);
     return ""; // not found in config
 }
 
@@ -314,7 +264,7 @@ String search_for_game_data_file(String &was_searching_in)
         if (!data_path.IsEmpty())
             return data_path;
         // if not found in config, lookup for data in same dir
-        return find_game_data_in_directory(cmdGameDataPath);
+        return FindGameData(cmdGameDataPath);
     }
 
     // 2. Look in other known locations
@@ -333,7 +283,7 @@ String search_for_game_data_file(String &was_searching_in)
     if (!data_path.IsEmpty())
         return data_path;
     // if not found in config, lookup for data in same dir
-    data_path = find_game_data_in_directory(cur_dir);
+    data_path = FindGameData(cur_dir);
     if (!data_path.IsEmpty())
         return data_path;
 
@@ -346,7 +296,7 @@ String search_for_game_data_file(String &was_searching_in)
     if (!data_path.IsEmpty())
         return data_path;
     // if not found in config, lookup for data in same dir
-    return find_game_data_in_directory(appDirectory);
+    return FindGameData(appDirectory);
 }
 
 void engine_init_fonts()

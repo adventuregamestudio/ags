@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialog.h"
@@ -35,6 +34,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/exports.h"
@@ -375,26 +375,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_NoFonts);
     if (game.audioClipTypes.size() > MAX_AUDIO_TYPES)
         return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %u, max: %d", game.audioClipTypes.size(), MAX_AUDIO_TYPES));
-
-    //
-    // 2. Apply overriding config settings
-    //
-    // The earlier versions of AGS provided support for "upscaling" low-res
-    // games (320x200 and 320x240) to hi-res (640x400 and 640x480
-    // respectively). The script API has means for detecting if the game is
-    // running upscaled, and game developer could use this opportunity to setup
-    // game accordingly (e.g. assign hi-res fonts, etc).
-    // This feature is officially deprecated since 3.1.0, however the engine
-    // itself still supports it, technically.
-    // This overriding option re-enables "upscaling". It works ONLY for low-res
-    // resolutions, such as 320x200 and 320x240.
-    if (usetup.override_upscale)
-    {
-        if (game.GetResolutionType() == kGameResolution_320x200)
-            game.SetGameResolution(kGameResolution_640x400);
-        else if (game.GetResolutionType() == kGameResolution_320x240)
-            game.SetGameResolution(kGameResolution_640x480);
-    }
 
     //
     // 3. Allocate and init game objects

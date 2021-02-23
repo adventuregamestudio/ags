@@ -34,7 +34,7 @@ namespace AGS
 	namespace Native
 	{
 
-		void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript)
+		void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game)
 		{
 			if (script->CompiledData != nullptr)
 			{
@@ -72,9 +72,6 @@ namespace AGS
 
 			  ccSetOption(SCOPT_EXPORTALL, 1);
 			  ccSetOption(SCOPT_LINENUMBERS, 1);
-			  // Don't allow them to override imports in the room script
-			  ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript);
-
 			  ccSetOption(SCOPT_LEFTTORIGHT, game->Settings->LeftToRightPrecedence);
 			  ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
 

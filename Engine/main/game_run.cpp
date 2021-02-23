@@ -27,6 +27,7 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
@@ -78,7 +79,6 @@ extern int in_leaves_screen;
 extern int inside_script,in_graph_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
-extern GameState play;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
@@ -370,6 +370,73 @@ bool run_service_key_controls(int &out_key)
         quit("!|");
     }
 
+    // debug console
+    if ((agskey == '`') && (play.debug_mode > 0)) {
+        display_console = !display_console;
+        return false;
+    }
+
+    if ((agskey == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
+        // if --fps paramter is used, Ctrl+E will max out frame rate
+        setTimerFps(isTimerFpsMaxed() ? frames_per_second : 1000);
+        return false;
+    }
+
+    if ((agskey == eAGSKeyCodeCtrlD) && (play.debug_mode > 0)) {
+        // ctrl+D - show info
+        char infobuf[900];
+        int ff;
+        // MACPORT FIX 9/6/5: added last %s
+        sprintf(infobuf, "In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
+            displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y,
+            playerchar->view + 1, playerchar->loop, playerchar->frame,
+            (IsGamePaused() == 0) ? "" : "[Game paused.",
+            (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
+            (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
+        for (ff = 0; ff<croom->numobj; ff++) {
+            if (ff >= 8) break; // buffer not big enough for more than 7
+            sprintf(&infobuf[strlen(infobuf)],
+                "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
+                ff, objs[ff].x, objs[ff].y,
+                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                objs[ff].on,
+                (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
+                objs[ff].num, objs[ff].transparent,
+                ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
+        }
+        Display(infobuf);
+        int chd = game.playercharacter;
+        char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
+        for (ff = 0; ff < game.numcharacters; ff++) {
+            if (game.chars[ff].room != displayed_room) continue;
+            if (strlen(bigbuffer) > 430) {
+                strcat(bigbuffer, "and more...");
+                Display(bigbuffer);
+                strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
+            }
+            chd = ff;
+            sprintf(&bigbuffer[strlen(bigbuffer)],
+                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
+                game.chars[chd].scrname, game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
+                game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
+                game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
+                game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
+                game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
+        }
+        Display(bigbuffer);
+        return false;
+    }
+
+    if ((agskey == eAGSKeyCodeAltV) && ((cur_key_mods & KMOD_CTRL) != 0) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+        // make sure we can't interrupt a Wait()
+        // and desync the music to cutscene
+        play.debug_mode++;
+        script_debug(1, 0);
+        play.debug_mode--;
+        return false;
+    }
+
     // No service operation triggered? return active keypress and mods to caller
     out_key = agskey;
     return true;
@@ -410,12 +477,6 @@ static void check_keyboard_controls()
         return;
     }
 
-    // debug console
-    if ((kgn == '`') && (play.debug_mode > 0)) {
-        display_console = !display_console;
-        return;
-    }
-
     // skip speech if desired by Speech.SkipStyle
     if ((is_text_overlay > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
         // only allow a key to remove the overlay if the icon bar isn't up
@@ -433,76 +494,6 @@ static void check_keyboard_controls()
     if ((play.wait_counter > 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
         play.wait_counter = -1;
         debug_script_log("Keypress code %d ignored - in Wait", kgn);
-        return;
-    }
-
-    if ((kgn == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
-        // if --fps paramter is used, Ctrl+E will max out frame rate
-        setTimerFps( isTimerFpsMaxed() ? frames_per_second : 1000 );
-        return;
-    }
-
-    if ((kgn == eAGSKeyCodeCtrlD) && (play.debug_mode > 0)) {
-        // ctrl+D - show info
-        char infobuf[900];
-        int ff;
-        // MACPORT FIX 9/6/5: added last %s
-        sprintf(infobuf,"In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
-            displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x,playerchar->y,
-            playerchar->view + 1, playerchar->loop,playerchar->frame,
-            (IsGamePaused() == 0) ? "" : "[Game paused.",
-            (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
-            (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
-        for (ff=0;ff<croom->numobj;ff++) {
-            if (ff >= 8) break; // buffer not big enough for more than 7
-            sprintf(&infobuf[strlen(infobuf)],
-                "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
-                ff, objs[ff].x, objs[ff].y,
-                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
-                objs[ff].on,
-                (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
-                objs[ff].num, objs[ff].transparent,
-                ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
-        }
-        Display(infobuf);
-        int chd = game.playercharacter;
-        char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
-        for (ff = 0; ff < game.numcharacters; ff++) {
-            if (game.chars[ff].room != displayed_room) continue;
-            if (strlen(bigbuffer) > 430) {
-                strcat(bigbuffer, "and more...");
-                Display(bigbuffer);
-                strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
-            }
-            chd = ff;
-            sprintf(&bigbuffer[strlen(bigbuffer)], 
-                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
-                game.chars[chd].scrname, game.chars[chd].view+1, game.chars[chd].loop, game.chars[chd].frame,
-                game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
-                game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
-                game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
-                game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
-        }
-        Display(bigbuffer);
-
-        return;
-    }
-
-    // if (kgn == key_ctrl_u) {
-    //     play.debug_mode++;
-    //     script_debug(5,0);
-    //     play.debug_mode--;
-    //     return;
-    // }
-
-    if ((kgn == eAGSKeyCodeAltV) && ((cur_key_mods & KMOD_CTRL) != 0) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
-        // make sure we can't interrupt a Wait()
-        // and desync the music to cutscene
-        play.debug_mode++;
-        script_debug (1,0);
-        play.debug_mode--;
-
         return;
     }
 

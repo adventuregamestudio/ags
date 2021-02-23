@@ -28,6 +28,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_plugin.h"
 #include "ac/global_walkablearea.h"

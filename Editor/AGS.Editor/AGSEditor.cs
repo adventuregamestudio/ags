@@ -98,8 +98,9 @@ namespace AGS.Editor
          * 1: 3.0.2.1
          * 2: 3.4.0.1    - WorkspaceState section
          * 3: 3.5.0.11
+         * 4: 3.5.1 (?)
         */
-        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 3;
+        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 4;
         public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
@@ -896,7 +897,7 @@ namespace AGS.Editor
 		/// <summary>
 		/// Preprocesses and then compiles the script using the supplied headers.
 		/// </summary>
-		public void CompileScript(Script script, List<Script> headers, CompileMessages errors, bool isRoomScript)
+		public void CompileScript(Script script, List<Script> headers, CompileMessages errors)
 		{
 			IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
 			DefineMacrosAccordingToGameSettings(preprocessor);
@@ -934,7 +935,7 @@ namespace AGS.Editor
 			}
 			else
 			{
-				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game, isRoomScript);
+				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game);
 			}
 		}
 
@@ -969,18 +970,18 @@ namespace AGS.Editor
 
                 foreach (Script script in GetInternalScriptModules())
                 {
-                    CompileScript(script, headers, errors, false);
+                    CompileScript(script, headers, errors);
                     _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
                 }
 
                 foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
                 {
                     headers.Add(scripts.Header);
-                    CompileScript(scripts.Script, headers, errors, false);
+                    CompileScript(scripts.Script, headers, errors);
                     _game.ScriptsToCompile.Add(scripts);					
                 }
 
-                CompileScript(dialogScripts, headers, errors, false);
+                CompileScript(dialogScripts, headers, errors);
                 _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 			}
             catch (CompileMessage ex)
@@ -1238,6 +1239,8 @@ namespace AGS.Editor
 
             Utilities.EnsureStandardSubFoldersExist();
 
+            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
+
             if (PreCompileGame != null)
             {
 				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
@@ -1272,7 +1275,8 @@ namespace AGS.Editor
 					{
 						CreateCompiledFiles(errors, forceRebuild);
 					}
-				}
+                    _game.WorkspaceState.RequiresRebuild = false;
+                }
 			}
 
             Factory.GUIController.ShowOutputPanel(errors);

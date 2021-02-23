@@ -80,22 +80,39 @@ String GetRoomFileErrorText(RoomFileErrorType err)
     return "Unknown error.";
 }
 
+// Read room data header and check that we support this format
+static HRoomFileError OpenRoomFileBase(Stream *in, RoomDataSource &src)
+{
+    src.DataVersion = (RoomFileVersion)in->ReadInt16();
+    if (src.DataVersion < kRoomVersion_250b || src.DataVersion > kRoomVersion_Current)
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
+    return HRoomFileError::None();
+}
+
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 {
     // Cleanup source struct
     src = RoomDataSource();
     // Try to open room file
+    Stream *in = File::OpenFileRead(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    src.Filename = filename;
+    src.InputStream.reset(in);
+    return OpenRoomFileBase(in, src);
+}
+
+HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src)
+{
+    // Cleanup source struct
+    src = RoomDataSource();
+    // Try to find and open room file
     Stream *in = AssetMgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
-    // Read room header
     src.Filename = filename;
-    src.DataVersion = (RoomFileVersion)in->ReadInt16();
-    if (src.DataVersion < kRoomVersion_250b || src.DataVersion > kRoomVersion_Current)
-        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
-    // Everything is fine, return opened stream
     src.InputStream.reset(in);
-    return HRoomFileError::None();
+    return OpenRoomFileBase(in, src);
 }
 
 

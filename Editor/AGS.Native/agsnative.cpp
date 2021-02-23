@@ -2078,13 +2078,13 @@ void RenderBufferToHDC(int hdc)
 	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
-void UpdateNativeSprites(SpriteFolder ^folder, size_t &missing_count)
+void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
         if (!spriteset.DoesSpriteExist(sprite->Number))
         {
-            missing_count++;
+            missing.push_back(sprite->Number);
             spriteset.SetEmptySprite(sprite->Number, true); // mark as an asset to prevent disposal on reload
         }
 
@@ -2102,20 +2102,33 @@ void UpdateNativeSprites(SpriteFolder ^folder, size_t &missing_count)
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
 	{
-        UpdateNativeSprites(subFolder, missing_count);
+        UpdateNativeSprites(subFolder, missing);
 	}
 }
 
 void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
 {
-    size_t missing_count = 0;
-    UpdateNativeSprites(game->RootSpriteFolder, missing_count);
-    if (missing_count > 0)
+    std::vector<int> missing;
+    UpdateNativeSprites(game->RootSpriteFolder, missing);
+    if (missing.size() > 0)
     {
+        const size_t max_nums = 40;
+        auto sprnum = gcnew System::Text::StringBuilder();
+        sprnum->Append(missing[0]);
+        for (size_t i = 1; i < missing.size() && i < max_nums; i++)
+        {
+            sprnum->Append(", ");
+            sprnum->Append(missing[i]);
+        }
+        if (missing.size() > max_nums)
+            sprnum->AppendFormat(", and {0} more.", missing.size() - max_nums);
+
         spritesModified = true;
         errors->Add(String::Format(
-            "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). This could happen if it was not saved properly last time. Some sprites could be missing actual images. You may try restoring them by reimporting from the source files.",
-            missing_count));
+            "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). "
+            "This could happen if it was not saved properly last time. Some sprites could be missing actual images. "
+            "You may try restoring them by reimporting from the source files.{1}{2}Affected sprites:{3}{4}",
+            missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine, sprnum->ToString()));
     }
 }
 
@@ -2392,6 +2405,8 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
   }
 
 	Common::Bitmap *tempsprite = Common::BitmapHelper::CreateBitmap(bmp->Width, bmp->Height, colDepth);
+    if (!tempsprite)
+        return nullptr; // out of mem?
 
 	System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
 	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::ReadWrite, bmp->PixelFormat);
@@ -2439,6 +2454,12 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	if (needToFixColourDepth)
 	{
 		Common::Bitmap *spriteAtRightDepth = Common::BitmapHelper::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), thisgame.color_depth * 8);
+        if (!spriteAtRightDepth)
+        {
+            delete tempsprite;
+            return nullptr; // out of mem?
+        }
+
 		if (colDepth == 8)
 		{
 			select_palette(imgpal);
@@ -2692,7 +2713,9 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAl
 System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int width, int height, bool useAlphaChannel) 
 {
   Common::Bitmap *tempBlock = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), 32);
-	
+  if (!tempBlock)
+    return nullptr; // out of mem?
+
   if (todraw->GetColorDepth() == 8)
     select_palette(palette);
 
@@ -2704,6 +2727,11 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
   if ((width != todraw->GetWidth()) || (height != todraw->GetHeight())) 
   {
 	  Common::Bitmap *newBlock = Common::BitmapHelper::CreateBitmap(width, height, 32);
+      if (!newBlock)
+      {
+          delete tempBlock;
+          return nullptr; // out of mem?
+      }
 	  Cstretch_blit(tempBlock, newBlock, 0, 0, todraw->GetWidth(), todraw->GetHeight(), 0, 0, width, height);
 	  delete tempBlock;
 	  tempBlock = newBlock;
@@ -2716,6 +2744,11 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
 	  pixFormat = PixelFormat::Format32bppArgb;
 
   System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(width, height, pixFormat);
+  if (!bmp)
+  {
+      delete tempBlock;
+      return nullptr; // out of mem?
+  }
   System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
   BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::WriteOnly, bmp->PixelFormat);
   unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
@@ -3756,7 +3789,7 @@ System::String ^load_room_script(System::String ^fileName)
             return nullptr; // simply did not find the script text
     }
     if (!err)
-        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName, err->FullMessage()));
+        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName.GetCStr(), err->FullMessage()));
 
 	return gcnew String(scriptText, 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }

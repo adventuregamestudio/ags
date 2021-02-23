@@ -539,7 +539,11 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
 void DialogOptions::Show()
 {
-  if (numdisp<1) quit("!DoDialog: all options have been turned off");
+  if (numdisp < 1)
+  {
+      debug_script_warn("Dialog: all options have been turned off, stopping dialog.");
+      return;
+  }
   // Don't display the options if there is only one and the parser
   // is not enabled.
   if (!((numdisp > 1) || (parserInput != nullptr) || (play.show_single_dialog_option)))
@@ -1095,8 +1099,9 @@ int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBa
   DlgOpt.Close();  
 
   int dialog_choice = DlgOpt.chose;
-  if (dialog_choice != CHOSE_TEXTPARSER)
+  if (dialog_choice >= 0) // NOTE: this condition also excludes CHOSE_TEXTPARSER
   {
+    assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
     DialogTopic *dialog_topic = DlgOpt.dtop;
     int &option_flags = dialog_topic->optionflags[dialog_choice];
     const char *option_name = DlgOpt.dtop->optionnames[dialog_choice];
@@ -1197,9 +1202,13 @@ void do_conversation(int dlgnum)
         set_mouse_cursor(CURS_ARROW);
       }
     }
-    else 
+    else if (chose >= 0)
     {
       tocar = run_dialog_script(dtop, dlgnum, dtop->entrypoints[chose], chose + 1);
+    }
+    else
+    {
+      tocar = RUN_DIALOG_STOP_DIALOG;
     }
 
     if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {
@@ -1220,9 +1229,7 @@ void do_conversation(int dlgnum)
       }
       dlgnum = tocar;
     }
-
   }
-
 }
 
 // end dialog manager

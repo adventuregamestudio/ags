@@ -119,17 +119,56 @@ bool IsMainGameLibrary(const String &filename)
     return false;
 }
 
+// Scans given directory for game data libraries, returns first found or none.
+// Tracks files with standard AGS package names:
+// - *.ags is a standart cross-platform file pattern for AGS games,
+// - ac2game.dat is a legacy file name for very old games,
+// - *.exe is a MS Win executable; it is included to this case because
+//   users often run AGS ports with Windows versions of games.
+String FindGameData(const String &path, std::function<bool(const String&)> fn_testfile)
+{
+    al_ffblk ff;
+    String test_file;
+    String pattern = path;
+    pattern.Append("/*");
+
+    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+        return "";
+    do
+    {
+        test_file = ff.name;
+        if (test_file.CompareRightNoCase(".ags") == 0 ||
+            test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareRightNoCase(".exe") == 0)
+        {
+            test_file = Path::ConcatPaths(path, test_file);
+            if (IsMainGameLibrary(test_file) && fn_testfile(path))
+            {
+                al_findclose(&ff);
+                return test_file;
+            }
+        }
+    } while (al_findnext(&ff) == 0);
+    al_findclose(&ff);
+    return "";
+}
+
+String FindGameData(const String &path)
+{
+    return FindGameData(path, [](const String&){ return true; });
+}
+
 // Begins reading main game file from a generic stream
-HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
+static HGameFileError OpenMainGameFileBase(Stream *in, MainGameSource &src)
 {
     // Check data signature
-    String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
+    String data_sig = String::FromStreamCount(in, MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
         return new MainGameFileError(kMGFErr_SignatureFailed);
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     if (src.DataVersion >= kGameVersion_230)
-        src.CompiledWith = StrUtil::ReadString(in.get());
+        src.CompiledWith = StrUtil::ReadString(in);
     if (src.DataVersion < kGameVersion_250)
         return new MainGameFileError(kMGFErr_FormatVersionTooOld, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kGameVersion_250, kGameVersion_Current));
     if (src.DataVersion > kGameVersion_Current)
@@ -140,10 +179,8 @@ HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
     {
         size_t count = in->ReadInt32();
         for (size_t i = 0; i < count; ++i)
-            src.Caps.insert(StrUtil::ReadString(in.get()));
+            src.Caps.insert(StrUtil::ReadString(in));
     }
-    // Everything is fine, return opened stream
-    src.InputStream = in;
     // Remember loaded game data version
     // NOTE: this global variable is embedded in the code too much to get
     // rid of it too easily; the easy way is to set it whenever the main
@@ -157,10 +194,11 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Cleanup source struct
     src = MainGameSource();
     // Try to open given file
-    PStream in(File::OpenFileRead(filename));
+    Stream *in = File::OpenFileRead(filename);
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
+    src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
 }
 
@@ -170,15 +208,16 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
     src = MainGameSource();
     // Try to find and open main game file
     String filename = MainGameSource::DefaultFilename_v3;
-    PStream in(AssetMgr->OpenAsset(filename));
+    Stream *in = AssetMgr->OpenAsset(filename);
     if (!in)
     {
         filename = MainGameSource::DefaultFilename_v2;
-        in = PStream(AssetMgr->OpenAsset(filename));
+        in = AssetMgr->OpenAsset(filename);
     }
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
+    src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
 }
 
@@ -810,6 +849,18 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     }
     FixupSaveDirectory(game);
     return HGameFileError::None();
+}
+
+void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver)
+{
+    {
+        AlignedStream align_s(in, Common::kAligned_Read);
+        game.ReadFromFile(&align_s);
+    }
+    // Discard game messages we do not need here
+    delete[] game.load_messages;
+    game.load_messages = nullptr;
+    game.read_savegame_info(in, data_ver);
 }
 
 } // namespace Common

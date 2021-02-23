@@ -1,4 +1,5 @@
 using AGS.Types;
+using AGS.Editor.Utils;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -281,13 +282,14 @@ namespace AGS.Editor
 
                 using (Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight))
                 {
+                    Bitmap bmp = bitmapToDraw ?? SpriteTools.GetPlaceHolder();
                     if (centreInNewCanvas)
                     {
-                        x = width / 2 - bitmapToDraw.Width / 2;
-                        y = height - bitmapToDraw.Height;
+                        x = width / 2 - bmp.Width / 2;
+                        y = height - bmp.Height;
                     }
 
-                    g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
+                    g.DrawImage(bmp, x, y, bmp.Width, bmp.Height);
                 }
 
                 if (drawOutline)

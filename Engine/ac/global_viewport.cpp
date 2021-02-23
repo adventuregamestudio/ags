@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_viewport.h"
 #include "ac/draw.h"
+#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 
 void SetViewport(int offsx, int offsy) {

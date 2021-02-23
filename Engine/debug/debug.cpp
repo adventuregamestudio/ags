@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <memory>
 #include <limits>
 #include "core/platform.h"
@@ -23,6 +22,7 @@
 #include <SDL.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
@@ -34,6 +34,7 @@
 #include "debug/messagebuffer.h"
 #include "main/config.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
@@ -257,8 +258,8 @@ void apply_debug_config(const ConfigTree &cfg)
 #endif
         });
 
-    // Init game console if the game was compiled in Debug mode
-    if (game.options[OPT_DEBUGMODE] != 0)
+    // Init game console if the game was compiled in Debug mode or is run in test mode
+    if (game.options[OPT_DEBUGMODE] != 0 || (debug_flags & DBG_DEBUGMODE) != 0)
     {
         apply_log_config(cfg, OutputGameConsoleID,
             /* defaults */

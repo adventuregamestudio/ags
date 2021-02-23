@@ -49,13 +49,11 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 
 Bitmap *ScriptDrawingSurface::StartDrawing()
 {
-    //abufBackup = abuf;
     return this->GetBitmapSurface();
 }
 
 void ScriptDrawingSurface::FinishedDrawingReadOnly()
 {
-    //abuf = abufBackup;
 }
 
 void ScriptDrawingSurface::FinishedDrawing()

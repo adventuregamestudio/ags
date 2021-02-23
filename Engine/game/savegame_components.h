@@ -27,7 +27,6 @@ namespace Engine
 
 using Common::Stream;
 using Common::Interaction;
-typedef std::shared_ptr<Stream> PStream;
 
 struct PreservedParams;
 struct RestoredData;
@@ -35,9 +34,9 @@ struct RestoredData;
 namespace SavegameComponents
 {
     // Reads all available components from the stream
-    HSaveError    ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+    HSaveError    ReadAll(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
-    HSaveError    WriteAllCommon(PStream out);
+    HSaveError    WriteAllCommon(Stream *out);
 
     // Utility functions for reading and writing legacy interactions,
     // or their "times run" counters separately.

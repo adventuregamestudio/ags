@@ -52,7 +52,8 @@ enum SavegameVersion
     kSvgVersion_Cmp_64bit = 10,
     kSvgVersion_350_final = 11,
     kSvgVersion_350_final2= 12,
-    kSvgVersion_Current   = kSvgVersion_350_final2,
+    kSvgVersion_351       = 13,
+    kSvgVersion_Current   = kSvgVersion_351,
     kSvgVersion_LowestSupported = kSvgVersion_321 // change if support dropped
 };
 
@@ -103,7 +104,7 @@ struct SavegameSource
     // Savegame format version
     SavegameVersion     Version;
     // A ponter to the opened stream
-    PStream             InputStream;
+    UStream             InputStream;
 
     SavegameSource();
 };
@@ -129,6 +130,8 @@ struct SavegameDescription
     Version             EngineVersion;
     // Guid of the game which made this save
     String              GameGuid;
+    // Legacy uniqueid of the game, for use in older games with no GUID
+    int                 LegacyID;
     // Title of the game which made this save
     String              GameTitle;
     // Name of the main data file used; this is needed to properly
@@ -155,13 +158,13 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 
 // Reads the game data from the save stream and reinitializes game state
-HSaveError     RestoreGameState(PStream in, SavegameVersion svg_version);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion svg_version);
 
 // Opens savegame for writing and puts in savegame description
-PStream        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
+Stream*        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 
 // Prepares game for saving state and writes game data into the save stream
-void           SaveGameState(PStream out);
+void           SaveGameState(Stream *out);
 
 } // namespace Engine
 } // namespace AGS

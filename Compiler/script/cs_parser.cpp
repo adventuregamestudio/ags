@@ -662,6 +662,7 @@ int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym, bool 
 int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
                                  int *funcsymptr, int vtwas, int &in_func,
                                  int &nested_level, int next_is_readonly,
+                                 int is_const,
                                  int next_is_import, int isMemberFunction,
                                  int returnsPointer, int func_is_static,
 								 int *isMemberFunctionPtr, SymbolDef *oldDefinition,
@@ -777,6 +778,10 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   sym.entries[funcsym].ssize = varsize;  // save return type size
   sym.entries[funcsym].funcparamtypes[0] = vtwas;  // return type
 
+  if (is_const)
+  {
+    sym.entries[funcsym].funcparamtypes[0] |= STYPE_CONST;
+  }
   if (returnsPointer)
   {
     sym.entries[funcsym].funcparamtypes[0] |= STYPE_POINTER;
@@ -3410,7 +3415,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
     char next_is_autoptr = 0, next_is_noloopcheck = 0;
-    char next_is_builtin = 0;
+    char next_is_builtin = 0, next_is_const = 0;
     nested_type[0]=NEST_NOTHING;
 
     // *** now we have the program as a list of symbols in targ
@@ -3672,6 +3677,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             while (sym.get_type(targ.peeknext()) != SYM_CLOSEBRACE) {
                 cursym = targ.getnext();
                 int member_is_readonly = 0;
+                int member_is_const = 0;
                 int member_is_import = 0;
                 int member_is_property = 0;
                 int member_is_pointer = 0;
@@ -3699,6 +3705,12 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     if (sym.get_type(cursym) == SYM_READONLY) {
                         // read only member, carry on
                         member_is_readonly = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_CONST) {
+                        // const member, carry on
+                        member_is_const = 1;
                         foundQualifier = true;
                         cursym = targ.getnext();
                     }
@@ -3851,7 +3863,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         }
 
                         if (process_function_declaration(targ, scrip, &vname, cursym, in_func,
-                            nested_level, member_is_readonly, member_is_import, stname,
+                            nested_level, member_is_readonly, member_is_const, member_is_import, stname,
                             member_is_pointer, member_is_static, NULL, NULL, isDynamicArray))
                             return -1;
 
@@ -3894,6 +3906,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         sym.entries[vname].vartype = (short)cursym;
                         if (member_is_readonly)
                             sym.entries[vname].flags |= SFLG_READONLY;
+                        if (member_is_const)
+                            sym.entries[vname].flags |= SFLG_CONST;
                         if (member_is_property)
                             sym.entries[vname].flags |= SFLG_PROPERTY;
                         if (member_is_pointer) {
@@ -4152,7 +4166,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 next_is_import = 1;
 
             if ((sym.get_type(targ.peeknext()) != SYM_VARTYPE) &&
-                (sym.get_type(targ.peeknext()) != SYM_READONLY)) {
+                (sym.get_type(targ.peeknext()) != SYM_READONLY) &&
+                (sym.get_type(targ.peeknext()) != SYM_CONST)) {
                     cc_error("expected variable or function after import, not '%s'", sym.get_friendly_name(targ.peeknext()).c_str());
                     return -1;
             }
@@ -4190,8 +4205,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
         }
         else if (symType == SYM_CONST) {
-            cc_error("'const' is only valid for function parameters (use 'readonly' instead)");
-            return -1;
+            next_is_const = 1;
+            if (sym.get_type(targ.peeknext()) != SYM_VARTYPE) {
+                cc_error("expected variable after const");
+                return -1;
+            }
         }
         else if (symType == SYM_EXPORT) {
             // export specified symbol
@@ -4330,7 +4348,7 @@ startvarbit:
             if (isFunction) {
                 // it's a function
                 if (process_function_declaration(targ, scrip, &cursym, vtwas, in_func,
-                    nested_level, next_is_readonly, next_is_import, structSym,
+                    nested_level, next_is_readonly, next_is_const, next_is_import, structSym,
                     isPointer, next_is_static, &isMemberFunction, &oldDefinition, isDynamicArray))
                     return -1;
 
@@ -4344,6 +4362,9 @@ startvarbit:
 
                 if (next_is_protected)
                     sym.entries[cursym].flags |= SFLG_PROTECTED;
+
+                if (next_is_const)
+                    sym.entries[cursym].flags |= SFLG_CONST;
 
                 if (in_func >= 0)
                     inFuncSym = cursym;
@@ -4387,6 +4408,7 @@ startvarbit:
             }
             next_is_import = 0;
             next_is_readonly = 0;
+            next_is_const = 0;
             next_is_static = 0;
             next_is_protected = 0;
 

@@ -170,9 +170,6 @@ String get_engine_string()
 #endif
 }
 
-extern char return_to_roomedit[30];
-extern char return_to_room[150];
-
 void main_print_help() {
     platform->WriteStdOut(
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
@@ -266,11 +263,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             override_start_room = atoi(argv[ee+1]);
             ee++;
         }
-        else if ((ags_stricmp(arg,"--testre") == 0) && (ee < argc-2)) {
-            strcpy(return_to_roomedit, argv[ee+1]);
-            strcpy(return_to_room, argv[ee+2]);
-            ee+=2;
-        }
         else if (ags_stricmp(arg,"--noexceptionhandler")==0) usetup.disable_exception_handling = true;
         else if (ags_stricmp(arg, "--setup") == 0)
         {
@@ -349,7 +341,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--nomusic") == 0) debug_flags |= DBG_NOMUSIC;
         else if (ags_stricmp(arg, "--noscript") == 0) debug_flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "--novideo") == 0) debug_flags |= DBG_NOVIDEO;
-        else if (ags_stricmp(arg, "--dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
         {
             String logarg = arg + 6;

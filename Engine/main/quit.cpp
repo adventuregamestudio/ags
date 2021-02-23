@@ -233,8 +233,6 @@ void allegro_bitmap_test_release()
 		gfxDriver->DestroyDDB(test_allegro_ddb);
 }
 
-char return_to_roomedit[30] = "\0";
-char return_to_room[150] = "\0";
 // quit - exits the engine, shutting down everything gracefully
 // The parameter is the message to print. If this message begins with
 // an '!' character, then it is printed as a "contact game author" error.

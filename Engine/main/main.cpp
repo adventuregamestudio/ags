@@ -225,6 +225,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
+           "  --startr <room_number>       Start game by loading certain room.\n"
            "  --tell                       Print various information concerning engine\n"
            "                                 and the game; for selected output use:\n"
            "  --tell-config                Print contents of merged game config\n"

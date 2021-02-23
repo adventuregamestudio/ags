@@ -171,7 +171,7 @@ String get_engine_string()
 }
 
 void main_print_help() {
-    platform->WriteStdOut(
+    platform->WriteStdOut("%s",
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
@@ -192,6 +192,7 @@ void main_print_help() {
            "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"
+           "  --loadsavedgame FILEPATH     Load savegame on startup\n"
            "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
            "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
            "                               Setup logging to the chosen OUTPUT with given\n"
@@ -214,7 +215,14 @@ void main_print_help() {
            "  --log-file-path=PATH         Define custom path for the log file\n"
           //--------------------------------------------------------------------------------|
 #if AGS_PLATFORM_OS_WINDOWS
-           "  --no-message-box             Disable reporting of alerts to message boxes\n"
+           "  --no-message-box             Disable alerts as modal message boxes\n"
+#endif
+           "  --noiface                    Don't draw game GUI\n"
+           "  --noscript                   Don't run room scripts; *WARNING:* unreliable\n"
+           "  --nospr                      Don't draw room objects and characters\n"
+           "  --noupdate                   Don't run game update\n"
+           "  --novideo                    Don't play game videos\n"
+#if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
            "  --tell                       Print various information concerning engine\n"
@@ -227,6 +235,7 @@ void main_print_help() {
            "  --tell-filepath              Print all filepaths engine uses for the game\n"
            "  --tell-graphicdriver         Print list of supported graphic drivers\n"
            "\n"
+           "  --test                       Run game in the test mode\n"
            "  --version                    Print engine's version and stop\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"

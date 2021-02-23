@@ -349,7 +349,7 @@ int mgetbutton()
         toret = MouseLeft;
     else if (butis & MouseBitRight)
         toret = MouseRight;
-    else if (butis & MouseMiddle)
+    else if (butis & MouseBitMiddle)
         toret = MouseMiddle;
 
     butwas = butis;

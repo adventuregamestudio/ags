@@ -1020,22 +1020,20 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     return fileSize;
 }
 
-void create_savegame_screenshot(Bitmap *&screenShot)
+Bitmap *create_savegame_screenshot()
 {
-    if (game.options[OPT_SAVESCREENSHOT]) {
-        int usewid = data_to_game_coord(play.screenshot_width);
-        int usehit = data_to_game_coord(play.screenshot_height);
-        const Rect &viewport = play.GetMainViewport();
-        if (usewid > viewport.GetWidth())
-            usewid = viewport.GetWidth();
-        if (usehit > viewport.GetHeight())
-            usehit = viewport.GetHeight();
+    int usewid = data_to_game_coord(play.screenshot_width);
+    int usehit = data_to_game_coord(play.screenshot_height);
+    const Rect &viewport = play.GetMainViewport();
+    if (usewid > viewport.GetWidth())
+        usewid = viewport.GetWidth();
+    if (usehit > viewport.GetHeight())
+        usehit = viewport.GetHeight();
 
-        if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
-            quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
+    if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
+        quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
-        screenShot = CopyScreenIntoBitmap(usewid, usehit);
-    }
+    return CopyScreenIntoBitmap(usewid, usehit);
 }
 
 void save_game(int slotn, const char*descript) {
@@ -1055,15 +1053,12 @@ void save_game(int slotn, const char*descript) {
     }
 
     VALIDATE_STRING(descript);
-    String nametouse;
-    nametouse = get_save_game_path(slotn);
+    String nametouse = get_save_game_path(slotn);
+    UBitmap screenShot;
+    if (game.options[OPT_SAVESCREENSHOT] != 0)
+        screenShot.reset(create_savegame_screenshot());
 
-    Bitmap *screenShot = nullptr;
-
-    // Screenshot
-    create_savegame_screenshot(screenShot);
-
-    Engine::UStream out(StartSavegame(nametouse, descript, screenShot));
+    Engine::UStream out(StartSavegame(nametouse, descript, screenShot.get()));
     if (out == nullptr)
     {
         Display("ERROR: Unable to open savegame file for writing!");
@@ -1078,7 +1073,7 @@ void save_game(int slotn, const char*descript) {
     if (screenShot != nullptr)
     {
         int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot);
+        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot.get());
 
         update_polled_stuff_if_runtime();
 
@@ -1088,9 +1083,6 @@ void save_game(int slotn, const char*descript) {
         out->Seek(4);
         out->WriteInt32(screenShotSize);
     }
-
-    if (screenShot != nullptr)
-        delete screenShot;
 }
 
 int gameHasBeenRestored = 0;

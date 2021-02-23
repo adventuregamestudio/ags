@@ -1065,7 +1065,10 @@ void save_game(int slotn, const char*descript) {
 
     Engine::UStream out(StartSavegame(nametouse, descript, screenShot));
     if (out == nullptr)
-        quit("save_game: unable to open savegame file for writing");
+    {
+        Display("ERROR: Unable to open savegame file for writing!");
+        return;
+    }
 
     update_polled_stuff_if_runtime();
 

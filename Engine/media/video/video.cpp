@@ -260,6 +260,7 @@ void play_flc_file(int numb,int playflags) {
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
 {
+    sys_evt_process_pending();
 	if (theoraBuffer == nullptr)
     {
         // No video, only sound

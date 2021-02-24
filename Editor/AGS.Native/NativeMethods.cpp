@@ -68,27 +68,13 @@ extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
-extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void DeleteBackground(Room ^room, int backgroundNumber);
-extern void CreateBuffer(int width, int height);
-extern void RenderBufferToHDC(int hdc);
-extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
-extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
-extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
-extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
 extern void FixRoomMasks(Room ^room);
-extern void copy_walkable_to_regions(void *roomptr);
-extern int get_mask_pixel(void *roomptr, int maskType, int x, int y);
-extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
+extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
-extern void create_undo_buffer(void *roomptr, int maskType) ;
-extern bool does_undo_buffer_exist();
-extern void clear_undo_buffer() ;
-extern void restore_from_undo_buffer(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
 extern void transform_string(char *text);
-extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
 AGSString editorVersionNumber;
@@ -442,26 +428,6 @@ namespace AGS
 			save_crm_file(roomToSave);
 		}
 
-		void NativeMethods::CreateBuffer(int width, int height) 
-		{
-			::CreateBuffer(width, height);
-		}
-
-		void NativeMethods::DrawSpriteToBuffer(int sprNum, int x, int y, float scale) 
-		{
-			::DrawSpriteToBuffer(sprNum, x, y, scale);
-		}
-
-		void NativeMethods::RenderBufferToHDC(int hDC) 
-		{
-			::RenderBufferToHDC(hDC);
-		}
-
-		void NativeMethods::DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
-		{
-			draw_room_background((void*)room->_roomStructPtr, hDC, x, y, backgroundNumber, scaleFactor, (int)maskType, selectedArea, maskTransparency);
-		}
-
 		void NativeMethods::ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette)
 		{
 			::ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
@@ -477,69 +443,14 @@ namespace AGS
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
 
-        void NativeMethods::AdjustRoomMaskResolution(Room ^room)
-        {
-            FixRoomMasks(room);
-        }
-
-		void NativeMethods::DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
-		{
-			draw_line_onto_mask((void*)room->_roomStructPtr, (int)maskType, x1, y1, x2, y2, color);
-		}
-
-		void NativeMethods::DrawFilledRectOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
-		{
-			draw_filled_rect_onto_mask((void*)room->_roomStructPtr, (int)maskType, x1, y1, x2, y2, color);
-		}
-
-		void NativeMethods::DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color)
-		{
-			draw_fill_onto_mask((void*)room->_roomStructPtr, (int)maskType, x1, y1, color);
-		}
-
-		void NativeMethods::CopyWalkableMaskToRegions(Room ^room) 
-		{
-			copy_walkable_to_regions((void*)room->_roomStructPtr);
-		}
-
-		int NativeMethods::GetAreaMaskPixel(Room ^room, RoomAreaMaskType maskType, int x, int y)
-		{
-			return get_mask_pixel((void*)room->_roomStructPtr, (int)maskType, x, y);
-		}
-
-    void NativeMethods::ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp)
+    void NativeMethods::SetAreaMask(Room^ room, RoomAreaMaskType maskType, Bitmap^ bmp)
     {
-      import_area_mask((void*)room->_roomStructPtr, (int)maskType, bmp);
+        set_area_mask((void*)room->_roomStructPtr, (int)maskType, bmp);
     }
 
     Bitmap ^NativeMethods::ExportAreaMask(Room ^room, RoomAreaMaskType maskType)
     {
         return export_area_mask((void*)room->_roomStructPtr, (int)maskType);
-    }
-
-    void NativeMethods::CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType)
-		{
-			create_undo_buffer((void*)room->_roomStructPtr, (int)maskType);
-		}
-
-    bool NativeMethods::DoesUndoBufferExist()
-		{
-			return does_undo_buffer_exist();
-		}
-
-    void NativeMethods::ClearUndoBuffer()
-		{
-			clear_undo_buffer();
-		}
-
-    void NativeMethods::RestoreFromUndoBuffer(Room ^room, RoomAreaMaskType maskType)
-		{
-			restore_from_undo_buffer((void*)room->_roomStructPtr, (int)maskType);
-		}
-
-    void NativeMethods::SetGreyedOutMasksEnabled(bool enabled)
-    {
-      enable_greyed_out_masks = enabled;
     }
 
 		String ^NativeMethods::LoadRoomScript(String ^roomFileName) 

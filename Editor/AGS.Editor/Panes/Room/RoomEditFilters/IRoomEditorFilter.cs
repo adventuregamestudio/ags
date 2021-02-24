@@ -47,10 +47,6 @@ namespace AGS.Editor
         /// </summary>
         SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
         /// <summary>
-        /// Paint filter contents using native C++ functionality.
-        /// </summary>
-        void PaintToHDC(IntPtr hDC, RoomEditorState state);
-        /// <summary>
         /// Paint filter contents using .NET functionality.
         /// </summary>
         /// <param name="graphics"></param>

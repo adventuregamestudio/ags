@@ -5,6 +5,7 @@ using AGS.Types;
 using AgsView = AGS.Types.View;
 using System.Web;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 
 namespace AGS.Editor
 {
@@ -182,20 +183,17 @@ namespace AGS.Editor
 
         public void Invalidate() { _panel.Invalidate(); }
 
-        public void PaintToHDC(IntPtr hdc, RoomEditorState state)
+        public void Paint(Graphics graphics, RoomEditorState state)
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 DesignTimeProperties p;
                 if (DesignItems.TryGetValue(GetItemID(character), out p) && p.Visible)
                 {
-                    DrawCharacter(character, state);
+                    DrawCharacter(graphics, character, state);
                 }
             }
-        }
 
-        public void Paint(Graphics graphics, RoomEditorState state)
-        {
             if (!Enabled || _selectedCharacter == null)
                 return;
 
@@ -221,7 +219,7 @@ namespace AGS.Editor
             }
         }
 
-        private void DrawCharacter(Character character, RoomEditorState state)
+        private void DrawCharacter(Graphics graphics, Character character, RoomEditorState state)
         {
             AgsView view = _game.FindViewByID(character.NormalView);
 
@@ -236,14 +234,19 @@ namespace AGS.Editor
                     ViewFrame thisFrame = view.Loops[0].Frames[0];
                     spriteNum = thisFrame.Image;
                 }
-                int xPos = state.RoomXToWindow(character.StartX);
-                int yPos = state.RoomYToWindow(character.StartY);
-                int spriteWidth, spriteHeight;
-                Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out spriteWidth, out spriteHeight);
-                spriteWidth = state.RoomSizeToWindow(spriteWidth);
-                spriteHeight = state.RoomSizeToWindow(spriteHeight);
 
-                Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, state.Scale);
+                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
+                spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
+                spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
+                int xPos = state.RoomXToWindow(character.StartX) - spriteSize.Width / 2;
+                int yPos = state.RoomYToWindow(character.StartY) - spriteSize.Height;
+
+                using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(spriteNum))
+                using (Bitmap sprite32bppAlpha = new Bitmap(sprite.Width, sprite.Height, PixelFormat.Format32bppArgb))
+                {
+                    sprite32bppAlpha.SetRawData(sprite.GetRawData());
+                    graphics.DrawImage(sprite32bppAlpha, xPos, yPos, spriteSize.Width, spriteSize.Height);
+                }
             }
         }
 

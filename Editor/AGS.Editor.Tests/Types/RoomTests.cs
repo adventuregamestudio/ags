@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 
 namespace AGS.Types
 {
@@ -165,6 +166,26 @@ namespace AGS.Types
         {
             _room.BottomEdgeY = bottomEdgeY;
             Assert.That(_room.BottomEdgeY, Is.EqualTo(bottomEdgeY));
+        }
+
+        [TestCase(1, RoomAreaMaskType.WalkBehinds, 1.00)]
+        [TestCase(2, RoomAreaMaskType.WalkBehinds, 1.00)]
+        [TestCase(1, RoomAreaMaskType.Hotspots, 1.00)]
+        [TestCase(2, RoomAreaMaskType.Hotspots, 0.50)]
+        [TestCase(3, RoomAreaMaskType.Hotspots, 0.33)]
+        [TestCase(4, RoomAreaMaskType.Hotspots, 0.25)]
+        [TestCase(1, RoomAreaMaskType.WalkableAreas, 1.00)]
+        [TestCase(1, RoomAreaMaskType.Regions, 1.00)]
+        public void GetsMaskScale(int maskResolution, RoomAreaMaskType mask, double expected)
+        {
+            _room.MaskResolution = maskResolution;
+            Assert.That(_room.GetMaskScale(mask), Is.EqualTo(expected).Within(0.009));
+        }
+
+        [Test]
+        public void GetsMaskScaleThrowsExceptionWithIllegalMask()
+        {
+            Assert.Throws<ArgumentException>(() => _room.GetMaskScale(RoomAreaMaskType.None));
         }
     }
 }

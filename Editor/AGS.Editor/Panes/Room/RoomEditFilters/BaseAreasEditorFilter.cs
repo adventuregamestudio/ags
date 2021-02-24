@@ -38,10 +38,11 @@ namespace AGS.Editor
 			Pens.Yellow, Pens.White};
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
-        protected Room _room;
+        protected readonly Room _room;
         protected Panel _panel;
         RoomSettingsEditor _editor;
         protected ToolTip _tooltip;
+        private IRoomController _roomController;
         private bool _isOn = false;
         private int _selectedArea = 1;
 		private int _drawingWithArea;
@@ -49,6 +50,7 @@ namespace AGS.Editor
         // Mouse hold/release positions in ROOM's coordinates
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
+        private Bitmap _undoBufferMask;
 
         private static AreaDrawMode _drawMode = AreaDrawMode.Select;
         private static List<MenuCommand> _toolbarIcons = null;
@@ -56,7 +58,7 @@ namespace AGS.Editor
         private static Cursor _selectCursor;
         private static bool _greyedOutMasks = true;
 
-        public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+        public BaseAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
         {
             if (!_registeredIcons)
             {
@@ -90,6 +92,7 @@ namespace AGS.Editor
 			_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
 
             _room = room;
+            _roomController = roomController;
             _panel = displayPanel;
             _editor = editor;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
@@ -148,15 +151,21 @@ namespace AGS.Editor
         public bool Locked { get; set; }
         public bool Enabled { get { return _isOn; } }
 
+        private Bitmap UndoBufferMask
+        {
+            get { return _undoBufferMask; }
+            set
+            {
+                _undoBufferMask?.Dispose();
+                _undoBufferMask = value;
+            }
+        }
+
         protected virtual void FilterActivated()
 		{
 		}
 
         public void Invalidate() { _panel.Invalidate(); }
-
-        public void PaintToHDC(IntPtr hDC, RoomEditorState state)
-        {
-        }
 
         /// <summary>
         /// Draw hint overlay.
@@ -244,7 +253,7 @@ namespace AGS.Editor
 
             if (drawMode == AreaDrawMode.Freehand)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
             }
 
 			_drawingWithArea = _selectedArea;
@@ -269,14 +278,14 @@ namespace AGS.Editor
             }
             else if (drawMode == AreaDrawMode.Fill)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawFillOntoMask(_room, this.MaskToDraw, x, y, _drawingWithArea);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
+                FillAreaOntoMask(x, y);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
             }
             else if (drawMode == AreaDrawMode.Select)
             {
-                int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
+                int area = _roomController.GetAreaMaskPixel(MaskToDraw, x, y);
                 if (area != 0)
                 {
                     SelectedArea = area;
@@ -307,15 +316,15 @@ namespace AGS.Editor
 
             if (drawMode == AreaDrawMode.Line)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
+                DrawLineOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
             else if (drawMode == AreaDrawMode.Rectangle)
             {
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                UndoBufferMask = _roomController.GetMask(MaskToDraw);
+                DrawFilledRectangleOntoMask();
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
@@ -339,7 +348,7 @@ namespace AGS.Editor
             {
                 if (drawMode == AreaDrawMode.Freehand)
                 {
-					Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                    DrawLineOntoMask();
                     _mouseDownX = _currentMouseX;
                     _mouseDownY = _currentMouseY;
                     UpdateUndoButtonEnabledState();
@@ -412,9 +421,8 @@ namespace AGS.Editor
 			}
 			else if (command == UNDO_COMMAND)
 			{
-				Factory.NativeProxy.RestoreFromUndoBuffer(_room, this.MaskToDraw);
-				Factory.NativeProxy.ClearUndoBuffer();
-				_room.Modified = true;
+                _roomController.SetMask(MaskToDraw, UndoBufferMask);
+                UndoBufferMask = null;
 				_panel.Invalidate();
 				UpdateUndoButtonEnabledState();
 			}
@@ -428,18 +436,13 @@ namespace AGS.Editor
 			}
             else if (command == EXPORT_MASK_COMMAND)
             {
-                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.MASK_IMAGE_FILE_FILTER);
-                if (fileName != null)
-                {
-                    ExportMaskFromFile(fileName);
-                }
+                ExportMaskFromFile();
             }
             else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
 			{
 				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
 				{
-					Factory.NativeProxy.CopyWalkableAreaMaskToRegions(_room);
-					_room.Modified = true;
+                    CopyWalkableAreaMaskToRegions();
 					_panel.Invalidate();
 				}
 			}
@@ -447,7 +450,7 @@ namespace AGS.Editor
 			{
 				_greyedOutMasks = !_greyedOutMasks;
 				_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
-				Factory.NativeProxy.GreyOutNonSelectedMasks = _greyedOutMasks;
+                _roomController.GreyOutNonSelectedMasks = _greyedOutMasks;
 				_panel.Invalidate();
 			}
 
@@ -459,28 +462,38 @@ namespace AGS.Editor
         {
             try
             {
-                Bitmap bmp = new Bitmap(fileName);
-
-                if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
+                using (Bitmap bmp = new Bitmap(fileName))
                 {
-                    Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
-                        "\nFile size: " + bmp.Width + " x " + bmp.Height +
-                        "\nRoom size: " + _room.Width + " x " + _room.Height, MessageBoxIcon.Warning);
-                    bmp.Dispose();
-                    return;
+                    if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
+                    {
+                        Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
+                            "\nFile size: " + bmp.Width + " x " + bmp.Height +
+                            "\nRoom size: " + _room.Width + " x " + _room.Height, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+                    {
+                        Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    UndoBufferMask = _roomController.GetMask(MaskToDraw);
+
+                    // allow them to import a double-size or half-size mask, adjust it as appropriate
+                    if (UndoBufferMask.Size != bmp.Size)
+                    {
+                        using (Bitmap scaled = bmp.ScaleIndexed(bmp.Width, bmp.Height))
+                        {
+                            _roomController.SetMask(MaskToDraw, scaled);
+                        }
+                    }
+                    else
+                    {
+                        _roomController.SetMask(MaskToDraw, bmp);
+                    }
                 }
 
-                if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
-                {
-                    Factory.GUIController.ShowMessage("This is not a valid mask bitmap. Masks must be 256-colour (8-bit) images, using the first colours in the palette to draw the room areas.", MessageBoxIcon.Warning);
-                    bmp.Dispose();
-                    return;
-                }
-
-                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-                Factory.NativeProxy.ImportAreaMask(_room, this.MaskToDraw, bmp);
-                bmp.Dispose();
-                _room.Modified = true;
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
@@ -490,13 +503,18 @@ namespace AGS.Editor
             }
         }
 
-        private void ExportMaskFromFile(string fileName)
+        private void ExportMaskFromFile()
         {
             try
             {
-                Bitmap bmp = Factory.NativeProxy.ExportAreaMask(_room, this.MaskToDraw);
-                bmp.Save(fileName, ImageFormat.Bmp);
-                bmp.Dispose();
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.MASK_IMAGE_FILE_FILTER);
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+                    using (Bitmap bmp = _roomController.GetMask(MaskToDraw))
+                    {
+                        bmp.Save(fileName, ImageFormat.Bmp);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -506,7 +524,7 @@ namespace AGS.Editor
 
         private void UpdateUndoButtonEnabledState()
         {
-            bool shouldBeEnabled = Factory.NativeProxy.DoesUndoBufferExist();
+            bool shouldBeEnabled = UndoBufferMask != null;
 
             if (shouldBeEnabled != _toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled)
             {
@@ -559,6 +577,7 @@ namespace AGS.Editor
         public void Dispose()
         {
             _tooltip.Dispose();
+            UndoBufferMask = null; // Dispose is invoked inside the property setter
         }
 
         public string GetItemName(string id)
@@ -646,6 +665,62 @@ namespace AGS.Editor
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
                 DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+
+        private void CopyWalkableAreaMaskToRegions()
+        {
+            if (_room == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            using (Bitmap bmp = _roomController.GetMask(RoomAreaMaskType.WalkableAreas))
+            {
+                _roomController.SetMask(RoomAreaMaskType.Regions, bmp);
+            }
+            _room.Modified = true;
+        }
+
+        private void DrawLineOntoMask()
+        {
+            Point start = new Point(_mouseDownX, _mouseDownY);
+            Point finish = new Point(_currentMouseX, _currentMouseY);
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            {
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.DrawLine(_drawingWithArea, start, finish, scale);
+                _roomController.SetMask(MaskToDraw, mask);
+            }
+        }
+
+        private void DrawFilledRectangleOntoMask()
+        {
+            Point p1 = new Point(_mouseDownX, _mouseDownY);
+            Point p2 = new Point(_currentMouseX, _currentMouseY);
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            {
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.FillRectangle(_drawingWithArea, p1, p2, scale);
+                _roomController.SetMask(MaskToDraw, mask);
+            }
+        }
+
+        private void FillAreaOntoMask(int x, int y)
+        {
+            Point point = new Point(x, y);
+            Color color = Factory.AGSEditor.CurrentGame.Palette[_drawingWithArea].Colour;
+            double scale = _room.GetMaskScale(MaskToDraw);
+
+            using (Bitmap mask = _roomController.GetMask(MaskToDraw))
+            {
+                using (IndexedGraphics g = IndexedGraphics.FromBitmap(mask))
+                    g.FillArea(_drawingWithArea, point, scale);
+                _roomController.SetMask(MaskToDraw, mask);
+            }
         }
     }
 }

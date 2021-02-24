@@ -9,10 +9,12 @@ using System.Xml;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Threading;
+using System.Linq;
+using System.Drawing.Imaging;
 
 namespace AGS.Editor.Components
 {
-    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, IRoomController
+    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, IDisposable, IRoomController
     {
         private const string ROOMS_COMMAND_ID = "Rooms";
         private const string COMMAND_NEW_ITEM = "NewRoom";
@@ -30,6 +32,9 @@ namespace AGS.Editor.Components
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
         private const string SCRIPT_ICON = "ScriptIcon";
 
+        private readonly List<Bitmap> _backgroundCache = new List<Bitmap>(Room.MAX_BACKGROUNDS);
+        private readonly Dictionary<RoomAreaMaskType, Bitmap> _maskCache = new Dictionary<RoomAreaMaskType, Bitmap>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
+
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
         private Dictionary<int,ContentDocument> _roomScriptEditors = new Dictionary<int,ContentDocument>();
@@ -38,6 +43,7 @@ namespace AGS.Editor.Components
         private int _rightClickedRoomNumber;
         private Room.RoomModifiedChangedHandler _modifiedChangedHandler;
 		private object _roomLoadingOrSavingLock = new object();
+        private bool _grayOutMasks = true;
 
         public RoomsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, ROOMS_COMMAND_ID)
@@ -63,6 +69,11 @@ namespace AGS.Editor.Components
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
+        }
+
+        public void Dispose()
+        {
+            ClearImageCache();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -599,9 +610,8 @@ namespace AGS.Editor.Components
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
             _agsEditor.CompileScript(room.Script, headers, null);
+            ((IRoomController)this).Save();
 
-            _nativeProxy.SaveRoom(room);
-            room.Modified = false;
             return null;            
         }
 
@@ -795,12 +805,15 @@ namespace AGS.Editor.Components
             {
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
+
             _loadedRoom = _nativeProxy.LoadRoom(newRoom);
+            LoadImageCache();
+
             // TODO: group these in some UpdateRoomToNewVersion method
             _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
-            _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+            _loadedRoom.Modified |= ApplyDefaultMaskResolution();
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -855,18 +868,17 @@ namespace AGS.Editor.Components
             return scriptModified;
         }
 
-        private bool ApplyDefaultMaskResolution(Room room)
+        private bool ApplyDefaultMaskResolution()
         {
             // TODO: currently the only way to know if the room was not affected by
             // game's settings is to test whether it has game's ID. Investigate for
             // a better way later?
-            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
             {
                 int mask = _agsEditor.CurrentGame.Settings.DefaultRoomMaskResolution;
-                if (mask != room.MaskResolution)
+                if (mask != _loadedRoom.MaskResolution)
                 {
-                    room.MaskResolution = mask;
-                    NativeProxy.Instance.AdjustRoomMaskResolution(room);
+                    ((IRoomController)this).AdjustMaskResolution(mask);
                     return true;
                 }
             }
@@ -990,7 +1002,7 @@ namespace AGS.Editor.Components
         {
             string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
 
-            RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom);
+            RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom, this);
             _roomSettings = new ContentDocument(editor,
                 paneTitle, this, ROOM_ICON_LOADED, ConstructPropertyObjectList(_loadedRoom));
             if (previousDockData != null && previousDockData.DockState != DockingState.Document)
@@ -1118,7 +1130,7 @@ namespace AGS.Editor.Components
                 if (Factory.GUIController.ShowQuestion("The new mask resolution is smaller and this will reduce mask's precision and some pixels may be lost in the process. Do you want to proceed?") != DialogResult.Yes)
                     return;
             }
-            _nativeProxy.AdjustRoomMaskResolution(_loadedRoom);
+            ((IRoomController)this).AdjustMaskResolution(newValue);
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -1497,41 +1509,235 @@ namespace AGS.Editor.Components
 			return LoadDifferentRoom((UnloadedRoom)roomToLoad);
 		}
 
-		int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
-		{
-			if (_loadedRoom == null)
-			{
-				throw new InvalidOperationException("No room is currently loaded");
-			}
-			return _nativeProxy.GetAreaMaskPixel(_loadedRoom, maskType, x, y);
-		}
+        void IRoomController.Save()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
 
-		void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
+            SaveImages();
+            _nativeProxy.SaveRoom(_loadedRoom);
+            _loadedRoom.Modified = false;
+        }
+
+        Bitmap IRoomController.GetBackground(int background)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            return _backgroundCache[background].Clone() as Bitmap;
+        }
+
+        void IRoomController.SetBackground(int background, Bitmap bmp)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+            if (bmp == null)
+            {
+                throw new ArgumentNullException(nameof(bmp));
+            }
+
+            Bitmap newBmp = (Bitmap)bmp.Clone();
+            _loadedRoom.Width = newBmp.Width;
+            _loadedRoom.Height = newBmp.Height;
+            _loadedRoom.ColorDepth = newBmp.GetColorDepth();
+
+            if (_loadedRoom.ColorDepth == 8)
+            {
+                ColorPalette palette = newBmp.Palette;
+                foreach (var color in _agsEditor.CurrentGame.Palette.Where(p => p.ColourType == PaletteColourType.Locked))
+                {
+                    palette.Entries[color.Index] = color.Colour;
+                }
+                newBmp.Palette = palette;
+
+                newBmp.SetGlobalPaletteFromPalette();
+            }
+
+            if (background >= _backgroundCache.Count)
+            {
+                _backgroundCache.Add(newBmp);
+                _loadedRoom.BackgroundCount++;
+            }
+            else
+            {
+                _backgroundCache[background]?.Dispose();
+                _backgroundCache[background] = newBmp;
+            }
+
+            // If size or resolution has changed, reset masks
+            if (newBmp.Width != _loadedRoom.Width || newBmp.Height != _loadedRoom.Height)
+            {
+                ClearMaskCache();
+            }
+
+            _loadedRoom.Modified = true;
+        }
+
+        void IRoomController.DeleteBackground(int background)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            _backgroundCache[background]?.Dispose();
+            _backgroundCache.RemoveAt(background);
+            _loadedRoom.BackgroundCount--;
+            _loadedRoom.Modified = true;
+        }
+
+        Bitmap IRoomController.GetMask(RoomAreaMaskType mask)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            return _maskCache[mask].Clone() as Bitmap;
+        }
+
+        void IRoomController.SetMask(RoomAreaMaskType mask, Bitmap bmp)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+            if (bmp == null)
+            {
+                throw new ArgumentNullException(nameof(bmp));
+            }
+
+            _maskCache[mask]?.Dispose();
+            _maskCache[mask] = bmp.Clone() as Bitmap;
+            _loadedRoom.Modified = true;
+        }
+
+        int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            Bitmap bmp = _maskCache[maskType];
+            double scale = _loadedRoom.GetMaskScale(maskType);
+            int xScaled = (int)(x * scale);
+            int yScaled = (int)(y * scale);
+
+            // Colors on mask areas is set from game palette so do a reverse lookup to find the index
+            return xScaled >= 0 && xScaled < bmp.Width && yScaled >= 0 && yScaled < bmp.Height
+                ? _agsEditor.CurrentGame.Palette.FirstOrDefault(p => p.Colour == bmp.GetPixel(xScaled, yScaled))?.Index ?? 0
+                : 0;
+        }
+
+        void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor)
 		{
-			((IRoomController)this).DrawRoomBackground(g, x, y, backgroundNumber, scaleFactor, RoomAreaMaskType.None, 0, 0);
+			((IRoomController)this).DrawRoomBackground(g, new Point(x, y), backgroundNumber, (double)scaleFactor, RoomAreaMaskType.None, 0, 0);
 		}
 
 		void IRoomController.DrawRoomBackground(Graphics g, int x, int y, int backgroundNumber, int scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
 		{
-			if (_loadedRoom == null)
-			{
-				throw new InvalidOperationException("No room is currently loaded");
-			}
-			if ((maskTransparency < 0) || (maskTransparency > 100))
-			{
-				throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
-			}
-			_nativeProxy.CreateBuffer((int)g.VisibleClipBounds.Width, (int)g.VisibleClipBounds.Height);
-			IntPtr hdc = g.GetHdc();
-			_nativeProxy.DrawRoomBackground(hdc, _loadedRoom, x, y, backgroundNumber, scaleFactor, maskType, selectedArea, maskTransparency);
-			_nativeProxy.RenderBufferToHDC(hdc);
-			g.ReleaseHdc(hdc);
-		}
+            ((IRoomController)this).DrawRoomBackground(g, new Point(x, y), backgroundNumber, (double)scaleFactor, maskType, maskTransparency, selectedArea);
+        }
+
+        void IRoomController.DrawRoomBackground(Graphics g, Point point, int backgroundNumber, double scaleFactor, RoomAreaMaskType maskType, int maskTransparency, int selectedArea)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+            if ((maskTransparency < 0) || (maskTransparency > 100))
+            {
+                throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
+            }
+
+            Bitmap background = _backgroundCache[backgroundNumber];
+
+            // x and y is already scaled from outside the method call
+            Rectangle drawingArea = new Rectangle(
+                point.X, point.Y, (int)(background.Width * scaleFactor), (int)(background.Height * scaleFactor));
+
+            g.DrawImage(background, drawingArea);
+
+            if (maskType != RoomAreaMaskType.None)
+            {
+                Bitmap mask8bpp = _maskCache[maskType];
+                ColorPalette paletteBackup = mask8bpp.Palette;
+
+                // Color not selected mask areas to gray
+                if (_grayOutMasks)
+                {
+                    ColorPalette palette = mask8bpp.Palette;
+
+                    for (int i = 1; i < 256; i++) // Skip i == 0 because no area should be transparent
+                    {
+                        const int intensity = 6; // Force the gray scale lighter so that it's easier to see
+                        int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * intensity : 0;
+                        palette.Entries[i] = Color.FromArgb(gray, gray, gray);
+                    }
+
+                    // Highlight the currently selected area colour
+                    if (selectedArea > 0)
+                    {
+                        // if a bright colour, use it, else, draw in red
+                        palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
+                            ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
+                            : Color.FromArgb(60, 0, 0);
+                    }
+
+                    mask8bpp.Palette = palette;
+                }
+
+                // Prepare alpha component
+                float alpha = (100 - maskTransparency + 155) / 255f;
+                ColorMatrix colorMatrix = new ColorMatrix { Matrix33 = alpha };
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
+                mask8bpp.Palette = paletteBackup;
+            }
+        }
+
+        void IRoomController.AdjustMaskResolution(int maskResolution)
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            _loadedRoom.MaskResolution = maskResolution;
+            Bitmap bg = _backgroundCache[0];
+            int baseWidth = bg.Width;
+            int baseHeight = bg.Height;
+            int scaledWidth = baseWidth / _loadedRoom.MaskResolution;
+            int scaledHeight = baseHeight / _loadedRoom.MaskResolution;
+
+            foreach (RoomAreaMaskType maskType in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (maskType == RoomAreaMaskType.None) continue;
+
+                using (Bitmap mask = _maskCache[maskType])
+                {
+                    _maskCache[maskType] = maskType == RoomAreaMaskType.WalkBehinds
+                        ? mask.ScaleIndexed(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
+                        : mask.ScaleIndexed(scaledWidth, scaledHeight); // Other masks are 1:x where X is MaskResolution
+                }
+            }
+
+            _loadedRoom.Modified = true;
+        }
 
 		bool IRoomController.GreyOutNonSelectedMasks
 		{
-			set { _nativeProxy.GreyOutNonSelectedMasks = value; }
-		}
+            set { _grayOutMasks = value; }
+        }
 
         protected override bool CanFolderBeDeleted(UnloadedRoomFolder folder)
         {
@@ -1555,6 +1761,85 @@ namespace AGS.Editor.Components
         protected override IList<IRoom> GetFlatList()
         {
             return null;
+        }
+
+        private void LoadImageCache()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            ClearImageCache();
+
+            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+            {
+                _backgroundCache.Add(_nativeProxy.GetBitmapForBackground(_loadedRoom, i));
+            }
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                {
+                    continue;
+                }
+
+                _maskCache[mask] = _nativeProxy.ExportAreaMask(_loadedRoom, mask);
+            }
+        }
+
+        private void ClearImageCache()
+        {
+            ClearBackgroundCache();
+            ClearMaskCache();
+        }
+
+        private void ClearBackgroundCache()
+        {
+            for (int i = 0; i < _backgroundCache.Count; i++)
+            {
+                _backgroundCache[i]?.Dispose();
+            }
+            _backgroundCache.Clear();
+        }
+
+        private void ClearMaskCache()
+        {
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                if (_maskCache.ContainsKey(mask))
+                {
+                    _maskCache[mask]?.Dispose();
+                    _maskCache[mask] = null;
+                }
+            }
+        }
+
+        // TODO Replace with bitmap saving to disk with C# when room is open format
+        private void SaveImages()
+        {
+            lock (_loadedRoom)
+            {
+                for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
+                {
+                    if (i < _backgroundCache.Count)
+                        _nativeProxy.ImportBackground(
+                            _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                    else
+                        _nativeProxy.DeleteBackground(_loadedRoom, i);
+                }
+
+                foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+                {
+                    if (mask == RoomAreaMaskType.None)
+                        continue;
+
+                    _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
+                }
+            }
         }
     }
 }

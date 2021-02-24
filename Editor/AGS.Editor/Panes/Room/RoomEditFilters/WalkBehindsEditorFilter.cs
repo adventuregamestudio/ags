@@ -13,8 +13,8 @@ namespace AGS.Editor
 		private bool _draggingBaseline = false;
 		private bool _shownTooltip = false;
 
-        public WalkBehindsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
-            : base(displayPanel, editor, room)
+        public WalkBehindsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
+            : base(displayPanel, editor, room, roomController)
         {
         }
 

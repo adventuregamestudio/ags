@@ -10,8 +10,8 @@ namespace AGS.Editor
 {
     public class WalkableAreasEditorFilter : BaseAreasEditorFilter
     {
-        public WalkableAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
-            : base(displayPanel, editor, room)
+        public WalkableAreasEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
+            : base(displayPanel, editor, room, roomController)
         {
         }
 

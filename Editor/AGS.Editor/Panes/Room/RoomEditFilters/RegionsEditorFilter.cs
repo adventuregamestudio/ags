@@ -10,8 +10,8 @@ namespace AGS.Editor
 {
     public class RegionsEditorFilter : BaseAreasEditorFilter
     {
-        public RegionsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
-            : base(displayPanel, editor, room)
+        public RegionsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
+            : base(displayPanel, editor, room, roomController)
         {
         }
 

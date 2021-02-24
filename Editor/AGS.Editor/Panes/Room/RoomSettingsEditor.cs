@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using AGS.Editor.Panes.Room;
 using AddressBarExt;
 using AddressBarExt.Controls;
+using System.Linq;
+using System.Drawing.Drawing2D;
 
 namespace AGS.Editor
 {
@@ -26,7 +28,8 @@ namespace AGS.Editor
         public delegate void AbandonChangesHandler(Room room);
         public event AbandonChangesHandler AbandonChanges;
 
-        private Room _room;
+        private readonly Room _room;
+        private readonly IRoomController _roomController;
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private IRoomEditorFilter _emptyLayer;
@@ -80,7 +83,7 @@ namespace AGS.Editor
         }
 
 
-        public RoomSettingsEditor(Room room)
+        public RoomSettingsEditor(Room room, IRoomController roomController)
         {
             if (LockedCursor == null)
             {
@@ -92,16 +95,21 @@ namespace AGS.Editor
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
+            _roomController = roomController;
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
+            // TODO: choose default zoom based on the room size vs window size?
+            SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
             _emptyLayer = new EmptyEditorFilter(bufferedPanel1, _room);
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room));
-            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room, _roomController));
+            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room, _roomController));
 
             foreach (IRoomEditorFilter layer in _layers)
             {
@@ -350,36 +358,34 @@ namespace AGS.Editor
         {
             _state.Offset = new Point(-bufferedPanel1.AutoScrollPosition.X, -bufferedPanel1.AutoScrollPosition.Y);
 
-            int scaleFactor = 1;
-
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
+                e.Graphics.SetClip(new Rectangle(0, 0, bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth, bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight));
+                e.Graphics.Clear(Color.LightGray);
+                e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+                e.Graphics.SmoothingMode = SmoothingMode.None;
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
                 e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
-                IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth,
-                    bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight);
+
                 // Adjust co-ordinates using original scale factor so that it lines
                 // up with objects, etc
-                int drawOffsX = _state.RoomXToWindow(0);
-                int drawOffsY = _state.RoomYToWindow(0);
+                Point drawOffs = new Point(_state.RoomXToWindow(0), _state.RoomYToWindow(0));
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
                 lock (_room)
-				{
-					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
-                        maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
-                        (maskFilter == null || !maskFilter.Enabled) ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
-				}
-                foreach (IRoomEditorFilter layer in _layers)
-                {                    
-                    if (!IsVisible(layer)) continue;
-                    layer.PaintToHDC(hdc, _state);
-                }
-                Factory.NativeProxy.RenderBufferToHDC(hdc);
-                e.Graphics.ReleaseHdc(hdc);
-                foreach (IRoomEditorFilter layer in _layers)
                 {
-                    if (!IsVisible(layer)) continue;
+                    _roomController.DrawRoomBackground(
+                        e.Graphics,
+                        drawOffs,
+                        backgroundNumber,
+                        _state.Scale,
+                        maskFilter?.MaskToDraw ?? RoomAreaMaskType.None,
+                        sldTransparency.Value,
+                        maskFilter == null || !maskFilter.Enabled ? 0 : maskFilter.SelectedArea);
+                }
+
+                foreach (IRoomEditorFilter layer in _layers.Where(l => IsVisible(l)))
+                {
                     layer.Paint(e.Graphics, _state);
                 }
             }
@@ -549,16 +555,13 @@ namespace AGS.Editor
                     }
                     if (doImport)
                     {
-                        _room.Width = bmp.Width;
-                        _room.Height = bmp.Height;
-                        Factory.NativeProxy.ImportBackground(_room, bgIndex, bmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, false);
-                        _room.Modified = true;
+                        _roomController.SetBackground(bgIndex, bmp);
 
                         if (deleteExtraFrames)
                         {
                             while (_room.BackgroundCount > 1)
                             {
-                                Factory.NativeProxy.DeleteBackground(_room, 1);
+                                _roomController.DeleteBackground(1);
                             }
                         }
 
@@ -588,12 +591,8 @@ namespace AGS.Editor
         {
             if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this background?") == DialogResult.Yes)
             {
-				lock (_room)
-				{
-					Factory.NativeProxy.DeleteBackground(_room, cmbBackgrounds.SelectedIndex);
-					RepopulateBackgroundList(0);
-				}
-                _room.Modified = true;
+                _roomController.DeleteBackground(cmbBackgrounds.SelectedIndex);
+                RepopulateBackgroundList(0);
             }
         }
 
@@ -602,9 +601,10 @@ namespace AGS.Editor
             string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", Constants.IMAGE_FILE_FILTER);
             if (fileName != null)
             {
-                Bitmap bmp = Factory.NativeProxy.GetBitmapForBackground(_room, cmbBackgrounds.SelectedIndex);
-                ImportExport.ExportBitmapToFile(fileName, bmp);
-                bmp.Dispose();
+                using (Bitmap bmp = _roomController.GetBackground(cmbBackgrounds.SelectedIndex))
+                {
+                    ImportExport.ExportBitmapToFile(fileName, bmp);
+                }
             }
         }
 

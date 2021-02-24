@@ -10,8 +10,8 @@ namespace AGS.Editor
 {
     public class HotspotsEditorFilter : BaseAreasEditorFilter
     {
-        public HotspotsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
-            : base(displayPanel, editor, room)
+        public HotspotsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, IRoomController roomController)
+            : base(displayPanel, editor, room, roomController)
         {
         }
 

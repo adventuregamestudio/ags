@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -257,11 +256,6 @@ namespace AGS.Editor
             _native.SaveRoomFile(roomToSave);
         }
 
-        public void DrawRoomBackground(IntPtr hDC, Room room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
-        {
-            _native.DrawRoomBackground((int)hDC, room, x, y, backgroundNumber, scaleFactor, maskType, selectedArea, maskTransparency);
-        }
-
         public void ImportBackground(Room room, int backgroundNumber, Bitmap bmp, bool useExactPalette, bool sharePalette)
         {
             _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
@@ -277,85 +271,9 @@ namespace AGS.Editor
             return _native.GetBitmapForBackground(room, backgroundNumber);
         }
 
-        public void AdjustRoomMaskResolution(Room room)
+        public void SetAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {
-            _native.AdjustRoomMaskResolution(room);
-        }
-
-        public void CreateBuffer(int width, int height)
-        {
-            _native.CreateBuffer(width, height);
-        }
-
-        public void RenderBufferToHDC(IntPtr hDC)
-        {
-            _native.RenderBufferToHDC((int)hDC);
-        }
-
-        public void DrawSpriteToBuffer(int spriteNum, int x, int y, float scale)
-        {
-            _native.DrawSpriteToBuffer(spriteNum, x, y, scale);
-        }
-
-        public void DrawLineOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
-        {
-            _native.DrawLineOntoMask(room, mask, x1, y1, x2, y2, color);
-        }
-
-		public void DrawFilledRectOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
-		{
-			_native.DrawFilledRectOntoMask(room, mask, x1, y1, x2, y2, color);
-		}
-
-        public void DrawFillOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int color)
-        {
-            _native.DrawFillOntoMask(room, mask, x1, y1, color);
-        }
-
-        public void CopyWalkableAreaMaskToRegions(Room room)
-        {
-            _native.CopyWalkableMaskToRegions(room);
-        }
-
-		public bool GreyOutNonSelectedMasks
-		{
-			set { _native.SetGreyedOutMasksEnabled(value); }
-		}
-
-        public int GetAreaMaskPixel(Room room, RoomAreaMaskType mask, int x, int y)
-        {
-            int pixel = _native.GetAreaMaskPixel(room, mask, x, y);
-            // if it lies outside the bitmap, just return 0
-            if (pixel < 0)
-            {
-                pixel = 0;
-            }
-            return pixel;
-        }
-
-        public void CreateUndoBuffer(Room room, RoomAreaMaskType mask)
-        {
-            _native.CreateUndoBuffer(room, mask);
-        }
-
-        public bool DoesUndoBufferExist()
-        {
-            return _native.DoesUndoBufferExist();
-        }
-
-        public void ClearUndoBuffer()
-        {
-            _native.ClearUndoBuffer();
-        }
-
-        public void RestoreFromUndoBuffer(Room room, RoomAreaMaskType mask)
-        {
-            _native.RestoreFromUndoBuffer(room, mask);
-        }
-
-        public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
-        {
-            _native.ImportAreaMask(room, mask, bmp);
+            _native.SetAreaMask(room, mask, bmp);
         }
 
         public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)

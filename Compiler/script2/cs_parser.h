@@ -920,7 +920,7 @@ private:
 
     // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName
-    void HandleSrcSectionChangeAt(size_t pos);
+    ErrorType HandleSrcSectionChangeAt(size_t pos);
 
     inline void WriteCmd(CodeCell op)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op); }

@@ -23,26 +23,26 @@ void AGS::ccCompiledScript::PopReg(CodeCell regg)
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
-ErrorType AGS::ccCompiledScript::ResizeMemory(size_t const needed, size_t const min_size, void *&start, size_t &allocated)
+ErrorType AGS::ccCompiledScript::ResizeMemory(size_t const el_size, size_t const needed, size_t const minimum, void *&chunk, size_t &allocated)
 {
     if (allocated >= needed)
         return kERR_None; // nothing to be done
 
-    size_t new_size = (allocated < min_size) ? min_size : allocated;
-    while (new_size < needed)
-        new_size += new_size / 2;
+    size_t new_element_number = (allocated < minimum) ? minimum : allocated;
+    while (new_element_number < needed)
+        new_element_number += new_element_number / 2;
 
-    void *new_start = realloc(start, new_size);
-    if (!new_start)
+    void *new_chunk = realloc(chunk, el_size * new_element_number);
+    if (!new_chunk)
     {
         // Note, according to the STL, the old block is NOT freed if allocation fails
-        free(start);
-        start = nullptr;
+        free(chunk);
+        chunk = nullptr;
         return kERR_InternalError;
     }
 
-    start = new_start;
-    allocated = new_size;
+    chunk = new_chunk;
+    allocated = new_element_number;
     return kERR_None;
 }
 
@@ -84,7 +84,7 @@ AGS::ccCompiledScript::~ccCompiledScript()
 }
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
-AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t value_size, void *value_ptr)
+AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t const value_size, void *value_ptr)
 {
     if (0u == value_size)
         return globaldatasize; // nothing to do
@@ -92,11 +92,14 @@ AGS::GlobalLoc AGS::ccCompiledScript::AddGlobal(size_t value_size, void *value_p
     // The new global variable will be moved to &(globaldata[offset])
     size_t const offset = (globaldatasize < 0) ? 0u : static_cast<size_t>(globaldatasize);
 
-    void *chunk_start = globaldata;
+    void *globaldata_chunk = globaldata;
+    size_t const el_size = sizeof(globaldata[0u]); // size of 1 element, i.e. 1 char
+    size_t const needed = offset + value_size;
+    size_t const minimum_allocated = 100u;
     ErrorType retval =
-        ResizeChunk(offset + value_size, 100u, chunk_start, _globaldataAllocated);
+        ResizeChunk(el_size, needed, minimum_allocated, globaldata_chunk, _globaldataAllocated);
     if (retval < 0) return -1;
-    globaldata = reinterpret_cast<char *>(chunk_start);
+    globaldata = static_cast<decltype(globaldata)>(globaldata_chunk);
 
     if (nullptr != value_ptr)
         memcpy(&(globaldata[offset]), value_ptr, value_size); // move the global into the new space
@@ -114,38 +117,52 @@ AGS::StringsLoc AGS::ccCompiledScript::AddString(std::string const &literal)
     // The new string will be moved to &(strings[offset])
     size_t const offset = (stringssize < 0) ? 0u : static_cast<size_t>(stringssize);
 
-    void *chunk_start = strings;
+    void *strings_chunk = strings;
+    size_t const el_size = sizeof(decltype(strings[0u])); // size of 1 element, i.e. 1 char
+    size_t const needed = static_cast<size_t>(stringssize) + literal_len + 1u;
+    size_t const minimum_allocated = 100u;
     ErrorType retval =
-        ResizeChunk(stringssize + literal_len, 100u, chunk_start, _stringsAllocated);
+        ResizeChunk(el_size, needed, minimum_allocated, strings_chunk, _stringsAllocated);
     if (retval < 0) return -1;
-    strings = reinterpret_cast<char *>(chunk_start);
+    strings = static_cast<char *>(strings_chunk);
 
     memcpy(&(strings[offset]), literal.c_str(), literal_len);
     stringssize += literal_len;
     return offset;
 }
 
-int AGS::ccCompiledScript::AddFixup(CodeLoc where, FixupType ftype)
+int AGS::ccCompiledScript::AddFixup(CodeLoc const where, FixupType const ftype)
 {
-    void *chunk_start = fixuptypes;
-    ErrorType retval =
-        ResizeChunk(numfixups + 1, 10u, chunk_start, _fixupTypesAllocated);
-    if (retval < 0) return -1;
-    fixuptypes = reinterpret_cast<char *>(chunk_start);
+    {
+        // See to it that 'fixuptypes' has sufficient capacity
+        void *fixuptypes_chunk = fixuptypes;
+        size_t const el_size = sizeof(decltype(fixuptypes[0u]));  // size of one array element
+        size_t const needed = numfixups + 1u;
+        size_t const minimum_allocated = 10u;
+        ErrorType retval =
+            ResizeChunk(el_size, needed, minimum_allocated, fixuptypes_chunk, _fixupTypesAllocated);
+        if (retval < 0) return -1;
+        fixuptypes = static_cast<decltype(fixuptypes)>(fixuptypes_chunk);
+    }
     fixuptypes[numfixups] = ftype;
 
-    chunk_start = fixups;
-    constexpr size_t el_size = sizeof(decltype(fixups[0u]));
-    retval =
-        ResizeChunk((numfixups + 1) * el_size, 10u * el_size, chunk_start, _fixupsAllocated);
-    if (retval < 0) return -1;
-    fixups = reinterpret_cast<CodeLoc *>(chunk_start);
+    {
+        // See to it that 'fixups' has sufficient capacity
+        void *fixups_chunk = fixups;
+        size_t const el_size = sizeof(decltype(fixups[0u])); // size of one array element
+        size_t const needed = numfixups + 1u;
+        size_t const minimum_allocated = 10u;
+        ErrorType retval =
+            ResizeChunk(el_size, needed, minimum_allocated, fixups_chunk, _fixupsAllocated);
+        if (retval < 0) return -1;
+        fixups = static_cast<decltype(fixups)>(fixups_chunk);
+    }
     fixups[numfixups] = where;
 
     return numfixups++;
 }
 
-AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t num_of_parameters)
+AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t const num_of_parameters)
 {
     FuncProps fp;
     fp.Name = func_name;
@@ -160,15 +177,21 @@ int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
     if (0u < ImportIdx.count(import_name))
         return ImportIdx[import_name];
 
-    void *chunk_start = imports;
-    constexpr size_t el_size = sizeof(decltype(imports[0u]));
+    // See to it that 'imports[]' has sufficient capacity
+    void *imports_chunk = imports;
+    size_t const el_size = sizeof(decltype(imports[0u])); // size of one array element
+    size_t const needed = numimports + 1;
+    size_t const minimum_allocated = 10u;
     ErrorType retval =
-        ResizeChunk((numimports + 1) * el_size, 10u * el_size, chunk_start, _importsAllocated);
+        ResizeChunk(el_size, needed, minimum_allocated, imports_chunk, _importsAllocated);
     if (retval < 0) return -1;
-    imports = reinterpret_cast<decltype(imports)>(chunk_start);
-    imports[numimports] = static_cast<char *>(malloc(import_name.size() + 12u));
+    imports = static_cast<decltype(imports)>(imports_chunk);
+
+    // [fw] So why does each 'imports' string need to have space for 11 additional characters?
+    size_t const import_name_size = import_name.size();
+    imports[numimports] = static_cast<char *>(malloc(12u + import_name_size));
     if (nullptr == imports[numimports]) return -1;
-    strcpy(imports[numimports], import_name.c_str());
+    strncpy(imports[numimports], import_name.c_str(), 1u + import_name_size);
     return (ImportIdx[import_name] = numimports++);
 }
 
@@ -188,80 +211,103 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const loca
     if (0u < ExportIdx.count(export_name))
         return ExportIdx[export_name];
 
-    void *chunk_start = exports;
-    constexpr size_t el_size = sizeof(decltype(exports[0u]));
-    ErrorType retval =
-        ResizeChunk((numexports + 1) * el_size, 10u * el_size, chunk_start, _exportsAllocated);
-    if (retval < 0) return -1;
-    exports = reinterpret_cast<decltype(exports)>(chunk_start);
+    {
+        // See to it that 'exports[]' has sufficient capacity
+        void *exports_chunk = exports;
+        size_t const el_size = sizeof(decltype(exports[0u])); // size of one array element
+        size_t const needed = numexports + 1;
+        size_t const minimum_allocated = 10u;
+        ErrorType retval =
+            ResizeChunk(el_size, needed, minimum_allocated, exports_chunk, _exportsAllocated);
+        if (retval < 0) return -1;
+        exports = static_cast<decltype(exports)>(exports_chunk);
+    }
+
+    {
+        // See to it that 'export_addr[]' has sufficient capacity
+        void *export_addr_chunk = export_addr;
+        size_t const el_size = sizeof(decltype(export_addr[0u])); // size of one array element
+        size_t const needed = numexports + 1;
+        size_t const minimum_allocated = 10u;
+        ErrorType retval =
+            ResizeChunk(el_size, needed, minimum_allocated, export_addr_chunk, _exportAddrAllocated);
+        if (retval < 0) return -1;
+        export_addr = static_cast<decltype(export_addr)>(export_addr_chunk);
+    }
     
-    chunk_start = export_addr;
-    constexpr size_t el2_size = sizeof(decltype(export_addr[0u]));
-    retval =
-        ResizeChunk((numexports + 1) * el2_size, 10u * el2_size, chunk_start, _exportAddrAllocated);
-    if (retval < 0) return -1;
-    export_addr = reinterpret_cast<decltype(export_addr)>(chunk_start);
-    
-    size_t const entry_size = export_name.size() + 1u;
-    exports[numexports] = static_cast<char *>(malloc(entry_size));
+    size_t const export_name_size = export_name.size();
+    exports[numexports] = static_cast<char *>(malloc(1u + export_name_size));
     if (nullptr == exports[numexports])
         return -1;
-    strncpy(exports[numexports], export_name.c_str(), entry_size);
+    strncpy(exports[numexports], export_name.c_str(), 1u + export_name_size);
     export_addr[numexports] =
         location |
         static_cast<CodeLoc>(is_function? EXPORT_FUNCTION : EXPORT_DATA) << 24L;
     return (ExportIdx[export_name] = numexports++);
 }
 
-void AGS::ccCompiledScript::WriteCode(CodeCell cell)
+void AGS::ccCompiledScript::WriteCode(CodeCell const cell)
 {
-    void *chunk_start = code;
-    constexpr size_t el_size = sizeof(decltype(code[0u]));
+    // See to it that code[] has adequate capacity
+    void *code_chunk = code;
+    size_t const el_size = sizeof(decltype(code[0u])); // size of one array element
+    size_t const needed = 1u + codesize;
+    size_t const minimum_allocated = 500u;
     ErrorType retval =
-        ResizeChunk((codesize + 4) * el_size, 500u * el_size, chunk_start, _codeAllocated);
+        ResizeChunk(el_size, needed, minimum_allocated, code_chunk, _codeAllocated);
     if (retval < 0) return;
-    code = reinterpret_cast<decltype(code)>(chunk_start);
+    code = static_cast<decltype(code)>(code_chunk);
+
     code[codesize] = cell;
     codesize++;
 }
 
-int AGS::ccCompiledScript::StartNewSection(std::string const &name)
+ErrorType AGS::ccCompiledScript::StartNewSection(std::string const &name)
 {
-    if ((numSections == 0) ||
-        (codesize != sectionOffsets[numSections - 1]))
+    if (numSections > 0 && codesize == sectionOffsets[numSections - 1])
     {
-        void *chunk_start = sectionNames;
-        constexpr size_t el_size = sizeof(decltype(sectionNames[0u]));
+        // nothing was in the last section, so free its data;
+        // it will be overwritten with the data of this current section
+        --numSections;
+        free(sectionNames[numSections]);
+    }
+
+    {
+        // See to it that the array 'sectionNames' has sufficient capacity.
+        void *section_names_chunk = sectionNames;
+        size_t const el_size = sizeof(decltype(sectionNames[0u])); // size of an array element
+        size_t const needed = numSections + 1u;
+        size_t const minimum_allocated = 10u;
         ErrorType retval =
-            ResizeChunk((codesize + 4) * el_size, 10u * el_size, chunk_start, _sectionNamesAllocated);
-        if (retval < 0) return -1;
-        sectionNames = reinterpret_cast<decltype(sectionNames)>(chunk_start);
-        chunk_start = sectionOffsets;
-        constexpr size_t el2_size = sizeof(decltype(sectionOffsets[0u]));
-        retval =
-            ResizeChunk((codesize + 4) * el_size, 10u * el2_size, chunk_start, _sectionOffsetsAllocated);
-        if (retval < 0) return -1;
-        sectionOffsets = reinterpret_cast<decltype(sectionOffsets)>(chunk_start);
-
-        sectionNames[numSections] = (char *) malloc(name.size() + 1);
-        if (nullptr == sectionNames[numSections])
-            return -1;
-        strcpy(sectionNames[numSections], name.c_str());
-        sectionOffsets[numSections] = codesize;
-
-        numSections++;
+            ResizeChunk(el_size, needed, minimum_allocated, section_names_chunk, _sectionNamesAllocated);
+        if (retval < 0)
+            return kERR_InternalError;
+        sectionNames = static_cast<decltype(sectionNames)>(section_names_chunk);
     }
-    else
+
     {
-        // nothing was in the last section, so overwrite it with this new one
-        free(sectionNames[numSections - 1]);
-        sectionNames[numSections - 1] = (char *) malloc(name.size() + 1);
-        if (nullptr == sectionNames[numSections])
-            return -1;
-        strcpy(sectionNames[numSections - 1], name.c_str());
+        // See to it that the array 'sectionOffsets' has sufficient capacity.
+        void *section_offsets_chunk = sectionOffsets;
+        size_t const el_size = sizeof(decltype(sectionOffsets[0u])); // size of an array element
+        size_t const needed = numSections + 1u;
+        size_t const minimum_allocated = 10u;
+        ErrorType retval =
+            ResizeChunk(el_size, needed, minimum_allocated, section_offsets_chunk, _sectionOffsetsAllocated);
+        if (retval < 0)
+            return kERR_InternalError;
+        sectionOffsets = static_cast<decltype(sectionOffsets)>(section_offsets_chunk);
     }
 
-    return 0;
+    // Record that the new section starts at this point
+    size_t const name_size = name.size();
+    sectionNames[numSections] = static_cast<char *>(malloc(1u + name_size));
+    if (nullptr == sectionNames[numSections])
+        return kERR_InternalError;
+    strncpy(sectionNames[numSections], name.c_str(), 1u + name_size);
+    sectionOffsets[numSections] = codesize;
+    numSections++;
+
+    return kERR_None;
 }
 
 // free the extra bits that ccScript doesn't have

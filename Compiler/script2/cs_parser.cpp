@@ -6854,15 +6854,25 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
     return HandleEndOfCompoundStmts();
 }
 
-void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
+ErrorType AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
 {
     size_t const src_section_id = _src.GetSectionIdAt(pos);
     if (src_section_id == _lastEmittedSectionId)
-        return;
+        return kERR_None;
 
     if (PP::kMain == _pp)
-        _scrip.StartNewSection(_src.SectionId2Section(src_section_id));
+    {
+        ErrorType retval = _scrip.StartNewSection(_src.SectionId2Section(src_section_id));
+        if (retval < 0)
+        {
+            // If there's not enough memory to allocate a string, then there sure won't be enough
+            // memory for the error message either. Still let's try and hope for the best
+            Error("!Cannot allocate memory for the section name");
+            return retval;
+        }
+    }
     _lastEmittedSectionId = src_section_id;
+    return kERR_None;
 }
 
 AGS::ErrorType AGS::Parser::ParseInput()
@@ -6880,10 +6890,11 @@ AGS::ErrorType AGS::Parser::ParseInput()
     while (!_src.ReachedEOF())
     {
         size_t const next_pos = _src.GetCursor();
-        HandleSrcSectionChangeAt(next_pos);
+        ErrorType retval = HandleSrcSectionChangeAt(next_pos);
+        if (retval < 0) return retval;
         currentline = _src.GetLinenoAt(next_pos);
 
-        ErrorType retval = ParseQualifiers(tqs);
+        retval = ParseQualifiers(tqs);
         if (retval < 0) return retval;
 
         Symbol const leading_sym = _src.GetNext();

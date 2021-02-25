@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
@@ -47,12 +49,12 @@ namespace AGS.Types
         private bool _modified;
         private CustomProperties _properties = new CustomProperties();
         private Interactions _interactions = new Interactions(_interactionSchema);
-        private IList<RoomMessage> _messages = new List<RoomMessage>();
-        private IList<RoomObject> _objects = new List<RoomObject>();
-        private IList<RoomHotspot> _hotspots = new List<RoomHotspot>();
-        private IList<RoomWalkableArea> _walkableAreas = new List<RoomWalkableArea>();
-        private IList<RoomWalkBehind> _walkBehinds = new List<RoomWalkBehind>();
-        private IList<RoomRegion> _regions = new List<RoomRegion>();
+        private readonly List<RoomMessage> _messages = new List<RoomMessage>();
+        private readonly List<RoomObject> _objects = new List<RoomObject>();
+        private readonly List<RoomHotspot> _hotspots = new List<RoomHotspot>();
+        private readonly List<RoomWalkableArea> _walkableAreas = new List<RoomWalkableArea>();
+        private readonly List<RoomWalkBehind> _walkBehinds = new List<RoomWalkBehind>();
+        private readonly List<RoomRegion> _regions = new List<RoomRegion>();
         private IList<OldInteractionVariable> _oldInteractionVariables = new List<OldInteractionVariable>();
         public IntPtr _roomStructPtr;
 
@@ -106,6 +108,16 @@ namespace AGS.Types
                 area.ID = i;
                 _regions.Add(area);
             }
+        }
+
+        public Room(XmlNode node) : base(node)
+        {
+            _messages.AddRange(GetXmlChildren(node, "/Room/Messages", int.MaxValue).Select((xml, i) => new RoomMessage(i, xml)));
+            _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
+            _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
+            _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(xml) { ID = i }));
+            _walkBehinds.AddRange(GetXmlChildren(node, "/Room/WalkBehinds", MAX_WALK_BEHINDS).Select((xml, i) => new RoomWalkBehind(xml) { ID = i }));
+            _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(xml) { ID = i }));
         }
 
         [Browsable(false)]
@@ -398,5 +410,23 @@ namespace AGS.Types
 		{
 			this.Modified = true;
 		}
-	}
+
+        public override void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer, false);
+            Interactions.ToXml(writer);
+            SerializeUtils.SerializeToXML(writer, "RoomMessages", Messages);
+            SerializeUtils.SerializeToXML(writer, "Objects", Objects);
+            SerializeUtils.SerializeToXML(writer, "Hotspots", Hotspots);
+            SerializeUtils.SerializeToXML(writer, "WalkableAreas", WalkableAreas);
+            SerializeUtils.SerializeToXML(writer, "WalkBehinds", WalkBehinds);
+            SerializeUtils.SerializeToXML(writer, "Regions", Regions);
+            writer.WriteEndElement();
+        }
+
+        private static IEnumerable<XmlNode> GetXmlChildren(XmlNode node, string xpath, int maxLimit)
+        {
+            return node.SelectSingleNode(xpath).ChildNodes.Cast<XmlNode>().Take(maxLimit);
+        }
+    }
 }

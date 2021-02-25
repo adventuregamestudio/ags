@@ -1776,6 +1776,7 @@ namespace AGS.Editor.Components
             {
                 _backgroundCache.Add(_nativeProxy.GetBitmapForBackground(_loadedRoom, i));
             }
+            _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
             {

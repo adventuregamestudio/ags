@@ -74,8 +74,6 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     AX_ScopeType = ScT::kGlobal;
     Functions = {};
     ImportIdx = {};
-
-    EmitLineNumbers = emit_line_numbers;
 }
 
 AGS::ccCompiledScript::~ccCompiledScript()

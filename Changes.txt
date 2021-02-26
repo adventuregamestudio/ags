@@ -1,5 +1,13 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 9, February 2021
+
+Engine:
+ - Fixed button image did not appear updated right after restoring a save.
+ - Fixed legacy PlayMusic() and PlaySound() functions failing if the audio file
+   had uppercase characters in name (regression since 3.4.0).
+
+
 VERSION 3.5.0 - Patch 8, February 2021
 
 Common:

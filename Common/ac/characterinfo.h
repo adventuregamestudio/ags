@@ -28,7 +28,7 @@ using namespace AGS; // FIXME later
 #define CHF_NOINTERACT      4
 #define CHF_NODIAGONAL      8
 #define CHF_ALWAYSIDLE      0x10
-#define CHF_NOLIGHTING      0x20
+#define CHF_NOLIGHTING      0x20  // TODO: rename this CHF_USEREGIONTINTS with opposite meaning
 #define CHF_NOTURNING       0x40
 #define CHF_NOWALKBEHINDS   0x80   // deprecated, forbidden
 #define CHF_FLIPSPRITE      0x100  // ?? Is this used??

@@ -259,7 +259,11 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
-    Image = in->ReadInt32();
+    CurrentImage = in->ReadInt32();
+
+    // Update current state after reading
+    IsPushed = false;
+    IsMouseOver = false;
 }
 
 void GUIButton::WriteToSavegame(Stream *out) const
@@ -274,7 +278,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(TextAlignment);
     // Dynamic state
-    out->WriteInt32(Image);
+    out->WriteInt32(CurrentImage);
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)

@@ -76,6 +76,8 @@ public:
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
+    // Rotation is set in degrees
+    void SetRotation(float degrees) override { _rotation = degrees; }
     void SetLightLevel(int lightLevel) override  { _lightLevel = lightLevel; }
     void SetTint(int red, int green, int blue, int tintSaturation) override 
     {
@@ -94,6 +96,7 @@ public:
     // Drawing parameters
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    float _rotation;
     bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
@@ -116,6 +119,7 @@ public:
         _stretchToWidth = 0;
         _stretchToHeight = 0;
         _useResampler = false;
+        _rotation = 0;
         _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;

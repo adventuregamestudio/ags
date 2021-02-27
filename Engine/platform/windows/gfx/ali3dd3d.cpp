@@ -91,18 +91,21 @@ void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
             mr.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
 }
 // Setup full 2D transformation matrix
-void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
+void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
 {
-    D3DMATRIX translate;
-    D3DMATRIX rotate;
     D3DMATRIX scale;
-    MatrixTranslate(translate, x, y, 0.f);
-    MatrixRotateZ(rotate, anglez);
+    D3DMATRIX tr_to_pivot;
+    D3DMATRIX rotate;
+    D3DMATRIX translate;
     MatrixScale(scale, sx, sy, 1.f);
+    MatrixTranslate(tr_to_pivot, pivotx, pivoty, 0.f);
+    MatrixRotateZ(rotate, anglez);
+    MatrixTranslate(translate, x - pivotx, y - pivoty, 0.f);
 
-    D3DMATRIX tr1;
-    MatrixMultiply(tr1, scale, rotate);
-    MatrixMultiply(m, tr1, translate);
+    D3DMATRIX tr1, tr2;
+    MatrixMultiply(tr1, scale, tr_to_pivot);
+    MatrixMultiply(tr2, tr1, rotate);
+    MatrixMultiply(m, tr2, translate);
 }
 // Setup inverse 2D transformation matrix
 void MatrixTransformInverse2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
@@ -1211,9 +1214,12 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       // and now shift it over to make it 0..w again
       thisX += width;
     }
+    float rotZ = bmpToDraw->_rotation;
+    float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);
 
     // Multiply object's own and global matrixes
-    MatrixTransform2D(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.f);
+    MatrixTransform2D(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset,
+        widthToScale, heightToScale, rotZ, pivotX, pivotY);
     MatrixMultiply(matTransform, matSelfTransform, matGlobal);
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&

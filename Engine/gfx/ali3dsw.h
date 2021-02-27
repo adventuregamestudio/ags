@@ -30,6 +30,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
+#include "util/math.h"
 
 namespace AGS
 {
@@ -54,6 +55,8 @@ public:
         _stretchToWidth = width;
         _stretchToHeight = height;
     }
+    // Rotation is set in degrees
+    void SetRotation(float rotation) override { _rotation = rotation; }
     void SetLightLevel(int lightLevel) override  { }
     void SetTint(int red, int green, int blue, int tintSaturation) override { }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
@@ -61,6 +64,7 @@ public:
     Bitmap *_bmp;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    float _rotation;
     bool _opaque; // no mask color
     bool _hasAlpha;
     int _transparency;
@@ -75,6 +79,7 @@ public:
         _flipped = false;
         _stretchToWidth = 0;
         _stretchToHeight = 0;
+        _rotation = 0;
         _transparency = 0;
         _opaque = opaque;
         _hasAlpha = hasAlpha;

@@ -1070,6 +1070,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
       // and now shift it over to make it 0..w again
       thisX += width;
     }
+    float rotZ = bmpToDraw->_rotation;
+    float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);
 
     //
     // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
@@ -1084,8 +1086,9 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     // Global batch transform
     transform = transform * matGlobal;
     // Self sprite transform (first scale, then rotate and then translate, reversed)
-    transform = glm::translate(transform, {(float)thisX, (float)thisY, 0.0f});
-    // transform = glm::rotate(transform, 0.f, {0.f, 0.f, 1.f});
+    transform = glm::translate(transform, {(float)thisX - pivotX, (float)thisY - pivotY, 0.0f});
+    transform = glm::rotate(transform, rotZ, {0.f, 0.f, 1.f});
+    transform = glm::translate(transform, { pivotX, pivotY, 0.0f });
     transform = glm::scale(transform, {widthToScale, heightToScale, 1.0f});
 
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));

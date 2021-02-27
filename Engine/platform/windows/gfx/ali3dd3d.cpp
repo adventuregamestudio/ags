@@ -1552,7 +1552,7 @@ void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
                 drawlist[i].skip = true;
         }
     }
-    delete bitmap;
+    delete (D3DBitmap*)bitmap;
 }
 
 void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha)
@@ -1570,9 +1570,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap
   char *memPtr = (char*)lockedRegion.pBits;
 
   if (target->_opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, tile, target, memPtr, lockedRegion.Pitch);
+    BitmapToVideoMemOpaque(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, tile, target, memPtr, lockedRegion.Pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch, usingLinearFiltering);
 
   newTexture->UnlockRect(0);
 }

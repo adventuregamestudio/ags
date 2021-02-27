@@ -54,7 +54,7 @@ struct D3DTextureTile : public TextureTile
     IDirect3DTexture9* texture;
 };
 
-class D3DBitmap : public VideoMemDDB
+class D3DBitmap : public BaseDDB
 {
 public:
     // Transparency is a bit counter-intuitive
@@ -77,6 +77,12 @@ public:
     }
     void SetBlendMode(Common::BlendMode blendMode) override  { _blendMode = blendMode; }
 
+    // Direct3D texture data
+    IDirect3DVertexBuffer9* _vertex;
+    D3DTextureTile *_tiles;
+    int _numTiles;
+
+    // Drawing parameters
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
     bool _useResampler;
@@ -85,13 +91,14 @@ public:
     int _lightLevel;
     bool _hasAlpha;
     int _transparency;
-    IDirect3DVertexBuffer9* _vertex;
-    D3DTextureTile *_tiles;
-    int _numTiles;
     Common::BlendMode _blendMode;
 
     D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
+        _vertex = NULL;
+        _tiles = NULL;
+        _numTiles = 0;
+
         _width = width;
         _height = height;
         _colDepth = colDepth;
@@ -105,9 +112,6 @@ public:
         _lightLevel = 0;
         _transparency = 0;
         _opaque = opaque;
-        _vertex = NULL;
-        _tiles = NULL;
-        _numTiles = 0;
         _blendMode = Common::kBlend_Normal;
     }
 

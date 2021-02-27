@@ -62,7 +62,7 @@ struct OGLTextureTile : public TextureTile
     unsigned int texture;
 };
 
-class OGLBitmap : public VideoMemDDB
+class OGLBitmap : public BaseDDB
 {
 public:
     // Transparency is a bit counter-intuitive
@@ -85,6 +85,12 @@ public:
     }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
 
+    // OpenGL texture data
+    OGLCUSTOMVERTEX* _vertex;
+    OGLTextureTile *_tiles;
+    int _numTiles;
+
+    // Drawing parameters
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
     bool _useResampler;
@@ -93,13 +99,14 @@ public:
     int _lightLevel;
     bool _hasAlpha;
     int _transparency;
-    OGLCUSTOMVERTEX* _vertex;
-    OGLTextureTile *_tiles;
-    int _numTiles;
     Common::BlendMode _blendMode;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
+        _vertex = nullptr;
+        _tiles = nullptr;
+        _numTiles = 0;
+
         _width = width;
         _height = height;
         _colDepth = colDepth;
@@ -113,9 +120,6 @@ public:
         _lightLevel = 0;
         _transparency = 0;
         _opaque = opaque;
-        _vertex = nullptr;
-        _tiles = nullptr;
-        _numTiles = 0;
         _blendMode = Common::kBlend_Normal;
     }
 

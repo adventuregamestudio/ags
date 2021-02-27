@@ -156,7 +156,6 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 struct SpriteListEntry
 {
     IDriverDependantBitmap *bmp = nullptr;
-    int transparent = 0;
     int x = 0, y = 0;
     int zorder = 0;
     // Tells if this item should take priority during sort if z1 == z2
@@ -164,7 +163,6 @@ struct SpriteListEntry
     bool takesPriorityIfEqual = false;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
     int renderStage = -1;
-    BlendMode blendMode = kBlend_Normal;
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -762,14 +760,12 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, BlendMode blendMode = kBlend_Normal)
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y)
 {
     SpriteListEntry sprite;
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
-    sprite.transparent = trans;
-    sprite.blendMode = blendMode;
     thingsToDrawList.push_back(sprite);
 }
 
@@ -785,13 +781,12 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind, int trans = 0,
-    BlendMode blendMode = kBlend_Normal)
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
     // completely invisible, so don't draw it at all
-    if (trans == 255)
+    if (spp->GetTransparency() == 255)
         return;
 
     SpriteListEntry sprite;
@@ -799,8 +794,6 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     sprite.zorder = zorder;
     sprite.x = xx;
     sprite.y = yy;
-    sprite.transparent = trans;
-    sprite.blendMode = blendMode;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
@@ -1539,7 +1532,9 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false, objs[aa].transparent, objs[aa].blend_mode);
+        actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
+        actspsbmp[useindx]->SetBlendMode(objs[aa].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false);
     }
 }
 
@@ -1851,7 +1846,9 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false, chin->transparency, charextra[chin->index_id].blend_mode);
+        actspsbmp[useindx]->SetTransparency(chin->transparency);
+        actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false);
     }
 }
 
@@ -1881,7 +1878,7 @@ void prepare_room_sprites()
                 update_walk_behind_images();
             }
         }
-        add_thing_to_draw(roomBackgroundBmp, 0, 0, 0);
+        add_thing_to_draw(roomBackgroundBmp, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked
 
@@ -2022,10 +2019,12 @@ void draw_gui_and_overlays()
     // prepare overlays
     for (const auto &over : screenover)
     {
+        over.bmp->SetTransparency(over.transparency);
+        over.bmp->SetBlendMode(over.blendMode);
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
         {
-            add_to_sprite_list(over.bmp, over.x, over.y, INT_MIN, false, over.transparency, over.blendMode);
+            add_to_sprite_list(over.bmp, over.x, over.y, INT_MIN, false);
         }
         else
         {
@@ -2033,7 +2032,7 @@ void draw_gui_and_overlays()
             get_overlay_position(over, &tdxp, &tdyp);
             // draw speech and portraits over GUI and the rest under GUI
             int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_TEXTSPEECH || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
-            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false, over.transparency, over.blendMode);
+            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false);
         }
     }
 
@@ -2097,7 +2096,9 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false, guis[aa].Transparency, guis[aa].BlendMode);
+            guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
+            guibgbmp[aa]->SetBlendMode(guis[aa].BlendMode);
+            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
@@ -2119,23 +2120,13 @@ void put_sprite_list_on_screen(bool in_room)
     {
         const auto *thisThing = &thingsToDrawList[i];
 
-        if (thisThing->bmp != nullptr) {
-            // mark the image's region as dirty
-            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
-        }
-        else if ((thisThing->renderStage < 0) &&
-            (thisThing->bmp == nullptr)) 
-        {
-            quit("Null pointer added to draw list");
-        }
-
         if (thisThing->bmp != nullptr)
         {
-            if (thisThing->transparent <= 255)
-            {
-                thisThing->bmp->SetTransparency(thisThing->transparent);
-            }
-            thisThing->bmp->SetBlendMode(thisThing->blendMode);
+            if (thisThing->bmp->GetTransparency() == 255)
+                continue; // skip completely invisible things
+            // mark the image's region as dirty
+            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
+            // push to the graphics driver
             gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
         }
         else if (thisThing->renderStage >= 0)
@@ -2144,7 +2135,9 @@ void put_sprite_list_on_screen(bool in_room)
             gfxDriver->DrawSprite(thisThing->renderStage, 0, nullptr);
         }
         else
-            quit("Unknown entry in draw list");
+        {
+            quit("Null pointer added to draw list");
+        }
     }
 
     our_eip = 1100;

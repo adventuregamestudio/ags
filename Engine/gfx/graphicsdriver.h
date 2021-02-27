@@ -63,7 +63,7 @@ struct SpriteTransform
     // Translate
     int X, Y;
     float ScaleX, ScaleY;
-    float Rotate; // angle, in radians
+    float Rotate; // angle, in degrees
 
     SpriteTransform()
         : X(0), Y(0), ScaleX(1.f), ScaleY(1.f), Rotate(0.f) {}

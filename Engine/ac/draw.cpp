@@ -2182,7 +2182,7 @@ static void construct_room_view()
         SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
-            0.f);
+            camera->GetRotation());
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
             gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);

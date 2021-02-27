@@ -65,6 +65,16 @@ void Camera::SetAt(int x, int y)
     _hasChangedPosition = true;
 }
 
+float Camera::GetRotation() const
+{
+    return _rotation;
+}
+
+void Camera::SetRotation(float degrees)
+{
+    _rotation = degrees;
+}
+
 // Tells if camera is currently locked at custom position
 bool Camera::IsLocked() const
 {

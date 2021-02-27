@@ -61,6 +61,10 @@ public:
     void SetSize(const Size sz);
     // Puts room camera to the new location in the room
     void SetAt(int x, int y);
+    // Returns camera's rotation, in degrees
+    float GetRotation() const;
+    // Sets camera's rotation, in degrees
+    void SetRotation(float degrees);
     // Tells if camera is currently locked at custom position
     bool IsLocked() const;
     // Locks room camera at its current position
@@ -91,6 +95,8 @@ private:
     int _id = -1;
     // Actual position and orthographic size
     Rect _position;
+    // Rotation in degrees
+    float _rotation = 0.0;
     // Locked or following player automatically
     bool _locked = false;
     // Linked viewport refs, used to notify viewports of camera changes

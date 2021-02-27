@@ -2324,6 +2324,10 @@ builtin managed struct Camera {
   import attribute int Width;
   /// Gets/sets the camera's capture height in room coordinates.
   import attribute int Height;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the camera rotation in degrees.
+  import attribute float Rotation;
+#endif
 
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;

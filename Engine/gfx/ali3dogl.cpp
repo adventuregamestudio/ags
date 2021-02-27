@@ -1433,7 +1433,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
                 drawlist[i].skip = true;
         }
     }
-    delete bitmap;
+    delete (OGLBitmap*)bitmap;
 }
 
 
@@ -1471,9 +1471,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.width = Math::Min(tile->width, tileWidth);
   fixedTile.height = Math::Min(tile->height, tileHeight);
   if (target->_opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch);
+    BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.

@@ -308,7 +308,7 @@ void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitm
 
 void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  delete bitmap;
+  delete (ALSoftwareBitmap*)bitmap;
 }
 
 void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)

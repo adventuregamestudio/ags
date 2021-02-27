@@ -161,17 +161,22 @@ struct TextureTile
     int width, height;
 };
 
-// Parent class for the video memory DDBs
-class VideoMemDDB : public IDriverDependantBitmap
+// Parent class for the common DDB implementation
+class BaseDDB : public IDriverDependantBitmap
 {
 public:
-    int GetWidth() override { return _width; }
-    int GetHeight() override { return _height; }
-    int GetColorDepth() override { return _colDepth; }
+    int GetWidth() const override { return _width; }
+    int GetHeight() const override { return _height; }
+    int GetColorDepth() const override { return _colDepth; }
 
-    int _width, _height;
-    int _colDepth;
-    bool _opaque; // no mask color
+    int _width = 0, _height = 0;
+    int _colDepth = 0;
+    bool _hasAlpha = false; // has meaningful alpha channel
+    bool _opaque = false; // no mask color
+
+protected:
+    BaseDDB() = default;
+    virtual ~BaseDDB() = default;
 };
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
@@ -219,10 +224,10 @@ protected:
     void DestroyFxPool();
 
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
-    void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+    void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
                             char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
     // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
-    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
         char *dst_ptr, const int dst_pitch);
 
     // Stage virtual screen is used to let plugins draw custom graphics

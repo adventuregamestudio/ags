@@ -1471,7 +1471,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // are inverse: Translate-Rotate-Scale
     MatrixTransformInverse2D(matRoomToViewport,
         desc.Transform.X, -(desc.Transform.Y),
-        desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
+        desc.Transform.ScaleX, desc.Transform.ScaleY, Math::DegreesToRadians(desc.Transform.Rotate));
     // Next step is translate to viewport position; remove this if this is
     // changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates

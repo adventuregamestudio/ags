@@ -1383,9 +1383,7 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         node_sy = -1.f;
     }
     _spriteBatches[index].Viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
-    // glTranslatef(node_tx, -(node_ty), 0.0f);
     model = glm::translate(model, {(float)node_tx, (float)-(node_ty), 0.0f});
-    // glScalef(node_sx, node_sy, 1.f);
     model = glm::scale(model, {node_sx, node_sy, 1.f});
 
     // NOTE: before node, translate to viewport position; remove this if this
@@ -1393,20 +1391,14 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
     model = glm::translate(model, {(float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f});
 
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
-    //glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
     model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
-    //glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
-    model = glm::rotate(model, desc.Transform.Rotate, { 0.f, 0.f, 1.f});
-    //glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
+    model = glm::rotate(model, desc.Transform.Rotate, { 0.f, 0.f, 1.f}); // rotate camera
     model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
-    //glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
-    //glLoadIdentity();
     _spriteBatches[index].Matrix = model;
 
     // create stage screen for plugin raw drawing

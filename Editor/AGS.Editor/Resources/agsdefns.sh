@@ -2157,6 +2157,10 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
+#ifdef SCRIPT_API_v399
+  /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
+  import static readonly attribute int BlockingWaitSkipped;
+#endif
 };
 
 builtin struct GameState {
@@ -2249,6 +2253,7 @@ builtin struct GameState {
   };
   
 enum SkipSpeechStyle {
+  eSkipNone         = -1,
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
   eSkipTime         = 2,
@@ -2289,6 +2294,12 @@ builtin struct Speech {
   import static attribute bool            UseGlobalSpeechAnimationDelay;
   /// Gets/sets whether voice and/or text are used in the game.
   import static attribute eVoiceMode      VoiceMode;
+#ifdef SCRIPT_API_v399
+  /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
+  import static readonly attribute Overlay* TextOverlay;
+  /// Gets the overlay representing displayed portrait, or null if it is not displayed at the moment.
+  import static readonly attribute Overlay* PortraitOverlay;
+#endif
 };
 
 #ifdef SCRIPT_API_v3507

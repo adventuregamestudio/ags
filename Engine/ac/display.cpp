@@ -162,7 +162,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
     int extraHeight = paddingDoubledScaled;
     color_t text_color = MakeColor(15);
     if (disp_type < DISPLAYTEXT_NORMALOVERLAY)
-        remove_screen_overlay(OVER_TEXTMSG); // remove any previous blocking texts
+        remove_screen_overlay(play.text_overlay_on); // remove any previous blocking texts
 
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, game.GetColorDepth());
 
@@ -238,9 +238,14 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
             wouttext_aligned (text_window_ds, xoffs, yoffs + ee * disp.linespacing, oriwid, usingfont, text_color, Lines[ee], play.text_align);
     }
 
-    int ovrtype = OVER_TEXTMSG;
-    if (disp_type == DISPLAYTEXT_NORMALOVERLAY) ovrtype=OVER_CUSTOM;
-    else if (disp_type >= OVER_CUSTOM) ovrtype = disp_type;
+    int ovrtype;
+    switch (disp_type)
+    {
+    case DISPLAYTEXT_SPEECH: ovrtype = OVER_TEXTSPEECH; break;
+    case DISPLAYTEXT_MESSAGEBOX: ovrtype = OVER_TEXTMSG; break;
+    case DISPLAYTEXT_NORMALOVERLAY: ovrtype = OVER_CUSTOM; break;
+    default: ovrtype = disp_type; break; // must be precreated overlay id
+    }
 
     int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
@@ -256,6 +261,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
         // If fast-forwarding, then skip immediately
         if (play.fast_forward) {
             remove_screen_overlay(OVER_TEXTMSG);
+            play.SetWaitSkipResult(SKIP_AUTOTIMER);
             play.messagetime=-1;
             return 0;
         }
@@ -274,7 +280,10 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
                 if (play.fast_forward)
                     break;
                 if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+                {
+                    play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
                     break;
+                }
             }
             int kp;
             if (run_service_key_controls(kp)) {
@@ -282,7 +291,10 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
                 if (play.fast_forward)
                     break;
                 if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
+                {
+                    play.SetWaitSkipResult(SKIP_KEYPRESS, kp);
                     break;
+                }
             }
             
             update_polled_stuff_if_runtime();
@@ -307,6 +319,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
             // Test for the timed auto-skip
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
+                play.SetWaitSkipResult(SKIP_AUTOTIMER);
                 play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
                 break;
             }
@@ -319,7 +332,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
         remove_screen_overlay(OVER_TEXTMSG);
         invalidate_screen();
     }
-    else {
+    else { /* DISPLAYTEXT_SPEECH */
         // if the speech does not time out, but we are skipping a cutscene,
         // allow it to time out
         if ((play.messagetime < 0) && (play.fast_forward))

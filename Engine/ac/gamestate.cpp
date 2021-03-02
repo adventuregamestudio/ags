@@ -40,6 +40,8 @@ extern ScriptSystem scsystem;
 
 GameState::GameState()
 {
+    speech_text_scover = nullptr;
+    speech_face_scover = nullptr;
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
 }
@@ -401,6 +403,23 @@ void GameState::SetIgnoreInput(int timeout_ms)
 void GameState::ClearIgnoreInput()
 {
     _ignoreUserInputUntilTime = AGS_Clock::now();
+}
+
+void GameState::SetWaitSkipResult(int how, int data)
+{
+    wait_counter = 0;
+    wait_skipped_by = how;
+    wait_skipped_by_data = data;
+}
+
+int GameState::GetWaitSkipResult() const
+{
+    switch (wait_skipped_by)
+    {
+    case SKIP_KEYPRESS: return wait_skipped_by_data;
+    case SKIP_MOUSECLICK: return -(wait_skipped_by_data + 1); // convert to 1-based code and negate
+    default: return 0;
+    }
 }
 
 bool GameState::IsBlockingVoiceSpeech() const

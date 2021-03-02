@@ -65,7 +65,6 @@ extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
-extern int is_text_overlay;
 extern volatile char want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
@@ -247,13 +246,14 @@ static void check_mouse_controls()
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
         else if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_MOUSECLICK) != 0) {
-            play.wait_counter = 0;
-            play.wait_skipped_by = SKIP_MOUSECLICK;
-            play.wait_skipped_by_data = mbut;
+            play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
         }
-        else if (is_text_overlay > 0) {
+        else if (play.text_overlay_on > 0) {
             if (play.cant_skip_speech & SKIP_MOUSECLICK)
-                remove_screen_overlay(OVER_TEXTMSG);
+            {
+                remove_screen_overlay(play.text_overlay_on);
+                play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+            }
         }
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
         else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut+1)) {
@@ -421,7 +421,8 @@ bool run_service_key_controls(int &key_out)
         return false;
     }
 
-    if ((keycode == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+    if ((keycode == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) &&
+        (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -471,24 +472,24 @@ static void check_keyboard_controls()
     }
 
     // skip speech if desired by Speech.SkipStyle
-    if ((is_text_overlay > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
+    if ((play.text_overlay_on > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {
             // check if it requires a specific keypress
             if ((play.skip_speech_specific_key > 0) &&
                 (kgn != play.skip_speech_specific_key)) { }
             else
-                remove_screen_overlay(OVER_TEXTMSG);
+            {
+                remove_screen_overlay(play.text_overlay_on);
+                play.SetWaitSkipResult(SKIP_KEYPRESS, kgn);
+            }
         }
 
         return;
     }
 
     if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
-        play.wait_counter = 0;
-        play.wait_skipped_by = SKIP_KEYPRESS;
-        play.wait_skipped_by_data = kgn;
-        debug_script_log("Keypress code %d ignored - in Wait", kgn);
+        play.SetWaitSkipResult(SKIP_KEYPRESS, kgn);
         return;
     }
 
@@ -869,7 +870,7 @@ static int ShouldStayInWaitMode() {
         if (wkptr[0]<0) retval=0;
     }
     else if (restrict_until==UNTIL_NOOVERLAY) {
-        if (is_text_overlay < 1) retval=0;
+        if (play.text_overlay_on == 0) retval=0;
     }
     else if (restrict_until==UNTIL_INTIS0) {
         int*wkptr=(int*)user_disabled_data;

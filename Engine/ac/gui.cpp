@@ -594,8 +594,6 @@ void recreate_guibg_image(GUIMain *tehgui)
   }
 }
 
-extern int is_complete_overlay;
-
 int gui_get_interactable(int x,int y)
 {
     if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
@@ -617,7 +615,7 @@ int gui_on_mouse_move()
             if (guis[guin].IsInteractableAt(mousex, mousey)) mouse_over_gui=guin;
 
             if (guis[guin].PopupStyle!=kGUIPopupMouseY) continue;
-            if (is_complete_overlay>0) break;  // interfaces disabled
+            if (play.complete_overlay_on > 0) break;  // interfaces disabled
             //    if (play.disabled_user_interface>0) break;
             if (ifacepopped==guin) continue;
             if (!guis[guin].IsVisible()) continue;

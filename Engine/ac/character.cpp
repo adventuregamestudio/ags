@@ -74,7 +74,6 @@ extern SpriteCache spriteset;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern int is_text_overlay;
 extern int said_speech_line;
 extern int said_text;
 extern int our_eip;
@@ -760,15 +759,10 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     if (ovri<0)
         quit("!SayBackground internal error: no overlay");
 
-    // Convert the overlay ID to an Overlay object
-    ScriptOverlay *scOver = new ScriptOverlay();
-    scOver->overlayId = ovltype;
+    ScriptOverlay *scOver = create_scriptobj_for_overlay(screenover[ovri]);
     scOver->borderHeight = 0;
     scOver->borderWidth = 0;
     scOver->isBackgroundSpeech = 1;
-    int handl = ccRegisterManagedObject(scOver, scOver);
-    screenover[ovri].associatedOverlayHandle = handl;
-
     return scOver;
 }
 
@@ -2354,7 +2348,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
-    if (is_text_overlay > 0)
+    if (play.text_overlay_on > 0)
     {
         debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
         return;

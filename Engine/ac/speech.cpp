@@ -15,12 +15,15 @@
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
+#include "ac/dynobj/scriptoverlay.h"
 #include "debug/debug_log.h"
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval)
 {
     switch (userval)
     {
+    case kSkipSpeechNone:
+        return SKIP_NONE;
     case kSkipSpeechKeyMouseTime:
         return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK;
     case kSkipSpeechKeyTime:
@@ -37,7 +40,7 @@ int user_to_internal_skip_speech(SkipSpeechStyle userval)
         return SKIP_MOUSECLICK;
     default:
         quit("user_to_internal_skip_speech: unknown userval");
-        return 0;
+        return SKIP_NONE;
     }
 }
 
@@ -75,7 +78,7 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
             return kSkipSpeechMouse;
         }
     }
-    return kSkipSpeechUndefined;
+    return kSkipSpeechNone;
 }
 
 //=============================================================================
@@ -94,6 +97,16 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 
 extern GameSetupStruct game;
 extern GameState play;
+
+ScriptOverlay* Speech_GetTextOverlay()
+{
+    return play.speech_text_scover;
+}
+
+ScriptOverlay* Speech_GetPortraitOverlay()
+{
+    return play.speech_face_scover;
+}
 
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -218,6 +231,16 @@ RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int3
     API_SCALL_INT(GetVoiceMode);
 }
 
+RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetTextOverlay);
+}
+
+RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetPortraitOverlay);
+}
+
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
@@ -230,6 +253,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
     ccAddExternalStaticFunction("Speech::set_DisplayPostTimeMs",      Sc_Speech_SetDisplayPostTimeMs);
 	ccAddExternalStaticFunction("Speech::get_GlobalSpeechAnimationDelay", Sc_Speech_GetGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_GlobalSpeechAnimationDelay", Sc_Speech_SetGlobalSpeechAnimationDelay);
+    ccAddExternalStaticFunction("Speech::get_PortraitOverlay",        Sc_Speech_GetPortraitOverlay);
     ccAddExternalStaticFunction("Speech::get_PortraitXOffset",        Sc_Speech_GetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::set_PortraitXOffset",        Sc_Speech_SetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::get_PortraitY",              Sc_Speech_GetPortraitY);
@@ -245,6 +269,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
         ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment_Old);
     else
         ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment);
+    ccAddExternalStaticFunction("Speech::get_TextOverlay",            Sc_Speech_GetTextOverlay);
 	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);

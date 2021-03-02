@@ -42,6 +42,7 @@ namespace AGS
 using namespace AGS; // FIXME later
 struct ScriptViewport;
 struct ScriptCamera;
+struct ScriptOverlay;
 
 #define GAME_STATE_RESERVED_INTS 5
 
@@ -144,8 +145,8 @@ struct GameState {
     int   bg_frame,bg_anim_delay;  // for animating backgrounds
     int   music_vol_was;  // before the volume drop
     short wait_counter;
-    char  wait_skipped_by; // tells how last wait was skipped [not serialized]
-    int   wait_skipped_by_data; // extended data telling how last wait was skipped [not serialized]
+    char  wait_skipped_by; // tells how last blocking wait was skipped [not serialized]
+    int   wait_skipped_by_data; // extended data telling how last blocking wait was skipped [not serialized]
     short mboundx1,mboundx2,mboundy1,mboundy2;
     int   fade_effect;
     int   bg_frame_locked;
@@ -231,6 +232,17 @@ struct GameState {
     bool  speech_voice_blocking;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
+
+    // Special overlays
+    //
+    // Is there a QFG4-style dialog overlay on screen (contains overlay ID)
+    int  complete_overlay_on;
+    // Is there a blocking text overlay on screen (contains overlay ID)
+    int  text_overlay_on;
+    // Blocking speech overlay managed object, for accessing in scripts
+    ScriptOverlay *speech_text_scover;
+    // Speech portrait overlay managed object
+    ScriptOverlay *speech_face_scover;
 
     int shake_screen_yoff; // y offset of the shaking screen
 
@@ -324,6 +336,14 @@ struct GameState {
     void SetIgnoreInput(int timeout_ms);
     // Clears ignore input state
     void ClearIgnoreInput();
+
+    // Set how the last blocking wait was skipped
+    void SetWaitSkipResult(int how, int data = 0);
+    // Returns the code of the latest blocking wait skip method.
+    // * positive value means a key code;
+    // * negative value means a -(mouse code + 1);
+    // * 0 means timeout.
+    int GetWaitSkipResult() const;
 
     //
     // Voice speech management

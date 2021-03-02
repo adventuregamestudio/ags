@@ -50,6 +50,7 @@ namespace AGS.Types
             Interactions.FromXml(node);
         }
 
+        [AGSNoSerialize]
         [Description("The ID number of the object")]
         [Category("Design")]
         [ReadOnly(true)]

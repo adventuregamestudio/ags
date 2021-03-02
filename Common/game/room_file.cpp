@@ -632,10 +632,9 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
     RoomFileBlock block;
     do
     {
-        RoomFileBlock block_id;
         String ext_id;
         soff_t block_len;
-        HRoomFileError err = OpenNextBlock(in, data_ver, block_id, ext_id, block_len);
+        HRoomFileError err = OpenNextBlock(in, data_ver, block, ext_id, block_len);
         if (!err)
             return err;
         if (block == kRoomFblk_Script)

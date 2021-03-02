@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using System.Xml;
 
 namespace AGS.Types
 {
@@ -146,6 +147,73 @@ namespace AGS.Types
             _changeNotification.DidNotReceive();
             ((IChangeNotification)_roomObject).ItemModified();
             _changeNotification.Received();
+        }
+
+        [TestCase(230, BlendMode.Normal, false, -1, false, 200, 100, "description1", "name1", false, false)]
+        [TestCase(220, BlendMode.Add, true, 0, true, 190, 90, "description2", "name2", true, true)]
+        public void DeserializesFromXml(int image, BlendMode blendMode, bool visible, int baseline, bool clickable, int startX, int startY, string description, string name, bool useRoomAreaScaling, bool useRoomAreaLighting)
+        {
+            string xml = $@"
+            <RoomObject>
+                <Image>{image}</Image>
+                <BlendMode>{blendMode}</BlendMode>
+                <Visible>{visible}</Visible>
+                <Baseline>{baseline}</Baseline>
+                <Clickable>{clickable}</Clickable>
+                <StartX>{startX}</StartX>
+                <StartY>{startY}</StartY>
+                <Description>{description}</Description>
+                <Name>{name}</Name>
+                <UseRoomAreaScaling>{useRoomAreaScaling}</UseRoomAreaScaling>
+                <UseRoomAreaLighting>{useRoomAreaLighting}</UseRoomAreaLighting>
+                <Properties />
+                <Interactions/>
+            </RoomObject>";
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            _roomObject = new RoomObject(_changeNotification, doc.SelectSingleNode("RoomObject"));
+
+            Assert.That(_roomObject.Image, Is.EqualTo(image));
+            Assert.That(_roomObject.BlendMode, Is.EqualTo(blendMode));
+            Assert.That(_roomObject.Visible, Is.EqualTo(visible));
+            Assert.That(_roomObject.Baseline, Is.EqualTo(baseline));
+            Assert.That(_roomObject.Clickable, Is.EqualTo(clickable));
+            Assert.That(_roomObject.StartX, Is.EqualTo(startX));
+            Assert.That(_roomObject.StartY, Is.EqualTo(startY));
+            Assert.That(_roomObject.Description, Is.EqualTo(description));
+            Assert.That(_roomObject.Name, Is.EqualTo(name));
+            Assert.That(_roomObject.UseRoomAreaScaling, Is.EqualTo(useRoomAreaScaling));
+            Assert.That(_roomObject.UseRoomAreaLighting, Is.EqualTo(useRoomAreaLighting));
+        }
+
+        [TestCase(230, BlendMode.Normal, false, -1, false, 200, 100, "description1", "name1", false, false)]
+        [TestCase(220, BlendMode.Add, true, 0, true, 190, 90, "description2", "name2", true, true)]
+        public void SerializesToXml(int image, BlendMode blendMode, bool visible, int baseline, bool clickable, int startX, int startY, string description, string name, bool useRoomAreaScaling, bool useRoomAreaLighting)
+        {
+            _roomObject.Image = image;
+            _roomObject.BlendMode = blendMode;
+            _roomObject.Visible = visible;
+            _roomObject.Baseline = baseline;
+            _roomObject.Clickable = clickable;
+            _roomObject.StartX = startX;
+            _roomObject.StartY = startY;
+            _roomObject.Description = description;
+            _roomObject.Name = name;
+            _roomObject.UseRoomAreaScaling = useRoomAreaScaling;
+            _roomObject.UseRoomAreaLighting = useRoomAreaLighting;
+            XmlDocument doc = _roomObject.ToXmlDocument();
+
+            Assert.That(doc.SelectSingleNode("/RoomObject/Image").InnerText, Is.EqualTo(image.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/BlendMode").InnerText, Is.EqualTo(blendMode.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/Visible").InnerText, Is.EqualTo(visible.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/Baseline").InnerText, Is.EqualTo(baseline.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/Clickable").InnerText, Is.EqualTo(clickable.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/StartX").InnerText, Is.EqualTo(startX.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/StartY").InnerText, Is.EqualTo(startY.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/Description").InnerText, Is.EqualTo(description.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/Name").InnerText, Is.EqualTo(name.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/UseRoomAreaScaling").InnerText, Is.EqualTo(useRoomAreaScaling.ToString()));
+            Assert.That(doc.SelectSingleNode("/RoomObject/UseRoomAreaLighting").InnerText, Is.EqualTo(useRoomAreaLighting.ToString()));
         }
     }
 }

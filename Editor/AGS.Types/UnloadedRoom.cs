@@ -117,7 +117,7 @@ namespace AGS.Types
             SerializeUtils.DeserializeFromXML(this, node);
         }
 
-        public void ToXml(XmlTextWriter writer)
+        public virtual void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer);
         }

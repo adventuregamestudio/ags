@@ -181,6 +181,7 @@
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Native\acfonts_agsnative.cpp" />

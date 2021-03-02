@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
-    public class RoomMessage
+    public class RoomMessage : IToXml
     {
         private int _id;
         private string _text = string.Empty;
@@ -18,6 +19,12 @@ namespace AGS.Types
             _id = id;
         }
 
+        public RoomMessage(int id, XmlNode node) : this(id)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+        }
+
+        [AGSNoSerialize]
         public int ID
         {
             get { return _id; }
@@ -57,5 +64,7 @@ namespace AGS.Types
             get { return _autoRemoveAfterTime; }
             set { _autoRemoveAfterTime = value; }
         }
+
+        public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
     }
 }

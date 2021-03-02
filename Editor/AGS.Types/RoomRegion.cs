@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Xml;
 
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
-    public class RoomRegion : ICustomTypeDescriptor
+    public class RoomRegion : ICustomTypeDescriptor, IToXml
     {
         private static InteractionSchema _interactionSchema;
 
@@ -31,6 +32,17 @@ namespace AGS.Types
                 new string[] { "Standing", "WalksOnto", "WalksOff" });
         }
 
+        public RoomRegion()
+        {
+        }
+
+        public RoomRegion(XmlNode node) : this()
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            Interactions.FromXml(node);
+        }
+
+        [AGSNoSerialize]
         [Description("The ID number of the region")]
         [Category("Design")]
         [ReadOnly(true)]
@@ -112,7 +124,7 @@ namespace AGS.Types
             get { return "Region ID " + _id; }
         }
 
-        [AGSNoSerialize()]
+        [AGSSerializeClass]
         [Browsable(false)]
         public Interactions Interactions
         {
@@ -211,5 +223,6 @@ namespace AGS.Types
 
         #endregion
 
+        public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
     }
 }

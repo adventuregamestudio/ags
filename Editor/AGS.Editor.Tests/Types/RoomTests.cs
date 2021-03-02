@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Xml;
 
 namespace AGS.Types
 {
@@ -186,6 +187,109 @@ namespace AGS.Types
         public void GetsMaskScaleThrowsExceptionWithIllegalMask()
         {
             Assert.Throws<ArgumentException>(() => _room.GetMaskScale(RoomAreaMaskType.None));
+        }
+
+        [TestCase(1, 2, 1174750494, 320, 240, 5, 0, true, false, 1, RoomVolumeAdjustment.Normal, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, 1, false, true, 0, RoomVolumeAdjustment.Loud, 2, 3, 4, 5, 3, "description2")]
+        public void DeserializesFromXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
+            int backgroundAnimationDelay, int playMusicOnRoomLoad, bool saveLoadEnabled, bool showPlayerCharacter,
+            int playerCharacterView, RoomVolumeAdjustment musicVolumeAdjustment, int leftEdgeX, int rightEdgeX,
+            int topEdgeY, int bottomEdgeY, int number, string description)
+        {
+            string xml = $@"
+            <Room>
+                <MaskResolution>{maskResolution}</MaskResolution>
+                <BackgroundCount>{backgroundCount}</BackgroundCount>
+                <GameID>{gameId}</GameID>
+                <Width>{width}</Width>
+                <Height>{height}</Height>
+                <BackgroundAnimationDelay>{backgroundAnimationDelay}</BackgroundAnimationDelay>
+                <PlayMusicOnRoomLoad>{playMusicOnRoomLoad}</PlayMusicOnRoomLoad>
+                <SaveLoadEnabled>{saveLoadEnabled}</SaveLoadEnabled>
+                <ShowPlayerCharacter>{showPlayerCharacter}</ShowPlayerCharacter>
+                <PlayerCharacterView>{playerCharacterView}</PlayerCharacterView>
+                <MusicVolumeAdjustment>{musicVolumeAdjustment}</MusicVolumeAdjustment>
+                <LeftEdgeX>{leftEdgeX}</LeftEdgeX>
+                <RightEdgeX>{rightEdgeX}</RightEdgeX>
+                <TopEdgeY>{topEdgeY}</TopEdgeY>
+                <BottomEdgeY>{bottomEdgeY}</BottomEdgeY>
+                <Properties/>
+                <Number>{number}</Number>
+                <Description xml:space=""preserve"">{description}</Description>
+                <Interactions/>
+                <Messages/>
+                <Objects/>
+                <Hotspots/>
+                <WalkableAreas/>
+                <WalkBehinds/>
+                <Regions/>
+            </Room>";
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            _room = new Room(doc.SelectSingleNode("Room"));
+
+            Assert.That(_room.MaskResolution, Is.EqualTo(maskResolution));
+            Assert.That(_room.BackgroundCount, Is.EqualTo(backgroundCount));
+            Assert.That(_room.GameID, Is.EqualTo(gameId));
+            Assert.That(_room.Width, Is.EqualTo(width));
+            Assert.That(_room.Height, Is.EqualTo(height));
+            Assert.That(_room.BackgroundAnimationDelay, Is.EqualTo(backgroundAnimationDelay));
+            Assert.That(_room.PlayMusicOnRoomLoad, Is.EqualTo(playMusicOnRoomLoad));
+            Assert.That(_room.SaveLoadEnabled, Is.EqualTo(saveLoadEnabled));
+            Assert.That(_room.ShowPlayerCharacter, Is.EqualTo(showPlayerCharacter));
+            Assert.That(_room.PlayerCharacterView, Is.EqualTo(playerCharacterView));
+            Assert.That(_room.MusicVolumeAdjustment, Is.EqualTo(musicVolumeAdjustment));
+            Assert.That(_room.LeftEdgeX, Is.EqualTo(leftEdgeX));
+            Assert.That(_room.RightEdgeX, Is.EqualTo(rightEdgeX));
+            Assert.That(_room.TopEdgeY, Is.EqualTo(topEdgeY));
+            Assert.That(_room.BottomEdgeY, Is.EqualTo(bottomEdgeY));
+            Assert.That(_room.Number, Is.EqualTo(number));
+            Assert.That(_room.Description, Is.EqualTo(description));
+        }
+
+        [TestCase(1, 2, 1174750494, 320, 240, 5, 0, true, false, 1, RoomVolumeAdjustment.Normal, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, 1, false, true, 0, RoomVolumeAdjustment.Loud, 2, 3, 4, 5, 3, "description2")]
+        public void SerializesToXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
+            int backgroundAnimationDelay, int playMusicOnRoomLoad, bool saveLoadEnabled, bool showPlayerCharacter,
+            int playerCharacterView, RoomVolumeAdjustment musicVolumeAdjustment, int leftEdgeX, int rightEdgeX,
+            int topEdgeY, int bottomEdgeY, int number, string description)
+        {
+            _room.MaskResolution = maskResolution;
+            _room.BackgroundCount = backgroundCount;
+            _room.GameID = gameId;
+            _room.Width = width;
+            _room.Height = height;
+            _room.BackgroundAnimationDelay = backgroundAnimationDelay;
+            _room.PlayMusicOnRoomLoad = playMusicOnRoomLoad;
+            _room.SaveLoadEnabled = saveLoadEnabled;
+            _room.ShowPlayerCharacter = showPlayerCharacter;
+            _room.PlayerCharacterView = playerCharacterView;
+            _room.MusicVolumeAdjustment = musicVolumeAdjustment;
+            _room.LeftEdgeX = leftEdgeX;
+            _room.RightEdgeX = rightEdgeX;
+            _room.TopEdgeY = topEdgeY;
+            _room.BottomEdgeY = bottomEdgeY;
+            _room.Number = number;
+            _room.Description = description;
+            XmlDocument doc = _room.ToXmlDocument();
+
+            Assert.That(doc.SelectSingleNode("/Room/MaskResolution").InnerText, Is.EqualTo(maskResolution.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/BackgroundCount").InnerText, Is.EqualTo(backgroundCount.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/GameID").InnerText, Is.EqualTo(gameId.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/Width").InnerText, Is.EqualTo(width.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/Height").InnerText, Is.EqualTo(height.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/BackgroundAnimationDelay").InnerText, Is.EqualTo(backgroundAnimationDelay.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/PlayMusicOnRoomLoad").InnerText, Is.EqualTo(playMusicOnRoomLoad.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/SaveLoadEnabled").InnerText, Is.EqualTo(saveLoadEnabled.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/ShowPlayerCharacter").InnerText, Is.EqualTo(showPlayerCharacter.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/PlayerCharacterView").InnerText, Is.EqualTo(playerCharacterView.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/MusicVolumeAdjustment").InnerText, Is.EqualTo(musicVolumeAdjustment.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/LeftEdgeX").InnerText, Is.EqualTo(leftEdgeX.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/RightEdgeX").InnerText, Is.EqualTo(rightEdgeX.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/TopEdgeY").InnerText, Is.EqualTo(topEdgeY.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/BottomEdgeY").InnerText, Is.EqualTo(bottomEdgeY.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/Number").InnerText, Is.EqualTo(number.ToString()));
+            Assert.That(doc.SelectSingleNode("/Room/Description").InnerText, Is.EqualTo(description.ToString()));
         }
     }
 }

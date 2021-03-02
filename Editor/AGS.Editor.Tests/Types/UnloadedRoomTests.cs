@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Xml;
 
 namespace AGS.Types
 {
@@ -81,6 +82,35 @@ namespace AGS.Types
             _unloadedRoom.Script = new Script("dummy", "dummy", false);
             _unloadedRoom.Script = null;
             Assert.That(_unloadedRoom.Script, Is.Null);
+        }
+
+        [TestCase(1, "description1")]
+        [TestCase(2, "description2")]
+        public void DeserializesFromXml(int number, string description)
+        {
+            string xml = $@"
+            <UnloadedRoom>
+                <Number>{number}</Number>
+                <Description xml:space=""preserve"">{description}</Description>
+            </UnloadedRoom>";
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            _unloadedRoom = new UnloadedRoom(doc.SelectSingleNode("UnloadedRoom"));
+
+            Assert.That(_unloadedRoom.Number, Is.EqualTo(number));
+            Assert.That(_unloadedRoom.Description, Is.EqualTo(description));
+        }
+
+        [TestCase(1, "description1")]
+        [TestCase(2, "description2")]
+        public void SerializesToXml(int number, string description)
+        {
+            _unloadedRoom.Number = number;
+            _unloadedRoom.Description = description;
+            XmlDocument doc = _unloadedRoom.ToXmlDocument();
+
+            Assert.That(doc.SelectSingleNode("/UnloadedRoom/Number").InnerText, Is.EqualTo(number.ToString()));
+            Assert.That(doc.SelectSingleNode("/UnloadedRoom/Description").InnerText, Is.EqualTo(description.ToString()));
         }
     }
 }

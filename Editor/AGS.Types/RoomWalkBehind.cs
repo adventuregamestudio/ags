@@ -22,6 +22,7 @@ namespace AGS.Types
             SerializeUtils.DeserializeFromXML(this, node);
         }
 
+        [AGSNoSerialize]
         [Description("The ID number of the walk-behind area")]
         [Category("Design")]
         [ReadOnly(true)]

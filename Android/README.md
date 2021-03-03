@@ -19,8 +19,8 @@ Additionally, there are other directories too:
 
 Building should be done using Android Studio 4.1.2 or above. For the native parts, you will also need:
 
-- CMake 3.16.3 
-- Ninja (at least 1.10.0 should be good)
+- CMake 3.16.3, which has to be added to PATH
+- Ninja (at least 1.10.0 should be good), also needs to be added to PATH
 
 In the future Android Studio 4.2 and above will ship with CMake 3.18, once this happens, installing CMake and Ninja outside of it won't be needed.
 

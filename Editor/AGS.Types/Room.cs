@@ -423,7 +423,7 @@ namespace AGS.Types
         {
             SerializeUtils.SerializeToXML(this, writer, false);
             Interactions.ToXml(writer);
-            SerializeUtils.SerializeToXML(writer, "RoomMessages", Messages);
+            SerializeUtils.SerializeToXML(writer, "Messages", Messages);
             SerializeUtils.SerializeToXML(writer, "Objects", Objects);
             SerializeUtils.SerializeToXML(writer, "Hotspots", Hotspots);
             SerializeUtils.SerializeToXML(writer, "WalkableAreas", WalkableAreas);

@@ -73,7 +73,7 @@ android {
     } else {
         externalNativeBuild {
             cmake {
-                version "3.16.3"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.14
+                version "3.16.3+"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.14
                 path '../../../CMakeLists.txt'
             }
         }

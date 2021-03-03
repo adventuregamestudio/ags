@@ -17,6 +17,7 @@ namespace AGS.Types
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
 		public const string PROPERTY_NAME_DESCRIPTION = "Description";
 		public const string PROPERTY_NAME_NUMBER = "Number";
+        public const string ROOM_DIRECTORY = "Rooms";
 
         protected int _number;
         protected string _description;
@@ -73,7 +74,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string UserFileName
         {
-            get { return string.Format(ROOM_USER_FILE_NAME_FORMAT, _number); }
+            get { return Path.Combine(ROOM_DIRECTORY, $"{Number}", string.Format(ROOM_USER_FILE_NAME_FORMAT, _number)); }
         }
 
 		[Description("Whether the state of the room is saved when the player leaves the room and comes back")]
@@ -87,7 +88,7 @@ namespace AGS.Types
 		[Browsable(false)]
         public string ScriptFileName
         {
-            get { return string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number); }
+            get { return Path.Combine(ROOM_DIRECTORY, $"{Number}", string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number)); }
         }
 
         [AGSNoSerialize]

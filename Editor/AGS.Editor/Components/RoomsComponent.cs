@@ -11,6 +11,7 @@ using WeifenLuo.WinFormsUI.Docking;
 using System.Threading;
 using System.Linq;
 using System.Drawing.Imaging;
+using System.Threading.Tasks;
 
 namespace AGS.Editor.Components
 {
@@ -67,6 +68,7 @@ namespace AGS.Editor.Components
             _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(AGSEditor_PreSaveGame);
             _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
+            Factory.Events.GameLoad += UpgradeCrmFormatToOpenFormat;
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
         }
@@ -1867,5 +1869,75 @@ namespace AGS.Editor.Components
                 }
             }
         }
+
+        #region Upgrade Crm Format To Open Format
+        /// <summary>
+        /// Upgrades the room format from .crm to open format with text files and images directly accessible from disk
+        /// </summary>
+        /// <remarks>
+        /// This easily maxes the work capacity of a single thread and runs for a while so this is a good candidate
+        /// for parallel execution. However the native proxy is designed around the <see cref="Room._roomStructPtr"/>
+        /// which can only hold the value of single room at a time so thread execution would crash. It might not be
+        /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
+        /// do the same job.
+        /// </remarks>
+        private void UpgradeCrmFormatToOpenFormat(XmlNode rootNode)
+        {
+            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
+                return; // Upgrade already completed
+
+            Directory.CreateDirectory(UnloadedRoom.ROOM_DIRECTORY);
+            IRoomController roomController = this;
+
+            foreach (Room room in _agsEditor.CurrentGame.Rooms.Cast<UnloadedRoom>().Select(r => Factory.NativeProxy.LoadRoom(r)))
+            {
+                Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
+
+                File.Move($"room{room.Number}.asc", room.ScriptFileName);
+                if (File.Exists(room.UserFileName))
+                    File.Move($"room{room.Number}.crm.user", room.UserFileName);
+
+                List<Task> tasks = new List<Task>
+                {
+                    UpgradeDataFromCrmToOpenFormatAsync(room),
+                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.Hotspots),
+                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.Regions),
+                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.WalkableAreas),
+                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.WalkBehinds),
+                };
+                tasks.AddRange(Enumerable.Range(0, room.BackgroundCount).Select(i => UpgradeBackgroundFromCrmToOpenFormatAsync(room, i)));
+                Task.WaitAll(tasks.ToArray());
+            }
+        }
+
+        private Task UpgradeDataFromCrmToOpenFormatAsync(Room room) => Task.Run(() =>
+        {
+            room.ToXmlDocument().Save(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}", "data.xml"));
+        });
+
+        private Task UpgradeBackgroundFromCrmToOpenFormatAsync(Room room, int i) => Task.Run(() =>
+        {
+            using (Bitmap background = Factory.NativeProxy.GetBitmapForBackground(room, i))
+            {
+                background.Save(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}", $"background{i}.png"), ImageFormat.Png);
+            }
+        });
+
+        private Task UpgradeMaskFromCrmToOpenFormatAsync(Room room, RoomAreaMaskType type) => Task.Run(() =>
+        {
+            using (Bitmap mask = Factory.NativeProxy.ExportAreaMask(room, type))
+            {
+                // Global palette has transparency set on index 0 which is no area, probably to make drawing easier? This transparency is
+                // ignored when saving the file as .bmp, but now when we save to .png for some reason, so we have to remove the transparency
+                // manually.
+                ColorPalette palette = mask.Palette;
+                Color noArea = palette.Entries[0];
+                palette.Entries[0] = Color.FromArgb(noArea.R, noArea.G, noArea.B);
+                mask.Palette = palette;
+
+                mask.Save(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}", $"{type.ToString().ToLower()}.png"), ImageFormat.Png);
+            }
+        });
+        #endregion
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -412,6 +413,14 @@ namespace AGS.Types
                 default:
                     throw new ArgumentException($"Illegal mask type, mask {mask} cannot be scaled.");
             }
+        }
+
+        public string GetBackgroundFileName(int background)
+        {
+            if (background < 0 && background >= MAX_BACKGROUNDS)
+                throw new ArgumentException($"Must be positive number, but less than {MAX_BACKGROUNDS}", nameof(background));
+
+            return Path.Combine(ROOM_DIRECTORY, $"{Number}", $"background{background}.png");
         }
 
         void IChangeNotification.ItemModified()

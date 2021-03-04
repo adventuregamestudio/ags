@@ -1801,7 +1801,7 @@ namespace AGS.Editor.Components
 
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                _backgroundCache.Add(_nativeProxy.GetBitmapForBackground(_loadedRoom, i));
+                _backgroundCache.Add(new Bitmap(_loadedRoom.GetBackgroundFileName(i)));
             }
             _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
 
@@ -1919,7 +1919,7 @@ namespace AGS.Editor.Components
         {
             using (Bitmap background = _nativeProxy.GetBitmapForBackground(room, i))
             {
-                background.Save(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}", $"background{i}.png"), ImageFormat.Png);
+                background.Save(room.GetBackgroundFileName(i), ImageFormat.Png);
             }
         });
 

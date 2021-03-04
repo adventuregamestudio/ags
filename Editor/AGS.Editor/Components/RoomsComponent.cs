@@ -1889,7 +1889,7 @@ namespace AGS.Editor.Components
             Directory.CreateDirectory(UnloadedRoom.ROOM_DIRECTORY);
             IRoomController roomController = this;
 
-            foreach (Room room in _agsEditor.CurrentGame.Rooms.Cast<UnloadedRoom>().Select(r => Factory.NativeProxy.LoadRoom(r)))
+            foreach (Room room in _agsEditor.CurrentGame.Rooms.Cast<UnloadedRoom>().Select(r => _nativeProxy.LoadRoom(r)))
             {
                 Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
 
@@ -1917,7 +1917,7 @@ namespace AGS.Editor.Components
 
         private Task UpgradeBackgroundFromCrmToOpenFormatAsync(Room room, int i) => Task.Run(() =>
         {
-            using (Bitmap background = Factory.NativeProxy.GetBitmapForBackground(room, i))
+            using (Bitmap background = _nativeProxy.GetBitmapForBackground(room, i))
             {
                 background.Save(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}", $"background{i}.png"), ImageFormat.Png);
             }
@@ -1925,7 +1925,7 @@ namespace AGS.Editor.Components
 
         private Task UpgradeMaskFromCrmToOpenFormatAsync(Room room, RoomAreaMaskType type) => Task.Run(() =>
         {
-            using (Bitmap mask = Factory.NativeProxy.ExportAreaMask(room, type))
+            using (Bitmap mask = _nativeProxy.ExportAreaMask(room, type))
             {
                 // Global palette has transparency set on index 0 which is no area, probably to make drawing easier? This transparency is
                 // ignored when saving the file as .bmp, but now when we save to .png for some reason, so we have to remove the transparency

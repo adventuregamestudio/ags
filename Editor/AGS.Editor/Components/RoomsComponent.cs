@@ -829,7 +829,9 @@ namespace AGS.Editor.Components
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            _loadedRoom = _nativeProxy.LoadRoom(newRoom);
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(File.ReadAllText(newRoom.DataFileName));
+            _loadedRoom = new Room(xml.FirstChild);
             LoadImageCache();
 
             // TODO: group these in some UpdateRoomToNewVersion method

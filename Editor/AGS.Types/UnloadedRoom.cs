@@ -71,6 +71,12 @@ namespace AGS.Types
         }
 
         [AGSNoSerialize]
+        [Description("The filename containing this room data")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public string DataFileName => Path.Combine(ROOM_DIRECTORY, $"{Number}", "data.xml");
+
+        [AGSNoSerialize]
         [Browsable(false)]
         public string UserFileName
         {

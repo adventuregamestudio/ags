@@ -815,7 +815,7 @@ HError SpriteCache::InitFile(const char *filename, const char *sprindex_filename
 
     sprkey_t topmost;
     if (vers < kSprfVersion_HighSpriteLimit)
-        topmost = _stream->ReadInt16();
+        topmost = (uint16_t)_stream->ReadInt16();
     else
         topmost = _stream->ReadInt32();
     if (vers < kSprfVersion_Uncompressed)

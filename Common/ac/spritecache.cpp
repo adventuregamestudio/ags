@@ -98,7 +98,7 @@ size_t SpriteCache::GetMaxCacheSize() const
     return _maxCacheSize;
 }
 
-sprkey_t SpriteCache::GetSpriteSlotCount() const
+size_t SpriteCache::GetSpriteSlotCount() const
 {
     return _spriteData.size();
 }

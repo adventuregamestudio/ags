@@ -494,6 +494,9 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
 
 void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    if (ents.SpriteCount == 0)
+        return;
+
     // Apply sprite flags read from original format (sequential array)
     spriteset.EnlargeTo(ents.SpriteCount - 1);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
@@ -733,12 +736,12 @@ void FixupSaveDirectory(GameSetupStruct &game)
 
 HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
-    uint32_t sprcount;
+    size_t sprcount;
     if (data_ver < kGameVersion_256)
         sprcount = LEGACY_MAX_SPRITES_V25;
     else
         sprcount = in->ReadInt32();
-    if (sprcount > (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1)
+    if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
         return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %u, max: %u", sprcount, (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
     ents.SpriteCount = sprcount;

@@ -1664,12 +1664,14 @@ int oldeip;
 bool read_savedgame_description(const String &savedgame, String &description)
 {
     SavegameDescription desc;
-    if (OpenSavegame(savedgame, desc, kSvgDesc_UserText))
+    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
+    if (!err)
     {
-        description = desc.UserText;
-        return true;
+        Debug::Printf(kDbgMsg_Error, "Unable to read save's description.\n%s", err->FullMessage().GetCStr());
+        return false;
     }
-    return false;
+    description = desc.UserText;
+    return true;
 }
 
 bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
@@ -1679,7 +1681,10 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     SavegameDescription desc;
     HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
     if (!err)
+    {
+        Debug::Printf(kDbgMsg_Error, "Unable to read save's screenshot.\n%s", err->FullMessage().GetCStr());
         return false;
+    }
 
     if (desc.UserImage.get())
     {
@@ -1759,6 +1764,7 @@ bool try_restore_save(const Common::String &path, int slot)
     {
         String error = String::FromFormat("Unable to restore the saved game.\n%s",
             err->FullMessage().GetCStr());
+        Debug::Printf(kDbgMsg_Error, "%s", error.GetCStr());
         // currently AGS cannot properly revert to stable state if some of the
         // game data was released or overwritten by the data from save file,
         // this is why we tell engine to shutdown if that happened.

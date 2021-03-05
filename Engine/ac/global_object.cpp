@@ -11,8 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_object.h"
+#include <algorithm>
 #include "ac/common.h"
 #include "ac/object.h"
 #include "ac/view.h"
@@ -140,12 +140,12 @@ void SetObjectView(int obn,int vii) {
     }
     vii--;
 
-    objs[obn].view=vii;
+    objs[obn].view = std::max<int16_t>(0, vii);
     objs[obn].frame=0;
     if (objs[obn].loop >= views[vii].numLoops)
         objs[obn].loop=0;
     objs[obn].cycling=0;
-    objs[obn].num = views[vii].loops[0].frames[0].pic;
+    objs[obn].num = std::max<int16_t>(0, views[vii].loops[0].frames[0].pic);
 }
 
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
@@ -154,11 +154,11 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (viw>=game.numviews) quit("!SetObjectFrame: invalid view number used");
     if (views[viw].numLoops == 0) quit("!SetObjectFrame: specified view has no loops");
     if (lop>=views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
-    objs[obn].view=viw;
+    objs[obn].view = std::max<int16_t>(0, viw);
     if (fra >= 0)
-        objs[obn].frame=fra;
+        objs[obn].frame = std::max<int16_t>(0, fra);
     if (lop >= 0)
-        objs[obn].loop=lop;
+        objs[obn].loop = std::max<int16_t>(0, lop);
 
     if (objs[obn].loop >= views[viw].numLoops)
         objs[obn].loop = 0;
@@ -174,7 +174,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     }
 
     objs[obn].cycling=0;
-    objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    objs[obn].num = std::max<int16_t>(0, views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic);
     CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
 }
 
@@ -240,7 +240,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     objs[obn].overall_speed=spdd;
     objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
-    objs[obn].num = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
+    objs[obn].num = std::max<int16_t>(0, views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic);
     CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
     if (blocking)
@@ -320,7 +320,7 @@ void SetObjectGraphic(int obn,int slott) {
     if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 
     if (objs[obn].num != slott) {
-        objs[obn].num = slott;
+        objs[obn].num = std::max<int16_t>(0, slott);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
     objs[obn].cycling=0;

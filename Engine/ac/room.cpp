@@ -581,7 +581,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<croom->numobj;cc++) {
             croom->obj[cc].x=thisroom.Objects[cc].X;
             croom->obj[cc].y=thisroom.Objects[cc].Y;
-            croom->obj[cc].num=thisroom.Objects[cc].Sprite;
+            croom->obj[cc].num = std::max<int16_t>(0, thisroom.Objects[cc].Sprite);
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].view=-1;
             croom->obj[cc].loop=0;

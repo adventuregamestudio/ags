@@ -11,8 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/roomobject.h"
+#include <algorithm>
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
@@ -86,7 +86,7 @@ void RoomObject::UpdateCyclingView()
     }  // end if forwards
 
     ViewFrame*vfptr=&views[view].loops[loop].frames[frame];
-    num = vfptr->pic;
+    num = std::max<int16_t>(0, vfptr->pic);
 
     if (cycling == 0)
       return;

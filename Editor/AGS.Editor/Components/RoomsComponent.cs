@@ -1873,7 +1873,7 @@ namespace AGS.Editor.Components
                     if (mask == RoomAreaMaskType.None)
                         continue;
 
-                    _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
+                    _maskCache[mask].Save(_loadedRoom.GetMaskFileName(mask), ImageFormat.Png);
                 }
             }
         }

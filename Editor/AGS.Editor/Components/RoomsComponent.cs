@@ -1857,7 +1857,7 @@ namespace AGS.Editor.Components
                         _nativeProxy.ImportBackground(
                             _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
                     else
-                        _nativeProxy.DeleteBackground(_loadedRoom, i);
+                        File.Delete(_loadedRoom.GetBackgroundFileName(i));
                 }
 
                 foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))

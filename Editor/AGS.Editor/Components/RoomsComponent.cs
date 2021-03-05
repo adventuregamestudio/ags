@@ -1803,7 +1803,10 @@ namespace AGS.Editor.Components
 
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                _backgroundCache.Add(new Bitmap(_loadedRoom.GetBackgroundFileName(i)));
+                using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetBackgroundFileName(i))))
+                {
+                    _backgroundCache.Add(new Bitmap(ms));
+                }
             }
             _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
 
@@ -1814,7 +1817,10 @@ namespace AGS.Editor.Components
                     continue;
                 }
 
-                _maskCache[mask] = new Bitmap(_loadedRoom.GetMaskFileName(mask));
+                using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetMaskFileName(mask))))
+                {
+                    _maskCache[mask] = new Bitmap(ms);
+                }
             }
         }
 

@@ -1698,29 +1698,26 @@ namespace AGS.Editor.Components
             {
                 Bitmap mask8bpp = _maskCache[maskType];
                 ColorPalette paletteBackup = mask8bpp.Palette;
+                ColorPalette paletteDrawing = mask8bpp.Palette;
 
                 // Color not selected mask areas to gray
                 if (_grayOutMasks)
                 {
-                    ColorPalette palette = mask8bpp.Palette;
-
                     for (int i = 1; i < 256; i++) // Skip i == 0 because no area should be transparent
                     {
                         const int intensity = 6; // Force the gray scale lighter so that it's easier to see
                         int gray = i < Room.MAX_HOTSPOTS && i > 0 ? ((Room.MAX_HOTSPOTS - i) % 30) * intensity : 0;
-                        palette.Entries[i] = Color.FromArgb(gray, gray, gray);
+                        paletteDrawing.Entries[i] = Color.FromArgb(gray, gray, gray);
                     }
 
                     // Highlight the currently selected area colour
                     if (selectedArea > 0)
                     {
                         // if a bright colour, use it, else, draw in red
-                        palette.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
+                        paletteDrawing.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
                             ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
                             : Color.FromArgb(60, 0, 0);
                     }
-
-                    mask8bpp.Palette = palette;
                 }
 
                 // Prepare alpha component
@@ -1729,6 +1726,10 @@ namespace AGS.Editor.Components
                 ImageAttributes attributes = new ImageAttributes();
                 attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
+                // Force that palette index 0 (No Area) is transparent
+                paletteDrawing.Entries[0] = Color.FromArgb(0, 255, 255, 255);
+
+                mask8bpp.Palette = paletteDrawing;
                 g.DrawImage(mask8bpp, drawingArea, 0, 0, mask8bpp.Width, mask8bpp.Height, GraphicsUnit.Pixel, attributes);
                 mask8bpp.Palette = paletteBackup;
             }

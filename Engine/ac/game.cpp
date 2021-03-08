@@ -1769,7 +1769,7 @@ bool try_restore_save(const Common::String &path, int slot)
         // game data was released or overwritten by the data from save file,
         // this is why we tell engine to shutdown if that happened.
         if (data_overwritten)
-            quitprintf(error);
+            quitprintf("%s", error.GetCStr());
         else
             Display(error);
         return false;

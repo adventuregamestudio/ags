@@ -2,7 +2,11 @@ REVISION HISTORY
 ================
 VERSION 3.5.0 - Patch 9, February 2021
 
+Editor:
+ - Fixed importing Characters and GUIs saved by previous versions of the editor.
+
 Engine:
+ - Fixed crash occuring if room object's Graphic is set to sprite with ID greater than 32767.
  - Fixed button image did not appear updated right after restoring a save.
  - Fixed legacy PlayMusic() and PlaySound() functions failing if the audio file
    had uppercase characters in name (regression since 3.4.0).

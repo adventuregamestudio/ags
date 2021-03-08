@@ -1855,7 +1855,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        // TODO Replace with bitmap saving to disk with C# when room is open format
         private void SaveImages()
         {
             lock (_loadedRoom)
@@ -1863,8 +1862,7 @@ namespace AGS.Editor.Components
                 for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
                 {
                     if (i < _backgroundCache.Count)
-                        _nativeProxy.ImportBackground(
-                            _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                        _backgroundCache[i].Save(_loadedRoom.GetBackgroundFileName(i), ImageFormat.Png);
                     else
                         File.Delete(_loadedRoom.GetBackgroundFileName(i));
                 }

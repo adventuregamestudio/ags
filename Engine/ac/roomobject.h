@@ -37,7 +37,7 @@ struct RoomObject {
     short last_width, last_height;   // width/height last time drawn
     uint16_t num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
-    short view,loop,frame; // only used to track animation - 'num' holds the current sprite
+    uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
     short wait,moving;
     char  cycling;        // is it currently animating?
     char  overall_speed;

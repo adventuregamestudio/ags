@@ -1502,7 +1502,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // check whether the image should be flipped
     int isMirrored = 0;
-    if ( (objs[aa].view >= 0) &&
+    if ( (objs[aa].view != (uint16_t)-1) &&
         (views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].pic == objs[aa].num) &&
         ((views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE) != 0)) {
             isMirrored = 1;

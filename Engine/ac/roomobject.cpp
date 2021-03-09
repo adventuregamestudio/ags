@@ -72,7 +72,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
       do_movelist_move(&moving,&x,&y);
       }
     if (cycling==0) return;
-    if (view<0) return;
+    if (view == (uint16_t)-1) return;
     if (wait>0) { wait--; return; }
 
     if (cycling >= ANIM_BACKWARDS) {
@@ -133,8 +133,9 @@ void RoomObject::update_cycle_view_forwards()
 void RoomObject::update_cycle_view_backwards()
 {
 	// animate backwards
-      frame--;
-      if (frame < 0) {
+      if (frame > 0) {
+        frame--;
+      } else {
         if ((loop > 0) && 
            (views[view].loops[loop - 1].RunNextLoop())) 
         {

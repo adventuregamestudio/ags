@@ -23,6 +23,7 @@
 #if AGS_PLATFORM_OS_WINDOWS && ! defined (AGS_NO_VIDEO_PLAYER)
 
 //#define ALLEGRO_STATICLINK  // already defined in project settings
+#define NOMINMAX
 #include <allegro.h>
 #include <winalleg.h>
 #include <windows.h>

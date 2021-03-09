@@ -16,6 +16,7 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 
+#define NOMINMAX
 // ********* WINDOWS *********
 
 #include <string.h>

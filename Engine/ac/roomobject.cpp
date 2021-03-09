@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
@@ -19,10 +18,12 @@
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
+#include "debug/debug_log.h"
 #include "main/update.h"
+#include "util/math.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 extern ViewStruct*views;
 extern GameState play;
@@ -64,7 +65,7 @@ int RoomObject::get_baseline() {
     return baseline;
 }
 
-void RoomObject::UpdateCyclingView()
+void RoomObject::UpdateCyclingView(int ref_id)
 {
 	if (on != 1) return;
     if (moving>0) {
@@ -86,7 +87,10 @@ void RoomObject::UpdateCyclingView()
     }  // end if forwards
 
     ViewFrame*vfptr=&views[view].loops[loop].frames[frame];
-    num = vfptr->pic;
+    if (vfptr->pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0",
+            ref_id, vfptr->pic, UINT16_MAX);
+    num = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
 
     if (cycling == 0)
       return;

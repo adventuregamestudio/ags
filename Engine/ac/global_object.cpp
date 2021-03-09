@@ -145,7 +145,10 @@ void SetObjectView(int obn,int vii) {
     if (objs[obn].loop >= views[vii].numLoops)
         objs[obn].loop=0;
     objs[obn].cycling=0;
-    objs[obn].num = views[vii].loops[0].frames[0].pic;
+    int pic = views[vii].loops[0].frames[0].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 }
 
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
@@ -174,7 +177,10 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     }
 
     objs[obn].cycling=0;
-    objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    int pic = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
 }
 
@@ -240,7 +246,10 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     objs[obn].overall_speed=spdd;
     objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
-    objs[obn].num = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
+    int pic = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
     if (blocking)
@@ -320,7 +329,9 @@ void SetObjectGraphic(int obn,int slott) {
     if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 
     if (objs[obn].num != slott) {
-        objs[obn].num = slott;
+        objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
+        if (slott > UINT16_MAX)
+            debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
     objs[obn].cycling=0;

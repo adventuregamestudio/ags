@@ -27,10 +27,10 @@ class ccCompiledScript : public ccScript {
     // so that it has at least 'MAX(needed, min_size)' bytes allocated.
     // The chunk is allocated 'malloc' style, so it needs to be 'free'd after use.
     // Returns kERR_InternalError if reallocation fails.
-    ErrorType ResizeMemory(size_t needed, size_t min_size, void *&start, size_t &allocated);
+    ErrorType ResizeMemory(size_t el_size, size_t needed, size_t min_allocated, void *&start, size_t &allocated);
 
-    inline ErrorType ResizeChunk(size_t needed, size_t min_size, void *&start, size_t &allocated)
-        { return allocated >= needed ? kERR_None : ResizeMemory(needed, min_size, start, allocated); }
+    inline ErrorType ResizeChunk(size_t el_size, size_t needed, size_t min_allocated, void *&start, size_t &allocated)
+        { return allocated >= needed ? kERR_None : ResizeMemory(el_size, needed, min_allocated, start, allocated); }
 
 public:
     struct FuncProps
@@ -89,7 +89,7 @@ public:
     int AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments = INT_MAX);
 
     // Start a new section of the code.
-    int StartNewSection(std::string const &name);
+    ErrorType StartNewSection(std::string const &name);
 
     // Write one Bytecode byte    
     void WriteCode(CodeCell cell);

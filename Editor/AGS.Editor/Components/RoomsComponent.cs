@@ -468,6 +468,8 @@ namespace AGS.Editor.Components
         private void CreateNewRoom(int roomNumber, RoomTemplate template)
         {
             UnloadedRoom newRoom = new UnloadedRoom(roomNumber);
+            Directory.CreateDirectory(newRoom.Directory);
+
             if (!PromptForAndDeleteAnyExistingRoomFile(newRoom.FileName))
             {
                 return;
@@ -488,6 +490,9 @@ namespace AGS.Editor.Components
 				{
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
 				}
+
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom).ToArray());
+
                 string newNodeID = AddSingleItem(newRoom);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 _guiController.ProjectTree.SelectNode(this, newNodeID);

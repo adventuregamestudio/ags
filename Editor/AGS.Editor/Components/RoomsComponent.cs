@@ -68,7 +68,7 @@ namespace AGS.Editor.Components
             _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(AGSEditor_PreSaveGame);
             _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
-            Factory.Events.GameLoad += UpgradeCrmFormatToOpenFormat;
+            Factory.Events.GameLoad += ConvertAllRoomsFromCrmToOpenFormat;
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
         }
@@ -1888,7 +1888,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private void UpgradeCrmFormatToOpenFormat(XmlNode root)
+        private void ConvertAllRoomsFromCrmToOpenFormat(XmlNode root)
         {
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed
@@ -1896,26 +1896,34 @@ namespace AGS.Editor.Components
             Directory.CreateDirectory(UnloadedRoom.ROOM_DIRECTORY);
             IRoomController roomController = this;
 
-            List<Task> tasks = new List<Task>();
-            foreach (Room room in _agsEditor.CurrentGame.Rooms.Cast<UnloadedRoom>().Select(r => _nativeProxy.LoadRoom(r)))
-            {
-                Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
+            Task.WaitAll(
+                _agsEditor.CurrentGame.Rooms
+                .Cast<UnloadedRoom>()
+                .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r))
+                .ToArray());
+        }
 
-                for (int i = 0; i < room.BackgroundCount; i++)
-                {
-                    tasks.Add(SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i)));
-                }
-                tasks.Add(SaveXmlAsync(room.ToXmlDocument(), room.DataFileName));
-                foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
-                {
-                    tasks.Add(SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type)));
-                }
+        /// <summary>
+        /// Converts a single room from .crm to open format.
+        /// </summary>
+        /// <param name="room">The room to convert to open format</param>
+        /// <returns>A collection of tasks that converts the room async.</returns>
+        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom)
+        {
+            Room room = _nativeProxy.LoadRoom(unloadedRoom);
+            Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
 
-                File.Move($"room{room.Number}.asc", room.ScriptFileName);
-                if (File.Exists(room.UserFileName))
-                    File.Move($"room{room.Number}.crm.user", room.UserFileName);
-            }
-            Task.WaitAll(tasks.ToArray());
+            for (int i = 0; i < room.BackgroundCount; i++)
+                yield return SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i));
+
+            yield return SaveXmlAsync(room.ToXmlDocument(), room.DataFileName);
+
+            foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
+                yield return SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type));
+
+            File.Move($"room{room.Number}.asc", room.ScriptFileName);
+            if (File.Exists(room.UserFileName))
+                File.Move($"room{room.Number}.crm.user", room.UserFileName);
         }
 
         private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>

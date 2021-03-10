@@ -159,7 +159,7 @@ String GetRoomBlockName(RoomFileBlock id)
 
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
-    obj.Sprite = in->ReadInt16();
+    obj.Sprite = (uint16_t)in->ReadInt16();
     obj.X = in->ReadInt16();
     obj.Y = in->ReadInt16();
     obj.Room = in->ReadInt16();
@@ -169,7 +169,7 @@ void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
 {
     // TODO: expand serialization into 32-bit values at least for the sprite index!!
-    out->WriteInt16((int16_t)obj.Sprite);
+    out->WriteInt16((uint16_t)obj.Sprite);
     out->WriteInt16((int16_t)obj.X);
     out->WriteInt16((int16_t)obj.Y);
     out->WriteInt16((int16_t)obj.Room);

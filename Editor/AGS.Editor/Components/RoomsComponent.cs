@@ -1888,7 +1888,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private void UpgradeCrmFormatToOpenFormat(XmlNode rootNode)
+        private void UpgradeCrmFormatToOpenFormat(XmlNode root)
         {
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed
@@ -1896,45 +1896,38 @@ namespace AGS.Editor.Components
             Directory.CreateDirectory(UnloadedRoom.ROOM_DIRECTORY);
             IRoomController roomController = this;
 
+            List<Task> tasks = new List<Task>();
             foreach (Room room in _agsEditor.CurrentGame.Rooms.Cast<UnloadedRoom>().Select(r => _nativeProxy.LoadRoom(r)))
             {
                 Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
 
+                for (int i = 0; i < room.BackgroundCount; i++)
+                {
+                    tasks.Add(SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i)));
+                }
+                tasks.Add(SaveXmlAsync(room.ToXmlDocument(), room.DataFileName));
+                foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
+                {
+                    tasks.Add(SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type)));
+                }
+
                 File.Move($"room{room.Number}.asc", room.ScriptFileName);
                 if (File.Exists(room.UserFileName))
                     File.Move($"room{room.Number}.crm.user", room.UserFileName);
-
-                List<Task> tasks = new List<Task>
-                {
-                    UpgradeDataFromCrmToOpenFormatAsync(room),
-                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.Hotspots),
-                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.Regions),
-                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.WalkableAreas),
-                    UpgradeMaskFromCrmToOpenFormatAsync(room, RoomAreaMaskType.WalkBehinds),
-                };
-                tasks.AddRange(Enumerable.Range(0, room.BackgroundCount).Select(i => UpgradeBackgroundFromCrmToOpenFormatAsync(room, i)));
-                Task.WaitAll(tasks.ToArray());
             }
+            Task.WaitAll(tasks.ToArray());
         }
 
-        private Task UpgradeDataFromCrmToOpenFormatAsync(Room room) => Task.Run(() =>
+        private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>
         {
-            room.ToXmlDocument().Save(room.DataFileName);
+            document.Save(filename);
         });
 
-        private Task UpgradeBackgroundFromCrmToOpenFormatAsync(Room room, int i) => Task.Run(() =>
+        private Task SaveAndDisposeBitmapAsync(Bitmap bmp, string filename) => Task.Run(() =>
         {
-            using (Bitmap background = _nativeProxy.GetBitmapForBackground(room, i))
+            using (bmp)
             {
-                background.Save(room.GetBackgroundFileName(i), ImageFormat.Png);
-            }
-        });
-
-        private Task UpgradeMaskFromCrmToOpenFormatAsync(Room room, RoomAreaMaskType type) => Task.Run(() =>
-        {
-            using (Bitmap mask = _nativeProxy.ExportAreaMask(room, type))
-            {
-                mask.Save(room.GetMaskFileName(type), ImageFormat.Png);
+                bmp.Save(filename, ImageFormat.Png);
             }
         });
         #endregion

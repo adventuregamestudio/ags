@@ -1934,14 +1934,6 @@ namespace AGS.Editor.Components
         {
             using (Bitmap mask = _nativeProxy.ExportAreaMask(room, type))
             {
-                // Global palette has transparency set on index 0 which is no area, probably to make drawing easier? This transparency is
-                // ignored when saving the file as .bmp, but now when we save to .png for some reason, so we have to remove the transparency
-                // manually.
-                ColorPalette palette = mask.Palette;
-                Color noArea = palette.Entries[0];
-                palette.Entries[0] = Color.FromArgb(noArea.R, noArea.G, noArea.B);
-                mask.Palette = palette;
-
                 mask.Save(room.GetMaskFileName(type), ImageFormat.Png);
             }
         });

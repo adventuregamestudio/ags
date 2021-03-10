@@ -74,13 +74,13 @@ namespace AGS.Types
         [Description("The filename containing this room data")]
         [Category("Design")]
         [ReadOnly(true)]
-        public string DataFileName => Path.Combine(ROOM_DIRECTORY, $"{Number}", "data.xml");
+        public string DataFileName => Path.Combine(Directory, "data.xml");
 
         [AGSNoSerialize]
         [Browsable(false)]
         public string UserFileName
         {
-            get { return Path.Combine(ROOM_DIRECTORY, $"{Number}", string.Format(ROOM_USER_FILE_NAME_FORMAT, _number)); }
+            get { return Path.Combine(Directory, string.Format(ROOM_USER_FILE_NAME_FORMAT, _number)); }
         }
 
 		[Description("Whether the state of the room is saved when the player leaves the room and comes back")]
@@ -94,8 +94,15 @@ namespace AGS.Types
 		[Browsable(false)]
         public string ScriptFileName
         {
-            get { return Path.Combine(ROOM_DIRECTORY, $"{Number}", string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number)); }
+            get { return Path.Combine(Directory, string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number)); }
         }
+
+        [AGSNoSerialize]
+        [Description("The directory of the room files")]
+        [Category("Design")]
+        [Browsable(true)]
+        [ReadOnly(true)]
+        public string Directory => Path.Combine(ROOM_DIRECTORY, $"{Number}");
 
         [AGSNoSerialize]
         [Browsable(false)]

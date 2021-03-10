@@ -1911,7 +1911,7 @@ namespace AGS.Editor.Components
         private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom)
         {
             Room room = _nativeProxy.LoadRoom(unloadedRoom);
-            Directory.CreateDirectory(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{room.Number}"));
+            Directory.CreateDirectory(room.Directory);
 
             for (int i = 0; i < room.BackgroundCount; i++)
                 yield return SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i));
@@ -1921,9 +1921,13 @@ namespace AGS.Editor.Components
             foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
                 yield return SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type));
 
-            File.Move($"room{room.Number}.asc", room.ScriptFileName);
-            if (File.Exists(room.UserFileName))
-                File.Move($"room{room.Number}.crm.user", room.UserFileName);
+            string oldScriptFileName = $"room{room.Number}.asc";
+            if (File.Exists(oldScriptFileName))
+                File.Move(oldScriptFileName, room.ScriptFileName);
+
+            string oldUserFileName = $"room{room.Number}.crm.user";
+            if (File.Exists(oldUserFileName))
+                File.Move(oldUserFileName, room.UserFileName);
         }
 
         private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>

@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "ac/guicontrol.h"
 #include "ac/global_gui.h"
+#include "ac/mouse.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
@@ -39,13 +40,7 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
         return nullptr;
 
     data_to_game_coords(&xx, &yy);
-
-    int oldmousex = mousex, oldmousey = mousey;
-    mousex = xx - guis[guinum].X;
-    mousey = yy - guis[guinum].Y;
-    int toret = guis[guinum].FindControlUnderMouse(0, false);
-    mousex = oldmousex;
-    mousey = oldmousey;
+    int toret = guis[guinum].FindControlAt(xx, yy, 0, false);
     if (toret < 0)
         return nullptr;
 

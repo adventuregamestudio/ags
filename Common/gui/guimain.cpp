@@ -86,7 +86,13 @@ void GUIMain::InitDefaults()
     _ctrlDrawOrder.clear();
 }
 
-int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
+int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable) const
+{
+    // translate to GUI's local coordinates
+    return FindControlAtLocal(atx - X, aty - Y, leeway, must_be_clickable);
+}
+
+int32_t GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
 {
     if (loaded_game_file_version <= kGameVersion_262)
     {
@@ -97,7 +103,7 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
                 continue;
             if (!_controls[i]->IsClickable() && must_be_clickable)
                 continue;
-            if (_controls[i]->IsOverControl(mousex, mousey, leeway))
+            if (_controls[i]->IsOverControl(atx, aty, leeway))
                 return i;
         }
     }
@@ -110,21 +116,11 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
                 continue;
             if (!_controls[ctrl_index]->IsClickable() && must_be_clickable)
                 continue;
-            if (_controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
+            if (_controls[ctrl_index]->IsOverControl(atx, aty, leeway))
                 return ctrl_index;
         }
     }
     return -1;
-}
-
-int GUIMain::FindControlUnderMouse() const
-{
-    return FindControlUnderMouse(0, true);
-}
-
-int GUIMain::FindControlUnderMouse(int leeway) const
-{
-    return FindControlUnderMouse(leeway, true);
 }
 
 int GUIMain::GetControlCount() const
@@ -325,18 +321,15 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
     ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1), y + get_fixed_pixel_size(1)), draw_color);
 }
 
-void GUIMain::Poll()
+void GUIMain::Poll(int mx, int my)
 {
-    int mxwas = mousex, mywas = mousey;
-
-    mousex -= X;
-    mousey -= Y;
-    if (mousex != MouseWasAt.X || mousey != MouseWasAt.Y)
+    mx -= X, my -= Y; // translate to GUI's local coordinates
+    if (mx != MouseWasAt.X || my != MouseWasAt.Y)
     {
-        int ctrl_index = FindControlUnderMouse();
+        int ctrl_index = FindControlAtLocal(mx, my, 0, false);
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            _controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseDownCtrl]->OnMouseMove(mx, my);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
@@ -355,19 +348,17 @@ void GUIMain::Poll()
                 if (MouseOverCtrl >= 0)
                 {
                     _controls[MouseOverCtrl]->OnMouseEnter();
-                    _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+                    _controls[MouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
             //MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
-            _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseOverCtrl]->OnMouseMove(mx, my);
     }
 
-    MouseWasAt.X = mousex;
-    MouseWasAt.Y = mousey;
-    mousex = mxwas;
-    mousey = mywas;
+    MouseWasAt.X = mx;
+    MouseWasAt.Y = my;
 }
 
 HError GUIMain::RebuildArray()
@@ -507,7 +498,7 @@ void GUIMain::OnControlPositionChanged()
     MarkChanged();
 }
 
-void GUIMain::OnMouseButtonDown()
+void GUIMain::OnMouseButtonDown(int mx, int my)
 {
     if (MouseOverCtrl < 0)
         return;
@@ -520,7 +511,7 @@ void GUIMain::OnMouseButtonDown()
     MouseDownCtrl = MouseOverCtrl;
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
+    _controls[MouseDownCtrl]->OnMouseMove(mx - X, my - Y);
     //MarkChanged(); // TODO: only do if anything really changed
 }
 

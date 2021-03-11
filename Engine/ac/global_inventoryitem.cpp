@@ -67,20 +67,16 @@ void SetInvItemName(int invi, const char *newName) {
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-int GetInvAt (int xxx, int yyy) {
-  int ongui = GetGUIAt (xxx, yyy);
+int GetInvAt(int atx, int aty) {
+  int ongui = GetGUIAt(atx, aty);
   if (ongui >= 0) {
-    int mxwas = mousex, mywas = mousey;
-    mousex = data_to_game_coord(xxx) - guis[ongui].X;
-    mousey = data_to_game_coord(yyy) - guis[ongui].Y;
-    int onobj = guis[ongui].FindControlUnderMouse();
+    data_to_game_coords(&atx, &aty);
+    int onobj = guis[ongui].FindControlAt(atx, aty);
     GUIObject *guio = guis[ongui].GetControl(onobj);
     if (guio) {
-      mouse_ifacebut_xoffs = mousex-(guio->X);
-      mouse_ifacebut_yoffs = mousey-(guio->Y);
+      mouse_ifacebut_xoffs = atx - guis[ongui].X - guio->X;
+      mouse_ifacebut_yoffs = aty - guis[ongui].Y - guio->Y;
     }
-    mousex = mxwas;
-    mousey = mywas;
     if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
       return offset_over_inv((GUIInvWindow*)guio);
   }

@@ -2107,7 +2107,7 @@ void draw_gui_and_overlays()
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
             if (IsInterfaceEnabled())
-                guis[aa].Poll();
+                guis[aa].Poll(mousex, mousey);
         }
     }
 

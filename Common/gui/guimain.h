@@ -91,11 +91,10 @@ public:
     // Clears changed flag
     void        ClearChanged();
 
-    int32_t FindControlUnderMouse() const;
-    // this version allows some extra leeway in the Editor so that
-    // the user can grab tiny controls
-    int32_t FindControlUnderMouse(int leeway) const;
-    int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
+    // Finds a control under given screen coordinates, returns control's child ID.
+    // Optionally allows extra leeway (offset in all directions) to let the user grab tiny controls.
+    // Optionally only allows clickable controls, ignoring non-clickable ones.
+    int32_t FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
     // Gets the number of the GUI child controls
     int32_t GetControlCount() const;
     // Gets control by its child's index
@@ -114,7 +113,8 @@ public:
     bool    BringControlToFront(int index);
     void    Draw(Bitmap *ds);
     void    DrawAt(Bitmap *ds, int x, int y);
-    void    Poll();
+    // Polls GUI state, providing current cursor (mouse) coordinates
+    void    Poll(int mx, int my);
     HError  RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
@@ -133,7 +133,7 @@ public:
     void    SetVisible(bool on);
 
     // Events
-    void    OnMouseButtonDown();
+    void    OnMouseButtonDown(int mx, int my);
     void    OnMouseButtonUp();
     void    OnControlPositionChanged();
   
@@ -147,6 +147,8 @@ public:
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
+    // Same as FindControlAt but expects local space coordinates
+    int32_t FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
 
     // TODO: all members are currently public; hide them later
 public:
@@ -227,8 +229,6 @@ namespace GUI
 extern std::vector<Common::GUIMain> guis;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
-
-extern int mousex, mousey;
 
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);

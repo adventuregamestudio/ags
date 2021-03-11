@@ -65,6 +65,8 @@ int find_previous_enabled_cursor(int startwith);
 
 extern ScriptMouse scmouse;
 
+extern int mousex, mousey;
+extern char ignore_bounds;
 extern int cur_mode;
 extern int cur_cursor;
 

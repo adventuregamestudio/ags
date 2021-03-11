@@ -468,7 +468,6 @@ namespace AGS.Editor.Components
         private void CreateNewRoom(int roomNumber, RoomTemplate template)
         {
             UnloadedRoom newRoom = new UnloadedRoom(roomNumber);
-            Directory.CreateDirectory(newRoom.Directory);
 
             if (!PromptForAndDeleteAnyExistingRoomFile(newRoom.FileName))
             {
@@ -1947,7 +1946,6 @@ namespace AGS.Editor.Components
         private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom)
         {
             Room room = _nativeProxy.LoadRoom(unloadedRoom);
-            Directory.CreateDirectory(room.Directory);
 
             for (int i = 0; i < room.BackgroundCount; i++)
                 yield return SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i));

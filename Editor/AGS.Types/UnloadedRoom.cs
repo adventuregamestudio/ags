@@ -36,6 +36,7 @@ namespace AGS.Types
         public UnloadedRoom(int roomNumber)
         {
             _number = roomNumber;
+            System.IO.Directory.CreateDirectory(Directory);
         }
 
 		[DisplayName(PROPERTY_NAME_NUMBER)]

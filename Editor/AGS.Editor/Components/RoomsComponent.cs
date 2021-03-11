@@ -1898,9 +1898,6 @@ namespace AGS.Editor.Components
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed
 
-            Directory.CreateDirectory(UnloadedRoom.ROOM_DIRECTORY);
-            IRoomController roomController = this;
-
             Task.WaitAll(
                 _agsEditor.CurrentGame.Rooms
                 .Cast<UnloadedRoom>()

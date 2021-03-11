@@ -987,10 +987,14 @@ namespace AGS.Editor.Components
                 DockData previousDockData = GetPreviousDockData();
                 UnloadCurrentRoomAndGreyOutTree();
 
-				if (!File.Exists(newRoom.FileName))
-				{
-					_guiController.ShowMessage("The file '" + newRoom.FileName + "' was not found. Unable to open this room.", MessageBoxIcon.Warning);
-				}
+                if (!Directory.Exists(newRoom.Directory))
+                {
+                    _guiController.ShowMessage($"The room directory \"{newRoom.Directory}\" could not be found. Unable to open this room.", MessageBoxIcon.Error);
+                }
+                else if (!File.Exists(newRoom.DataFileName))
+                {
+                    _guiController.ShowMessage($"The room data file \"{newRoom.DataFileName} could not be found. Unable to open this room.", MessageBoxIcon.Error);
+                }
 				else
 				{
 					CompileMessages errors = new CompileMessages();

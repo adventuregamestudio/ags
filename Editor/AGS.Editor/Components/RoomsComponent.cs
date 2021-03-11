@@ -840,7 +840,7 @@ namespace AGS.Editor.Components
             LoadImageCache();
 
             // TODO: group these in some UpdateRoomToNewVersion method
-            _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
+            _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
             _loadedRoom.Modified |= ApplyDefaultMaskResolution();
@@ -1026,10 +1026,11 @@ namespace AGS.Editor.Components
 					treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_SETTINGS + _loadedRoom.Number, ROOM_ICON_LOADED);
 
 					_guiController.ShowOutputPanel(errors);
-				}
+                    return true;
+                }
 
-				return true;
-			}
+                return false;
+            }
         }
 
         private void CreateRoomSettings(DockData previousDockData)
@@ -1813,11 +1814,26 @@ namespace AGS.Editor.Components
 
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetBackgroundFileName(i))))
+                if (File.Exists(_loadedRoom.GetBackgroundFileName(i)))
                 {
-                    _backgroundCache.Add(new Bitmap(ms));
+                    using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetBackgroundFileName(i))))
+                    {
+                        _backgroundCache.Add(new Bitmap(ms));
+                    }
                 }
             }
+
+            if (!_backgroundCache.Any())
+            {
+                _backgroundCache.Add(new Bitmap(_loadedRoom.Width, _loadedRoom.Height));
+                _loadedRoom.BackgroundCount = 1;
+                _loadedRoom.Modified = true;
+                _guiController.ShowMessage(
+                    $"Could not to find any background images at \"{_loadedRoom.Directory}\", an empty " +
+                    $"default image will be used instead.",
+                    MessageBoxIcon.Warning);
+            }
+
             _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -1827,9 +1843,23 @@ namespace AGS.Editor.Components
                     continue;
                 }
 
-                using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetMaskFileName(mask))))
+                if (File.Exists(_loadedRoom.GetMaskFileName(mask)))
                 {
-                    _maskCache[mask] = new Bitmap(ms);
+                    using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetMaskFileName(mask))))
+                    {
+                        _maskCache[mask] = new Bitmap(ms);
+                    }
+                }
+                else
+                {
+                    double scale = _loadedRoom.GetMaskScale(mask);
+                    _maskCache[mask] = new Bitmap((int)(_loadedRoom.Width * scale), (int)(_loadedRoom.Height * scale), PixelFormat.Format8bppIndexed);
+                    _maskCache[mask].SetPaletteFromGlobalPalette();
+                    _loadedRoom.Modified = true;
+                    _guiController.ShowMessage(
+                        $"Could not to find mask at \"{_loadedRoom.GetMaskFileName(mask)}\", an empty " +
+                        $"default image will be used instead.",
+                        MessageBoxIcon.Warning);
                 }
             }
         }

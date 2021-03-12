@@ -116,6 +116,22 @@ namespace AGS.Types
             set { _script = value; }
         }
 
+        public string GetBackgroundFileName(int background)
+        {
+            if (background < 0 && background >= Room.MAX_BACKGROUNDS)
+                throw new ArgumentException($"Must be positive number, but less than {Room.MAX_BACKGROUNDS}", nameof(background));
+
+            return Path.Combine(Directory, $"background{background}.png");
+        }
+
+        public string GetMaskFileName(RoomAreaMaskType mask)
+        {
+            if (mask == RoomAreaMaskType.None)
+                throw new ArgumentException($"Argument cannot be {RoomAreaMaskType.None}, it does not have a file.", nameof(mask));
+
+            return Path.Combine(Directory, $"{mask.ToString().ToLower()}.png");
+        }
+
         public void LoadScript()
         {
 			if (_script == null)

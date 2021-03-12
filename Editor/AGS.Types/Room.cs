@@ -416,22 +416,6 @@ namespace AGS.Types
             }
         }
 
-        public string GetBackgroundFileName(int background)
-        {
-            if (background < 0 && background >= MAX_BACKGROUNDS)
-                throw new ArgumentException($"Must be positive number, but less than {MAX_BACKGROUNDS}", nameof(background));
-
-            return Path.Combine(Directory, $"background{background}.png");
-        }
-
-        public string GetMaskFileName(RoomAreaMaskType mask)
-        {
-            if (mask == RoomAreaMaskType.None)
-                throw new ArgumentException($"Argument cannot be {RoomAreaMaskType.None}, it does not have a file.", nameof(mask));
-
-            return Path.Combine(Directory, $"{mask.ToString().ToLower()}.png");
-        }
-
         void IChangeNotification.ItemModified()
 		{
 			this.Modified = true;

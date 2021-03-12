@@ -12,6 +12,7 @@ using System.Threading;
 using System.Linq;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AGS.Editor.Components
 {
@@ -835,7 +836,7 @@ namespace AGS.Editor.Components
 
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(File.ReadAllText(newRoom.DataFileName));
-            _loadedRoom = new Room(xml.FirstChild);
+            _loadedRoom = new Room(xml.SelectSingleNode("Room"));
             LoadImageCache();
 
             // TODO: group these in some UpdateRoomToNewVersion method
@@ -1143,8 +1144,26 @@ namespace AGS.Editor.Components
 				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.FileName, tempNewRoom.FileName);
                 _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.UserFileName, tempNewRoom.UserFileName);
                 _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
+                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.DataFileName, tempNewRoom.DataFileName);
+
+                for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
+                {
+                    string oldBackgroundFileName = oldRoom.GetBackgroundFileName(i);
+                    if (File.Exists(oldBackgroundFileName))
+                        _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldBackgroundFileName, tempNewRoom.GetBackgroundFileName(i));
+                }
+
+                foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(t => t != RoomAreaMaskType.None))
+                {
+                    string oldMaskFileName = oldRoom.GetMaskFileName(mask);
+                    if (File.Exists(oldMaskFileName))
+                        _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldMaskFileName, tempNewRoom.GetMaskFileName(mask));
+                }
 
 				oldRoom.Number = numberRequested;
+                XElement newRoomXml = XElement.Load(tempNewRoom.DataFileName);
+                newRoomXml.SetElementValue("Number", numberRequested);
+                newRoomXml.Save(tempNewRoom.DataFileName);
 
 				LoadDifferentRoom(oldRoom);
                 _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;

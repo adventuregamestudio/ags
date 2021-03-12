@@ -1950,11 +1950,17 @@ namespace AGS.Editor.Components
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed
 
+            BusyDialog.Show("Converting rooms from .crm to open format.", new BusyDialog.ProcessingHandler(ConvertAllRoomsFromCrmToOpenFormat), null);
+        }
+
+        private object ConvertAllRoomsFromCrmToOpenFormat(object paramenter)
+        {
             Task.WaitAll(
                 _agsEditor.CurrentGame.Rooms
                 .Cast<UnloadedRoom>()
                 .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r))
                 .ToArray());
+            return null;
         }
 
         /// <summary>

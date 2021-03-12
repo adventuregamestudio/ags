@@ -19,7 +19,7 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-
+#define NOMINMAX
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <SDL.h>
 #include <glm/ext.hpp>

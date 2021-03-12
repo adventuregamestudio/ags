@@ -84,6 +84,9 @@ public:
     // mouse cursor is at certain position on screen.
     bool        IsVisible() const;
 
+    // Returns GUI's graphic space params
+    inline const GraphicSpace &GetGraphicSpace() const { return _gs; }
+
     // Tells if GUI has graphically changed recently
     bool        HasChanged() const;
     // Manually marks GUI as graphically changed
@@ -118,6 +121,8 @@ public:
     HError  RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
+    // Sets GUI position
+    void    SetAt(int x, int y);
     // Sets whether GUI should react to player clicking on it
     void    SetClickable(bool on);
     // Override GUI visibility; when in concealed mode GUI won't show up
@@ -125,6 +130,10 @@ public:
     void    SetConceal(bool on);
     // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
+    // Sets GUI rotation, in degrees
+    void    SetRotation(float degrees);
+    // Sets GUI size
+    void    SetSize(int w, int h);
     // Changes GUI style to the text window or back
     void    SetTextWindow(bool on);
     // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
@@ -149,6 +158,9 @@ private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
     // Same as FindControlAt but expects local space coordinates
     int32_t FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
+
+    // Recalculate graphic space using current object properties
+    void    UpdateGraphicSpace();
 
     // TODO: all members are currently public; hide them later
 public:
@@ -181,6 +193,7 @@ public:
 
 private:
     int32_t _flags;         // style and behavior flags
+    GraphicSpace _gs;
     bool    _hasChanged;    // flag tells whether GUI has graphically changed recently
 
     // Array of types and control indexes in global GUI object arrays;

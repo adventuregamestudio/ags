@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#define NOMINMAX
 #include "gfx/ali3dsw.h"
 #include <algorithm>
 #include "ac/sys_events.h"

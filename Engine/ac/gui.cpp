@@ -108,34 +108,32 @@ int GUI_GetX(ScriptGUI *tehgui) {
   return guis[tehgui->id].X;
 }
 
-void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  guis[tehgui->id].X = xx;
+void GUI_SetX(ScriptGUI *tehgui, int x) {
+  guis[tehgui->id].SetAt(x, guis[tehgui->id].Y);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
   return guis[tehgui->id].Y;
 }
 
-void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  guis[tehgui->id].Y = yy;
+void GUI_SetY(ScriptGUI *tehgui, int y) {
+    guis[tehgui->id].SetAt(guis[tehgui->id].X, y);
 }
 
-void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
-  GUI_SetX(tehgui, xx);
-  GUI_SetY(tehgui, yy);
+void GUI_SetPosition(ScriptGUI *tehgui, int x, int y) {
+    guis[tehgui->id].SetAt(x, y);
 }
 
-void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1))
-    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
+void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
+  if ((w < 1) || (h < 1))
+    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", w, h);
 
   GUIMain *tehgui = &guis[sgui->id];
 
-  if ((tehgui->Width == widd) && (tehgui->Height == hitt))
+  if ((tehgui->Width == w) && (tehgui->Height == h))
     return;
   
-  tehgui->Width = widd;
-  tehgui->Height = hitt;
+  tehgui->SetSize(w, h);
   
   recreate_guibg_image(tehgui);
 
@@ -213,8 +211,9 @@ int GUI_GetTransparency(ScriptGUI *tehgui) {
 
 void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
-  tehgui->X = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
-  tehgui->Y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
+  int x = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
+  int y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
+  tehgui->SetAt(x, y);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
@@ -329,7 +328,7 @@ float GUI_GetRotation(ScriptGUI *gui) {
 }
 
 void GUI_SetRotation(ScriptGUI *gui, float rotation) {
-    guis[gui->id].Rotation = rotation;
+    guis[gui->id].SetRotation(rotation);
 }
 
 //=============================================================================

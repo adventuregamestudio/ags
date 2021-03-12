@@ -18,6 +18,10 @@
 #ifndef __AGS_CN_GFX__GFXDEF_H
 #define __AGS_CN_GFX__GFXDEF_H
 
+#include <algorithm>
+#include "util/geometry.h"
+#include "util/matrix.h"
+
 namespace AGS
 {
 namespace Common
@@ -38,6 +42,54 @@ enum BlendMode
     kBlend_Dodge,
     kNumBlendModes
 };
+
+
+// GraphicSpace provides information about object's graphic location and basic shape on screen;
+// this may be used for e.g. hit and collision detection.
+// TODO: better name?
+class GraphicSpace
+{
+public:
+    GraphicSpace() {}
+    GraphicSpace(int x, int y, int w, int h, float rot)
+    {
+        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f, 1.f,
+            Math::DegreesToRadians(rot), 0.5f * w, 0.5f * h);
+        /* Uncomment if appears necessary: Local->world transform + AABB
+        /*
+        L2WTransform = glmex::make_transform2d((float)x, (float)y, 1.f, 1.f,
+            -Math::DegreesToRadians(rot), -0.5f * w, -0.5f * h);
+        // TODO: better rounding
+        Rect aabb = RectWH(0, 0, w, h);
+        glm::vec4 lt = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Top);
+        glm::vec4 rb = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Bottom);
+        AABB = RectWH((int)std::min(lt.x, rb.x), (int)std::min(lt.y, rb.y), (int)std::abs(rb.x - lt.x), (int)std::abs(rb.y - lt.y));
+        */
+    }
+
+    // Converts world coordinate into local object space
+    inline Point WorldToLocal(int x, int y) const
+    {
+        glm::vec4 v = W2LTransform * glmex::vec4((float)x, (float)y);
+        return Point((int)v.x, (int)v.y); // TODO: better rounding
+    }
+
+    /* Uncomment if appears necessary
+    // Converts local object coordinates into world space
+    inline Point LocalToWorld(int x, int y) const
+    {
+        glm::vec4 v = L2WTransform * glmex::vec4((float)x, (float)y);
+        return Point((int)v.x, (int)v.y); // TODO: better rounding
+    }
+    */
+
+private:
+    glm::mat4 W2LTransform; // transform from world to local space           
+    // Uncomment if appears necessary: Local->world transform + AABB
+    //glm::mat4 L2WTransform; // transform from local to world space
+    //Rect AABB; // axis-aligned bounding box
+};
+
 
 namespace GfxDef
 {

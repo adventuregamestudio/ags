@@ -1296,6 +1296,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     int tint_level, tint_light, light_level;
     int zoom_level = 100;
 
+    // TODO: move this to update function, to where UpdateCycleView is called
+    // TODO: also do this when script sets a new graphic/view
     // calculate the zoom level
     if ((objs[aa].flags & OBJF_USEROOMSCALING) == 0)
     {
@@ -1324,6 +1326,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     objs[aa].last_width = sprwidth;
     objs[aa].last_height = sprheight;
+    objs[aa].UpdateGraphicSpace();
 
     tint_red = tint_green = tint_blue = tint_level = tint_light = light_level = 0;
 

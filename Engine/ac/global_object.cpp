@@ -84,7 +84,9 @@ int GetObjectIDAtRoom(int roomx, int roomy)
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
 
-        if (is_pos_in_sprite(roomx, roomy, xxx, yyy - spHeight, theImage,
+        // Convert to local object coordinates
+        Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
             spWidth, spHeight, isflipped) == FALSE)
             continue;
 
@@ -398,6 +400,7 @@ void SetObjectPosition(int objj, int tox, int toy) {
 
     objs[objj].x = tox;
     objs[objj].y = toy;
+    objs[objj].UpdateGraphicSpace();
 }
 
 void GetObjectName(int obj, char *buffer) {

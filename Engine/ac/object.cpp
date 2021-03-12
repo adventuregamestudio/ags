@@ -430,6 +430,7 @@ float Object_GetRotation(ScriptObject *objj) {
 
 void Object_SetRotation(ScriptObject *objj, float rotation) {
     objs[objj->id].rotation = rotation;
+    objs[objj->id].UpdateGraphicSpace();
 }
 
 

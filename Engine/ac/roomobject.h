@@ -54,12 +54,18 @@ struct RoomObject {
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
-	void UpdateCyclingView(int ref_id);
-	void update_cycle_view_forwards();
-	void update_cycle_view_backwards();
+    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    void UpdateGraphicSpace();
+
+    void UpdateCyclingView(int ref_id);
+    void update_cycle_view_forwards();
+    void update_cycle_view_backwards();
 
     void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;
+
+private:
+    Common::GraphicSpace _gs;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

@@ -49,6 +49,8 @@ RoomObject::RoomObject()
     blocking_width = blocking_height = 0;
     blend_mode = kBlend_Normal;
     rotation = 0.f;
+
+    UpdateGraphicSpace();
 }
 
 int RoomObject::get_width() {
@@ -184,6 +186,8 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
     {
         blend_mode = kBlend_Normal;
     }
+
+    UpdateGraphicSpace();
 }
 
 void RoomObject::WriteToFile(Stream *out) const
@@ -208,4 +212,9 @@ void RoomObject::WriteToFile(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+}
+
+void RoomObject::UpdateGraphicSpace()
+{
+    _gs = GraphicSpace(x, y - last_height, last_width, last_height, rotation);
 }

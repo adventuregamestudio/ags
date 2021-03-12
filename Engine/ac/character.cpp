@@ -1567,6 +1567,7 @@ float Character_GetRotation(CharacterInfo *chaa) {
 
 void Character_SetRotation(CharacterInfo *chaa, float rotation) {
     charextra[chaa->index_id].rotation = rotation;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
@@ -1604,6 +1605,7 @@ int Character_GetX(CharacterInfo *chaa) {
 
 void Character_SetX(CharacterInfo *chaa, int newval) {
     chaa->x = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetY(CharacterInfo *chaa) {
@@ -1612,6 +1614,7 @@ int Character_GetY(CharacterInfo *chaa) {
 
 void Character_SetY(CharacterInfo *chaa, int newval) {
     chaa->y = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetZ(CharacterInfo *chaa) {
@@ -1620,6 +1623,7 @@ int Character_GetZ(CharacterInfo *chaa) {
 
 void Character_SetZ(CharacterInfo *chaa, int newval) {
     chaa->z = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 extern int char_speaking;
@@ -2213,15 +2217,14 @@ int is_pos_on_character(int xx,int yy) {
         int usehit = charextra[cc].height;
         if (usewid==0) usewid=game.SpriteInfos[sppic].Width;
         if (usehit==0) usehit= game.SpriteInfos[sppic].Height;
-        int xxx = chin->x - usewid / 2;
-        int yyy = chin->get_effective_y() - usehit;
 
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
         Bitmap *theImage = GetCharacterImage(cc, &mirrored);
 
-        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
-            usewid,
-            usehit, mirrored) == FALSE)
+        // Convert to local object coordinates
+        Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
+            usewid, usehit, mirrored) == FALSE)
             continue;
 
         int use_base = chin->get_baseline();

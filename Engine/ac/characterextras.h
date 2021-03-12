@@ -26,6 +26,8 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+struct CharacterInfo;
+
 // TODO: now safe to merge with CharacterInfo into one class
 struct CharacterExtras {
     short invorder[MAX_INVORDER];
@@ -48,8 +50,14 @@ struct CharacterExtras {
     Common::BlendMode blend_mode;
     float rotation;
 
+    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+
+    void UpdateGraphicSpace(const CharacterInfo *chin);
     void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    Common::GraphicSpace _gs;
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

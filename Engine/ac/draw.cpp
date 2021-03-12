@@ -1715,21 +1715,19 @@ void prepare_characters_for_drawing() {
 
         our_eip = 3332;
 
+        // TODO: do this in update, and probably when script changes view too
         if (zoom_level != 100) {
             // it needs to be stretched, so calculate the new dimensions
-
             scale_sprite_size(sppic, zoom_level, &newwidth, &newheight);
-            charextra[aa].width=newwidth;
-            charextra[aa].height=newheight;
         }
         else {
             // draw at original size, so just use the sprite width and height
-            // TODO: store width and height always, that's much simplier to use for reference!
-            charextra[aa].width=0;
-            charextra[aa].height=0;
             newwidth = game.SpriteInfos[sppic].Width;
             newheight = game.SpriteInfos[sppic].Height;
         }
+        charextra[aa].width = newwidth;
+        charextra[aa].height = newheight;
+        charextra[aa].UpdateGraphicSpace(chin);
 
         our_eip = 3336;
 

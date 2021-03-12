@@ -131,6 +131,7 @@ target_sources(common
     util/lzw.cpp
     util/lzw.h
     util/math.h
+    util/matrix.h
     util/memory.h
     util/misc.cpp
     util/misc.h

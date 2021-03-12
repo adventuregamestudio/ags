@@ -12,6 +12,7 @@ namespace AGS.Types
         private const string ROOM_FILE_NAME_FORMAT = "room{0}.crm";
         private const string ROOM_SCRIPT_FILE_NAME_FORMAT = "room{0}.asc";
         private const string ROOM_USER_FILE_NAME_FORMAT = "room{0}.crm.user";
+        private const string ROOM_DATA_FILE_NAME_FORMAT = "data.xml";
 
 		public const int NON_STATE_SAVING_INDEX = 300;
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
@@ -25,8 +26,10 @@ namespace AGS.Types
 
 		public static bool DoRoomFilesExist(int roomNumber)
 		{
-			if (File.Exists(string.Format(ROOM_FILE_NAME_FORMAT, roomNumber)) ||
-				File.Exists(string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, roomNumber)))
+            string roomDirectory = Path.Combine(ROOM_DIRECTORY, $"{roomNumber}");
+
+			if (File.Exists(Path.Combine(ROOM_DIRECTORY, ROOM_DATA_FILE_NAME_FORMAT)) ||
+                File.Exists(Path.Combine(roomDirectory, string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, roomNumber))))
 			{
 				return true;
 			}
@@ -75,7 +78,7 @@ namespace AGS.Types
         [Description("The filename containing this room data")]
         [Category("Design")]
         [ReadOnly(true)]
-        public string DataFileName => Path.Combine(Directory, "data.xml");
+        public string DataFileName => Path.Combine(Directory, ROOM_DATA_FILE_NAME_FORMAT);
 
         [AGSNoSerialize]
         [Browsable(false)]

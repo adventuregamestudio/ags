@@ -239,19 +239,24 @@ void remove_screen_overlay_index(size_t over_idx)
     {
         play.complete_overlay_on = 0;
     }
-    else if (over.type == play.text_overlay_on || over.type == OVER_PICTURE)
+    else if (over.type == play.text_overlay_on)
     {
-        play.text_overlay_on = 0;
         if (play.speech_text_scover)
             invalidate_and_subref(over, play.speech_text_scover);
+        play.text_overlay_on = 0;
+    }
+    else if (over.type == OVER_PICTURE)
+    {
         if (play.speech_face_scover)
             invalidate_and_subref(over, play.speech_face_scover);
+        face_talking = -1;
     }
     dispose_overlay(over);
     screenover.erase(screenover.begin() + over_idx);
+    // if an overlay before the sierra-style speech one is removed, update the index
     // TODO: this is bad, need more generic system to store overlay references
-    if (face_talking >= 0)
-        face_talking = find_overlay_of_type(OVER_PICTURE);
+    if (face_talking >= 0 && (size_t)face_talking > over_idx)
+        face_talking--;
 }
 
 void remove_screen_overlay(int type)

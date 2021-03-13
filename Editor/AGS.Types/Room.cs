@@ -121,6 +121,7 @@ namespace AGS.Types
             _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(xml) { ID = i }));
         }
 
+        [AGSNoSerialize]
         [Browsable(false)]
         public bool Modified
         {

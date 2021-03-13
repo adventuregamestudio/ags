@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.5.0 - Patch 9, February 2021
+VERSION 3.5.0 - Patch 9, March 2021
 
 Editor:
  - Fixed importing Characters and GUIs saved by previous versions of the editor.

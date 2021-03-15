@@ -12,19 +12,21 @@
 //
 //=============================================================================
 //
-//
+// Runtime room object definition.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
+#include "core/types.h"
 #include "ac/common_defines.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// This struct is only used in save games and by plugins
-// [IKM] Not really.... used in update loop
+// IMPORTANT: exposed to plugin API as AGSObject!
+// keep that in mind if extending this struct, and dont change existing fields
+// unless you plan on adjusting plugin API as well.
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
@@ -33,9 +35,9 @@ struct RoomObject {
     short tint_light;
     short last_zoom;      // zoom level last time
     short last_width, last_height;   // width/height last time drawn
-    short num;            // sprite slot number
+    uint16_t num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
-    short view,loop,frame; // only used to track animation - 'num' holds the current sprite
+    uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
     short wait,moving;
     char  cycling;        // is it currently animating?
     char  overall_speed;
@@ -52,7 +54,7 @@ struct RoomObject {
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
-	void UpdateCyclingView();
+	void UpdateCyclingView(int ref_id);
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 

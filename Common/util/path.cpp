@@ -1,6 +1,7 @@
 
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
+#define NOMINMAX
 #include <windows.h>
 #endif
 #include "allegro/file.h"

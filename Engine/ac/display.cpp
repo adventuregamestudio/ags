@@ -228,7 +228,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
     }
     else {
         int xoffs,yoffs, oriwid = wii - padding * 2;
-        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
+        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&adjustedXX,&adjustedYY,&wii,&text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {

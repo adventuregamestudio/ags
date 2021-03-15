@@ -14,6 +14,7 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
@@ -673,8 +674,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _baseSize.Width = (adv_rect.right + (gfx_rect.left - win_rect.left)) - win_rect.left;
     _baseSize.Height = adv_rect.bottom - win_rect.top + border.bottom;
 
-    MoveWindow(_hwnd, max(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
-                      max(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
+    MoveWindow(_hwnd, std::max<int>(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
+                      std::max<int>(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
                       _baseSize.Width, _baseSize.Height, TRUE);
     SetFocus(GetDlgItem(_hwnd, IDOK));
     return FALSE; // notify WinAPI that we set focus ourselves
@@ -819,8 +820,8 @@ void WinSetupDialog::ShowAdvancedOptions()
 
     RECT win_rect;
     GetWindowRect(_hwnd, &win_rect);
-    MoveWindow(_hwnd, max(0, win_rect.left + (_baseSize.Width - _winSize.Width) / 2),
-                      max(0, win_rect.top + (_baseSize.Height - _winSize.Height) / 2),
+    MoveWindow(_hwnd, std::max<int>(0, win_rect.left + (_baseSize.Width - _winSize.Width) / 2),
+                      std::max<int>(0, win_rect.top + (_baseSize.Height - _winSize.Height) / 2),
                       _winSize.Width, _winSize.Height, TRUE);
 
     int offset = _winSize.Height - _baseSize.Height;
@@ -980,12 +981,12 @@ void WinSetupDialog::FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bo
 {
     ResetContent(hlist);
 
-    const int min_scale = min(_winCfg.GameResolution.Width / _minGameSize.Width, _winCfg.GameResolution.Height / _minGameSize.Height);
+    const int min_scale = std::min(_winCfg.GameResolution.Width / _minGameSize.Width, _winCfg.GameResolution.Height / _minGameSize.Height);
     const Size max_size = windowed ? _maxWindowSize : _winCfg.ScreenSize;
     const int max_scale = _winCfg.GameResolution.IsNull() ? 1 :
-        min(max_size.Width / _winCfg.GameResolution.Width, max_size.Height / _winCfg.GameResolution.Height);
-    _maxGameScale = max(1, max_scale);
-    _minGameScale = -max(1, min_scale);
+        std::min(max_size.Width / _winCfg.GameResolution.Width, max_size.Height / _winCfg.GameResolution.Height);
+    _maxGameScale = std::max(1, max_scale);
+    _minGameScale = -std::max(1, min_scale);
 
     if (windowed)
         AddString(hlist, "None (original game size)", 1 + kNumFrameScaleDef);

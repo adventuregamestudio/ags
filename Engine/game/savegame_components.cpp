@@ -796,7 +796,7 @@ HSaveError WriteDynamicSprites(Stream *out)
     out->WriteInt32(0); // top index
     int count = 0;
     int top_index = 1;
-    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {

@@ -587,7 +587,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<croom->numobj;cc++) {
             croom->obj[cc].x=thisroom.Objects[cc].X;
             croom->obj[cc].y=thisroom.Objects[cc].Y;
-            croom->obj[cc].num=thisroom.Objects[cc].Sprite;
+            croom->obj[cc].num = Math::InRangeOrDef<uint16_t>(thisroom.Objects[cc].Sprite, 0);
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].view=-1;
             croom->obj[cc].loop=0;
@@ -603,8 +603,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].blocking_width = 0;
             croom->obj[cc].blocking_height = 0;
             if (thisroom.Objects[cc].Baseline>=0)
-                //        croom->obj[cc].baseoffs=thisroom.Objects.Baseline[cc]-thisroom.Objects[cc].y;
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
+            if (thisroom.Objects[cc].Sprite > UINT16_MAX)
+                debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
+                    cc, thisroom.Objects[cc].Sprite, UINT16_MAX);
         }
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;

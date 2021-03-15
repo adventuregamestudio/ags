@@ -1119,6 +1119,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 }
 
 
+// Test if the game file contains expected GUID / legacy id
 bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
 {
     MainGameSource src;
@@ -1128,7 +1129,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     GameSetupStruct g;
     PreReadGameData(g, src.InputStream.get(), src.DataVersion);
     if (!guid.IsEmpty())
-        return guid.CompareNoCase(g.guid);
+        return guid.CompareNoCase(g.guid) == 0;
     return legacy_id == g.uniqueid;
 }
 

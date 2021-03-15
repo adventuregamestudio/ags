@@ -86,6 +86,20 @@ Locations of two latter files differ between running platforms:
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
+* **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
+  * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
+  * \[outputname\] = +GROUPLIST[:LEVEL];<br>
+    Groups may be defined either by name or by a LIST of one-letter IDs, preceded by '+', e.g. +ABCD:LEVEL. Verbosity may be defined either by name or a numberic ID.
+    - OUTPUTs are:
+      * stdout, file, console (where \"console\" is internal engine's console);
+    - GROUPs are:
+      * all, main (m), game (g), manobj (o), sprcache (c);
+    - LEVELs are:
+      * all, alert (1), fatal (2), error (3), warn (4), info (5), debug (6);
+    - Examples:
+      * file=all:warn
+      * stdout=+mg:debug
+  * file-path = \[string\] - custom path to the log file.
 * **\[override\]** - special options, overriding game behavior.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:
@@ -111,19 +125,35 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
+* --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.
 * --fullscreen - run in fullscreen mode.
 * --gfxdriver \<name\> - use specified graphics driver (see list above).
 * --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
-* --log - write debug messages to log file.
-* --no-log - prevent from writing to log file.
+* --loadsavedgame \<filepath\> - load savegame on startup.
+* --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
+* --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation above).
+  * Examples:
+    * --log-file=all:warn
+    * --log-stdout=+mg:debug
+* --log-file-path=PATH - define custom path for the log file.
+* --no-message-box - disable alerts as modal message boxes (Windows only).
+* --noiface - don't draw game GUI (for test purposes).
+* --noscript - don't run room scripts (for test purposes); *WARNING:* unreliable.
+* --nospr - don't draw room objects and characters (for test purposes).
+* --noupdate - don't run game update (for test purposes).
+* --novideo - don't play game videos (for test purposes).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
+* --startr \<room_number\> - start game by loading certain room (for test purposes).
 * --tell - print various information concerning engine and the game, and quits. Output is done in INI format.
   * --tell-config - print contents of merged game config.
   * --tell-configpath - print paths to available config files.
   * --tell-data - print information on game data and its location.
+  * --tell-gameproperties - print information on game general settings.
   * --tell-engine - print engine name and version.
+  * --tell-filepath - print all filepaths engine uses for the game.
   * --tell-graphicdriver - print list of supported graphic drivers.
+* --test - run game in the test mode, unlocking test key combinations and console.
 * --windowed - run in windowed mode.
 
 

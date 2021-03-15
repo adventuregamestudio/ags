@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
+#include <limits>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -71,6 +73,14 @@ namespace Math
     inline T Surplus(const T &larger, const T &smaller)
     {
         return larger > smaller ? larger - smaller : 0;
+    }
+
+    // Tests if the big-type value is in range of the result type;
+    // returns same value converted if it's in range, or provided replacement if it's not.
+    template <typename T, typename TBig>
+    inline T InRangeOrDef(const TBig &val, const T &def)
+    {
+        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ? val : def;
     }
 
     inline float RadiansToDegrees(float rads)

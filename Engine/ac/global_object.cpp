@@ -79,7 +79,7 @@ int GetObjectIDAtRoom(int roomx, int roomy)
         int isflipped = 0;
         int spWidth = game_to_data_coord(objs[aa].get_width());
         int spHeight = game_to_data_coord(objs[aa].get_height());
-        if (objs[aa].view >= 0)
+        if (objs[aa].view != (uint16_t)-1)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
@@ -140,12 +140,23 @@ void SetObjectView(int obn,int vii) {
     }
     vii--;
 
-    objs[obn].view=vii;
+    if (vii > UINT16_MAX)
+    {
+        debug_script_warn("Warning: object's (id %d) view %d is outside of internal range (%d), reset to no view",
+            obn, vii + 1, UINT16_MAX + 1);
+        SetObjectGraphic(obn, 0);
+        return;
+    }
+
+    objs[obn].view = (uint16_t)vii;
     objs[obn].frame=0;
     if (objs[obn].loop >= views[vii].numLoops)
         objs[obn].loop=0;
     objs[obn].cycling=0;
-    objs[obn].num = views[vii].loops[0].frames[0].pic;
+    int pic = views[vii].loops[0].frames[0].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 }
 
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
@@ -154,12 +165,20 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (viw>=game.numviews) quit("!SetObjectFrame: invalid view number used");
     if (views[viw].numLoops == 0) quit("!SetObjectFrame: specified view has no loops");
     if (lop>=views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
-    objs[obn].view=viw;
-    if (fra >= 0)
-        objs[obn].frame=fra;
-    if (lop >= 0)
-        objs[obn].loop=lop;
 
+    if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
+    {
+        debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
+            obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
+        SetObjectGraphic(obn, 0);
+        return;
+    }
+    
+    objs[obn].view = (uint16_t)viw;
+    if (lop >= 0)
+        objs[obn].loop = (uint16_t)lop;
+    if (fra >= 0)
+        objs[obn].frame = (uint16_t)fra;
     if (objs[obn].loop >= views[viw].numLoops)
         objs[obn].loop = 0;
     if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
@@ -174,7 +193,10 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     }
 
     objs[obn].cycling=0;
-    objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    int pic = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
 }
 
@@ -213,7 +235,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     }
     if (!is_valid_object(obn))
         quit("!AnimateObject: invalid object number specified");
-    if (objs[obn].view < 0)
+    if (objs[obn].view == (uint16_t)-1)
         quit("!AnimateObject: object has not been assigned a view");
     if (loopn < 0 || loopn >= views[objs[obn].view].numLoops)
         quit("!AnimateObject: invalid loop number specified");
@@ -226,21 +248,31 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     if (views[objs[obn].view].loops[loopn].numFrames < 1)
         quit("!AnimateObject: no frames in the specified view loop");
 
-    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, objs[obn].view+1, loopn, spdd, rept, sframe);
-
-    objs[obn].cycling = rept+1 + (direction * 10);
-    objs[obn].loop=loopn;
     // reverse animation starts at the *previous frame*
     if (direction) {
         sframe--;
         if (sframe < 0)
             sframe = views[objs[obn].view].loops[loopn].numFrames - (-sframe);
     }
-    objs[obn].frame = sframe;
 
+    if (loopn > UINT16_MAX || sframe > UINT16_MAX)
+    {
+        debug_script_warn("Warning: object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
+            obn, loopn, sframe, UINT16_MAX, UINT16_MAX);
+        return;
+    }
+
+    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, objs[obn].view +1, loopn, spdd, rept, sframe);
+
+    objs[obn].cycling = rept+1 + (direction * 10);
+    objs[obn].loop = (uint16_t)loopn;
+    objs[obn].frame = (uint16_t)sframe;
     objs[obn].overall_speed=spdd;
     objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
-    objs[obn].num = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
+    int pic = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
+    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    if (pic > UINT16_MAX)
+        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
     if (blocking)
@@ -320,7 +352,9 @@ void SetObjectGraphic(int obn,int slott) {
     if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 
     if (objs[obn].num != slott) {
-        objs[obn].num = slott;
+        objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
+        if (slott > UINT16_MAX)
+            debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
     objs[obn].cycling=0;

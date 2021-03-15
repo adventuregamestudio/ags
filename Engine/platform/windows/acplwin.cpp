@@ -15,6 +15,7 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
+#define NOMINMAX
 #include <direct.h>
 #include <string.h>
 #define BITMAP WINDOWS_BITMAP

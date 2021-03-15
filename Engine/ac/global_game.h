@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALGAME_H
 #define __AGS_EE_AC__GLOBALGAME_H
 
+#include <time.h>
 #include "util/string.h"
 using namespace AGS; // FIXME later
 

@@ -90,7 +90,7 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
-        if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
+        if (clip_name.CompareNoCase(game.audioClips[i].scriptName) == 0)
             return &game.audioClips[i];
     }
     return nullptr;
@@ -344,7 +344,7 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in, size_t count)
 
 //=============================================================================
 
-void GameSetupStruct::ReadFromSavegame(PStream in)
+void GameSetupStruct::ReadFromSavegame(Stream *in)
 {
     // of GameSetupStruct
     in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
@@ -358,7 +358,7 @@ void GameSetupStruct::ReadFromSavegame(PStream in)
     default_lipsync_frame = in->ReadInt32();
 }
 
-void GameSetupStruct::WriteForSavegame(PStream out)
+void GameSetupStruct::WriteForSavegame(Stream *out)
 {
     // of GameSetupStruct
     out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);

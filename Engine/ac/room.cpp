@@ -468,6 +468,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=203;
     in_new_room=1;
 
+    set_color_depth(game.GetColorDepth());
+
     // walkable_areas_temp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later
     delete walkable_areas_temp;
@@ -483,8 +485,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     update_polled_stuff_if_runtime();
-
-    set_color_depth(game.GetColorDepth());
     recache_walk_behinds();
     update_polled_stuff_if_runtime();
 
@@ -508,7 +508,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<croom->numobj;cc++) {
             croom->obj[cc].x=thisroom.Objects[cc].X;
             croom->obj[cc].y=thisroom.Objects[cc].Y;
-            croom->obj[cc].num=thisroom.Objects[cc].Sprite;
+            croom->obj[cc].num = Math::InRangeOrDef<uint16_t>(thisroom.Objects[cc].Sprite, 0);
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].view=-1;
             croom->obj[cc].loop=0;
@@ -526,6 +526,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             if (thisroom.Objects[cc].Baseline>=0)
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
             croom->obj[cc].blend_mode = thisroom.Objects[cc].BlendMode;
+            if (thisroom.Objects[cc].Sprite > UINT16_MAX)
+                debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
+                    cc, thisroom.Objects[cc].Sprite, UINT16_MAX);
         }
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;

@@ -166,16 +166,16 @@ String FindGameData(const String &path)
 }
 
 // Begins reading main game file from a generic stream
-HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
+static HGameFileError OpenMainGameFileBase(Stream *in, MainGameSource &src)
 {
     // Check data signature
-    String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
+    String data_sig = String::FromStreamCount(in, MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
         return new MainGameFileError(kMGFErr_SignatureFailed);
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     if (src.DataVersion >= kGameVersion_230)
-        src.CompiledWith = StrUtil::ReadString(in.get());
+        src.CompiledWith = StrUtil::ReadString(in);
     if (src.DataVersion < kGameVersion_341)
         return new MainGameFileError(kMGFErr_FormatVersionTooOld, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kGameVersion_341, kGameVersion_Current));
     if (src.DataVersion > kGameVersion_Current)
@@ -186,10 +186,8 @@ HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
     {
         size_t count = in->ReadInt32();
         for (size_t i = 0; i < count; ++i)
-            src.Caps.insert(StrUtil::ReadString(in.get()));
+            src.Caps.insert(StrUtil::ReadString(in));
     }
-    // Everything is fine, return opened stream
-    src.InputStream = in;
     // Remember loaded game data version
     // NOTE: this global variable is embedded in the code too much to get
     // rid of it too easily; the easy way is to set it whenever the main
@@ -203,10 +201,11 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Cleanup source struct
     src = MainGameSource();
     // Try to open given file
-    PStream in(File::OpenFileRead(filename));
+    Stream *in = File::OpenFileRead(filename);
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
+    src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
 }
 
@@ -216,15 +215,16 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
     src = MainGameSource();
     // Try to find and open main game file
     String filename = MainGameSource::DefaultFilename_v3;
-    PStream in(AssetMgr->OpenAsset(filename));
+    Stream *in = AssetMgr->OpenAsset(filename);
     if (!in)
     {
         filename = MainGameSource::DefaultFilename_v2;
-        in = PStream(AssetMgr->OpenAsset(filename));
+        in = AssetMgr->OpenAsset(filename);
     }
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
+    src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
 }
 
@@ -424,6 +424,9 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
 
 void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    if (ents.SpriteCount == 0)
+        return;
+
     // Apply sprite flags read from original format (sequential array)
     spriteset.EnlargeTo(ents.SpriteCount - 1);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
@@ -515,12 +518,12 @@ void FixupSaveDirectory(GameSetupStruct &game)
 
 HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
-    uint32_t sprcount;
+    size_t sprcount;
     if (data_ver < kGameVersion_256)
         sprcount = LEGACY_MAX_SPRITES_V25;
     else
         sprcount = in->ReadInt32();
-    if (sprcount > (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1)
+    if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
         return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %u, max: %u", sprcount, (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
     ents.SpriteCount = sprcount;

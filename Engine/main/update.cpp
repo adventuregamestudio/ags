@@ -187,11 +187,9 @@ void update_script_timers()
 void update_cycling_views()
 {
 	// update graphics for object if cycling view
-  for (int aa=0;aa<croom->numobj;aa++) {
-
-	  RoomObject * obj = &objs[aa];
-
-	  obj->UpdateCyclingView();
+  for (int i = 0; i < croom->numobj; ++i)
+  {
+      objs[i].UpdateCyclingView(i);
   }
 }
 

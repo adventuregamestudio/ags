@@ -88,7 +88,7 @@ struct SpriteFileIndex
 {
     int SpriteFileIDCheck = 0; // tag matching sprite file and index file
     sprkey_t LastSlot = -1;
-    sprkey_t SpriteCount = 0;
+    size_t SpriteCount = 0u;
     std::vector<int16_t> Widths;
     std::vector<int16_t> Heights;
     std::vector<soff_t>  Offsets;
@@ -124,7 +124,7 @@ public:
     // Returns maximal size limit of the cache, in bytes
     size_t      GetMaxCacheSize() const;
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
-    sprkey_t    GetSpriteSlotCount() const;
+    size_t      GetSpriteSlotCount() const;
     // Finds the topmost occupied slot index. Warning: may be slow.
     sprkey_t    FindTopmostSprite() const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)

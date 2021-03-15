@@ -177,13 +177,6 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
     app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
     {
-            String cfg_file = find_user_cfg_file();
-            if (cfg_file.IsEmpty())
-            {
-                app_res = EXIT_ERROR;
-                return false;
-            }
-
             Debug::Printf(kDbgMsg_Info, "Running Setup");
 
             ConfigTree cfg_with_meta = cfg;
@@ -192,7 +185,13 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             SetupReturnValue res = platform->RunSetup(cfg_with_meta, cfg_out);
             if (res != kSetup_Cancel)
             {
-                if (!IniUtil::Merge(cfg_file, cfg_out))
+                String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
+                if (cfg_file.IsEmpty())
+                {
+                    platform->DisplayAlert("Unable to write into directory '%s'.\n%s",
+                        GetGameUserConfigDir().FullDir.GetCStr(), platform->GetDiskWriteAccessTroubleshootingText());
+                }
+                else if (!IniUtil::Merge(cfg_file, cfg_out))
                 {
                     platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
                         platform->GetLastSystemError(), platform->GetDiskWriteAccessTroubleshootingText());

@@ -447,7 +447,7 @@ void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 
 void free_dynamic_sprite (int gotSlot) {
 
-  if ((gotSlot < 0) || (gotSlot >= spriteset.GetSpriteSlotCount()))
+  if ((gotSlot < 0) || ((size_t)gotSlot >= spriteset.GetSpriteSlotCount()))
     quit("!FreeDynamicSprite: invalid slot number");
 
   if ((game.SpriteInfos[gotSlot].Flags & SPF_DYNAMICALLOC) == 0)

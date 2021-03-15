@@ -30,6 +30,7 @@ using AGS::Common::String;
 extern const String UserSavedgamesRootToken;
 extern const String GameSavedgamesDirToken;
 extern const String GameDataDirToken;
+extern const String DefaultConfigFileName;
 
 // Subsitutes illegal characters with '_'. This function uses illegal chars array
 // specific to current platform.

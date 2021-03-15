@@ -97,7 +97,7 @@ size_t SpriteCache::GetMaxCacheSize() const
     return _maxCacheSize;
 }
 
-sprkey_t SpriteCache::GetSpriteSlotCount() const
+size_t SpriteCache::GetSpriteSlotCount() const
 {
     return _spriteData.size();
 }
@@ -814,7 +814,7 @@ HError SpriteCache::InitFile(const char *filename, const char *sprindex_filename
 
     sprkey_t topmost;
     if (vers < kSprfVersion_HighSpriteLimit)
-        topmost = _stream->ReadInt16();
+        topmost = (uint16_t)_stream->ReadInt16();
     else
         topmost = _stream->ReadInt32();
     if (vers < kSprfVersion_Uncompressed)

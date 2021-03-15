@@ -115,7 +115,7 @@ void pre_save_sprite(int ee) {
 Bitmap *tmpdbl, *curspr;
 void initialize_sprite (int ee) {
 
-    if ((ee < 0) || (ee > spriteset.GetSpriteSlotCount()))
+    if ((ee < 0) || ((size_t)ee > spriteset.GetSpriteSlotCount()))
         quit("initialize_sprite: invalid sprite number");
 
     if ((spriteset[ee] == nullptr) && (ee > 0)) {

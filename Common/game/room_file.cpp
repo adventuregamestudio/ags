@@ -79,22 +79,39 @@ String GetRoomFileErrorText(RoomFileErrorType err)
     return "Unknown error.";
 }
 
+// Read room data header and check that we support this format
+static HRoomFileError OpenRoomFileBase(Stream *in, RoomDataSource &src)
+{
+    src.DataVersion = (RoomFileVersion)in->ReadInt16();
+    if (src.DataVersion < kRoomVersion_303b || src.DataVersion > kRoomVersion_Current)
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
+    return HRoomFileError::None();
+}
+
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 {
     // Cleanup source struct
     src = RoomDataSource();
     // Try to open room file
+    Stream *in = File::OpenFileRead(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    src.Filename = filename;
+    src.InputStream.reset(in);
+    return OpenRoomFileBase(in, src);
+}
+
+HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src)
+{
+    // Cleanup source struct
+    src = RoomDataSource();
+    // Try to find and open room file
     Stream *in = AssetMgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
-    // Read room header
     src.Filename = filename;
-    src.DataVersion = (RoomFileVersion)in->ReadInt16();
-    if (src.DataVersion < kRoomVersion_303b || src.DataVersion > kRoomVersion_Current)
-        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_303b, kRoomVersion_Current));
-    // Everything is fine, return opened stream
     src.InputStream.reset(in);
-    return HRoomFileError::None();
+    return OpenRoomFileBase(in, src);
 }
 
 
@@ -141,7 +158,7 @@ String GetRoomBlockName(RoomFileBlock id)
 
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
-    obj.Sprite = in->ReadInt16();
+    obj.Sprite = (uint16_t)in->ReadInt16();
     obj.X = in->ReadInt16();
     obj.Y = in->ReadInt16();
     obj.Room = in->ReadInt16();
@@ -151,7 +168,7 @@ void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
 {
     // TODO: expand serialization into 32-bit values at least for the sprite index!!
-    out->WriteInt16((int16_t)obj.Sprite);
+    out->WriteInt16((uint16_t)obj.Sprite);
     out->WriteInt16((int16_t)obj.X);
     out->WriteInt16((int16_t)obj.Y);
     out->WriteInt16((int16_t)obj.Room);
@@ -451,7 +468,6 @@ HRoomFileError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver
         // Reserved for transform options (see list in savegame format)
         in->Seek(sizeof(int32_t) * 11);
     }
-
     return HRoomFileError::None();
 }
 
@@ -505,7 +521,6 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
         String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
 
-
 static HRoomFileError OpenNextBlock(Stream *in, RoomFileVersion data_ver, RoomFileBlock &block_id, String &ext_id, soff_t &block_len)
 {
     // The block meta format is shared with the main game file extensions
@@ -517,17 +532,18 @@ static HRoomFileError OpenNextBlock(Stream *in, RoomFileVersion data_ver, RoomFi
     int b = in->ReadByte();
     if (b < 0)
         return new RoomFileError(kRoomFileErr_UnexpectedEOF);
-    if (b == 0xFF)
+
+    block_id = (RoomFileBlock)b;
+    if (block_id == kRoomFile_EOF)
         return HRoomFileError::None(); // end of list
-    if (b > 0)
+
+    if (block_id > 0)
     { // old-style block identified by a numeric id
-        block_id = (RoomFileBlock)b;
         ext_id = GetRoomBlockName(block_id);
         block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
     }
     else
     { // new style block identified by a string id
-        block_id = kRoomFblk_None; // not important
         ext_id = String::FromStreamCount(in, 16);
         block_len = in->ReadInt64();
     }
@@ -629,15 +645,18 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
 
 HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)
 {
-    RoomFileBlock block;
-    do
+    while (true)
     {
+        RoomFileBlock block_id;
         String ext_id;
         soff_t block_len;
-        HRoomFileError err = OpenNextBlock(in, data_ver, block, ext_id, block_len);
+        HRoomFileError err = OpenNextBlock(in, data_ver, block_id, ext_id, block_len);
         if (!err)
             return err;
-        if (block == kRoomFblk_Script)
+        if (ext_id.IsEmpty())
+            break; // end of list
+
+        if (block_id == kRoomFblk_Script)
         {
             char *buf = nullptr;
             HRoomFileError err = ReadScriptBlock(buf, in, data_ver);
@@ -648,9 +667,8 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
             }
             return err;
         }
-        if (block != kRoomFile_EOF)
-            in->Seek(block_len); // skip block
-    } while (block != kRoomFile_EOF);
+        in->Seek(block_len); // skip block
+    };
     return new RoomFileError(kRoomFileErr_BlockNotFound);
 }
 

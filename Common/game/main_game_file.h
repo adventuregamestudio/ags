@@ -73,7 +73,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err);
 
 typedef TypedCodeError<MainGameFileErrorType, GetMainGameFileErrorText> MainGameFileError;
 typedef ErrorHandle<MainGameFileError> HGameFileError;
-typedef std::shared_ptr<Stream> PStream;
+typedef std::unique_ptr<Stream> UStream;
 
 // MainGameSource defines a successfully opened main game file
 struct MainGameSource
@@ -94,7 +94,7 @@ struct MainGameSource
     // currently is to let "alternate" game formats indicate themselves
     std::set<String>    Caps;
     // A ponter to the opened stream
-    PStream             InputStream;
+    UStream             InputStream;
 
     MainGameSource();
 };

@@ -631,7 +631,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     return HSaveError::None();
 }
 
-HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
+HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
 {
     PreservedParams pp;
     RestoredData r_data;
@@ -676,11 +676,11 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     WriteSaveImage(out, user_image);
 }
 
-PStream StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
+Stream *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
 {
     Stream *out = Common::File::CreateFile(filename);
     if (!out)
-        return PStream();
+        return nullptr;
 
     // Initialize and write Vista header
     RICH_GAME_MEDIA_HEADER vistaHeader;
@@ -707,7 +707,7 @@ PStream StartSavegame(const String &filename, const String &user_text, const Bit
 
     // Write descrition block
     WriteDescription(out, user_text, user_image);
-    return PStream(out);
+    return out;
 }
 
 void DoBeforeSave()
@@ -726,7 +726,7 @@ void DoBeforeSave()
     }
 }
 
-void SaveGameState(PStream out)
+void SaveGameState(Stream *out)
 {
     DoBeforeSave();
     SavegameComponents::WriteAllCommon(out);

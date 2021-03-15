@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Runtime room object definition.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
@@ -33,9 +33,9 @@ struct RoomObject {
     short tint_light;
     short zoom;           // zoom level, either manual or from the current area
     short last_width, last_height;   // width/height last time drawn
-    short num;            // sprite slot number
+    uint16_t num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
-    short view,loop,frame; // only used to track animation - 'num' holds the current sprite
+    uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
     short wait,moving;
     char  cycling;        // is it currently animating?
     char  overall_speed;
@@ -53,7 +53,7 @@ struct RoomObject {
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
-	void UpdateCyclingView();
+	void UpdateCyclingView(int ref_id);
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 

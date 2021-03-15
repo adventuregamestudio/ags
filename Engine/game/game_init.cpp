@@ -397,11 +397,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %u, max: %d", game.audioClipTypes.size(), MAX_AUDIO_TYPES));
 
     //
-    // 2. Apply overriding config settings
-    //
     // CLNUP: this stage is removed
-
-    //
     // 3. Allocate and init game objects
     //
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));

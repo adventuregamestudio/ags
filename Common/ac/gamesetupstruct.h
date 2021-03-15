@@ -148,8 +148,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     void ReadAudioClips_Aligned(Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
-    void ReadFromSavegame(Common::PStream in);
-    void WriteForSavegame(Common::PStream out);
+    void ReadFromSavegame(Common::Stream *in);
+    void WriteForSavegame(Common::Stream *out);
 };
 
 //=============================================================================

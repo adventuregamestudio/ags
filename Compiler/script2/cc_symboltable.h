@@ -455,22 +455,29 @@ public:
     // Functions
     inline size_t NumOfFuncParams(Symbol func) const
         { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1 : 0; }
-    inline bool IsVariadicFunc(Symbol func) const { return entries.at(func).FunctionD->IsVariadic; }
+    inline bool IsVariadicFunc(Symbol func) const
+        { return IsFunction(func) && entries.at(func).FunctionD->IsVariadic; }
     inline AGS::Vartype FuncReturnVartype(Symbol func) const
-        { return entries.at(func).FunctionD->Parameters[0u].Vartype; }
+        { return IsFunction(func) ? entries.at(func).FunctionD->Parameters[0u].Vartype : kKW_NoSymbol; }
 
     // Variables
-    inline bool IsImport(Symbol s) const { TypeQualifierSet const &TQ = entries.at(s).VariableD->TypeQualifiers; return TQ[TQ::kImport]; }
+    inline bool IsImport(Symbol s) const
+        { return IsVariable(s) ? entries.at(s).VariableD->TypeQualifiers[TQ::kImport] : false; }
     inline bool IsParameter(Symbol s) const { return kParameterScope == entries.at(s).Scope; };
     // The vartype of the variable, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype GetVartype(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->Vartype; }
-    inline bool IsAttribute(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }
+    inline AGS::Vartype GetVartype(Symbol s) const
+        { return IsVariable(s) ? entries.at(s).VariableD->Vartype : kKW_NoSymbol; }
+    inline bool IsAttribute(Symbol s) const
+        { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }
     ScopeType GetScopeType(Symbol s) const;
 
     // Operators
-    inline int BinaryOpPrio(Symbol s) const { return entries.at(s).OperatorD->BinaryPrio; }
-    inline int UnaryOpPrio(Symbol s) const { return entries.at(s).OperatorD->UnaryPrio; }
-    inline CodeCell OperatorOpcode(Symbol s) const { return entries.at(s).OperatorD->Opcode; }
+    inline int BinaryOpPrio(Symbol s) const
+        { return IsOperator(s) ? entries.at(s).OperatorD->BinaryPrio : 0; }
+    inline int UnaryOpPrio(Symbol s) const
+        { return IsOperator(s) ? entries.at(s).OperatorD->UnaryPrio : 0; }
+    inline CodeCell OperatorOpcode(Symbol s) const
+        { return IsOperator(s) ? entries.at(s).OperatorD->Opcode : 0; }
 
     // Strings
     bool IsAnyStringVartype(Symbol s) const;

@@ -3830,11 +3830,16 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SrcList &expression)
     if (1u == expression_length)
         return !_sym.IsVariable(first_sym);
 
-    Vartype outer_vartype = _sym.IsVartype(first_sym) ? first_sym : _sym.GetVartype(first_sym);
+    Vartype outer_vartype =
+        _sym.IsVartype(first_sym) ? first_sym :
+        _sym.IsVariable(first_sym) ? _sym.GetVartype(first_sym) :
+        kKW_NoSymbol;
     for (size_t dot_idx = 1; dot_idx < expression.Length() - 2; dot_idx += 2)
     {
         if (kKW_Dot != expression[dot_idx])
             return true;
+        if (!_sym.IsVartype(outer_vartype))
+            return false; // This is an error, but we'll find out about that later
         Symbol const unqualified_component = expression[dot_idx + 1];
         auto const &outer_components = _sym[outer_vartype].VartypeD->Components;
         if (0 == outer_components.count(unqualified_component))

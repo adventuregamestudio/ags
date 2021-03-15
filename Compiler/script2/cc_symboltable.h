@@ -463,7 +463,7 @@ public:
     inline bool IsImport(Symbol s) const { TypeQualifierSet const &TQ = entries.at(s).VariableD->TypeQualifiers; return TQ[TQ::kImport]; }
     inline bool IsParameter(Symbol s) const { return kParameterScope == entries.at(s).Scope; };
     // The vartype of the variable, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype GetVartype(Symbol s) const { return entries.at(s).VariableD->Vartype; }
+    inline AGS::Vartype GetVartype(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->Vartype; }
     inline bool IsAttribute(Symbol s) const { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }
     ScopeType GetScopeType(Symbol s) const;
 

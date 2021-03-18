@@ -27,6 +27,7 @@
 #include <allegro.h>
 
 #if AGS_DDRAW_GAMMA_CONTROL
+#define NOMINMAX
 #include <winalleg.h>
 #include <ddraw.h>
 #endif

@@ -25,6 +25,7 @@
 #error This file should only be included on the Windows build
 #endif
 
+#define NOMINMAX
 #include <memory>
 #include <allegro.h>
 #include <winalleg.h>

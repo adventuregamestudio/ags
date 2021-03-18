@@ -156,7 +156,7 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         {
             qreason = kQuit_GameError;
             alertis.Format("An error has occurred. Please contact the game author for support, as this "
-                "is likely to be a scripting error and not a bug in AGS.\n"
+                "is likely to be an error in game logic or script and not a bug in AGS engine.\n"
                 "(ACI version %s)\n\n", EngineVersion.LongString.GetCStr());
         }
 
@@ -179,7 +179,7 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
     else
     {
         alertis.Format("An internal error has occurred. Please note down the following information.\n"
-        "If the problem persists, post the details on the AGS Technical Forum.\n"
+        "If the problem persists, contact the game author for support or post these details on the AGS Technical Forum.\n"
         "(ACI version %s)\n"
         "\nError: ", EngineVersion.LongString.GetCStr());
         return kQuit_FatalError;

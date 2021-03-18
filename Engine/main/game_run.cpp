@@ -353,7 +353,7 @@ bool run_service_key_controls(int &key_out)
 
     // LAlt or RAlt + Enter
     // NOTE: for some reason LAlt + Enter produces same code as F9
-    if (act_shifts == KB_ALT_FLAG && ((keycode == eAGSKeyCodeF9 && !key[KEY_F9]) || keycode == eAGSKeyCodeReturn))
+    if ((keycode == eAGSKeyCodeF9 && !key[KEY_F9]) || (act_shifts == KB_ALT_FLAG && keycode == eAGSKeyCodeReturn))
     {
         engine_try_switch_windowed_gfxmode();
         return false;

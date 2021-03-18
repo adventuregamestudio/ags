@@ -246,7 +246,6 @@ void process_event(EventHappened*evp) {
         }
 
 		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
-        const Size &data_res = game.GetDataRes();
         const Rect &viewport = play.GetMainViewport();
 
         if ((theTransition == FADE_INSTANT) || ignore_transition)

@@ -26,6 +26,7 @@
 #endif
 
 #include <memory>
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <d3d9.h>
 #undef BITMAP

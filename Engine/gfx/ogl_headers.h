@@ -22,6 +22,7 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <SDL.h>
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP

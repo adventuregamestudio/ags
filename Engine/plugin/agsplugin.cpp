@@ -15,6 +15,7 @@
 #include "core/platform.h"
 #include <allegro.h>
 #if AGS_PLATFORM_OS_WINDOWS
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP

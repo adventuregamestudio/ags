@@ -408,7 +408,6 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
       }
       else if (src_depth == 32)
       {
-        unsigned int* memPtrLong = (unsigned int*)dst_ptr;
         unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
         if (*srcData == MASK_COLOR_32)
         {
@@ -479,7 +478,6 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, con
       }
       else if (src_depth == 32)
       {
-        unsigned int* memPtrLong = (unsigned int*)dst_ptr;
         unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
         if (has_alpha)
           memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), algeta32(*srcData));

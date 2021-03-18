@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.IO;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
-using System.Xml;
 using AGS.Types;
 
 namespace AGS.Editor
@@ -139,6 +134,30 @@ namespace AGS.Editor
             pnlTipOfTheDay.ForeColor = t.GetColor("welcome/pnlTipOfTheDay/foreground");
             pnlRight.BackColor = t.GetColor("welcome/pnlRight/background");
             pnlRight.ForeColor = t.GetColor("welcome/pnlRight/foreground");
+
+            // [ivan-mogilko] had to do this try/catch hack for new entries
+            // because ColorTheme methods do not have fallback mechanism atm
+            try
+            {
+                Color linkColor = t.GetColor("welcome/panel2/link");
+                foreach (LinkLabel link in panel2.Controls.OfType<LinkLabel>())
+                {
+                    link.LinkColor = linkColor;
+                }
+                linkColor = t.GetColor("welcome/pnlTipOfTheDay/link");
+                foreach (LinkLabel link in pnlTipOfTheDay.Controls.OfType<LinkLabel>())
+                {
+                    link.LinkColor = linkColor;
+                }
+                linkColor = t.GetColor("welcome/pnlRight/link");
+                foreach (LinkLabel link in pnlRight.Controls.OfType<LinkLabel>())
+                {
+                    link.LinkColor = linkColor;
+                }
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

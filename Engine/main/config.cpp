@@ -487,6 +487,7 @@ void post_config()
 
 void save_config_file()
 {
+#if defined (AGS_WRITE_USER_CONFIG_ON_EXIT)
     ConfigTree cfg;
 
     // Last display mode
@@ -523,4 +524,5 @@ void save_config_file()
     String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
     if (!cfg_file.IsEmpty())
         IniUtil::Merge(cfg_file, cfg);
+#endif // AGS_WRITE_USER_CONFIG_ON_EXIT
 }

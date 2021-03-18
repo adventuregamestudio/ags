@@ -487,7 +487,6 @@ void DialogOptions::Show()
     }
     else {
       //dlgyp=(play.viewport.GetHeight()-numdisp*txthit)-1;
-      const Rect &ui_view = play.GetUIViewport();
       areawid= ui_view.GetWidth()-5;
       padding = TEXTWINDOW_PADDING_DEFAULT;
       GET_OPTIONS_HEIGHT

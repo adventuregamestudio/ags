@@ -2497,7 +2497,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (tdyp < 0)
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
-            int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : height = charextra[aschar].height;
+            int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : charextra[aschar].height;
             tdyp = view->RoomToScreen(0, game.chars[aschar].get_effective_y() - height).first.Y
                     - 5;
             if (isThought) // if it's a thought, lift it a bit further up

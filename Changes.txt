@@ -1,5 +1,26 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 9, March 2021
+
+Editor:
+ - Fixed importing Characters and GUIs saved by previous versions of the editor.
+ - Added support for startup pane hyperlink color in Color Themes.
+
+Engine:
+ - Disabled writing user config upon game exit at least temporarily, because it was causing
+   confusion by unexpectedly overriding default config even if player did not start setup program.
+ - Fixed crash occuring if room object's Graphic is set to sprite with ID greater than 32767.
+ - Fixed button image did not appear updated right after restoring a save.
+ - Fixed legacy PlayMusic() and PlaySound() functions failing if the audio file
+   had uppercase characters in name (regression since 3.4.0).
+
+Linux:
+ - For users of prebuilt binaries fixed potential crash in ogg vorbis library that could occur upon
+   restoring a save made while sounds were playing.
+ - Fixed OpenGL window did not resize properly upon running the game on some systems.
+ - Fixed Alt + Enter combination for toggling window mode was not detected on some systems.
+
+
 VERSION 3.5.0 - Patch 8, February 2021
 
 Common:

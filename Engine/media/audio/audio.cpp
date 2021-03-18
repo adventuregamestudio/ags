@@ -742,7 +742,7 @@ static int play_sound_priority (int val1, int priority) {
             if (usechan >= 0)
             { // channel will hold a different clip here
                 assert(usechan == i);
-                auto *ch = lock.GetChannel(usechan);
+                ch = lock.GetChannel(usechan);
                 if (ch)
                     ch->priority = priority;
             }

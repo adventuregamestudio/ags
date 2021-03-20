@@ -156,6 +156,10 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile
       sys_window_set_size(mode.Width, mode.Height, true);
   }
 
+#if AGS_PLATFORM_OS_ANDROID
+  SDL_RenderSetLogicalSize(_renderer,mode.Width,mode.Height);
+#endif
+
   OnInit(loopTimer);
   OnModeSet(mode);
   // If we already have a gfx filter, then use it to update virtual screen immediately
@@ -206,7 +210,9 @@ void SDLRendererGraphicsDriver::DestroyVirtualScreen()
 {
   delete[] _fakeTexBitmap; // don't use destroy_bitmap(), because it's a fake structure
   _fakeTexBitmap = nullptr;
-  SDL_DestroyTexture(_screenTex);
+  if(_screenTex != nullptr) {
+      SDL_DestroyTexture(_screenTex);
+  }
   _screenTex = nullptr;
 
   _origVirtualScreen.reset();

@@ -1,7 +1,63 @@
-# Using the engine
+# Welcome to AGS Android
 
+## Building
 
-## Adding games to the game list
+There are three projects here, in three different directories:
+
+- `agsplayer/` : App AGS Player for running `.ags` games on your phone.
+- `library/runtime/` : Module AGS Runtime for building AGS based Apps.
+- `mygame/` : App MyGame you can customize for shipping your AGS game on Android (tbd)
+
+If you load the `agsplayer` directory on Android Studio, it will pickup and use the `library/runtime` module.
+
+Additionally, there are other directories too:
+
+- `gradle` : to hold shared gradle scripts when needed
+- `misc` : has an example `android.cfg` file 
+
+### Building Requirements
+
+Building should be done using Android Studio 4.1.2 or above. For the native parts, you will also need:
+
+- CMake 3.16.3, which has to be added to PATH
+- Ninja (at least 1.10.0 should be good), also needs to be added to PATH
+
+In the future Android Studio 4.2 and above will ship with CMake 3.18, once this happens, installing CMake and Ninja outside of it won't be needed.
+
+You can use other versions of CMake locally, you will need to adjust the version number `ags/Android/library/runtime/build.gradle`.
+
+Once you open one of the above projects, wait for gradle to sync and the files to index. The first time it builds, an 
+internet connection is required since gradle and CMake will fetch dependencies and download them to appropriate directories.
+
+### Building tips
+
+If you want to skip native builds, you can unzip the prebuilt libraries available on the project Releases and place them in place them in `library/runtime/libs`, which will allow to build only the Java parts and skip the native builds. 
+A text file on the directory has more information.
+
+You can also make a runtime library `uk.co.adventuregamestudio.runtime.aar` that will have all you need for making AGS based Android Apps.
+Go the the `library/runtime` directory and run `./gradlew assembleRelease`, this should produce the desired artifact in `library/runtime/build/outputs/aar`.
+
+If you want to write, build and debug Java, Kotlin and Cpp code seamlessly, remove the binary library files from the `library/runtime/libs` directory so that 
+Android Studio integrates the build tasks and you can change and debug native code on your phone or the emulator with expected behavior. A file describing the expected files is placed there.
+ 
+If your internet connection is not great, you can enable Android Studio Gradle plugin Offline mode after one successful dependency download 
+and build has been made, by clicking in the severed connection button for Offline Mode in the gradle plugin menu. See picture below.
+
+![](offline_mode_android_studio.png)
+
+### Packaging
+
+Release builds of the `agsplayer` app are done using a debug key so it's easier to install. Notice that each machine debug keys
+are different, so it's necessary to uninstall the player before installing a new version or Android will fail to check the keys.
+If you don't have auto-generated debug keys yet, they are automatically created the first time a debug build is finished on the computer.
+
+If you want to build from the command line, you can run `./gradlew assembleRelease` or `./gradlew assembleDebug` from the `agsplayer` directory to produce a build of the apk in `agsplayer/app/build/outputs/apk`.
+
+---
+
+## Using the AGS Player
+
+### Adding games to the game list
 
 By default games have to be placed into the external storage device. This is
 usually the SD-card, but this can vary.
@@ -12,9 +68,7 @@ Place the game into the directory
 
 <GAME NAME> is what will be displayed in the game list.
 
-
-
-## Game options
+### Game options
 
 Global options can be configured by pressing the MENU button on the game list
 and choosing the "Preferences" item. These settings apply to all games unless
@@ -26,150 +80,12 @@ you choose custom preferences specifically for that game.
 In the same menu you can also choose "Continue" to resume the game from
 your last savegame.
 
-
-
-## Controls
-
--   Finger movement: Moving the mouse cursor
--   Single finger tap: Perform a left click
--   Tap with two fingers: Perform a right click
--   Longclick: Hold down the left mouse button until tapping the screen again
--   MENU button: Opens a menu for key input and quitting the game
--   MENU button longpress: Opens and closes the onscreen keyboard
--   BACK button: Sends ESC key command to the game
--   BACK button longpress: Opens a menu for key input and quitting the game
-
-
-
-
-## Downloading prebuilt engine packages
-
-Unsigned APKs suitable for running any compatible AGS game may be found linked in the
-corresponding release posts on [AGS forum board](http://www.adventuregamestudio.co.uk/forums/index.php?board=28.0).
-
-
-
-## MIDI playback
-
-For midi music playback, you have to download GUS patches. We recommend
-"Richard Sanders's GUS patches" from this address:
-
-http://alleg.sourceforge.net/digmid.html
-
-A direct link is here:
-
-http://www.eglebbk.dds.nl/program/download/digmid.dat
-
-This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
-which should be about 25 MB large. Extract that file, rename it to **patches.dat**
-and place it into the  **ags** directory alongside your games.
-
-
-
-# Building the engine
-
-The Android app consists of three parts, each with different requirements:
-
-- **Java app**: needs the Android SDK for Windows, Linux or Mac. If you build from command-line as opposed to Android Studio you also need Apache Ant. Requires built native engine library.
-- **Native engine library**: needs the Android NDK for Windows, Linux or Mac. Requires built native 3rd party libraries.
-- **Native 3rd party libraries**: need the Android NDK for Linux and number of tools (see full list in the corresponding section below).
-
-For example, if you have got prebuilt native engine library (e.g. provided as a part of AGS release), you may follow instructions for "Java app" straight away.
-If you are building from scratch, then first follow "Native 3rd party libraries", then "Native engine library", and "Java app" only then.
-
-
-## Native 3rd party libraries
-
-These are backend and utility libraries necessary for the AGS engine. Building them currently is only possible on Linux.
-
-Requirements:
-* Android NDK r16b (not later). This is the preferred NDK which is still able to build all the libraries and produce output compatible with older devices that we still support. Download link: https://developer.android.com/ndk/downloads/older_releases#ndk-16b-downloads
-* Following tools must be installed on your Linux system as they are used for downloading library sources and  during build process: **autoconf**, **automake**, **cmake**, **curl**, **libtool**.
-
-After you have installed Android NDK you have to prepare three standalone toolchains for the android-14 platform, for "arm", "x86" and "mips" processors.
-(See https://developer.android.com/ndk/guides/standalone_toolchain.html for general reference.)
-
-Set NDK_HOME variable, pointing to the location of Android NDK at your system, e.g. assuming the ndk is installed in '/opt/android-ndk-r16b':
-
-    $ export NDK_HOME=/opt/android-ndk-r16b
-
-then generate toolchains:
-
-    $ $NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 14 --install-dir $NDK_HOME/platforms/android-14/arm
-    $ $NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86 --api 14 --install-dir $NDK_HOME/platforms/android-14/x86
-    $ $NDK_HOME/build/tools/make_standalone_toolchain.py --arch mips --api 14 --install-dir $NDK_HOME/platforms/android-14/mips
-
-If you don't specify "--install-dir" this will create an archive in a working directory, in which case you should manually unpack it to the respective place.
-
-Now, assuming `<SOURCE>` is AGS source location,
-
-    $ cd <SOURCE>/Android/buildlibs
-    $ ./buildall.sh
-
-This will download, patch, build and properly install the required libraries.
-
-Library sources must be available in `<SOURCE>/libsrc`. Compiled libraries will be put in `<SOURCE>/Android/nativelibs`.
-
-
-## Native engine library
-
-This is the main AGS engine code. Before building it you must have native 3rd party libraries ready.
-
-**IMPORTANT:** Android port integrates number of plugins as a part of the engine. Some of the plugin sources
-may be included as submodules, so make sure to initialize submodules before compiling it, e.g. from the
-root <SOURCE> directory:
-
-    $ git submodule update --init --recursive
-
-It must be compiled using the Android NDK. This can
-simply be done by running ndk-build within the <SOURCE>Android/library directory.
-
-e.g. (assuming the NDK is installed in /opt)
-
-    $ export PATH=$PATH:/opt/android-ndk-r16b
-    $ cd <SOURCE>/Android/library
-    $ ndk-build
-
-The native code is built for all current Android architecture, that is armv6, armv7-a,
-x86 and mips.
-
-
-## Java app
-
-There are two parts to the Java app, one is the engine library in `<SOURCE>/Android/library` and the other one is the launcher app. The default launcher which displays a list of games from the SD-card is in `<SOURCE>/Android/launcher_list`.
-
-You must have installed Android SDK with platform support for **Android 4.1** (api level 16); this may be done through Android Studio's SDK manager.
-
-Alternatively, if you do not want to install full Android Studio IDE, you may download only command-line SDK tools. In that case you will have to use following command to download and install necessary components:
-
-    $ cd <SDK>/tools/bin
-    $ ./sdkmanager "build-tools;x.x.x" "platform-tools" "platforms;android-16"
-
-In the above `<SDK>` is where you've unpacked SDK "tools", and `x.x.x` in `build-tools;x.x.x` is the version of build tools you'd prefer, commonly the latest one. To see the list of available components do e.g. -
-
-    $ ./sdkmanager --list | grep build-tools
-
-The easiest way to build the app is to create an Android project in Eclipse. Choose the "create from existing source" option and point Eclipse to the launcher directory.
-
-To build from the command line, you can use Apache Ant (should have it installed first). If you go this way you also have to download an older version of Android SDK tools folder because ant's scripts were removed from the newer SDKs.
-See [this stackoverflow.com question](https://stackoverflow.com/questions/42912824/the-ant-folder-is-suddenly-missing-from-android-sdk-did-google-remove-it) for the reference.
-The download link for Linux: https://dl.google.com/android/repository/tools_r25.2.5-linux.zip
-
-This archive contains "tools" directory which should be merged with the directory of same name inside SDK, *skipping* existing files.
-
-Now you are ready to run the ant script, e.g. (assuming the SDK is installed in /opt):
-
-    $ export ANDROID_HOME=/opt/android-sdk-linux
-    $ cd <SOURCE>/Android/launcher_list
-    $ ant debug
-    $ ant release # for release build
-
-
+---
 
 ## Links
 
-Android SDK: http://developer.android.com/sdk/
+Android Studio: https://developer.android.com/studio/
 
-Android NDK: http://developer.android.com/ndk/
+Android NDK: https://developer.android.com/ndk/
 
-Android thread on the AGS forum: http://www.adventuregamestudio.co.uk/yabb/index.php?topic=44768.0
+Android thread on the AGS forum: https://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0

@@ -43,6 +43,10 @@ if(NOT sdl2_content_POPULATED)
     endif()
     include_directories("${sdl2_content_BINARY_DIR}/include")
 
+    if(EXISTS "${sdl2_content_SOURCE_DIR}/android-project")
+        file(REMOVE_RECURSE "${sdl2_content_SOURCE_DIR}/android-project")
+    endif()
+
     file(COPY CMake/Extra/sdl2-config.cmake DESTINATION ${sdl2_content_BINARY_DIR})
     set(SDL2_DIR ${sdl2_content_BINARY_DIR})
     list(APPEND SDL2_INCLUDE_DIRS "${sdl2_content_BINARY_DIR}/include/SDL2/")

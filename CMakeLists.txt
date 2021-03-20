@@ -12,8 +12,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
-option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
+option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
+
+
+message("------ AGS selected CMake options ------")
+message(" AGS_NO_MP3_PLAYER: ${AGS_NO_MP3_PLAYER}")
+message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
+message(" AGS_BUILTIN_PLUGINS: ${AGS_BUILTIN_PLUGINS}")
+message("----------------------------------------")
 
 # Tools like ninja don't have a pseudo-terminal so compilers assume no coloured output
 option (AGS_FORCE_COLOURED_OUTPUT "Always produce ANSI-coloured output (GNU/Clang only)." OFF)
@@ -34,6 +41,8 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LINUX TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    set(ANDROID TRUE)
 else()
     message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
 endif ()
@@ -42,6 +51,7 @@ message( "CMAKE_SYSTEM_NAME:" ${CMAKE_SYSTEM_NAME} )
 message( "WIN32:" ${WIN32} )
 message( "LINUX:" ${LINUX} )
 message( "MACOS:" ${MACOS} )
+message( "ANDROID:" ${ANDROID} )
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
@@ -57,16 +67,32 @@ if(LINUX)
     endif ()
 endif (LINUX)
 
+if(ANDROID)
+    set(AGS_OPENGLES2 TRUE)
+endif(ANDROID)
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
-if(ipo_supported)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE          TRUE)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO   TRUE)
+# Unfortunately there's an upstream bug in Android NDK with Clang
+# https://github.com/android/ndk/issues/721
+# https://reviews.llvm.org/D79919
+# The issue has been fixed upstream but hasn't been rolled in Android Studio yet
+# Once it gets fixed, we can remove the Android special case.
+if(NOT ANDROID)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
+    if(ipo_supported)
+        if(${CMAKE_BUILD_TYPE} MATCHES Release)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE          TRUE)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO   TRUE)
+        endif()
+    else()
+        message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
+    endif()
 else()
-    message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
+    # it is Android NDK, so we apply LTO on Release Builds
+    if(${CMAKE_BUILD_TYPE} MATCHES Release)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -flto=full")
+    endif()
 endif()
-
 
 add_compile_definitions("_FILE_OFFSET_BITS=64")
 
@@ -152,9 +178,14 @@ add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
 add_subdirectory(Common                         EXCLUDE_FROM_ALL)
 
 add_subdirectory(Engine/libsrc/apeg-1.2.1       EXCLUDE_FROM_ALL)
-add_subdirectory(Engine/libsrc/glad             EXCLUDE_FROM_ALL)
+if(AGS_OPENGLES2)
+    add_subdirectory(Engine/libsrc/glad-gles2       EXCLUDE_FROM_ALL)
+else()
+    add_subdirectory(Engine/libsrc/glad             EXCLUDE_FROM_ALL)
+endif()
 add_subdirectory(Engine/libsrc/libcda-0.5       EXCLUDE_FROM_ALL)
 
+add_subdirectory(Engine/libsrc/glm     EXCLUDE_FROM_ALL)
 add_subdirectory(Engine)
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)

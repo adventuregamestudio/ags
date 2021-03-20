@@ -27,8 +27,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "util/string_compat.h"
-
-
+#include "SDL.h"
 
 #include <jni.h>
 #include <android/log.h>
@@ -37,7 +36,7 @@ using namespace AGS::Common;
 
 #define ANDROID_CONFIG_FILENAME "android.cfg"
 
-bool ReadConfiguration(char* filename, bool read_everything);
+bool ReadConfiguration(const char* filename, bool read_everything);
 void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver {
@@ -53,6 +52,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void WriteStdErr(const char *fmt, ...);
+  virtual void MainInitAdjustments();
 };
 
 
@@ -64,13 +64,13 @@ int psp_config_enabled = 0;
 char psp_translation[100];
 char* psp_translations[100];
 
-// Mouse option from Allegro.
-extern int config_mouse_control_mode;
+// Mouse option
+int config_mouse_control_mode;
 
 
-// Graphic options from the Allegro library.
-extern int psp_gfx_scaling;
-extern int psp_gfx_smoothing;
+// Graphic options
+int psp_gfx_scaling;
+int psp_gfx_smoothing;
 
 
 // Audio options from the Allegro library.
@@ -87,7 +87,7 @@ int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 int psp_gfx_smooth_sprites = 0;
 
-int psp_debug_write_to_logcat = 0;
+int psp_debug_write_to_logcat = 1;
 
 int config_mouse_longclick = 0;
 
@@ -95,7 +95,7 @@ extern int display_fps;
 extern int want_exit;
 extern void PauseGame();
 extern void UnPauseGame();
-extern int main(int argc,char*argv[]);
+//extern int main(int argc,char*argv[]);
 
 char android_base_directory[256];
 char android_app_directory[256];
@@ -108,7 +108,7 @@ extern const char *loadSaveGameOnStartup;
 char lastSaveGameName[200];
 
 
-extern JavaVM* android_jni_vm;
+JavaVM* android_jni_vm;
 JNIEnv *java_environment;
 jobject java_object;
 jclass java_class;
@@ -148,7 +148,7 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 extern void android_debug_printf(const char* format, ...);
 
 JNIEXPORT jboolean JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
 {
   const char* cdirectory = env->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
@@ -161,7 +161,7 @@ JNIEXPORT jboolean JNICALL
 
 
 JNIEXPORT jboolean JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object)
 {
   FILE* config = fopen(ANDROID_CONFIG_FILENAME, "wb");
   if (config)
@@ -213,7 +213,8 @@ JNIEXPORT jboolean JNICALL
 
 
 JNIEXPORT jint JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_readIntConfigValue(JNIEnv* env, jobject object, jint id)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readIntConfigValue(JNIEnv* env,
+                                                                                 jclass object, jint id)
 {
   switch (id)
   {
@@ -285,7 +286,8 @@ JNIEXPORT jint JNICALL
 
 
 JNIEXPORT jstring JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_readStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readStringConfigValue(JNIEnv* env,
+                                                                                    jclass object, jint id)
 {
   switch (id)
   {
@@ -297,7 +299,7 @@ JNIEXPORT jstring JNICALL
 
 
 JNIEXPORT void JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_setIntConfigValue(JNIEnv* env, jobject object, jint id, jint value)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setIntConfigValue(JNIEnv* env, jobject object, jint id, jint value)
 {
   switch (id)
   {
@@ -368,7 +370,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT void JNICALL
-  Java_com_bigbluecup_android_PreferencesActivity_setStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
 {
   const char* cstring = env->GetStringUTFChars(value, NULL);
 
@@ -386,7 +388,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jint JNICALL
-Java_com_bigbluecup_android_PreferencesActivity_getAvailableTranslations(JNIEnv* env, jobject object, jobjectArray translations)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_getAvailableTranslations(JNIEnv* env, jobject object, jobjectArray translations)
 {
   int i = 0;
   int length;
@@ -453,7 +455,7 @@ JNIEXPORT jboolean JNICALL
   java_enableLongclick = java_environment->GetMethodID(java_class, "enableLongclick", "()V");
 
   // Initialize JNI for Allegro.
-  android_allegro_initialize_jni(java_environment, java_class, java_object);
+  //android_allegro_initialize_jni(java_environment, java_class, java_object);
 
   // Get the file to run from Java.
   const char* cpath = java_environment->GetStringUTFChars(filename, NULL);
@@ -503,7 +505,7 @@ JNIEXPORT jboolean JNICALL
   psp_load_latest_savegame = loadLastSave;
 
   // Start the engine main function.
-  main(1, &psp_game_file_name_pointer);
+ // main(1, &psp_game_file_name_pointer);
   
   // Explicitly quit here, otherwise the app will hang forever.
   exit(0);
@@ -549,7 +551,7 @@ void selectLatestSavegame()
 }
 
 
-int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name, int minimum, int maximum, int default_value)
+int ReadInteger(int* variable, const ConfigTree &cfg, const char* section, const char* name, int minimum, int maximum, int default_value)
 {
   if (reset_configuration)
   {
@@ -572,7 +574,7 @@ int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name,
 
 
 
-int ReadString(char* variable, const ConfigTree &cfg, char* section, char* name, char* default_value)
+int ReadString(char* variable, const ConfigTree &cfg, const char* section, const char* name, const char* default_value)
 {
   if (reset_configuration)
   {
@@ -602,7 +604,7 @@ void ResetConfiguration()
 
 
 
-bool ReadConfiguration(char* filename, bool read_everything)
+bool ReadConfiguration(const char* filename, bool read_everything)
 {
   ConfigTree cfg;
   if (IniUtil::Read(filename, cfg) || reset_configuration)
@@ -652,7 +654,92 @@ bool ReadConfiguration(char* filename, bool read_everything)
   return false;
 }
 
+void AGSAndroid::MainInitAdjustments()
+{
+    // retrieve the JNI environment.
+    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
 
+    // retrieve the Java instance of the SDLActivity
+    jobject activity = (jobject)SDL_AndroidGetActivity();
+
+    // find the Java class of the activity.
+    jclass clazz(env->GetObjectClass(activity));
+
+    jfieldID fid_game_file_name = env->GetFieldID(clazz, "_game_file_name", "Ljava/lang/String;");
+    jobject jobj_game_file_name = env->GetObjectField(activity, fid_game_file_name);
+    const char * _game_file_name;
+    _game_file_name = env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
+    if(_game_file_name != nullptr) {
+        strcpy(psp_game_file_name, _game_file_name);
+    }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_game_file_name), _game_file_name);
+
+    jfieldID fid_android_base_directory = env->GetFieldID(clazz, "_android_base_directory", "Ljava/lang/String;");
+    jobject jobj_android_base_directory = env->GetObjectField(activity, fid_android_base_directory);
+    const char * _android_base_directory;
+    _android_base_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
+    if(_android_base_directory != nullptr) {
+        strcpy(android_base_directory, _android_base_directory);
+    }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_base_directory), _android_base_directory);
+
+    jfieldID fid_android_app_directory = env->GetFieldID(clazz, "_android_app_directory", "Ljava/lang/String;");
+    jobject jobj_android_app_directory = env->GetObjectField(activity, fid_android_app_directory);
+    const char * _android_app_directory;
+    _android_app_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
+    if(_android_app_directory != nullptr) {
+        strcpy(android_app_directory, _android_app_directory);
+    }
+    env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_app_directory), _android_app_directory);
+
+    jfieldID fid_loadLastSave = env->GetFieldID(clazz, "_loadLastSave", "Z");
+    jboolean jbool_loadLastSave = env->GetBooleanField(activity, fid_loadLastSave);
+    bool loadLastSave = jbool_loadLastSave;
+
+    // Reset configuration.
+    ResetConfiguration();
+
+    // Read general configuration.
+    ReadConfiguration((char*) ANDROID_CONFIG_FILENAME, true);
+
+    // Get the games path.
+    char path[256];
+    strcpy(path, psp_game_file_name);
+    int lastindex = strlen(path) - 1;
+    while (path[lastindex] != '/')
+    {
+        path[lastindex] = 0;
+        lastindex--;
+    }
+    chdir(path);
+
+    setenv("ULTRADIR", "..", 1);
+
+    // Read game specific configuration.
+    ReadConfiguration((char*) ANDROID_CONFIG_FILENAME, false);
+
+    // Set the screen rotation.
+    if (psp_rotation == 0) {
+      // Auto, let the user rotate as wished.
+    } else if(psp_rotation == 1) {
+      // Portrait
+      SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
+    }  else if(psp_rotation == 2) {
+      // Landscape
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+    }
+
+    if (config_mouse_longclick > 0) {
+        jmethodID method_id = env->GetMethodID(clazz, "AgsEnableLongclick", "()V");
+        env->CallVoidMethod(activity, method_id);
+    }
+
+    psp_load_latest_savegame = loadLastSave;
+
+    // clean up the local references.
+    env->DeleteLocalRef(activity);
+    env->DeleteLocalRef(clazz);
+}
 
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
@@ -660,15 +747,18 @@ int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
 
 void AGSAndroid::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
+  va_list args;
+  va_start(args, text);
+  vsprintf(displbuf, text, args);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative",displbuf, nullptr);
+  va_end(args);
 
+
+  /*
   // It is possible that this is called from a thread that is not yet known
   // to the Java VM. So attach it first before displaying the message.
   JNIEnv* thread_env;
-  android_jni_vm->AttachCurrentThread(&thread_env, NULL);
+ // android_jni_vm->AttachCurrentThread(&thread_env, NULL);
 
   __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
 
@@ -676,7 +766,7 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
   usleep(1000 * 1000);
   thread_env->CallVoidMethod(java_object, java_blockExecution);
-
+*/
 //  android_jni_vm->DetachCurrentThread();
 }
 
@@ -698,7 +788,7 @@ int AGSAndroid::InitializeCDPlayer() {
 }
 
 void AGSAndroid::PostBackendExit() {
-  java_environment->DeleteGlobalRef(java_class);
+  //java_environment->DeleteGlobalRef(java_class);
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)

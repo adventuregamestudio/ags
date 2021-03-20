@@ -1,7 +1,7 @@
 FetchContent_Declare(
   theora_content
-  GIT_REPOSITORY https://github.com/xiph/theora.git
-  GIT_TAG        e5d205bfe849f1b41f45b91a0b71a3bdc6cd458f
+  URL https://github.com/xiph/theora/archive/7180717276af1ebc7da15c83162d6c5d6203aabf.tar.gz
+  URL_HASH MD5=5f1c0b5efdec0f9621bc59ba89e6652b
 )
 
 FetchContent_GetProperties(theora_content)

@@ -560,14 +560,23 @@ target_link_libraries(engine PUBLIC
     Threads::Threads 
     Allegro::Allegro 
     Cda::Cda
+    glm::glm
     External::OpenAL
     SDL2::SDL2
-    Glad::Glad
     SDL2_sound::SDL2_sound
 )
 
+if (AGS_OPENGLES2)
+    target_link_libraries(engine PUBLIC EGL GLESv2 Glad::GladGLES2)
+else()
+    target_link_libraries(engine PUBLIC Glad::Glad)
+endif (AGS_OPENGLES2)
+
 # common has a circular dependency on engine
+# TODO: currently required for gcc support, will look into this.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 target_link_libraries(common PUBLIC engine)
+endif ()
 
 if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
@@ -592,11 +601,31 @@ get_target_property(ENGINE_SOURCES engine SOURCES)
 # Set ROOT to parent directory to include Plugins/
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
 
+# Android helper
+# -----------------------------------------------------------------------------
+
+if(ANDROID)
+    add_library(pe SHARED)
+    set_target_properties(pe PROPERTIES
+            CXX_STANDARD 11
+            CXX_EXTENSIONS NO
+            C_STANDARD 11
+            C_EXTENSIONS YES
+            )
+    target_sources(pe
+            PRIVATE
+            platform/android/helper/pe_jni.c)
+    target_link_libraries(pe PRIVATE engine)
+endif(ANDROID)
 
 # Standalone exe
 # -----------------------------------------------------------------------------
+if (NOT ANDROID)
+    add_executable(ags)
+else ()
+    add_library(ags SHARED)
+endif (NOT ANDROID)
 
-add_executable(ags)
 if (LINUX)
     install(TARGETS ags RUNTIME DESTINATION bin)
 endif ()

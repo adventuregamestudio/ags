@@ -15,7 +15,8 @@
 #include "ac/timer.h"
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG && defined (__GNUC__)
+// <execinfo.h> is not present on Android 
+#if AGS_PLATFORM_DEBUG && defined (__GNUC__) && !AGS_PLATFORM_OS_ANDROID
 #include <stdio.h>
 #include <execinfo.h>
 #include <unistd.h>
@@ -92,7 +93,7 @@ bool waitingForNextTick()
 
     auto is_lagging = (now - last_tick_time) > (MAXIMUM_FALL_BEHIND*tick_duration);
     if (is_lagging) {
-#if AGS_PLATFORM_DEBUG && defined (__GNUC__)
+#if AGS_PLATFORM_DEBUG && defined (__GNUC__) && !AGS_PLATFORM_OS_ANDROID
         auto missed_ticks = ((now - last_tick_time)/tick_duration);
         printf("Lagging! Missed %lld ticks!\n", (long long)missed_ticks);
         void *array[10];

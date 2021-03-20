@@ -1,0 +1,44 @@
+apply plugin: 'com.android.application'
+
+def keyStorePropertiesFile = rootProject.file('local.static.properties')
+def keyStoreProperties = new Properties()
+keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
+
+def projectPropertiesFile = rootProject.file('project.properties')
+def projectProperties = new Properties()
+projectProperties.load(new FileInputStream(projectPropertiesFile))
+
+android {
+    compileSdkVersion = 28
+    buildToolsVersion = '28.0.3'
+
+    defaultConfig {
+        applicationId projectProperties['applicationId']
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode Integer.parseInt(projectProperties.getProperty('versionCode'))
+        versionName projectProperties['versionName']
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(keyStoreProperties['storeFile'])
+            storePassword keyStoreProperties['storePassword']
+            keyAlias keyStoreProperties['keyAlias']
+            keyPassword keyStoreProperties['keyPassword']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    api project(':runtime')
+    api project(':downloader_library')
+    implementation 'androidx.core:core:1.3.2'
+}

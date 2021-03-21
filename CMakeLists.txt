@@ -172,6 +172,8 @@ include(FetchOgg)
 include(FetchVorbis)
 include(FetchTheora)
 
+add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
+
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
@@ -185,7 +187,6 @@ else()
 endif()
 add_subdirectory(Engine/libsrc/libcda-0.5       EXCLUDE_FROM_ALL)
 
-add_subdirectory(Engine/libsrc/glm     EXCLUDE_FROM_ALL)
 add_subdirectory(Engine)
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)

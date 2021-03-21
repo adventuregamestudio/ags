@@ -3,7 +3,7 @@ USE_MIDI_PATCH = 1
 
 include Makefile-defs.freetype
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include ../Engine/libsrc/glm $(ALLEGRO_SRCDIR)/include
+INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include ../libsrc/glm $(ALLEGRO_SRCDIR)/include
 LIBDIR =
 
 CFLAGS := -O2 -g \

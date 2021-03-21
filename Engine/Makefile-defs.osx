@@ -1,7 +1,7 @@
 USE_BUILT_IN_LIBSRC = 1
 USE_MIDI_PATCH = 0
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../OSX/include ../OSX/include/freetype2 ../Engine/libsrc/glad/include  ../Engine/libsrc/glm 
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../OSX/include ../OSX/include/freetype2 ../Engine/libsrc/glad/include ../libsrc/glm 
 LIBDIR = ../OSX/lib
 
 CFLAGS := -O2 -g \

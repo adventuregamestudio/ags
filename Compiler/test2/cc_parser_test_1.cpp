@@ -1264,3 +1264,31 @@ TEST_F(Compile1, ForwardStructAutoptr)
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
     EXPECT_NE(std::string::npos, msg2.find("'builtin'"));
 }
+
+TEST_F(Compile1, FuncThenAssign)
+{
+    // A function symbol in front of an assignment
+    // The compiler should complain about a missing '('  
+
+    char *inpl2 = "\
+        import int GetTextHeight                    \n\
+            (const string text, int, int width);    \n\
+                                                    \n\
+        builtin managed struct Character            \n\
+        {                                           \n\
+            readonly import attribute int Baseline; \n\
+        };                                          \n\
+                                                    \n\
+        import readonly Character *player;          \n\
+                                                    \n\
+        int game_start()                            \n\
+        {                                           \n\
+            GetTextHeight                           \n\
+            player.Baseline = 1;                    \n\
+        }                                           \n\
+        ";
+    int compile_result2 = cc_compile(inpl2, scrip);
+    std::string msg2 = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
+    EXPECT_NE(std::string::npos, msg2.find("'('"));
+}

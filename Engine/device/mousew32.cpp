@@ -81,6 +81,8 @@ void mgetgraphpos()
         // The cursor coordinates are provided from alternate source;
         // in this case we completely ignore actual cursor movement.
         if (!ignore_bounds &&
+            // When applying script bounds we only do so while cursor is inside game viewport
+            Mouse::ControlRect.IsInside(mousex, mousey) &&
             (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
         {
             mousex = Math::Clamp(mousex, boundx1, boundx2);
@@ -110,6 +112,8 @@ void mgetgraphpos()
     mousey = real_mouse_y;
 
     if (!ignore_bounds &&
+        // When applying script bounds we only do so while cursor is inside game viewport
+        Mouse::ControlRect.IsInside(mousex, mousey) &&
         (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
     {
         mousex = Math::Clamp(mousex, boundx1, boundx2);

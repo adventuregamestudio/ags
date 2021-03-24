@@ -152,6 +152,8 @@ bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup);
 bool graphics_mode_set_filter_any(const GfxFilterSetup &setup);
 // Set the scaling filter with given ID
 bool graphics_mode_set_filter(const String &filter_id);
+// Update graphic renderer and render frame when window size changes
+void graphics_mode_on_window_changed(const Size &sz);
 // Releases current graphic mode and shuts down renderer
 void graphics_mode_shutdown();
 

@@ -1448,6 +1448,13 @@ bool engine_try_switch_windowed_gfxmode()
     return res;
 }
 
+void engine_on_window_changed(const Size &sz)
+{
+    graphics_mode_on_window_changed(sz);
+    on_coordinates_scaling_changed();
+    invalidate_screen();
+}
+
 void engine_shutdown_gfxmode()
 {
     if (!gfxDriver)

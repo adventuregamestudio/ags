@@ -22,6 +22,7 @@
 #include "ac/timer.h"
 #include "device/mousew32.h"
 #include "platform/base/agsplatformdriver.h"
+#include "main/engine.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -481,6 +482,9 @@ void sys_evt_process_one(const SDL_Event &event) {
             if (_on_switchout_callback) {
                 _on_switchout_callback();
             }
+            break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            engine_on_window_changed(Size(event.window.data1, event.window.data2));
             break;
         }
         break;

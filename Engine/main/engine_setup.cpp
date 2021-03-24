@@ -312,10 +312,12 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     bool has_driver_changed = scsystem.coldepth != dm.ColorDepth;
 
     engine_setup_scsystem_screen(dm);
-    engine_post_gfxmode_driver_setup();
-    engine_post_gfxmode_screen_setup(dm, has_driver_changed);
     if (has_driver_changed)
+    {
+        engine_post_gfxmode_driver_setup();
         engine_post_gfxmode_draw_setup(dm);
+    }
+    engine_post_gfxmode_screen_setup(dm, has_driver_changed);   
     engine_post_gfxmode_mouse_setup(dm, init_desktop);
 
     video_on_gfxmode_changed();

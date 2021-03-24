@@ -92,8 +92,7 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, bool windo
     }
     // TODO: support display index selection (?)
     // TODO: support separate fullscreen and desktop (borderless fullscreen window) modes
-    // TODO: support resizable window later, might need callback for engine and/or gfx renderer
-    Uint32 flags = 0u/*SDL_WINDOW_RESIZABLE*/;
+    Uint32 flags = SDL_WINDOW_RESIZABLE;
     if (!windowed) {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP/*SDL_WINDOW_FULLSCREEN*/;
     }

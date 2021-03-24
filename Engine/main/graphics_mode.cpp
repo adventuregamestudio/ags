@@ -654,6 +654,14 @@ bool graphics_mode_set_filter(const String &filter_id)
     return true;
 }
 
+void graphics_mode_on_window_changed(const Size &sz)
+{
+    if (!gfxDriver)
+        return; // nothing to update
+    gfxDriver->UpdateDeviceScreen(sz);
+    graphics_mode_update_render_frame();
+}
+
 void graphics_mode_shutdown()
 {
     if (GfxFactory)

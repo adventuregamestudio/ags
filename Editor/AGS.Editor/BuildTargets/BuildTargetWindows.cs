@@ -211,6 +211,8 @@ namespace AGS.Editor
             else
                 errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameData)));
             CopyAuxiliaryGameFiles(compiledDataDir, true);
+            // Copy DLLs
+            File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, "SDL2.dll"), Path.Combine(GetCompiledPath(), "SDL2.dll"), true);
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
             // Copy Windows plugins

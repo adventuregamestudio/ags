@@ -167,6 +167,15 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile
   return true;
 }
 
+void SDLRendererGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
+{
+  _mode.Width = screen_sz.Width;
+  _mode.Height = screen_sz.Height;
+#if AGS_PLATFORM_OS_ANDROID
+  SDL_RenderSetLogicalSize(_renderer, _mode.Width, _mode.Height);
+#endif
+}
+
 void SDLRendererGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)

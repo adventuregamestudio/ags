@@ -175,6 +175,7 @@ public:
     const char*GetDriverID() override { return "D3D9"; }
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    void UpdateDeviceScreen(const Size &screen_sz) override;
     bool SetNativeSize(const Size &src_size) override;
     bool SetRenderFrame(const Rect &dst_rect) override;
     int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;

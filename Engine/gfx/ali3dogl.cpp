@@ -148,17 +148,13 @@ void OGLGraphicsDriver::CreateDesktopScreen()
   _mode.Height = device_screen_physical_height;
 }
 
-#if  0
-void OGLGraphicsDriver::UpdateDeviceScreen()
+void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
 {
-    SDL_GL_GetDrawableSize(this->sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
-
+    SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
     Debug::Printf("OGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
-    InitGlParams(_mode);
 }
-#endif
 
 void OGLGraphicsDriver::Vsync()
 {

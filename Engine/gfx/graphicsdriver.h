@@ -83,6 +83,8 @@ public:
   virtual void SetTintMethod(TintMethod method) = 0;
   // Initialize given display mode
   virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) = 0;
+  // Updates previously set display mode, accomodating to the new screen size
+  virtual void UpdateDeviceScreen(const Size &screen_size) = 0;
   // Gets if a graphics mode was initialized
   virtual bool IsModeSet() const = 0;
   // Set the size of the native image size

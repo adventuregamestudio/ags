@@ -778,6 +778,28 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   return true;
 }
 
+void D3DGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
+{
+  _mode.Width = screen_sz.Width;
+  _mode.Height = screen_sz.Height;
+  // TODO: following resets D3D9 device, which may be sub-optimal;
+  // there seem to be an option to not do this if new window size is smaller
+  // and SWAPEFFECT_COPY flag is set, in which case (supposedly) we could
+  // draw using same device parameters, but adjusting viewport accordingly.
+  d3dpp.BackBufferWidth = _mode.Width;
+  d3dpp.BackBufferHeight = _mode.Height;
+  HRESULT hr = ResetD3DDevice();
+  if (hr != D3D_OK)
+  {
+      Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
+      return;
+  }
+  InitializeD3DState();
+  CreateVirtualScreen();
+  direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+  SetupViewport();
+}
+
 void D3DGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsNativeSizeValid())

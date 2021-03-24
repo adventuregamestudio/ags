@@ -29,7 +29,6 @@ GraphicsDriverBase::GraphicsDriverBase()
     , _drawScreenCallback(nullptr)
     , _nullSpriteCallback(nullptr)
     , _initGfxCallback(nullptr)
-    , _initSurfaceUpdateCallback(nullptr)
 {
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;

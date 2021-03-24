@@ -157,8 +157,6 @@ void OGLGraphicsDriver::UpdateDeviceScreen()
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
     InitGlParams(_mode);
-    if (_initSurfaceUpdateCallback)
-        _initSurfaceUpdateCallback();
 }
 #endif
 

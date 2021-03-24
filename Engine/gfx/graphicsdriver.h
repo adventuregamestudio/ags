@@ -74,10 +74,6 @@ struct SpriteTransform
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKXY)(int x, int y);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
-// Called if the rendering surface was resized by the external code (library).
-// Mainly for Android and iOS ports; they are currently written in such way that
-// the actual rendering surface size is redefined after IGraphicsDriver initialization.
-typedef void (*GFXDRV_CLIENTCALLBACKSURFACEUPDATE)();
 
 class IGraphicsDriver
 {
@@ -107,7 +103,6 @@ public:
   // TODO: get rid of draw screen callback at some point when all fade functions are more or less grouped in one
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
-  virtual void SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE) = 0;
   // The NullSprite callback is called in the main render loop when a
   // null sprite is encountered. You can use this to hook into the rendering
   // process.

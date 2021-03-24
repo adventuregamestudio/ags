@@ -532,21 +532,12 @@ ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed)
     return windowed ? SavedWindowedSetting : SavedFullscreenSetting;
 }
 
-bool graphics_mode_update_render_frame();
-void GfxDriverOnSurfaceUpdate()
-{
-    // Resize render frame using current scaling settings
-    graphics_mode_update_render_frame();
-    on_coordinates_scaling_changed();
-}
-
 bool graphics_mode_create_renderer(const String &driver_id)
 {
     if (!create_gfx_driver(driver_id))
         return false;
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
-    gfxDriver->SetCallbackOnSurfaceUpdate(GfxDriverOnSurfaceUpdate);
     // TODO: this is remains of the old code; find out if this is really
     // the best time and place to set the tint method
     gfxDriver->SetTintMethod(TintReColourise);

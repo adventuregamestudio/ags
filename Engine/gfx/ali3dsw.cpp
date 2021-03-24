@@ -106,9 +106,6 @@ void SDLRendererGraphicsDriver::SetGraphicsFilter(PSDLRenderFilter filter)
   // e.g like D3D and OGL filters act
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-
-  // If we already have a gfx mode set, then use the new filter to update virtual screen immediately
-  CreateVirtualScreen();
 }
 
 void SDLRendererGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -162,8 +159,6 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile
 
   OnInit(loopTimer);
   OnModeSet(mode);
-  // If we already have a gfx filter, then use it to update virtual screen immediately
-  CreateVirtualScreen();
   return true;
 }
 
@@ -178,7 +173,7 @@ void SDLRendererGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
 
 void SDLRendererGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
+  if (!IsNativeSizeValid())
     return;
   DestroyVirtualScreen();
   // Initialize virtual screen; size is equal to native resolution
@@ -240,7 +235,6 @@ void SDLRendererGraphicsDriver::ReleaseDisplayMode()
 bool SDLRendererGraphicsDriver::SetNativeSize(const Size &src_size)
 {
   OnSetNativeSize(src_size);
-  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
   CreateVirtualScreen();
   return !_srcRect.IsEmpty();
 }
@@ -248,8 +242,6 @@ bool SDLRendererGraphicsDriver::SetNativeSize(const Size &src_size)
 bool SDLRendererGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
   OnSetRenderFrame(dst_rect);
-  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
-  CreateVirtualScreen();
   return !_dstRect.IsEmpty();
 }
 

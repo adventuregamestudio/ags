@@ -50,7 +50,7 @@ int convert_16bit_bgr = 0;
 // Necessary for pre 3.1.0 games only to sync with modern engine.
 void convert_gui_to_game_resolution(GameDataVersion filever)
 {
-    if (filever > kGameVersion_310)
+    if (filever >= kGameVersion_310)
         return;
 
     const int mul = game.GetDataUpscaleMult();

@@ -944,7 +944,7 @@ Rect OGLGraphicsDriver::ConvertTopDownRect(const Rect &rect, int surface_height)
     return RectWH(rect.Left, surface_height - 1 - rect.Bottom, rect.GetWidth(), rect.GetHeight());
 }
 
-bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
+bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
 
@@ -969,7 +969,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
     return false;
   }
 
-  OnInit(loopTimer);
+  OnInit();
 
   // On certain platforms OpenGL renderer ignores requested screen sizes
   // and uses values imposed by the operating system (device).

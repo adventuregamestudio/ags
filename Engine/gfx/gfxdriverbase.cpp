@@ -83,7 +83,7 @@ void GraphicsDriverBase::ClearDrawLists()
     _spriteBatchDesc.resize(1);
 }
 
-void GraphicsDriverBase::OnInit(volatile int *loopTimer)
+void GraphicsDriverBase::OnInit()
 {
 }
 

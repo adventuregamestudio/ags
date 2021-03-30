@@ -78,6 +78,7 @@ struct WinConfig
 
     String GfxDriverId;
     String GfxFilterId;
+    bool   UseDesktopSize;
     Size   ScreenSize;
     GameFrameSetup FsGameFrame;
     GameFrameSetup WinGameFrame;
@@ -116,6 +117,7 @@ void WinConfig::SetDefaults()
 
     GfxFilterId = "StdScale";
     GfxDriverId = "D3D9";
+    UseDesktopSize = true;
     ScreenSize = get_desktop_size();
     FsGameFrame.ScaleDef = kFrame_MaxProportional;
     WinGameFrame.ScaleDef = kFrame_MaxRound;
@@ -151,6 +153,8 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
+    ScreenSizeDefinition def = parse_screendef(INIreadstring(cfg, "graphics", "screen_def"), kScreenDef_MaxDisplay);
+    UseDesktopSize = (def == kScreenDef_MaxDisplay);
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
 
@@ -188,7 +192,7 @@ void WinConfig::Save(ConfigTree &cfg)
 
     INIwritestring(cfg, "graphics", "driver", GfxDriverId);
     INIwritestring(cfg, "graphics", "filter", GfxFilterId);
-    INIwritestring(cfg, "graphics", "screen_def", Windowed ? "scaling" : "explicit");
+    INIwritestring(cfg, "graphics", "screen_def", Windowed ? "scaling" : (UseDesktopSize ? "max" : "explicit"));
     INIwriteint(cfg, "graphics", "screen_width", ScreenSize.Width);
     INIwriteint(cfg, "graphics", "screen_height", ScreenSize.Height);
     INIwritestring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame));
@@ -458,7 +462,7 @@ private:
     void InitGfxModes();
     void InitDriverDescFromFactory(const String &id);
     void SaveSetup();
-    void SelectNearestGfxMode(const Size screen_size);
+    void SelectNearestGfxMode(const Size screen_size, bool use_desktop);
     void SetGfxModeText();
     void UpdateMouseSpeedText();
 
@@ -766,11 +770,18 @@ void WinSetupDialog::OnGfxModeUpdate()
 {
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
     if (sel == kGfxMode_Desktop)
+    {
+        _winCfg.UseDesktopSize = true;
         _winCfg.ScreenSize = _desktopSize;
+    }
     else if (sel == kGfxMode_GameRes)
+    {
+        _winCfg.UseDesktopSize = false;
         _winCfg.ScreenSize = _winCfg.GameResolution;
+    }
     else
     {
+        _winCfg.UseDesktopSize = false;
         const DisplayMode &mode = _drvDesc->GfxModeList.Modes[sel];
         _winCfg.ScreenSize = Size(mode.Width, mode.Height);
     }
@@ -810,7 +821,7 @@ void WinSetupDialog::OnWindowedUpdate()
         ShowWindow(_hGfxModeText, SW_HIDE);
     }
 
-    SelectNearestGfxMode(_winCfg.ScreenSize);
+    SelectNearestGfxMode(_winCfg.ScreenSize, _winCfg.UseDesktopSize);
 }
 
 void WinSetupDialog::ShowAdvancedOptions()
@@ -921,15 +932,9 @@ void WinSetupDialog::FillGfxModeList()
     for (VDispModes::const_iterator mode = modes.begin(); mode != modes.end(); ++mode)
     {
         if (mode->Width == _desktopSize.Width && mode->Height == _desktopSize.Height)
-        {
             has_desktop_mode = true;
-            continue;
-        }
         else if (mode->Width == _winCfg.GameResolution.Width && mode->Height == _winCfg.GameResolution.Height)
-        {
             has_native_mode = true;
-            continue;
-        }
         buf.Format("%d x %d", mode->Width, mode->Height);
         AddString(_hGfxModeList, buf, (DWORD_PTR)(mode - modes.begin()));
     }
@@ -942,7 +947,7 @@ void WinSetupDialog::FillGfxModeList()
         InsertString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
             _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), spec_mode_idx++, (DWORD_PTR)kGfxMode_GameRes);
 
-    SelectNearestGfxMode(_winCfg.ScreenSize);
+    SelectNearestGfxMode(_winCfg.ScreenSize, _winCfg.UseDesktopSize);
 }
 
 void WinSetupDialog::FillLanguageList()
@@ -1127,7 +1132,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.Save(_cfgOut);
 }
 
-void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
+void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, bool use_desktop)
 {
     if (!_drvDesc)
     {
@@ -1136,7 +1141,7 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
     }
 
     // First check two special modes
-    if (screen_size == _desktopSize)
+    if (use_desktop && screen_size == _desktopSize)
     {
         SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
     }

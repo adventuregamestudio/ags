@@ -113,7 +113,7 @@ void SDLRendererGraphicsDriver::SetTintMethod(TintMethod method)
   // TODO: support new D3D-style tint method
 }
 
-bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
+bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
 
@@ -157,7 +157,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile
   SDL_RenderSetLogicalSize(_renderer,mode.Width,mode.Height);
 #endif
 
-  OnInit(loopTimer);
+  OnInit();
   OnModeSet(mode);
   return true;
 }

@@ -174,7 +174,7 @@ public:
     const char*GetDriverName() override { return "Direct3D 9"; }
     const char*GetDriverID() override { return "D3D9"; }
     void SetTintMethod(TintMethod method) override;
-    bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
     bool SetNativeSize(const Size &src_size) override;
     bool SetRenderFrame(const Rect &dst_rect) override;

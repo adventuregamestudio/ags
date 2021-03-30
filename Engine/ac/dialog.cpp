@@ -1052,8 +1052,8 @@ bool DialogOptions::Run()
 
       update_polled_stuff_if_runtime();
 
-      if (play.fast_forward == 0)
-      {
+      if (!runGameLoopsInBackground && (play.fast_forward == 0))
+      { // note if runGameLoopsInBackground then it's called inside UpdateGameOnce
           WaitForNextFrame();
       }
 

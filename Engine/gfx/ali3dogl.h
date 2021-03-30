@@ -198,7 +198,7 @@ public:
     const char*GetDriverName() override { return "OpenGL"; }
     const char*GetDriverID() override { return "OGL"; }
     void SetTintMethod(TintMethod method) override;
-    bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_size) override;
     bool SetNativeSize(const Size &src_size) override;
     bool SetRenderFrame(const Rect &dst_rect) override;

@@ -563,7 +563,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
     set_color_depth(dm.ColorDepth);
 
-    if (!gfxDriver->SetDisplayMode(dm, nullptr))
+    if (!gfxDriver->SetDisplayMode(dm))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", SDL_GetError());
         return false;

@@ -100,6 +100,19 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
     cfg[sectn][item] = value;
 }
 
+ScreenSizeDefinition parse_screendef(const String &option, ScreenSizeDefinition def_value)
+{
+    const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
+    for (int i = 0; i < kNumScreenDef; ++i)
+    {
+        if (option.CompareNoCase(screen_sz_def_options[i]) == 0)
+        {
+            return (ScreenSizeDefinition)i;
+        }
+    }
+    return def_value;
+}
+
 void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor)
 {
     const char *game_scale_options[kNumFrameScaleDef - 1] = { "max_round", "stretch", "proportional" };
@@ -377,17 +390,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
-        const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
         usetup.Screen.DisplayMode.ScreenSize.SizeDef = usetup.Screen.DisplayMode.Windowed ? kScreenDef_ByGameScaling : kScreenDef_MaxDisplay;
-        String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
-        for (int i = 0; i < kNumScreenDef; ++i)
-        {
-            if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
-            {
-                usetup.Screen.DisplayMode.ScreenSize.SizeDef = (ScreenSizeDefinition)i;
-                break;
-            }
-        }
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = parse_screendef(INIreadstring(cfg, "graphics", "screen_def"),
+            usetup.Screen.DisplayMode.ScreenSize.SizeDef);
 
         usetup.Screen.DisplayMode.ScreenSize.Size = Size(INIreadint(cfg, "graphics", "screen_width"),
                                                         INIreadint(cfg, "graphics", "screen_height"));

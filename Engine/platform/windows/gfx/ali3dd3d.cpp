@@ -751,7 +751,7 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
+bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
 
@@ -771,7 +771,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
       SDL_SetError("%s", exception._message);
     return false;
   }
-  OnInit(loopTimer);
+  OnInit();
   OnModeSet(mode);
   InitializeD3DState();
   CreateVirtualScreen();

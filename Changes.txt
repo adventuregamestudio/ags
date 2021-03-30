@@ -11,6 +11,8 @@ Editor:
    that all scripts are recompiled with the new version rules.
  - Fixed room lists in property editor were not updated after room number is changed.
  - Fixed importing pre-3.* projects broken by incorrect assignment of "Game file name" property.
+ - Fixed importing Characters and GUI without sprites still created empty sprite folders.
+ - Fixed crash when exporting/importing Characters with no Normal View.
 
 Scripting:
  - Implemented correct parsing of a "const string" function return type.
@@ -82,6 +84,9 @@ Compatibility:
 Windows:
  - Added "--no-message-box" command line option to hide message boxes when alerts are raised.
  - Added "--console-attach" command line option to try attach to the parent process's console.
+
+WinSetup:
+ - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
 
 
 VERSION 3.5.0 - Patch 9, March 2021

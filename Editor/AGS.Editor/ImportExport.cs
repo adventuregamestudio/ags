@@ -1177,6 +1177,7 @@ namespace AGS.Editor
                 throw new AGS.Types.InvalidDataException("This file requires a newer version of AGS to import it.");
             }
 
+            // First import the GUI itself
             GUI newGui;
             if (doc.DocumentElement.FirstChild.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
             {
@@ -1187,12 +1188,14 @@ namespace AGS.Editor
                 newGui = new TextWindowGUI(doc.DocumentElement.FirstChild);
             }
 
+            AdjustScriptNamesToEnsureEverythingIsUnique(newGui, game);
+
+            // Now load any sprites it contains
             PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
-
             SpriteFolder newFolder = new SpriteFolder(newGui.Name + "Import");
-            game.RootSpriteFolder.SubFolders.Add(newFolder);
-
             Dictionary<int, int> spriteMapping = ImportSpritesFromXML(doc.DocumentElement.SelectSingleNode(GUI_XML_SPRITES_NODE), palette, newFolder);
+
+            // If sprites are present then update sprite references in GUI and controls
             if (newGui.BackgroundImage > 0)
             {
                 newGui.BackgroundImage = spriteMapping[newGui.BackgroundImage];
@@ -1205,9 +1208,13 @@ namespace AGS.Editor
             {
                 control.UpdateSpritesWithMapping(spriteMapping);
             }
-            AdjustScriptNamesToEnsureEverythingIsUnique(newGui, game);
 
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            // Finally add new sprite folder to the project root
+            if (spriteMapping.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(newFolder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             return newGui;
         }
 

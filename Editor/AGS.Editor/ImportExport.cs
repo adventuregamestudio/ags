@@ -581,10 +581,12 @@ namespace AGS.Editor
 
             Dictionary<int, object> spritesWritten = new Dictionary<int, object>();
 
-            writer.WriteStartElement("NormalView");
-            WriteNewStyleView(writer, game.FindViewByID(character.NormalView), spritesWritten);
-            writer.WriteEndElement();
-
+            if (character.NormalView > 0)
+            {
+                writer.WriteStartElement("NormalView");
+                WriteNewStyleView(writer, game.FindViewByID(character.NormalView), spritesWritten);
+                writer.WriteEndElement();
+            }
             if (character.SpeechView > 0)
             {
                 writer.WriteStartElement("SpeechView");
@@ -732,8 +734,10 @@ namespace AGS.Editor
             Dictionary<int, int> spriteMapping = new Dictionary<int, int>();
             XmlNode viewsNode = doc.DocumentElement.SelectSingleNode("Views");
 
-            newChar.NormalView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("NormalView"), game, spriteMapping, palette, newFolder);
-
+            if (newChar.NormalView > 0)
+            {
+                newChar.NormalView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("NormalView"), game, spriteMapping, palette, newFolder);
+            }
             if (newChar.SpeechView > 0)
             {
                 newChar.SpeechView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("SpeechView"), game, spriteMapping, palette, newFolder);

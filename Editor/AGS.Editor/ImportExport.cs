@@ -718,7 +718,7 @@ namespace AGS.Editor
             }
 
             Character newChar = new Character(doc.DocumentElement.FirstChild);
-            PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
+            EnsureCharacterScriptNameIsUnique(newChar, game);
 
             // Clear any existing event handler function names
             for (int i = 0; i < newChar.Interactions.ScriptFunctionNames.Length; i++)
@@ -726,8 +726,8 @@ namespace AGS.Editor
                 newChar.Interactions.ScriptFunctionNames[i] = string.Empty;
             }
 
+            PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
             SpriteFolder newFolder = new SpriteFolder(newChar.ScriptName + "Import");
-            game.RootSpriteFolder.SubFolders.Add(newFolder);
 
             Dictionary<int, int> spriteMapping = new Dictionary<int, int>();
             XmlNode viewsNode = doc.DocumentElement.SelectSingleNode("Views");
@@ -751,9 +751,11 @@ namespace AGS.Editor
                 newChar.BlinkingView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("BlinkingView"), game, spriteMapping, palette, newFolder);
             }
 
-            EnsureCharacterScriptNameIsUnique(newChar, game);
-
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            if (spriteMapping.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(newFolder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             game.NotifyClientsViewsUpdated();
             return newChar;
         }
@@ -875,8 +877,11 @@ namespace AGS.Editor
 
             reader.Close();
 
-            game.RootSpriteFolder.SubFolders.Add(folder);
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            if (folder.Sprites.Count > 0 || folder.SubFolders.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(folder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             game.NotifyClientsViewsUpdated();
 
             return character;

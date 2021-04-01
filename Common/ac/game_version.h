@@ -62,6 +62,7 @@ Room names are serialized when game is compiled in "debug" mode.
 
 Interactions are now scripts. The number for "not set" changed from 0 to -1 for
 a lot of variables (views, sounds).
+Deprecated switch between low-res and high-res native coordinates.
 37 : 3.1.0
 
 Dialogs are now scripts. New character animation speed.

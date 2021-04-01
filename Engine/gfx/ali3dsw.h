@@ -151,7 +151,7 @@ public:
     const char*GetDriverName() override { return "Software renderer"; }
     const char*GetDriverID() override { return "Software"; }
     void SetTintMethod(TintMethod method) override;
-    bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    bool SetDisplayMode(const DisplayMode &mode) override;
     bool SetNativeSize(const Size &src_size) override;
     bool SetRenderFrame(const Rect &dst_rect) override;
     bool IsModeSupported(const DisplayMode &mode) override;

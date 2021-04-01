@@ -576,7 +576,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     if (dm.RefreshRate >= 50)
         request_refresh_rate(dm.RefreshRate);
 
-    if (!gfxDriver->SetDisplayMode(dm, nullptr))
+    if (!gfxDriver->SetDisplayMode(dm))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
         return false;

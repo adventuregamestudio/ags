@@ -580,10 +580,12 @@ namespace AGS.Editor
 
             Dictionary<int, object> spritesWritten = new Dictionary<int, object>();
 
-            writer.WriteStartElement("NormalView");
-            WriteNewStyleView(writer, game.FindViewByID(character.NormalView), spritesWritten);
-            writer.WriteEndElement();
-
+            if (character.NormalView > 0)
+            {
+                writer.WriteStartElement("NormalView");
+                WriteNewStyleView(writer, game.FindViewByID(character.NormalView), spritesWritten);
+                writer.WriteEndElement();
+            }
             if (character.SpeechView > 0)
             {
                 writer.WriteStartElement("SpeechView");
@@ -717,7 +719,7 @@ namespace AGS.Editor
             }
 
             Character newChar = new Character(doc.DocumentElement.FirstChild);
-            PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
+            EnsureCharacterScriptNameIsUnique(newChar, game);
 
             // Clear any existing event handler function names
             for (int i = 0; i < newChar.Interactions.ScriptFunctionNames.Length; i++)
@@ -725,14 +727,16 @@ namespace AGS.Editor
                 newChar.Interactions.ScriptFunctionNames[i] = string.Empty;
             }
 
+            PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
             SpriteFolder newFolder = new SpriteFolder(newChar.ScriptName + "Import");
-            game.RootSpriteFolder.SubFolders.Add(newFolder);
 
             Dictionary<int, int> spriteMapping = new Dictionary<int, int>();
             XmlNode viewsNode = doc.DocumentElement.SelectSingleNode("Views");
 
-            newChar.NormalView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("NormalView"), game, spriteMapping, palette, newFolder);
-
+            if (newChar.NormalView > 0)
+            {
+                newChar.NormalView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("NormalView"), game, spriteMapping, palette, newFolder);
+            }
             if (newChar.SpeechView > 0)
             {
                 newChar.SpeechView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("SpeechView"), game, spriteMapping, palette, newFolder);
@@ -750,9 +754,11 @@ namespace AGS.Editor
                 newChar.BlinkingView = ReadAndAddNewStyleView(viewsNode.SelectSingleNode("BlinkingView"), game, spriteMapping, palette, newFolder);
             }
 
-            EnsureCharacterScriptNameIsUnique(newChar, game);
-
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            if (spriteMapping.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(newFolder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             game.NotifyClientsViewsUpdated();
             return newChar;
         }
@@ -874,8 +880,11 @@ namespace AGS.Editor
 
             reader.Close();
 
-            game.RootSpriteFolder.SubFolders.Add(folder);
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            if (folder.Sprites.Count > 0 || folder.SubFolders.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(folder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             game.NotifyClientsViewsUpdated();
 
             return character;
@@ -1174,6 +1183,7 @@ namespace AGS.Editor
                 throw new AGS.Types.InvalidDataException("This file requires a newer version of AGS to import it.");
             }
 
+            // First import the GUI itself
             GUI newGui;
             if (doc.DocumentElement.FirstChild.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
             {
@@ -1184,12 +1194,14 @@ namespace AGS.Editor
                 newGui = new TextWindowGUI(doc.DocumentElement.FirstChild);
             }
 
+            AdjustScriptNamesToEnsureEverythingIsUnique(newGui, game);
+
+            // Now load any sprites it contains
             PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
-
             SpriteFolder newFolder = new SpriteFolder(newGui.Name + "Import");
-            game.RootSpriteFolder.SubFolders.Add(newFolder);
-
             Dictionary<int, int> spriteMapping = ImportSpritesFromXML(doc.DocumentElement.SelectSingleNode(GUI_XML_SPRITES_NODE), palette, newFolder);
+
+            // If sprites are present then update sprite references in GUI and controls
             if (newGui.BackgroundImage > 0)
             {
                 newGui.BackgroundImage = spriteMapping[newGui.BackgroundImage];
@@ -1202,9 +1214,13 @@ namespace AGS.Editor
             {
                 control.UpdateSpritesWithMapping(spriteMapping);
             }
-            AdjustScriptNamesToEnsureEverythingIsUnique(newGui, game);
 
-            game.RootSpriteFolder.NotifyClientsOfUpdate();
+            // Finally add new sprite folder to the project root
+            if (spriteMapping.Count > 0)
+            {
+                game.RootSpriteFolder.SubFolders.Add(newFolder);
+                game.RootSpriteFolder.NotifyClientsOfUpdate();
+            }
             return newGui;
         }
 

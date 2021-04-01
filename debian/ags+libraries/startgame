@@ -4,7 +4,7 @@ scriptdir=$(dirname "$scriptpath")
 
 for arg; do
     if [ "$arg" = "--help" ]; then
-        printf "Usage: %s [<ags options>]\n\n" "$(basename "$scriptpath")"
+        printf "Usage: %s [<ags options>]\n\n" "$(basename "$0")"
         break
     fi
 done

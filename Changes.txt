@@ -1,5 +1,94 @@
 REVISION HISTORY
 ================
+VERSION 3.5.?, ??? 2021
+
+Editor:
+ - Display aspect ratio in game resolution dialog.
+ - Improved tab switching performance for script windows.
+ - Deprecated "Limit display mode to 16-bit" property in Runtime Setup as it's no longer
+   used by the engine.
+ - Editor will now enforce full game rebuild after upgrading an older project, this ensures
+   that all scripts are recompiled with the new version rules.
+ - Fixed room lists in property editor were not updated after room number is changed.
+ - Fixed importing pre-3.* projects broken by incorrect assignment of "Game file name" property.
+ - Fixed importing Characters and GUI without sprites still created empty sprite folders.
+ - Fixed crash when exporting/importing Characters with no Normal View.
+
+Scripting:
+ - Implemented correct parsing of a "const string" function return type.
+ - Fixed implementing imported functions was forbidden in the room scripts.
+
+Script API:
+ - GetTranslation() now returns "const string" (was "string"). This is to prevent modifying
+   returned string using old-style string functions, such as StrCat(), as this string may be
+   allocated in the internal engine memory for its own use.
+
+Engine:
+ - Support loading audio and video from data packages larger than 2 GB.
+ - Improved game data loading times by introducing buffered file stream. Initial tests
+   showed 3-4 times faster file reading.
+ - Some improvement to general script perfomance.
+ - Some improvement to script Dictionary and Set types perfomance.
+ - Room Object's Graphic property now can be assigned a sprite with index over 32767 and
+   up to 65535. This restriction is due to internal data format, which cannot be fully fixed
+   without breaking compatibility with plugin API. This may still be worked around by assigning
+   a View, as View's frames may contain sprites of any index available.
+ - Similarily, Object's View, Loop and Frame can now be assigned a value over 32767 and
+   up to 65535; not that this was ever an issue...
+ - Removed arbitrary limit of 1000000 dynamic array elements (now supports over 2 billion).
+ - Dialogs with no enabled options left will be now stopped, instead of raising script error.
+ - Engine will not longer quit the game when failing to write a save, but simply display an
+   error on screen (...why this was a thing in the first place?!).
+ - When restoring a save engine will now try to match game GUID pack rather than exe/pack name.
+   This resolves potential problems when game package may have different name in distribution
+   to another system. Also makes saves in multi-game collections more reliable.
+ - In Debug game mode allow to toggle infinite FPS mode (prior it could not be turned off).
+ - Expanded text parser error messages for easier debugging.
+ - Adjusted all the command-line options to have consistent prefix convention, where all full-name
+   options must be preceded by double-dash, and one-letter options by single dash.
+ - Fully configurable log output (in both game config and command line) allows to set up which
+   message types and groups are printed by which output methods (sinks), including: file,
+   system console, in-game console. "warnings.log" is now created only if file log was not
+   requested by user.
+ - Added "--log-" set of command line options for setting up log output.
+ - Added "--tell-filepath" option for printing known engine's and game's file locations.
+ - Added "--tell-gameproperties" option for printing some of the game's general settings.
+ - Support proper lookup for Allegro 4 library resources (such as its own config and digital MIDI
+   patches) in the game directory.
+ - Engine will no longer precreate directories for common files: saves, user config, and so forth,-
+   before actually writing them.
+ - Fixed running game from another directory by passing its relative filename as command-line
+   argument: in this case engine was incorrectly using its own directory to search for external
+   game data, opening files for reading by script command, and so on.
+ - Fixed some of the engine's own hotkeys (such windowed/fullscreen mode toggle) not working
+   during certain skippable game states.
+ - Fixed overlay was set to wrong position if it were using TextWindow gui and either its text
+   or X, Y properties got changed.
+ - Fixed characters and room objects were not updating their looks if their current graphic was
+   a Dynamic Sprite, and that sprite was modified with ChangeCanvasSize, CopyTransparencyMask,
+   Crop, Flip, Resize, Rotate or Tint function.
+ - Fixed Views' frames keeping reference to deleted Dynamic Sprites.
+ - Fixed animated cursor's normal graphic reappearing in between animation frames if mouse mode
+   is being repeatedly reassigned, for example in rep-exec script.
+ - Fixed ListBox.FillSaveGameList() search pattern, it included files which contain save filename
+   pattern but do not exactly match; for example: "agssave.001_".
+ - Fixed engine was ignoring audio files in game directory when running games which use
+   old audio system.
+ - Fixed Direct3D was assigning wrong fullscreen refresh rate sometimes, slowing alt-tabbing.
+
+Compatibility:
+ - Fixed engine was trying to read unnecessary data when loading pre-2.72 games.
+ - Fixed "upscale" mode for old games (was broken in 3.5.0). Also engine will now try to detect
+   if "upscale" mode wanted by reading old config options (if they are present).
+
+Windows:
+ - Added "--no-message-box" command line option to hide message boxes when alerts are raised.
+ - Added "--console-attach" command line option to try attach to the parent process's console.
+
+WinSetup:
+ - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
+
+
 VERSION 3.5.0 - Patch 9, March 2021
 
 Editor:

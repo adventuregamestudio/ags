@@ -15,11 +15,6 @@
 #include "ac/timer.h"
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG && defined (__GNUC__)
-#include <stdio.h>
-#include <execinfo.h>
-#include <unistd.h>
-#endif
 #include <thread>
 #include "platform/base/agsplatformdriver.h"
 
@@ -79,38 +74,6 @@ void WaitForNextFrame()
     }
     
     next_frame_timestamp += frameDuration;
-}
-
-bool waitingForNextTick() 
-{
-    auto now = AGS_Clock::now();
-
-    if (framerate_maxed) {
-        last_tick_time = now;
-        return false;
-    }
-
-    auto is_lagging = (now - last_tick_time) > (MAXIMUM_FALL_BEHIND*tick_duration);
-    if (is_lagging) {
-#if AGS_PLATFORM_DEBUG && defined (__GNUC__)
-        auto missed_ticks = ((now - last_tick_time)/tick_duration);
-        printf("Lagging! Missed %lld ticks!\n", (long long)missed_ticks);
-        void *array[10];
-        auto size = backtrace(array, 10);
-        backtrace_symbols_fd(array, size, STDOUT_FILENO);
-        printf("\n");
-#endif
-        last_tick_time = now;
-        return false;
-    }
-
-    auto next_tick_time = last_tick_time + tick_duration;
-    if (next_tick_time <= now) {
-        last_tick_time = next_tick_time;
-        return false;
-    }
-
-    return true;
 }
 
 void skipMissedTicks() 

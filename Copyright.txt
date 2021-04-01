@@ -46,6 +46,7 @@ Stefano Collavini
 Steve McCrea
 Steven Poulton
 Sunit Das
+Thierry Crozat
 Tobias Hansen
 Tom Vandepoele
 Tzach Shabtay

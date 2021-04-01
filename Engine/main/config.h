@@ -46,6 +46,7 @@ void post_config();
 
 void save_config_file();
 
+ScreenSizeDefinition parse_screendef(const String &option, ScreenSizeDefinition def_value);
 void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor);
 void parse_scaling_option(const String &scaling_option, GameFrameSetup &frame_setup);
 String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor = 0);

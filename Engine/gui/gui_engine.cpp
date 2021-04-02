@@ -117,6 +117,11 @@ bool GUIObject::IsClickable() const
     return (Flags & kGUICtrl_Clickable) != 0;
 }
 
+void GUIObject::NotifyParentChanged()
+{
+    guis[ParentId].MarkChanged();
+}
+
 void GUILabel::PrepareTextToDraw()
 {
     replace_macro_tokens(Flags & kGUICtrl_Translated ? String(get_translation(Text)) : Text, _textToDraw);

@@ -195,11 +195,6 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteBool(IsActivated != 0);
 }
 
-void GUIObject::NotifyParentChanged()
-{
-    guis[ParentId].MarkChanged();
-}
-
 
 HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align)
 {

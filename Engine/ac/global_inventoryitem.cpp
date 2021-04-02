@@ -52,7 +52,7 @@ void set_inv_item_pic(int invi, int piccy) {
     }
 
     game.invinfo[invi].pic = piccy;
-    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+    GUI::MarkInventoryForUpdate(-1, false);
 }
 
 void SetInvItemName(int invi, const char *newName) {

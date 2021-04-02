@@ -206,6 +206,8 @@ namespace GUI
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate();
+    // Mark inventory windows for redraw, optionally only ones linked to given character
+    void MarkInventoryForUpdate(int char_id, bool is_player);
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
     HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);

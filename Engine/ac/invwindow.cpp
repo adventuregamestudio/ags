@@ -522,7 +522,7 @@ int invscreen() {
     int selt=__actual_invscreen();
     if (selt<0) return -1;
     playerchar->activeinv=selt;
-    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+    GUI::MarkInventoryForUpdate(playerchar->index_id, true);
     set_cursor_mode(MODE_USE);
     return selt;
 }

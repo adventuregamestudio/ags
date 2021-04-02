@@ -88,7 +88,7 @@ extern int psp_gfx_renderer;
 
 void GiveScore(int amnt) 
 {
-    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);
     play.score += amnt;
 
     if ((amnt > 0) && (play.score_sound >= 0))
@@ -570,13 +570,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
-                GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+                GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = 1000 + mover;
             strcpy(tempo,get_translation(game.invinfo[mover].name));
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
-            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = -1;
         }
         return;
@@ -595,7 +595,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (loctype == 0) {
         if (play.get_loc_name_last_time != 0) {
             play.get_loc_name_last_time = 0;
-            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         }
         return;
     }
@@ -605,7 +605,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         onhs = getloctype_index;
         strcpy(tempo,get_translation(game.chars[onhs].name));
         if (play.get_loc_name_last_time != 2000+onhs)
-            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;
         return;
     }
@@ -620,14 +620,14 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
             tempo[1] = 0;
         }
         if (play.get_loc_name_last_time != 3000+aa)
-            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
     onhs = getloctype_index;
     if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
     if (play.get_loc_name_last_time != onhs)
-        GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+        GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;
 }
 

@@ -26,12 +26,15 @@ namespace AGS
 namespace Common
 {
 
-class GUILabel:public GUIObject
+class GUILabel : public GUIObject
 {
 public:
     GUILabel();
-    
+
+    // Gets label's text property in original set form (with macros etc)
     String       GetText() const;
+    // Gets which macro are contained within label's text
+    GUILabelMacro GetTextMacros() const;
 
     // Operations
     void Draw(Bitmap *ds) override;
@@ -54,6 +57,8 @@ private:
     void PrepareTextToDraw();
     size_t SplitLinesForDrawing(SplitLines &lines);
 
+    // Information on macros contained within Text field
+    GUILabelMacro _textMacro;
     // prepared text buffer/cache
     String _textToDraw;
 };

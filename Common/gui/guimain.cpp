@@ -26,6 +26,7 @@
 #include "gui/guitextbox.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 
@@ -735,6 +736,17 @@ void MarkAllGUIForUpdate()
     }
 }
 
+void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
+{
+    for (auto &lbl : guilabels)
+    {
+        if ((lbl.GetTextMacros() & macro) != 0)
+        {
+            lbl.NotifyParentChanged();
+        }
+    }
+}
+
 void MarkInventoryForUpdate(int char_id, bool is_player)
 {
     for (auto &inv : guiinv)
@@ -744,6 +756,45 @@ void MarkInventoryForUpdate(int char_id, bool is_player)
             inv.NotifyParentChanged();
         }
     }
+}
+
+GUILabelMacro FindLabelMacros(const String &text)
+{
+    int macro_flags = 0;
+    const char *macro_at = nullptr;
+    for (const char *ptr = text.GetCStr(); *ptr; ++ptr)
+    {
+        // Haven't began parsing macro
+        if (!macro_at)
+        {
+            if (*ptr == '@')
+                macro_at = ptr;
+        }
+        // Began parsing macro
+        else
+        {
+            // Found macro's end
+            if (*ptr == '@')
+            {
+                // Test which macro it is (if any)
+                macro_at++;
+                const size_t macro_len = ptr - macro_at;
+                if (macro_len == -1 || macro_len > 20); // skip zero-length or too long substrings
+                else if (ags_strnicmp(macro_at, "gamename", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Gamename;
+                else if (ags_strnicmp(macro_at, "overhotspot", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Overhotspot;
+                else if (ags_strnicmp(macro_at, "score", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Score;
+                else if (ags_strnicmp(macro_at, "scoretext", macro_len) == 0)
+                    macro_flags |= kLabelMacro_ScoreText;
+                else if (ags_strnicmp(macro_at, "totalscore", macro_len) == 0)
+                    macro_flags |= kLabelMacro_TotalScore;
+                macro_at = nullptr;
+            }
+        }
+    }
+    return (GUILabelMacro)macro_flags;
 }
 
 HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)

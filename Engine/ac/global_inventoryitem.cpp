@@ -64,7 +64,7 @@ void SetInvItemName(int invi, const char *newName) {
     game.invinfo[invi].name[24] = 0;
 
     // might need to redraw the GUI if it has the inv item name on it
-    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int GetInvAt (int xxx, int yyy) {

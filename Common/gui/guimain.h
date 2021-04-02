@@ -206,8 +206,14 @@ namespace GUI
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate();
+    // Mark labels that acts as special text placeholders for redraw
+    void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character
     void MarkInventoryForUpdate(int char_id, bool is_player);
+
+    // Parses the string and returns combination of label macro flags
+    GUILabelMacro FindLabelMacros(const String &text);
+
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
     HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);

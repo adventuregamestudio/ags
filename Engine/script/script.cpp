@@ -34,6 +34,7 @@
 #include "ac/mouse.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
+#include "gui/guimain.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
 #include "debug/debugger.h"
@@ -489,7 +490,10 @@ int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScript
 
     // response to a button click, better update guis
     if (ags_strnicmp(tsname, "interface_click", 15) == 0)
-        guis_need_update = 1;
+    {
+        // interface_click(int interface, int button)
+        guis[iparam.IValue].MarkChanged();
+    }
 
     return RunScriptFunctionIfExists(sci, tsname, 2, params);
 }

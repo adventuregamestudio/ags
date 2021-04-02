@@ -90,6 +90,9 @@ public:
 
 // TODO: these members are currently public; hide them later
 public:
+    // Notifies parent GUI that this control has changed
+    void     NotifyParentChanged();
+
     int32_t  Id;         // GUI object's identifier
     int32_t  ParentId;   // id of parent GUI
     String   Name;       // script name

@@ -486,7 +486,7 @@ void update_invorder() {
     // backwards compatibility
     play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
 
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
 }
 
 void add_inventory(int inum) {

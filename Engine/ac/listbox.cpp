@@ -35,22 +35,17 @@ extern GameSetupStruct game;
 int ListBox_AddItem(GUIListBox *lbb, const char *text) {
   if (lbb->AddItem(text) < 0)
     return 0;
-
-  guis_need_update = 1;
   return 1;
 }
 
 int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text) {
   if (lbb->InsertItem(index, text) < 0)
     return 0;
-
-  guis_need_update = 1;
   return 1;
 }
 
 void ListBox_Clear(GUIListBox *listbox) {
   listbox->Clear();
-  guis_need_update = 1;
 }
 
 void FillDirList(std::set<String> &files, const String &path)
@@ -66,7 +61,6 @@ void FillDirList(std::set<String> &files, const String &path)
 
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
-  guis_need_update = 1;
 
   ResolvedPath rp;
   if (!ResolveScriptPath(filemask, true, rp))
@@ -77,6 +71,7 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
     FillDirList(files, rp.AltPath);
 
+  // TODO: method for adding item batch to speed up update
   for (std::set<String>::const_iterator it = files.begin(); it != files.end(); ++it)
   {
     listbox->AddItem(*it);
@@ -98,6 +93,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
   // fill in the list box
   listbox->Clear();
+  // TODO: method for adding item batch to speed up update
   for (const auto &item : saves)
   {
     listbox->AddItem(item.Description);
@@ -110,7 +106,6 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     play.filenumbers[n] = saves[n].Slot;
   }
 
-  guis_need_update = 1;
   listbox->SetSvgIndex(true);
 
   if (saves.size() >= MAXSAVEGAMES)
@@ -154,7 +149,6 @@ void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
 
   if (strcmp(listbox->Items[index], newtext)) {
     listbox->SetItemText(index, newtext);
-    guis_need_update = 1;
   }
 }
 
@@ -164,7 +158,6 @@ void ListBox_RemoveItem(GUIListBox *listbox, int itemIndex) {
     quit("!ListBoxRemove: invalid listindex specified");
 
   listbox->RemoveItem(itemIndex);
-  guis_need_update = 1;
 }
 
 int ListBox_GetItemCount(GUIListBox *listbox) {
@@ -182,7 +175,6 @@ void ListBox_SetFont(GUIListBox *listbox, int newfont) {
 
   if (newfont != listbox->Font) {
     listbox->SetFont(newfont);
-    guis_need_update = 1;
   }
 
 }
@@ -195,7 +187,6 @@ void ListBox_SetShowBorder(GUIListBox *listbox, bool newValue) {
     if (listbox->IsBorderShown() != newValue)
     {
         listbox->SetShowBorder(newValue);
-        guis_need_update = 1;
     }
 }
 
@@ -207,7 +198,6 @@ void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool newValue) {
     if (listbox->AreArrowsShown() != newValue)
     {
         listbox->SetShowArrows(newValue);
-        guis_need_update = 1;
     }
 }
 
@@ -234,7 +224,7 @@ int ListBox_GetSelectedBackColor(GUIListBox *listbox) {
 void ListBox_SetSelectedBackColor(GUIListBox *listbox, int colr) {
     if (listbox->SelectedBgColor != colr) {
         listbox->SelectedBgColor = colr;
-        guis_need_update = 1;
+        listbox->NotifyParentChanged();
     }
 }
 
@@ -245,7 +235,7 @@ int ListBox_GetSelectedTextColor(GUIListBox *listbox) {
 void ListBox_SetSelectedTextColor(GUIListBox *listbox, int colr) {
     if (listbox->SelectedTextColor != colr) {
         listbox->SelectedTextColor = colr;
-        guis_need_update = 1;
+        listbox->NotifyParentChanged();
     }
 }
 
@@ -256,7 +246,7 @@ int ListBox_GetTextAlignment(GUIListBox *listbox) {
 void ListBox_SetTextAlignment(GUIListBox *listbox, int align) {
     if (listbox->TextAlignment != align) {
         listbox->TextAlignment = (HorAlignment)align;
-        guis_need_update = 1;
+        listbox->NotifyParentChanged();
     }
 }
 
@@ -267,7 +257,7 @@ int ListBox_GetTextColor(GUIListBox *listbox) {
 void ListBox_SetTextColor(GUIListBox *listbox, int colr) {
     if (listbox->TextColor != colr) {
         listbox->TextColor = colr;
-        guis_need_update = 1;
+        listbox->NotifyParentChanged();
     }
 }
 
@@ -290,7 +280,7 @@ void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
       if (newsel >= guisl->TopItem + guisl->VisibleItemCount)
         guisl->TopItem = (newsel - guisl->VisibleItemCount) + 1;
     }
-    guis_need_update = 1;
+    guisl->NotifyParentChanged();
   }
 
 }
@@ -306,7 +296,7 @@ void ListBox_SetTopItem(GUIListBox *guisl, int item) {
     quit("!ListBoxSetTopItem: tried to set top to beyond top or bottom of list");
 
   guisl->TopItem = item;
-  guis_need_update = 1;
+  guisl->NotifyParentChanged();
 }
 
 int ListBox_GetRowCount(GUIListBox *listbox) {
@@ -316,14 +306,14 @@ int ListBox_GetRowCount(GUIListBox *listbox) {
 void ListBox_ScrollDown(GUIListBox *listbox) {
   if (listbox->TopItem + listbox->VisibleItemCount < listbox->ItemCount) {
     listbox->TopItem++;
-    guis_need_update = 1;
+    listbox->NotifyParentChanged();
   }
 }
 
 void ListBox_ScrollUp(GUIListBox *listbox) {
   if (listbox->TopItem > 0) {
     listbox->TopItem--;
-    guis_need_update = 1;
+    listbox->NotifyParentChanged();
   }
 }
 
@@ -333,7 +323,6 @@ GUIListBox* is_valid_listbox (int guin, int objn) {
   if ((objn<0) | (objn>=guis[guin].GetControlCount())) quit("!ListBox: invalid object number");
   if (guis[guin].GetControlType(objn)!=kGUIListBox)
     quit("!ListBox: specified control is not a list box");
-  guis_need_update = 1;
   return (GUIListBox*)guis[guin].GetControl(objn);
 }
 

@@ -88,7 +88,7 @@ extern int psp_gfx_renderer;
 
 void GiveScore(int amnt) 
 {
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
     play.score += amnt;
 
     if ((amnt > 0) && (play.score_sound >= 0))
@@ -570,13 +570,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
-                guis_need_update = 1;
+                GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
             play.get_loc_name_last_time = 1000 + mover;
             strcpy(tempo,get_translation(game.invinfo[mover].name));
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
-            guis_need_update = 1;
+            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
             play.get_loc_name_last_time = -1;
         }
         return;
@@ -595,7 +595,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (loctype == 0) {
         if (play.get_loc_name_last_time != 0) {
             play.get_loc_name_last_time = 0;
-            guis_need_update = 1;
+            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
         }
         return;
     }
@@ -605,7 +605,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         onhs = getloctype_index;
         strcpy(tempo,get_translation(game.chars[onhs].name));
         if (play.get_loc_name_last_time != 2000+onhs)
-            guis_need_update = 1;
+            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
         play.get_loc_name_last_time = 2000+onhs;
         return;
     }
@@ -620,14 +620,14 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
             tempo[1] = 0;
         }
         if (play.get_loc_name_last_time != 3000+aa)
-            guis_need_update = 1;
+            GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
     onhs = getloctype_index;
     if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
     if (play.get_loc_name_last_time != onhs)
-        guis_need_update = 1;
+        GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
     play.get_loc_name_last_time = onhs;
 }
 

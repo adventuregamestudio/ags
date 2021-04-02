@@ -31,7 +31,6 @@ using namespace AGS::Common;
 
 #define MOVER_MOUSEDOWNLOCKED -4000
 
-int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;
 int gui_disabled_style = 0;
 
@@ -191,6 +190,21 @@ bool GUIMain::IsVisible() const
     return (_flags & kGUIMain_Visible) != 0;
 }
 
+bool GUIMain::HasChanged() const
+{
+    return _hasChanged;
+}
+
+void GUIMain::MarkChanged()
+{
+    _hasChanged = true;
+}
+
+void GUIMain::ClearChanged()
+{
+    _hasChanged = false;
+}
+
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
 {
     _ctrlRefs.push_back(std::make_pair(type, id));
@@ -336,7 +350,7 @@ void GUIMain::Poll()
                     _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
-            guis_need_update = 1;
+            MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
             _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
@@ -414,6 +428,7 @@ void GUIMain::SetConceal(bool on)
         _flags |= kGUIMain_Concealed;
     else
         _flags &= ~kGUIMain_Concealed;
+    MarkChanged();
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -449,7 +464,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         }
     }
     ResortZOrder();
-    OnControlPositionChanged();
+    OnControlPositionChanged(); // this marks GUI as changed
     return true;
 }
 
@@ -464,7 +479,7 @@ void GUIMain::SetTextWindow(bool on)
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
-    guis_need_update = 1;
+    MarkChanged();
 }
 
 void GUIMain::SetVisible(bool on)
@@ -473,6 +488,7 @@ void GUIMain::SetVisible(bool on)
         _flags |= kGUIMain_Visible;
     else
         _flags &= ~kGUIMain_Visible;
+    MarkChanged();
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -480,6 +496,7 @@ void GUIMain::OnControlPositionChanged()
     // force it to re-check for which control is under the mouse
     MouseWasAt.X = -1;
     MouseWasAt.Y = -1;
+    MarkChanged();
 }
 
 void GUIMain::OnMouseButtonDown()
@@ -496,7 +513,7 @@ void GUIMain::OnMouseButtonDown()
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
     _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
-    guis_need_update = 1;
+    MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::OnMouseButtonUp()
@@ -514,7 +531,7 @@ void GUIMain::OnMouseButtonUp()
 
     _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
-    guis_need_update = 1;
+    MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -710,6 +727,14 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, x, y, font, text_color, text);
 }
 
+void MarkAllGUIForUpdate()
+{
+    for (auto &gui : guis)
+    {
+        gui.MarkChanged();
+    }
+}
+
 HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 {
     // set up the reverse-lookup array
@@ -729,7 +754,7 @@ HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
         }
         gui.ResortZOrder();
     }
-    guis_need_update = 1;
+    MarkAllGUIForUpdate();
     return HError::None();
 }
 

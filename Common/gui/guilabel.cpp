@@ -70,6 +70,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
 void GUILabel::SetText(const String &text)
 {
     Text = text;
+    NotifyParentChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

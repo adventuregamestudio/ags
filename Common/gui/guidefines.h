@@ -180,6 +180,4 @@ enum GuiSvgVersion
 } // namespace Common
 } // namespace AGS
 
-extern int guis_need_update;
-
 #endif // __AC_GUIDEFINES_H

@@ -59,6 +59,7 @@ void GUIInvWindow::OnMouseUp()
 void GUIInvWindow::OnResized()
 {
     CalculateNumCells();
+    NotifyParentChanged();
 }
 
 void GUIInvWindow::WriteToFile(Stream *out) const

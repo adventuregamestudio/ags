@@ -150,7 +150,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
         charextra[charid].invorder[addIndex] = inum;
     }
     charextra[charid].invorder_count++;
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
     if (chaa == playerchar)
         run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
 
@@ -725,7 +725,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
             }
         }
     }
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
 
     if (chap == playerchar)
         run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
@@ -1112,7 +1112,7 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 }
 
 void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate(); // TODO: only do if anything really changed
 
     if (iit == nullptr) {
         chaa->activeinv = -1;

@@ -251,7 +251,9 @@ String find_game_data_in_config_and_dir(const String &path)
 // If such config is not found, it scans same location for *any* game data instead.
 String search_for_game_data_file(String &was_searching_in)
 {
-    Debug::Printf("Looking for the game data");
+    Debug::Printf("Looking for the game data.\n Cwd: %s\n Path arg: %s",
+        Directory::GetCurrentDirectory().GetCStr(),
+        cmdGameDataPath.GetCStr());
     // 1. From command line argument, which may be a directory or actual file
     if (!cmdGameDataPath.IsEmpty())
     {
@@ -260,6 +262,7 @@ String search_for_game_data_file(String &was_searching_in)
         if (!Path::IsDirectory(cmdGameDataPath))
             return ""; // path is neither file nor directory
         was_searching_in = cmdGameDataPath;
+        Debug::Printf("Searching in (cmd arg): %s", was_searching_in.GetCStr());
         // first scan for config
         String data_path = find_game_data_in_config_and_dir(cmdGameDataPath);
         if (!data_path.IsEmpty())
@@ -272,6 +275,7 @@ String search_for_game_data_file(String &was_searching_in)
     // 2.1. Look for attachment in the running executable
     if (!appPath.IsEmpty() && Common::AssetManager::IsDataFile(appPath))
     {
+        Debug::Printf("Found game data embedded in executable");
         was_searching_in = Path::GetDirectoryPath(appPath);
         return appPath;
     }
@@ -279,6 +283,7 @@ String search_for_game_data_file(String &was_searching_in)
     // 2.2 Look in current working directory
     String cur_dir = Directory::GetCurrentDirectory();
     was_searching_in = cur_dir;
+    Debug::Printf("Searching in (cwd): %s", was_searching_in.GetCStr());
     // first scan for config
     String data_path = find_game_data_in_config_and_dir(cur_dir);
     if (!data_path.IsEmpty())
@@ -292,6 +297,7 @@ String search_for_game_data_file(String &was_searching_in)
     if (Path::ComparePaths(appDirectory, cur_dir) == 0)
         return ""; // no luck
     was_searching_in = appDirectory;
+    Debug::Printf("Searching in (exe dir): %s", was_searching_in.GetCStr());
     // first scan for config
     data_path = find_game_data_in_config_and_dir(appDirectory);
     if (!data_path.IsEmpty())
@@ -1194,10 +1200,13 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     {
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
-            return new Error(String::FromFormat("Provided game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
+            return new Error(String::FromFormat("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
+                Directory::GetCurrentDirectory().GetCStr(),
+                cmdGameDataPath.GetCStr()));
         // If it's a file, then keep it and proceed
         if (Path::IsFile(cmdGameDataPath))
         {
+            Debug::Printf("Using provided game data path: %s", cmdGameDataPath.GetCStr());
             startup_dir = Path::GetDirectoryPath(cmdGameDataPath);
             data_path = cmdGameDataPath;
             return HError::None();
@@ -1213,7 +1222,7 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
             startup_dir.IsEmpty() ? String() : String::FromFormat("Searched in: %s", startup_dir.GetCStr()));
     }
     data_path = Path::MakeAbsolutePath(data_path);
-    Debug::Printf(kDbgMsg_Info, "Located game data file: %s", data_path.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());
     return HError::None();
 #else
     // No direct filepath provided, bail out.

@@ -2,10 +2,8 @@
 
 #include <stdio.h>
 
-void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX])
+void AGSMacInitPaths(char appdata[PATH_MAX])
 {
-  strcpy(gamename, "game.ags");
-    
   @autoreleasepool {
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourcedir = [bundle resourcePath];

@@ -18,7 +18,7 @@
 		52B8A62A1D27785A00FA453F /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61C1D27785A00FA453F /* AppKit.framework */; };
 		52B8A62B1D27785A00FA453F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61D1D27785A00FA453F /* OpenGL.framework */; };
 		52B8A62C1D27785A00FA453F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61E1D27785A00FA453F /* AudioToolbox.framework */; };
-		52C5BFAE1D277B43001E3B10 /* ac2game.dat in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAA1D277B43001E3B10 /* ac2game.dat */; };
+		52C5BFAE1D277B43001E3B10 /* game.ags in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAA1D277B43001E3B10 /* game.ags */; };
 		52C5BFAF1D277B43001E3B10 /* acsetup.cfg in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAB1D277B43001E3B10 /* acsetup.cfg */; };
 		52C5BFB01D277B43001E3B10 /* audio.vox in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAC1D277B43001E3B10 /* audio.vox */; };
 		52C5BFB11D277B43001E3B10 /* speech.vox in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAD1D277B43001E3B10 /* speech.vox */; };
@@ -53,7 +53,7 @@
 		52B8A61C1D27785A00FA453F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		52B8A61D1D27785A00FA453F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		52B8A61E1D27785A00FA453F /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
-		52C5BFAA1D277B43001E3B10 /* ac2game.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ac2game.dat; path = game_files/ac2game.dat; sourceTree = "<group>"; };
+		52C5BFAA1D277B43001E3B10 /* game.ags */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = game.ags; path = game_files/game.ags; sourceTree = "<group>"; };
 		52C5BFAB1D277B43001E3B10 /* acsetup.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = acsetup.cfg; path = game_files/acsetup.cfg; sourceTree = "<group>"; };
 		52C5BFAC1D277B43001E3B10 /* audio.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audio.vox; path = game_files/audio.vox; sourceTree = "<group>"; };
 		52C5BFAD1D277B43001E3B10 /* speech.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = speech.vox; path = game_files/speech.vox; sourceTree = "<group>"; };
@@ -127,7 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107310486CEB800E47090 /* ags-Info.plist */,
-				52C5BFAA1D277B43001E3B10 /* ac2game.dat */,
+				52C5BFAA1D277B43001E3B10 /* game.ags */,
 				52C5BFAB1D277B43001E3B10 /* acsetup.cfg */,
 				52C5BFAC1D277B43001E3B10 /* audio.vox */,
 				52C5BFAD1D277B43001E3B10 /* speech.vox */,
@@ -221,7 +221,7 @@
 				52C5BFAF1D277B43001E3B10 /* acsetup.cfg in Resources */,
 				52C5BFB11D277B43001E3B10 /* speech.vox in Resources */,
 				52C5BFB01D277B43001E3B10 /* audio.vox in Resources */,
-				52C5BFAE1D277B43001E3B10 /* ac2game.dat in Resources */,
+				52C5BFAE1D277B43001E3B10 /* game.ags in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

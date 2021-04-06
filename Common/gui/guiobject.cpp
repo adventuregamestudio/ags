@@ -94,6 +94,7 @@ void GUIObject::SetEnabled(bool on)
         Flags |= kGUICtrl_Enabled;
     else
         Flags &= ~kGUICtrl_Enabled;
+    NotifyParentChanged();
 }
 
 void GUIObject::SetTranslated(bool on)
@@ -102,6 +103,7 @@ void GUIObject::SetTranslated(bool on)
         Flags |= kGUICtrl_Translated;
     else
         Flags &= ~kGUICtrl_Translated;
+    NotifyParentChanged();
 }
 
 void GUIObject::SetVisible(bool on)

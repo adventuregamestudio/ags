@@ -86,7 +86,6 @@ void Button_SetText(GUIButton *butt, const char *newtx) {
     newtx = get_translation(newtx);
 
     if (strcmp(butt->GetText(), newtx)) {
-        guis_need_update = 1;
         butt->SetText(newtx);
     }
 }
@@ -97,7 +96,7 @@ void Button_SetFont(GUIButton *butt, int newFont) {
 
     if (butt->Font != newFont) {
         butt->Font = newFont;
-        guis_need_update = 1;
+        butt->NotifyParentChanged();
     }
 }
 
@@ -113,7 +112,6 @@ void Button_SetClipImage(GUIButton *butt, int newval) {
     if (butt->IsClippingImage() != (newval != 0))
     {
         butt->SetClipImage(newval != 0);
-        guis_need_update = 1;
     }
 }
 
@@ -135,7 +133,7 @@ void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->MouseOverImage = slotn;
 
-    guis_need_update = 1;
+    guil->NotifyParentChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -153,7 +151,7 @@ void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
     guil->Width = game.SpriteInfos[slotn].Width;
     guil->Height = game.SpriteInfos[slotn].Height;
 
-    guis_need_update = 1;
+    guil->NotifyParentChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -168,7 +166,7 @@ void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->PushedImage = slotn;
 
-    guis_need_update = 1;
+    guil->NotifyParentChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -179,7 +177,7 @@ int Button_GetTextColor(GUIButton *butt) {
 void Button_SetTextColor(GUIButton *butt, int newcol) {
     if (butt->TextColor != newcol) {
         butt->TextColor = newcol;
-        guis_need_update = 1;
+        butt->NotifyParentChanged();
     }
 }
 
@@ -223,7 +221,7 @@ int UpdateAnimatingButton(int bu) {
     guibuts[animbuts[bu].buttonid].CurrentImage = guibuts[animbuts[bu].buttonid].Image;
     guibuts[animbuts[bu].buttonid].PushedImage = 0;
     guibuts[animbuts[bu].buttonid].MouseOverImage = 0;
-    guis_need_update = 1;
+    guibuts[animbuts[bu].buttonid].NotifyParentChanged();
 
     animbuts[bu].wait = animbuts[bu].speed + tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].speed;
     return 0;
@@ -296,7 +294,7 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
 {
     if (butt->TextAlignment != align) {
         butt->TextAlignment = (FrameAlignment)align;
-        guis_need_update = 1;
+        butt->NotifyParentChanged();
     }
 }
 

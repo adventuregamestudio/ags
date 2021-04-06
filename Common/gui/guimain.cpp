@@ -26,12 +26,12 @@
 #include "gui/guitextbox.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 
 #define MOVER_MOUSEDOWNLOCKED -4000
 
-int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;
 int gui_disabled_style = 0;
 
@@ -191,6 +191,21 @@ bool GUIMain::IsVisible() const
     return (_flags & kGUIMain_Visible) != 0;
 }
 
+bool GUIMain::HasChanged() const
+{
+    return _hasChanged;
+}
+
+void GUIMain::MarkChanged()
+{
+    _hasChanged = true;
+}
+
+void GUIMain::ClearChanged()
+{
+    _hasChanged = false;
+}
+
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
 {
     _ctrlRefs.push_back(std::make_pair(type, id));
@@ -336,7 +351,7 @@ void GUIMain::Poll()
                     _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
-            guis_need_update = 1;
+            MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
             _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
@@ -414,6 +429,7 @@ void GUIMain::SetConceal(bool on)
         _flags |= kGUIMain_Concealed;
     else
         _flags &= ~kGUIMain_Concealed;
+    MarkChanged();
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -449,7 +465,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         }
     }
     ResortZOrder();
-    OnControlPositionChanged();
+    OnControlPositionChanged(); // this marks GUI as changed
     return true;
 }
 
@@ -464,7 +480,7 @@ void GUIMain::SetTextWindow(bool on)
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
-    guis_need_update = 1;
+    MarkChanged();
 }
 
 void GUIMain::SetVisible(bool on)
@@ -473,6 +489,7 @@ void GUIMain::SetVisible(bool on)
         _flags |= kGUIMain_Visible;
     else
         _flags &= ~kGUIMain_Visible;
+    MarkChanged();
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -480,6 +497,7 @@ void GUIMain::OnControlPositionChanged()
     // force it to re-check for which control is under the mouse
     MouseWasAt.X = -1;
     MouseWasAt.Y = -1;
+    MarkChanged();
 }
 
 void GUIMain::OnMouseButtonDown()
@@ -496,7 +514,7 @@ void GUIMain::OnMouseButtonDown()
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
     _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
-    guis_need_update = 1;
+    MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::OnMouseButtonUp()
@@ -514,7 +532,7 @@ void GUIMain::OnMouseButtonUp()
 
     _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
-    guis_need_update = 1;
+    MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -710,6 +728,75 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, x, y, font, text_color, text);
 }
 
+void MarkAllGUIForUpdate()
+{
+    for (auto &gui : guis)
+    {
+        gui.MarkChanged();
+    }
+}
+
+void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
+{
+    for (auto &lbl : guilabels)
+    {
+        if ((lbl.GetTextMacros() & macro) != 0)
+        {
+            lbl.NotifyParentChanged();
+        }
+    }
+}
+
+void MarkInventoryForUpdate(int char_id, bool is_player)
+{
+    for (auto &inv : guiinv)
+    {
+        if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
+        {
+            inv.NotifyParentChanged();
+        }
+    }
+}
+
+GUILabelMacro FindLabelMacros(const String &text)
+{
+    int macro_flags = 0;
+    const char *macro_at = nullptr;
+    for (const char *ptr = text.GetCStr(); *ptr; ++ptr)
+    {
+        // Haven't began parsing macro
+        if (!macro_at)
+        {
+            if (*ptr == '@')
+                macro_at = ptr;
+        }
+        // Began parsing macro
+        else
+        {
+            // Found macro's end
+            if (*ptr == '@')
+            {
+                // Test which macro it is (if any)
+                macro_at++;
+                const size_t macro_len = ptr - macro_at;
+                if (macro_len == -1 || macro_len > 20); // skip zero-length or too long substrings
+                else if (ags_strnicmp(macro_at, "gamename", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Gamename;
+                else if (ags_strnicmp(macro_at, "overhotspot", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Overhotspot;
+                else if (ags_strnicmp(macro_at, "score", macro_len) == 0)
+                    macro_flags |= kLabelMacro_Score;
+                else if (ags_strnicmp(macro_at, "scoretext", macro_len) == 0)
+                    macro_flags |= kLabelMacro_ScoreText;
+                else if (ags_strnicmp(macro_at, "totalscore", macro_len) == 0)
+                    macro_flags |= kLabelMacro_TotalScore;
+                macro_at = nullptr;
+            }
+        }
+    }
+    return (GUILabelMacro)macro_flags;
+}
+
 HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 {
     // set up the reverse-lookup array
@@ -729,7 +816,7 @@ HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
         }
         gui.ResortZOrder();
     }
-    guis_need_update = 1;
+    MarkAllGUIForUpdate();
     return HError::None();
 }
 

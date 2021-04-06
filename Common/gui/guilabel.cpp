@@ -43,6 +43,11 @@ String GUILabel::GetText() const
     return Text;
 }
 
+GUILabelMacro GUILabel::GetTextMacros() const
+{
+    return _textMacro;
+}
+
 void GUILabel::Draw(Common::Bitmap *ds)
 {
     check_font(&Font);
@@ -70,6 +75,9 @@ void GUILabel::Draw(Common::Bitmap *ds)
 void GUILabel::SetText(const String &text)
 {
     Text = text;
+    // Check for macros within text
+    _textMacro = GUI::FindLabelMacros(Text);
+    NotifyParentChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -103,6 +111,8 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
     // All labels are translated at the moment
     Flags |= kGUICtrl_Translated;
+
+    _textMacro = GUI::FindLabelMacros(Text);
 }
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -113,6 +123,8 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     Text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
         TextAlignment = (HorAlignment)in->ReadInt32();
+
+    _textMacro = GUI::FindLabelMacros(Text);
 }
 
 void GUILabel::WriteToSavegame(Stream *out) const

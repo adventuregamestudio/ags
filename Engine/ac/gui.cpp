@@ -134,7 +134,7 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   
   recreate_guibg_image(tehgui);
 
-  guis_need_update = 1;
+  tehgui->MarkChanged();
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
@@ -220,7 +220,7 @@ void GUI_Centre(ScriptGUI *sgui) {
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
   if (guis[tehgui->id].BgImage != slotn) {
     guis[tehgui->id].BgImage = slotn;
-    guis_need_update = 1;
+    guis[tehgui->id].MarkChanged();
   }
 }
 
@@ -235,7 +235,7 @@ void GUI_SetBackgroundColor(ScriptGUI *tehgui, int newcol)
     if (guis[tehgui->id].BgColor != newcol)
     {
         guis[tehgui->id].BgColor = newcol;
-        guis_need_update = 1;
+        guis[tehgui->id].MarkChanged();
     }
 }
 
@@ -251,7 +251,7 @@ void GUI_SetBorderColor(ScriptGUI *tehgui, int newcol)
     if (guis[tehgui->id].FgColor != newcol)
     {
         guis[tehgui->id].FgColor = newcol;
-        guis_need_update = 1;
+        guis[tehgui->id].MarkChanged();
     }
 }
 
@@ -269,7 +269,7 @@ void GUI_SetTextColor(ScriptGUI *tehgui, int newcol)
     if (guis[tehgui->id].FgColor != newcol)
     {
         guis[tehgui->id].FgColor = newcol;
-        guis_need_update = 1;
+        guis[tehgui->id].MarkChanged();
     }
 }
 
@@ -335,7 +335,6 @@ void remove_popup_interface(int ifacenum) {
         set_default_cursor();
 
     if (ifacenum==mouse_on_iface) mouse_on_iface=-1;
-    guis_need_update = 1;
 }
 
 void process_interface_click(int ifce, int btn, int mbut) {
@@ -518,12 +517,12 @@ void update_gui_disabled_status() {
     }
 
     if (all_buttons_was != all_buttons_disabled) {
-        // GUIs might have been removed/added
-        for (int aa = 0; aa < game.numgui; aa++) {
-            guis[aa].OnControlPositionChanged();
+        if (gui_disabled_style != GUIDIS_UNCHANGED) {
+            for (int aa = 0; aa < game.numgui; aa++) {
+                guis[aa].OnControlPositionChanged(); // this marks GUI for update
+            }
+            invalidate_screen();
         }
-        guis_need_update = 1;
-        invalidate_screen();
     }
 }
 
@@ -622,7 +621,7 @@ int gui_on_mouse_move()
 
             if (mousey < guis[guin].PopupAtMouseY) {
                 set_mouse_cursor(CURS_ARROW);
-                guis[guin].SetConceal(false); guis_need_update = 1;
+                guis[guin].SetConceal(false);
                 ifacepopped=guin; PauseGame();
                 break;
             }

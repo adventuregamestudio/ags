@@ -2157,11 +2157,12 @@ void draw_gui_and_overlays()
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
         our_eip = 37;
-        if (guis_need_update) {
-            guis_need_update = 0;
+        {
             for (aa=0;aa<game.numgui;aa++) {
                 if (!guis[aa].IsDisplayed()) continue;
+                if (!guis[aa].HasChanged()) continue;
 
+                guis[aa].ClearChanged();
                 if (guibg[aa] == nullptr)
                     recreate_guibg_image(&guis[aa]);
 

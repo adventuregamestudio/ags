@@ -27,6 +27,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -685,23 +686,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
 }
 
 void IAGSEngine::NotifySpriteUpdated(int32 slot) {
-    int ff;
-    // wipe the character cache when we change rooms
-    for (ff = 0; ff < game.numcharacters; ff++) {
-        if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
-            delete charcache[ff].image;
-            charcache[ff].image = nullptr;
-            charcache[ff].inUse = 0;
-        }
-    }
-
-    // clear the object cache
-    for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
-        if ((objcache[ff].image != nullptr) && (objcache[ff].sppic == slot)) {
-            delete objcache[ff].image;
-            objcache[ff].image = nullptr;
-        }
-    }
+    game_sprite_updated(slot);
 }
 
 void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {

@@ -87,6 +87,13 @@ public:
     // mouse cursor is at certain position on screen.
     bool        IsVisible() const;
 
+    // Tells if GUI has graphically changed recently
+    bool        HasChanged() const;
+    // Manually marks GUI as graphically changed
+    void        MarkChanged();
+    // Clears changed flag
+    void        ClearChanged();
+
     int32_t FindControlUnderMouse() const;
     // this version allows some extra leeway in the Editor so that
     // the user can grab tiny controls
@@ -172,7 +179,8 @@ public:
     String  OnClickHandler; // script function name
 
 private:
-    int32_t _flags;          // style and behavior flags
+    int32_t _flags;         // style and behavior flags
+    bool    _hasChanged;    // flag tells whether GUI has graphically changed recently
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array
@@ -195,6 +203,16 @@ namespace GUI
     void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
     // Draw text aligned horizontally inside given bounds
     void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+
+    // Mark all existing GUI for redraw
+    void MarkAllGUIForUpdate();
+    // Mark labels that acts as special text placeholders for redraw
+    void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
+    // Mark inventory windows for redraw, optionally only ones linked to given character
+    void MarkInventoryForUpdate(int char_id, bool is_player);
+
+    // Parses the string and returns combination of label macro flags
+    GUILabelMacro FindLabelMacros(const String &text);
 
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data

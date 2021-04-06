@@ -62,16 +62,17 @@ void GUITextBox::Draw(Bitmap *ds)
 
 void GUITextBox::OnKeyPress(int keycode)
 {
-    guis_need_update = 1;
+    // other key, continue
+    if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
+        return;
+
+    NotifyParentChanged();
     // backspace, remove character
     if (keycode == eAGSKeyCodeBackspace)
     {
         Text.ClipRight(1);
         return;
     }
-    // other key, continue
-    if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
-        return;
     // return/enter
     if (keycode == eAGSKeyCodeReturn)
     {

@@ -31,7 +31,7 @@
 #include "ac/common.h"
 #include "main/main.h"
 
-void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX]);
+void AGSMacInitPaths(char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
 //bool PlayMovie(char const *name, int skipType);
 
@@ -57,12 +57,10 @@ struct AGSMac : AGSPlatformDriver {
 
 AGSMac::AGSMac()
 {
-  AGSMacInitPaths(psp_game_file_name, libraryApplicationSupport);
+  AGSMacInitPaths(libraryApplicationSupport);
   
   snprintf(commonDataPath, PATH_MAX, "%s/uk.co.adventuregamestudio", libraryApplicationSupport);
   AGS::Common::Directory::CreateDirectory(commonDataPath);
-
-  strcpy(psp_translation, "default");
 }
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {

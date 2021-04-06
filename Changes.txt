@@ -27,6 +27,8 @@ Engine:
  - Support loading audio and video from data packages larger than 2 GB.
  - Improved game data loading times by introducing buffered file stream. Initial tests
    showed 3-4 times faster file reading.
+ - Improved game perfomance by not reupdating all of the GUIs each time anything changes, instead
+   only affected GUI will be updated each time.
  - Some improvement to general script perfomance.
  - Some improvement to script Dictionary and Set types perfomance.
  - Room Object's Graphic property now can be assigned a sprite with index over 32767 and
@@ -80,6 +82,10 @@ Compatibility:
  - Fixed engine was trying to read unnecessary data when loading pre-2.72 games.
  - Fixed "upscale" mode for old games (was broken in 3.5.0). Also engine will now try to detect
    if "upscale" mode wanted by reading old config options (if they are present).
+
+OSX:
+ - When looking for game files engine will no longer use hardcoded filename, will search for any
+   compatible pack file instead.
 
 Windows:
  - Added "--no-message-box" command line option to hide message boxes when alerts are raised.

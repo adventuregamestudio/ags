@@ -27,7 +27,7 @@ void Slider_SetMax(GUISlider *guisl, int valn) {
         if (guisl->MinValue > guisl->MaxValue)
             quit("!Slider.Max: minimum cannot be greater than maximum");
 
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 
 }
@@ -46,7 +46,7 @@ void Slider_SetMin(GUISlider *guisl, int valn) {
         if (guisl->MinValue > guisl->MaxValue)
             quit("!Slider.Min: minimum cannot be greater than maximum");
 
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 
 }
@@ -61,7 +61,7 @@ void Slider_SetValue(GUISlider *guisl, int valn) {
 
     if (valn != guisl->Value) {
         guisl->Value = valn;
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 }
 
@@ -78,7 +78,7 @@ void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage)
     if (newImage != guisl->BgImage)
     {
         guisl->BgImage = newImage;
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 }
 
@@ -91,7 +91,7 @@ void Slider_SetHandleGraphic(GUISlider *guisl, int newImage)
     if (newImage != guisl->HandleImage)
     {
         guisl->HandleImage = newImage;
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 }
 
@@ -104,7 +104,7 @@ void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
     if (newOffset != guisl->HandleOffset)
     {
         guisl->HandleOffset = newOffset;
-        guis_need_update = 1;
+        guisl->NotifyParentChanged();
     }
 }
 

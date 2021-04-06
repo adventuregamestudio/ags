@@ -1592,11 +1592,11 @@ bool ccInstance::ResolveScriptImports(PScript scri)
         resolved_imports = nullptr;
         return false;
     }
-    resolved_imports = new int[numimports];
 
+    resolved_imports = new int[numimports];
     for (int i = 0; i < scri->numimports; ++i) {
-        // MACPORT FIX 9/6/5: changed from NULL TO 0
         if (scri->imports[i] == nullptr) {
+            resolved_imports[i] = -1;
             continue;
         }
 

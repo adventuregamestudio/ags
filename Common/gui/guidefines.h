@@ -147,6 +147,20 @@ enum GUIControlFlags
     kGUICtrl_OldFmtXorMask = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
 };
 
+// Label macro flags, define which macros are present in the Label's Text
+enum GUILabelMacro
+{
+    kLabelMacro_None        = 0,
+    kLabelMacro_Gamename    = 0x01,
+    kLabelMacro_Overhotspot = 0x02,
+    kLabelMacro_Score       = 0x04,
+    kLabelMacro_ScoreText   = 0x08,
+    kLabelMacro_TotalScore  = 0x10,
+
+    kLabelMacro_AllScore    = kLabelMacro_Score | kLabelMacro_ScoreText,
+    kLabelMacro_All         = 0xFFFF
+};
+
 // GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
@@ -179,7 +193,5 @@ enum GuiSvgVersion
 
 } // namespace Common
 } // namespace AGS
-
-extern int guis_need_update;
 
 #endif // __AC_GUIDEFINES_H

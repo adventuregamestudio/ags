@@ -64,7 +64,6 @@ void InterfaceOn(int ifn) {
     debug_script_log("GUIOn(%d) ignored (already on)", ifn);
     return;
   }
-  guis_need_update = 1;
   guis[ifn].SetVisible(true);
   debug_script_log("GUI %d turned on", ifn);
   // modal interface
@@ -88,7 +87,6 @@ void InterfaceOff(int ifn) {
     guis[ifn].MouseOverCtrl = -1;
   }
   guis[ifn].OnControlPositionChanged();
-  guis_need_update = 1;
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
 }
@@ -204,19 +202,26 @@ void SetGUIBackgroundPic (int guin, int slotn) {
 }
 
 void DisableInterface() {
-  play.disabled_user_interface++;
-  guis_need_update = 1;
-  set_mouse_cursor(CURS_WAIT);
+  if (play.disabled_user_interface == 0 && // only if was enabled before
+      gui_disabled_style != GUIDIS_UNCHANGED)
+  { // If GUI looks change when disabled, then update them all
+    GUI::MarkAllGUIForUpdate();
   }
+  play.disabled_user_interface++;
+  set_mouse_cursor(CURS_WAIT);
+}
 
 void EnableInterface() {
-  guis_need_update = 1;
   play.disabled_user_interface--;
   if (play.disabled_user_interface<1) {
     play.disabled_user_interface=0;
     set_default_cursor();
+    if (gui_disabled_style != GUIDIS_UNCHANGED)
+    { // If GUI looks change when disabled, then update them all
+        GUI::MarkAllGUIForUpdate();
     }
   }
+}
 // Returns 1 if user interface is enabled, 0 if disabled
 int IsInterfaceEnabled() {
   return (play.disabled_user_interface > 0) ? 0 : 1;

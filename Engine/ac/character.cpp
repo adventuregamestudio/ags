@@ -150,10 +150,9 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
         charextra[charid].invorder[addIndex] = inum;
     }
     charextra[charid].invorder_count++;
-    guis_need_update = 1;
+    GUI::MarkInventoryForUpdate(charid, charid == game.playercharacter);
     if (chaa == playerchar)
         run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
-
 }
 
 void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
@@ -725,7 +724,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
             }
         }
     }
-    guis_need_update = 1;
+    GUI::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
     if (chap == playerchar)
         run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
@@ -1112,8 +1111,6 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 }
 
 void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
-    guis_need_update = 1;
-
     if (iit == nullptr) {
         chaa->activeinv = -1;
 
@@ -1122,6 +1119,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
             if (GetCursorMode()==MODE_USE)
                 set_cursor_mode(0);
         }
+        GUI::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
         return;
     }
 
@@ -1138,6 +1136,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
         update_inv_cursor(iit->id);
         set_cursor_mode(MODE_USE);
     }
+    GUI::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
 }
 
 int Character_GetAnimating(CharacterInfo *chaa) {

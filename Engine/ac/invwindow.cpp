@@ -27,6 +27,7 @@
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
+#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
@@ -64,7 +65,7 @@ void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
   // reset to top of list
   guii->TopItem = 0;
 
-  guis_need_update = 1;
+  guii->NotifyParentChanged();
 }
 
 CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
@@ -95,7 +96,7 @@ int InvWindow_GetItemHeight(GUIInvWindow *guii) {
 void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem) {
   if (guii->TopItem != topitem) {
     guii->TopItem = topitem;
-    guis_need_update = 1;
+    guii->NotifyParentChanged();
   }
 }
 
@@ -119,7 +120,7 @@ void InvWindow_ScrollDown(GUIInvWindow *guii) {
   if ((charextra[guii->GetCharacterId()].invorder_count) >
       (guii->TopItem + (guii->ColCount * guii->RowCount))) { 
     guii->TopItem += guii->ColCount;
-    guis_need_update = 1;
+    guii->NotifyParentChanged();
   }
 }
 
@@ -129,7 +130,7 @@ void InvWindow_ScrollUp(GUIInvWindow *guii) {
     if (guii->TopItem < 0)
       guii->TopItem = 0;
 
-    guis_need_update = 1;
+    guii->NotifyParentChanged();
   }
 }
 
@@ -521,7 +522,7 @@ int invscreen() {
     int selt=__actual_invscreen();
     if (selt<0) return -1;
     playerchar->activeinv=selt;
-    guis_need_update = 1;
+    GUI::MarkInventoryForUpdate(playerchar->index_id, true);
     set_cursor_mode(MODE_USE);
     return selt;
 }

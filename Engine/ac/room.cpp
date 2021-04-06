@@ -47,7 +47,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
-#include "gui/guidefines.h"
+#include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -804,7 +804,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=220;
     update_polled_stuff_if_runtime();
     debug_script_log("Now in room %d", displayed_room);
-    guis_need_update = 1;
+    GUI::MarkAllGUIForUpdate();
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
     //  MoveToWalkableArea(game.playercharacter);
     //  MSS_CHECK_ALL_BLOCKS;
@@ -860,7 +860,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
                 gfxDriver->DestroyDDB(guibgbmp[i]);
             guibgbmp[i] = nullptr;
         }
-        guis_need_update = 1;
+        GUI::MarkAllGUIForUpdate();
     }
 
     update_polled_stuff_if_runtime();

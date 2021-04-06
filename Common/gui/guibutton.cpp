@@ -123,6 +123,7 @@ void GUIButton::SetClipImage(bool on)
         Flags |= kGUICtrl_Clip;
     else
         Flags &= ~kGUICtrl_Clip;
+    NotifyParentChanged();
 }
 
 void GUIButton::SetText(const String &text)
@@ -143,6 +144,7 @@ void GUIButton::SetText(const String &text)
 
     // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
     _unnamed = _text.Compare("New Button") == 0;
+    NotifyParentChanged();
 }
 
 bool GUIButton::OnMouseDown()

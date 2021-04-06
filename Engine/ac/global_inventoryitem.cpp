@@ -52,7 +52,7 @@ void set_inv_item_pic(int invi, int piccy) {
     }
 
     game.invinfo[invi].pic = piccy;
-    guis_need_update = 1;
+    GUI::MarkInventoryForUpdate(-1, false);
 }
 
 void SetInvItemName(int invi, const char *newName) {
@@ -64,7 +64,7 @@ void SetInvItemName(int invi, const char *newName) {
     game.invinfo[invi].name[24] = 0;
 
     // might need to redraw the GUI if it has the inv item name on it
-    guis_need_update = 1;
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int GetInvAt (int xxx, int yyy) {

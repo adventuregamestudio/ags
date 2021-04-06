@@ -80,10 +80,10 @@ bool GUIListBox::IsInRightMargin(int x) const
 
 int GUIListBox::AddItem(const String &text)
 {
-    guis_need_update = 1;
     Items.push_back(text);
     SavedGameIndex.push_back(-1);
     ItemCount++;
+    NotifyParentChanged();
     return ItemCount - 1;
 }
 
@@ -94,7 +94,7 @@ void GUIListBox::Clear()
     ItemCount = 0;
     SelectedItem = 0;
     TopItem = 0;
-    guis_need_update = 1;
+    NotifyParentChanged();
 }
 
 void GUIListBox::Draw(Common::Bitmap *ds)
@@ -188,7 +188,7 @@ int GUIListBox::InsertItem(int index, const String &text)
         SelectedItem++;
 
     ItemCount++;
-    guis_need_update = 1;
+    NotifyParentChanged();
     return ItemCount - 1;
 }
 
@@ -205,7 +205,7 @@ void GUIListBox::RemoveItem(int index)
         SelectedItem--;
     if (SelectedItem >= ItemCount)
         SelectedItem = -1;
-    guis_need_update = 1;
+    NotifyParentChanged();
 }
 
 void GUIListBox::SetShowArrows(bool on)
@@ -214,6 +214,7 @@ void GUIListBox::SetShowArrows(bool on)
         ListBoxFlags |= kListBox_ShowArrows;
     else
         ListBoxFlags &= ~kListBox_ShowArrows;
+    NotifyParentChanged();
 }
 
 void GUIListBox::SetShowBorder(bool on)
@@ -222,6 +223,7 @@ void GUIListBox::SetShowBorder(bool on)
         ListBoxFlags |= kListBox_ShowBorder;
     else
         ListBoxFlags &= ~kListBox_ShowBorder;
+    NotifyParentChanged();
 }
 
 void GUIListBox::SetSvgIndex(bool on)
@@ -237,14 +239,15 @@ void GUIListBox::SetFont(int font)
     Font = font;
     RowHeight = getfontheight(Font) + 2;
     VisibleItemCount = Height / RowHeight;
+    NotifyParentChanged();
 }
 
 void GUIListBox::SetItemText(int index, const String &text)
 {
     if (index >= 0 && index < ItemCount)
     {
-        guis_need_update = 1;
         Items[index] = text;
+        NotifyParentChanged();
     }
 }
 

@@ -139,6 +139,7 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
     String pattern = path;
     pattern.Append("/*");
 
+    Debug::Printf("Searching for game data in: %s", path.GetCStr());
     if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
         return "";
     do
@@ -151,6 +152,7 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
             test_file = Path::ConcatPaths(path, test_file);
             if (IsMainGameLibrary(test_file) && fn_testfile(path))
             {
+                Debug::Printf("Found game data pak: %s", test_file.GetCStr());
                 al_findclose(&ff);
                 return test_file;
             }

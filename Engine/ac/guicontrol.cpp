@@ -61,7 +61,6 @@ void GUIControl_SetVisible(GUIObject *guio, int visible)
   {
     guio->SetVisible(on);
     guis[guio->ParentId].OnControlPositionChanged();
-    guis_need_update = 1;
   }
 }
 
@@ -78,7 +77,6 @@ void GUIControl_SetClickable(GUIObject *guio, int enabled) {
     guio->SetClickable(false);
 
   guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
 }
 
 int GUIControl_GetEnabled(GUIObject *guio) {
@@ -91,7 +89,6 @@ void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
   {
     guio->SetEnabled(on);
     guis[guio->ParentId].OnControlPositionChanged();
-    guis_need_update = 1;
   }
 }
 
@@ -153,7 +150,6 @@ int GUIControl_GetX(GUIObject *guio) {
 void GUIControl_SetX(GUIObject *guio, int xx) {
   guio->X = xx;
   guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
 }
 
 int GUIControl_GetY(GUIObject *guio) {
@@ -163,7 +159,6 @@ int GUIControl_GetY(GUIObject *guio) {
 void GUIControl_SetY(GUIObject *guio, int yy) {
   guio->Y = yy;
   guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
 }
 
 int GUIControl_GetZOrder(GUIObject *guio)
@@ -173,8 +168,7 @@ int GUIControl_GetZOrder(GUIObject *guio)
 
 void GUIControl_SetZOrder(GUIObject *guio, int zorder)
 {
-    if (guis[guio->ParentId].SetControlZOrder(guio->Id, zorder))
-        guis_need_update = 1;
+    guis[guio->ParentId].SetControlZOrder(guio->Id, zorder);
 }
 
 void GUIControl_SetPosition(GUIObject *guio, int xx, int yy) {
@@ -191,7 +185,6 @@ void GUIControl_SetWidth(GUIObject *guio, int newwid) {
   guio->Width = newwid;
   guio->OnResized();
   guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
 }
 
 int GUIControl_GetHeight(GUIObject *guio) {
@@ -202,7 +195,6 @@ void GUIControl_SetHeight(GUIObject *guio, int newhit) {
   guio->Height = newhit;
   guio->OnResized();
   guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
 }
 
 void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {
@@ -215,13 +207,11 @@ void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {
 }
 
 void GUIControl_SendToBack(GUIObject *guio) {
-  if (guis[guio->ParentId].SendControlToBack(guio->Id))
-    guis_need_update = 1;
+  guis[guio->ParentId].SendControlToBack(guio->Id);
 }
 
 void GUIControl_BringToFront(GUIObject *guio) {
-  if (guis[guio->ParentId].BringControlToFront(guio->Id))
-    guis_need_update = 1;
+  guis[guio->ParentId].BringControlToFront(guio->Id);
 }
 
 //=============================================================================

@@ -505,8 +505,7 @@ void update_invorder() {
     }
     // backwards compatibility
     play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
-
-    guis_need_update = 1;
+    GUI::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
 // CLNUP still used by run_dialog_script and run_interaction_commandlist, investigate if we could just use Character_AddInventory

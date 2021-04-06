@@ -16,8 +16,11 @@
 #include "ac/global_invwindow.h"
 #include "ac/global_translation.h"
 #include "ac/properties.h"
+#include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "script/executingscript.h"
+
+using namespace AGS::Common;
 
 extern ExecutingScript*curscript;
 extern GameState play;
@@ -41,6 +44,5 @@ void SetInvDimensions(int ww,int hh) {
         guiinv[i].ItemHeight = hh;
         guiinv[i].OnResized();
     }
-    guis_need_update = 1;
 }
 */

@@ -260,12 +260,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         if (ags_stricmp(arg,"--help") == 0 || ags_stricmp(arg,"/?") == 0 || ags_stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
-            return 0;
         }
         if (ags_stricmp(arg, "-v") == 0 || ags_stricmp(arg, "--version") == 0)
         {
             justDisplayVersion = true;
-            return 0;
         }
         else if (ags_stricmp(arg,"--updatereg") == 0)
             debug_flags |= DBG_REGONLY;

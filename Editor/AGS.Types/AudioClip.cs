@@ -98,6 +98,7 @@ namespace AGS.Types
         }
 
         [Description("How this file is compiled when you build the game EXE")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public AudioFileBundlingType BundlingType
         {
             get { return _bundlingType; }

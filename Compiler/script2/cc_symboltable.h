@@ -96,6 +96,8 @@ public:
     // for (auto it = tqs.begin(); it != tqs.end(); it++)
     inline auto begin() const { return TQToSymbolMap().begin(); }
     inline auto end() const { return TQToSymbolMap().end(); }
+
+    inline bool empty() { return _flags == std::bitset<16u>{}; }
 };
 
 // Note: Don't convert to enum class: Only the _start_ of the symbol table vector

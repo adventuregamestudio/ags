@@ -1313,11 +1313,11 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_Name(bool body_follows, Symbol 
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx)
+AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx)
 {
     SymbolTableEntry &param_entry = _sym[param_name];
     
-    if (param_is_const)
+    if (tqs[TQ::kConst] || tqs[TQ::kReadonly])
     {
         param_entry.VariableD->TypeQualifiers[TQ::kReadonly] = true;
         param_entry.VariableD->Vartype =
@@ -1332,11 +1332,11 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, Va
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype param_vartype, bool param_is_const, size_t param_idx)
+AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx)
 {
     ErrorType retval = ParseParamlist_ParamType(param_vartype);
     if (retval < 0) return retval;
-    if (param_is_const)
+    if (tqs[TQ::kConst])
         param_vartype = _sym.VartypeWith(VTT::kConst, param_vartype);
 
     Symbol param_name;
@@ -1349,7 +1349,6 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_
     Symbol param_default;
     retval = ParseParamlist_Param_DefaultValue(param_vartype, param_default);
     if (retval < 0) return retval;
-
 
     _sym[name_of_func].FunctionD->Parameters.push_back({});
     _sym[name_of_func].FunctionD->Parameters.back().Vartype = param_vartype; 
@@ -1365,24 +1364,39 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_
     retval = ParseVardecl_Var2SymTable(param_name, param_vartype, ScT::kLocal);
     if (retval < 0) return retval;
     // Set the offset, make "const" if required
-    return ParseParamlist_Param_AsVar2Sym(param_name, param_vartype, param_is_const, param_idx);
+    return ParseParamlist_Param_AsVar2Sym(param_name, tqs, param_vartype, param_idx);
 }
 
 AGS::ErrorType AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
 {
     _sym[funcsym].FunctionD->IsVariadic = false;
     _sym[funcsym].FunctionD->Parameters.resize(1u); // [0] is the return type; leave that
-    bool param_is_const = false;
+
+    TypeQualifierSet tqs = {};
+
     size_t param_idx = 0;
     while (!_src.ReachedEOF())
     {
-        Symbol const cursym = _src.GetNext();
-        if (kKW_CloseParenthesis == cursym)
+        ErrorType retval = ParseQualifiers(tqs);
+        if (retval < 0) return retval;
+
+        // Only certain qualifiers allowed
+        for (auto tq_it = tqs.begin(); tq_it != tqs.end(); tq_it++)
+        {
+            if (!tqs[tq_it->first] || TQ::kConst == tq_it->first || TQ::kReadonly == tq_it->first || TQ::kStatic == tq_it->first)
+                continue;
+            Error("Unexpected '%s' in parameter list", _sym.GetName(tqs.TQ2Symbol(tq_it->first)).c_str());
+        }
+        if (tqs[TQ::kConst] && tqs[TQ::kReadonly])
+            Warning("For 'const' parameters, 'readonly' is redundant");
+
+        Symbol const leading_sym = _src.GetNext();
+        if (kKW_CloseParenthesis == leading_sym)
             return kERR_None;   // empty parameter list
 
-        if (_sym.IsVartype(cursym))
+        if (_sym.IsVartype(leading_sym))
         {
-            if (param_idx == 0 && kKW_Void == cursym && kKW_CloseParenthesis == _src.PeekNext())
+            if (param_idx == 0 && kKW_Void == leading_sym && kKW_CloseParenthesis == _src.PeekNext() && tqs.empty())
             {   // explicitly empty parameter list, "(void)"
                 _src.GetNext(); // Eat ')'
                 return kERR_None;
@@ -1394,42 +1408,26 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_fo
                 return kERR_UserError;
             }
 
-            ErrorType retval = ParseParamlist_Param(funcsym, body_follows, cursym, param_is_const, _sym.NumOfFuncParams(funcsym) + 1);
+            ErrorType retval = ParseParamlist_Param(funcsym, body_follows, tqs, leading_sym, _sym.NumOfFuncParams(funcsym) + 1);
             if (retval < 0) return retval;
 
-            param_is_const = false; // modifier has been used up
+            tqs = {}; // type qualifiers have been used up
+
             Symbol const nextsym = _src.GetNext();
-            if (kKW_Comma != nextsym && kKW_CloseParenthesis != nextsym)
-            {
-                Error("Expected ',' or ')' or an identifier, found '%s' instead", _sym.GetName(nextsym).c_str());
-                return kERR_UserError;
-            }
+            retval = Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, nextsym);
+            if (retval < 0) return retval;
             if (kKW_CloseParenthesis == nextsym)
                 return kERR_None;
             continue;
         }
 
-        if (kKW_Const == cursym)
-        {
-            // check in main compiler phase that type must follow
-            if (PP::kMain == _pp && !_sym.IsVartype(_src.PeekNext()))
-            {
-                Error(
-                    "Expected a type after 'const', found '%s' instead",
-                    _sym.GetName(_src.PeekNext()).c_str());
-                return kERR_UserError;
-            }
-            param_is_const = true;
-            continue;
-        }
-
-        if (kKW_DotDotDot == cursym)
+        if (kKW_DotDotDot == leading_sym)
         {
             _sym[funcsym].FunctionD->IsVariadic = true;
             return Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' following the '...'");
         }
         
-        Error("Unexpected '%s' in parameter list", _sym.GetName(cursym).c_str());
+        Error("Unexpected '%s' in parameter list", _sym.GetName(leading_sym).c_str());
         return kERR_UserError;
     } // while
     // Can't happen
@@ -3125,7 +3123,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLoca
     if (kKW_OpenParenthesis == expression[0])
         return ParseExpression_InParens(expression, vloc, scope_type, vartype);
 
-    return AccessData(false, expression, vloc, scope_type, vartype);
+    return AccessData(VAC::kReading, expression, vloc, scope_type, vartype);
 }
 
 AGS::ErrorType AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
@@ -3184,13 +3182,13 @@ AGS::ErrorType AGS::Parser::AccessData_ReadIntExpression(SrcList &expression)
 }
 
 // We access a component of a struct in order to read or write it.
-AGS::ErrorType AGS::Parser::AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SrcList &expression,Parser::MemoryLocation &mloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression,Parser::MemoryLocation &mloc, Vartype &vartype)
 {
     expression.GetNext(); // Eat component
     SymbolTableEntry &entry = _sym[component];
     auto const compo_tqs = entry.VariableD->TypeQualifiers;
 
-    if (writing && compo_tqs[TQ::kWriteprotected] && !access_via_this)
+    if (VAC::kReading != access_type && compo_tqs[TQ::kWriteprotected] && !access_via_this)
     {
         Error(
             "Writeprotected component '%s' must not be modified from outside",
@@ -3211,15 +3209,15 @@ AGS::ErrorType AGS::Parser::AccessData_StructMember(Symbol component, bool writi
 }
 
 // Get the symbol for the get or set function corresponding to the attribute given.
-AGS::ErrorType AGS::Parser::ConstructAttributeFuncName(Symbol attribsym, bool writing, bool indexed,Symbol &func)
+AGS::ErrorType AGS::Parser::ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed,Symbol &func)
 {
     std::string member_str = _sym.GetName(attribsym);
     // If "::" in the name, take the part after the last "::"
     size_t const m_access_position = member_str.rfind("::");
     if (std::string::npos != m_access_position)
         member_str = member_str.substr(m_access_position + 2);
-    char const *stem_str = writing ? "set" : "get";
-    char const *indx_str = indexed ? "i_" : "_";
+    char const *stem_str = is_setter ? "set" : "get";
+    char const *indx_str = is_indexed ? "i_" : "_";
     std::string func_str = stem_str + (indx_str + member_str);
     func = _sym.FindOrAdd(func_str);
     return kERR_None;
@@ -3515,7 +3513,7 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_o
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, bool writing, SrcList &expression,Parser::MemoryLocation &mloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, VariableAccess access_type, SrcList &expression,Parser::MemoryLocation &mloc, Vartype &vartype)
 {
     Symbol varname = expression.GetNext();
     if (ScT::kImport == scope_type)
@@ -3524,7 +3522,7 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, bool writi
     CodeCell const soffs = entry.VariableD->Offset;
     auto const var_tqs = entry.VariableD->TypeQualifiers;
 
-    if (writing && var_tqs[TQ::kReadonly])
+    if (VAC::kReading != access_type && var_tqs[TQ::kReadonly])
     {
         Error("Cannot write to readonly '%s'", _sym.GetName(varname).c_str());
         return kERR_UserError;
@@ -3538,7 +3536,7 @@ AGS::ErrorType AGS::Parser::AccessData_Variable(ScopeType scope_type, bool writi
     return AccessData_ProcessAnyArrayIndex(kVL_MAR_pointsto_value, expression, vl_dummy, mloc, vartype);
 }
 
-AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type,Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access)
+AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type,Parser::MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access)
 {
     implied_this_dot = false;
 
@@ -3583,7 +3581,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
         if (_sym.IsConstant(first_sym) ||
             _sym.IsLiteral(first_sym))
         {
-            if (writing) break; // to error msg
+            if (VAC::kReading != access_type) break; // to error msg
 
             Symbol lit;
             ErrorType retval = ReadLiteralOrConst(lit);
@@ -3610,7 +3608,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
             // outside of the function proper. Therefore return scope type for them is global.
             return_scope_type = _sym.IsParameter(first_sym) ? ScT::kGlobal : scope_type;
             vloc = kVL_MAR_pointsto_value;
-            return AccessData_Variable(scope_type, writing, expression, mloc, vartype);
+            return AccessData_Variable(scope_type, access_type, expression, mloc, vartype);
         }
 
         if (_sym.IsVartype(first_sym))
@@ -3651,7 +3649,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(bool writing, SrcList &expres
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype)
 {
     Symbol const unqualified_component = expression.PeekNext();
     Symbol const qualified_component = FindComponentInStruct(vartype, unqualified_component);
@@ -3703,7 +3701,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool acces
         // make MAR point to the struct of the attribute
         ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
-        if (writing)
+        if (VAC::kWriting == access_type)
         {
             // We cannot process the attribute here so return to the assignment that
             // this attribute was originally called from
@@ -3718,7 +3716,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(bool writing, bool acces
 
     // So it is a non-attribute variable
     vloc = kVL_MAR_pointsto_value;
-    ErrorType retval = AccessData_StructMember(qualified_component, writing, access_via_this, expression, mloc, vartype);
+    ErrorType retval = AccessData_StructMember(qualified_component, access_type, access_via_this, expression, mloc, vartype);
     if (retval < 0) return retval;
     return AccessData_ProcessAnyArrayIndex(vloc, expression, vloc, mloc, vartype);
 }
@@ -3764,7 +3762,7 @@ AGS::ErrorType AGS::Parser::AccessData_IsClauseLast(SrcList &expression, bool &i
 // that has not been processed yet
 // NOTE: If this selects an attribute for writing, then the corresponding function will
 // _not_ be called and symlist[0] will be the attribute.
-AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
 {
     expression.StartRead();
     if (0 == expression.Length())
@@ -3788,7 +3786,7 @@ AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueL
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause((writing && clause_is_last), expression, vloc, scope_type, mloc, vartype, implied_this_dot, static_access);
+    retval = AccessData_FirstClause(clause_is_last? access_type : VAC::kReading, expression, vloc, scope_type, mloc, vartype, implied_this_dot, static_access);
     if (retval < 0) return retval;
 
     Vartype outer_vartype = kKW_NoSymbol;
@@ -3845,7 +3843,7 @@ AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueL
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause((clause_is_last && writing), implied_this_dot, static_access, expression, vloc, scope_type, mloc, vartype);
+        retval = AccessData_SubsequentClause(clause_is_last ? access_type : VAC::kReading, implied_this_dot, static_access, expression, vloc, scope_type, mloc, vartype);
         if (retval < 0) return retval;
 
         // Next component access, if there is any, is dependent on
@@ -3957,11 +3955,10 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(SrcList &expression)
     if (may_clobber)
         PushReg(SREG_AX);
 
-    bool const writing = true;
     ValueLocation vloc;
     Vartype lhsvartype;
     ScopeType lhs_scope_type;
-    ErrorType retval = AccessData(writing, expression, vloc, lhs_scope_type, lhsvartype);
+    ErrorType retval = AccessData(VAC::kWriting, expression, vloc, lhs_scope_type, lhsvartype);
     if (retval < 0) return retval;
 
     if (kVL_AX_is_value == vloc)
@@ -4186,8 +4183,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_ReadLHSForModification(SrcList &lhs,
 {
     ScopeType scope_type;
 
-    bool const writing = false; // reading access
-    ErrorType retval = AccessData(writing, lhs, vloc, scope_type, lhstype);
+    ErrorType retval = AccessData(VAC::kReadingForLaterWriting, lhs, vloc, scope_type, lhstype);
     if (retval < 0) return retval;
     if (!lhs.ReachedEOF())
     {
@@ -5949,18 +5945,19 @@ AGS::ErrorType AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype 
     size_t const declaration_start = _src.GetCursor();
     _src.GetNext(); // Eat '('
 
-    if (0 >= struct_name)
+    bool const func_is_static_extender = (kKW_Static == _src.PeekNext());
+    bool const func_is_extender = func_is_static_extender || (kKW_This == _src.PeekNext());
+    
+    if (func_is_extender)
     {
-        bool const func_is_static_extender = (kKW_Static == _src.PeekNext());
-        bool const func_is_extender = func_is_static_extender || (kKW_This == _src.PeekNext());
-
-        if (func_is_extender)
+        if (struct_name > 0)
         {
-            // Rewrite extender function as a component function of the corresponding struct.
-            ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, tqs);
-            if (retval < 0) return retval;
+            Error("Can't use extender syntax with a function name that follows '::'");
+            return kERR_UserError;
         }
-
+        // Rewrite extender function as a component function of the corresponding struct.
+        ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, tqs);
+        if (retval < 0) return retval;
     }
 
     // Do not set .Extends or the Component flag here. These denote that the

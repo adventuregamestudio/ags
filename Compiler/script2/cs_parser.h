@@ -323,6 +323,14 @@ private:
     } _pp;
     typedef PP ParsingPhase;
 
+    enum class VariableAccess
+    {
+        kReading,
+        kWriting,
+        kReadingForLaterWriting,
+    };
+    typedef VariableAccess VAC;
+
     // We set the MAR register lazily to save on runtime computation. This object
     // encapsulates the stashed operations that haven't been done on MAR yet.
     class MemoryLocation
@@ -510,10 +518,10 @@ private:
     ErrorType ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
 
     // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
-    ErrorType ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_vartype, bool param_is_const, int param_idx);
+    ErrorType ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx);
 
     // process a parameter decl in a function parameter list
-    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype param_vartype, bool param_is_const, size_t param_idx);
+    ErrorType ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx);
 
     ErrorType ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
@@ -648,10 +656,10 @@ private:
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
-    ErrorType AccessData_StructMember(Symbol component, bool writing, bool access_via_this, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
     // Get the symbol for the get or set function corresponding to the attribute given.
-    ErrorType ConstructAttributeFuncName(Symbol attribsym, bool writing, bool indexed, Symbol &func);
+    ErrorType ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed, Symbol &func);
 
     // We call the getter or setter of an attribute
     // The next symbol read is the attribute (the part after the '.')
@@ -669,7 +677,7 @@ private:
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
     ErrorType AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
 
-    ErrorType AccessData_Variable(ScopeType scope_type, bool writing, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_Variable(ScopeType scope_type, VariableAccess access_type, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
@@ -679,12 +687,12 @@ private:
     // The "return_scope_type" is used for deciding what values can be returned from a function.
     // implied_this_dot is set if subsequent processing should imply that
     // the expression starts with "this.", with the '.' already read in
-    ErrorType AccessData_FirstClause(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access);
+    ErrorType AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    ErrorType AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype);
+    ErrorType AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
@@ -706,7 +714,7 @@ private:
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
     // _not_ be called and symlist[0] will be the attribute.
-    ErrorType AccessData(bool writing, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    ErrorType AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
     bool AccessData_MayAccessClobberAX(SrcList &expression);

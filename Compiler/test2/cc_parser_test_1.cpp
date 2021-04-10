@@ -445,7 +445,7 @@ TEST_F(Compile1, ExtenderExtender1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'static'"));
+    EXPECT_NE(std::string::npos, msg.find("'::'"));
 }
 
 TEST_F(Compile1, ExtenderExtender2) {    
@@ -1307,4 +1307,28 @@ TEST_F(Compile1, BuiltinForbidden)
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("__Builtin_"));
+}
+
+TEST_F(Compile1, ReadonlyParameters1) {
+
+    // Parameters may be declared "readonly" so that they cannot be
+    // assigned to within the function.
+
+    char *inpl = "\
+        int foo(readonly int bar)           \n\
+        {                                   \n\
+            bar++;                          \n\
+            return bar;                     \n\
+        }                                   \n\
+                                            \n\
+        int main ()                         \n\
+        {                                   \n\
+            return foo(5);                  \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_EQ(std::string::npos, msg.find("parameter list"));
+    EXPECT_NE(std::string::npos, msg.find("readonly"));
 }

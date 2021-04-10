@@ -537,7 +537,7 @@ int adjust_x_for_guis (int xx, int yy) {
         if ((guis[aa].X > xx) || (guis[aa].Y > yy) || (guis[aa].Y + guis[aa].Height < yy))
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1))
+        if (((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1)) || (guis[aa].Transparency == 255))
             continue;
 
         // try to deal with full-width GUIs across the top
@@ -560,7 +560,7 @@ int adjust_y_for_guis ( int yy) {
         if (guis[aa].Y > yy)
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1))
+        if (((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1)) || (guis[aa].Transparency == 255))
             continue;
 
         // try to deal with full-height GUIs down the left or right

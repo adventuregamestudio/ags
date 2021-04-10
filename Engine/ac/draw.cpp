@@ -2172,6 +2172,7 @@ void draw_gui_and_overlays()
             for (aa=0;aa<game.numgui;aa++) {
                 if (!guis[aa].IsDisplayed()) continue;
                 if (!guis[aa].HasChanged()) continue;
+                if (guis[aa].Transparency == 255) continue;
 
                 guis[aa].ClearChanged();
                 if (guibg[aa] == nullptr)
@@ -2212,6 +2213,7 @@ void draw_gui_and_overlays()
         for (gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
             if (!guis[aa].IsDisplayed()) continue;
+            if (guis[aa].Transparency == 255) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&

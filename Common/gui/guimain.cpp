@@ -164,10 +164,7 @@ bool GUIMain::IsConcealed() const
 
 bool GUIMain::IsDisplayed() const
 {
-    if(!IsVisible()) return false;
-    if(IsConcealed()) return false;
-    if(Transparency == 255) return false;
-    return true;
+    return IsVisible() && !IsConcealed();
 }
 
 bool GUIMain::IsInteractableAt(int x, int y) const

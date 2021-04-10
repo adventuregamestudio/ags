@@ -71,9 +71,9 @@ public:
     // Tells if GUI's visibility is overridden and it won't be displayed on
     // screen regardless of Visible property (until concealed mode is off).
     bool        IsConcealed() const;
-    // Tells if gui is actually displayed on screen. Normally Visible property
-    // determines whether GUI is allowed to be seen, but there may be other
-    // settings that override GUI's visibility.
+    // Tells if gui is actually meant to be displayed on screen.
+    // Normally Visible property determines whether GUI is allowed to be seen,
+    // but there may be other settings that override it.
     bool        IsDisplayed() const;
     // Tells if given coordinates are within interactable area of gui
     // NOTE: this currently tests for actual visibility and Clickable property

@@ -92,10 +92,12 @@ void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
 }
 
 int GUI_GetVisible(ScriptGUI *tehgui) {
-  // GUI_GetVisible is slightly different from IsGUIOn, because
-  // with a mouse ypos gui it returns 1 if the GUI is enabled,
-  // whereas IsGUIOn actually checks if it is displayed
-  return guis[tehgui->id].IsVisible() ? 1 : 0;
+  // Since 3.5.0 this always returns honest state of the Visible property as set by the game
+  if (loaded_game_file_version >= kGameVersion_350)
+      return (guis[tehgui->id].IsVisible()) ? 1 : 0;
+  // Prior to 3.5.0 PopupY guis overrided Visible property and set it to 0 when auto-hidden;
+  // in order to simulate same behavior we only return positive if such gui is popped up:
+  return (guis[tehgui->id].IsDisplayed()) ? 1 : 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {

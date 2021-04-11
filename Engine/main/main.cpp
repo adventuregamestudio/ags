@@ -321,6 +321,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         //
         // Config overrides
         //
+        else if ((ags_stricmp(arg, "--user-data-dir") == 0) && (argc > ee + 1))
+            cfg["misc"]["user_data_dir"] = argv[++ee];
+        else if ((ags_stricmp(arg, "--shared-data-dir") == 0) && (argc > ee + 1))
+            cfg["misc"]["shared_data_dir"] = argv[++ee];
         else if (ags_stricmp(arg, "--windowed") == 0)
             force_window = 1;
         else if (ags_stricmp(arg, "--fullscreen") == 0)

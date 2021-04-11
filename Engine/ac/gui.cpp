@@ -100,6 +100,10 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   return (guis[tehgui->id].IsDisplayed()) ? 1 : 0;
 }
 
+bool GUI_GetShown(ScriptGUI *tehgui) {
+    return guis[tehgui->id].IsDisplayed();
+}
+
 int GUI_GetX(ScriptGUI *tehgui) {
   return game_to_data_coord(guis[tehgui->id].X);
 }
@@ -930,6 +934,11 @@ RuntimeScriptValue Sc_GUI_ProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(GUI_ProcessClick);
 }
 
+RuntimeScriptValue Sc_GUI_GetShown(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptGUI, GUI_GetShown);
+}
+
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
@@ -971,6 +980,7 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::set_Y",                   Sc_GUI_SetY);
     ccAddExternalObjectFunction("GUI::get_ZOrder",              Sc_GUI_GetZOrder);
     ccAddExternalObjectFunction("GUI::set_ZOrder",              Sc_GUI_SetZOrder);
+    ccAddExternalObjectFunction("GUI::get_Shown",               Sc_GUI_GetShown);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

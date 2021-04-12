@@ -150,7 +150,7 @@ int pluginsWantingDebugHooks = 0;
 std::vector<InbuiltPluginDetails> _registered_builtin_plugins;
 
 void IAGSEngine::AbortGame (const char *reason) {
-    quit ((char*)reason);
+    quit(reason);
 }
 const char* IAGSEngine::GetEngineVersion () {
     return get_engine_version();

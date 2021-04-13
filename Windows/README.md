@@ -81,7 +81,7 @@ Build following libraries:
 
 Engine MSVS solution is Solutions\Engine.sln.
 
-You will have to setup following enviroment variables in your system, for example by creating user macros in the Property Pages:
+You will have to setup following enviroment variables in your system, for example by [creating user macros in the Property Pages](https://docs.microsoft.com/en-us/cpp/build/working-with-project-properties?view=msvc-160#user-defined-macros):
 
 * AGS_SDL_INCLUDE - pointing to the location of SDL2 headers;
 * AGS_SDL_LIB - pointing to the location of SDL2 library files;

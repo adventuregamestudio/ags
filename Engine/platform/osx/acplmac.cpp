@@ -82,8 +82,6 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
   return eOS_Mac;
 }
 
-}
-
 const char* AGSMac::GetAllUsersDataDirectory()
 {
   return commonDataPath;

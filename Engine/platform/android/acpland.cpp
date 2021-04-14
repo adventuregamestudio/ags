@@ -45,10 +45,11 @@ struct AGSAndroid : AGSPlatformDriver
   void DisplayAlert(const char*, ...) override;
   const char *GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
+  eScriptSystemOSID GetSystemOSID() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
-  virtual void PostBackendExit();
-  virtual void MainInitAdjustments();
+  void PostBackendExit() override;
+  void MainInitAdjustments() override;
 };
 
 

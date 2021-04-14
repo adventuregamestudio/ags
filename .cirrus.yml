@@ -138,7 +138,6 @@ build_android_task:
     dockerfile: ci/android/Dockerfile
     cpu: 6
     memory: 6G
-      AGS_BRANCH: ags4
   git_submodules_script: git submodule update --init --recursive
   build_debug_library_and_runtime_script: |
     pushd Android/agsplayer && ./gradlew assembleDebug && popd

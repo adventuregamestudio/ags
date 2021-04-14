@@ -45,7 +45,7 @@ extern RoomStatus*croom;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
-extern color palette[256];
+extern RGB palette[256];
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;

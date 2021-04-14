@@ -23,6 +23,7 @@
 #include "ac/global_mouse.h"
 #include "ac/global_plugin.h"
 #include "ac/global_screen.h"
+#include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -46,7 +47,6 @@ extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 extern void ags_domouse(int str);
-extern int misbuttondown(int buno);
 
 ScriptMouse scmouse;
 int cur_mode,cur_cursor;
@@ -301,7 +301,7 @@ int GetCursorMode() {
 int IsButtonDown(int which) {
     if ((which < 1) || (which > 3))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
-    if (misbuttondown(which-1))
+    if (ags_misbuttondown(which-1))
         return 1;
     return 0;
 }
@@ -314,23 +314,11 @@ int IsModeEnabled(int which) {
 
 void Mouse_EnableControl(bool on)
 {
+    bool should_control_mouse =
+        usetup.mouse_ctrl_when == kMouseCtrl_Always ||
+        (usetup.mouse_ctrl_when == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
+    Mouse::SetMovementControl(should_control_mouse & on);
     usetup.mouse_ctrl_enabled = on; // remember setting in config
-
-    bool is_windowed = scsystem.windowed != 0;
-    // Whether mouse movement should be controlled by the engine - this is
-    // determined based on related config option.
-    bool should_control_mouse = usetup.mouse_ctrl_when == kMouseCtrl_Always ||
-        (usetup.mouse_ctrl_when == kMouseCtrl_Fullscreen && !is_windowed);
-    // Whether mouse movement control is supported by the engine - this is
-    // determined on per platform basis. Some builds may not have such
-    // capability, e.g. because of how backend library implements mouse utils.
-    bool can_control_mouse = platform->IsMouseControlSupported(is_windowed);
-    // The resulting choice is made based on two aforementioned factors.
-    on &= should_control_mouse && can_control_mouse;
-    if (on)
-        Mouse::EnableControl(!is_windowed);
-    else
-        Mouse::DisableControl();
 }
 
 //=============================================================================

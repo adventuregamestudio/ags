@@ -11,32 +11,24 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "core/assetmanager.h"
-#include "gfx/bitmap.h"
-#include "util/stream.h"
 #include "util/wgt2allg.h"
+#include "gfx/bitmap.h"
 
 using namespace AGS::Common;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-  void wsetrgb(int coll, int r, int g, int b, color * pall)
+  void wsetrgb(int coll, int r, int g, int b, RGB * pall)
   {
     pall[coll].r = r;
     pall[coll].g = g;
     pall[coll].b = b;
   }
 
-  void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall)
+  void wcolrotate(unsigned char start, unsigned char finish, int dir, RGB * pall)
   {
     int jj;
     if (dir == 0) {
       // rotate left
-      color tempp = pall[start];
+        RGB tempp = pall[start];
 
       for (jj = start; jj < finish; jj++)
         pall[jj] = pall[jj + 1];
@@ -45,7 +37,7 @@ extern "C"
     }
     else {
       // rotate right
-      color tempp = pall[finish];
+        RGB tempp = pall[finish];
 
       for (jj = finish - 1; jj >= start; jj--)
         pall[jj + 1] = pall[jj];
@@ -54,7 +46,7 @@ extern "C"
     }
   }
 
-  Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2)
+  Bitmap *wnewblock(Bitmap *src, int x1, int y1, int x2, int y2)
   {
     Bitmap *tempbitm;
     int twid = (x2 - x1) + 1, thit = (y2 - y1) + 1;
@@ -74,86 +66,20 @@ extern "C"
     return tempbitm;
   }
 
-  int wloadsprites(color * pall, char *filnam, Bitmap ** sarray, int strt, int eend)
-  {
-    int vers;
-    char buff[20];
-    int numspri = 0, vv, hh, wdd, htt;
-
-    Stream *in = AssetMgr->OpenAsset(filnam);
-    if (in == nullptr)
-      return -1;
-
-    vers = in->ReadInt16();
-    in->ReadArray(&buff[0], 13, 1);
-    for (vv = 0; vv < 256; vv++)        // there's a filler byte
-      in->ReadArray(&pall[vv], 3, 1);
-
-    if (vers > 4)
-      return -1;
-
-    if (vers == 4)
-      numspri = in->ReadInt16();
-    else {
-      numspri = in->ReadInt16();
-      if ((numspri < 2) || (numspri > 200))
-        numspri = 200;
-    }
-
-    for (vv = strt; vv <= eend; vv++)
-      sarray[vv] = nullptr;
-
-    for (vv = 0; vv <= numspri; vv++) {
-      int coldep = in->ReadInt16();
-
-      if (coldep == 0) {
-        sarray[vv] = nullptr;
-        if (in->EOS())
-          break;
-
-        continue;
-      }
-
-      if (in->EOS())
-        break;
-
-      if (vv > eend)
-        break;
-
-      wdd = in->ReadInt16();
-      htt = in->ReadInt16();
-      if (vv < strt) {
-          in->Seek(wdd * htt);
-        continue;
-      }
-      sarray[vv] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
-
-      if (sarray[vv] == nullptr) {
-        delete in;
-        return -1;
-      }
-
-      for (hh = 0; hh < htt; hh++)
-        in->ReadArray(&sarray[vv]->GetScanLineForWriting(hh)[0], wdd * coldep, 1);
-    }
-    delete in;
-    return 0;
-  }
-
-  void wputblock(Common::Bitmap *ds, int xx, int yy, Bitmap *bll, int xray)
+  void wputblock(Bitmap *ds, int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
-	  ds->Blit(bll, xx, yy, Common::kBitmap_Transparency);
+	  ds->Blit(bll, xx, yy, kBitmap_Transparency);
     else
       ds->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
   Bitmap wputblock_wrapper; // [IKM] argh! :[
-  void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray)
+  void wputblock_raw(Bitmap *ds, int xx, int yy, BITMAP *bll, int xray)
   {
 	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
-      ds->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+      ds->Blit(&wputblock_wrapper, xx, yy, kBitmap_Transparency);
     else
       ds->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
@@ -168,7 +94,7 @@ extern "C"
 
   int __wremap_keep_transparent = 1;
 
-  void wremap(color * pal1, Bitmap *picc, color * pal2)
+  void wremap(RGB * pal1, Bitmap *picc, RGB * pal2)
   {
     int jj;
     unsigned char color_mapped_table[256];
@@ -203,14 +129,9 @@ extern "C"
     }
   }
 
-  void wremapall(color * pal1, Bitmap *picc, color * pal2)
+  void wremapall(RGB * pal1, Bitmap *picc, RGB * pal2)
   {
     __wremap_keep_transparent--;
     wremap(pal1, picc, pal2);
     __wremap_keep_transparent++;
   }
-
-
-#ifdef __cplusplus
-}
-#endif

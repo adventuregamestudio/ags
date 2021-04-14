@@ -37,6 +37,7 @@
 #include "util/math.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
+#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 
@@ -352,6 +353,9 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 
 bool InventoryScreen::Run()
 {
+    // Run() can be called in a loop, so keep events going.
+    sys_evt_process_pending();
+
     int kgn;
     if (run_service_key_controls(kgn) && !play.IsIgnoringInput())
     {
@@ -373,10 +377,10 @@ bool InventoryScreen::Run()
 
         int mclick, mwheelz;
         if (!run_service_mb_controls(mclick, mwheelz) || play.IsIgnoringInput()) {
-            mclick = NONE;
+            mclick = MouseNone;
         }
 
-        if (mclick == LEFT) {
+        if (mclick == MouseLeft) {
             if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
                 return true; // continue inventory screen loop
             if (mousey<buttonyp) {
@@ -465,7 +469,7 @@ bool InventoryScreen::Run()
                 set_mouse_cursor(cmode);
             }
         }
-        else if (mclick == RIGHT) {
+        else if (mclick == MouseRight) {
             if (cmode == CURS_ARROW)
                 cmode = MODE_LOOK;
             else

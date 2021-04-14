@@ -11,11 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_MOVE_H
 #define __AC_MOVE_H
-
-#include "util/wgt2allg.h" // fixed type
+#include <allegro.h> // fixed math
 #include "game/savegame.h"
 
 // Forward declaration

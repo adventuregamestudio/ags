@@ -1,12 +1,15 @@
 include(TestBigEndian)
 include(CheckFseeko)
 
-add_library(common)
+add_library(common STATIC)
 
 set_target_properties(common PROPERTIES
     CXX_STANDARD 11
     CXX_EXTENSIONS NO
+    C_STANDARD 11
+    C_EXTENSIONS YES
 )
+set_property(TARGET common PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(common PUBLIC .)
 
@@ -33,6 +36,8 @@ target_sources(common
     ac/interfaceelement.h
     ac/inventoryiteminfo.cpp
     ac/inventoryiteminfo.h
+    ac/keycode.cpp
+    ac/keycode.h
     ac/mousecursor.cpp
     ac/mousecursor.h
     ac/spritecache.cpp
@@ -160,7 +165,7 @@ target_sources(common
     util/string_compat.h
 )
 
-target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)
+target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)

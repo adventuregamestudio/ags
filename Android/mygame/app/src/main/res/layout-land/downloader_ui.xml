@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/download_landscape">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/text_default_status"
+        android:id="@+id/statusText"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/text_default_progressAverageSpeed"
+        android:id="@+id/progressAverageSpeed"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/statusText"
+        android:layout_centerHorizontal="true" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="189dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_gravity="center_horizontal"
+        android:indeterminate="false"
+        android:layout_below="@+id/progressAverageSpeed"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/text_default_progressFraction"
+        android:id="@+id/progressAsFraction"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/progressBar"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/text_default_progressPercentage"
+        android:id="@+id/progressAsPercentage"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/progressAsFraction"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/text_default_progressTimeRemaining"
+        android:id="@+id/progressTimeRemaining"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/progressAsPercentage"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp">
+
+        <ToggleButton
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:textOff="@string/text_wifiOnly"
+            android:textOn="@string/text_useCellular"
+            android:id="@+id/resumeOverCellular"
+            android:layout_gravity="center" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_wifiSettings"
+            android:id="@+id/wifiSettingsButton"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_button_pause"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/pauseButton" />
+        
+    </LinearLayout>
+
+</RelativeLayout>

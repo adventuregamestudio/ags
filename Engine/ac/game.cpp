@@ -60,6 +60,7 @@
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -88,7 +89,7 @@ extern CachedActSpsData* actspswbcache;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
-extern color palette[256];
+extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
@@ -337,7 +338,7 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
 {
     rp = ResolvedPath();
     // don't allow absolute paths
-    if (!is_relative_filename(newFolder))
+    if (!Path::IsRelativePath(newFolder))
         return false;
 
     String base_dir;
@@ -772,7 +773,7 @@ const char *Game_GetName() {
 void Game_SetName(const char *newName) {
     strncpy(play.game_name, newName, 99);
     play.game_name[99] = 0;
-    set_window_title(play.game_name);
+    sys_window_set_title(play.game_name);
 }
 
 int Game_GetSkippingCutscene()
@@ -886,11 +887,7 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key)
 {
-    int platformKey = GetKeyForKeyPressCb(key);
-    platformKey = PlatformKeyFromAgsKey(platformKey);
-    if (platformKey >= 0) {
-        simulate_keypress(platformKey);
-    }
+    ags_simulate_keypress(static_cast<eAGSKeyCode>(key));
 }
 
 int Game_BlockingWaitSkipped()
@@ -1006,9 +1003,9 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     update_polled_stuff_if_runtime();
 
-    if (exists(tempFileName))
+    if (Path::IsFile(tempFileName))
     {
-        fileSize = file_size_ex(tempFileName);
+        fileSize = File::GetFileSize(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);
@@ -1266,7 +1263,7 @@ bool check_skip_cutscene_keypress (int kgn) {
 
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
-        (kgn == 27 && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
+        (kgn == eAGSKeyCodeEscape && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
     {
         start_skipping_cutscene();
         return true;
@@ -1278,7 +1275,7 @@ bool check_skip_cutscene_mclick(int mbut)
 {
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
-        (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
+        (mbut == MouseRight && skip == eSkipSceneEscOrRMB))
     {
         start_skipping_cutscene();
         return true;
@@ -1400,23 +1397,18 @@ void display_switch_out()
     ags_clear_input_buffer();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
-    platform->DisplaySwitchOut();
-    platform->ExitFullscreenMode();
 }
 
+// Called when game looses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
-    // this is only called if in SWITCH_PAUSE mode
-    //debug_script_warn("display_switch_out");
     display_switch_out();
 
     switching_away_from_game++;
 
     platform->PauseApplication();
 
-    // allow background running temporarily to halt the sound
-    if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
-        set_display_switch_mode(SWITCH_BACKAMNESIA);
+    // TODO: find out if anything has to be done here for SDL backend
 
     {
     // stop the sound stuttering
@@ -1429,8 +1421,6 @@ void display_switch_out_suspend()
     }
     } // -- AudioChannelsLock
 
-    platform->Delay(1000);
-
     // restore the callbacks
     SetMultitasking(0);
 
@@ -1441,19 +1431,13 @@ void display_switch_out_suspend()
 void display_switch_in()
 {
     switched_away = false;
-    if (gfxDriver)
-    {
-        DisplayMode mode = gfxDriver->GetDisplayMode();
-        if (!mode.Windowed)
-            platform->EnterFullscreenMode(mode);
-    }
-    platform->DisplaySwitchIn();
     ags_clear_input_buffer();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
 }
 
+// Called when game gets input focus and must resume after pause
 void display_switch_in_resume()
 {
     display_switch_in();
@@ -1471,6 +1455,8 @@ void display_switch_in_resume()
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
+
+    // TODO: find out if anything has to be done here for SDL backend
 
     platform->ResumeApplication();
 }

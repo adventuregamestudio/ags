@@ -15,12 +15,9 @@
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
-
+#include <SDL.h>
 #include "apeg.h"
 #include "core/platform.h"
-#define AGS_FLI_FROM_PACK_FILE ((ALLEGRO_DATE >= 20190303) || \
-                                AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS)
-
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "ac/asset_helper.h"
@@ -30,6 +27,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
+#include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
@@ -67,11 +65,12 @@ Bitmap *hicol_buf=nullptr;
 IDriverDependantBitmap *fli_ddb = nullptr;
 Bitmap *fli_target = nullptr;
 int fliTargetWidth, fliTargetHeight;
+volatile int fli_timer = 0; // TODO: use SDL thread conditions instead?
 int check_if_user_input_should_cancel_video()
 {
     int key, mbut, mwheelz;
     if (run_service_key_controls(key)) {
-        if ((key==27) && (canabort==1))
+        if ((key==eAGSKeyCodeEscape) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key
@@ -82,11 +81,13 @@ int check_if_user_input_should_cancel_video()
     return 0;
 }
 
-#if AGS_PLATFORM_OS_WINDOWS
-int __cdecl fli_callback() {
-#else
-extern "C" int fli_callback() {
-#endif
+Uint32 fli_timer_callback(Uint32 interval, void *param)
+{
+    fli_timer++;
+    return interval;
+}
+
+int fli_callback() {
     Bitmap *usebuf = fli_buffer;
 
     update_audio_system_on_game_loop ();
@@ -110,7 +111,7 @@ extern "C" int fli_callback() {
 }
 
 void play_flc_file(int numb,int playflags) {
-    color oldpal[256];
+    RGB oldpal[256];
 
     if (play.fast_forward)
         return;
@@ -178,24 +179,50 @@ void play_flc_file(int numb,int playflags) {
     fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-    // TODO: find a better solution.
-    // Make only certain versions of the engineuse play_fli_pf from the patched version of Allegro for now.
-    // Add more versions as their Allegro lib becomes patched too, or they use newer version of Allegro 4.
-    // Ports can still play FLI if separate file is put into game's directory.
-#if AGS_FLI_FROM_PACK_FILE
     size_t asset_size;
     PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname), asset_size);
-    if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
-#else
-    if (play_fli(flicname, (BITMAP*)fli_buffer->GetAllegroBitmap(), 0, fli_callback)==FLI_ERROR)
-#endif
+    if (open_fli_pf(pf) == FLI_OK)
+    {
+        // TODO: refactor all this later!!!
+        SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
+        const int loop = 0; // TODO: add looping FLIC support to API?
+
+        // actual FLI playback state, base on original Allegro 4's do_play_fli
+        fli_timer = 1;
+        int ret = next_fli_frame(loop);
+        while (ret == FLI_OK) {
+            /* update the palette */
+            if (fli_pal_dirty_from <= fli_pal_dirty_to)
+                set_palette_range(fli_palette, fli_pal_dirty_from, fli_pal_dirty_to, TRUE);
+
+            /* update the screen */
+            if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
+                blit(fli_bitmap, fli_buffer->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
+                    fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
+            }
+
+            reset_fli_variables();
+
+            ret = fli_callback();
+            if (ret != FLI_OK)
+                break;
+
+            ret = next_fli_frame(loop);
+            fli_timer--;
+
+            while (fli_timer <= 0) {
+                /* wait a bit */
+                SDL_Delay(1);
+            }
+        }
+    }
+    else
     {
         // This is not a fatal error that should prevent the game from continuing
         Debug::Printf("FLI/FLC animation play error");
     }
-#if AGS_FLI_FROM_PACK_FILE
     pack_fclose(pf);
-#endif
+    
 
     video_type = kVideoNone;
     delete fli_buffer;
@@ -218,7 +245,7 @@ void play_flc_file(int numb,int playflags) {
     delete hicol_buf;
     hicol_buf=nullptr;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
-    while (ags_mgetbutton()!=NONE) { } // clear any queued mouse events.
+    while (ags_mgetbutton()!= MouseNone) { } // clear any queued mouse events.
     invalidate_screen();
 }
 
@@ -229,6 +256,7 @@ void play_flc_file(int numb,int playflags) {
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
 {
+    sys_evt_process_pending();
 	if (theoraBuffer == nullptr)
     {
         // No video, only sound
@@ -367,7 +395,6 @@ void play_theora_video(const char *name, int skip, int flags)
         stop_all_sound_and_music();
     }
 
-    //fli_buffer = BitmapHelper::CreateBitmap_(scsystem.coldepth, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
     if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))

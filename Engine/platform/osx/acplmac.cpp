@@ -43,10 +43,7 @@ struct AGSMac : AGSPlatformDriver
   AGSMac();
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual const char* GetNoMouseErrorString() override;
   virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual void PostAllegroExit() override;
-  virtual void SetGameWindowIcon() override;
     
   virtual const char *GetUserSavedgamesDirectory() override;
   virtual const char *GetAllUsersDataDirectory() override;
@@ -80,21 +77,11 @@ unsigned long AGSMac::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSMac::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
 eScriptSystemOSID AGSMac::GetSystemOSID() {
   // override performed if `override.os` is set in config.
   return eOS_Mac;
 }
 
-void AGSMac::PostAllegroExit() {
-  // do nothing
-}
-
-void AGSMac::SetGameWindowIcon() {
-  // do nothing
 }
 
 const char* AGSMac::GetAllUsersDataDirectory()

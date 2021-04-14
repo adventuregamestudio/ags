@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
@@ -62,20 +62,19 @@ void GUITextBox::Draw(Bitmap *ds)
 
 void GUITextBox::OnKeyPress(int keycode)
 {
-    // TODO: use keycode constants
     // other key, continue
     if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
         return;
 
     NotifyParentChanged();
     // backspace, remove character
-    if (keycode == 8)
+    if (keycode == eAGSKeyCodeBackspace)
     {
         Text.ClipRight(1);
         return;
     }
     // return/enter
-    if (keycode == 13)
+    if (keycode == eAGSKeyCodeReturn)
     {
         IsActivated = true;
         return;

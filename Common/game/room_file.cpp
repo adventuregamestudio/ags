@@ -639,7 +639,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
     }
 
     // sync bpalettes[0] with room.pal
-    memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(color) * 256);
+    memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
     return HRoomFileError::None();
 }
 

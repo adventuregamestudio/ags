@@ -8,22 +8,28 @@ The following packages are required to build AGS. The versions in
 parentheses are known to work, but other versions will also
 probably work.
 
--   Allegro 4 (>= 4.4.3, but 4.4.2 will also work with minimal differences)
--   libaldmb (0.9.3)
--   libdumb (0.9.3)
+-   libsdl2 (2.0.12 or higher)
+-   libsdl_sound for sdl2 (revision 997e90562b35 or higher)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
--   libXext (1.3.3)
--   libXxf86vm (1.1.4)
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel dumb-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
+    yum -y install git sdl2-devel libogg-devel libtheora-devel libvorbis-devel
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install git debhelper build-essential pkg-config libsdl2-dev libtheora-dev libvorbis-dev libogg-dev
+
+SDL_Sound library installation
+----------------------------------
+At the time of writing SDL_Sound 2.* did not have a proper release and almost no linux distro provides it.
+Until that is resolved, we recommend to download particular revision archive using following url:
+
+    https://hg.icculus.org/icculus/SDL_sound/archive/9262f9205898.tar.bz2
+
+then build and install using CMake (see instructions in the SDL_Sound's docs).
 
 Download and build
 ------------------

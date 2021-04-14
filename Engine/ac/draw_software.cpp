@@ -400,7 +400,7 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
         const int surf_height = rects.SurfaceSize.Height;
         // TODO: is this IsMemoryBitmap check is still relevant?
         // If bitmaps properties match and no transform required other than linear offset
-        if ((src->GetColorDepth() == ds->GetColorDepth()) && (ds->IsMemoryBitmap()))
+        if (src->GetColorDepth() == ds->GetColorDepth())
         {
             const int bypp = src->GetBPP();
             // do the fast memory copy

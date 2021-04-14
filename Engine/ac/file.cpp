@@ -11,8 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "aldumb.h"
 #include "ac/asset_helper.h"
 #include "ac/audiocliptype.h"
 #include "ac/file.h"
@@ -217,7 +215,7 @@ void FixupFilename(char *filename)
 
 String PathFromInstallDir(const String &path)
 {
-    if (is_relative_filename(path))
+    if (Path::IsRelativePath(path))
         return Path::ConcatPaths(ResPaths.DataDir, path);
     return path;
 }
@@ -259,7 +257,7 @@ String PreparePathForWriting(const FSLocation& fsloc, const String &filename)
 FSLocation GetGlobalUserConfigDir()
 {
     String dir = platform->GetUserGlobalConfigDirectory();
-    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+    if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
         return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
     return FSLocation(dir, dir);
 }
@@ -267,7 +265,7 @@ FSLocation GetGlobalUserConfigDir()
 FSLocation GetGameUserConfigDir()
 {
     String dir = platform->GetUserConfigDirectory();
-    if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+    if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
         return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game own subdir
@@ -282,7 +280,7 @@ static FSLocation MakeGameDataDir(const String &default_dir, const String &user_
     if (user_option.IsEmpty())
     {
         String dir = default_dir;
-        if (is_relative_filename(dir)) // relative dir is resolved relative to the game data dir
+        if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
             return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
         // For absolute dir, we assume it's a special directory prepared for AGS engine
         // and therefore amend it with a game own subdir
@@ -310,7 +308,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
-    bool is_absolute = !is_relative_filename(orig_sc_path);
+    bool is_absolute = !Path::IsRelativePath(orig_sc_path);
     if (is_absolute && !read_only)
     {
         debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
@@ -501,14 +499,6 @@ PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
         obj->remains = asset_size;
         return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
-    return nullptr;
-}
-
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path, size_t &asset_size)
-{
-    PACKFILE *pf = PackfileFromAsset(path, asset_size);
-    if (pf)
-        return dumbfile_open_packfile(pf);
     return nullptr;
 }
 

@@ -19,26 +19,18 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#define NOMINMAX
-#include "platform/windows/gfx/ali3dd3d.h"
 
-#include <allegro.h>
-#include <allegro/platform/aintwin.h>
+#include "platform/windows/gfx/ali3dd3d.h"
+#include <SDL.h>
+#include "ac/sys_events.h"
 #include "ac/timer.h"
-#include "debug/assert.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
-#include "gfx/gfx_util.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "util/library.h"
-
-#ifndef AGS_NO_VIDEO_PLAYER
-extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
-extern void dxmedia_shutdown_3d();
-#endif
 
 #define AGS_D3DBLENDOP(blend_op, src_blend, dest_blend) \
   direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op); \
@@ -173,88 +165,6 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
     return false;
 }
 
-
-void dummy_vsync() { }
-
-#define GFX_DIRECT3D_WIN  AL_ID('D','X','3','W')
-#define GFX_DIRECT3D_FULL AL_ID('D','X','3','D')
-
-GFX_DRIVER gfx_direct3d_win =
-{
-   GFX_DIRECT3D_WIN,
-   empty_string,
-   empty_string,
-   "Direct3D windowed",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
-   dummy_vsync,   // vsync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
-   0, 0,                        // int w, h;
-   FALSE,                        // int linear;
-   0,                           // long bank_size;
-   0,                           // long bank_gran;
-   0,                           // long vid_mem;
-   0,                           // long vid_phys_base;
-   TRUE                         // int windowed;
-};
-
-GFX_DRIVER gfx_direct3d_full =
-{
-   GFX_DIRECT3D_FULL,
-   empty_string,
-   empty_string,
-   "Direct3D fullscreen",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
-   dummy_vsync,   // sync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
-   0, 0,                        // int w, h;
-   FALSE,                        // int linear;
-   0,                           // long bank_size;
-   0,                           // long bank_gran;
-   0,                           // long vid_mem;
-   0,                           // long vid_phys_base;
-   FALSE                         // int windowed;
-};
-
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
@@ -361,7 +271,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  gfx_driver = NULL;
+  sys_window_set_style(false);
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -383,8 +293,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = 
-        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+    SDL_SetError("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -403,7 +313,8 @@ int D3DGraphicsDriver::FirstTimeInit()
       {
         direct3ddevice->Release();
         direct3ddevice = NULL;
-        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
+        SDL_SetError("Failed to create pixel shader: 0x%08X", hr);
+        previousError = SDL_GetError();
         return -1;
       }
       UnlockResource(hGlobal);
@@ -414,7 +325,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to load pixel shader resource");
+    SDL_SetError("Failed to load pixel shader resource");
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -423,7 +335,8 @@ int D3DGraphicsDriver::FirstTimeInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to create vertex buffer");
+    SDL_SetError("Failed to create vertex buffer");
+    previousError = SDL_GetError();
     return -1;
   }
 
@@ -462,28 +375,15 @@ void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode)
 {
    if (!IsModeSupported(mode))
    {
-     throw Ali3DException(get_allegro_error());
+     throw Ali3DException(SDL_GetError());
    }
 
-   _enter_critical();
-
    d3d_mode_to_init = mode;
-   // Set the display mode in the window's thread
-   if (wnd_call_proc(wnd_create_device)) {
-     _exit_critical();
-     throw Ali3DException(get_allegro_error());
+   if (wnd_create_device()) {
+     throw Ali3DException(SDL_GetError());
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
-
-   _exit_critical();
-
-   // Set up a fake allegro gfx driver so that things like
-   // the allegro mouse handler still work
-   if (mode.Windowed)
-     gfx_driver = &gfx_direct3d_win;
-   else
-     gfx_driver = &gfx_direct3d_full;
 
    return;
 }
@@ -557,7 +457,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    SDL_SetError("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
     return false;
   }
 
@@ -574,7 +474,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   {
     if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &d3d_mode)))
     {
-      set_allegro_error("IDirect3D9::EnumAdapterModes failed");
+      SDL_SetError("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
@@ -584,7 +484,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     }
   }
 
-  set_allegro_error("The requested adapter mode is not supported");
+  SDL_SetError("The requested adapter mode is not supported");
   return false;
 }
 
@@ -661,13 +561,18 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
 int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
-  HWND allegro_wnd = win_get_window();
-
-  if (mode.Windowed)
-    platform->AdjustWindowStyleForWindowed();
+  if (sys_get_window() == nullptr)
+  {
+    sys_window_create("", mode.Width, mode.Height, mode.Windowed);
+  }
   else
-    platform->AdjustWindowStyleForFullscreen();
+  {
+    sys_window_set_style(mode.Windowed);
+    if (mode.Windowed)
+        sys_window_set_size(mode.Width, mode.Height, true);
+  }
 
+  HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
   d3dpp.BackBufferHeight = mode.Height;
@@ -676,7 +581,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
-  d3dpp.hDeviceWindow = allegro_wnd;
+  d3dpp.hDeviceWindow = hwnd;
   d3dpp.Windowed = mode.Windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
@@ -702,30 +607,17 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     hr = ResetD3DDevice();
   }
   else
-    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, allegro_wnd,
+    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, &direct3ddevice);
   if (hr != D3D_OK)
   {
     if (!previousError.IsEmpty())
-      set_allegro_error(previousError);
+      SDL_SetError(previousError);
     else
-      set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
+      SDL_SetError("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;
   }
-
-  if (mode.Windowed)
-  {
-    if (adjust_window(mode.Width, mode.Height) != 0) 
-    {
-      direct3ddevice->Release();
-      direct3ddevice = NULL;
-      set_allegro_error("Window size not supported");
-      return -1;
-    }
-  }
-
-  win_grab_input();
 
   if (first_time_init)
   {
@@ -870,7 +762,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("Direct3D driver does not support 256-color display mode");
+    SDL_SetError("Direct3D driver does not support 256-color display mode");
     return false;
   }
 
@@ -880,8 +772,8 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != get_allegro_error())
-      set_allegro_error(exception._message);
+    if (exception._message != SDL_GetError())
+      SDL_SetError("%s", exception._message);
     return false;
   }
   OnInit();
@@ -889,6 +781,28 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   InitializeD3DState();
   CreateVirtualScreen();
   return true;
+}
+
+void D3DGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
+{
+  _mode.Width = screen_sz.Width;
+  _mode.Height = screen_sz.Height;
+  // TODO: following resets D3D9 device, which may be sub-optimal;
+  // there seem to be an option to not do this if new window size is smaller
+  // and SWAPEFFECT_COPY flag is set, in which case (supposedly) we could
+  // draw using same device parameters, but adjusting viewport accordingly.
+  d3dpp.BackBufferWidth = _mode.Width;
+  d3dpp.BackBufferHeight = _mode.Height;
+  HRESULT hr = ResetD3DDevice();
+  if (hr != D3D_OK)
+  {
+      Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
+      return;
+  }
+  InitializeD3DState();
+  CreateVirtualScreen();
+  direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+  SetupViewport();
 }
 
 void D3DGraphicsDriver::CreateVirtualScreen()
@@ -928,8 +842,6 @@ void D3DGraphicsDriver::CreateVirtualScreen()
 
   // create initial stage screen for plugin raw drawing
   _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
-  // we must set Allegro's screen pointer to **something**
-  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -988,11 +900,6 @@ PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
 
 void D3DGraphicsDriver::UnInit() 
 {
-#ifndef AGS_NO_VIDEO_PLAYER
-  // TODO: this should not be done inside the graphics driver!
-  dxmedia_shutdown_3d();
-#endif
-
   OnUnInit();
   ReleaseDisplayMode();
 
@@ -1024,6 +931,8 @@ void D3DGraphicsDriver::UnInit()
     direct3ddevice->Release();
     direct3ddevice = NULL;
   }
+
+  sys_window_destroy();
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()
@@ -1141,7 +1050,7 @@ void D3DGraphicsDriver::Render()
 
 void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
 {
-  if (wnd_call_proc(wnd_reset_device))
+  if (wnd_reset_device())
   {
     throw Ali3DFullscreenLostException();
   }
@@ -1910,6 +1819,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_renderAndPresent(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     WaitForNextFrame();
@@ -1990,6 +1900,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     
     this->_renderAndPresent(false);
 
+    sys_evt_process_pending();
     if (_pollingCallback)
       _pollingCallback();
     platform->Delay(delay);
@@ -1999,18 +1910,6 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   this->ClearDrawLists();
   ResetFxPool();
 }
-
-#ifndef AGS_NO_VIDEO_PLAYER
-
-bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
-{
-  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
-
-  int result = dxmedia_play_video_3d(filename, direct3ddevice, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
-  return (result == 0);
-}
-
-#endif
 
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
@@ -2123,7 +2022,7 @@ bool D3DGraphicsFactory::Init()
 
     if (!_library.Load("d3d9"))
     {
-        set_allegro_error("Direct3D 9 is not installed");
+        SDL_SetError("Direct3D 9 is not installed");
         return false;
     }
 
@@ -2132,14 +2031,14 @@ bool D3DGraphicsFactory::Init()
     if (!lpDirect3DCreate9)
     {
         _library.Unload();
-        set_allegro_error("Entry point not found in d3d9.dll");
+        SDL_SetError("Entry point not found in d3d9.dll");
         return false;
     }
     _direct3d = lpDirect3DCreate9(D3D_SDK_VERSION);
     if (!_direct3d)
     {
         _library.Unload();
-        set_allegro_error("Direct3DCreate failed!");
+        SDL_SetError("Direct3DCreate failed!");
         return false;
     }
     return true;

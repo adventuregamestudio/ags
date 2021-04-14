@@ -11,8 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <allegro.h>
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
@@ -21,6 +19,7 @@
 #include "ac/path_helper.h"
 #include "core/assetmanager.h"
 #include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
@@ -36,7 +35,7 @@ void scrPlayVideo(const char* name, int skip, int flags) {
     if (debug_flags & DBG_NOVIDEO)
         return;
 
-    if ((flags < 10) && (usetup.digicard == DIGI_NONE)) {
+    if ((flags < 10) && (usetup.audio_backend == 0)) {
         // if game audio is disabled in Setup, then don't
         // play any sound on the video either
         flags += 10;
@@ -61,8 +60,8 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
     }
     else
     {
-        String videoFilePath = AssetMgr->FindAssetFileOnly(name);
-        platform->PlayVideo(videoFilePath, skip, flags);
+        debug_script_warn("PlayVideo: file '%s' is an unsupported format.", name);
+        return;
     }
 
     if (flags < 10) 

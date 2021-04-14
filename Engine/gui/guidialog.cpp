@@ -13,8 +13,8 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <allegro.h> // find files
 #include "gui/guidialog.h"
-
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"

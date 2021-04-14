@@ -79,8 +79,6 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[Using translation ");
         runtimeInfo.Append(get_translation_name());
     }
-    if (usetup.mod_player == 0)
-        runtimeInfo.Append("[(mod/xm player discarded)");
 
     return runtimeInfo;
 }

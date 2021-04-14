@@ -1,11 +1,18 @@
 # Engine
 # -----------------------------------------------------------------------------
 
-add_library(engine)
+if (NOT ANDROID)
+add_library(engine STATIC)
+else ()
+add_library(engine SHARED)
+endif ()
+
 
 set_target_properties(engine PROPERTIES
     CXX_STANDARD 11
     CXX_EXTENSIONS NO
+    C_STANDARD 11
+    C_EXTENSIONS YES
 )
 
 target_include_directories(engine PUBLIC .)
@@ -55,6 +62,7 @@ target_sources(engine
     ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
+    ac/dynobj/cc_dynamicobject_addr_and_manager.h
     ac/dynobj/cc_dynamicobject.cpp
     ac/dynobj/cc_dynamicobject.h
     ac/dynobj/cc_gui.cpp
@@ -208,8 +216,6 @@ target_sources(engine
     ac/inventoryitem.h
     ac/invwindow.cpp
     ac/invwindow.h
-    ac/keycode.cpp
-    ac/keycode.h
     ac/label.cpp
     ac/label.h
     ac/lipsync.h
@@ -247,11 +253,13 @@ target_sources(engine
     ac/route_finder_impl.h
     ac/route_finder_impl_legacy.cpp
     ac/route_finder_impl_legacy.h
+    ac/route_finder_jps.inl
     ac/runtime_defines.h
     ac/screen.cpp
     ac/screen.h
     ac/screenoverlay.cpp
     ac/screenoverlay.h
+    ac/scriptcontainers.cpp
     ac/slider.cpp
     ac/slider.h
     ac/speech.cpp
@@ -335,16 +343,14 @@ target_sources(engine
     gfx/gfxfilter_aad3d.h
     gfx/gfxfilter_aaogl.cpp
     gfx/gfxfilter_aaogl.h
-    gfx/gfxfilter_allegro.cpp
-    gfx/gfxfilter_allegro.h
     gfx/gfxfilter_d3d.cpp
     gfx/gfxfilter_d3d.h
-    gfx/gfxfilter_hqx.cpp
-    gfx/gfxfilter_hqx.h
     gfx/gfxfilter_ogl.cpp
     gfx/gfxfilter_ogl.h
     gfx/gfxfilter_scaling.cpp
     gfx/gfxfilter_scaling.h
+    gfx/gfxfilter_sdl_renderer.cpp
+    gfx/gfxfilter_sdl_renderer.h
     gfx/gfxmodelist.h
     gfx/graphicsdriver.h
     gfx/ogl_headers.h
@@ -384,7 +390,6 @@ target_sources(engine
     main/graphics_mode.h
     main/main.cpp
     main/main.h
-    main/main_allegro.h
     main/maindefines_ex.h
     main/mainheader.h
     main/quit.cpp
@@ -393,40 +398,31 @@ target_sources(engine
     main/update.h
     media/audio/ambientsound.cpp
     media/audio/ambientsound.h
+    media/audio/audio_core.cpp
+    media/audio/audio_core_defs.h
+    media/audio/audio_core.h
     media/audio/audio.cpp
     media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
     media/audio/audiointernaldefs.h
-    media/audio/clip_mydumbmod.cpp
-    media/audio/clip_mydumbmod.h
-    media/audio/clip_myjgmod.cpp
-    media/audio/clip_myjgmod.h
-    media/audio/clip_mymidi.cpp
-    media/audio/clip_mymidi.h
-    media/audio/clip_mymp3.cpp
-    media/audio/clip_mymp3.h
-    media/audio/clip_myogg.cpp
-    media/audio/clip_myogg.h
-    media/audio/clip_mystaticmp3.cpp
-    media/audio/clip_mystaticmp3.h
-    media/audio/clip_mystaticogg.cpp
-    media/audio/clip_mystaticogg.h
-    media/audio/clip_mywave.cpp
-    media/audio/clip_mywave.h
+    media/audio/clip_openal.cpp
+    media/audio/clip_openal.h
+    media/audio/openaldecoder.cpp
+    media/audio/openaldecoder.h
+    media/audio/openal.h
     media/audio/queuedaudioitem.cpp
     media/audio/queuedaudioitem.h
     media/audio/sound.cpp
     media/audio/sound.h
-    media/audio/soundcache.cpp
-    media/audio/soundcache.h
     media/audio/soundclip.cpp
     media/audio/soundclip.h
-    media/video/VMR9Graph.h
     media/video/video.cpp
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
+    platform/base/sys_main.cpp
+    platform/base/sys_main.h
     platform/util/libc.c
     platform/util/pe.c
     platform/util/pe.h
@@ -479,19 +475,13 @@ target_sources(engine
     util/thread.h
     util/thread_pthread.h
     util/thread_std.h
-    ac/scriptcontainers.cpp
-    ac/dynobj/scriptcontainers.h
-    ac/dynobj/scriptdict.cpp
-    ac/dynobj/scriptdict.h
-    ac/dynobj/scriptset.cpp
-    ac/dynobj/scriptset.h
 
     platform/windows/acplwin.cpp
     platform/windows/debug/namedpipesagsdebugger.cpp
     platform/windows/gfx/ali3dd3d.cpp
-    platform/windows/media/video/acwavi.cpp
-    platform/windows/media/video/acwavi3d.cpp
     platform/windows/setup/winsetup.cpp
+    platform/windows/minidump.cpp
+    platform/windows/win_ex_handling.cpp
 
     platform/linux/acpllnx.cpp
 
@@ -567,18 +557,26 @@ endif()
 target_link_libraries(engine PUBLIC 
     AGS::Common 
     ${CMAKE_DL_LIBS} 
-    Glad::Glad 
     Threads::Threads 
     Allegro::Allegro 
-    AlDumb::AlDumb 
-    AlMp3::AlMp3 
-    AlOgg::AlOgg 
-    HQ2X::hq2x
     Cda::Cda
+    glm::glm
+    External::OpenAL
+    SDL2::SDL2
+    SDL2_sound::SDL2_sound
 )
 
+if (AGS_OPENGLES2)
+    target_link_libraries(engine PUBLIC EGL GLESv2 Glad::GladGLES2)
+else()
+    target_link_libraries(engine PUBLIC Glad::Glad)
+endif (AGS_OPENGLES2)
+
 # common has a circular dependency on engine
+# TODO: currently required for gcc support, will look into this.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 target_link_libraries(common PUBLIC engine)
+endif ()
 
 if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
@@ -603,11 +601,31 @@ get_target_property(ENGINE_SOURCES engine SOURCES)
 # Set ROOT to parent directory to include Plugins/
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
 
+# Android helper
+# -----------------------------------------------------------------------------
+
+if(ANDROID)
+    add_library(pe SHARED)
+    set_target_properties(pe PROPERTIES
+            CXX_STANDARD 11
+            CXX_EXTENSIONS NO
+            C_STANDARD 11
+            C_EXTENSIONS YES
+            )
+    target_sources(pe
+            PRIVATE
+            platform/android/helper/pe_jni.c)
+    target_link_libraries(pe PRIVATE engine)
+endif(ANDROID)
 
 # Standalone exe
 # -----------------------------------------------------------------------------
+if (NOT ANDROID)
+    add_executable(ags)
+else ()
+    add_library(ags SHARED)
+endif (NOT ANDROID)
 
-add_executable(ags)
 if (LINUX)
     install(TARGETS ags RUNTIME DESTINATION bin)
 endif ()
@@ -621,10 +639,10 @@ target_include_directories(ags PRIVATE .)
 
 target_sources(ags
     PRIVATE
-    main/main_allegro.cpp
+    main/main_sdl2.cpp
 )
 
-target_link_libraries(ags PRIVATE engine)
+target_link_libraries(ags PRIVATE engine SDL2::SDL2main)
 
 if (LINUX)
     # We may override `allegro_icon` and `load_midi_pf` depending on the version
@@ -670,11 +688,11 @@ if (MACOS)
 
     target_sources(ags-app
         PRIVATE
-        main/main_allegro.cpp
+        main/main_sdl2.cpp
         ${RESOURCE_FILES}
     )
 
-    target_link_libraries(ags-app PRIVATE engine)
+    target_link_libraries(ags-app PRIVATE engine SDL2::SDL2main)
 
     set_target_properties(ags-app PROPERTIES
         RUNTIME_OUTPUT_NAME AGS

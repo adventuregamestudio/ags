@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "core/types.h"
 #include "gfx/blender.h"
-#include "util/wgt2allg.h"
+#include <allegro.h>
+#include "core/types.h"
 
 extern "C" {
     // Fallback routine for when we don't have anything better to do.
@@ -28,13 +27,7 @@ extern "C" {
     unsigned long _blender_alpha24(unsigned long x, unsigned long y, unsigned long n);
 }
 
-// the allegro "inline" ones are not actually inline, so #define
-// over them to speed it up
-#define getr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
-#define getg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
-#define getb32(xx) ((xx >> _rgb_b_shift_32) & 0xFF)
-#define geta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
-#define makeacol32(r,g,b,a) ((r << _rgb_r_shift_32) | (g << _rgb_g_shift_32) | (b << _rgb_b_shift_32) | (a << _rgb_a_shift_32))
+
 
 // Take hue and saturation of blend colour, luminance of image
 unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigned long n)

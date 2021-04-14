@@ -46,7 +46,8 @@ if (WIN32)
         src/base/ftsystem.c 
         builds/win32/ftdebug.c
     )
-elseif (MACOS OR LINUX)
+else()
+    # Currently assume all non-windows platforms are unix-y
     target_sources(freetype PRIVATE 
         builds/unix/ftsystem.c 
         src/base/ftdebug.c

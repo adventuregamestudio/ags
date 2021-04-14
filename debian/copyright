@@ -11,6 +11,14 @@ Files: debian/*
 Copyright: 2012, Tobias Hansen <tobias.han@gmx.de>
 License: BSD-3-clause
 
+Files: libsrc/allegro/*
+Copyright: 1998-2020, Shawn Hargreaves and others
+License: giftware
+
+Files: libsrc/mojoAL/*
+Copyright: 2018-2019 Ryan C. Gordon and others
+License: Zlib
+
 Files: Common/libinclude/apeg.h
        Engine/libsrc/apeg-1.2.1/*
 Copyright: Chris Robinson
@@ -20,19 +28,6 @@ Files: Common/libinclude/libcda.h
        Engine/libsrc/libcda-0.5/*
 Copyright: 2001, Peter Wang and contributing authors
 License: Zlib
-
-Files: Common/libinclude/almp3.h
-       Common/libinclude/almp3dll.h
-       Engine/libsrc/almp3-2.0.5/*
-       Engine/libsrc/almp3/*
-Copyright: 2001-2002, Javier González
-License: LGPL-2.1
-
-Files: Common/libinclude/alogg.h
-       Common/libinclude/aloggdll.h
-       Engine/libsrc/alogg/*
-Copyright: 2002, Javier González
-License: BSD-3-clause
 
 Files: Common/libinclude/aastr.h
        Common/libsrc/aastr-0.1.1/*

@@ -166,7 +166,6 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
     RuntimeScriptValue rval_null;
 
-    update_polled_mp3();
         if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
             // Character or Inventory (global script)
             QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt]);
@@ -175,7 +174,6 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             // Other (room script)
             QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt]);
         }
-        update_polled_mp3();
 
             int retval = 0;
         // if the room changed within the action

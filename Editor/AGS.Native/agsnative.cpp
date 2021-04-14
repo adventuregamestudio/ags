@@ -6,9 +6,10 @@ extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
 #include "agsnative.h"
-#include "util/wgt2allg.h"
+#include <allegro.h>
 #include <winalleg.h>
 #include "util/misc.h"
+#include "util/wgt2allg.h"
 #include "ac/spritecache.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
@@ -72,7 +73,7 @@ void save_room_file(const char *path);
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 bool outlineGuiObjects = false;
-color*palette = NULL;
+RGB*palette = NULL;
 GameSetupStruct thisgame;
 SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
@@ -963,7 +964,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
 #define SIMP_NONE     6
 
 // Adjusts sprite's transparency using the chosen method
-void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, color*itspal, int importedColourDepth,
+void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, RGB*itspal, int importedColourDepth,
     int &transcol)
 {
   if (sprite_import_method == SIMP_LEAVEALONE)
@@ -1026,7 +1027,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
 }
 
 // Adjusts 8-bit sprite's palette
-void sort_out_palette(Common::Bitmap *toimp, color*itspal, bool useBgSlots, int transcol)
+void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int transcol)
 {
   set_palette_range(palette, 0, 255, 0);
   if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
@@ -1035,7 +1036,7 @@ void sort_out_palette(Common::Bitmap *toimp, color*itspal, bool useBgSlots, int 
       itspal[transcol] = itspal[0];
     wsetrgb(0,0,0,0,itspal); // set index 0 to black
     __wremap_keep_transparent = 1;
-    color oldpale[256];
+    RGB oldpale[256];
     for (int uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
@@ -1156,7 +1157,7 @@ void free_old_game_data()
 }
 
 // remap the scene, from its current palette oldpale to palette
-void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int exactPal) {
+void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exactPal) {
   int a;  
 
   if (exactPal) {
@@ -1179,8 +1180,6 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
   memset(&imgpalcnt[0],0,sizeof(int)*256);
-  if (scene->IsLinearBitmap()==0)
-    quit("mem bitmap non-linear?");
 
   for (a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
     imgpalcnt[scene->GetScanLine(0)[a]]++;
@@ -1190,7 +1189,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   }
   // count up the number of unique colours in the image
   int numclr=0,bb;
-  color tpal[256];
+  RGB tpal[256];
   for (a=0;a<256;a++) {
     if (thisgame.paluses[a]==PAL_BACKGROUND)
       wsetrgb(a,0,0,0,palette);  // black out the bg slots before starting
@@ -1240,8 +1239,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
 }
 
 void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) {
-  if ((toValidate == NULL) || (toValidate->GetColorDepth() != 8) ||
-      (!toValidate->IsMemoryBitmap())) {
+  if ((toValidate == NULL) || (toValidate->GetColorDepth() != 8)) {
     quit("Invalid mask passed to validate_mask");
     return;
   }
@@ -1918,7 +1916,7 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cu
   free(frames);
 }
 
-Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth) 
+Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)
 {
 	int colDepth;
 	if (bmp->PixelFormat == PixelFormat::Format8bppIndexed)
@@ -2080,7 +2078,7 @@ void DeleteBackground(Room ^room, int backgroundNumber)
 
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
-	color oldpale[256];
+    RGB oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
@@ -2097,7 +2095,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 
 		// sharing palette with main background - so copy it across
 		if (sharePalette) {
-		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(color) * 256);
+		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
 		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 1;
 		  if ((size_t)backgroundNumber >= theRoom->BgFrameCount - 1)
 		  	theRoom->BgFrames[0].IsPaletteShared = 1;
@@ -2136,7 +2134,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 
 void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
 {
-    color oldpale[256];
+    RGB oldpale[256];
     RoomStruct* room = (RoomStruct*)roomptr;
     AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
     AGSBitmap* newMask = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
@@ -2198,7 +2196,7 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 
 AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
-	color imgPalBuf[256];
+    RGB imgPalBuf[256];
   int importedColourDepth;
 	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 

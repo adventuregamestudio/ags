@@ -42,7 +42,6 @@
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
 #include "game/game_init.h"
-#include "plugin/agsplugin.h"
 #include "script/script.h"
 
 using namespace AGS::Common;

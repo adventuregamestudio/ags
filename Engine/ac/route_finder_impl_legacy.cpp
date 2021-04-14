@@ -156,18 +156,15 @@ static int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss
   suggestx = -1;
 
   // ensure it's a memory bitmap, so we can use direct access to line[] array
-  if ((wss == nullptr) || (!wss->IsMemoryBitmap()) || (wss->GetColorDepth() != 8))
+  if ((wss == nullptr) || (wss->GetColorDepth() != 8))
     quit("is_route_possible: invalid walkable areas bitmap supplied");
 
   if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
   Bitmap *tempw = BitmapHelper::CreateBitmapCopy(wallscreen, 8);
-
   if (tempw == nullptr)
     quit("no memory for route calculation");
-  if (!tempw->IsMemoryBitmap())
-    quit("tempw is not memory bitmap");
 
   int dd, ff;
   // initialize array for finding widths of walkable areas

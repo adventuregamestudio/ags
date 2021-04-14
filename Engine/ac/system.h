@@ -31,7 +31,6 @@ int     System_GetHardwareAcceleration();
 int     System_GetNumLock();
 int     System_GetCapsLock();
 int     System_GetScrollLock();
-void    System_SetNumLock(int newValue);
 int     System_GetVsync();
 void    System_SetVsync(int newValue);
 int     System_GetWindowed();

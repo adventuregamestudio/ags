@@ -35,6 +35,7 @@
 #include "main/engine_setup.h"
 #include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -139,23 +140,9 @@ void engine_setup_color_conversions(int coldepth)
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
 
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-        _rgb_b_shift_16 = 0;
-        _rgb_g_shift_16 = 5;
-        _rgb_r_shift_16 = 11;
-
-        _rgb_b_shift_15 = 0;
-        _rgb_g_shift_15 = 5;
-        _rgb_r_shift_15 = 10;
-
-        _rgb_r_shift_32 = 0;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 16;
-#else
         _rgb_r_shift_16 = 11;
         _rgb_g_shift_16 = 5;
         _rgb_b_shift_16 = 0;
-#endif
     }
     else if (coldepth == 16)
     {
@@ -212,14 +199,14 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
     {
         Size cur_desktop;
-        if (get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height) == 0)
+        if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height) == 0)
             Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
             (float)cur_desktop.Height / (float)init_desktop.Height));
     }
 
     Mouse_EnableControl(usetup.mouse_ctrl_enabled);
-    Debug::Printf(kDbgMsg_Info, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
-        Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+    Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
+        usetup.mouse_ctrl_enabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
     on_coordinates_scaling_changed();
 
@@ -232,7 +219,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
 void engine_pre_gfxmode_mouse_cleanup()
 {
     // Always disable mouse control and unlock mouse when releasing down gfx mode
-    Mouse::DisableControl();
+    Mouse::SetMovementControl(false);
     Mouse::UnlockFromWindow();
 }
 
@@ -252,17 +239,13 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     bool has_driver_changed = scsystem.coldepth != dm.ColorDepth;
 
     engine_setup_scsystem_screen(dm);
-    engine_post_gfxmode_driver_setup();
-    engine_post_gfxmode_screen_setup(dm, has_driver_changed);
     if (has_driver_changed)
+    {
+        engine_post_gfxmode_driver_setup();
         engine_post_gfxmode_draw_setup(dm);
+    }
+    engine_post_gfxmode_screen_setup(dm, has_driver_changed);   
     engine_post_gfxmode_mouse_setup(dm, init_desktop);
-    
-    // TODO: the only reason this call was put here is that it requires
-    // "windowed" flag to be specified. Find out whether this function
-    // has anything to do with graphics mode at all. It is quite possible
-    // that we may split it into two functions, or remove parameter.
-    platform->PostAllegroInit(scsystem.windowed != 0);
 
     video_on_gfxmode_changed();
     invalidate_screen();
@@ -285,7 +268,7 @@ void engine_pre_gfxsystem_shutdown()
 void on_coordinates_scaling_changed()
 {
     // Reset mouse graphic area and bounds
-    Mouse::SetGraphicArea();
+    Mouse::UpdateGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
     if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
         Mouse::SetMoveLimit(play.GetMainViewport());

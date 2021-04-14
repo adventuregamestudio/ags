@@ -732,6 +732,9 @@ void DialogOptions::Redraw()
 
 bool DialogOptions::Run()
 {
+    // Run() can be called in a loop, so keep events going.
+    sys_evt_process_pending();
+
     const bool new_custom_render = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
 
       if (runGameLoopsInBackground)
@@ -757,7 +760,7 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text) == 0))) {
+          if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (strlen(parserInput->Text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
             for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
               parserInput->OnKeyPress(play.lastParserEntry[i]);
@@ -766,7 +769,7 @@ bool DialogOptions::Run()
             Redraw();
             return true; // continue running loop
           }
-          else if ((gkey >= 32) || (gkey == 13) || (gkey == 8)) {
+          else if ((gkey >= eAGSKeyCodeSpace) || (gkey == eAGSKeyCodeReturn) || (gkey == eAGSKeyCodeBackspace)) {
             parserInput->OnKeyPress(gkey);
             if (!parserInput->IsActivated) {
               //ags_domouse(DOMOUSE_DISABLE);
@@ -778,7 +781,7 @@ bool DialogOptions::Run()
         else if (new_custom_render)
         {
             runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(GetKeyForKeyPressCb(gkey));
+            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         // Allow selection of options by keyboard shortcuts
@@ -837,7 +840,7 @@ bool DialogOptions::Run()
           parserActivated = 1;
       }
 
-      int mouseButtonPressed = NONE;
+      int mouseButtonPressed = MouseNone;
       int mouseWheelTurn = 0;
       if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0 &&
           !play.IsIgnoringInput())

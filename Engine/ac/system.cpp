@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <SDL.h>
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -30,6 +30,7 @@
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
 #include "ac/global_translation.h"
+#include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
 #include "util/string_compat.h"
 
@@ -106,28 +107,23 @@ int System_GetHardwareAcceleration()
 
 int System_GetNumLock()
 {
-    return (key_shifts & KB_NUMLOCK_FLAG) ? 1 : 0;
+    SDL_PumpEvents();
+    SDL_Keymod mod_state = SDL_GetModState();
+    return (mod_state & KMOD_NUM) ? 1 : 0;
 }
 
 int System_GetCapsLock()
 {
-    return (key_shifts & KB_CAPSLOCK_FLAG) ? 1 : 0;
+    SDL_PumpEvents();
+    SDL_Keymod mod_state = SDL_GetModState();
+    return (mod_state & KMOD_CAPS) ? 1 : 0;
 }
 
 int System_GetScrollLock()
 {
-    return (key_shifts & KB_SCROLOCK_FLAG) ? 1 : 0;
-}
-
-void System_SetNumLock(int newValue)
-{
-    // doesn't work ... maybe allegro doesn't implement this on windows
-    int ledState = key_shifts & (KB_SCROLOCK_FLAG | KB_CAPSLOCK_FLAG);
-    if (newValue)
-    {
-        ledState |= KB_NUMLOCK_FLAG;
-    }
-    set_leds(ledState);
+    SDL_PumpEvents();
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    return (state[SDL_SCANCODE_SCROLLLOCK]) ? 1 : 0;
 }
 
 int System_GetVsync() {
@@ -193,21 +189,9 @@ void System_SetVolume(int newvol)
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
-    if (newvol == play.digital_master_volume)
-        return;
-
     play.digital_master_volume = newvol;
-    set_volume((newvol * 255) / 100, (newvol * 255) / 100);
-
-    // allegro's set_volume can lose the volumes of all the channels
-    // if it was previously set low; so restore them
-    AudioChannelsLock lock;
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
-    {
-        auto* ch = lock.GetChannelIfPlaying(i);
-        if (ch)
-            ch->adjust_volume();
-    }
+    auto newvol_f = static_cast<float>(newvol) / 100.0;
+    audio_core_set_master_volume(newvol_f);
 }
 
 const char* System_GetRuntimeInfo()
@@ -291,12 +275,6 @@ RuntimeScriptValue Sc_System_GetHasInputFocus(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_System_GetNumLock(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetNumLock);
-}
-
-// void (int newValue)
-RuntimeScriptValue Sc_System_SetNumLock(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(System_SetNumLock);
 }
 
 // int ()
@@ -417,7 +395,6 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_HardwareAcceleration", Sc_System_GetHardwareAcceleration);
     ccAddExternalStaticFunction("System::get_HasInputFocus",        Sc_System_GetHasInputFocus);
     ccAddExternalStaticFunction("System::get_NumLock",              Sc_System_GetNumLock);
-    ccAddExternalStaticFunction("System::set_NumLock",              Sc_System_SetNumLock);
     ccAddExternalStaticFunction("System::get_OperatingSystem",      Sc_System_GetOS);
     ccAddExternalStaticFunction("System::get_RenderAtScreenResolution", Sc_System_GetRenderAtScreenResolution);
     ccAddExternalStaticFunction("System::set_RenderAtScreenResolution", Sc_System_SetRenderAtScreenResolution);
@@ -448,7 +425,6 @@ void RegisterSystemAPI()
     ccAddExternalFunctionForPlugin("System::set_Gamma",                (void*)System_SetGamma);
     ccAddExternalFunctionForPlugin("System::get_HardwareAcceleration", (void*)System_GetHardwareAcceleration);
     ccAddExternalFunctionForPlugin("System::get_NumLock",              (void*)System_GetNumLock);
-    ccAddExternalFunctionForPlugin("System::set_NumLock",              (void*)System_SetNumLock);
     ccAddExternalFunctionForPlugin("System::get_OperatingSystem",      (void*)System_GetOS);
     ccAddExternalFunctionForPlugin("System::get_RuntimeInfo",          (void*)System_GetRuntimeInfo);
     ccAddExternalFunctionForPlugin("System::get_ScreenHeight",         (void*)System_GetScreenHeight);

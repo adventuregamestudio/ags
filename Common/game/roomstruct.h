@@ -36,14 +36,13 @@
 //=============================================================================
 #ifndef __AGS_CN_GAME__ROOMINFO_H
 #define __AGS_CN_GAME__ROOMINFO_H
-
 #include <memory>
+#include <allegro.h> // RGB
 #include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
-#include "util/wgt2allg.h" // color (allegro RGB)
 
 struct ccScript;
 struct SpriteInfo;
@@ -132,7 +131,7 @@ struct RoomBgFrame
 {
     PBitmap     Graphic;
     // Palette is only valid in 8-bit games
-    color       Palette[256];
+    RGB         Palette[256];
     // Tells if this frame should keep previous frame palette instead of using its own
     bool        IsPaletteShared;
 
@@ -307,7 +306,7 @@ public:
     int32_t                 Width;
     int32_t                 Height;
     // Primary room palette (8-bit games)
-    color                   Palette[256];
+    RGB                     Palette[256];
 
     // Basic room options
     RoomOptions             Options;

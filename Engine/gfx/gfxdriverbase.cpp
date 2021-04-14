@@ -11,8 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "util/wgt2allg.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
@@ -31,7 +29,6 @@ GraphicsDriverBase::GraphicsDriverBase()
     , _drawScreenCallback(nullptr)
     , _nullSpriteCallback(nullptr)
     , _initGfxCallback(nullptr)
-    , _initSurfaceUpdateCallback(nullptr)
 {
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;

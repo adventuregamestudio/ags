@@ -44,6 +44,7 @@
 #include "main/engine.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
@@ -481,7 +482,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // ensure that the current cursor is locked
     spriteset.Precache(game.mcurs[r_data.CursorID].pic);
 
-    set_window_title(play.game_name);
+    sys_window_set_title(play.game_name);
 
     update_polled_stuff_if_runtime();
 

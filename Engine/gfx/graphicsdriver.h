@@ -15,11 +15,10 @@
 // Graphics driver interface
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
-
 #include <memory>
+#include <allegro.h> // RGB, PALETTE
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -75,10 +74,6 @@ struct SpriteTransform
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKXY)(int x, int y);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
-// Called if the rendering surface was resized by the external code (library).
-// Mainly for Android and iOS ports; they are currently written in such way that
-// the actual rendering surface size is redefined after IGraphicsDriver initialization.
-typedef void (*GFXDRV_CLIENTCALLBACKSURFACEUPDATE)();
 
 class IGraphicsDriver
 {
@@ -88,6 +83,8 @@ public:
   virtual void SetTintMethod(TintMethod method) = 0;
   // Initialize given display mode
   virtual bool SetDisplayMode(const DisplayMode &mode) = 0;
+  // Updates previously set display mode, accomodating to the new screen size
+  virtual void UpdateDeviceScreen(const Size &screen_size) = 0;
   // Gets if a graphics mode was initialized
   virtual bool IsModeSet() const = 0;
   // Set the size of the native image size
@@ -108,7 +105,6 @@ public:
   // TODO: get rid of draw screen callback at some point when all fade functions are more or less grouped in one
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
-  virtual void SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE) = 0;
   // The NullSprite callback is called in the main render loop when a
   // null sprite is encountered. You can use this to hook into the rendering
   // process.
@@ -164,7 +160,6 @@ public:
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   // Runs box-out animation in a blocking manner.
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
-  virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) { return false; }
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

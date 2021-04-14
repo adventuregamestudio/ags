@@ -98,7 +98,7 @@ public:
   }
 
 private:
-  HANDLE _library;
+  HMODULE _library;
 };
 
 

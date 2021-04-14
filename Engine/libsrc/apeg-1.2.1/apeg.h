@@ -1,7 +1,7 @@
 #ifndef APEG_H
 #define APEG_H
 
-#include <allegro.h>
+#include <allegro.h> // BITMAP, PALETTE
 
 
 #define APEG_MAKE_VERSION(a, b, c)	(((a)<<16) | ((b)<<8) | (c))
@@ -14,8 +14,8 @@
 
 #define APEG_VERSION_STR	"1.2.1"
 
-
-#define FPS_TO_TIMER(x)	((long)((float)TIMERS_PER_SECOND / (float)(x)))
+/* times per 1000 milliseconds */
+#define FPS_TO_TIMER(x)	((long)((float)1000 / (float)(x)))
 
 #define APEG_OK		(0)
 #define APEG_ERROR	(-1)
@@ -62,6 +62,7 @@ typedef struct APEG_STREAM {
 
 	int sequence;
 
+	int sdl_timer_id;
 	volatile int timer;
 
 	int flags;
@@ -76,25 +77,14 @@ typedef struct APEG_STREAM {
 #define APEG_HAS_AUDIO	(APEG_MPG_AUDIO|APEG_VORBIS_AUDIO)
 
 
-APEG_STREAM *apeg_open_stream(const char *filename);
-APEG_STREAM *apeg_open_memory_stream(void *buffer, int length);
 APEG_STREAM *apeg_open_stream_ex(void *ptr);
-int apeg_advance_stream(APEG_STREAM *stream, int loop);
 int apeg_reset_stream(APEG_STREAM *stream);
 void apeg_close_stream(APEG_STREAM *stream);
-
-int apeg_play_mpg(const char *filename, BITMAP *target, int loop,
-                  int (*callback)(void));
-int apeg_play_memory_mpg(void *buffer, BITMAP *target, int loop,
-                         int (*callback)(BITMAP*));
-int apeg_play_mpg_ex(void *ptr, BITMAP *target, int loop,
-                     int (*callback)(BITMAP*));
 int apeg_play_apeg_stream(APEG_STREAM *stream_to_play, BITMAP *bmp, int loop, int (*callback)(BITMAP*tempBuffer));
 
 int apeg_ignore_video(int ignore);
 int apeg_ignore_audio(int ignore);
 
-void apeg_set_memory_stream_size(int size);
 void apeg_set_stream_reader(int (*init)(void *ptr),
                             int (*read)(void *buffer, int bytes, void *ptr),
                             void (*skip)(int bytes, void *ptr));
@@ -107,7 +97,6 @@ void apeg_set_display_callbacks(int (*init)(APEG_STREAM *stream, int coded_w,
                                                  void *ptr),
                                 void *ptr);
 void apeg_set_display_depth(int depth);
-void apeg_set_quality(int quality);
 
 void apeg_enable_framedrop(int framedrop);
 void apeg_disable_length_detection(int skipdetect);
@@ -116,12 +105,8 @@ void apeg_reset_colors(APEG_STREAM *stream);
 
 
 void apeg_get_video_size(APEG_STREAM *stream, int *w, int *h);
-void apeg_set_stream_rate(APEG_STREAM *stream, float rate);
 
 
-SAMPLE *apeg_preload_audio(const char *filename);
-
-int apeg_get_stream_voice(APEG_STREAM *stream);
 
 void apeg_set_audio_callbacks(int (*init)(APEG_STREAM *stream, int *channels,
                                           int *frequency, void *ptr),
@@ -129,11 +114,6 @@ void apeg_set_audio_callbacks(int (*init)(APEG_STREAM *stream, int *channels,
                                               void *buffer, int bytes,
                                               void *ptr),
                               void *ptr);
-
-int  apeg_downsample_audio(int mode);
-void apeg_downchannel_audio(int mode);
-
-int apeg_set_audio_bufsize(int size);
 
 
 extern APEG_STREAM *apeg_stream;

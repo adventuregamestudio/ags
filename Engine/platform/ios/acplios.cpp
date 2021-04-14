@@ -118,11 +118,7 @@ struct AGSIOS : AGSPlatformDriver
   void DisplayAlert(const char*, ...) override;
   const char *GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
-  const char* GetNoMouseErrorString() override;
-  bool IsBackendResponsibleForMouseScaling() override { return true; }
   eScriptSystemOSID GetSystemOSID() override;
-  void PostAllegroExit() override;
-  void SetGameWindowIcon() override;
 };
 
 
@@ -592,20 +588,8 @@ unsigned long AGSIOS::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSIOS::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
 eScriptSystemOSID AGSIOS::GetSystemOSID() {
   return eOS_iOS;
-}
-
-void AGSIOS::PostAllegroExit() {
-  // do nothing
-}
-
-void AGSIOS::SetGameWindowIcon() {
-  // do nothing
 }
 
 const char *AGSIOS::GetAppOutputDirectory()

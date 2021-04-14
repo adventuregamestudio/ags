@@ -21,7 +21,7 @@
 #ifndef __AGS_CN_GFX__ALLEGROBITMAP_H
 #define __AGS_CN_GFX__ALLEGROBITMAP_H
 
-#include <allegro.h>
+#include <allegro.h> // BITMAP
 #include "core/types.h"
 #include "gfx/bitmap.h"
 
@@ -64,27 +64,11 @@ public:
         return _alBitmap;
     }
 
-    // Is this a "normal" bitmap created by application which data can be directly accessed for reading and writing
-    inline bool IsMemoryBitmap() const
-    {
-        return is_memory_bitmap(_alBitmap) != 0;
-    }
-    // Is this a video bitmap
-    inline bool IsVideoBitmap() const
-    {
-        return is_video_bitmap(_alBitmap) != 0;
-    }
-    // Is this a linear bitmap, the one that can be accessed linearly within each scanline 
-	inline bool IsLinearBitmap() const
-    {
-        return is_linear_bitmap(_alBitmap) != 0;
-    }
     // Is this a subbitmap, referencing a part of another, bigger one?
     inline bool IsSubBitmap() const
     {
         return is_sub_bitmap(_alBitmap) != 0;
     }
-
     // Checks if bitmap cannot be used
     inline bool IsNull() const
     {
@@ -152,11 +136,6 @@ public:
     {
         return bitmap_mask_color(_alBitmap);
     }
-
-    // FIXME: allegro manual states these should not be used externally;
-	// should hide or totally remove those later
-    void    Acquire();
-	void	Release();
 
     // Converts AGS color-index into RGB color according to the bitmap format.
     // TODO: this method was added to the Bitmap class during large refactoring,

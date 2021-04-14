@@ -24,11 +24,6 @@
 #define DOMOUSE_ENABLE 1
 #define DOMOUSE_DISABLE 2
 #define DOMOUSE_NOCURSOR 5
-// are these mouse buttons? ;/
-// note: also defined in ac_cscidialog as const ints
-#define NONE -1
-#define LEFT  0
-#define RIGHT 1
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();

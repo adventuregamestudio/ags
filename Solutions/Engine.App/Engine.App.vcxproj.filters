@@ -136,9 +136,6 @@
     <Filter Include="Library Sources\apeg">
       <UniqueIdentifier>{f9e0871b-6f2f-4d4d-944a-205740a1d5b5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Library Sources\libcda">
-      <UniqueIdentifier>{84da057d-6fa3-435e-a3ba-203e836da7c1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Common Header Files">
       <UniqueIdentifier>{15c7eb52-f611-4208-8cb1-1a7f6ebbb1e6}</UniqueIdentifier>
     </Filter>
@@ -776,9 +773,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\recon.c">
       <Filter>Library Sources\apeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c">
-      <Filter>Library Sources\libcda</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
       <Filter>Source Files\game</Filter>

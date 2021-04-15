@@ -63,5 +63,4 @@ platform/linux/acpllnx.cpp \
 platform/util/pe.c \
 platform/util/libc.c
 
-CDA := libsrc/libcda-0.5/linux.c
 GLAD := libsrc/glad/src/glad.c libsrc/glad/src/glad_glx.c

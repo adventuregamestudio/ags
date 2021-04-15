@@ -24,7 +24,6 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <gameux.h>
-#include <libcda.h>
 
 #include "ac/common.h"
 #include "ac/draw.h"

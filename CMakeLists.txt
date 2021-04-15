@@ -185,7 +185,6 @@ if(AGS_OPENGLES2)
 else()
     add_subdirectory(Engine/libsrc/glad             EXCLUDE_FROM_ALL)
 endif()
-add_subdirectory(Engine/libsrc/libcda-0.5       EXCLUDE_FROM_ALL)
 
 add_subdirectory(Engine)
 

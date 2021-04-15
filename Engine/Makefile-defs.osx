@@ -53,5 +53,4 @@ platform/util/libc.c \
 platform/util/pe.c \
 platform/osx/alplmac.mm
 
-CDA := 
 GLAD := libsrc/glad/src/glad.c

@@ -14,7 +14,7 @@ else
 include Makefile-defs.linux
 endif
 
-OBJS := $(APEG) $(AASTR) $(MOJOAL) $(CDA) $(GLAD) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
+OBJS := $(APEG) $(AASTR) $(MOJOAL) $(GLAD) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
 OBJS := $(OBJS:.mm=.o)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)

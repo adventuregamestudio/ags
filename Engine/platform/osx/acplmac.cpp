@@ -23,7 +23,6 @@
 //#include "ac/runtime_defines.h"
 //#include "main/config.h"
 //#include "plugin/agsplugin.h"
-//#include <libcda.h>
 //#include <pwd.h>
 //#include <sys/stat.h>
 #include "platform/base/agsplatformdriver.h"

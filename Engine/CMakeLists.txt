@@ -558,8 +558,7 @@ target_link_libraries(engine PUBLIC
     AGS::Common 
     ${CMAKE_DL_LIBS} 
     Threads::Threads 
-    Allegro::Allegro 
-    Cda::Cda
+    Allegro::Allegro
     glm::glm
     External::OpenAL
     SDL2::SDL2

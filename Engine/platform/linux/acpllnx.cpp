@@ -26,7 +26,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/string.h"
-#include "libsrc/libcda-0.5/libcda.h"
 
 #include <pwd.h>
 #include <sys/stat.h>

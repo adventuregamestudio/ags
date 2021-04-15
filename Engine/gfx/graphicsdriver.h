@@ -72,6 +72,15 @@ struct SpriteTransform
         : X(x), Y(y), ScaleX(scalex), ScaleY(scaley), Rotate(rotate) {}
 };
 
+// Describes 3 render matrixes: world, view and projection
+struct RenderMatrixes
+{
+    float World[16] = { 0.f };
+    float View[16] = { 0.f };
+    float Projection[16] = { 0.f };
+};
+
+
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKXY)(int x, int y);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
@@ -177,7 +186,11 @@ public:
   virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
   // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
   // All renderers should support this.
-  virtual Common::Bitmap* GetStageBackBuffer() = 0;
+  virtual Common::Bitmap* GetStageBackBuffer(bool mark_dirty) = 0;
+  // Retrieves 3 transform matrixes for the current rendering stage: world (model), view and projection.
+  // These matrixes will be filled in accordance to the renderer's compatible format;
+  // returns false if renderer does not use matrixes (not a 3D renderer).
+  virtual bool GetStageMatrixes(RenderMatrixes &rm) = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;

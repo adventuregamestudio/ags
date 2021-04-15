@@ -579,6 +579,9 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   // is selected in AGS. This ugly situation causes trouble...
   device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
 #endif
+
+  // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
+  glGetFloatv(GL_MODELVIEW_MATRIX, _stageMatrixes.View);
 }
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
@@ -1376,6 +1379,8 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
+  // Save Projection
+  glGetFloatv(GL_PROJECTION, _stageMatrixes.Projection);
 
   RenderSpriteBatches();
 
@@ -1454,10 +1459,12 @@ void OGLGraphicsDriver::RenderSpriteBatches()
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
         _stageVirtualScreen = GetStageScreen(i);
+        memcpy(_stageMatrixes.World, _spriteBatches[i].Matrix.m, sizeof(float[16]));
         RenderSpriteBatch(batch);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
+    memcpy(_stageMatrixes.World, _spriteBatches[0].Matrix.m, sizeof(float[16]));
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);

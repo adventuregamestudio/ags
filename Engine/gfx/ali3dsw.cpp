@@ -613,7 +613,7 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   }
 }
 
-Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
+Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer(bool /*mark_dirty*/)
 {
     return _stageVirtualScreen;
 }

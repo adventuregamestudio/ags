@@ -186,7 +186,8 @@ public:
     bool UsesMemoryBackBuffer() override;
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
-    Bitmap* GetStageBackBuffer() override;
+    Bitmap* GetStageBackBuffer(bool mark_dirty) override;
+    bool GetStageMatrixes(RenderMatrixes &rm) override;
 
 protected:
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
@@ -218,6 +219,9 @@ protected:
     // in between render stages (between room and GUI, after GUI, and so on)
     PBitmap _stageVirtualScreen;
     IDriverDependantBitmap *_stageVirtualScreenDDB;
+    // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
+    // these matrixes are filled compatible with each given renderer
+    RenderMatrixes _stageMatrixes;
 
     // Color component shifts in video bitmap format (set by implementations)
     int _vmem_a_shift_32;

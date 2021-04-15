@@ -68,8 +68,10 @@ namespace AGS.Editor
                     return false;
                 }
                 string compiledEXE = targetWin.GetCompiledPath(exeFileName);
+                string compiledDat = targetWin.GetCompiledPath(baseGameFileName + ".ags");
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
                 Utilities.DeleteFileIfExists(compiledEXE);
+                Utilities.DeleteFileIfExists(compiledDat);
                 File.Copy(sourceEXE, exeFileName, true);
                 BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), errors);
                 if (errors.HasErrors)

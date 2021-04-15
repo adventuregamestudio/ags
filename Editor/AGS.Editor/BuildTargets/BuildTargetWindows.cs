@@ -205,11 +205,25 @@ namespace AGS.Editor
             UpdateWindowsEXE(newExeName, errors);
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            string mainGameData = Path.Combine(compiledDataDir, baseGameFileName + ".ags");
-            if (File.Exists(mainGameData))
-                AttachDataToEXE(mainGameData, newExeName);
+            string mainGameDataName = baseGameFileName + ".ags";
+            string mainGameDataSrc = Path.Combine(compiledDataDir, mainGameDataName);
+            string mainGameDataDst = GetCompiledPath(mainGameDataName);
+            if (File.Exists(mainGameDataSrc))
+            {
+                if (Factory.AGSEditor.CurrentGame.Settings.AttachDataToExe)
+                {
+                    AttachDataToEXE(mainGameDataSrc, newExeName);
+                    File.Delete(mainGameDataDst);
+                }
+                else
+                {
+                    Utilities.HardlinkOrCopy(GetCompiledPath(mainGameDataName), mainGameDataSrc, true);
+                }
+            }
             else
-                errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameData)));
+            {
+                errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameDataSrc)));
+            }
             CopyAuxiliaryGameFiles(compiledDataDir, true);
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(GetCompiledPath());

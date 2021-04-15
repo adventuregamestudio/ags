@@ -1383,9 +1383,9 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         String def_cfg_file = find_default_cfg_file();
         String gl_cfg_file = find_user_global_cfg_file();
         String user_cfg_file = find_user_cfg_file();
-        data["config-path"]["default"] = def_cfg_file;
-        data["config-path"]["global"] = gl_cfg_file;
-        data["config-path"]["user"] = user_cfg_file;
+        data["configpath"]["default"] = def_cfg_file;
+        data["configpath"]["global"] = gl_cfg_file;
+        data["configpath"]["user"] = user_cfg_file;
     }
     if ((all || keys.count("config") > 0) && user_cfg)
     {

@@ -93,8 +93,6 @@ String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
-extern SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &game_data_dir, const char*, const char*);
-
 struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
   ~AGSWin32();

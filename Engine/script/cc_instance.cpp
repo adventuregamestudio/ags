@@ -1378,24 +1378,29 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         }
         else
         {
-            switch(op.Args[i].Type) {
+            RuntimeScriptValue arg = op.Args[i];
+            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
+            {
+                arg = *arg.RValue;
+            }
+            switch(arg.Type) {
             case kScValInteger:
             case kScValPluginArg:
-                writer.WriteFormat(" %d", op.Args[i].IValue);
+                writer.WriteFormat(" %d", arg.IValue);
                 break;
             case kScValFloat:
-                writer.WriteFormat(" %f", op.Args[i].FValue);
+                writer.WriteFormat(" %f", arg.FValue);
                 break;
             case kScValStringLiteral:
-                writer.WriteFormat(" \"%s\"", op.Args[i].Ptr);
+                writer.WriteFormat(" \"%s\"", arg.Ptr);
                 break;
             case kScValStackPtr:
             case kScValGlobalVar:
-                writer.WriteFormat(" %p", op.Args[i].RValue);
+                writer.WriteFormat(" %p", arg.RValue);
                 break;
             case kScValData:
             case kScValCodePtr:
-                writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+                writer.WriteFormat(" %p", arg.GetPtrWithOffset());
                 break;
             case kScValStaticArray:
             case kScValStaticObject:
@@ -1405,14 +1410,14 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
             case kScValPluginFunction:
             case kScValPluginObject:
             {
-                String name = simp.findName(op.Args[i]);
+                String name = simp.findName(arg);
                 if (!name.IsEmpty())
                 {
                     writer.WriteFormat(" &%s", name.GetCStr());
                 }
                 else
                 {
-                    writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+                    writer.WriteFormat(" %p", arg.GetPtrWithOffset());
                 }
              }
                 break;

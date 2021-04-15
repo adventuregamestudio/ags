@@ -1395,6 +1395,8 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
                 break;
             case kScValData:
             case kScValCodePtr:
+                writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+                break;
             case kScValStaticArray:
             case kScValStaticObject:
             case kScValDynamicObject:
@@ -1402,7 +1404,17 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
             case kScValObjectFunction:
             case kScValPluginFunction:
             case kScValPluginObject:
-                writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+            {
+                String name = simp.findName(op.Args[i]);
+                if (!name.IsEmpty())
+                {
+                    writer.WriteFormat(" &%s", name.GetCStr());
+                }
+                else
+                {
+                    writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+                }
+             }
                 break;
             case kScValUndefined:
 				writer.WriteString("undefined");

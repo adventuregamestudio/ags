@@ -1378,9 +1378,36 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         }
         else
         {
-            // MACPORT FIX 9/6/5: changed %d to %ld
-            // FIXME: check type and write appropriate values
-            writer.WriteFormat(" %ld", op.Args[i].GetPtrWithOffset());
+            switch(op.Args[i].Type) {
+            case kScValInteger:
+            case kScValPluginArg:
+                writer.WriteFormat(" %d", op.Args[i].IValue);
+                break;
+            case kScValFloat:
+                writer.WriteFormat(" %f", op.Args[i].FValue);
+                break;
+            case kScValStringLiteral:
+                writer.WriteFormat(" \"%s\"", op.Args[i].Ptr);
+                break;
+            case kScValStackPtr:
+            case kScValGlobalVar:
+                writer.WriteFormat(" %p", op.Args[i].RValue);
+                break;
+            case kScValData:
+            case kScValCodePtr:
+            case kScValStaticArray:
+            case kScValStaticObject:
+            case kScValDynamicObject:
+            case kScValStaticFunction:
+            case kScValObjectFunction:
+            case kScValPluginFunction:
+            case kScValPluginObject:
+                writer.WriteFormat(" %p", op.Args[i].GetPtrWithOffset());
+                break;
+            case kScValUndefined:
+				writer.WriteString("undefined");
+                break;
+             }
         }
     }
     writer.WriteLineBreak();

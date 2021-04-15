@@ -144,6 +144,7 @@ Following OPTIONS are supported when running from command line:
 * --noupdate - don't run game update (for test purposes).
 * --novideo - don't play game videos (for test purposes).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
+* --shared-data-dir \<DIR\> - set the shared game data directory. Corresponds to "shared_data_dir" config option.
 * --startr \<room_number\> - start game by loading certain room (for test purposes).
 * --tell - print various information concerning engine and the game, and quits. Output is done in INI format.
   * --tell-config - print contents of merged game config.
@@ -154,6 +155,7 @@ Following OPTIONS are supported when running from command line:
   * --tell-filepath - print all filepaths engine uses for the game.
   * --tell-graphicdriver - print list of supported graphic drivers.
 * --test - run game in the test mode, unlocking test key combinations and console.
+* --user-data-dir \<DIR\> - set the save game directory. Corresponds to "user_data_dir" config option.
 * --windowed - run in windowed mode.
 
 

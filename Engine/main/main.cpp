@@ -225,6 +225,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
+           "  --shared-data-dir <DIR>      Set the shared game data directory\n"
            "  --startr <room_number>       Start game by loading certain room.\n"
            "  --tell                       Print various information concerning engine\n"
            "                                 and the game; for selected output use:\n"
@@ -238,6 +239,7 @@ void main_print_help() {
            "\n"
            "  --test                       Run game in the test mode\n"
            "  --version                    Print engine's version and stop\n"
+           "  --user-data-dir <DIR>        Set the save game directory\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"
            "Gamefile options:\n"

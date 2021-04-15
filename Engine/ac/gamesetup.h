@@ -63,6 +63,7 @@ struct GameSetup {
     String opt_audio_dir; // optional custom install audio dir path
     String opt_voice_dir; // optional custom install voice-over dir path
     //
+    String conf_path; // explicitly set path to config
     String user_data_dir; // directory to write savedgames and user files to
     String shared_data_dir; // directory to write shared game files to
     String translation;

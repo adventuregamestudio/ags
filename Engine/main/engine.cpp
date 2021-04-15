@@ -1297,6 +1297,12 @@ bool engine_init_gamedata()
 
 void engine_read_config(ConfigTree &cfg)
 {
+    if (usetup.conf_path)
+    {
+        IniUtil::Read(usetup.conf_path, cfg);
+        return;
+    }
+
     // Read default configuration file
     String def_cfg_file = find_default_cfg_file();
     IniUtil::Read(def_cfg_file, cfg);

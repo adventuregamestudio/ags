@@ -175,6 +175,7 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --conf FILEPATH              Specify explicit config file to read on startup\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
 #endif
@@ -225,7 +226,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
-           "  --shared-data-dir <DIR>      Set the shared game data directory\n"
+           "  --shared-data-dir DIR        Set the shared game data directory\n"
            "  --startr <room_number>       Start game by loading certain room.\n"
            "  --tell                       Print various information concerning engine\n"
            "                                 and the game; for selected output use:\n"
@@ -239,7 +240,7 @@ void main_print_help() {
            "\n"
            "  --test                       Run game in the test mode\n"
            "  --version                    Print engine's version and stop\n"
-           "  --user-data-dir <DIR>        Set the save game directory\n"
+           "  --user-data-dir DIR          Set the save game directory\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"
            "Gamefile options:\n"
@@ -297,6 +298,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             editor_debugging_enabled = 1;
             force_window = 1;
             ee++;
+        }
+        else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
+        {
+            usetup.conf_path = argv[++ee];
         }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {

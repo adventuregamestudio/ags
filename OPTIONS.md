@@ -125,6 +125,7 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
+* --conf \<FILEPATH\> - specify explicit config file to read on startup.
 * --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.
 * --fullscreen - run in fullscreen mode.

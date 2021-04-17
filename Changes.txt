@@ -23,7 +23,7 @@ Scripting:
 Script API:
  - Added GUI.Shown readonly property that tells whether GUI is active on screen. This is primarily
    for GUIs with "Popup At Y" style, because they hide themselves regardless of Visible property.
-   Note that since 3.5.0 GUI.Visible only tells a user-set value.
+   Note that since 3.5.0 GUI.Visible only tells a script-set value.
  - GetTranslation() now returns "const string" (was "string"). This is to prevent modifying
    returned string using old-style string functions, such as StrCat(), as this string may be
    allocated in the internal engine memory for its own use.
@@ -53,15 +53,16 @@ Engine:
  - Expanded text parser error messages for easier debugging.
  - Adjusted all the command-line options to have consistent prefix convention, where all full-name
    options must be preceded by double-dash, and one-letter options by single dash.
+ - Added "--localuserconf" command and similar global config option which tells engine to read and
+   write user config in the game's directory rather than using standard platform path.
+   Game dir must be writeable for this to work.
+ - Added "--conf" command which forces engine to read only explicit config file on startup.
+ - Added "--user-data-dir" and "--shared-data-dir" commands for setting save game directory and
+   shared app data directory from command line (this corresponds to existing options in config).
  - Fully configurable log output (in both game config and command line) allows to set up which
    message types and groups are printed by which output methods (sinks), including: file,
    system console, in-game console. "warnings.log" is now created only if file log was not
    requested by user.
- - Added "--localuserconf" command which tells engine to read and write user config in the game's
-   directory rather than using standard platform path. Game dir must be writeable for this to work.
- - Added "--conf" command which forces engine to read only explicit config file on startup.
- - Added "--user-data-dir" and "--shared-data-dir" commands for setting save game directory and
-   shared app data directory from command line (this corresponds to existing options in config).
  - Added "--log-" set of command line options for setting up log output.
  - Added "--tell-filepath" option for printing known engine's and game's file locations.
  - Added "--tell-gameproperties" option for printing some of the game's general settings.

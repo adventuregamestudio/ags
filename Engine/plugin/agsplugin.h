@@ -58,7 +58,7 @@ typedef int HWND;
 #endif
 
 #ifndef int32
-#define int32 int
+typedef int int32;
 #endif
 
 #define AGSIFUNC(type) virtual type __stdcall

@@ -1297,7 +1297,7 @@ bool engine_init_gamedata()
 
 void engine_read_config(ConfigTree &cfg)
 {
-    if (usetup.conf_path)
+    if (!usetup.conf_path.IsEmpty())
     {
         IniUtil::Read(usetup.conf_path, cfg);
         return;

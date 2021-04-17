@@ -163,6 +163,7 @@ struct D3DSpriteBatch
     // Clipping viewport
     Rect Viewport;
     // Transformation matrix, built from the batch description
+    // TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
     D3DMATRIX Matrix;
 };
 typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;

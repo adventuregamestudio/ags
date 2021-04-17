@@ -19,6 +19,7 @@
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 #include <memory>
 #include <allegro.h> // RGB, PALETTE
+#include <glm/mat4x4.hpp>
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -74,9 +75,9 @@ struct SpriteTransform
 // Describes 3 render matrixes: world, view and projection
 struct RenderMatrixes
 {
-    float World[16] = { 0.f };
-    float View[16] = { 0.f };
-    float Projection[16] = { 0.f };
+    glm::mat4 World;
+    glm::mat4 View;
+    glm::mat4 Projection;
 };
 
 

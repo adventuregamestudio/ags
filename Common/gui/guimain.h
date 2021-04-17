@@ -45,9 +45,9 @@ namespace Common
 // Legacy GUIMain visibility state, which combined Visible property and override factor
 enum LegacyGUIVisState
 {
-    kGUIVisibility_Concealed = -1, // gui is hidden by command
-    kGUIVisibility_Off       =  0, // gui is disabled (won't show up by command)
-    kGUIVisibility_On        =  1  // gui is shown by command
+    kGUIVisibility_LockedOff = -1, // locked hidden (used by PopupMouseY guis)
+    kGUIVisibility_Off       =  0, // hidden
+    kGUIVisibility_On        =  1  // shown
 };
 
 class Bitmap;
@@ -71,9 +71,9 @@ public:
     // Tells if GUI's visibility is overridden and it won't be displayed on
     // screen regardless of Visible property (until concealed mode is off).
     bool        IsConcealed() const;
-    // Tells if gui is actually displayed on screen. Normally Visible property
-    // determines whether GUI is allowed to be seen, but there may be other
-    // settings that override GUI's visibility.
+    // Tells if gui is actually meant to be displayed on screen.
+    // Normally Visible property determines whether GUI is allowed to be seen,
+    // but there may be other settings that override it.
     bool        IsDisplayed() const;
     // Tells if given coordinates are within interactable area of gui
     // NOTE: this currently tests for actual visibility and Clickable property

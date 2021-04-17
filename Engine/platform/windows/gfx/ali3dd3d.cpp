@@ -712,9 +712,9 @@ void D3DGraphicsDriver::SetupViewport()
     0.0, 0.0, 0.0, 1.0
   };
 
-  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
   direct3ddevice->SetTransform(D3DTS_WORLD, &matIdentity);
   direct3ddevice->SetTransform(D3DTS_VIEW, &matIdentity);
+  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
@@ -738,6 +738,10 @@ void D3DGraphicsDriver::SetupViewport()
   viewport_rect.right  = _dstRect.Right + 1;
   viewport_rect.top    = _dstRect.Top;
   viewport_rect.bottom = _dstRect.Bottom + 1;
+
+  // View and Projection matrixes are currently fixed in Direct3D renderer
+  memcpy(_stageMatrixes.View, &matIdentity, sizeof(float[16]));
+  memcpy(_stageMatrixes.Projection, &matOrtho, sizeof(float[16]));
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
@@ -1350,10 +1354,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
         }
         _stageVirtualScreen = GetStageScreen(i);
+        memcpy(_stageMatrixes.World, _spriteBatches[i].Matrix.m, sizeof(float[16]));
         RenderSpriteBatch(batch);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
+    memcpy(_stageMatrixes.World, _spriteBatches[0].Matrix.m, sizeof(float[16]));
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 

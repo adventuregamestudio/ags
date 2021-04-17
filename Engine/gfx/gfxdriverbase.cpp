@@ -165,10 +165,16 @@ void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 { // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
 }
 
-Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer()
+Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
 {
-    _stageScreenDirty = true;
+    _stageScreenDirty |= mark_dirty;
     return _stageVirtualScreen.get();
+}
+
+bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
+{
+    rm = _stageMatrixes;
+    return true;
 }
 
 PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
@@ -209,7 +215,7 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     // NOTE: this is not clear whether return value of callback may be
     // relied on. Existing plugins do not seem to return anything but 0,
     // even if they handle this event.
-    _nullSpriteCallback(x, y);
+    _stageScreenDirty |= _nullSpriteCallback(x, y) != 0;
     if (_stageScreenDirty)
     {
         if (_stageVirtualScreenDDB)

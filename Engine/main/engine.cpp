@@ -1098,6 +1098,12 @@ bool engine_init_gamedata()
 
 void engine_read_config(ConfigTree &cfg)
 {
+    if (!usetup.conf_path.IsEmpty())
+    {
+        IniUtil::Read(usetup.conf_path, cfg);
+        return;
+    }
+
     // Read default configuration file
     String def_cfg_file = find_default_cfg_file();
     IniUtil::Read(def_cfg_file, cfg);
@@ -1105,12 +1111,20 @@ void engine_read_config(ConfigTree &cfg)
     // Disabled on Windows because people were afraid that this config could be mistakenly
     // created by some installer and screw up their games. Until any kind of solution is found.
     String user_global_cfg_file;
-#if ! AGS_PLATFORM_OS_WINDOWS
     // Read user global configuration file
     user_global_cfg_file = find_user_global_cfg_file();
     if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
         IniUtil::Read(user_global_cfg_file, cfg);
-#endif
+
+    // Handle directive to search for the user config inside the game directory;
+    // this option may come either from command line or default/global config.
+    usetup.local_user_conf |= INIreadint(cfg, "misc", "localuserconf", 0) != 0;
+    if (usetup.local_user_conf)
+    { // Test if the file is writeable, if it is then both engine and setup
+      // applications may actually use it fully as a user config, otherwise
+      // fallback to default behavior.
+        usetup.local_user_conf = File::TestWriteFile(def_cfg_file);
+    }
 
     // Read user configuration file
     String user_cfg_file = find_user_cfg_file();
@@ -1178,9 +1192,9 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         String def_cfg_file = find_default_cfg_file();
         String gl_cfg_file = find_user_global_cfg_file();
         String user_cfg_file = find_user_cfg_file();
-        data["config-path"]["default"] = def_cfg_file;
-        data["config-path"]["global"] = gl_cfg_file;
-        data["config-path"]["user"] = user_cfg_file;
+        data["configpath"]["default"] = def_cfg_file;
+        data["configpath"]["global"] = gl_cfg_file;
+        data["configpath"]["user"] = user_cfg_file;
     }
     if ((all || keys.count("config") > 0) && user_cfg)
     {

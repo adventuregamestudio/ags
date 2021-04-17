@@ -273,6 +273,9 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 
   device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, device_scale, device_scale);
 #endif
+
+  // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
+  glGetFloatv(GL_MODELVIEW_MATRIX, _stageMatrixes.View);
 }
 
 bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
@@ -1168,6 +1171,8 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 
     projection = glm::ortho(0.0f, (float)_srcRect.GetWidth(), 0.0f, (float)_srcRect.GetHeight(), 0.0f, 1.0f);
   }
+  // Save Projection
+  glGetFloatv(GL_PROJECTION, _stageMatrixes.Projection);
 
   RenderSpriteBatches(projection);
 
@@ -1253,10 +1258,12 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
         _stageVirtualScreen = GetStageScreen(i);
+        memcpy(_stageMatrixes.World, glm::value_ptr(_spriteBatches[i].Matrix), sizeof(float[16]));
         RenderSpriteBatch(batch, projection);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
+    memcpy(_stageMatrixes.World, glm::value_ptr(_spriteBatches[0].Matrix), sizeof(float[16]));
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);

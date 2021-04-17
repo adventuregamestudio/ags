@@ -301,6 +301,23 @@ protected:
   ~IAGSFontRenderer() {};
 };
 
+
+struct AGSRenderMatrixes {
+  float WorldMatrix[16];
+  float ViewMatrix[16];
+  float ProjMatrix[16];
+};
+
+// Render stage description
+struct AGSRenderStageDesc {
+  // Which version of the plugin interface the struct corresponds to;
+  // this field must be filled by a plugin before passing the struct into the engine!
+  int Version;
+  // Stage's matrixes, for 3D rendering: Projection, World and View
+  AGSRenderMatrixes Matrixes;
+};
+
+
 // The plugin-to-engine interface
 class IAGSEngine {
 public:
@@ -539,6 +556,11 @@ public:
 #endif
   // install a replacement renderer for the specified font number
   AGSIFUNC(IAGSFontRenderer*) ReplaceFontRenderer(int fontNumber, IAGSFontRenderer* newRenderer);
+
+  // *** BELOW ARE INTERFACE VERSION 25 AND ABOVE ONLY
+  // fills the provided AGSRenderStageDesc struct with current render stage description;
+  // please note that plugin MUST fill the struct's Version field before passing it into the function!
+  AGSIFUNC(void)  GetRenderStageDesc(AGSRenderStageDesc* desc);
 };
 
 #ifdef THIS_IS_THE_PLUGIN

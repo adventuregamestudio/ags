@@ -148,8 +148,16 @@ void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->Image = slotn;
     // update the clickable area to the same size as the graphic
-    guil->Width = game.SpriteInfos[slotn].Width;
-    guil->Height = game.SpriteInfos[slotn].Height;
+    if (slotn < 0 || (size_t)slotn >= game.SpriteInfos.size())
+    {
+        guil->Width = 0;
+        guil->Height = 0;
+    }
+    else
+    {
+        guil->Width = game.SpriteInfos[slotn].Width;
+        guil->Height = game.SpriteInfos[slotn].Height;
+    }
 
     guil->NotifyParentChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);

@@ -7,7 +7,7 @@ For historical reasons configuration file should be called "acsetup.cfg".
 The engine supports three configuration files that are read in the following order, every next overriding values from the previous one:
 1. Default config file, found in the game's installation directory, applied for the game loaded from that directory;
 2. Current user's global config file, applied for any AGS game.
-3. Current user's game config file, applied only for the game of particular title. This config file is also the one being written to when the engine or setup application (Windows only) modifies game configuration.
+3. Current user's game config file, applied only for the game of particular title. This config file is also the one supposed to be written to when the engine or setup application modifies game configuration.
 
 Locations of two latter files differ between running platforms:
   * **Linux**:
@@ -15,7 +15,7 @@ Locations of two latter files differ between running platforms:
     * user's game config: $XDG_DATA_HOME/ags/GAMENAME/acsetup.cfg
     * NOTE: if $XDG_DATA_HOME is not defined, then "$HOME/.local/share" is used instead.
   * **Windows**:
-    * user's global config: not used
+    * user's global config: %USERPROFILE%/Saved Games/Adventure Game Studio/acsetup.cfg
     * user's game config: %USERPROFILE%/Saved Games/GAMENAME/acsetup.cfg
 
 ## Configuration file options
@@ -24,7 +24,7 @@ Locations of two latter files differ between running platforms:
   * driver = \[string\] - id of the graphics renderer to use. Supported names are:
     * D3D9 - Direct3D9 (MS Windows version only);
     * OGL - OpenGL;
-	* Software - software renderer.
+    * Software - software renderer.
   * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
   * screen_def = \[string\] - determines how display mode is deduced:
     * explicit - use screen_width and screen_height parameters;
@@ -51,18 +51,18 @@ Locations of two latter files differ between running platforms:
 * **\[sound\]** - sound options
   * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
-	  * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA;
-	  * SDL2 - if alleg-sdl2digi.so is present.
-	* For Windows:
-	  * DXA - pure DirectSound driver;
-	  * AXA - Allegro mixer to DirectSound;
-	  * WOA - Allegro mixer to WaveOut;
+      * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA;
+      * SDL2 - if alleg-sdl2digi.so is present.
+    * For Windows:
+      * DXA - pure DirectSound driver;
+      * AXA - Allegro mixer to DirectSound;
+      * WOA - Allegro mixer to WaveOut;
   * midiid = \[string; 0; -1\] - MIDI driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
-	  * AMID (Alsa MIDI), OSSM (OSS MIDI).
+      * AMID (Alsa MIDI), OSSM (OSS MIDI).
     * For Windows:
-	  * W32M - MIDI mapper;
-	  * W32A - MIDI driver.
+      * W32M - MIDI mapper;
+      * W32A - MIDI driver.
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
   * threaded = \[0; 1\] - when enabled, engine runs audio on a separate thread.
 * **\[mouse\]** - mouse options
@@ -79,9 +79,9 @@ Locations of two latter files differ between running platforms:
 * **\[language\]** - language options
   * translation = \[string\] - name of the translation to use. A \<name\>.tra file should be present in the game directory.
 * **\[misc\]** - various options
-  * log = \[0; 1\] - enable or disable writing debug messages to the log file.
   * datafile = \[string\] - path to the game file.
   * datadir = \[string\] - path to the game directory.
+  * localuserconf = \[0; 1\] - read and write user config in the game's directory rather than using standard system path. Game directory must be writeable for this option to work, otherwise engine will fall back to standard path.
   * user_data_dir = \[string\] - custom path to savedgames location.
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
@@ -132,6 +132,7 @@ Following OPTIONS are supported when running from command line:
 * --gfxdriver \<name\> - use specified graphics driver (see list above).
 * --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
 * --loadsavedgame \<filepath\> - load savegame on startup.
+* --localuserconf - read and write user config in the game's directory rather than using standard system path. Game directory must be writeable.
 * --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
 * --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation above).
   * Examples:

@@ -17,6 +17,7 @@
 
 GameSetup::GameSetup()
 {
+    local_user_conf = false;
     digicard=DIGI_AUTODETECT;
     midicard=MIDI_AUTODETECT;
     mod_player=1;

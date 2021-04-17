@@ -1317,6 +1317,16 @@ void engine_read_config(ConfigTree &cfg)
         IniUtil::Read(user_global_cfg_file, cfg);
 #endif
 
+    // Handle directive to search for the user config inside the game directory;
+    // this option may come either from command line or default/global config.
+    usetup.local_user_conf |= INIreadint(cfg, "misc", "localuserconf", 0) != 0;
+    if (usetup.local_user_conf)
+    { // Test if the file is writeable, if it is then both engine and setup
+      // applications may actually use it fully as a user config, otherwise
+      // fallback to default behavior.
+        usetup.local_user_conf = File::TestWriteFile(def_cfg_file);
+    }
+
     // Read user configuration file
     String user_cfg_file = find_user_cfg_file();
     if (Path::ComparePaths(user_cfg_file, def_cfg_file) != 0 &&

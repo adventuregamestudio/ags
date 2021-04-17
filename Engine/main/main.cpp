@@ -303,6 +303,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             usetup.conf_path = argv[++ee];
         }
+        else if (ags_stricmp(arg, "--localuserconf") == 0)
+        {
+            usetup.local_user_conf = true;
+        }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {
             usetup.install_dir = argv[ee + 1];

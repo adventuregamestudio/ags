@@ -59,6 +59,7 @@ namespace AGS.Types
         }
 
         [Description("New audio clips imported into this folder will have this bundling type by default")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public AudioFileBundlingType DefaultBundlingType
         {
             get { return _bundlingType; }

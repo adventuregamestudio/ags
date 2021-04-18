@@ -173,6 +173,7 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --conf FILEPATH              Specify explicit config file to read on startup\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
 #endif
@@ -191,6 +192,9 @@ void main_print_help() {
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"
            "  --loadsavedgame FILEPATH     Load savegame on startup\n"
+           "  --localuserconf              Read and write user config in the game's \n"
+           "                               directory rather than using standard system path.\n"
+           "                               Game directory must be writeable.\n"
            "  --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...]\n"
            "  --log-OUTPUT=+GROUPLIST[:LEVEL]\n"
            "                               Setup logging to the chosen OUTPUT with given\n"
@@ -223,6 +227,7 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
+           "  --shared-data-dir DIR        Set the shared game data directory\n"
            "  --startr <room_number>       Start game by loading certain room.\n"
            "  --tell                       Print various information concerning engine\n"
            "                                 and the game; for selected output use:\n"
@@ -236,6 +241,7 @@ void main_print_help() {
            "\n"
            "  --test                       Run game in the test mode\n"
            "  --version                    Print engine's version and stop\n"
+           "  --user-data-dir DIR          Set the save game directory\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"
            "Gamefile options:\n"
@@ -258,12 +264,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         if (ags_stricmp(arg,"--help") == 0 || ags_stricmp(arg,"/?") == 0 || ags_stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
-            return 0;
         }
         if (ags_stricmp(arg, "-v") == 0 || ags_stricmp(arg, "--version") == 0)
         {
             justDisplayVersion = true;
-            return 0;
         }
         else if (ags_stricmp(arg,"--updatereg") == 0)
             debug_flags |= DBG_REGONLY;
@@ -296,6 +300,14 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             force_window = 1;
             ee++;
         }
+        else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
+        {
+            usetup.conf_path = argv[++ee];
+        }
+        else if (ags_stricmp(arg, "--localuserconf") == 0)
+        {
+            usetup.local_user_conf = true;
+        }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {
             usetup.install_dir = argv[ee + 1];
@@ -321,6 +333,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         //
         // Config overrides
         //
+        else if ((ags_stricmp(arg, "--user-data-dir") == 0) && (argc > ee + 1))
+            cfg["misc"]["user_data_dir"] = argv[++ee];
+        else if ((ags_stricmp(arg, "--shared-data-dir") == 0) && (argc > ee + 1))
+            cfg["misc"]["shared_data_dir"] = argv[++ee];
         else if (ags_stricmp(arg, "--windowed") == 0)
             force_window = 1;
         else if (ags_stricmp(arg, "--fullscreen") == 0)

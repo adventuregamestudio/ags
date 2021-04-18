@@ -116,6 +116,7 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
+const int PLUGIN_API_VERSION = 25;
 struct EnginePlugin {
     char        filename[PLUGIN_FILENAME_MAX+1];
     AGS::Engine::Library   library;
@@ -152,7 +153,7 @@ int pluginsWantingDebugHooks = 0;
 std::vector<InbuiltPluginDetails> _registered_builtin_plugins;
 
 void IAGSEngine::AbortGame (const char *reason) {
-    quit ((char*)reason);
+    quit(reason);
 }
 const char* IAGSEngine::GetEngineVersion () {
     return get_engine_version();
@@ -180,7 +181,7 @@ BITMAP *IAGSEngine::GetScreen ()
 
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
     return stage ? (BITMAP*)stage->GetAllegroBitmap() : nullptr;
 }
 
@@ -233,7 +234,7 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
 
 void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
@@ -251,7 +252,7 @@ void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldep
 
 unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
     if (stage && bmp == stage->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
@@ -260,7 +261,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)
 
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp)
 {
-    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    Bitmap *stage = gfxDriver->GetStageBackBuffer(true);
     if (stage && bmp == stage->GetAllegroBitmap())
     {
         // plugin does not manaually invalidate stuff, so
@@ -342,7 +343,7 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     if (break_up_text_into_lines(text, Lines, wid, font) == 0)
         return;
 
-    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
@@ -377,7 +378,7 @@ int IAGSEngine::LookupParserWord (const char *word) {
 
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     wputblock_raw(ds, x, y, bmp, masked);
@@ -386,7 +387,7 @@ void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked)
 
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     Bitmap wrap(bmp, true);
@@ -398,7 +399,7 @@ void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 tran
 
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 {
-    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
     if (!ds)
         return;
     // FIXME: call corresponding Graphics Blit
@@ -816,6 +817,14 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
     return font_replace_renderer(fontNumber, newRenderer);
 }
 
+void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
+{
+    if (desc->Version >= 25)
+    {
+        gfxDriver->GetStageMatrixes((RenderMatrixes&)desc->Matrixes);
+    }
+}
+
 
 // *********** General plugin implementation **********
 
@@ -1049,7 +1058,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         }
 
         apl->eiface.pluginId = numPlugins - 1;
-        apl->eiface.version = 24;
+        apl->eiface.version = PLUGIN_API_VERSION;
         apl->wantHook = 0;
         apl->available = true;
     }

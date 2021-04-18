@@ -1371,6 +1371,10 @@ builtin managed struct GUI {
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
 #endif
+#ifdef SCRIPT_API_v351
+  /// Gets if this GUI is currently active on screen. In certain cases this is different than reading Visible property.
+  import readonly attribute bool Shown;
+#endif
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;

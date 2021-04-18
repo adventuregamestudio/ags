@@ -92,10 +92,16 @@ void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
 }
 
 int GUI_GetVisible(ScriptGUI *tehgui) {
-  // GUI_GetVisible is slightly different from IsGUIOn, because
-  // with a mouse ypos gui it returns 1 if the GUI is enabled,
-  // whereas IsGUIOn actually checks if it is displayed
-  return guis[tehgui->id].IsVisible() ? 1 : 0;
+  // Since 3.5.0 this always returns honest state of the Visible property as set by the game
+  if (loaded_game_file_version >= kGameVersion_350)
+      return (guis[tehgui->id].IsVisible()) ? 1 : 0;
+  // Prior to 3.5.0 PopupY guis overrided Visible property and set it to 0 when auto-hidden;
+  // in order to simulate same behavior we only return positive if such gui is popped up:
+  return (guis[tehgui->id].IsDisplayed()) ? 1 : 0;
+}
+
+bool GUI_GetShown(ScriptGUI *tehgui) {
+    return guis[tehgui->id].IsDisplayed();
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
@@ -541,7 +547,7 @@ int adjust_x_for_guis (int xx, int yy) {
         if ((guis[aa].X > xx) || (guis[aa].Y > yy) || (guis[aa].Y + guis[aa].Height < yy))
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1))
+        if (((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1)) || (guis[aa].Transparency == 255))
             continue;
 
         // try to deal with full-width GUIs across the top
@@ -564,7 +570,7 @@ int adjust_y_for_guis ( int yy) {
         if (guis[aa].Y > yy)
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1))
+        if (((guis[aa].BgColor == 0) && (guis[aa].BgImage < 1)) || (guis[aa].Transparency == 255))
             continue;
 
         // try to deal with full-height GUIs down the left or right
@@ -930,6 +936,11 @@ RuntimeScriptValue Sc_GUI_ProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(GUI_ProcessClick);
 }
 
+RuntimeScriptValue Sc_GUI_GetShown(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptGUI, GUI_GetShown);
+}
+
 // int (ScriptGUI *gui)
 RuntimeScriptValue Sc_GUI_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -983,6 +994,7 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::set_Y",                   Sc_GUI_SetY);
     ccAddExternalObjectFunction("GUI::get_ZOrder",              Sc_GUI_GetZOrder);
     ccAddExternalObjectFunction("GUI::set_ZOrder",              Sc_GUI_SetZOrder);
+    ccAddExternalObjectFunction("GUI::get_Shown",               Sc_GUI_GetShown);
     ccAddExternalObjectFunction("GUI::get_BlendMode",           Sc_GUI_GetBlendMode);
     ccAddExternalObjectFunction("GUI::set_BlendMode",           Sc_GUI_SetBlendMode);
 

@@ -86,6 +86,7 @@ namespace AGS.Editor
          * 23-24: 3.5.0.20+ - Sprite tile import properties.
          * 25: 3.5.0.22   - Full editor version saved into XML header, RuntimeSetup.ThreadedAudio.
          * 26:            - Fixed sound references in game properties.
+         * 27: 3.5.1      - Settings.AttachDataToExe
          * 30: 3.9.9?     - Font outline thickness;
          *                  BlendMode for various objects, Character.Transparency.
         */

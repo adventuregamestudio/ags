@@ -561,7 +561,7 @@ void SDLRendererGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   }
 }
 
-Bitmap *SDLRendererGraphicsDriver::GetStageBackBuffer()
+Bitmap *SDLRendererGraphicsDriver::GetStageBackBuffer(bool /*mark_dirty*/)
 {
     return _stageVirtualScreen;
 }

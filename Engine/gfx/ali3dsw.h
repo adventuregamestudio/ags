@@ -191,7 +191,8 @@ public:
     bool UsesMemoryBackBuffer() override { return true; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
-    Bitmap *GetStageBackBuffer() override;
+    Bitmap *GetStageBackBuffer(bool mark_dirty) override;
+    bool GetStageMatrixes(RenderMatrixes &rm) override { return false; /* not supported */ }
     ~SDLRendererGraphicsDriver() override;
 
     typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;

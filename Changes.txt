@@ -3,6 +3,8 @@ REVISION HISTORY
 VERSION 3.5.?, ??? 2021
 
 Editor:
+ - Added "Attach game data to exe" option to General Settings. This lets you to package game data
+   separately from the game.exe (only important on Windows at the moment).
  - Display aspect ratio in game resolution dialog.
  - Improved tab switching performance for script windows.
  - Deprecated "Limit display mode to 16-bit" property in Runtime Setup as it's no longer
@@ -19,6 +21,9 @@ Scripting:
  - Fixed implementing imported functions was forbidden in the room scripts.
 
 Script API:
+ - Added GUI.Shown readonly property that tells whether GUI is active on screen. This is primarily
+   for GUIs with "Popup At Y" style, because they hide themselves regardless of Visible property.
+   Note that since 3.5.0 GUI.Visible only tells a user-set value.
  - GetTranslation() now returns "const string" (was "string"). This is to prevent modifying
    returned string using old-style string functions, such as StrCat(), as this string may be
    allocated in the internal engine memory for its own use.
@@ -52,6 +57,11 @@ Engine:
    message types and groups are printed by which output methods (sinks), including: file,
    system console, in-game console. "warnings.log" is now created only if file log was not
    requested by user.
+ - Added "--localuserconf" command which tells engine to read and write user config in the game's
+   directory rather than using standard platform path. Game dir must be writeable for this to work.
+ - Added "--conf" command which forces engine to read only explicit config file on startup.
+ - Added "--user-data-dir" and "--shared-data-dir" commands for setting save game directory and
+   shared app data directory from command line (this corresponds to existing options in config).
  - Added "--log-" set of command line options for setting up log output.
  - Added "--tell-filepath" option for printing known engine's and game's file locations.
  - Added "--tell-gameproperties" option for printing some of the game's general settings.
@@ -70,24 +80,37 @@ Engine:
    a Dynamic Sprite, and that sprite was modified with ChangeCanvasSize, CopyTransparencyMask,
    Crop, Flip, Resize, Rotate or Tint function.
  - Fixed Views' frames keeping reference to deleted Dynamic Sprites.
+ - Fixed engine crash when button's graphic is set to sprite out of range.
  - Fixed animated cursor's normal graphic reappearing in between animation frames if mouse mode
    is being repeatedly reassigned, for example in rep-exec script.
+ - Fixed certain interactions did not work with GUI if it was made fully transparent.
  - Fixed ListBox.FillSaveGameList() search pattern, it included files which contain save filename
    pattern but do not exactly match; for example: "agssave.001_".
  - Fixed engine was ignoring audio files in game directory when running games which use
    old audio system.
  - Fixed Direct3D was assigning wrong fullscreen refresh rate sometimes, slowing alt-tabbing.
 
+Engine Plugin API:
+ - Added IAGSEngine::GetRenderStageDesc() function which returns current render stage parameters.
+   As of this version these parameters include 3 transformation matrixes, allowing any 3D render
+   plugin to stay compliant to engine's scene rendering.
+
 Compatibility:
  - Fixed engine was trying to read unnecessary data when loading pre-2.72 games.
  - Fixed "upscale" mode for old games (was broken in 3.5.0). Also engine will now try to detect
    if "upscale" mode wanted by reading old config options (if they are present).
+ - Fixed GUI.Visible not returning expected values for GUIs with "Popup At Y" style in
+   pre-3.5.0 games, breaking some older games logic.
+ - Fixed potential buffer overflow when reading pre-3.1.0 games with old dialog script texts.
 
 OSX:
  - When looking for game files engine will no longer use hardcoded filename, will search for any
    compatible pack file instead.
 
 Windows:
+ - Windows version of the engine now reads global configuration file. It is looked up in
+   "%USERPROFILE%/Saved Games/Adventure Game Studio/acsetup.cfg"
+ - Default log file location is now also in "%USERPROFILE%/Saved Games/Adventure Game Studio".
  - Added "--no-message-box" command line option to hide message boxes when alerts are raised.
  - Added "--console-attach" command line option to try attach to the parent process's console.
 

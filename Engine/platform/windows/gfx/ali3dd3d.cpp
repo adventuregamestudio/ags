@@ -22,6 +22,7 @@
 
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <SDL.h>
+#include <glm/ext.hpp>
 #include "ac/sys_events.h"
 #include "ac/timer.h"
 #include "debug/out.h"
@@ -45,6 +46,7 @@ extern RGB palette[256];
 //
 // Following functions implement various matrix operations. Normally they are found in the auxiliary d3d9x.dll,
 // but we do not want AGS to be dependent on it.
+// TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
 //
 // Setup identity matrix
 void MatrixIdentity(D3DMATRIX &m)
@@ -717,9 +719,9 @@ void D3DGraphicsDriver::SetupViewport()
     0.0, 0.0, 0.0, 1.0
   };
 
-  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
   direct3ddevice->SetTransform(D3DTS_WORLD, &matIdentity);
   direct3ddevice->SetTransform(D3DTS_VIEW, &matIdentity);
+  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
@@ -743,6 +745,10 @@ void D3DGraphicsDriver::SetupViewport()
   viewport_rect.right  = _dstRect.Right + 1;
   viewport_rect.top    = _dstRect.Top;
   viewport_rect.bottom = _dstRect.Bottom + 1;
+
+  // View and Projection matrixes are currently fixed in Direct3D renderer
+  memcpy(glm::value_ptr(_stageMatrixes.View), &matIdentity, sizeof(float[16]));
+  memcpy(glm::value_ptr(_stageMatrixes.Projection), &matOrtho, sizeof(float[16]));
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
@@ -1412,10 +1418,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
         }
         _stageVirtualScreen = GetStageScreen(i);
+        memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[i].Matrix.m, sizeof(float[16]));
         RenderSpriteBatch(batch);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
+    memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[0].Matrix.m, sizeof(float[16]));
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 

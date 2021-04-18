@@ -304,7 +304,7 @@ void ReadDialogs(DialogTopic *&dialog, Stream *in, GameDataVersion data_ver, int
         // Encrypted text script
         int script_text_len = in->ReadInt32();
         in->Seek(script_text_len);// CLNUP was read and decrypted into old_dialog_src[i]
-        }
+    }
 
     // Read the dialog lines
     //

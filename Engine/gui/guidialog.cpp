@@ -305,14 +305,13 @@ void preparesavegamelist(int ctrllist)
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty
-  numsaves = (int)saves.size();
-  toomanygames = (numsaves >= MAXSAVEGAMES) ? 1 : 0;
-  for (const auto &item : saves)
+  for (numsaves = 0; numsaves < (size_t)saves.size(); ++numsaves)
   {
-      CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)item.Description.GetCStr());
-      filenumbers[numsaves] = item.Slot;
-      filedates[numsaves] = (long int)item.FileTime;
+      CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)saves[numsaves].Description.GetCStr());
+      filenumbers[numsaves] = saves[numsaves].Slot;
+      filedates[numsaves] = (long int)saves[numsaves].FileTime;
   }
+  toomanygames = (numsaves >= MAXSAVEGAMES) ? 1 : 0;
   // Select the first item
   CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
 }

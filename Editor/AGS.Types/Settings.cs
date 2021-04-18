@@ -46,6 +46,7 @@ namespace AGS.Types
         private bool _autoMoveInWalkMode = true;
         private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
         private int _splitResources = 0;
+        private bool _attachDataToExe = true;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
@@ -344,6 +345,16 @@ namespace AGS.Types
         {
             get { return _splitResources; }
             set { _splitResources = value; }
+        }
+
+        [DisplayName("Attach game data to exe (Windows only)")]
+        [Description("Main game data will be attached to game exe. Otherwise it will be in a separate file called GAMENAME.ags")]
+        [DefaultValue(true)]
+        [Category("Compiler")]
+        public bool AttachDataToExe
+        {
+            get { return _attachDataToExe; }
+            set { _attachDataToExe = value; }
         }
 
         [Obsolete]

@@ -1313,6 +1313,32 @@ TEST_F(Compile1, ReadonlyParameters1) {
     EXPECT_EQ(std::string::npos, msg.find("parameter list"));
     EXPECT_NE(std::string::npos, msg.find("readonly"));
 }
+
+TEST_F(Compile1, ReadonlyParameters2) {
+
+    // "readonly" parameters can be assigned to other variables,
+    // but they may not be modified themselves.
+    // Contrast this to "const" parameters, they
+    // may only assigned to variables that are "const" and 
+    // may not be returned unless the return vartype is "const".
+    // "Readonly" does NOT imply "const".
+    // All the assignments in the function should be allowed.
+
+    char *inpl = "\
+        int ReadonlyTest2(readonly int ReadOnly)    \n\
+        {                                   \n\
+            readonly int A = ReadOnly;      \n\
+            int B;                          \n\
+            B = ReadOnly;                   \n\
+            int C = ReadOnly;               \n\
+            return ReadOnly;                \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
 TEST_F(Compile1, BinaryCompileTimeEval1) {
 
     // Checks binary compile time evaluations for integers.

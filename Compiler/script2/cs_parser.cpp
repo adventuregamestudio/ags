@@ -1747,6 +1747,14 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
 // An extender func param, if any, has already been resolved
 AGS::ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows)
 {
+    // __builtin_
+    // 123456789a
+    if (0 == _sym.GetName(name_of_func).substr(0u, 10u).compare("__Builtin_"))
+    {
+        Error("Function names may not begin with '__Builtin_'");
+        return kERR_UserError;
+    }
+
     ErrorType retval = ParseFuncdecl_DoesBodyFollow(body_follows);
     if (retval < 0) return retval;
 
@@ -2957,6 +2965,44 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     }
 }
 
+void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(MemoryLocation &mloc, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
+{
+    // Load MAR with the address of the dynarray. Will provoke a runtime error when NULL
+    AccessData_Dereference(vloc, mloc);
+
+    // Destinations for jump instructions
+    ForwardJump end_of_current_func(_scrip); 
+    ForwardJump calc_dynamic_length(_scrip);
+
+    // We calculate the length of the dynarray by calling an external function.
+    // Ensure that this function is declared as an import function
+    std::string const dynarray_len_func_name = "__Builtin_DynamicArrayLength";
+    Symbol const dynarray_len_func = _sym.FindOrAdd(dynarray_len_func_name);
+    if (!_sym.IsFunction(dynarray_len_func))
+    {
+        TypeQualifierSet tqs;
+        tqs[TQ::kImport] = true;
+        Symbol const no_struct = kKW_NoSymbol;
+        bool const body_follows = false;
+        ParseFuncdecl_MasterData2Sym(tqs, kKW_Int, no_struct, dynarray_len_func, body_follows);
+        _sym[dynarray_len_func].FunctionD->Parameters.push_back({});
+        _sym[dynarray_len_func].FunctionD->Parameters[1u].Vartype = vartype;
+        _sym[dynarray_len_func].FunctionD->Offset = _scrip.FindOrAddImport(_sym.GetName(dynarray_len_func));
+        strcat(_scrip.imports[_sym[dynarray_len_func].FunctionD->Offset], "^1");
+        _sym.SetDeclared(dynarray_len_func, _src.GetCursor());
+    }
+    _sym[dynarray_len_func].Accessed = true;
+
+    WriteCmd(SCMD_PUSHREAL, SREG_MAR); // Load the dynarray address onto the far stack
+    AccessData_GenerateFunctionCall(dynarray_len_func, 1u, true);
+
+    end_of_current_func.Patch(_src.GetLineno());
+
+    vloc = ValueLocation::kVL_AX_is_value;
+    scope_type = ScT::kGlobal;
+    vartype = kKW_Int;
+}
+
 // We are processing a function call.
 // Get the parameters of the call and push them onto the stack.
 AGS::ErrorType AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args)
@@ -3759,12 +3805,21 @@ AGS::ErrorType AGS::Parser::AccessData(bool writing, SrcList &expression, ValueL
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
 
-        // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
         if (_sym.IsDynpointerVartype(vartype))
         {
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
             vartype = _sym.VartypeWithout(VTT::kDynpointer, vartype);
+        }
+
+        if (_sym.IsDynarrayVartype(vartype) && _sym.FindOrAdd("Length") == expression.PeekNext())
+        {
+            // Pseudo attribute 'Length' will get the length of the dynarray
+            expression.GetNext(); // eat 'Length'
+
+            AccessData_GenerateDynarrayLengthFuncCall(mloc, vloc, scope_type, vartype);
+            implied_this_dot = false;
+            continue;
         }
 
         if (!_sym.IsStructVartype(vartype) || !_sym.IsAtomicVartype(vartype))

@@ -27,6 +27,7 @@ extern void RegisterDateTimeAPI();
 extern void RegisterDialogAPI();
 extern void RegisterDialogOptionsRenderingAPI();
 extern void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
+extern void RegisterDynamicArrayAPI();
 extern void RegisterDynamicSpriteAPI();
 extern void RegisterFileAPI();
 extern void RegisterGameAPI();
@@ -67,6 +68,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterDialogAPI();
     RegisterDialogOptionsRenderingAPI();
     RegisterDrawingSurfaceAPI(base_api, compat_api);
+    RegisterDynamicArrayAPI();
     RegisterDynamicSpriteAPI();
     RegisterFileAPI();
     RegisterGameAPI();

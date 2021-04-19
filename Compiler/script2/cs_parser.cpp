@@ -1247,11 +1247,9 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, Ty
 {
     SymbolTableEntry &param_entry = _sym[param_name];
     
-    if (tqs[TQ::kConst] || tqs[TQ::kReadonly])
+    if (tqs[TQ::kReadonly])
     {
         param_entry.VariableD->TypeQualifiers[TQ::kReadonly] = true;
-        param_entry.VariableD->Vartype =
-            _sym.VartypeWith(VTT::kConst, param_entry.VariableD->Vartype);
     }
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The + 1 is because the
@@ -1267,7 +1265,10 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_
     ErrorType retval = ParseParamlist_ParamType(param_vartype);
     if (retval < 0) return retval;
     if (tqs[TQ::kConst])
+    {
         param_vartype = _sym.VartypeWith(VTT::kConst, param_vartype);
+        tqs[TQ::kConst] = false;
+    }
 
     Symbol param_name;
     retval = ParseParamlist_Param_Name(body_follows, param_name);
@@ -1317,9 +1318,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_fo
                 continue;
             Error("Unexpected '%s' in parameter list", _sym.GetName(tqs.TQ2Symbol(tq_it->first)).c_str());
         }
-        if (tqs[TQ::kConst] && tqs[TQ::kReadonly])
-            Warning("For 'const' parameters, 'readonly' is redundant");
-
+        
         Symbol const leading_sym = _src.GetNext();
         if (kKW_CloseParenthesis == leading_sym)
             return kERR_None;   // empty parameter list

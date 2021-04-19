@@ -290,7 +290,9 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     unload_old_room();
     displayed_room = -10;
 
+#if defined (AGS_AUTO_WRITE_USER_CONFIG)
     save_config_file(); // save current user config in case engine fails to run new game
+#endif // AGS_AUTO_WRITE_USER_CONFIG
     unload_game_file();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)

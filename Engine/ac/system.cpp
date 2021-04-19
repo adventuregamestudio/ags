@@ -14,20 +14,21 @@
 
 #include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/dynobj/cc_audiochannel.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_debug.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
+#include "gfx/graphicsdriver.h"
+#include "main/config.h"
+#include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
-#include "gfx/graphicsdriver.h"
-#include "ac/dynobj/cc_audiochannel.h"
-#include "main/graphics_mode.h"
-#include "ac/global_debug.h"
 #include "media/audio/audio_system.h"
 #include "util/string_compat.h"
 
@@ -394,6 +395,11 @@ RuntimeScriptValue Sc_System_SetRenderAtScreenResolution(const RuntimeScriptValu
     API_SCALL_VOID_PINT(System_SetRenderAtScreenResolution);
 }
 
+RuntimeScriptValue Sc_System_SaveConfigToFile(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(save_config_file);
+}
+
 
 
 
@@ -427,6 +433,8 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::set_VSync",                Sc_System_SetVsync);
     ccAddExternalStaticFunction("System::get_Windowed",             Sc_System_GetWindowed);
     ccAddExternalStaticFunction("System::set_Windowed",             Sc_System_SetWindowed);
+
+    ccAddExternalStaticFunction("System::SaveConfigToFile",         Sc_System_SaveConfigToFile);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

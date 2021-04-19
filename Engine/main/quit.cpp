@@ -248,8 +248,10 @@ void quit(const char *quitmsg)
     // about to free plugins)
     String qmsg = quitmsg;
 
+#if defined (AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)
         save_config_file();
+#endif // AGS_AUTO_WRITE_USER_CONFIG
 
 	allegro_bitmap_test_release();
 

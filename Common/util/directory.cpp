@@ -30,7 +30,7 @@ bool CreateDirectory(const String &path)
 
 bool CreateAllDirectories(const String &parent, const String &path)
 {
-    if (!ags_directory_exists(parent.GetCStr()))
+    if (parent.IsEmpty() || !ags_directory_exists(parent.GetCStr()))
         return false;
     if (path.IsEmpty())
         return true;

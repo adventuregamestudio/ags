@@ -1378,9 +1378,53 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         }
         else
         {
-            // MACPORT FIX 9/6/5: changed %d to %ld
-            // FIXME: check type and write appropriate values
-            writer.WriteFormat(" %ld", op.Args[i].GetPtrWithOffset());
+            RuntimeScriptValue arg = op.Args[i];
+            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
+            {
+                arg = *arg.RValue;
+            }
+            switch(arg.Type) {
+            case kScValInteger:
+            case kScValPluginArg:
+                writer.WriteFormat(" %d", arg.IValue);
+                break;
+            case kScValFloat:
+                writer.WriteFormat(" %f", arg.FValue);
+                break;
+            case kScValStringLiteral:
+                writer.WriteFormat(" \"%s\"", arg.Ptr);
+                break;
+            case kScValStackPtr:
+            case kScValGlobalVar:
+                writer.WriteFormat(" %p", arg.RValue);
+                break;
+            case kScValData:
+            case kScValCodePtr:
+                writer.WriteFormat(" %p", arg.GetPtrWithOffset());
+                break;
+            case kScValStaticArray:
+            case kScValStaticObject:
+            case kScValDynamicObject:
+            case kScValStaticFunction:
+            case kScValObjectFunction:
+            case kScValPluginFunction:
+            case kScValPluginObject:
+            {
+                String name = simp.findName(arg);
+                if (!name.IsEmpty())
+                {
+                    writer.WriteFormat(" &%s", name.GetCStr());
+                }
+                else
+                {
+                    writer.WriteFormat(" %p", arg.GetPtrWithOffset());
+                }
+             }
+                break;
+            case kScValUndefined:
+				writer.WriteString("undefined");
+                break;
+             }
         }
     }
     writer.WriteLineBreak();

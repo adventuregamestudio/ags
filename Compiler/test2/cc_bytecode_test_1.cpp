@@ -2162,3 +2162,111 @@ TEST_F(Bytecode1, CompareStringToNull) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, DynarrayLength1) {
+
+    char inpl[] = "\
+        managed struct Struct               \n\
+        {                                   \n\
+            int Payload;                    \n\
+        } Dynarray[];                       \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            Dynarray = new Struct[5];       \n\
+            return Dynarray.Length;         \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("DynarrayLength1", scrip);
+
+    size_t const codesize = 37;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            5,   72,    3,    4,    // 7
+       1,    6,    2,    0,           47,    3,    6,    2,    // 15
+       0,   48,    2,   52,           34,    2,   39,    1,    // 23
+       6,    3,    0,   33,            3,   35,    1,   31,    // 31
+       3,    6,    3,    0,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      11,   16,   26,  -999
+    };
+    char fixuptypes[] = {
+      1,   1,   4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, DynarrayLength2) {
+
+    char inpl[] = "\
+        int foo ()                          \n\
+        {                                   \n\
+            int Dynarray[] = new int[7];    \n\
+            int len = Dynarray.Length;      \n\
+        }                                   \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("DynarrayLength2", scrip);
+
+    size_t const codesize = 44;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            7,   72,    3,    4,    // 7
+       0,   51,    0,   47,            3,    1,    1,    4,    // 15
+      51,    4,   48,    2,           52,   34,    2,   39,    // 23
+       1,    6,    3,    0,           33,    3,   35,    1,    // 31
+      29,    3,   51,    8,           49,    2,    1,    8,    // 39
+       6,    3,    0,    5,          -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      27,  -999
+    };
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 1;
+    std::string imports[] = {
+    "__Builtin_DynamicArrayLength^1",             "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}

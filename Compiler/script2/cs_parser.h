@@ -583,6 +583,10 @@ private:
     // We are processing a function call. General the actual function call
     void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
 
+    // Generate the function call for the function that returns the number of elements
+    // of a dynarray.
+    void AccessData_GenerateDynarrayLengthFuncCall(MemoryLocation &mloc, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
@@ -653,7 +657,7 @@ private:
     // The next symbol read is the attribute (the part after the '.')
     ErrorType AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype &vartype);
 
-    // Location contains a pointer to another address. Get that address.
+    // Memory location contains a pointer to another address. Get that address.
     ErrorType AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
 
     ErrorType AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, bool negate, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);

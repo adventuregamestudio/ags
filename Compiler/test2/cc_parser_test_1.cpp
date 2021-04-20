@@ -1292,3 +1292,19 @@ TEST_F(Compile1, FuncThenAssign)
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
     EXPECT_NE(std::string::npos, msg2.find("'('"));
 }
+
+TEST_F(Compile1, BuiltinForbidden)
+{
+    // Function names must not start with '__Builtin_'.
+
+    char *inpl = "\
+        void __Builtin_TestFunc()   \n\
+        {                           \n\
+            return;                 \n\
+        }                           \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("__Builtin_"));
+}

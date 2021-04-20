@@ -196,6 +196,7 @@ const String GameInstallRootToken    = "$INSTALLDIR$";
 const String UserSavedgamesRootToken = "$MYDOCS$";
 const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
 const String GameDataDirToken        = "$APPDATADIR$";
+const String UserConfigFileToken     = "$CONFIGFILE$";
 
 void FixupFilename(char *filename)
 {
@@ -312,6 +313,16 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
+    // File tokens (they must be the only thing in script path)
+    if (orig_sc_path.Compare(UserConfigFileToken) == 0)
+    {
+        auto loc = GetGameUserConfigDir();
+        rp.FullPath = Path::ConcatPaths(loc.FullDir, DefaultConfigFileName);
+        rp.BaseDir = loc.BaseDir;
+        return true;
+    }
+
+    // Test absolute paths
     bool is_absolute = !is_relative_filename(orig_sc_path);
     if (is_absolute && !read_only)
     {
@@ -325,6 +336,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         return true;
     }
 
+    // Resolve location tokens
     String sc_path = FixSlashAfterToken(orig_sc_path);
     FSLocation parent_dir;
     String child_path;

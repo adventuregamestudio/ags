@@ -3870,10 +3870,19 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
         return kERR_None;
     }
 
+    if (_sym.IsConstant(qualified_component))
+    {
+        expression.GetNext(); // Eat the constant symbol
+        vloc.location = ValueLocation::kCompile_time_literal;
+        vloc.symbol = _sym[qualified_component].ConstantD->ValueSym;
+        vartype = _sym[vloc.symbol].LiteralD->Vartype;
+        return kERR_None;
+    }
+
     if (!_sym.IsVariable(qualified_component))
     {
         Error(
-            "Expected a variable, attribute, or function component of '%s', found '%s' instead",
+            "Expected an attribute, constant, function, or variable component of '%s', found '%s' instead",
             _sym.GetName(vartype).c_str(),
             _sym.GetName(unqualified_component).c_str());
         return kERR_UserError;
@@ -4047,7 +4056,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
         static_access = false;
     }
 
-    if (ValueLocation::kAX_is_value == vloc.location)
+    if (ValueLocation::kAX_is_value == vloc.location || ValueLocation::kCompile_time_literal == vloc.location)
     return kERR_None;
 
     return mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
@@ -4509,6 +4518,18 @@ AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol const ass_symbol, Src
     return kERR_None;
 }
 
+AGS::ErrorType AGS::Parser::ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol vname)
+{
+
+    if (ScT::kImport == scope_type)
+    {
+        Error("Can't import a compile-time constant (did you mean 'readonly' instead of 'const'?)");
+        return kERR_UserError;
+    }
+
+    return ParseConstantDefn(tqs, vartype, vname);
+}
+
 AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype const wanted_vartype, void *&initial_val_ptr)
 {
     ValueLocation vloc;
@@ -4641,6 +4662,46 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, Vartype v
     return kERR_None;
 }
 
+ErrorType AGS::Parser::ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname)
+{
+    if (tqs[TQ::kReadonly])
+    {
+        Error("Can't use 'readonly' with compile-time constants");
+        return kERR_UserError;
+    }
+
+    if (kKW_Int != vartype && kKW_Float != vartype)
+    {
+        Error("Can only handle compile-time constants of type 'int' or 'float'");
+        return kERR_UserError;
+    }
+
+    if (_src.PeekNext() == kKW_OpenBracket)
+    {
+        Error("Cannot handle arrays of compile-time constants (did you mean 'readonly' instead of 'const'?)");
+        return kERR_UserError;
+    }
+
+    if (PP::kMain != _pp)
+        return SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
+
+    // Get the constant value
+    ErrorType retval = Expect(kKW_Assign, _src.GetNext());
+    if (retval < 0) return retval;
+
+    Symbol lit;
+    retval = ParseConstantExpression(_src, lit);
+    if (retval < 0) return retval;
+    retval = IsVartypeMismatch(_sym[lit].LiteralD->Vartype, vartype, true);
+    if (retval < 0) return retval;
+
+    _sym.MakeEntryConstant(vname);
+    SymbolTableEntry &entry = _sym[vname];
+    entry.ConstantD->ValueSym = lit;
+    entry.Declared = _src.GetCursor();
+    return kERR_None;
+}
+
 AGS::ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type)
 {
     if (vartype == kKW_String && FlagIsSet(_options, SCOPT_OLDSTRINGS) == 0)
@@ -4668,13 +4729,8 @@ AGS::ErrorType AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, Sco
 // there was a forward declaration -- check that the real declaration matches it
 AGS::ErrorType AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows)
 {
-    if (nullptr != known_info->ConstantD)
-    {
-        Error(
-            ReferenceMsgLoc("The name '%s' is declared as a constant elsewhere, as a variable here", known_info->Declared).c_str(),
-            known_info->Name.c_str());
-        return kERR_UserError;
-    }
+    // Note, a variable can't be declared if it is in use as a constant.
+
     if (nullptr != known_info->FunctionD)
     {
         Error(
@@ -4849,6 +4905,9 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
 AGS::ErrorType AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs)
 {
+    if (tqs[TQ::kConst] && kKW_String != vartype)
+        return ParseVardecl_ConstantDefn(tqs, vartype, scope_type, var_name);
+
     if (kKW_OpenBracket == _src.PeekNext())
     {
         ErrorType retval = ParseArray(var_name, vartype);
@@ -5207,12 +5266,6 @@ AGS::ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_bod
     if (tqs[TQ::kStringstruct] && (!tqs[TQ::kAutoptr]))
     {
         Error("'stringstruct' must be combined with 'autoptr'");
-        return kERR_UserError;
-    }
-
-    if (tqs[TQ::kConst])
-    {
-        Error("'const' can only be used for a function parameter (use 'readonly' instead)");
         return kERR_UserError;
     }
 
@@ -5587,15 +5640,15 @@ AGS::ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet
         return kERR_UserError;
     }
 
+    if (tqs[TQ::kImport] && !tqs[TQ::kAttribute])
+    {
+        // member variable cannot be an import
+        Error("Can't import struct component variables; import the whole struct instead");
+        return kERR_UserError;
+    }
+
     if (PP::kMain == _pp)
     {
-        if (tqs[TQ::kImport] && !tqs[TQ::kAttribute])
-        {
-            // member variable cannot be an import
-            Error("Can't import struct component variables; import the whole struct instead");
-            return kERR_UserError;
-        }
-
         if (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(name_of_struct) && !tqs[TQ::kAttribute])
         {
             // This is an Engine restriction
@@ -5639,6 +5692,29 @@ AGS::ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet
 
     _sym[name_of_struct].VartypeD->Size += _sym.GetSize(vname);
     return kERR_None;
+}
+
+ErrorType AGS::Parser::ParseStruct_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
+{
+    if (_sym.IsDynarrayVartype(vartype)) // e.g., const int [] zonk;
+    {
+        Error("Expected '('");
+        return kERR_UserError;
+    }
+
+    if (tqs[TQ::kAttribute])
+    {
+        Error("Can't handle compile-time constant attributes (did you mean 'readonly' instead of 'const'?)");
+        return kERR_UserError;
+    }
+
+    if (tqs[TQ::kImport])
+    {
+        Error("Can't import a compile-time constant (did you mean 'readonly' instead of 'const'?)");
+        return kERR_UserError;
+    }
+
+    return ParseConstantDefn(tqs, vartype, vname);
 }
 
 AGS::ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype)
@@ -5687,6 +5763,9 @@ AGS::ErrorType AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQu
 
     if (is_function)
         return ParseStruct_FuncDecl(name_of_struct, qualified_component, tqs, vartype);
+
+    if (tqs[TQ::kConst] && kKW_String != vartype)
+        return ParseStruct_ConstantDefn(tqs, vartype, name_of_struct, qualified_component);
 
     return ParseStruct_VariableOrAttributeDefn(tqs, vartype, name_of_struct, qualified_component);
  }
@@ -6273,7 +6352,6 @@ AGS::ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scop
     return ParseVardecl(var_name, vartype, scope_type, variable_tqs);
 }
 
-// We accepted a variable type such as "int", so what follows is a function or variable declaration
 AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func,Symbol &name_of_current_func)
 {
     if (_src.ReachedEOF())
@@ -6287,7 +6365,7 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
         return kERR_UserError;
     }
 
-    // Don't define variable or function where illegal in context.
+    // Don't define where illegal in context.
     ErrorType retval = ParseVartype_CheckForIllegalContext();
     if (retval < 0) return retval;
 
@@ -6355,7 +6433,7 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
             Error("Expected '('");
             return kERR_UserError;
         }
-        else
+        else 
         {
             if (kKW_NoSymbol != struct_name)
             {

@@ -738,6 +738,10 @@ private:
     // "var++" or "var--"
     ErrorType ParseAssignment_SAssign(Symbol ass_symbol, SrcList &lhs);
 
+    ErrorType ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname);
+
+    ErrorType ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol var_name);
+
     ErrorType ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype var, void *&initial_val_ptr);
 
     ErrorType ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr);
@@ -804,6 +808,9 @@ private:
     // We're inside a struct decl, processing a member variable
     ErrorType ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
 
+    // We're inside a struct decl, processing a compile-time constant
+    ErrorType ParseStruct_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname);
+
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
     ErrorType ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
@@ -850,7 +857,7 @@ private:
 
     ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype);
 
-    // We accepted a variable type such as "int", so what follows is a variable or function declaration
+    // We accepted a variable type such as "int", so what follows is a variable, compile-time constant, or function declaration
     ErrorType ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command statement. This command might be the end of sequences such as

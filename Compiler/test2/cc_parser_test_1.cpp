@@ -1805,3 +1805,111 @@ TEST_F(Compile1, SpuriousExpression)
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST_F(Compile1, CompileTimeConstant1)
+{
+    char *inpl = "\
+        const int CI = 4711;                    \n\
+        const float Euler = 2.718281828459045;  \n\
+        const float AroundOne = Euler / Euler;  \n\
+        float Array[CI];                        \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile1, CompileTimeConstant2)
+{
+    char *inpl = "\
+        int main() {                            \n\
+            while (1)                           \n\
+            {                                   \n\
+                const int CI2 = 4712;           \n\
+            }                                   \n\
+            float CI2;                          \n\
+        }                                       \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile1, CompileTimeConstant3)
+{
+    char *inpl = "\
+        struct Str                          \n\
+        {                                   \n\
+            const int foo = 17;             \n\
+            static const int foo_squared =  \n\
+                Str.foo * Str.foo;          \n\
+        } s;                                \n\
+                                            \n\
+        int main() {                        \n\
+            return s.foo;                   \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile1, CompileTimeConstant4)
+{
+    char *inpl = "\
+        import const int C = 42; \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("import"));
+
+    char *inpl2 = "\
+        readonly const int C = 42; \n\
+        ";
+    compile_result = cc_compile(inpl2, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("readonly"));
+}
+
+TEST_F(Compile1, CompileTimeConstant5)
+{
+    char *inpl = "\
+        const short S = 42; \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'int'"));
+
+    char *inpl2 = "\
+        const int C[]; \n\
+        ";
+    compile_result = cc_compile(inpl2, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("rray"));
+
+    char *inpl3 = "\
+        const int[] C; \n\
+        ";
+    compile_result = cc_compile(inpl3, scrip);
+    msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("Expected '('"));
+}
+
+TEST_F(Compile1, CompileTimeConstant6)
+{
+    char *inpl = "\
+            const float pi = 3.14;  \n\
+        int main() {                \n\
+            float pi = 3.141;       \n\
+        }                           \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("in use"));
+}

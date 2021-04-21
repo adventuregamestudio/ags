@@ -2880,10 +2880,6 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(MemoryLocation &mloc
     // Load MAR with the address of the dynarray. Will provoke a runtime error when NULL
     AccessData_Dereference(vloc, mloc);
 
-    // Destinations for jump instructions
-    ForwardJump end_of_current_func(_scrip); 
-    ForwardJump calc_dynamic_length(_scrip);
-
     // We calculate the length of the dynarray by calling an external function.
     // Ensure that this function is declared as an import function
     std::string const dynarray_len_func_name = "__Builtin_DynamicArrayLength";
@@ -2906,9 +2902,7 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(MemoryLocation &mloc
     WriteCmd(SCMD_PUSHREAL, SREG_MAR); // Load the dynarray address onto the far stack
     AccessData_GenerateFunctionCall(dynarray_len_func, 1u, true);
 
-    end_of_current_func.Patch(_src.GetLineno());
-
-    vloc = ValueLocation::kVL_AX_is_value;
+    vloc.location = ValueLocation::kAX_is_value;
     scope_type = ScT::kGlobal;
     vartype = kKW_Int;
 }

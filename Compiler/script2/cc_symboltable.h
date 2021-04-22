@@ -1,7 +1,8 @@
 #ifndef __CC_SYMBOLTABLE_H
 #define __CC_SYMBOLTABLE_H
 
-#include "cs_parser_common.h"   // macro definitions          
+#include "cs_parser_common.h"   
+#include "cs_compile_time.h"
 
 #include <unordered_map>
 #include <map>
@@ -96,6 +97,8 @@ public:
     // for (auto it = tqs.begin(); it != tqs.end(); it++)
     inline auto begin() const { return TQToSymbolMap().begin(); }
     inline auto end() const { return TQToSymbolMap().end(); }
+
+    inline bool empty() { return _flags == std::bitset<16u>{}; }
 };
 
 // Note: Don't convert to enum class: Only the _start_ of the symbol table vector
@@ -217,6 +220,8 @@ public:
     static size_t const kNoSrcLocation = INT_MAX;
 
     static size_t const kNoPrio = -1;
+    static size_t const kNoOpcode = -1;
+    static size_t const kSpecialLogic = -2;
 };
 
 struct SymbolTableEntry : public SymbolTableConstant
@@ -273,7 +278,12 @@ struct SymbolTableEntry : public SymbolTableConstant
     // For operators
     struct OperatorDesc
     {
-        CodeCell Opcode = 0;
+        CodeCell IntOpcode = kNoOpcode;
+        CompileTimeFunc *IntCTFunc = nullptr;
+        CodeCell FloatOpcode = kNoOpcode;
+        CompileTimeFunc *FloatCTFunc = nullptr;
+        CodeCell DynOpcode = kNoOpcode;
+        CodeCell StringOpcode = kNoOpcode;
         int BinaryPrio = kNoPrio; 
         int UnaryPrio = kNoPrio;
         bool CanBePartOfAnExpression = false;
@@ -331,10 +341,7 @@ private:
     Symbol AddNoSymbol(Predefined kw, std::string const &name);
 
     // Add the assign symbol to the symbol table at [kw]. Priority as yet unused.
-    Symbol AddAssign(Predefined kw, std::string const &name, size_t prio);
-
-    // Add the modifying assign symbol to the symbol table at [kw]. Priority as yet unused.
-    Symbol AddAssignMod(Predefined kw, std::string const &name, CodeCell opcode, size_t prio);
+    Symbol AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
 
     // Add the delimeter symbol to the symbol table at [kw]. 'partner' is the closer to the opener or vice versa.
     Symbol AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner, bool can_be_expression);
@@ -342,12 +349,12 @@ private:
     // Add the keyword symbol to the symbol table at [kw].
     Symbol AddKeyword(Predefined kw, std::string const &name);
 
-    // Add the modifier symbol to the symbol table at [kw]. Priorities as yet unused.
-    Symbol AddModifier(Predefined kw, std::string const &name, CodeCell opcode, size_t prefix_prio, size_t postfix_prio);
-
     // Add the operator symbol to the symbol table at [kw]. 
     // Priorities: lower value = higher prio.
-    Symbol AddOperator(Predefined kw, std::string const &name, CodeCell opcode, size_t binary_prio, size_t unary_prio);
+    Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
+
+    // Augment the operator symbol with compile time functions
+    void OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func);
 
     // Add the vartype symbol to the symbol table at [kw].
     Symbol AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype = false);
@@ -472,12 +479,10 @@ public:
     ScopeType GetScopeType(Symbol s) const;
 
     // Operators
-    inline int BinaryOpPrio(Symbol s) const
+    inline int BinaryOrPostfixOpPrio(Symbol s) const
         { return IsOperator(s) ? entries.at(s).OperatorD->BinaryPrio : 0; }
-    inline int UnaryOpPrio(Symbol s) const
+    inline int PrefixOpPrio(Symbol s) const
         { return IsOperator(s) ? entries.at(s).OperatorD->UnaryPrio : 0; }
-    inline CodeCell OperatorOpcode(Symbol s) const
-        { return IsOperator(s) ? entries.at(s).OperatorD->Opcode : 0; }
 
     // Strings
     bool IsAnyStringVartype(Symbol s) const;
@@ -491,6 +496,9 @@ public:
 
     // Add to the symbol table if not present already; in any case return the symbol
     inline Symbol FindOrAdd(std::string const &name) { Symbol ret = Find(name); return (kKW_NoSymbol != ret ) ? ret : Add(name); }
+
+    // See to it that a literal of the given type is in the symbol table and return the symbol for it
+    Symbol FindOrMakeLiteral(std::string const &name, Vartype vartype, CodeCell value);
 
     // Set/get the position in the source where the item is declared
     inline void SetDeclared(int idx, size_t declared) { entries[idx].Declared = declared; }

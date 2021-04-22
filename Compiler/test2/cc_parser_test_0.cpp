@@ -343,7 +343,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
 
 TEST_F(Compile0, DoubleNegatedConstant) {
     
-    // Can't handle compile time calculations yet
+    // Parameter default can be evaluated at compile time
 
     char *inpl = "\
         import int MyFunction(  \n\
@@ -352,9 +352,7 @@ TEST_F(Compile0, DoubleNegatedConstant) {
         ";
         
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string msg = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, msg.find("parameter default"));
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST_F(Compile0, SubtractionWithoutSpaces) {
@@ -568,7 +566,7 @@ TEST_F(Compile0, Protected1) {
 TEST_F(Compile0, Protected2) {
     
     // Directly taken from the doc on protected, simplified.
-    // Should fail, no modifying of protected components from the outside.
+    // Should fail, no reading protected components from the outside.
 
     char *inpl = "\
         struct Weapon {                        \n\
@@ -792,7 +790,7 @@ TEST_F(Compile0, FuncHeader2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, err.find("literal float"));
+    EXPECT_NE(std::string::npos, err.find("loat expression"));
 }
 
 TEST_F(Compile0, FuncHeader3) {   

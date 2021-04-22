@@ -44,8 +44,6 @@
 // 3.4.0      (118): Removed GUI limits
 // 3.5.0      (119): Game data contains GUI properties that previously
 //                   could be set only at runtime.
-//
-// 3.9.9      (130): Blend modes.
 //=============================================================================
 
 enum GuiVersion
@@ -73,8 +71,7 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_399         = 130,
-    kGuiVersion_Current     = kGuiVersion_399,
+    kGuiVersion_Current     = kGuiVersion_350,
 };
 
 namespace AGS

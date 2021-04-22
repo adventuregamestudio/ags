@@ -33,30 +33,39 @@ namespace glmex
     // Create identity matrix
     inline glm::mat4 identity() { return glm::mat4(1.f); }
     // Translate matrix in 2D plane
+    inline glm::mat4 translate(float x, float y) { return glm::translate(glmex::identity(), { x, y, 0.f }); }
     inline glm::mat4 translate(const glm::mat4 &m, float x, float y) { return glm::translate(m, {x, y, 0.f}); }
     // Scale matrix in 2D plane
+    inline glm::mat4 scale(float sx, float sy) { return glm::scale(glmex::identity(), { sx, sy, 1.f }); }
     inline glm::mat4 scale(const glm::mat4 &m, float sx, float sy) { return glm::scale(m, { sx, sy, 1.f }); }
     // Rotate matrix in 2D plane (around Z)
+    inline glm::mat4 rotatez(float angle) { return glm::rotate(glmex::identity(), angle, { 0.f, 0.f, 1.f }); }
     inline glm::mat4 rotatez(const glm::mat4 &m, float angle) { return glm::rotate(m, angle, { 0.f, 0.f, 1.f }); }
     // Setup full 2D transformation matrix
-    inline glm::mat4 make_transform2d(float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
+    inline glm::mat4 transform2d(const glm::mat4 &m_, float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
     {
-        glm::mat4 m = glmex::identity();
-        m = glmex::translate(m, x - pivotx, y - pivoty);
+        glm::mat4 m = glmex::translate(m_, x - pivotx, y - pivoty);
         m = glmex::rotatez(m, anglez);
         m = glmex::translate(m, pivotx, pivoty);
         m = glmex::scale(m, sx, sy);
         return m;
     }
-    // Setup inverse 2D transformation matrix
-    inline glm::mat4 make_inv_transform2d(float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
+    inline glm::mat4 make_transform2d(float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
     {
-        glm::mat4 m = glmex::identity();
-        m = glmex::scale(m, sx, sy);
+        return glmex::transform2d(glmex::identity(), x, y, sx, sy, anglez, pivotx, pivoty);
+    }
+    // Setup inverse 2D transformation matrix
+    inline glm::mat4 inv_transform2d(const glm::mat4 &m_, float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
+    {
+        glm::mat4 m = glmex::scale(m_, sx, sy);
         m = glmex::translate(m, pivotx, pivoty);
         m = glmex::rotatez(m, anglez);
         m = glmex::translate(m, x - pivotx, y - pivoty);
         return m;
+    }
+    inline glm::mat4 make_inv_transform2d(float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
+    {
+        return inv_transform2d(glmex::identity(), x, y, sx, sy, anglez, pivotx, pivoty);
     }
 } // namespace glmex
 

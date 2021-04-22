@@ -42,13 +42,8 @@ void Camera::SetSize(const Size cam_size)
 
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
-    SetAt(_position.Left, _position.Top); // readjust in case went off-room after size changed
-    for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
-    {
-        auto locked_vp = vp->lock();
-        if (locked_vp)
-            locked_vp->AdjustTransformation();
-    }
+    // readjust in case went off-room after size changed, also updates matrixes
+    SetAt(_position.Left, _position.Top);
     _hasChangedSize = true;
 }
 
@@ -62,6 +57,14 @@ void Camera::SetAt(int x, int y)
     x = Math::Clamp(x, 0, room_width - cw);
     y = Math::Clamp(y, 0, room_height - ch);
     _position.MoveTo(Point(x, y));
+
+    for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
+    {
+        auto locked_vp = vp->lock();
+        if (locked_vp)
+            locked_vp->AdjustTransformation();
+    }
+
     _hasChangedPosition = true;
 }
 
@@ -73,6 +76,13 @@ float Camera::GetRotation() const
 void Camera::SetRotation(float degrees)
 {
     _rotation = degrees;
+
+    for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
+    {
+        auto locked_vp = vp->lock();
+        if (locked_vp)
+            locked_vp->AdjustTransformation();
+    }
 }
 
 // Tells if camera is currently locked at custom position
@@ -184,7 +194,20 @@ void Viewport::AdjustTransformation()
 {
     auto locked_cam = _camera.lock();
     if (locked_cam)
-        _transform.Init(locked_cam->GetRect().GetSize(), _position);
+    {
+        auto cam_rc = locked_cam->GetRect();
+        float scale_x = (float)_position.GetWidth() / (float)cam_rc.GetWidth();
+        float scale_y = (float)_position.GetHeight() / (float)cam_rc.GetHeight();
+        float rotate = locked_cam->GetRotation();
+
+        glm::mat4 mat_v2c = glmex::make_transform2d(cam_rc.Left, cam_rc.Top,
+            1.f / scale_x, 1.f / scale_y, Math::DegreesToRadians(rotate), -0.5 * cam_rc.GetWidth(), -0.5 * cam_rc.GetHeight());
+        _v2cTransform = glmex::translate(mat_v2c, -_position.Left, -_position.Top);
+
+        glm::mat4 mat_c2v = glmex::translate(_position.Left, _position.Top);
+        _c2vTransform = glmex::inv_transform2d(mat_c2v, -cam_rc.Left, -cam_rc.Top,
+            scale_x, scale_y, -Math::DegreesToRadians(rotate), 0.5 * cam_rc.GetWidth(), 0.5 * cam_rc.GetHeight());;
+    }
 }
 
 PCamera Viewport::GetCamera() const
@@ -203,8 +226,8 @@ VpPoint Viewport::RoomToScreen(int roomx, int roomy, bool clip) const
     auto cam = _camera.lock();
     if (!cam)
         return std::make_pair(Point(), -1);
-    const Rect &camr = cam->GetRect();
-    Point screen_pt = _transform.Scale(Point(roomx - camr.Left, roomy - camr.Top));
+    glm::vec4 v = _c2vTransform * glmex::vec4(roomx, roomy);
+    Point screen_pt(v.x, v.y);
     if (clip && !_position.IsInside(screen_pt))
         return std::make_pair(Point(), -1);
     return std::make_pair(screen_pt, _id);
@@ -219,9 +242,7 @@ VpPoint Viewport::ScreenToRoom(int scrx, int scry, bool clip) const
     if (!cam)
         return std::make_pair(Point(), -1);
 
-    const Rect &camr = cam->GetRect();
-    Point p = _transform.UnScale(screen_pt);
-    p.X += camr.Left;
-    p.Y += camr.Top;
+    glm::vec4 v = _v2cTransform * glmex::vec4(scrx, scry);
+    Point p(v.x, v.y);
     return std::make_pair(p, _id);
 }

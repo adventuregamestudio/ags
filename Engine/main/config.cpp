@@ -309,15 +309,6 @@ void config_defaults()
     usetup.translation = "";
 }
 
-void read_game_data_location(const ConfigTree &cfg, String &data_dir, String &data_file)
-{
-    data_dir = INIreadstring(cfg, "misc", "datadir");
-    data_dir = Path::MakePathNoSlash(data_dir);
-    data_file = INIreadstring(cfg, "misc", "datafile");
-    if (!data_file.IsEmpty() && is_relative_filename(data_file))
-        data_file = Path::ConcatPaths(data_dir, data_file);
-}
-
 void read_legacy_audio_config(const ConfigTree &cfg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -389,20 +380,6 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
     }
 
     usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
-}
-
-bool read_config_with_game_location(const String &path, String &data_dir, String &data_file)
-{
-    ConfigTree cfg;
-    String def_cfg_file = Path::ConcatPaths(path, DefaultConfigFileName);
-    if (IniUtil::Read(def_cfg_file, cfg))
-    {
-        read_game_data_location(cfg, data_dir, data_file);
-        Debug::Printf("Found game config: %s", def_cfg_file.GetCStr());
-        Debug::Printf(" Cfg: data dir: %s", data_dir.GetCStr());
-        Debug::Printf(" Cfg: data file: %s", data_file.GetCStr());
-    }
-    return !(data_dir.IsEmpty() && data_file.IsEmpty());
 }
 
 // Variables used for mobile port configs

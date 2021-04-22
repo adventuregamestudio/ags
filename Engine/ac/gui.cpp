@@ -330,6 +330,14 @@ void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
     guis[gui->id].BlendMode = (BlendMode)blendMode;
 }
 
+float GUI_GetRotation(ScriptGUI *gui) {
+    return guis[gui->id].Rotation;
+}
+
+void GUI_SetRotation(ScriptGUI *gui, float rotation) {
+    guis[gui->id].Rotation = rotation;
+}
+
 //=============================================================================
 
 void remove_popup_interface(int ifacenum) {
@@ -953,6 +961,16 @@ RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUI_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetRotation);
+}
+
+RuntimeScriptValue Sc_GUI_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetRotation);
+}
+
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
@@ -997,6 +1015,8 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::get_Shown",               Sc_GUI_GetShown);
     ccAddExternalObjectFunction("GUI::get_BlendMode",           Sc_GUI_GetBlendMode);
     ccAddExternalObjectFunction("GUI::set_BlendMode",           Sc_GUI_SetBlendMode);
+    ccAddExternalObjectFunction("GUI::get_Rotation",            Sc_GUI_GetRotation);
+    ccAddExternalObjectFunction("GUI::set_Rotation",            Sc_GUI_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

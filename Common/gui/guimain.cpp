@@ -74,6 +74,7 @@ void GUIMain::InitDefaults()
     MouseWasAt.Y  = -1;
 
     BlendMode     = kBlend_Normal;
+    Rotation      = 0.f;
 
     OnClickHandler.Empty();
 

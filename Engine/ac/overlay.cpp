@@ -173,6 +173,20 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
     screenover[ovri].transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
+float Overlay_GetRotation(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    return screenover[ovri].rotation;
+}
+
+void Overlay_SetRotation(ScriptOverlay *scover, float rotation) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    screenover[ovri].rotation = rotation;
+}
+
 int Overlay_GetZOrder(ScriptOverlay *scover) {
     int ovri = find_overlay_of_type(scover->overlayId);
     if (ovri < 0)
@@ -462,6 +476,16 @@ RuntimeScriptValue Sc_Overlay_SetBlendMode(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Overlay_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetRotation);
+}
+
+RuntimeScriptValue Sc_Overlay_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetRotation);
+}
+
 RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
@@ -471,6 +495,7 @@ RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptVal
 {
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
 }
+
 
 RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -516,6 +541,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
     ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
     ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
+    ccAddExternalObjectFunction("Overlay::get_Rotation",        Sc_Overlay_GetRotation);
+    ccAddExternalObjectFunction("Overlay::set_Rotation",        Sc_Overlay_SetRotation);
     ccAddExternalObjectFunction("Overlay::get_Transparency",    Sc_Overlay_GetTransparency);
     ccAddExternalObjectFunction("Overlay::set_Transparency",    Sc_Overlay_SetTransparency);
     ccAddExternalObjectFunction("Overlay::get_ZOrder",          Sc_Overlay_GetZOrder);

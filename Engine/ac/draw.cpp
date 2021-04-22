@@ -2021,6 +2021,7 @@ void draw_gui_and_overlays()
     {
         over.bmp->SetTransparency(over.transparency);
         over.bmp->SetBlendMode(over.blendMode);
+        over.bmp->SetRotation(over.rotation);
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
         {
@@ -2098,6 +2099,7 @@ void draw_gui_and_overlays()
 
             guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
             guibgbmp[aa]->SetBlendMode(guis[aa].BlendMode);
+            guibgbmp[aa]->SetRotation(guis[aa].Rotation);
             add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false);
 
             // only poll if the interface is enabled (mouseovers should not

@@ -38,6 +38,7 @@ struct ScreenOverlay {
     int zorder = INT_MIN;
     bool positionRelativeToScreen = false;
     int _offsetX = 0, _offsetY = 0;
+    float rotation = 0.f;
     Common::BlendMode blendMode = Common::kBlend_Normal;
     int transparency = 0;
 

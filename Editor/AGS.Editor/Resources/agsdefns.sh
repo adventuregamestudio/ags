@@ -940,6 +940,8 @@ builtin managed struct Overlay {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the overlay's image rotation in degrees.
+  import attribute float Rotation;
   /// Gets/sets the transparency of this overlay.
   import attribute int Transparency;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
@@ -1378,6 +1380,8 @@ builtin managed struct GUI {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the GUI's image rotation in degrees.
+  import attribute float Rotation;
 #endif
 };
 

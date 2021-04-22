@@ -166,6 +166,7 @@ public:
     int32_t PopupAtMouseY;  // popup when mousey < this
     int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
     Common::BlendMode BlendMode; // render blend mode
+    float Rotation;         // rotation, in degrees
     int32_t ZOrder;
 
     int32_t FocusCtrl;      // which control has the focus

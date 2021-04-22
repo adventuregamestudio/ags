@@ -1534,6 +1534,7 @@ void prepare_objects_for_drawing() {
 
         actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
         actspsbmp[useindx]->SetBlendMode(objs[aa].blend_mode);
+        actspsbmp[useindx]->SetRotation(objs[aa].rotation);
         add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false);
     }
 }
@@ -1848,6 +1849,7 @@ void prepare_characters_for_drawing() {
 
         actspsbmp[useindx]->SetTransparency(chin->transparency);
         actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
+        actspsbmp[useindx]->SetRotation(charextra[chin->index_id].rotation);
         add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false);
     }
 }

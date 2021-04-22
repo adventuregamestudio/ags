@@ -1825,6 +1825,8 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this object.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the object's sprite rotation in degrees.
+  import attribute float GraphicRotation;
 #endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2052,6 +2054,8 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the character's current blend mode.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the character's sprite rotation in degrees.
+  import attribute float GraphicRotation;
 #endif
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$

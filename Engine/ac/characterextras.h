@@ -46,6 +46,7 @@ struct CharacterExtras {
     char  slow_move_counter;
     short animwait;
     Common::BlendMode blend_mode;
+    float rotation;
 
     void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

@@ -43,6 +43,7 @@ struct RoomObject {
     char  flags;
     short blocking_width, blocking_height;
     Common::BlendMode blend_mode;
+    float rotation;
 
     RoomObject();
 

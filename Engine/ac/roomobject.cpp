@@ -48,6 +48,7 @@ RoomObject::RoomObject()
     flags = 0;
     blocking_width = blocking_height = 0;
     blend_mode = kBlend_Normal;
+    rotation = 0.f;
 }
 
 int RoomObject::get_width() {

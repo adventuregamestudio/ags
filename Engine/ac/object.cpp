@@ -424,6 +424,14 @@ void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
     objs[objj->id].blend_mode = (BlendMode)blendMode;
 }
 
+float Object_GetRotation(ScriptObject *objj) {
+    return objs[objj->id].rotation;
+}
+
+void Object_SetRotation(ScriptObject *objj, float rotation) {
+    objs[objj->id].rotation = rotation;
+}
+
 
 void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
@@ -955,6 +963,16 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Object_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetRotation);
+}
+
+RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetRotation);
+}
+
 
 void RegisterObjectAPI()
 {
@@ -1031,6 +1049,8 @@ void RegisterObjectAPI()
 
     ccAddExternalObjectFunction("Object::get_BlendMode",            Sc_Object_GetBlendMode);
     ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
+    ccAddExternalObjectFunction("Object::get_GraphicRotation",      Sc_Object_GetRotation);
+    ccAddExternalObjectFunction("Object::set_GraphicRotation",      Sc_Object_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

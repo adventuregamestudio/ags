@@ -1552,7 +1552,6 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
 }
 
 int Character_GetBlendMode(CharacterInfo *chaa) {
-
     return charextra[chaa->index_id].blend_mode;
 }
 
@@ -1560,6 +1559,14 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
     if ((blendMode < 0) || (blendMode >= kNumBlendModes))
         quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
+}
+
+float Character_GetRotation(CharacterInfo *chaa) {
+    return charextra[chaa->index_id].rotation;
+}
+
+void Character_SetRotation(CharacterInfo *chaa, float rotation) {
+    charextra[chaa->index_id].rotation = rotation;
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
@@ -3764,16 +3771,24 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetZ);
 }
 
-// int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetBlendMode);
 }
 
-// void (CharacterInfo *chaa, int blend_mode)
 RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
+}
+
+RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
+}
+
+RuntimeScriptValue Sc_Character_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetRotation);
 }
 
 //=============================================================================
@@ -3960,6 +3975,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
     ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
     ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
+    ccAddExternalObjectFunction("Character::get_GraphicRotation",       Sc_Character_GetRotation);
+    ccAddExternalObjectFunction("Character::set_GraphicRotation",       Sc_Character_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

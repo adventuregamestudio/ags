@@ -287,6 +287,7 @@
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />

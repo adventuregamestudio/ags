@@ -487,43 +487,12 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
-
-    // Read list of data blocks. The block meta format is shared with the main game file extensions now.
-    //    - 1 byte - old format block ID, 0xFF indicates end of list.
-    //    - 16 bytes - new string ID of an extension. \0 at the first byte indicates end of list.
-    //    - 4 or 8 bytes - length of extension data, in bytes (depends on format version).
-    while (true)
-    {
-        update_polled_stuff_if_runtime();
-        RoomFileBlock block_id;
-        String ext_id;
-        soff_t block_len;
-        HRoomFileError err = OpenNextRoomBlock(in, data_ver, block_id, ext_id, block_len);
-        if (!err)
-            return err;
-        if (ext_id.IsEmpty())
-            break; // end of list
-
-        soff_t block_end = in->GetPosition() + block_len;
-        err = ReadRoomBlock(room, in, block_id, ext_id, block_len, data_ver);
-        if (!err)
-            return err;
-
-        soff_t cur_pos = in->GetPosition();
-        if (cur_pos > block_end)
-        {
-            return new RoomFileError(kRoomFileErr_BlockDataOverlapping,
-                String::FromFormat("Block: %s, expected to end at offset: %u, finished reading at %u.",
-                    ext_id.GetCStr(), block_end, cur_pos));
-        }
-        else if (cur_pos < block_end)
-        {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: room data blocks nonsequential, block type %s expected to end at %u, finished reading at %u",
-                ext_id.GetCStr(), block_end, cur_pos);
-            in->Seek(block_end, Common::kSeekBegin);
-        }
-    }
-    return HRoomFileError::None();
+    // This reader will process all blocks inside ReadRoomBlock() function,
+    // and read compatible data into the given RoomStruct
+    auto reader = [&room](Stream *in, RoomFileBlock block_id, const String &ext_id,
+        soff_t block_len, RoomFileVersion data_ver, bool &read_next)
+        { return ReadRoomBlock(room, in, block_id, ext_id, block_len, data_ver); };
+    return ReadRoomData(reader, in, data_ver);
 }
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
@@ -678,19 +647,13 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
 
 HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)
 {
-    while (true)
+    // This reader would only process kRoomFblk_Script and exit as soon as one is found
+    auto reader = [&script](Stream *in, RoomFileBlock block_id, const String &ext_id,
+        soff_t block_len, RoomFileVersion data_ver, bool &read_next)
     {
-        RoomFileBlock block_id;
-        String ext_id;
-        soff_t block_len;
-        HRoomFileError err = OpenNextRoomBlock(in, data_ver, block_id, ext_id, block_len);
-        if (!err)
-            return err;
-        if (ext_id.IsEmpty())
-            break; // end of list
-
         if (block_id == kRoomFblk_Script)
         {
+            read_next = false;
             char *buf = nullptr;
             HRoomFileError err = ReadScriptBlock(buf, in, data_ver);
             if (err)
@@ -701,8 +664,13 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
             return err;
         }
         in->Seek(block_len); // skip block
+        return HRoomFileError::None();
     };
-    return new RoomFileError(kRoomFileErr_BlockNotFound);
+
+    HRoomFileError err = ReadRoomData(reader, in, data_ver);
+    if (!err && script.IsEmpty())
+        new RoomFileError(kRoomFileErr_BlockNotFound);
+    return err;
 }
 
 void WriteInteractionScripts(const InteractionScripts *interactions, Stream *out)

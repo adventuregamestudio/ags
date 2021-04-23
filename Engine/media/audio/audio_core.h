@@ -44,6 +44,11 @@ void audio_core_slot_stop(int slot_handle);
 // Seek on a slot, new position in milliseconds
 void audio_core_slot_seek_ms(int slot_handle, float pos_ms);
 
+#if defined(AGS_DISABLE_THREADS)
+// polls the audio core if we have no threads, polled in Engine/ac/timer.cpp
+void audio_core_threadless_poll();
+#endif
+
 // Audio core config
 // Set new master volume, affects all slots
 void audio_core_set_master_volume(float newvol);

@@ -16,6 +16,9 @@
 #include <thread>
 #include "ac/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
+#if defined(AGS_DISABLE_THREADS)
+#include "media/audio/audio_core.h"
+#endif
 
 extern volatile bool game_update_suspend;
 
@@ -68,6 +71,9 @@ void WaitForNextFrame()
         }
         return;
     }
+#if defined(AGS_DISABLE_THREADS)
+    audio_core_threadless_poll();
+#endif
 
     // jump ahead if we're lagging
     if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND*frameDuration)) {

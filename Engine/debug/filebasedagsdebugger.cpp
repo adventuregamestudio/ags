@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <cstdio>
 #include <string.h>
 #include "debug/filebasedagsdebugger.h"
 #include "util/file.h"

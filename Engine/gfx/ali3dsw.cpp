@@ -228,8 +228,6 @@ void SDLRendererGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
   ClearDrawLists();
-
-  DestroyVirtualScreen();
 }
 
 bool SDLRendererGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -260,6 +258,13 @@ void SDLRendererGraphicsDriver::UnInit()
 {
   OnUnInit();
   ReleaseDisplayMode();
+  DestroyVirtualScreen();
+
+  if (_renderer)
+  {
+      SDL_DestroyRenderer(_renderer);
+      _renderer = nullptr;
+  }
 
   sys_window_destroy();
 }

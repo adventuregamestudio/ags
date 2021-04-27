@@ -17,9 +17,9 @@
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
-* To run certain tools and build Windows installer:
-  * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
-  * InnoSetup 5.5 or higher ([Download](http://www.jrsoftware.org/isdl.php))
+* To build Windows installer:
+  * Inno Setup 6.0.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
+  * (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
 
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
@@ -100,3 +100,57 @@ Depending on the version of MSVS you are using you need to setup paths to compil
 If you are working with AGS.Editor.NoNative solution, then you do not have to make any of C++ libraries at all, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
 
 In either case you also need to download [irrKlang assembly pack](https://www.ambiera.com/irrklang/downloads.html) and put irrKlang.NET4.dll and ikpMP3.dll into Editor/References subdirectory.
+
+
+## Building AGS installer
+
+There's an installer script Windows/Installer/ags.iss, you have to have [Inno Setup](http://www.jrsoftware.org/isdl.php) installed in order to build it.<br>
+Installer script requires several macroses to be defined:
+
+- AgsAppId - a GUID identifying installed software
+- AgsFullVersion - a 4-digit version number
+- AgsFriendlyVersion - a 3-digit 'user-friendly' version number
+- AgsSpVersion - a special version tag (optional can be empty)
+
+The manual way is to run compiler from command-line and pass these as arguments, for example:
+
+`ISCC.exe Windows\Installer\ags.iss /DAgsAppId="baec604c-933c-426e-a11f-dec55953c4c3" /DAgsFullVersion="3.5.1.3" /DAgsFriendlyVersion="3.5.1" /DAgsSpVersion="Beta4"`
+
+Alternatively, there's a PowerShell script that reads these values automatically from the file "version.json" (in the project's root). You run the script from the project's root like this:
+
+`powershell Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'`
+
+There are two things to note here:
+* `IsccPath` argument should be followed by a path to Inno Setup program location, if it's different from the above example, then adjust the path accordingly.
+* PowerShell may require administrative rights to run the script, in which case you have to first start up PowerShell as an administrator, and then issue above command in its console. In this case you also have to adjust the command by excluding `powershell`, like this:
+    `Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'`
+
+In any case, there is a number of files that have to be prepared for installer to actually build. These files have to be placed in Windows\Installer\Source and subdirectories:
+
+- Redist\vc_redist.x86.exe - a [Visual C++ Redistributable for Visual Studio 2015](https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe) (or C++ Redist corresponding to the MSVS you were building AGS with).
+- Editor\
+  - AGSEditor.exe
+  - AGS.Controls.dll
+  - AGS.CScript.Compiler.dll
+  - AGS.Native.dll
+  - AGS.Types.dll
+  - ikpMP3.dll
+  - irrKlang.NET4.dll
+  - Magick.NET-Q8-x86.dll
+  - Magick.NET-Q8-x86.Native.dll
+  - Newtonsoft.Json.dll
+  - WeifenLuo.WinFormsUI.Docking.dll
+  - AGSEditor.exe.config
+  - acsprset.spr
+  - ags-help.chm
+- Engine\
+  - acwin.exe
+- Linux\
+  - full contents of prebuilt debian binaries (see [debian/README.md](debian/README.md#building-ags-for-a-game-release))
+- Docs\ags-help.chm
+- Templates\
+  - at least one game template file (*.agt)
+
+Note that if you do not want to build some of these components yourself, you may copy them from existing public release. Of course there won't be any guarantee that they match latest changes.
+
+On success the resulting installer will be present in Windows\Installer\Output.

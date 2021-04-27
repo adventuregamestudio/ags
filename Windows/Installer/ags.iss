@@ -5,9 +5,10 @@
 #define VcRedistName "Microsoft Visual C++ 2015 Redistributable (x86)"
 
 ; requires following macros to be passed by command line:
-;   AgsVersion - 4 digit version number
-;   AgsFriendlyVersion - 3 digit 'user-friendly' version number
-;   AgsSpVersion - special version tag (can be empty)
+;   AgsAppId - a GUID identifying installed software
+;   AgsFullVersion - a 4-digit version number
+;   AgsFriendlyVersion - a 3-digit 'user-friendly' version number
+;   AgsSpVersion - special version tag (optional, can be empty)
 
 #if "" == AgsSpVersion
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion

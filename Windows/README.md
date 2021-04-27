@@ -88,6 +88,11 @@ In order to direct Studio to necessary libraries and their headers setup followi
 * AGS_LIBVORBIS_LIB - pointing to the location of libvorbis library files;
 * AGS_LIBTHEORA_LIB - pointing to the location of libtheora library files;
 
+### Known problems
+
+When running the engine from MSVS and breaking execution or doing step-by-step execution you may encounter a significant keyboard and mouse input lag. This is somehow caused by Allegro 4 library.<br>
+One known solution to this problem is to adjust the system registry entry named "LowLevelHooksTimeout", found by the full path "HKEY_CURRENT_USER\Control Panel\Desktop\LowLevelHooksTimeout". This setting tells how long to wait for the input device response, in milliseconds. Setting it to a rather low value (e.g. 10) may improve the situation. Note that you must re-login into your Windows profile (or restart the system) for this to take effect.
+
 
 ## Building AGS Editor
 
@@ -106,6 +111,10 @@ In order to direct Studio to necessary libraries and their headers setup followi
 * AGS_ALLEGRO_LIB - pointing to the location of allegro 4 library files;
 
 If you are working with AGS.Editor.NoNative solution then you do not have to make any of C++ libraries at all, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
+
+### Known problems
+
+AGS Editor currently cannot create a new game without a template, even if it's just a blank project. Game templates are not embedded into the Editor itself, but have to be placed along with Editor's exe, in Templates subdirectory. You may get latest game templates from [our repository](https://github.com/adventuregamestudio/ags-templates), or copy them from any existing public release.
 
 
 ## Building AGS installer

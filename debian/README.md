@@ -1,5 +1,5 @@
 # Building the engine on any Linux
-Engine core code demands partial C++11 support (uses std::shared_ptr, std::unique_ptr).
+Engine code demands at least partial C++14 support (uses std::shared_ptr, std::unique_ptr, etc).
 Known minimal versions of compilers that should work with AGS:
 
 -   GCC 4.4
@@ -9,13 +9,13 @@ parentheses are known to work, but other versions will also
 probably work.
 
 -   Allegro 4 (>= 4.4.3, but 4.4.2 will also work with minimal differences)
--   libaldmb (0.9.3)
--   libdumb (0.9.3)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
 -   libXext (1.3.3)
 -   libXxf86vm (1.1.4)
+
+There are two general ways to proceed: either use [CMake scripts](CMAKE.md) or install and build everything yourself using Makefiles provided in the Engine's directory.
 
 Fedora package installation
 ---------------------------
@@ -23,7 +23,9 @@ Fedora package installation
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install git debhelper build-essential pkg-config liballegro4-dev libtheora-dev libvorbis-dev libogg-dev
+
+Other Linux systems use their respective package managers.
 
 Download and build
 ------------------
@@ -65,13 +67,13 @@ or
 
     ags game.exe
 
-To view some possible command line options, use
+To view available command line options, use
 
     ags --help
 
 The configuration file **acsetup.cfg** in the game directory will be used
-if present. Sometimes a configuration file coming with a game can cause problems,
-so if a game doesn't start, try deleting **acsetup.cfg** first.
+if present. For more information on configuration and command line arguments
+see [OPTIONS.md](OPTIONS.md).
 
 For midi music playback, you have to download GUS patches. We recommend
 "Richard Sanders's GUS patches" from this address:
@@ -88,7 +90,8 @@ You can now place it:
 
 -   in the directory pointed to by the ALLEGRO environment variable; or
 -   if $ALLEGRO is not defined, in $HOME; or
--   in the same folder of the AGS executable.
+-   in the same directory of the AGS executable; or
+-   in the game's directory.
 
 # Debugging
 When using the Debian/Ubuntu package, the package ags-dbg_*.deb containing debugging
@@ -104,7 +107,7 @@ This information should be included in bug reports.
 If you want to build AGS for inclusion in a game release, you want an
 engine that runs on most 32 and 64 bit Linux systems regardless of the library
 versions that are installed on that system. You can get such a built by using
-the script **debian/make_ags+libraries,sh**. The script itself can be used
+the script **debian/make_ags+libraries.sh**. The script itself can be used
 on Debian or Ubuntu. See the comments in the script for instructions.
 
 # Workaround: 32 bit AGS on 64 bit Debian/Ubuntu

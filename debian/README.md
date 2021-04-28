@@ -75,6 +75,25 @@ The configuration file **acsetup.cfg** in the game directory will be used
 if present. For more information on configuration and command line arguments
 see [OPTIONS.md](OPTIONS.md).
 
+## SDL2-based digital sound driver
+
+Standard Allegro 4's sound drivers sometimes do not work well on Linux. For that reason there's an alternate sound driver written by [Edward Rudd](https://github.com/urkle) which uses SDL2 for the audio output. This driver's source code may be found in our [allegro fork](https://github.com/adventuregamestudio/lib-allegro/blob/allegro-4.4.3.1-agspatch/src/unix/sdl2digi.c).
+
+Naturally this driver requires installed SDL2 library to work (libsdl2), and dev library (e.g. libsdl2-dev) to compile.
+
+If you are using AGS CMake script this driver will be statically linked in the engine so long as you have got above dev library installed. It is also built as a dynamically linked module by the script that prepares engine and libraries for default game release (see [section below](#building-ags-for-a-game-release) for further information on this).
+
+If you are building Allegro 4 from our repository yourself, its CMake script will build it as a module so long as ALLEGRO_WITH_MODULES option is enabled (and you have SDL2 library installed). Without CMake you'll have to deal with this yourself the way you see fit.
+
+AGS will use SDL2 digital driver if all the following is true:
+* it was either embedded in program or present as a module;
+* in game config `digiid` option is either set to `sdl2` or it's set to `auto` while SDL2 driver has priority among the modules;
+* SDL2 runtime library is installed in the system.
+
+Note that Allegro searches for modules in the path defined by `ALLEGRO_MODULES` enviroment variable. There has to be a `modules.lst` file found at that path, the default example of such file may be found in [allegro repository](https://github.com/adventuregamestudio/lib-allegro/blob/allegro-4.4.3.1-agspatch/modules.lst). Adding module's \*.so name (e.g. `alleg-sdl2digi.so`) to the *end* of the list will give this driver a priority.
+
+## MIDI music support
+
 For midi music playback, you have to download GUS patches. We recommend
 "Richard Sanders's GUS patches" from this address:
 

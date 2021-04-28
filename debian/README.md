@@ -15,7 +15,7 @@ probably work.
 -   libXext (1.3.3)
 -   libXxf86vm (1.1.4)
 
-There are two general ways to proceed: either use [CMake scripts](CMAKE.md) or install and build everything yourself using Makefiles provided in the Engine's directory.
+There are two general ways to proceed: either use [CMake scripts](../CMAKE.md) or install and build everything yourself using Makefiles provided in the Engine's directory.
 
 Fedora package installation
 ---------------------------
@@ -73,7 +73,7 @@ To view available command line options, use
 
 The configuration file **acsetup.cfg** in the game directory will be used
 if present. For more information on configuration and command line arguments
-see [OPTIONS.md](OPTIONS.md).
+see [OPTIONS.md](../OPTIONS.md).
 
 ## SDL2-based digital sound driver
 

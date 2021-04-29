@@ -109,13 +109,16 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
 
 void String::ReadCount(Stream *in, size_t count)
 {
-    Empty();
     if (in && count > 0)
     {
         ReserveAndShift(false, count);
         count = in->Read(_cstr, count);
         _cstr[count] = 0;
         _len = strlen(_cstr);
+    }
+    else
+    {
+        Empty();
     }
 }
 
@@ -588,21 +591,30 @@ void String::Empty()
 {
     if (_cstr)
     {
-        BecomeUnique();
-        _len = 0;
-        _cstr[0] = 0;
+        if (IsShared())
+        {
+            Free();
+        }
+        else
+        {
+            _len = 0;
+            _cstr[0] = 0;
+        }
     }
 }
 
 void String::FillString(char c, size_t count)
 {
-    Empty();
     if (count > 0)
     {
         ReserveAndShift(false, count);
         memset(_cstr, c, count);
         _len = count;
         _cstr[count] = 0;
+    }
+    else
+    {
+        Empty();
     }
 }
 
@@ -992,9 +1004,14 @@ void String::Align(size_t offset)
     _cstr = cstr_head;
 }
 
+inline bool String::IsShared() const
+{ // if it has a string, and have refcount > 1 or wraps an external char[]
+    return _cstr && ((_bufHead && _bufHead->RefCount > 1) || !_bufHead);
+}
+
 void String::BecomeUnique()
 {
-    if (_cstr && (_bufHead && _bufHead->RefCount > 1 || !_bufHead))
+    if (IsShared())
     {
         Copy(_len);
     }
@@ -1006,13 +1023,13 @@ void String::ReserveAndShift(bool left, size_t more_length)
     {
         size_t total_length = _len + more_length;
         if (_bufHead->Capacity < total_length)
-        {
+        { // not enough capacity - reallocate buffer
             // grow by 50% or at least to total_size
             size_t grow_length = _bufHead->Capacity + (_bufHead->Capacity >> 1);
             Copy(Math::Max(total_length, grow_length), left ? more_length : 0u);
         }
         else if (_bufHead->RefCount > 1)
-        {
+        { // is a shared string - clone buffer
             Copy(total_length, left ? more_length : 0u);
         }
         else
@@ -1031,7 +1048,7 @@ void String::ReserveAndShift(bool left, size_t more_length)
         }
     }
     else
-    {
+    { // either empty string, or wrapping external char[] - create new buffer
         Create(more_length);
     }
 }

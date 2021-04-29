@@ -355,6 +355,8 @@ private:
     // Aligns data at given offset
     void    Align(size_t offset);
 
+    // Tells if this object shares its string buffer with others
+    bool    IsShared() const;
     // Ensure this string is a compact independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before

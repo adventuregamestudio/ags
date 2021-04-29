@@ -506,6 +506,9 @@
     <ClCompile Include="..\..\Common\game\room_file_base.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\memorystream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -797,6 +800,9 @@
       <Filter>Library Sources\allegro\c</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\memory_compat.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\memorystream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>

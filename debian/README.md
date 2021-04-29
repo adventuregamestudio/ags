@@ -1,5 +1,5 @@
 # Building the engine on any Linux
-Engine code demands at least partial C++14 support (uses std::shared_ptr, std::unique_ptr, etc).
+Engine code demands at least partial C++11 support (uses std::shared_ptr, std::unique_ptr, etc).
 Known minimal versions of compilers that should work with AGS:
 
 -   GCC 4.4

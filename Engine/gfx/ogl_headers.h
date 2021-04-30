@@ -18,21 +18,31 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-#include <allegro.h>
-#include <winalleg.h>
-#include <allegro/platform/aintwin.h>
+#define AGS_OPENGL_DRIVER (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS)
 
+#define AGS_OPENGL_ES2 (AGS_PLATFORM_OS_ANDROID)
+
+#if AGS_OPENGL_ES2
+#include <SDL.h>
+#include <EGL/egl.h>
+#include "glad/glad.h"
+#elif AGS_PLATFORM_OS_WINDOWS
+#include <SDL.h>
+#define NOMINMAX
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
 #include "glad/glad.h"
 #include "glad/glad_wgl.h"
 
 #elif AGS_PLATFORM_OS_LINUX
-#include <allegro.h>
-#include <xalleg.h>
-#include <X11/Xatom.h>
-
+#include <SDL.h>
 #include "glad/glad.h"
 #include "glad/glad_glx.h"
+
+#elif AGS_PLATFORM_OS_MACOS
+#include "SDL.h"
+#include "glad/glad.h"
 
 #elif AGS_PLATFORM_OS_ANDROID
 
@@ -46,25 +56,16 @@
 // TODO: we probably should not use GLExt since we use GLES2
 #include <GLES/glext.h>
 
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
 #elif AGS_PLATFORM_OS_IOS
 
 #include <OpenGLES/ES1/gl.h>
+#include <OpenGLES/ES2/gl.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #endif
 
 #include <OpenGLES/ES1/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
 
 #else
 

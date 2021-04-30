@@ -11,40 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// Allegro Interface for 3D; Software mode Allegro driver
-//
-//=============================================================================
-
 #include "gfx/ali3dsw.h"
-
-#include "core/platform.h"
+#include <algorithm>
+#include "ac/sys_events.h"
 #include "gfx/ali3dexception.h"
-#include "gfx/gfxfilter_allegro.h"
-#include "gfx/gfxfilter_hqx.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 #include "gfx/gfx_util.h"
-#include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "ac/timer.h"
-
-#if AGS_DDRAW_GAMMA_CONTROL
-// NOTE: this struct and variables are defined internally in Allegro
-typedef struct DDRAW_SURFACE {
-    LPDIRECTDRAWSURFACE2 id;
-    int flags;
-    int lock_nesting;
-    BITMAP *parent_bmp;  
-    struct DDRAW_SURFACE *next;
-    struct DDRAW_SURFACE *prev;
-} DDRAW_SURFACE;
-
-extern "C" extern LPDIRECTDRAW2 directdraw;
-extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
-#endif // AGS_DDRAW_GAMMA_CONTROL
-
-#ifndef AGS_NO_VIDEO_PLAYER
-extern int dxmedia_play_video (const char*, bool, int, int);
-#endif
 
 namespace AGS
 {
@@ -55,82 +30,54 @@ namespace ALSW
 
 using namespace Common;
 
-bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode) const
-{
-    if (_gfxModeList && index >= 0 && index < _gfxModeList->num_modes)
-    {
-        mode.Width = _gfxModeList->mode[index].width;
-        mode.Height = _gfxModeList->mode[index].height;
-        mode.ColorDepth = _gfxModeList->mode[index].bpp;
-        return true;
-    }
-    return false;
-}
-
-unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
+static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
 RGB faded_out_palette[256];
 
 
-ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
+// ----------------------------------------------------------------------------
+// SDLRendererGraphicsDriver
+// ----------------------------------------------------------------------------
+
+#if SDL_VERSION_ATLEAST(2, 0, 5)
+// used to add alpha back to rendered screen.
+static auto fix_alpha_blender = SDL_ComposeCustomBlendMode(
+    SDL_BLENDFACTOR_ZERO,
+    SDL_BLENDFACTOR_ONE,
+    SDL_BLENDOPERATION_ADD,
+    SDL_BLENDFACTOR_ONE,
+    SDL_BLENDFACTOR_ZERO,
+    SDL_BLENDOPERATION_ADD
+);
+#endif
+
+SDLRendererGraphicsDriver::SDLRendererGraphicsDriver()
 {
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _autoVsync = false;
-  //_spareTintingScreen = nullptr;
-  _gfxModeList = nullptr;
-#if AGS_DDRAW_GAMMA_CONTROL
-  dxGammaControl = nullptr;
-#endif
-  _allegroScreenWrapper = nullptr;
   _origVirtualScreen = nullptr;
   virtualScreen = nullptr;
   _stageVirtualScreen = nullptr;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
-  ALSoftwareGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
+  SDLRendererGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
-bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
+bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
-  if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
+  if (mode.Width <= 0 || mode.Height <= 0)
   {
-    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    SDL_SetError("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
     return false;
   }
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_MACOS
-  // Everything is drawn to a virtual screen, so all resolutions are supported.
-  return true;
-#endif
-
-  if (mode.Windowed)
-  {
-    return true;
-  }
-  if (_gfxModeList == nullptr)
-  {
-    _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(mode.Windowed));
-  }
-  if (_gfxModeList != nullptr)
-  {
-    // if a list is available, check if the mode exists. This prevents the screen flicking
-    // between loads of unsupported resolutions
-    for (int i = 0; i < _gfxModeList->num_modes; i++)
-    {
-      if ((_gfxModeList->mode[i].width == mode.Width) &&
-        (_gfxModeList->mode[i].height == mode.Height) &&
-        (_gfxModeList->mode[i].bpp == mode.ColorDepth))
-      {
-        return true;
-      }
-    }
-    set_allegro_error("This graphics mode is not supported");
+  if (mode.ColorDepth != 32) {
+    SDL_SetError("Display colour depth not supported: %d", mode.ColorDepth);
     return false;
   }
   return true;
 }
 
-int ALSoftwareGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
 {
     // TODO: check for device caps to know which depth is supported?
     if (native_color_depth > 8)
@@ -138,253 +85,236 @@ int ALSoftwareGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_dep
     return native_color_depth;
 }
 
-IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  if (_gfxModeList == nullptr)
-  {
-    _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(false));
-  }
-  if (_gfxModeList == nullptr)
-  {
-    return nullptr;
-  }
-  return new ALSoftwareGfxModeList(_gfxModeList);
+    std::vector<DisplayMode> modes;
+    sys_get_desktop_modes(modes);
+    return new SDLRendererGfxModeList(modes);
 }
 
-PGfxFilter ALSoftwareGraphicsDriver::GetGraphicsFilter() const
+PGfxFilter SDLRendererGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }
 
-int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
-{
-#if AGS_PLATFORM_OS_WINDOWS
-  if (windowed)
-    return GFX_DIRECTX_WIN;
-  return GFX_DIRECTX;
-#elif AGS_PLATFORM_OS_LINUX && (!defined (ALLEGRO_MAGIC_DRV))
-  if (windowed)
-    return GFX_XWINDOWS;
-  return GFX_XWINDOWS_FULLSCREEN;
-#elif AGS_PLATFORM_OS_MACOS
-    if (windowed) {
-        return GFX_COCOAGL_WINDOW;
-    }
-    return GFX_COCOAGL_FULLSCREEN;
-#else
-  if (windowed)
-    return GFX_AUTODETECT_WINDOWED;
-  return GFX_AUTODETECT_FULLSCREEN;
-#endif
-}
-
-void ALSoftwareGraphicsDriver::SetGraphicsFilter(PALSWFilter filter)
+void SDLRendererGraphicsDriver::SetGraphicsFilter(PSDLRenderFilter filter)
 {
   _filter = filter;
   OnSetFilter();
 
-  // If we already have a gfx mode set, then use the new filter to update virtual screen immediately
-  CreateVirtualScreen();
+  // TODO: support separate nearest and linear filters, initialize hint by calls to filter object
+  // e.g like D3D and OGL filters act
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
 }
 
-void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method) 
+void SDLRendererGraphicsDriver::SetTintMethod(TintMethod method) 
 {
   // TODO: support new D3D-style tint method
 }
 
-bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
+bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
-
-  const int driver = GetAllegroGfxDriverID(mode.Windowed);
 
   set_color_depth(mode.ColorDepth);
 
   if (_initGfxCallback != nullptr)
     _initGfxCallback(nullptr);
 
-  if (!IsModeSupported(mode) || set_gfx_mode(driver, mode.Width, mode.Height, 0, 0) != 0)
+  if (!IsModeSupported(mode))
     return false;
+
+  if (sys_get_window() == nullptr)
+  {
+    SDL_Window *window = sys_window_create("", mode.Width, mode.Height, mode.Windowed);
+
+    _hasGamma = SDL_GetWindowGammaRamp(window, _defaultGammaRed, _defaultGammaGreen, _defaultGammaBlue) == 0;
+
+    Uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
+    if (mode.Vsync) {
+        rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
+    }
+    _renderer = SDL_CreateRenderer(window, -1, rendererFlags);
+
+    SDL_RendererInfo rinfo{};
+    if (SDL_GetRendererInfo(_renderer, &rinfo) == 0) {
+      Debug::Printf("Created Renderer: %s", rinfo.name);
+      Debug::Printf("Available texture formats:");
+      for (int i = 0; i < rinfo.num_texture_formats; i++) {
+        Debug::Printf("\t- %s", SDL_GetPixelFormatName(rinfo.texture_formats[i]));
+      }
+    }
+  }
+  else
+  {
+    sys_window_set_style(mode.Windowed);
+    if (mode.Windowed)
+      sys_window_set_size(mode.Width, mode.Height, true);
+  }
+
+#if AGS_PLATFORM_OS_ANDROID
+  SDL_RenderSetLogicalSize(_renderer,mode.Width,mode.Height);
+#endif
 
   OnInit();
   OnModeSet(mode);
-  // set_gfx_mode is an allegro function that creates screen bitmap;
-  // following code assumes the screen is already created, therefore we should
-  // ensure global bitmap wraps over existing allegro screen bitmap.
-  _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
-  _allegroScreenWrapper->Clear();
-
-  // If we already have a gfx filter, then use it to update virtual screen immediately
-  CreateVirtualScreen();
-
-#if AGS_DDRAW_GAMMA_CONTROL
-  if (!mode.Windowed)
-  {
-    memset(&ddrawCaps, 0, sizeof(ddrawCaps));
-    ddrawCaps.dwSize = sizeof(ddrawCaps);
-    IDirectDraw2_GetCaps(directdraw, &ddrawCaps, NULL);
-
-    if ((ddrawCaps.dwCaps2 & DDCAPS2_PRIMARYGAMMA) == 0) { }
-    else if (IDirectDrawSurface2_QueryInterface(gfx_directx_primary_surface->id, IID_IDirectDrawGammaControl, (void **)&dxGammaControl) == 0) 
-    {
-      dxGammaControl->GetGammaRamp(0, &defaultGammaRamp);
-    }
-  }
-#endif
-
   return true;
 }
 
-void ALSoftwareGraphicsDriver::CreateVirtualScreen()
+void SDLRendererGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
 {
-  if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
-    return;
-  DestroyVirtualScreen();
-  // Adjust clipping so nothing gets drawn outside the game frame
-  _allegroScreenWrapper->SetClip(_dstRect);
-  // Initialize scaling filter and receive virtual screen pointer
-  // (which may or not be the same as real screen)
-  _origVirtualScreen = _filter->InitVirtualScreen(_allegroScreenWrapper, _srcRect.GetSize(), _dstRect);
-  // Apparently we must still create a virtual screen even if its same size and color depth,
-  // because drawing sprites directly on real screen bitmap causes blinking (unless I missed something here...)
-  if (_origVirtualScreen == _allegroScreenWrapper)
-  {
-    _origVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
-  }
-  virtualScreen = _origVirtualScreen;
-  _stageVirtualScreen = virtualScreen;
-  // Set Allegro's screen pointer to what may be the real or virtual screen
-  screen = (BITMAP*)_origVirtualScreen->GetAllegroBitmap();
+  _mode.Width = screen_sz.Width;
+  _mode.Height = screen_sz.Height;
+#if AGS_PLATFORM_OS_ANDROID
+  SDL_RenderSetLogicalSize(_renderer, _mode.Width, _mode.Height);
+#endif
 }
 
-void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
+void SDLRendererGraphicsDriver::CreateVirtualScreen()
 {
-  if (_filter && _origVirtualScreen)
-  {
-    screen = (BITMAP*)_filter->ShutdownAndReturnRealScreen()->GetAllegroBitmap();
+  if (!IsNativeSizeValid())
+    return;
+  DestroyVirtualScreen();
+  // Initialize virtual screen; size is equal to native resolution
+  const int vscreen_w = _srcRect.GetWidth();
+  const int vscreen_h = _srcRect.GetHeight();
+  _origVirtualScreen.reset(new Bitmap(vscreen_w, vscreen_h));
+  virtualScreen = _origVirtualScreen.get();
+  _stageVirtualScreen = virtualScreen;
+
+  _screenTex = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, vscreen_w, vscreen_h);
+
+  // Fake bitmap that will wrap over texture pixels for simplier conversion
+  _fakeTexBitmap = reinterpret_cast<BITMAP*>(new char[sizeof(BITMAP) + (sizeof(char *) * vscreen_h)]);
+  _fakeTexBitmap->w = vscreen_w;
+  _fakeTexBitmap->cr = vscreen_w;
+  _fakeTexBitmap->h = vscreen_h;
+  _fakeTexBitmap->cb = vscreen_h;
+  _fakeTexBitmap->clip = true;
+  _fakeTexBitmap->cl = 0;
+  _fakeTexBitmap->ct = 0;
+  _fakeTexBitmap->id = 0;
+  _fakeTexBitmap->extra = nullptr;
+  _fakeTexBitmap->x_ofs = 0;
+  _fakeTexBitmap->y_ofs = 0;
+  _fakeTexBitmap->dat = nullptr;
+
+  auto tmpbitmap = create_bitmap_ex(32, 1, 1);
+  _fakeTexBitmap->vtable = tmpbitmap->vtable;
+  _fakeTexBitmap->write_bank = tmpbitmap->write_bank;
+  _fakeTexBitmap->read_bank = tmpbitmap->read_bank;
+  destroy_bitmap(tmpbitmap);
+
+  _lastTexPixels = nullptr;
+  _lastTexPitch = -1;
+}
+
+void SDLRendererGraphicsDriver::DestroyVirtualScreen()
+{
+  delete[] _fakeTexBitmap; // don't use destroy_bitmap(), because it's a fake structure
+  _fakeTexBitmap = nullptr;
+  if(_screenTex != nullptr) {
+      SDL_DestroyTexture(_screenTex);
   }
-  _origVirtualScreen = nullptr;
+  _screenTex = nullptr;
+
+  _origVirtualScreen.reset();
   virtualScreen = nullptr;
   _stageVirtualScreen = nullptr;
 }
 
-void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
+void SDLRendererGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
   ClearDrawLists();
-
-#if AGS_DDRAW_GAMMA_CONTROL
-  if (dxGammaControl != NULL) 
-  {
-    dxGammaControl->Release();
-    dxGammaControl = NULL;
-  }
-#endif
-
-  DestroyVirtualScreen();
-
-  // Note this does not destroy the underlying allegro screen bitmap, only wrapper.
-  delete _allegroScreenWrapper;
-  _allegroScreenWrapper = nullptr;
 }
 
-bool ALSoftwareGraphicsDriver::SetNativeSize(const Size &src_size)
+bool SDLRendererGraphicsDriver::SetNativeSize(const Size &src_size)
 {
   OnSetNativeSize(src_size);
-  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
   CreateVirtualScreen();
   return !_srcRect.IsEmpty();
 }
 
-bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+bool SDLRendererGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
   OnSetRenderFrame(dst_rect);
-  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
-  CreateVirtualScreen();
   return !_dstRect.IsEmpty();
 }
 
-void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
+void SDLRendererGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
-  if (!_filter) return;
-  int color = 0;
-  if (colorToUse != nullptr) 
-    color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
-  // NOTE: filter will do coordinate scaling for us
-  _filter->ClearRect(x1, y1, x2, y2, color);
+  // TODO: but maybe is not necessary, as we use SDL_Renderer with accelerated gfx here?
+  // See SDL_RenderDrawRect
 }
 
-ALSoftwareGraphicsDriver::~ALSoftwareGraphicsDriver()
+SDLRendererGraphicsDriver::~SDLRendererGraphicsDriver()
 {
-  ALSoftwareGraphicsDriver::UnInit();
+  SDLRendererGraphicsDriver::UnInit();
 }
 
-void ALSoftwareGraphicsDriver::UnInit()
+void SDLRendererGraphicsDriver::UnInit()
 {
   OnUnInit();
   ReleaseDisplayMode();
+  DestroyVirtualScreen();
 
-  if (_gfxModeList != nullptr)
+  if (_renderer)
   {
-    destroy_gfx_mode_list(_gfxModeList);
-    _gfxModeList = nullptr;
-  }
-}
-
-bool ALSoftwareGraphicsDriver::SupportsGammaControl() 
-{
-#if AGS_DDRAW_GAMMA_CONTROL
-
-  if (dxGammaControl != NULL) 
-  {
-    return 1;
+      SDL_DestroyRenderer(_renderer);
+      _renderer = nullptr;
   }
 
-#endif
-
-  return 0;
+  sys_window_destroy();
 }
 
-void ALSoftwareGraphicsDriver::SetGamma(int newGamma)
+bool SDLRendererGraphicsDriver::SupportsGammaControl() 
 {
-#if AGS_DDRAW_GAMMA_CONTROL
+  return _hasGamma;
+}
+
+void SDLRendererGraphicsDriver::SetGamma(int newGamma)
+{
+  if (!_hasGamma) { return; }
+
+  Uint16 gamma_red[256];
+  Uint16 gamma_green[256];
+  Uint16 gamma_blue[256];
+
   for (int i = 0; i < 256; i++) {
-    int newValue = ((int)defaultGammaRamp.red[i] * newGamma) / 100;
-    if (newValue >= 65535)
-      newValue = 65535;
-    gammaRamp.red[i] = newValue;
-    gammaRamp.green[i] = newValue;
-    gammaRamp.blue[i] = newValue;
+    gamma_red[i] = std::min(((int)_defaultGammaRed[i] * newGamma) / 100, 0xffff);
+    gamma_green[i] = std::min(((int)_defaultGammaGreen[i] * newGamma) / 100, 0xffff);
+    gamma_blue[i] = std::min(((int)_defaultGammaBlue[i] * newGamma) / 100, 0xffff);
   }
 
-  dxGammaControl->SetGammaRamp(0, &gammaRamp);
-#endif
+  SDL_SetWindowGammaRamp(sys_get_window(), gamma_red, gamma_green, gamma_blue);
 }
 
-int ALSoftwareGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
+int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 {
   return color_depth;
 }
 
-IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
 {
   ALSoftwareBitmap* newBitmap = new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
   return newBitmap;
 }
 
-void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
   alSwBmp->_bmp = bitmap;
   alSwBmp->_hasAlpha = hasAlpha;
 }
 
-void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
+void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
   delete bitmap;
 }
 
-void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
+void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
@@ -430,23 +360,24 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     }
 }
 
-void ALSoftwareGraphicsDriver::ResetAllBatches()
+void SDLRendererGraphicsDriver::ResetAllBatches()
 {
     for (ALSpriteBatches::iterator it = _spriteBatches.begin(); it != _spriteBatches.end(); ++it)
         it->List.clear();
 }
 
-void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
     _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
-void ALSoftwareGraphicsDriver::SetScreenFade(int red, int green, int blue)
+void SDLRendererGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     // TODO: was not necessary atm
+    // TODO: checkme later
 }
 
-void ALSoftwareGraphicsDriver::SetScreenTint(int red, int green, int blue)
+void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
     _tint_red = red; _tint_green = green; _tint_blue = blue;
     if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_mode.ColorDepth > 8))
@@ -455,7 +386,7 @@ void ALSoftwareGraphicsDriver::SetScreenTint(int red, int green, int blue)
     }
 }
 
-void ALSoftwareGraphicsDriver::RenderToBackBuffer()
+void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
     // Render all the sprite batches with necessary transformations
     //
@@ -497,7 +428,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     ClearDrawLists();
 }
 
-void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy)
+void SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy)
 {
   const std::vector<ALDrawListEntry> &drawlist = batch.List;
   for (size_t i = 0; i < drawlist.size(); i++)
@@ -549,51 +480,84 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
           bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
-    // NOTE: following is experimental tint code (currently unused)
-/*  This alternate method gives the correct (D3D-style) result, but is just too slow!
-    if ((_spareTintingScreen != NULL) &&
-        ((_spareTintingScreen->GetWidth() != surface->GetWidth()) || (_spareTintingScreen->GetHeight() != surface->GetHeight())))
-    {
-      destroy_bitmap(_spareTintingScreen);
-      _spareTintingScreen = NULL;
-    }
-    if (_spareTintingScreen == NULL)
-    {
-      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(surface), surface->GetWidth(), surface->GetHeight());
-    }
-    tint_image(surface, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
-    Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
 }
 
-void ALSoftwareGraphicsDriver::Render(int xoff, int yoff, GlobalFlipType flip)
+void SDLRendererGraphicsDriver::BlitToTexture()
 {
-  RenderToBackBuffer();
+    void *pixels = nullptr;
+    int pitch = 0;
+    auto res = SDL_LockTexture(_screenTex, NULL, &pixels, &pitch);
+    if (res != 0) { return; }
 
-  if (_autoVsync)
-    this->Vsync();
+    // Because the virtual screen may be of any color depth,
+    // we wrap texture pixels in a fake bitmap here and call
+    // standard blit operation, for simplicity sake.
+    const int vwidth = virtualScreen->GetWidth();
+    const int vheight = virtualScreen->GetHeight();
+    if ((_lastTexPixels != pixels) || (_lastTexPitch != pitch)) {
+        _fakeTexBitmap->dat = pixels;
+        auto p = (unsigned char *)pixels;
+        for (int i = 0; i < vheight; i++) {
+            _fakeTexBitmap->line[i] = p;
+            p += pitch;
+        }
+        _lastTexPixels = (unsigned char *)pixels;
+        _lastTexPitch = pitch;
+    }
 
-  if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, xoff, yoff);
-  else
-    _filter->RenderScreenFlipped(virtualScreen, xoff, yoff, flip);
+    blit(virtualScreen->GetAllegroBitmap(), _fakeTexBitmap, 0, 0, 0, 0, vwidth, vheight);
+
+    SDL_UnlockTexture(_screenTex);
 }
 
-void ALSoftwareGraphicsDriver::Render()
+void SDLRendererGraphicsDriver::Present()
+{
+    if (!_renderer) { return; }
+
+    BlitToTexture();
+
+    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderFillRect(_renderer, nullptr);
+
+    SDL_Rect dst;
+    dst.x = _dstRect.Left;
+    dst.y = _dstRect.Top;
+    dst.w = _dstRect.GetWidth();
+    dst.h = _dstRect.GetHeight();
+    SDL_RenderCopyEx(_renderer, _screenTex, nullptr, &dst, 0.0, nullptr, _renderFlip);
+
+    SDL_RenderPresent(_renderer);
+}
+
+void SDLRendererGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType flip)
+{
+  switch (flip) {
+    case kFlip_Both: _renderFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL); break;
+    case kFlip_Horizontal: _renderFlip = SDL_FLIP_HORIZONTAL; break;
+    case kFlip_Vertical: _renderFlip = SDL_FLIP_VERTICAL; break;
+    default: _renderFlip = SDL_FLIP_NONE; break;
+  }
+
+  RenderToBackBuffer();
+  Present();
+}
+
+void SDLRendererGraphicsDriver::Render()
 {
   Render(0, 0, kFlip_None);
 }
 
-void ALSoftwareGraphicsDriver::Vsync()
+void SDLRendererGraphicsDriver::Vsync()
 {
-  vsync();
 }
 
-Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
+Bitmap *SDLRendererGraphicsDriver::GetMemoryBackBuffer()
 {
   return virtualScreen;
 }
 
-void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
+void SDLRendererGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 {
   if (backBuffer)
   {
@@ -601,7 +565,7 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   }
   else
   {
-    virtualScreen = _origVirtualScreen;
+    virtualScreen = _origVirtualScreen.get();
   }
   _stageVirtualScreen = virtualScreen;
 
@@ -613,12 +577,12 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   }
 }
 
-Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer(bool /*mark_dirty*/)
+Bitmap *SDLRendererGraphicsDriver::GetStageBackBuffer(bool /*mark_dirty*/)
 {
     return _stageVirtualScreen;
 }
 
-bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
   // software filter is taught to copy to any size
@@ -628,7 +592,17 @@ bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bo
         *want_fmt = GraphicResolution(destination->GetWidth(), destination->GetHeight(), _mode.ColorDepth);
     return false;
   }
-  _filter->GetCopyOfScreenIntoBitmap(destination);
+
+  if (destination->GetSize() == virtualScreen->GetSize())
+  {
+    destination->Blit(virtualScreen, 0, 0, 0, 0, virtualScreen->GetWidth(), virtualScreen->GetHeight());
+  }
+  else
+  {
+    destination->StretchBlt(virtualScreen,
+          RectWH(0, 0, virtualScreen->GetWidth(), virtualScreen->GetHeight()),
+          RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
+  }
   return true;
 }
 
@@ -639,7 +613,7 @@ bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bo
 
 	Author: Matthew Leverton
 **/
-void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
    Bitmap *bmp_orig = vs;
    const int col_depth = bmp_orig->GetColorDepth();
@@ -653,29 +627,28 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+       
        if (draw_callback)
-       {
            draw_callback();
-           RenderToBackBuffer();
-       }
-       this->Vsync();
-       _filter->RenderScreen(bmp_buff, offx, offy);
+       RenderToBackBuffer();
+       Present();
+
+       sys_evt_process_pending();
        if (_pollingCallback)
-         _pollingCallback();
+          _pollingCallback();
+
        WaitForNextFrame();
    }
    delete bmp_buff;
 
    SetMemoryBackBuffer(vs);
    if (draw_callback)
-   {
        draw_callback();
-       RenderToBackBuffer();
-   }
-   _filter->RenderScreen(vs, offx, offy);
+   RenderToBackBuffer();
+   Present();
 }
 
-void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void SDLRendererGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
     Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();
@@ -689,15 +662,16 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
         bmp_buff->Fill(clearColor);
         set_trans_blender(0, 0, 0, a);
         bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+
         if (draw_callback)
-        {
             draw_callback();
-            RenderToBackBuffer();
-        }
-        this->Vsync();
-        _filter->RenderScreen(bmp_buff, offx, offy);
+        RenderToBackBuffer();
+        Present();
+
+        sys_evt_process_pending();
         if (_pollingCallback)
-          _pollingCallback();
+            _pollingCallback();
+
         WaitForNextFrame();
     }
     delete bmp_buff;
@@ -705,11 +679,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
     SetMemoryBackBuffer(vs);
     vs->Clear(clearColor);
     if (draw_callback)
-    {
         draw_callback();
-        RenderToBackBuffer();
-    }
-	_filter->RenderScreen(vs, offx, offy);
+    RenderToBackBuffer();
+    Present();
 }
 /** END FADE.C **/
 
@@ -724,7 +696,7 @@ void initialize_fade_256(int r, int g, int b) {
   }
 }
 
-void ALSoftwareGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) 
+void SDLRendererGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) 
 {
    PALETTE temp;
    int c;
@@ -735,14 +707,19 @@ void ALSoftwareGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, i
    for (c=0; c<64; c+=speed) {
       fade_interpolate(source, dest, temp, c, from, to);
       set_palette_range(temp, from, to, TRUE);
-      if (_pollingCallback) _pollingCallback();
-      set_palette_range(temp, from, to, TRUE);
+
+      RenderToBackBuffer();
+      Present();
+
+      sys_evt_process_pending();
+      if (_pollingCallback)
+          _pollingCallback();
    }
 
    set_palette_range(dest, from, to, TRUE);
 }
 
-void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void SDLRendererGraphicsDriver::__fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
    PALETTE temp;
 
@@ -751,7 +728,7 @@ void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int
    __fade_from_range(temp, faded_out_palette, speed, from, to);
 }
 
-void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_mode.ColorDepth > 8) 
   {
     highcolor_fade_out(virtualScreen, _drawPostScreenCallback, 0, 0, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
@@ -762,7 +739,7 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
   }
 }
 
-void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_drawScreenCallback)
   {
     _drawScreenCallback();
@@ -779,7 +756,7 @@ void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed,
   }
 }
 
-void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
+void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
   if (blackingOut)
   {
@@ -797,16 +774,15 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
           _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
       bmp_buff->Fill(0);
       bmp_buff->Blit(bmp_orig);
+
       if (_drawPostScreenCallback)
-      {
           _drawPostScreenCallback();
-          RenderToBackBuffer();
-      }
-      this->Vsync();
-      _filter->RenderScreen(bmp_buff, 0, 0);
-    
+      RenderToBackBuffer();
+      Present();
+
+      sys_evt_process_pending();
       if (_pollingCallback)
-        _pollingCallback();
+          _pollingCallback();
 
       platform->Delay(delay);
     }
@@ -820,22 +796,9 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
 }
 // end fading routines
 
-#ifndef AGS_NO_VIDEO_PLAYER
-
-bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
-{
-#if AGS_PLATFORM_OS_WINDOWS
-  int result = dxmedia_play_video(filename, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
-  return (result == 0);
-#else
-  return 0;
-#endif
-}
-
-#endif
-
 // add the alpha values together, used for compositing alpha images
-unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n)
+// TODO: why is this here, move to gfx/blender? check if there's already similar function there
+static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n)
 {
    unsigned long res, g;
 
@@ -856,56 +819,52 @@ unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned 
 }
 
 
-ALSWGraphicsFactory *ALSWGraphicsFactory::_factory = nullptr;
+SDLRendererGraphicsFactory *SDLRendererGraphicsFactory::_factory = nullptr;
 
-ALSWGraphicsFactory::~ALSWGraphicsFactory()
+SDLRendererGraphicsFactory::~SDLRendererGraphicsFactory()
 {
     _factory = nullptr;
 }
 
-size_t ALSWGraphicsFactory::GetFilterCount() const
+size_t SDLRendererGraphicsFactory::GetFilterCount() const
 {
-    return 2;
+    return 1;
 }
 
-const GfxFilterInfo *ALSWGraphicsFactory::GetFilterInfo(size_t index) const
+const GfxFilterInfo *SDLRendererGraphicsFactory::GetFilterInfo(size_t index) const
 {
     switch (index)
     {
     case 0:
-        return &AllegroGfxFilter::FilterInfo;
-    case 1:
-        return &HqxGfxFilter::FilterInfo;
+        return &SDLRendererGfxFilter::FilterInfo;
     default:
         return nullptr;
     }
 }
 
-String ALSWGraphicsFactory::GetDefaultFilterID() const
+String SDLRendererGraphicsFactory::GetDefaultFilterID() const
 {
-    return AllegroGfxFilter::FilterInfo.Id;
+    return SDLRendererGfxFilter::FilterInfo.Id;
 }
 
-/* static */ ALSWGraphicsFactory *ALSWGraphicsFactory::GetFactory()
+/* static */ SDLRendererGraphicsFactory *SDLRendererGraphicsFactory::GetFactory()
 {
     if (!_factory)
-        _factory = new ALSWGraphicsFactory();
+        _factory = new SDLRendererGraphicsFactory();
     return _factory;
 }
 
-ALSoftwareGraphicsDriver *ALSWGraphicsFactory::EnsureDriverCreated()
+SDLRendererGraphicsDriver *SDLRendererGraphicsFactory::EnsureDriverCreated()
 {
     if (!_driver)
-        _driver = new ALSoftwareGraphicsDriver();
+        _driver = new SDLRendererGraphicsDriver();
     return _driver;
 }
 
-AllegroGfxFilter *ALSWGraphicsFactory::CreateFilter(const String &id)
+SDLRendererGfxFilter *SDLRendererGraphicsFactory::CreateFilter(const String &id)
 {
-    if (AllegroGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
-        return new AllegroGfxFilter();
-    else if (HqxGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
-        return new HqxGfxFilter();
+    if (SDLRendererGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new SDLRendererGfxFilter();
     return nullptr;
 }
 

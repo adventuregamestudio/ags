@@ -74,22 +74,12 @@ struct AGSPlatformDriver
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
-    virtual const char* GetNoMouseErrorString() = 0;
-    // Tells whether build is capable of controlling mouse movement properly
-    virtual bool IsMouseControlSupported(bool windowed) { return false; }
-    // Tells whether this platform's backend library deals with mouse cursor
-    // virtual->real coordinate transformation itself (otherwise AGS engine should do it)
-    virtual bool IsBackendResponsibleForMouseScaling() { return false; }
-    virtual const char* GetAllegroFailUserHint();
+    virtual const char* GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
-    virtual void PlayVideo(const char* name, int skip, int flags);
-    virtual void InitialiseAbufAtStartup();
-    virtual void PostAllegroInit(bool windowed);
-    virtual void PostAllegroExit() = 0;
-    virtual void FinishedUsingGraphicsMode();
+    virtual void PostBackendInit() { };
+    virtual void PostBackendExit() { };
     virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out);
-    virtual void SetGameWindowIcon();
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(const char *fmt, ...);
@@ -97,28 +87,13 @@ struct AGSPlatformDriver
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdErr(const char *fmt, ...);
     virtual void YieldCPU();
-    // Called when the game window is being switch out from
-    virtual void DisplaySwitchOut();
-    // Called when the game window is being switch back to
-    virtual void DisplaySwitchIn();
     // Called when the application is being paused completely (e.g. when player alt+tabbed from it).
     // This function should suspend any platform-specific realtime processing.
     virtual void PauseApplication();
     // Called when the application is being resumed.
     virtual void ResumeApplication();
-    // Returns a list of supported display modes
-    virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
-    // Switch to system fullscreen mode; store previous mode parameters
-    virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
-    // Return back to the mode was before switching to fullscreen
-    virtual bool ExitFullscreenMode();
-    // Adjust application window's parameters to suit fullscreen mode
-    virtual void AdjustWindowStyleForFullscreen();
-    // Adjust application window's parameters to suit windowed mode
-    virtual void AdjustWindowStyleForWindowed();
     virtual void RegisterGameWithGameExplorer();
     virtual void UnRegisterGameWithGameExplorer();
-    virtual int  ConvertKeycodeToScanCode(int keyCode);
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const {}
 
@@ -126,8 +101,8 @@ struct AGSPlatformDriver
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
 
-    virtual bool LockMouseToWindow();
-    virtual void UnlockMouse();
+     // Allows adjusting parameters and other fixes before engine is initialized
+    virtual void MainInitAdjustments() { };
 
     static AGSPlatformDriver *GetDriver();
 

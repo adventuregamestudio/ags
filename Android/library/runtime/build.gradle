@@ -1,0 +1,107 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.1.2"
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    jcenter()
+}
+
+def buildAsLibrary = true;
+def buildAsApplication = !buildAsLibrary
+if (buildAsApplication) {
+    apply plugin: 'com.android.application'
+}
+else {
+    apply plugin: 'com.android.library'
+}
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "30.0.3"
+    ndkVersion '21.3.6528147'
+
+    defaultConfig {
+        if (buildAsApplication) {
+            applicationId "uk.co.adventuregamestudio.runtime"
+        }
+        minSdkVersion 19
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        externalNativeBuild {
+            cmake {
+                 arguments "-DANDROID_APP_PLATFORM=android-16", "-DANDROID_STL=c++_static"
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                //   abiFilters'arm64-v8a'
+             //   abiFilters 'arm64-v8a', 'x86', 'x86_64'
+             }
+        }
+    }
+
+    buildTypes {
+        debug {
+            ext.alwaysUpdateBuildId = false
+            crunchPngs false
+            debuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // maybe this should be a variable set somewhere but testing for this works
+    if (file("./libs/arm64-v8a/libengine.so").exists()) {
+        sourceSets.main {
+            jniLibs.srcDir 'libs'
+        }
+    } else {
+        externalNativeBuild {
+            cmake {
+                version "3.16.3+"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.14
+                path '../../../CMakeLists.txt'
+            }
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    if (buildAsLibrary) {
+        libraryVariants.all { variant ->
+            variant.outputs.all {
+                outputFileName = "uk.co.adventuregamestudio.runtime.aar"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.preference:preference:1.1.1'
+    testImplementation 'junit:junit:4.13.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}

@@ -1,0 +1,55 @@
+ALLEGRO_SRCS := \
+	src/allegro.c \
+	src/blit.c \
+	src/bmp.c \
+	src/colblend.c \
+	src/color.c \
+	src/dataregi.c \
+	src/dither.c \
+	src/file.c \
+	src/fli.c \
+	src/flood.c \
+	src/gfx.c \
+	src/graphics.c \
+	src/inline.c \
+	src/libc.c \
+	src/math.c \
+	src/pcx.c \
+	src/polygon.c \
+	src/quantize.c \
+	src/readbmp.c \
+	src/rotate.c \
+	src/unicode.c \
+	src/vtable.c \
+	src/vtable8.c \
+	src/vtable15.c \
+	src/vtable16.c \
+	src/vtable24.c \
+	src/vtable32.c \
+	src/c/cblit8.c \
+	src/c/cblit16.c \
+	src/c/cblit24.c \
+	src/c/cblit32.c \
+	src/c/cgfx8.c \
+	src/c/cgfx15.c \
+	src/c/cgfx16.c \
+	src/c/cgfx24.c \
+	src/c/cgfx32.c \
+	src/c/cmisc.c \
+	src/c/cspr8.c \
+	src/c/cspr15.c \
+	src/c/cspr16.c \
+	src/c/cspr24.c \
+	src/c/cspr32.c \
+	src/c/cstretch.c \
+	src/unix/ufile.c
+
+ALLEGRO_SRCDIR := ../libsrc/allegro
+ALLEGRO := $(foreach file,$(ALLEGRO_SRCS),$(ALLEGRO_SRCDIR)/$(file))
+ALLEGRO_OBJS := $(ALLEGRO:.c=.o)
+ALLEGRO_INC := $(ALLEGRO_SRCDIR)/include
+$(ALLEGRO_SRCDIR)%.o: CFLAGS += -I $(ALLEGRO_INC)
+
+AL_CFLAGS := -I $(ALLEGRO_INC)
+AL_LDFLAGS :=
+

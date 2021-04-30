@@ -11,23 +11,22 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cstdio>
+#include <string.h>
 #include "debug/filebasedagsdebugger.h"
-#include "ac/file.h"                    // filelength()
+#include "util/file.h"
+#include "util/path.h"
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
-#include "util/wgt2allg.h"              // exists()
 #include "platform/base/agsplatformdriver.h"
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamWriter;
+using namespace AGS::Common;
 
 const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 
 bool FileBasedAGSDebugger::Initialize()
 {
-    if (exists(SENT_MESSAGE_FILE_NAME))
+    if (Path::IsFile(SENT_MESSAGE_FILE_NAME))
     {
         ::remove(SENT_MESSAGE_FILE_NAME);
     }
@@ -40,7 +39,7 @@ void FileBasedAGSDebugger::Shutdown()
 
 bool FileBasedAGSDebugger::SendMessageToEditor(const char *message) 
 {
-    while (exists(SENT_MESSAGE_FILE_NAME))
+    while (Path::IsFile(SENT_MESSAGE_FILE_NAME))
     {
         platform->YieldCPU();
     }
@@ -56,7 +55,7 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
 
 bool FileBasedAGSDebugger::IsMessageAvailable()
 {
-    return (exists("dbgsend.tmp") != 0);
+    return (Path::IsFile("dbgsend.tmp") != 0);
 }
 
 char* FileBasedAGSDebugger::GetNextMessage()

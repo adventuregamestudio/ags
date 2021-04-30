@@ -20,6 +20,9 @@
 #define __AGS_EE_GFX__ALI3DOGL_H
 
 #include <memory>
+
+#include "glm/glm.hpp"
+
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
@@ -125,7 +128,6 @@ public:
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
-typedef struct GLMATRIX { GLfloat m[16]; } GLMATRIX;
 struct OGLSpriteBatch
 {
     // List of sprites to render
@@ -133,7 +135,7 @@ struct OGLSpriteBatch
     // Clipping viewport
     Rect Viewport;
     // Transformation matrix, built from the batch description
-    GLMATRIX Matrix;
+    glm::mat4 Matrix;
 };
 typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
 
@@ -165,6 +167,28 @@ private:
     std::vector<DisplayMode> _modes;
 };
 
+// Shader program and its variable references;
+// the variables are rather specific for AGS use (sprite tinting).
+struct ShaderProgram
+{
+    GLuint Program = 0;
+    GLuint Arg[4] {};
+    // GLuint SamplerVar;      // texture ID
+    // GLuint ColorVar;        // primary operation variable
+    // GLuint AuxVar;          // auxiliary variable
+
+    GLuint MVPMatrix = -1;
+
+    GLuint TextureId = -1;
+
+    GLuint Alpha = -1;
+
+    GLuint TintHSV = -1;
+    GLuint TintAmount = -1;
+    GLuint TintLuminance = -1;
+
+    GLuint LightingAmount = -1;
+};
 
 class OGLGfxFilter;
 
@@ -175,6 +199,7 @@ public:
     const char*GetDriverID() override { return "OGL"; }
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
+    void UpdateDeviceScreen(const Size &screen_size) override;
     bool SetNativeSize(const Size &src_size) override;
     bool SetRenderFrame(const Rect &dst_rect) override;
     int GetDisplayDepthForNativeDepth(int native_color_depth) const override;
@@ -215,65 +240,46 @@ public:
     ~OGLGraphicsDriver() override;
 
 private:
-    POGLFilter _filter;
+    POGLFilter _filter {};
 
-#if AGS_PLATFORM_OS_WINDOWS
-    HDC _hDC;
-    HGLRC _hRC;
-    HWND _hWnd;
-    HINSTANCE _hInstance;
-    GLuint _oldPixelFormat;
-    PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
-#endif
-#if AGS_PLATFORM_OS_LINUX
-    bool _have_window;
-    GLXContext _glxContext;
-#endif
+
     bool _firstTimeInit;
+    SDL_Window *_sdlWindow = nullptr;
+    SDL_GLContext _sdlGlContext = nullptr;
     // Position of backbuffer texture in world space
-    GLfloat _backbuffer_vertices[8];
+    GLfloat _backbuffer_vertices[8] {};
     // Relative position of source image on the backbuffer texture,
     // in local coordinates
     GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
-    String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    // Shader program and its variable references;
-    // the variables are rather specific for AGS use (sprite tinting).
-    struct ShaderProgram
-    {
-        GLuint Program;
-        GLuint SamplerVar;      // texture ID
-        GLuint ColorVar;        // primary operation variable
-        GLuint AuxVar;          // auxiliary variable
 
-        ShaderProgram();
-    };
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
+    ShaderProgram _transparencyShader;
 
     int device_screen_physical_width;
     int device_screen_physical_height;
 
     // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
-    Rect _viewportRect;
+    Rect _viewportRect {};
 
     // These two flags define whether driver can, and should (respectively)
     // render sprites to texture, and then texture to screen, as opposed to
     // rendering to screen directly. This is known as supersampling mode
-    bool _can_render_to_texture;
-    bool _do_render_to_texture;
+    bool _can_render_to_texture {};
+    bool _do_render_to_texture {};
     // Backbuffer texture multiplier, used to determine a size of texture
     // relative to the native game size.
-    int _super_sampling;
-    unsigned int _backbuffer;
-    unsigned int _fbo;
+    int _super_sampling {};
+    unsigned int _backbuffer {};
+    unsigned int _fbo {};
     // Size of the backbuffer drawing area, equals to native size
     // multiplied by _super_sampling
-    Size _backRenderSize;
+    Size _backRenderSize {};
     // Actual size of the backbuffer texture, created by OpenGL
-    Size _backTextureSize;
+    Size _backTextureSize {};
 
     OGLSpriteBatches _spriteBatches;
     // TODO: these draw list backups are needed only for the fade-in/out effects
@@ -288,8 +294,8 @@ private:
     void FirstTimeInit();
     // Initializes Gl rendering context
     bool InitGlScreen(const DisplayMode &mode);
-    bool CreateGlContext(const DisplayMode &mode);
-    void DeleteGlContext();
+    bool CreateWindowAndGlContext(const DisplayMode &mode);
+    void DeleteWindowAndGlContext();
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
@@ -299,27 +305,17 @@ private:
     void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     void CreateShaders();
-    void CreateTintShader();
-    void CreateLightShader();
-    void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *fragment_shader_src,
-                                const char *sampler_var, const char *color_var, const char *aux_var);
-    void DeleteShaderProgram(ShaderProgram &prg);
-    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX
-    void CreateDesktopScreen(int width, int height, int depth);
-#elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-    void UpdateDeviceScreen();
-#endif
+    void CreateDesktopScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal);
+    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
@@ -331,8 +327,8 @@ private:
     // Deletes draw list backups
     void ClearDrawBackups();
     void _render(bool clearDrawListAfterwards);
-    void RenderSpriteBatches();
-    void RenderSpriteBatch(const OGLSpriteBatch &batch);
+    void RenderSpriteBatches(const glm::mat4 &projection);
+    void RenderSpriteBatch(const OGLSpriteBatch &batch, const glm::mat4 &projection);
     void _reDrawLastFrame();
 };
 

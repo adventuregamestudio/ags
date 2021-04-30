@@ -19,14 +19,14 @@
 // ********* LINUX PLACEHOLDER DRIVER *********
 
 #include <stdio.h>
+#include <unistd.h>
 #include <allegro.h>
-#include <xalleg.h>
 #include "ac/runtime_defines.h"
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/string.h"
-#include <libcda.h>
+#include "libsrc/libcda-0.5/libcda.h"
 
 #include <pwd.h>
 #include <sys/stat.h>
@@ -34,10 +34,6 @@
 using AGS::Common::String;
 
 
-// Replace the default Allegro icon. The original defintion is in the
-// Allegro 4.4 source under "src/x/xwin.c".
-#include "icon.xpm"
-void* allegro_icon = icon_xpm;
 String CommonDataDirectory;
 String UserDataDirectory;
 
@@ -51,16 +47,10 @@ struct AGSLinux : AGSPlatformDriver {
   const char *GetUserGlobalConfigDirectory() override;
   const char *GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
-  const char* GetNoMouseErrorString() override;
-  const char* GetAllegroFailUserHint() override;
+  const char* GetBackendFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
-  void PostAllegroExit() override;
-  void SetGameWindowIcon() override;
   void ShutdownCDPlayer() override;
-  bool LockMouseToWindow() override;
-  void UnlockMouse() override;
-  void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms) override;
 };
 
 
@@ -149,13 +139,9 @@ unsigned long AGSLinux::GetDiskFreeSpaceMB() {
   return 100;
 }
 
-const char* AGSLinux::GetNoMouseErrorString() {
-  return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
-}
-
-const char* AGSLinux::GetAllegroFailUserHint()
+const char* AGSLinux::GetBackendFailUserHint()
 {
-  return "Make sure you have latest version of Allegro 4 libraries installed, and X server is running.";
+  return "Make sure you have latest version of SDL2 libraries installed, and X server is running.";
 }
 
 eScriptSystemOSID AGSLinux::GetSystemOSID() {
@@ -166,14 +152,6 @@ int AGSLinux::InitializeCDPlayer() {
   return cd_player_init();
 }
 
-void AGSLinux::PostAllegroExit() {
-  // do nothing
-}
-
-void AGSLinux::SetGameWindowIcon() {
-  // do nothing
-}
-
 void AGSLinux::ShutdownCDPlayer() {
   cd_exit();
 }
@@ -182,30 +160,6 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == nullptr)
     instance = new AGSLinux();
   return instance;
-}
-
-bool AGSLinux::LockMouseToWindow()
-{
-    return XGrabPointer(_xwin.display, _xwin.window, False,
-        PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-        GrabModeAsync, GrabModeAsync, _xwin.window, None, CurrentTime) == GrabSuccess;
-}
-
-void AGSLinux::UnlockMouse()
-{
-    XUngrabPointer(_xwin.display, CurrentTime);
-}
-
-void AGSLinux::GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms)
-{
-    dms.clear();
-    GFX_MODE_LIST *gmlist = get_gfx_mode_list(GFX_XWINDOWS_FULLSCREEN);
-    for (int i = 0; i < gmlist->num_modes; ++i)
-    {
-        const GFX_MODE &m = gmlist->mode[i];
-        dms.push_back(Engine::DisplayMode(Engine::GraphicResolution(m.width, m.height, m.bpp)));
-    }
-    destroy_gfx_mode_list(gmlist);
 }
 
 #endif

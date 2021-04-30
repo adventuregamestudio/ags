@@ -1,0 +1,6 @@
+include ':runtime'
+project (":runtime").projectDir = new File(settingsDir, '../library/runtime')
+include ':app'
+rootProject.name = "AGS Player"
+
+apply from: new File(settingsDir, '../gradle/buildCacheSettings.gradle')

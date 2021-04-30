@@ -11,16 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
 
-#include "util/wgt2allg.h" // color (allegro RGB)
+struct RGB;
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
-void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const color pala[256]);
+void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const RGB pala[256]);
 // RLE compression
 void cpackbitl(const uint8_t *line, int size, Common::Stream *out);
 void cpackbitl16(const uint16_t *line, int size, Common::Stream *out);
@@ -32,9 +31,9 @@ int  cunpackbitl32(uint32_t *line, int size, Common::Stream *in);
 
 //=============================================================================
 
-void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
-void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, color *pall);
-void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
-void loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall);
+void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);
+void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, RGB *pall);
+void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);
+void loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, RGB *pall);
 
 #endif // __AC_COMPRESS_H

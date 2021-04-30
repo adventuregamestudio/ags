@@ -21,23 +21,16 @@ namespace AGS.Editor
             Dictionary<string, string> paths = new Dictionary<string, string>();
             string[] libs =
             {
-                "alleg-alsadigi.so",
-                "alleg-sdl2digi.so",
-                "alleg-alsamidi.so",
-                "libaldmb.so.1",
-                "liballeg.so.4.4",
-                "libdumb.so.1",
+                "libSDL2-2.0.so.0",
                 "libogg.so.0",
                 "libtheora.so.0",
                 "libvorbis.so.0",
-                "libvorbisfile.so.3",
-                "modules.lst"
+                "libvorbisfile.so.3"
             };
             string[] licenses =
             {
                 "ags-copyright",
-                "liballegro4.4-copyright",
-                "libdumb1-copyright",
+                "libSDL2-2.0-copyright",
                 "libogg0-copyright",
                 "libtheora0-copyright",
                 "libvorbis0a-copyright"
@@ -113,7 +106,7 @@ namespace AGS.Editor
             }
             results +=
 @"
-    ALLEGRO_MODULES=""$scriptdir/data/lib" + bit + @""" ""$scriptdir/data/ags" + bit + @""" ""$@"" ""$scriptdir/data/""";
+    ""$scriptdir/data/ags" + bit + @""" ""$@"" ""$scriptdir/data/""";
             return results;
         }
 

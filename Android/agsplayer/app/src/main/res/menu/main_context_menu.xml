@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="Preferences"
+        android:id="@+id/global_preferences"
+        android:enabled="true"
+        android:visible="true"
+        android:checkable="false"
+        android:checked="false"
+        android:icon="@android:drawable/ic_menu_preferences"/>
+    <item
+        android:title="Select game folder"
+        android:id="@+id/setfolder"
+        android:enabled="true"
+        android:visible="true"
+        android:checkable="false"
+        android:checked="false"
+        android:icon="@android:drawable/ic_menu_search"/>
+    <item
+        android:title="Credits"
+        android:id="@+id/credits"
+        android:enabled="true"
+        android:visible="true"
+        android:checkable="false"
+        android:checked="false"
+        android:icon="@android:drawable/ic_menu_info_details"/>
+</menu>

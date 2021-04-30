@@ -18,10 +18,10 @@
 
 #include <string.h>
 #include "ac/global_plugin.h"
-#include "ac/mouse.h"
+#include "ac/sys_events.h"
 #include "util/string_compat.h"
 
-int pluginSimulatedClick = NONE;
+int pluginSimulatedClick = MouseNone;
 
 void PluginSimulateMouseClick(int pluginButtonID) {
     pluginSimulatedClick = pluginButtonID - 1;

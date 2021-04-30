@@ -7,56 +7,57 @@
     * https://visualstudio.microsoft.com/downloads/
     * https://visualstudio.microsoft.com/vs/older-downloads/
   * If you are using MSVS 2019 and higher you might need to manually download [Windows 8.1 SDK](https://go.microsoft.com/fwlink/p/?LinkId=323507) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
-* To work with Engine code and Editor's full solution (see elaboration in related section):
-  * Allegro 4.4.3 library's *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.3.1-agspatch branch which already has necessary patch applied and MSVC projects created.
 * Specifically for the Engine:
-  * DirectX SDK August 2007 ([Download](https://www.microsoft.com/en-us/download/details.aspx?id=13287))
+  * SDL 2.0.12 or higher (https://www.libsdl.org/download-2.0.php)
+  * SDL_Sound 2.0.* (revision 997e90562b35 or higher) https://hg.icculus.org/icculus/SDL_sound/archive/997e90562b35.tar.gz
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
-  * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
+  * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 * To build Windows installer:
   * Inno Setup 6.0.2 or higher ([Download](http://www.jrsoftware.org/isdl.php))
   * (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
-
+**IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
+  FIXME!!! -- need sdl2 related library set
   * https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0
 
 You still have to download library sources though, because you'd need header files.
-If you go this way skip **"Building the libraries"** sections altogether.
+If you go this way, then skip **"Building the libraries"** sections altogether.
 
-
-## Installing SDKs
-
-You need to have DirectX SDK. ["August 2007" version](https://www.microsoft.com/en-us/download/details.aspx?id=13287) is recommended, that seems to be the last version that still has required libraries and headers compatible with DirectDraw renderer in Allegro 4.
 
 ## Building the libraries
 
-If you want to build these libraries yourself, all of them should either have MSVC project(s) in their sources, CMake configuration, or at least a Makefile which you could use to create MSVC solution.
+If you prefer to build necessary libraries yourself, all of them should either have MSVC project(s) in their sources, CMake configuration, or at least a Makefile which you could use to create MSVC solution.
 
-It is important to make sure static libraries have four build configuration set up: a pair with runtime C library linked dynamically (/MD and /MDd compilation flags) and another pair with runtime library linked statically (/MT and /MTd compilation flags). These options are be found at the compiler's "Code Generation" property page in the MSVC project settings.
-/MD option is usually default one, so you may need to create second one by hand.
+It is important to make sure that static libraries meant for the engine have build configurations with runtime C library linked statically (/MT and /MTd compilation flags). These options are found on the compiler's "Code Generation" property page in the MSVC project settings.
+/MD option is usually default one, in which case you would have to create second configuration by copying existing one and modifying it.
 
-The reason for having both configurations is explained in the latter section below.
+The reason for this is that Engine project itself link C runtime statically.
 
-### Allegro
+### SDL2
 
-Our [patched Allegro library branch](https://github.com/adventuregamestudio/lib-allegro/tree/allegro-4.4.3.1-agspatch) has ready MSVC solution: you will find it in "build/VS2015" subdirectory.
+For Windows you may download ready lib and DLL files directly [from SDL2 homepage](https://www.libsdl.org/download-2.0.php). You need the one under "Development Libraries", archive is called SDL2-devel-2.x.x-VC.zip (where x.x is a latest version number).
 
-If you want to go all the way on your own, following is a brief information on creating one.
+If for some reason you'd like to build it yourself, take the one under "Source Code", or get it from [SDL2's Mercurial repository](https://www.libsdl.org/hg.php). Then follow their instructions to build a dynamic library.
 
-Allegro 4.4.* source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
+AGS engine will need following files to link:
 
-Before using CMake you need to create two enviroment variables (for your OS, not Visual Studio) called "INCLUDE" and "LIB", unless these already exist. Add path to DirectX SDK header files into "INCLUDE" variable and path to DirectX *.lib files into "LIB" variable.
+* SDL2.lib
+* SDL2main.lib
 
-When configuring CMake, you may uncheck all Allegro add-ons and examples, because AGS does not need them.
-Also make sure to uncheck SHARED option, for AGS is linking Allegro statically.
+and SDL2.dll to run.
 
-In our Allegro 4 fork the MSVC_SHARED_CRT option will also be present. You need that option checked when building library with /MD flag for the Editor, and unchecked when building library with /MT option for the Engine (also see explanation in related section below). If you are using e.g. official Allegro source, then you'll have to modify generated projects by hand to setup this flag properly.
+### SDL_Sound
 
-Static library built with /MD is expected to be named alleg-static.lib, and one with /MT named alleg-static-mt.lib. Debug versions are to be named alleg-debug-static.lib with /MDd flag, and alleg-debug-static-mt.lib for /MTd.
+Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/.
+Unfortunately, at the time of writing SDL_Sound did not have an official release for a quite a while, and there are no up-to-date prebuilt binaries on their website. This information will be updated would the situation change.
+
+For now, the only way to get a compatible version is to use their Mercurial repository. For the reference, our build server is using revision 997e90562b35: https://hg.icculus.org/icculus/SDL_sound/archive/997e90562b35.tar.gz
+
+After you downloaded the source this way or another, use CMake to build MSVS solution from their provided CMakeList.txt, then build a static library using wanted configuration.
 
 ### OGG, Theora and Vorbis
 
@@ -66,32 +67,28 @@ All of these come with MSVC projects. You may need to make sure there are distin
 ## Building AGS Engine
 
 Engine requires following libraries:
-* Allegro 4.4.3.1 (patched with our changes)
+* SDL2
+* SDL_Sound
 * libogg
+* libvorbis
 * libtheora
-* libvorbis and libvorbisfile
 
 You may download the prebuilt libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
+FIXME!!! -- need sdl2 related library set
 
-If you prefer to build everything yourself: you need to build *static* libraries compiled with **/MT** or **/MTd** option (*statically* linked runtime C library). This is important or you may get linking errors.
-
-Download [DirectX SDK 2007](https://www.microsoft.com/en-us/download/details.aspx?id=13287).
+If you prefer to build everything yourself: you need to build *static* libraries compiled with **/MT** or **/MTd** option (*statically* linked runtime C library). This is important or you may get linking errors, as engine itself is compiled with **/MT(d)**.
 
 Engine MSVS solution is Solutions\Engine.sln. It contains two projects, the "Engine" project is the one creating the executable.
 
 In order to direct Studio to necessary libraries and their headers setup following enviroment variables in your system by [creating user macros in the Property Pages](https://docs.microsoft.com/en-us/cpp/build/working-with-project-properties?view=msvc-160#user-defined-macros):
  
-* AGS_ALLEGRO_INCLUDE - pointing to the location of allegro 4 headers;
-* AGS_ALLEGRO_LIB - pointing to the location of allegro 4 library files;
-* AGS_DIRECTX_LIB - pointing to the location of DirectX SDK libraries;
+* AGS_SDL_INCLUDE - pointing to the location of SDL2 headers;
+* AGS_SDL_LIB - pointing to the location of SDL2 library files;
+* AGS_SDL_SOUND_INCLUDE - pointing to the location of SDL Sound headers;
+* AGS_SDL_SOUND_LIB - pointing to the location of SDL Sound library files;
 * AGS_LIBOGG_LIB - pointing to the location of libogg library files;
 * AGS_LIBVORBIS_LIB - pointing to the location of libvorbis library files;
 * AGS_LIBTHEORA_LIB - pointing to the location of libtheora library files;
-
-### Known problems
-
-When running the engine from MSVS and breaking execution or doing step-by-step execution you may encounter a significant keyboard and mouse input lag. This is somehow caused by Allegro 4 library.<br>
-One known solution to this problem is to adjust the system registry entry named "LowLevelHooksTimeout", found by the full path "HKEY_CURRENT_USER\Control Panel\Desktop\LowLevelHooksTimeout". This setting tells how long to wait for the input device response, in milliseconds. Setting it to a rather low value (e.g. 10) may improve the situation. Note that you must re-login into your Windows profile (or restart the system) for this to take effect.
 
 
 ## Building AGS Editor
@@ -101,16 +98,9 @@ Within the solution there are several library projects, and "AGSEditor" project 
 
 Editor demands several third-party .NET libraries, most of them will be downloaded automatically as NuGet packages, but you will have to manually get [irrKlang 1.6 (32-bit) for .NET 4.5](https://www.ambiera.com/irrklang/downloads.html) and put irrKlang.NET4.dll and ikpMP3.dll into Editor/References subdirectory.
 
-The "Full" solution addtionally requires Allegro 4.4.3.1 library. As noted before, you may download the prebuilt libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0), although for Allegro 4 you will need to get headers too (you may acquire these by [checking out our repository](https://github.com/adventuregamestudio/lib-allegro/tree/allegro-4.4.3.1-agspatch)).
+As noted before, you may download the missing libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0).
 
-If you are building Allegro 4 yourself, then for the Editor you need to build *static* libraries compiled with **/MD** or **/MDd** option (*dynamically* linked runtime C library). This is important or you may get linking errors.
-
-In order to direct Studio to necessary libraries and their headers setup following enviroment variables in your system by [creating user macros in the Property Pages](https://docs.microsoft.com/en-us/cpp/build/working-with-project-properties?view=msvc-160#user-defined-macros):
- 
-* AGS_ALLEGRO_INCLUDE - pointing to the location of allegro 4 headers;
-* AGS_ALLEGRO_LIB - pointing to the location of allegro 4 library files;
-
-If you are working with AGS.Editor.NoNative solution then you do not have to make any of C++ libraries at all, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
+If you are working with AGS.Editor.NoNative solution then you won't have to deal with the parts written in C++, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
 
 ### Known problems
 

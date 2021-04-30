@@ -1,0 +1,15 @@
+<resources>
+    <!-- EXPANSION DOWNLOADER STRINGS -->
+    <string name="text_button_resume">Resume</string>
+    <string name="text_button_pause">Pause</string>
+    <string name="text_wifiOnly">WiFi Only</string>
+    <string name="text_useCellular">Use Cellular</string>
+    <string name="text_wifiSettings">Wifi Settings</string>
+    <!-- Expansion Downloader "Default" Strings -->
+    <!-- Used in the designer, but not shown at runtime -->
+    <string name="text_default_status">Status</string>
+    <string name="text_default_progressAverageSpeed">Progress Average Speed</string>
+    <string name="text_default_progressFraction">Progress Fraction</string>
+    <string name="text_default_progressPercentage">Progress Percentage</string>
+    <string name="text_default_progressTimeRemaining">Progress Time Remaining</string>
+</resources>

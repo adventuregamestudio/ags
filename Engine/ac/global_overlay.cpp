@@ -26,6 +26,7 @@
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using namespace Common;
 using namespace Engine;

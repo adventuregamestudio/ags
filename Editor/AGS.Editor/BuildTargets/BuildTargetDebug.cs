@@ -94,6 +94,9 @@ namespace AGS.Editor
                         File.Copy(cfgFilePath, GetDebugPath(AGSEditor.CONFIG_FILE_NAME), true);
                     }
                 }
+                // Copy DLLs
+                File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, "SDL2.dll"), GetDebugPath("SDL2.dll"), true);
+                // Copy plugins
                 foreach (Plugin plugin in Factory.AGSEditor.CurrentGame.Plugins)
                 {
                     File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, plugin.FileName), GetDebugPath(plugin.FileName), true);

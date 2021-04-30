@@ -53,7 +53,7 @@ extern GameState play;
 extern ViewStruct *views;
 extern CharacterExtras *charextra;
 extern MoveList *mls;
-extern color palette[256];
+extern RGB palette[256];
 extern DialogTopic *dialog;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
@@ -222,7 +222,7 @@ static void ReadCharacterExtras_Aligned(Stream *in)
 
 static void restore_game_palette(Stream *in)
 {
-    in->ReadArray(&palette[0],sizeof(color),256);
+    in->ReadArray(&palette[0],sizeof(RGB),256);
 }
 
 static void restore_game_dialogs(Stream *in)

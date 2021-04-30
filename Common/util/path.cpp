@@ -45,6 +45,11 @@ String GetFilename(const String &path)
     return get_filename(path);
 }
 
+String GetFileExtension(const String &path)
+{
+    return get_extension(path);
+}
+
 int ComparePaths(const String &path1, const String &path2)
 {
     // Make minimal absolute paths
@@ -105,6 +110,11 @@ bool IsSameOrSubDir(const String &parent, const String &path)
             return false;
     }
     return true;
+}
+
+bool IsRelativePath(const String &path)
+{
+    return is_relative_filename(path);
 }
 
 void FixupPath(String &path)

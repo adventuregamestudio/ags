@@ -490,7 +490,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 		/* if there's pending, decoded audio, grab it */
 		if((ret = vorbis_synthesis_pcmout(&info->vdsp, &pcm)) > 0)
 		{
-			short *audiobuf = (short*)layer->audio.pcm.samples;
+			signed short *audiobuf = (signed short*)layer->audio.pcm.samples;
 			int count = layer->audio.pcm.point / 2;
 			int maxsamples = (layer->audio.bufsize-layer->audio.pcm.point) /
 			                 2 / layer->stream.audio.channels;
@@ -528,7 +528,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 					val += 65535;
 #endif
 
-					audiobuf[count++] = val;
+					audiobuf[count++] = val - 0x7fff;
 				}
 			}
 			else
@@ -547,31 +547,31 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 							int cval = ((pcm[info->vinfo.channels-1][i] >> 9) + 32768) * 0.70710678f;
 							for(j = 0;j < 2;++j)
 							{
-								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 + cval;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 + cval - 0x7fff;
 							}
 							for(;j < layer->stream.audio.channels;++j)
 							{
-								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 - 0x7fff;
 							}
 						}
 						else if((layer->stream.audio.channels&1))
 						{
 							for(j = 0;j < layer->stream.audio.channels-1;++j)
 							{
-								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 - 0x7fff;
 							}
 							if((info->vinfo.channels&1))
 							{
-								audiobuf[count++] = (pcm[info->vinfo.channels-1][i] >> 9) + 32768;
+								audiobuf[count++] = (pcm[info->vinfo.channels-1][i] >> 9) + 32768 - 0x7fff;
 							}
 							else
-								audiobuf[count++] = 0x8000;
+								audiobuf[count++] = 0;
 						}
 						else
 						{
 							for(j = 0;j < layer->stream.audio.channels;++j)
 							{
-								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 - 0x7fff;
 							}
 						}
 					}
@@ -583,7 +583,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 						for(j = 0;j < layer->stream.audio.channels;++j)
 						{
 							// Only this audio path is tested with libtremor
-							audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
+							audiobuf[count++] = (pcm[j][i] >> 9) + 32768 - 0x7fff;
 						}
 					}
 				}
@@ -606,7 +606,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 								val -= 65535;
 								val &= val >> 31;
 								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = val - 0x7fff;
 							}
 							for(;j < layer->stream.audio.channels;++j)
 							{
@@ -615,7 +615,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 								val -= 65535;
 								val &= val >> 31;
 								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = val - 0x7fff;
 							}
 						}
 						else if((layer->stream.audio.channels&1))
@@ -627,7 +627,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 								val -= 65535;
 								val &= val >> 31;
 								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = val - 0x7fff;
 							}
 							if((info->vinfo.channels&1))
 							{
@@ -637,10 +637,10 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 								cval -= 65535;
 								cval &= cval >> 31;
 								cval += 65535;
-								audiobuf[count++] = cval;
+								audiobuf[count++] = cval - 0x7fff;
 							}
 							else
-								audiobuf[count++] = 0x8000;
+								audiobuf[count++] = 0;
 						}
 						else
 						{
@@ -651,7 +651,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 								val -= 65535;
 								val &= val >> 31;
 								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = val - 0x7fff;
 							}
 						}
 					}
@@ -667,7 +667,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 							val -= 65535;
 							val &= val >> 31;
 							val += 65535;
-							audiobuf[count++] = val;
+							audiobuf[count++] = val - 0x7fff;
 						}
 					}
 				}

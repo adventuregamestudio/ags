@@ -14,16 +14,12 @@ else
 include Makefile-defs.linux
 endif
 
-ifneq ($(USE_MIDI_PATCH), 1)
-AL_MIDI_PATCH :=
-endif
-
-OBJS := $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(AL_MIDI_PATCH) $(CDA) $(ALDUMB) $(GLAD) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
+OBJS := $(APEG) $(AASTR) $(MOJOAL) $(CDA) $(GLAD) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
 OBJS := $(OBJS:.mm=.o)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 
-OBJS_COMMON := $(COMMON) $(ALFONT) $(FREETYPE)
+OBJS_COMMON := $(COMMON) $(ALLEGRO) $(ALFONT) $(FREETYPE)
 OBJS_COMMON := $(OBJS_COMMON:.mm=.o)
 OBJS_COMMON := $(OBJS_COMMON:.cpp=.o)
 OBJS_COMMON := $(OBJS_COMMON:.c=.o)

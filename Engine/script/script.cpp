@@ -212,7 +212,6 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
     RuntimeScriptValue rval_null;
 
-    update_polled_mp3();
         if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
             // Character or Inventory (global script)
             QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt]);
@@ -221,7 +220,6 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             // Other (room script)
             QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt]);
         }
-        update_polled_mp3();
 
             int retval = 0;
         // if the room changed within the action
@@ -693,7 +691,6 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           { 
               TempEip tempip(4001);
               RuntimeScriptValue rval_null;
-              update_polled_mp3();
                   if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
                       // Character or Inventory (global script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
@@ -705,7 +702,6 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
                       QueueScriptFunction(kScInstRoom, torun);
                   }
-                  update_polled_mp3();
                       break;
           }
       case 2:  // Add score (first time)

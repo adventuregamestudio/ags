@@ -29,7 +29,7 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
-extern color palette[256];
+extern RGB palette[256];
 extern CCRegion ccDynamicRegion;
 
 

@@ -107,7 +107,6 @@ public:
     void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) override
                 { _drawScreenCallback = callback; _drawPostScreenCallback = post_callback; }
     void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
-    void        SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE callback) override { _initSurfaceUpdateCallback = callback; }
     void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) override { _nullSpriteCallback = callback; }
 
 protected:
@@ -145,7 +144,6 @@ protected:
     GFXDRV_CLIENTCALLBACK _drawPostScreenCallback;
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
-    GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
 
     // Sprite batch parameters
     SpriteBatchDescs _spriteBatchDesc; // sprite batches list

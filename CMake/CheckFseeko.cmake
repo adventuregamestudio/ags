@@ -1,3 +1,5 @@
+if(WIN32 OR LINUX OR MACOS)
+
 include(CheckCSourceCompiles)
 
 check_c_source_compiles("
@@ -14,3 +16,9 @@ check_c_source_compiles("
     }"
     HAVE_FSEEKO
 )
+
+else()
+
+set(HAVE_FSEEKO NO)
+
+endif()

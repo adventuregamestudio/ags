@@ -75,7 +75,7 @@ def main():
 
     # -----------------------------------------------------------------------------
 
-    path = "../Android/library/AndroidManifest.xml"
+    path = "../Android/library/runtime/src/main/AndroidManifest.xml"
     encoding = "utf-8"
     data = read_file(path, encoding)
 

@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <set>
+#include <allegro.h> // find files
 #include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/game.h"

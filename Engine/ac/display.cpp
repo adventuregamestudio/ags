@@ -269,6 +269,8 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         // Loop until skipped
         while (true) {
+            sys_evt_process_pending();
+
             update_audio_system_on_game_loop();
             render_graphics();
             int mbut, mwheelz;

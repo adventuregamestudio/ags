@@ -100,11 +100,8 @@ _aa_stretch_blit (BITMAP *_src, BITMAP *_dst,
     }
 
   /* Color manipulation routines.  */
-  if (is_screen_bitmap (_src))
-    return;
-  else
-    {
-      switch (bitmap_color_depth (_src))
+
+  switch (bitmap_color_depth (_src))
 	{
 	case 8:
 	  add = ((_masked != 0) ? _aa_masked_add_rgb8 : _aa_add_rgb8);
@@ -131,13 +128,8 @@ _aa_stretch_blit (BITMAP *_src, BITMAP *_dst,
 	default:
 	  return;
 	}
-    }
 
-  if (is_planar_bitmap (_dst))
-    return;
-  else
-    {
-      switch (bitmap_color_depth (_dst))
+  switch (bitmap_color_depth (_dst))
 	{
 	case 8:
 	  put = ((_masked != 0) ? _aa_masked_put_rgb8 : _aa_put_rgb8);
@@ -164,7 +156,6 @@ _aa_stretch_blit (BITMAP *_src, BITMAP *_dst,
 	default:
 	  return;
 	}
-    }
 
   /* Walk in y until we reach first non-clipped line.  */
   aa_PREPARE (yinc, ydd, yi1, yi2, _sh, _dh);

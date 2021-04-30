@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <allegro.h>
 #include "apeg.h"
 
 #include "mpeg1dec.h"
@@ -218,8 +217,6 @@ void apeg_initialize_display(APEG_LAYER *layer, int cs)
 	// Set the color depth, and make sure it's valid
 	if(override_depth > 0)
 		depth = override_depth;
-	else if(screen != NULL)
-		depth = bitmap_color_depth(screen);
 	else
 		depth = 32;
 

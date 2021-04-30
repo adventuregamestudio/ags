@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <allegro.h>
 #include "mpeg1dec.h"
 
 /* private prototypes */

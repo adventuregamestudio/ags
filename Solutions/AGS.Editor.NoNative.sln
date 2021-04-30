@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGSEditor", "..\Editor\AGS.Editor\AGSEditor.csproj", "{6C0D2BF2-2F34-42FF-8356-79254CCF3131}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Controls", "..\Editor\AGS.Controls\AGS.Controls.csproj", "{D937E1F4-1B9F-4567-B28E-EED24AA31C9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.CScript.Compiler", "..\Editor\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj", "{4771753A-641D-49B1-8096-0B431EAC413E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGSEditor", "..\Editor\AGS.Editor\AGSEditor.csproj", "{6C0D2BF2-2F34-42FF-8356-79254CCF3131}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Types", "..\Editor\AGS.Types\AGS.Types.csproj", "{3EBBEDAB-214C-4201-BB5A-5152D56908DD}"
 EndProject

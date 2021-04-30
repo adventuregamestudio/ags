@@ -12,8 +12,8 @@
 * Specifically for the Engine:
   * DirectX SDK August 2007 ([Download](https://www.microsoft.com/en-us/download/details.aspx?id=13287))
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
-  * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
+  * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 * To build Windows installer:
@@ -68,8 +68,8 @@ All of these come with MSVC projects. You may need to make sure there are distin
 Engine requires following libraries:
 * Allegro 4.4.3.1 (patched with our changes)
 * libogg
-* libtheora
 * libvorbis and libvorbisfile
+* libtheora
 
 You may download the prebuilt libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
 

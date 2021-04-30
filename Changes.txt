@@ -24,6 +24,10 @@ Script API:
  - Added GUI.Shown readonly property that tells whether GUI is active on screen. This is primarily
    for GUIs with "Popup At Y" style, because they hide themselves regardless of Visible property.
    Note that since 3.5.0 GUI.Visible only tells a script-set value.
+ - File.Open() now supports $CONFIGFILE$ tag which will try to open user config file for reading or
+   writing regardless of where config is located on disk.
+ - Added System.SaveConfigToFile() which writes current engine settings to the user config file.
+   Only the options that can be changed at runtime are written back at the moment.
  - GetTranslation() now returns "const string" (was "string"). This is to prevent modifying
    returned string using old-style string functions, such as StrCat(), as this string may be
    allocated in the internal engine memory for its own use.

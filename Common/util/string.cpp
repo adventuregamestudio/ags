@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <cctype>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -66,6 +67,18 @@ String::String(char c, size_t count)
 String::~String()
 {
     Free();
+}
+
+bool String::IsNullOrSpace() const
+{
+    if (_len == 0)
+        return true;
+    for (const char *ptr = _cstr; *ptr; ++ptr)
+    {
+        if (!std::isspace(*ptr))
+            return false;
+    }
+    return true;
 }
 
 void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)

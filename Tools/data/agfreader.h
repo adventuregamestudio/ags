@@ -161,6 +161,9 @@ public:
     String ReadType(DocElem elem) override { return "Dialog"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+
+    int ReadOptionCount(DocElem elem);
+    String ReadScript(DocElem elem) { return ReadString(elem, "Script"); }
 };
 
 // Font data parser
@@ -329,6 +332,17 @@ public:
     void GetAll(DocElem root, std::vector<DocElem> &elems) override;
 };
 
+class Game : public EntityParser
+{
+public:
+    String ReadType(DocElem elem) override { return "Game"; }
+    int    ReadID(DocElem elem) override { return -1; }
+    String ReadScriptName(DocElem elem) override { return ""; }
+
+    String ReadSayFunction(DocElem elem) { return ReadString(elem, "DialogScriptSayFunction"); }
+    String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
+};
+
 
 //
 // Helper functions
@@ -342,6 +356,8 @@ void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser 
     EntityParser &parser, DocElem root);
 // Reads global variables defined inside the game project from the given doc root element.
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
+// Reads game settings from the given doc root element.
+void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 // Reads full game reference data using AGFReader
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
 

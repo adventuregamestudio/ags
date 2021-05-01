@@ -127,8 +127,9 @@ Alternatively, there's a PowerShell script that reads these values automatically
 
 There are two things to note here:
 * `IsccPath` argument should be followed by a path to Inno Setup program location, if it's different from the above example, then adjust the path accordingly.
-* PowerShell may require administrative rights to run the script, in which case you have to first start up PowerShell as an administrator, and then issue above command in its console. In this case you also have to adjust the command by excluding `powershell`, like this:
-    `Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'`
+* PowerShell's script execution policy may prevent the script from being executed, in which case explicitly set the scope of the restrictions to allow the local script to run:
+
+`powershell -ExecutionPolicy RemoteSigned Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'`
 
 In any case, there is a number of files that have to be prepared for installer to actually build. These files have to be placed in Windows\Installer\Source and subdirectories:
 

@@ -82,7 +82,7 @@ public:
     {
         auto it = _dic.find(String::Wrapper(key));
         if (it == _dic.end()) return nullptr;
-        return it->second.GetNullableCStr();
+        return it->second.GetCStr();
     }
     bool Remove(const char *key) override
     {
@@ -95,20 +95,25 @@ public:
     bool Set(const char *key, const char *value) override
     {
         if (!key) return false;
+        if (!value)
+        { // remove keys with null value
+            Remove(key);
+            return true;
+        }
         size_t key_len = strlen(key);
-        size_t value_len = value ? strlen(value) : 0;
+        size_t value_len = strlen(value);
         return TryAddItem(key, key_len, value, value_len);
     }
     int GetItemCount() override { return _dic.size(); }
     void GetKeys(std::vector<const char*> &buf) const override
     {
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
-            buf.push_back(it->first.GetCStr()); // keys cannot be null
+            buf.push_back(it->first.GetCStr());
     }
     void GetValues(std::vector<const char*> &buf) const override
     {
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
-            buf.push_back(it->second.GetNullableCStr()); // values may be null
+            buf.push_back(it->second.GetCStr());
     }
 
 private:
@@ -116,8 +121,7 @@ private:
     {
         String elem_key(key, key_len);
         String elem_value;
-        if (value)
-            elem_value.SetString(value, value_len);
+        elem_value.SetString(value, value_len);
         _dic[elem_key] = elem_value;
         return true;
     }
@@ -142,16 +146,9 @@ private:
             SerializeInt((int)it->first.GetLength());
             memcpy(&serbuffer[bytesSoFar], it->first.GetCStr(), it->first.GetLength());
             bytesSoFar += it->first.GetLength();
-            if (it->second.GetNullableCStr()) // values may be null
-            {
-                SerializeInt((int)it->second.GetLength());
-                memcpy(&serbuffer[bytesSoFar], it->second.GetCStr(), it->second.GetLength());
-                bytesSoFar += it->second.GetLength();
-            }
-            else
-            {
-                SerializeInt(-1);
-            }
+            SerializeInt((int)it->second.GetLength());
+            memcpy(&serbuffer[bytesSoFar], it->second.GetCStr(), it->second.GetLength());
+            bytesSoFar += it->second.GetLength();
         }
     }
 
@@ -163,11 +160,7 @@ private:
             size_t key_len = UnserializeInt();
             int key_pos = bytesSoFar; bytesSoFar += key_len;
             size_t value_len = UnserializeInt();
-            if (value_len == (size_t)-1)
-            {
-                TryAddItem(&serializedData[key_pos], key_len, nullptr, 0);
-            }
-            else
+            if (value_len != (size_t)-1) // do not restore keys with null value (old format)
             {
                 int value_pos = bytesSoFar; bytesSoFar += value_len;
                 TryAddItem(&serializedData[key_pos], key_len, &serializedData[value_pos], value_len);

@@ -28,6 +28,8 @@
 // The class provides means to reserve large amount of buffer space before
 // making modifications, as well as compacting buffer to minimal size.
 //
+// String object's GetCStr method guarantees valid null-terminated char array.
+//
 // For all methods that expect C-string as parameter - if the null pointer is
 // passed in place of C-string it is treated in all aspects as a valid empty
 // string.
@@ -64,17 +66,8 @@ public:
     String(char c, size_t count);
     ~String();
 
-    // TODO: get rid of condition in GetCStr! either make it nullable and test for consequences in engine code,
-    // or make sure it points to "" literal when string is not assigned; also check if GetNullableCStr may be removed.
-    // OR do opposite: make helper function that returns non-null cstr explicitly.
-
     // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
-    {
-        return _cstr ? _cstr : "";
-    }
-    // Get C-string or nullptr
-    inline const char *GetNullableCStr() const
     {
         return _cstr;
     }
@@ -357,13 +350,13 @@ private:
 
     // Tells if this object shares its string buffer with others
     bool    IsShared() const;
-    // Ensure this string is a compact independent copy, with ref counter = 1
+    // Ensure this string is a writeable independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
     void    ReserveAndShift(bool left, size_t more_length);
 
-    char    *_cstr;  // pointer to actual string data
+    char    *_cstr;  // pointer to actual string data; always valid, never null
     size_t  _len;    // valid string length, in characters, excluding null-term
 
     // Header of a reference-counted buffer

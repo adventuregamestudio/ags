@@ -19,6 +19,7 @@
 #include "debug/assert.h"
 #include "util/alignedstream.h"
 #include "util/file.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -57,7 +58,7 @@ void Test_File()
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
-    String::WriteString("test.tmp", out);
+    StrUtil::WriteCStr("test.tmp", out);
     String very_long_string;
     very_long_string.FillString('a', 10000);
     very_long_string.Write(out);

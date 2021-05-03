@@ -880,9 +880,9 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (strlen(parserInput->Text) == 0))) {
+          if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
+            for (unsigned int i = parserInput->Text.GetLength(); i < strlen(play.lastParserEntry); i++) {
               parserInput->OnKeyPress(play.lastParserEntry[i]);
             }
             //ags_domouse(DOMOUSE_DISABLE);

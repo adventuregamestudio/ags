@@ -646,11 +646,11 @@ InteractionVariable *get_interaction_variable (int varindx) {
 InteractionVariable *FindGraphicalVariable(const char *varName) {
     int ii;
     for (ii = 0; ii < numGlobalVars; ii++) {
-        if (ags_stricmp (globalvars[ii].Name, varName) == 0)
+        if (globalvars[ii].Name.CompareNoCase(varName) == 0)
             return &globalvars[ii];
     }
     for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i) {
-        if (ags_stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
+        if (thisroom.LocalVariables[i].Name.CompareNoCase(varName) == 0)
             return &thisroom.LocalVariables[i];
     }
     return nullptr;

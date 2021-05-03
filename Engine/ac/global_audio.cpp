@@ -613,7 +613,7 @@ bool play_voice_speech(int charid, int sndid)
     curLipLine = -1;  // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
     for (ii = 0; ii < numLipLines; ii++) {
-        if (ags_stricmp(splipsync[ii].filename, voice_file) == 0) {
+        if (voice_file.CompareNoCase(splipsync[ii].filename) == 0) {
             curLipLine = ii;
             break;
         }

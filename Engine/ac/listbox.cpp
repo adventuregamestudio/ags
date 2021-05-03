@@ -148,7 +148,7 @@ void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
   if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxSetItemText: invalid item specified");
 
-  if (strcmp(listbox->Items[index], newtext)) {
+  if (listbox->Items[index] != newtext) {
     listbox->SetItemText(index, newtext);
   }
 }

@@ -140,7 +140,7 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
     pattern.Append("/*");
 
     Debug::Printf("Searching for game data in: %s", path.GetCStr());
-    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+    if (al_findfirst(pattern.GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) != 0)
         return "";
     do
     {

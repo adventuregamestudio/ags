@@ -351,7 +351,7 @@ public:
 
 
 // Loads new room data into the given RoomStruct object
-void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
+void load_room(const String &filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
 // Ensures that all existing room masks match room background size and
 // MaskResolution property, resizes mask bitmaps if necessary.
 void FixRoomMasks(RoomStruct *room);

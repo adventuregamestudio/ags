@@ -90,7 +90,7 @@ void GUILabel::PrepareTextToDraw()
 
 size_t GUILabel::SplitLinesForDrawing(SplitLines &lines)
 {
-    return split_lines(_textToDraw, lines, Width, Font);
+    return split_lines(_textToDraw.GetCStr(), lines, Width, Font);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)

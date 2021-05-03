@@ -65,7 +65,7 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
     if (editor_debugging_initialized)
     {
         if (qreason & kQuitKind_GameException)
-            handledErrorInEditor = send_exception_to_editor(qmsg);
+            handledErrorInEditor = send_exception_to_editor(qmsg.GetCStr());
         send_message_to_editor("EXIT");
         editor_debugger->Shutdown();
     }
@@ -166,14 +166,14 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
     }
 }
 
-void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
+void quit_message_on_exit(const String &qmsg, String &alertis, QuitReason qreason)
 {
     // successful exit displays no messages (because Windoze closes the dos-box
     // if it is empty).
     if ((qreason & kQuitKind_NormalExit) == 0 && !handledErrorInEditor)
     {
         // Display the message (at this point the window still exists)
-        sprintf(pexbuf,"%s\n",qmsg);
+        sprintf(pexbuf,"%s\n", qmsg.GetCStr());
         alertis.Append(pexbuf);
         platform->DisplayAlert("%s", alertis.GetCStr());
     }
@@ -197,7 +197,7 @@ void quit_delete_temp_files()
     al_ffblk dfb;
     int	dun = al_findfirst("~ac*.tmp", &dfb, FA_SEARCH);
     while (!dun) {
-        ::remove(dfb.name);
+        File::DeleteFile(dfb.name);
         dun = al_findnext(&dfb);
     }
     al_findclose (&dfb);
@@ -228,8 +228,10 @@ void quit(const char *quitmsg)
     // about to free plugins)
     String qmsg = quitmsg;
 
+#if defined (AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)
         save_config_file();
+#endif // AGS_AUTO_WRITE_USER_CONFIG
 
 	allegro_bitmap_test_release();
 

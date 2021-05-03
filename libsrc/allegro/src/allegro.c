@@ -268,7 +268,6 @@ static void allegro_exit_stub(void)
 static int _install_allegro(int system_id, int *errno_ptr, int (*atexit_ptr)(void (*func)(void)))
 {
    RGB black_rgb = {0, 0, 0, 0};
-   char tmp1[64], tmp2[64];
    int i;
 
    #ifndef ALLEGRO_USE_CONSTRUCTOR

@@ -119,14 +119,14 @@ void RestoreGameSlot(int slnum) {
 void DeleteSaveSlot (int slnum) {
     String nametouse;
     nametouse = get_save_game_path(slnum);
-    ::remove (nametouse);
+    File::DeleteFile(nametouse);
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             thisname = get_save_game_path(i);
             if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
-                rename (thisname, nametouse);
+                File::RenameFile(thisname, nametouse);
                 break;
             }
         }
@@ -203,7 +203,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
     String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.???%s", svg_suff.GetCStr()));
 
     al_ffblk ffb;
-    for (int don = al_findfirst(searchPath, &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
+    for (int don = al_findfirst(searchPath.GetCStr(), &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
     {
         const char *numberExtension = strstr(ffb.name, ".") + 1;
         int saveGameSlot = atoi(numberExtension);
@@ -257,7 +257,7 @@ void GetGlobalString (int index, char *strval) {
 }
 */
 // TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
-int RunAGSGame (const char *newgame, unsigned int mode, int data) {
+int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
 
@@ -292,7 +292,9 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     unload_old_room();
     displayed_room = -10;
 
+#if defined (AGS_AUTO_WRITE_USER_CONFIG)
     save_config_file(); // save current user config in case engine fails to run new game
+#endif // AGS_AUTO_WRITE_USER_CONFIG
     unload_game_file();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
@@ -616,14 +618,14 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
+        strcpy(tempo,get_translation(thisroom.Objects[aa].Name.GetCStr()));
         if (play.get_loc_name_last_time != 3000+aa)
             GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
+    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name.GetCStr()));
     if (play.get_loc_name_last_time != onhs)
         GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;

@@ -55,6 +55,8 @@ namespace File
     bool        TestCreateFile(const String &filename);
     // Deletes existing file; returns TRUE if was able to delete one
     bool        DeleteFile(const String &filename);
+    // Renames existing file to the new name; returns TRUE on success
+    bool        RenameFile(const String &old_name, const String &new_name);
 
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
     bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode);

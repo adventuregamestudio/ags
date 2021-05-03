@@ -59,6 +59,8 @@ namespace Engine
 
 using namespace AGS::Common;
 
+inline LPCTSTR STR(const String &str) { return str.GetCStr(); }
+
 //=============================================================================
 //
 // WinConfig struct, keeps all configurable data.
@@ -595,7 +597,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         custom_save_dir = _winCfg.DataDirectory;
     SetCheck(_hCustomSaveDirCheck, has_save_dir);
     char full_save_dir[MAX_PATH] = {0};
-    MakeFullLongPath(custom_save_dir, full_save_dir, MAX_PATH);
+    MakeFullLongPath(custom_save_dir.GetCStr(), full_save_dir, MAX_PATH);
     SetText(_hCustomSaveDir, full_save_dir);
     EnableWindow(_hCustomSaveDir, has_save_dir ? TRUE : FALSE);
     EnableWindow(_hCustomSaveDirBtn, has_save_dir ? TRUE : FALSE);
@@ -609,17 +611,17 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (_winCfg.GameResolution.IsNull())
         _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
-    SetText(_hwnd, _winCfg.Title);
-    SetText((HWND)sys_win_get_window(), _winCfg.Title);
-    SetText(_hGameResolutionText, String::FromFormat("Native game resolution: %d x %d x %d",
-        _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth));
+    SetText(_hwnd, STR(_winCfg.Title));
+    SetText((HWND)sys_win_get_window(), STR(_winCfg.Title));
+    SetText(_hGameResolutionText, STR(String::FromFormat("Native game resolution: %d x %d x %d",
+        _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth)));
 
-    SetText(_hVersionText, _winCfg.VersionString);
+    SetText(_hVersionText, STR(_winCfg.VersionString));
 
     InitGfxModes();
 
     for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
-        AddString(_hGfxDriverList, it->second->UserName, (DWORD_PTR)it->second->Id.GetCStr());
+        AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
     OnGfxDriverUpdate();
 
@@ -726,7 +728,7 @@ void WinSetupDialog::OnCustomSaveDirBtn()
     String save_dir = GetText(_hCustomSaveDir);
     if (BrowseForFolder(save_dir))
     {
-        SetText(_hCustomSaveDir, save_dir);
+        SetText(_hCustomSaveDir, STR(save_dir));
     }
 }
 
@@ -891,7 +893,7 @@ void WinSetupDialog::AddScalingString(HWND hlist, int scaling_factor)
         s = String::FromFormat("x%d", scaling_factor);
     else
         s = String::FromFormat("1/%d", -scaling_factor);
-    AddString(hlist, s, (DWORD_PTR)(scaling_factor >= 0 ? scaling_factor + kNumFrameScaleDef : scaling_factor));
+    AddString(hlist, STR(s), (DWORD_PTR)(scaling_factor >= 0 ? scaling_factor + kNumFrameScaleDef : scaling_factor));
 }
 
 void WinSetupDialog::FillGfxFilterList()
@@ -908,10 +910,10 @@ void WinSetupDialog::FillGfxFilterList()
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
         if (INIreadint(_cfgIn, "disabled", info.Id, 0) == 0)
-            AddString(_hGfxFilterList, info.Name, (DWORD_PTR)info.Id.GetCStr());
+            AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 
-    SetCurSelToItemDataStr(_hGfxFilterList, _winCfg.GfxFilterId, 0);
+    SetCurSelToItemDataStr(_hGfxFilterList, STR(_winCfg.GfxFilterId), 0);
     OnGfxFilterUpdate();
 }
 
@@ -936,16 +938,16 @@ void WinSetupDialog::FillGfxModeList()
         else if (mode->Width == _winCfg.GameResolution.Width && mode->Height == _winCfg.GameResolution.Height)
             has_native_mode = true;
         buf.Format("%d x %d", mode->Width, mode->Height);
-        AddString(_hGfxModeList, buf, (DWORD_PTR)(mode - modes.begin()));
+        AddString(_hGfxModeList, STR(buf), (DWORD_PTR)(mode - modes.begin()));
     }
 
     int spec_mode_idx = 0;
     if (has_desktop_mode)
-        InsertString(_hGfxModeList, String::FromFormat("Desktop resolution (%d x %d)",
-            _desktopSize.Width, _desktopSize.Height), spec_mode_idx++, (DWORD_PTR)kGfxMode_Desktop);
+        InsertString(_hGfxModeList, STR(String::FromFormat("Desktop resolution (%d x %d)",
+            _desktopSize.Width, _desktopSize.Height)), spec_mode_idx++, (DWORD_PTR)kGfxMode_Desktop);
     if (has_native_mode)
-        InsertString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
-            _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), spec_mode_idx++, (DWORD_PTR)kGfxMode_GameRes);
+        InsertString(_hGfxModeList, STR(String::FromFormat("Native game resolution (%d x %d)",
+            _winCfg.GameResolution.Width, _winCfg.GameResolution.Height)), spec_mode_idx++, (DWORD_PTR)kGfxMode_GameRes);
 
     SelectNearestGfxMode(_winCfg.ScreenSize, _winCfg.UseDesktopSize);
 }
@@ -958,7 +960,7 @@ void WinSetupDialog::FillLanguageList()
 
     String path_mask = String::FromFormat("%s\\*.tra", _winCfg.DataDirectory.GetCStr());
     WIN32_FIND_DATAA file_data;
-    HANDLE find_handle = FindFirstFile(path_mask, &file_data);
+    HANDLE find_handle = FindFirstFile(STR(path_mask), &file_data);
     if (find_handle != INVALID_HANDLE_VALUE)
     {
         bool found_sel = false;
@@ -1095,8 +1097,8 @@ void WinSetupDialog::SaveSetup()
         save_dir = GetText(_hCustomSaveDir);
         char full_data_dir[MAX_PATH] = {0};
         char full_save_dir[MAX_PATH] = {0};
-        MakeFullLongPath(_winCfg.DataDirectory, full_data_dir, MAX_PATH);
-        MakeFullLongPath(save_dir, full_save_dir, MAX_PATH);
+        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH);
+        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH);
         char rel_save_dir[MAX_PATH] = {0};
         if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
             strstr(rel_save_dir, "..") == NULL)
@@ -1197,7 +1199,7 @@ void WinSetupDialog::SetGfxModeText()
         }
     }
     String text = String::FromFormat("%d x %d", sz.Width, sz.Height);
-    SetText(_hGfxModeText, text);
+    SetText(_hGfxModeText, STR(text));
 }
 
 void WinSetupDialog::UpdateMouseSpeedText()
@@ -1205,7 +1207,7 @@ void WinSetupDialog::UpdateMouseSpeedText()
     int slider_pos = GetSliderPos(_hMouseSpeed);
     float mouse_speed = (float)slider_pos / 10.f;
     String text = mouse_speed == 1.f ? "Mouse speed: x 1.0 (Default)" : String::FromFormat("Mouse speed: x %0.1f", mouse_speed);
-    SetText(_hMouseSpeedText, text);
+    SetText(_hMouseSpeedText, STR(text));
 }
 
 //=============================================================================

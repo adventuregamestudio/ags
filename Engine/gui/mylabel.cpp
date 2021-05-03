@@ -46,7 +46,7 @@ void MyLabel::draw(Bitmap *ds)
     if (break_up_text_into_lines(teptr, Lines, wid, acdialog_font) == 0)
         return;
     for (size_t ee = 0; ee < Lines.Count(); ee++) {
-        wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee]);
+        wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee].GetCStr());
         cyp += TEXT_HT;
     }
 }

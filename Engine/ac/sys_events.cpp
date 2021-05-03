@@ -376,7 +376,7 @@ const int MB_ARRAY[3] = { MouseBitLeft, MouseBitRight, MouseBitMiddle };
 
 bool ags_misbuttondown(int but)
 {
-    return mouse_button_poll() & MB_ARRAY[but];
+    return (mouse_button_poll() & MB_ARRAY[but]) != 0;
 }
 
 int ags_mgetbutton() {

@@ -18,6 +18,9 @@
 #ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
 #define __AGS_EE_AC__GLOBALTRANSLATION_H
 
+// WARNING: get_translation returns original char* if no translation is found;
+// for that reason make sure that you don't pass temporary buffer there, unless
+// you use returned value immediately or save it in another buffer.
 const char *get_translation (const char *text);
 int IsTranslationAvailable ();
 int GetTranslationName (char* buffer);

@@ -28,6 +28,8 @@
 // The class provides means to reserve large amount of buffer space before
 // making modifications, as well as compacting buffer to minimal size.
 //
+// String object's GetCStr method guarantees valid null-terminated char array.
+//
 // For all methods that expect C-string as parameter - if the null pointer is
 // passed in place of C-string it is treated in all aspects as a valid empty
 // string.
@@ -64,17 +66,8 @@ public:
     String(char c, size_t count);
     ~String();
 
-    // TODO: get rid of condition in GetCStr! either make it nullable and test for consequences in engine code,
-    // or make sure it points to "" literal when string is not assigned; also check if GetNullableCStr may be removed.
-    // OR do opposite: make helper function that returns non-null cstr explicitly.
-
     // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
-    {
-        return _cstr ? _cstr : "";
-    }
-    // Get C-string or nullptr
-    inline const char *GetNullableCStr() const
     {
         return _cstr;
     }
@@ -125,29 +118,43 @@ public:
     // space with null-terminators when needed.
     void    WriteCount(Stream *out, size_t count) const;
 
-    static void WriteString(const char *cstr, Stream *out);
-
     //-------------------------------------------------------------------------
     // String analysis methods
     //-------------------------------------------------------------------------
 
-    // Compares with given C-string
+    // Compares with given string
+    int     Compare(const String &str) const { return Compare(str._cstr); }
     int     Compare(const char *cstr) const;
+    int     CompareNoCase(const String &str) const { return CompareNoCase(str._cstr); }
     int     CompareNoCase(const char *cstr) const;
-    // Compares the leftmost part of this string with given C-string
+    // Compares the leftmost part of this string with given string
+    int     CompareLeft(const String &str, size_t count = -1) const
+                { return CompareLeft(str._cstr, count != -1 ? count : str._len ); }
     int     CompareLeft(const char *cstr, size_t count = -1) const;
+    int     CompareLeftNoCase(const String &str, size_t count = -1) const
+                { return CompareLeftNoCase(str._cstr, count != -1 ? count : str._len); }
     int     CompareLeftNoCase(const char *cstr, size_t count = -1) const;
-    // Compares any part of this string with given C-string
+    // Compares any part of this string with given string
+    int     CompareMid(const String &str, size_t from, size_t count = -1) const
+                { return CompareMid(str._cstr, from, count != -1 ? count : str._len); }
     int     CompareMid(const char *cstr, size_t from, size_t count = -1) const;
+    int     CompareMidNoCase(const String &str, size_t from, size_t count = -1) const
+                { return CompareMidNoCase(str._cstr, from, count != -1 ? count : str._len); }
     int     CompareMidNoCase(const char *cstr, size_t from, size_t count = -1) const;
     // Compares the rightmost part of this string with given C-string
+    int     CompareRight(const String &str, size_t count = -1) const
+                { return CompareRight(str._cstr, count != -1 ? count : str._len); }
     int     CompareRight(const char *cstr, size_t count = -1) const;
+    int     CompareRightNoCase(const String &str, size_t count = -1) const
+                { return CompareRightNoCase(str._cstr, count != -1 ? count : str._len); }
     int     CompareRightNoCase(const char *cstr, size_t count = -1) const;
 
     // These functions search for character or substring inside this string
     // and return the index of the (first) character, or -1 if nothing found.
     size_t  FindChar(char c, size_t from = 0) const;
     size_t  FindCharReverse(char c, size_t from = -1) const;
+    size_t  FindString(const String &str, size_t from = 0) const
+                { return FindString(str._cstr, from); }
     size_t  FindString(const char *cstr, size_t from = 0) const;
 
     // Section methods treat string as a sequence of 'fields', separated by
@@ -187,6 +194,8 @@ public:
     // Wraps the given string buffer without owning it, won't count references,
     // won't delete it at destruction. Can be used with string literals.
     static String Wrapper(const char *cstr);
+
+    // TODO: investigate C++11 solution for variadic templates (would that be more convenient here?)
 
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
@@ -234,9 +243,10 @@ public:
     void    Compact();
 
     // Append* methods add content at the string's end, increasing its length
-    // Add C-string at string's end
-    void    Append(const char *cstr);
-    // Add single character at string's end
+    // Appends another string to this string
+    void    Append(const String &str);
+    void    Append(const char *cstr) { String str = String::Wrapper(cstr); Append(str); }
+    // Appends a single character
     void    AppendChar(char c);
     // Clip* methods decrease the string, removing defined part
     // Cuts off leftmost N characters
@@ -273,15 +283,18 @@ public:
     // Merges sequences of same characters into one
     void    MergeSequences(char c = 0);
     // Prepend* methods add content before the string's head, increasing its length
-    // Add C-string before string's head
-    void    Prepend(const char *cstr);
-    // Add single character before string's head
+    // Prepends another string to this string
+    void    Prepend(const String &str);
+    void    Prepend(const char *cstr) { String str = String::Wrapper(cstr); Prepend(str); }
+    // Prepends a single character
     void    PrependChar(char c);
     // Replaces all occurences of one character with another character
     void    Replace(char what, char with);
     // Replaces particular substring with another substring; new substring
     // may have different length
-    void    ReplaceMid(size_t from, size_t count, const char *cstr);
+    void    ReplaceMid(size_t from, size_t count, const String &str);
+    void    ReplaceMid(size_t from, size_t count, const char *cstr)
+            { String str = String::Wrapper(cstr); ReplaceMid(from, count, str); }
     // Reverses the string
     void    Reverse();
     // Overwrite the Nth character of the string; does not change string's length
@@ -321,12 +334,8 @@ public:
     // Operators
     //-------------------------------------------------------------------------
 
-    inline operator const char *() const
-    {
-        return GetCStr();
-    }
     // Assign String by sharing data reference
-    String &operator=(const String&);
+    String &operator=(const String &str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
     inline char operator[](size_t index) const
@@ -334,13 +343,25 @@ public:
         assert(index < _len);
         return _cstr[index];
     }
-    inline bool operator==(const char *cstr) const
+    inline bool operator ==(const String &str) const
+    {
+        return Compare(str) == 0;
+    }
+    inline bool operator ==(const char *cstr) const
     {
         return Compare(cstr) == 0;
     }
-    inline bool operator!=(const char *cstr) const
+    inline bool operator !=(const String &str) const
+    {
+        return Compare(str) != 0;
+    }
+    inline bool operator !=(const char *cstr) const
     {
         return Compare(cstr) != 0;
+    }
+    inline bool operator <(const String &str) const
+    {
+        return Compare(str) < 0;
     }
     inline bool operator <(const char *cstr) const
     {
@@ -355,13 +376,16 @@ private:
     // Aligns data at given offset
     void    Align(size_t offset);
 
-    // Ensure this string is a compact independent copy, with ref counter = 1
+    // Tells if this object shares its string buffer with others
+    bool    IsShared() const;
+    // Ensure this string is a writeable independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
     void    ReserveAndShift(bool left, size_t more_length);
 
-    char    *_cstr;  // pointer to actual string data
+    // Internal String data
+    char    *_cstr;  // pointer to actual string data; always valid, never null
     size_t  _len;    // valid string length, in characters, excluding null-term
 
     // Header of a reference-counted buffer

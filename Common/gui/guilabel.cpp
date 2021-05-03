@@ -67,7 +67,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
         i < Lines.Count() && (!limit_by_label_frame || at_y <= Y + Height);
         ++i, at_y += linespacing)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i], Font, text_color, X, X + Width - 1, at_y,
+        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, X, X + Width - 1, at_y,
             (FrameAlignment)TextAlignment);
     }
 }

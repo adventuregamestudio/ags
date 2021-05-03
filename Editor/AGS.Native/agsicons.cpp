@@ -4,9 +4,7 @@ using namespace System;
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "util/string.h"
-
-extern void warningBox(const char *fmt, ...);
+#include "NativeUtils.h"
 
 #define MAX_ICONS_IN_FILE 15
 
@@ -230,6 +228,6 @@ void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const u
 
   if (!errorMsg.IsEmpty())
   {
-	  throw gcnew AGSEditorException(gcnew String(errorMsg));
+	  throw gcnew AGSEditorException(ToStr(errorMsg));
   }
 }

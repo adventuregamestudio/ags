@@ -138,7 +138,7 @@ int loadgamedialog()
         else {
           toret = filenumbers[cursel];
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
           lpTemp = &bufTemp[0];
         }
       } else if (mes.id == ctrlcancel) {
@@ -260,7 +260,7 @@ int savegamedialog()
 
           toret = highestnum + 1;
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
         } 
         else {
           toret = filenumbers[cursell];
@@ -270,7 +270,7 @@ int savegamedialog()
         if (bufTemp[0] == 0)
         {
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
         }
 
         lpTemp = &bufTemp[0];
@@ -305,7 +305,7 @@ void preparesavegamelist(int ctrllist)
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty
-  for (numsaves = 0; numsaves < (size_t)saves.size(); ++numsaves)
+  for (numsaves = 0; (size_t)numsaves < saves.size(); ++numsaves)
   {
       CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)saves[numsaves].Description.GetCStr());
       filenumbers[numsaves] = saves[numsaves].Slot;

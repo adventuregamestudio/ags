@@ -19,6 +19,7 @@
 #include "debug/assert.h"
 #include "util/alignedstream.h"
 #include "util/file.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -57,7 +58,7 @@ void Test_File()
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
-    String::WriteString("test.tmp", out);
+    StrUtil::WriteCStr("test.tmp", out);
     String very_long_string;
     very_long_string.FillString('a', 10000);
     very_long_string.Write(out);
@@ -182,8 +183,8 @@ void Test_File()
     // Assertions
     assert(int16val == 10);
     assert(int64val == -20202);
-    assert(strcmp(str1, "test.tmp") == 0);
-    assert(strcmp(str2, very_long_string) == 0);
+    assert(strcmp(str1.GetCStr(), "test.tmp") == 0);
+    assert(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
     assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     assert(int32val == 20);
 

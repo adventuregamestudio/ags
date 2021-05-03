@@ -258,7 +258,6 @@ int _color_load_depth(int depth, int hasalpha)
  */
 GFX_VTABLE *_get_vtable(int color_depth)
 {
-   GFX_VTABLE *vt;
    int i;
 
    for (i=0; _vtable_list[i].vtable; i++) {

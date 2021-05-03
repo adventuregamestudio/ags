@@ -28,13 +28,13 @@ const char* Label_GetText_New(GUILabel *labl) {
 }
 
 void Label_GetText(GUILabel *labl, char *buffer) {
-    strcpy(buffer, labl->GetText());
+    strcpy(buffer, labl->GetText().GetCStr());
 }
 
 void Label_SetText(GUILabel *labl, const char *newtx) {
     newtx = get_translation(newtx);
 
-    if (strcmp(labl->GetText(), newtx)) {
+    if (labl->GetText() != newtx) {
         labl->SetText(newtx);
     }
 }

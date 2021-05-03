@@ -19,6 +19,11 @@ using namespace AGS::Common;
 
 const char *game_file_sig = "Adventure Creator Game File v2";
 
+void quit(const String &str)
+{
+    quit(str.GetCStr());
+}
+
 void quitprintf(const char *fmt, ...)
 {
     va_list ap;

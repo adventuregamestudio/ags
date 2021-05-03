@@ -63,7 +63,7 @@ namespace AGS
             if (nullptr == scrpt)
             {
                 CompileMessage ^exceptionToThrow =
-                    gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                    gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
                 throw exceptionToThrow;
             }
             script->CompiledData = gcnew CompiledScript(PScript(scrpt));
@@ -96,7 +96,7 @@ namespace AGS
             mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
             mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
 
-            ccSetSoftwareVersion(editorVersionNumber);
+            ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 
             ccSetOption(SCOPT_EXPORTALL, 1);
             ccSetOption(SCOPT_LINENUMBERS, 1);
@@ -107,7 +107,7 @@ namespace AGS
                 scrpt = ccCompileText(mainScript, mainScriptName);
                 if ((scrpt == NULL) || (ccError != 0))
                 {
-                    exceptionToThrow = gcnew CompileError(gcnew String(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                    exceptionToThrow = gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
                 }
             }
 

@@ -61,10 +61,10 @@ int File_Delete(const char *fnmm) {
   if (!ResolveScriptPath(fnmm, false, rp))
     return 0;
 
-  if (::remove(rp.FullPath) == 0)
+  if (File::DeleteFile(rp.FullPath))
       return 1;
   if (errno == ENOENT && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-      return ::remove(rp.AltPath) == 0 ? 1 : 0;
+      return File::DeleteFile(rp.AltPath) ? 1 : 0;
   return 0;
 }
 
@@ -194,6 +194,7 @@ const String GameInstallRootToken    = "$INSTALLDIR$";
 const String UserSavedgamesRootToken = "$MYDOCS$";
 const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
 const String GameDataDirToken        = "$APPDATADIR$";
+const String UserConfigFileToken     = "$CONFIGFILE$";
 
 void FixupFilename(char *filename)
 {
@@ -310,6 +311,16 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
+    // File tokens (they must be the only thing in script path)
+    if (orig_sc_path.Compare(UserConfigFileToken) == 0)
+    {
+        auto loc = GetGameUserConfigDir();
+        rp.FullPath = Path::ConcatPaths(loc.FullDir, DefaultConfigFileName);
+        rp.BaseDir = loc.BaseDir;
+        return true;
+    }
+
+    // Test absolute paths
     bool is_absolute = !Path::IsRelativePath(orig_sc_path);
     if (is_absolute && !read_only)
     {
@@ -323,6 +334,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         return true;
     }
 
+    // Resolve location tokens
     String sc_path = FixSlashAfterToken(orig_sc_path);
     FSLocation parent_dir;
     String child_path;
@@ -513,13 +525,13 @@ bool DoesAssetExistInLib(const AssetPath &path)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir.GetCStr(), filename.GetCStr()) );
     if (AssetManager::IsDataFile(libname))
         return libname;
     if (Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
       // Hack for running in Debugger
-      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2, filename) );
+      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2.GetCStr(), filename.GetCStr()) );
       if (AssetManager::IsDataFile(libname))
         return libname;
     }

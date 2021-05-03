@@ -1682,6 +1682,10 @@ builtin struct System {
   /// Gets/sets whether sprites are rendered at screen resolution or native game resolution.
   import static attribute bool RenderAtScreenResolution;
 #endif
+#ifdef SCRIPT_API_v351
+  /// Saves current runtime settings into configuration file
+  import static void SaveConfigToFile();
+#endif
 #ifdef SCRIPT_API_v399
   /// Prints message
   import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$

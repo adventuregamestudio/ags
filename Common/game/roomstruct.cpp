@@ -248,7 +248,7 @@ int RoomStruct::GetRegionTintLuminance(int id) const
     return 0;
 }
 
-void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
+void load_room(const String &filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -265,7 +265,7 @@ void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteI
             err = UpdateRoomData(room, src.DataVersion, sprinfos);
     }
     if (!err)
-        quitprintf("Unable to load the room file '%s'.\n%s.", filename, err->FullMessage().GetCStr());
+        quitprintf("Unable to load the room file '%s'.\n%s.", filename.GetCStr(), err->FullMessage().GetCStr());
 }
 
 PBitmap FixBitmap(PBitmap bmp, int width, int height)

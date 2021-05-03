@@ -11,11 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
+#include "util/string.h"
+
 // These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
+void quit(const AGS::Common::String &str);
 void quit(const char *);
 void quitprintf(const char *fmt, ...);
 void update_polled_stuff_if_runtime();

@@ -11,6 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
+#include <cstdio>
+#include <limits>
 #include <string.h>
 #include "debug/filebasedagsdebugger.h"
 #include "util/file.h"
@@ -27,7 +30,7 @@ bool FileBasedAGSDebugger::Initialize()
 {
     if (Path::IsFile(SENT_MESSAGE_FILE_NAME))
     {
-        ::remove(SENT_MESSAGE_FILE_NAME);
+        File::DeleteFile(SENT_MESSAGE_FILE_NAME);
     }
     return true;
 }
@@ -65,11 +68,11 @@ char* FileBasedAGSDebugger::GetNextMessage()
         // check again, because the editor might have deleted the file in the meantime
         return nullptr;
     }
-    int fileSize = in->GetLength();
+    size_t fileSize = (size_t)std::min((soff_t)std::numeric_limits<size_t>::max, in->GetLength());
     char *msg = (char*)malloc(fileSize + 1);
     in->Read(msg, fileSize);
     delete in;
-    ::remove("dbgsend.tmp");
+    File::DeleteFile("dbgsend.tmp");
     msg[fileSize] = 0;
     return msg;
 }

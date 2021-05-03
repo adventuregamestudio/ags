@@ -101,13 +101,13 @@ void DetermineDataDirectories()
 const char *AGSLinux::GetAllUsersDataDirectory()
 {
   DetermineDataDirectories();
-  return CommonDataDirectory;
+  return CommonDataDirectory.GetCStr();
 }
 
 const char *AGSLinux::GetUserSavedgamesDirectory()
 {
   DetermineDataDirectories();
-  return UserDataDirectory;
+  return UserDataDirectory.GetCStr();
 }
 
 const char *AGSLinux::GetUserConfigDirectory()
@@ -123,7 +123,7 @@ const char *AGSLinux::GetUserGlobalConfigDirectory()
 const char *AGSLinux::GetAppOutputDirectory()
 {
   DetermineDataDirectories();
-  return UserDataDirectory;
+  return UserDataDirectory.GetCStr();
 }
 
 unsigned long AGSLinux::GetDiskFreeSpaceMB() {

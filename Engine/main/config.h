@@ -32,11 +32,6 @@ String find_default_cfg_file();
 String find_user_global_cfg_file();
 // Find and game-specific user configuration file (located into writable user directory)
 String find_user_cfg_file();
-// Scans given directory for the AGS game config, parses config for the game
-// location setting, fills in strings and return true if found. Otherwise returns false.
-bool read_config_with_game_location(const String &path, String &data_dir, String &data_file);
-// Read optional game data path and directory from config
-void read_game_data_location(const ConfigTree &cfg, String &data_dir, String &data_file);
 // Apply overriding values from the external config (e.g. for mobile ports)
 void override_config_ext(ConfigTree &cfg);
 // Setup game using final config tree

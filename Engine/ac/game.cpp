@@ -396,10 +396,9 @@ bool SetCustomSaveParent(const String &path)
     return false;
 }
 
-bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
+bool SetSaveGameDirectoryPath(const String &new_dir, bool explicit_path)
 {
-    if (!newFolder || newFolder[0] == 0)
-        newFolder = ".";
+    String newFolder = new_dir.IsEmpty() ? "." : new_dir;
     String newSaveGameDir;
     if (explicit_path)
     {
@@ -1011,7 +1010,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);
         temp_in->Read(buffer, fileSize);
         delete temp_in;
-        ::remove(tempFileName);
+        File::DeleteFile(tempFileName);
 
         out->Write(buffer, fileSize);
         free(buffer);
@@ -1171,7 +1170,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
                 [&desc](const String &filepath) { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
             if (Common::File::TestReadFile(gamefile))
             {
-                RunAGSGame(desc.MainDataFilename, 0, 0);
+                RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
                 load_new_game_restore = slotNumber;
                 return HSaveError::None();
             }
@@ -1185,7 +1184,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefile))
         {
-            RunAGSGame(desc.MainDataFilename, 0, 0);
+            RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
             load_new_game_restore = slotNumber;
             return HSaveError::None();
         }
@@ -1229,7 +1228,7 @@ bool try_restore_save(const Common::String &path, int slot)
         if (data_overwritten)
             quitprintf("%s", error.GetCStr());
         else
-            Display(error);
+            Display("%s", error.GetCStr());
         return false;
     }
     return true;
@@ -1536,7 +1535,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     }
 
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[msnum]), buffer, maxlen);
+    replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)

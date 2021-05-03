@@ -224,6 +224,21 @@ DebugManager DbgMgr;
 namespace Debug
 {
 
+void Printf(const String &text)
+{
+    DbgMgr.Print(kDbgGroup_Main, kDbgMsg_Default, text);
+}
+
+void Printf(MessageType mt, const String &text)
+{
+    DbgMgr.Print(kDbgGroup_Main, mt, text);
+}
+
+void Printf(DebugGroupID group, MessageType mt, const String &text)
+{
+    DbgMgr.Print(group, mt, text);
+}
+
 void Printf(const char *fmt, ...)
 {
     va_list argptr;

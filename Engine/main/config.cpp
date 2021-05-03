@@ -70,7 +70,7 @@ int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item, i
     if (!INIreaditem(cfg, sectn, item, str))
         return def_value;
 
-    return atoi(str);
+    return atoi(str.GetCStr());
 }
 
 float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value)
@@ -79,7 +79,7 @@ float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &ite
     if (!INIreaditem(cfg, sectn, item, str))
         return def_value;
 
-    return atof(str);
+    return atof(str.GetCStr());
 }
 
 String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value)
@@ -242,15 +242,6 @@ void config_defaults()
     usetup.translation = "";
 }
 
-void read_game_data_location(const ConfigTree &cfg, String &data_dir, String &data_file)
-{
-    data_dir = INIreadstring(cfg, "misc", "datadir");
-    data_dir = Path::MakePathNoSlash(data_dir);
-    data_file = INIreadstring(cfg, "misc", "datafile");
-    if (!data_file.IsEmpty() && Path::IsRelativePath(data_file))
-        data_file = Path::ConcatPaths(data_dir, data_file);
-}
-
 void read_legacy_graphics_config(const ConfigTree &cfg)
 {
     // Pre-3.* game resolution setup
@@ -295,20 +286,6 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
     }
 
     usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
-}
-
-bool read_config_with_game_location(const String &path, String &data_dir, String &data_file)
-{
-    ConfigTree cfg;
-    String def_cfg_file = Path::ConcatPaths(path, DefaultConfigFileName);
-    if (IniUtil::Read(def_cfg_file, cfg))
-    {
-        read_game_data_location(cfg, data_dir, data_file);
-        Debug::Printf("Found game config: %s", def_cfg_file.GetCStr());
-        Debug::Printf(" Cfg: data dir: %s", data_dir.GetCStr());
-        Debug::Printf(" Cfg: data file: %s", data_file.GetCStr());
-    }
-    return !(data_dir.IsEmpty() && data_file.IsEmpty());
 }
 
 // Variables used for mobile port configs
@@ -507,7 +484,6 @@ void post_config()
 
 void save_config_file()
 {
-#if defined (AGS_WRITE_USER_CONFIG_ON_EXIT)
     ConfigTree cfg;
 
     // Last display mode
@@ -544,5 +520,4 @@ void save_config_file()
     String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
     if (!cfg_file.IsEmpty())
         IniUtil::Merge(cfg_file, cfg);
-#endif // AGS_WRITE_USER_CONFIG_ON_EXIT
 }

@@ -395,10 +395,9 @@ bool SetCustomSaveParent(const String &path)
     return false;
 }
 
-bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
+bool SetSaveGameDirectoryPath(const String &new_dir, bool explicit_path)
 {
-    if (!newFolder || newFolder[0] == 0)
-        newFolder = ".";
+    String newFolder = new_dir.IsEmpty() ? "." : new_dir;
     String newSaveGameDir;
     if (explicit_path)
     {

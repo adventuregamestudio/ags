@@ -582,7 +582,7 @@ void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
     }
 }
 
-int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFileIndex &index)
+int SpriteCache::SaveToFile(const String &filename, bool compressOutput, SpriteFileIndex &index)
 {
     Stream *output = Common::File::CreateFile(filename);
     if (output == nullptr)
@@ -737,7 +737,7 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
     return 0;
 }
 
-int SpriteCache::SaveSpriteIndex(const char *filename, const SpriteFileIndex &index)
+int SpriteCache::SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
     Stream *out = File::CreateFile(filename);
@@ -762,7 +762,7 @@ int SpriteCache::SaveSpriteIndex(const char *filename, const SpriteFileIndex &in
     return 0;
 }
 
-HError SpriteCache::InitFile(const char *filename, const char *sprindex_filename)
+HError SpriteCache::InitFile(const String &filename, const String &sprindex_filename)
 {
     SpriteFileVersion vers;
     char buff[20];
@@ -887,7 +887,7 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
     return HError::None();
 }
 
-bool SpriteCache::LoadSpriteIndexFile(const char *filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
+bool SpriteCache::LoadSpriteIndexFile(const String &filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
 {
     Stream *fidx = AssetMgr->OpenAsset(filename);
     if (fidx == nullptr) 
@@ -978,9 +978,9 @@ void SpriteCache::DetachFile()
     _lastLoad = -2;
 }
 
-int SpriteCache::AttachFile(const char *filename)
+int SpriteCache::AttachFile(const String &filename)
 {
-    _stream.reset(AssetMgr->OpenAsset((char *)filename));
+    _stream.reset(AssetMgr->OpenAsset(filename));
     if (_stream == nullptr)
         return -1;
     return 0;

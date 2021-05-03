@@ -52,7 +52,7 @@ void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
 void SetGlobalString (int index, const char *newval);
 void GetGlobalString (int index, char *strval);
-int  RunAGSGame (const char *newgame, unsigned int mode, int data);
+int  RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
 int  GetGameParameter (int parm, int data1, int data2, int data3);
 void QuitGame(int dialog);
 void SetRestartPoint();

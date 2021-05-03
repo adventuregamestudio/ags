@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cstdio>
 #include "ac/string.h"
 #include "ac/common.h"
@@ -25,6 +24,8 @@
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -213,8 +214,16 @@ int StrContains (const char *s1, const char *s2) {
 
 //=============================================================================
 
+const char *CreateNewScriptString(const String &fromText) {
+    return (const char*)CreateNewScriptStringObj(fromText.GetCStr(), true).second;
+}
+
 const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
     return (const char*)CreateNewScriptStringObj(fromText, reAllocate).second;
+}
+
+DynObjectRef CreateNewScriptStringObj(const String &fromText) {
+    return CreateNewScriptStringObj(fromText.GetCStr(), true);
 }
 
 DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)

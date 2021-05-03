@@ -24,6 +24,7 @@
 #include <allegro.h> // BITMAP
 #include "core/types.h"
 #include "gfx/bitmap.h"
+#include "util/string.h"
 
 namespace AGS
 {
@@ -54,7 +55,11 @@ public:
     // Deallocate bitmap
     void	Destroy();
 
+    bool    LoadFromFile(const String &filename)
+            { return LoadFromFile(filename.GetCStr()); }
     bool    LoadFromFile(const char *filename);
+    bool    SaveToFile(const String &filename, const void *palette)
+            { return SaveToFile(filename.GetCStr(), palette); }
     bool    SaveToFile(const char *filename, const void *palette);
 
     // TODO: This is temporary solution for cases when we cannot replace

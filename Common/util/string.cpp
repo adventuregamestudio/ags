@@ -25,14 +25,14 @@ namespace Common
 {
 
 String::String()
-    : _cstr("")
+    : _cstr(const_cast<char*>(""))
     , _len(0)
     , _buf(nullptr)
 {
 }
 
 String::String(const String &str)
-    : _cstr("")
+    : _cstr(const_cast<char*>(""))
     , _len(0)
     , _buf(nullptr)
 {
@@ -40,7 +40,7 @@ String::String(const String &str)
 }
 
 String::String(const char *cstr)
-    : _cstr("")
+    : _cstr(const_cast<char*>(""))
     , _len(0)
     , _buf(nullptr)
 {
@@ -48,7 +48,7 @@ String::String(const char *cstr)
 }
 
 String::String(const char *cstr, size_t length)
-    : _cstr("")
+    : _cstr(const_cast<char*>(""))
     , _len(0)
     , _buf(nullptr)
 {
@@ -56,7 +56,7 @@ String::String(const char *cstr, size_t length)
 }
 
 String::String(char c, size_t count)
-    : _cstr("")
+    : _cstr(const_cast<char*>(""))
     , _len(0)
     , _buf(nullptr)
 {
@@ -298,7 +298,7 @@ String String::Wrapper(const char *cstr)
     String str;
     // Note that String will NOT *modify* the const buffer.
     // Any write operation on the buffer is preceded by a call to BecomeUnique.
-    str._cstr = cstr ? const_cast<char*>(cstr) : "";
+    str._cstr = const_cast<char*>(cstr ? cstr : "");
     str._len = strlen(str._cstr);
     return str;
 }
@@ -639,7 +639,7 @@ void String::Free()
         }
     }
     _buf = nullptr;
-    _cstr = "";
+    _cstr = const_cast<char*>("");
     _len = 0;
 }
 
@@ -922,7 +922,7 @@ void String::Wrap(const char *cstr)
     _buf = nullptr;
     // Note that String will NOT *modify* the const buffer.
     // Any write operation on the buffer is preceded by a call to BecomeUnique.
-    _cstr = cstr ? const_cast<char*>(cstr) : "";
+    _cstr = const_cast<char*>(cstr ? cstr : "");
     _len = strlen(_cstr);
 }
 

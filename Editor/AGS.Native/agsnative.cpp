@@ -8,6 +8,8 @@ extern int Scintilla_LinkLexers();
 #include "agsnative.h"
 #include <allegro.h>
 #include <winalleg.h>
+#undef CreateFile
+#undef DeleteFile
 #include "util/misc.h"
 #include "util/wgt2allg.h"
 #include "ac/spritecache.h"
@@ -30,7 +32,9 @@ extern int Scintilla_LinkLexers();
 #include "util/string_types.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/alignedstream.h"
+#include "util/directory.h"
 #include "util/filestream.h"
+#include "util/path.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "NativeUtils.h"
@@ -51,6 +55,9 @@ using AGS::Common::Interaction;
 using AGS::Common::InteractionCommand;
 using AGS::Common::InteractionCommandList;
 typedef AGS::Common::String AGSString;
+namespace AGSDirectory = AGS::Common::Directory;
+namespace AGSFile = AGS::Common::File;
+namespace AGSPath = AGS::Common::Path;
 
 typedef System::Drawing::Bitmap SysBitmap;
 typedef AGS::Common::Bitmap AGSBitmap;
@@ -404,9 +411,9 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
     }
     char outputName[MAX_PATH];
-    const char *extension = strchr(thisFile, '.');
-    sprintf(outputName, "room%d%s", newRoomNumber, extension);
-    Stream *wrout = Common::File::CreateFile(outputName);
+    AGSString extension = AGSPath::GetFileExtension(thisFile);
+    sprintf(outputName, "room%d%s", newRoomNumber, extension.GetCStr());
+    Stream *wrout = AGSFile::CreateFile(outputName);
     if (!wrout) 
     {
       delete readin;
@@ -454,16 +461,9 @@ HAGSError extract_template_files(const char *templateFileName)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
     }
-    Stream *wrout = Common::File::CreateFile(thisFile);
-    if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
-    {
-      // an old template with Music/Sound folder, create the folder
-      char folderName[MAX_PATH];
-      strcpy(folderName, thisFile);
-      *strchr(folderName, '\\') = 0;
-      mkdir(folderName);
-      wrout = Common::File::CreateFile(thisFile);
-    }
+    // If it's an old template with Music/Sound folder, create the folder
+    AGSDirectory::CreateAllDirectories(".", thisFile);
+    Stream *wrout = AGSFile::CreateFile(thisFile);
     if (!wrout)
     {
       delete readin;
@@ -909,7 +909,7 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 const char* import_sci_font(const char*fnn,int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
-  Stream*iii=Common::File::OpenFileRead(fnn);
+  Stream*iii=AGSFile::OpenFileRead(fnn);
   if (iii==NULL) {
     return "File not found";
   }
@@ -925,7 +925,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   int lineHeight = iii->ReadInt16();
   short theiroffs[0x80];
   iii->ReadArrayOfInt16(theiroffs,0x80);
-  Stream*ooo=Common::File::CreateFile(wgtfontname);
+  Stream*ooo=AGSFile::CreateFile(wgtfontname);
   ooo->Write("WGT Font File  ",15);
   ooo->WriteInt16(0);  // will be table address
   short coffsets[0x80];
@@ -958,7 +958,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   long tableat=ooo->GetPosition();
   ooo->WriteArrayOfInt16(&coffsets[0],0x80);
   delete ooo;
-  ooo=Common::File::OpenFile(wgtfontname,Common::kFile_Open,Common::kFile_ReadWrite);
+  ooo=AGSFile::OpenFile(wgtfontname,Common::kFile_Open,Common::kFile_ReadWrite);
   ooo->Seek(15, Common::kSeekBegin);
   ooo->WriteInt16(tableat); 
   delete ooo;
@@ -1734,16 +1734,6 @@ int copy_file_across(Stream*inlibb,Stream*coppy, soff_t leftforthis) {
   return success;
 }
 
-AGSString make_libfilename(const AGSString &data_filename)
-{
-    if (strrchr(data_filename, '\\') != NULL)
-        return strrchr(data_filename, '\\') + 1;
-    else if (strrchr(data_filename, '/') != NULL)
-        return strrchr(data_filename, '/') + 1;
-    else
-        return data_filename;
-}
-
 // NOTE: this is used for audio.vox and speech.vox
 void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
@@ -1751,21 +1741,21 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     AssetLibInfo lib;
 
     lib.LibFileNames.resize(1);
-    lib.LibFileNames[0] = make_libfilename(dataFileName);
+    lib.LibFileNames[0] = AGSPath::GetFilename(dataFileName);
 
     lib.AssetInfos.resize(numfile);
     for (size_t i = 0; i < numfile; ++i)
     {
         AGS::Common::AssetInfo &asset = lib.AssetInfos[i];
-        soff_t filesize = Common::File::GetFileSize(filenames[i]);
+        soff_t filesize = AGSFile::GetFileSize(filenames[i]);
         if (filesize < 0)
             ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", filenames[i].GetCStr()));
-        asset.FileName = get_filename(filenames[i]);
+        asset.FileName = AGSPath::GetFilename(filenames[i]);
         asset.Size = filesize;
     }
 
     // Write the header
-    Stream *wout = Common::File::CreateFile(dataFileName);
+    Stream *wout = AGSFile::CreateFile(dataFileName);
     if (!wout)
         ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()));
 
@@ -1786,7 +1776,7 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     AGSString err_msg;
     for (size_t i = 0; i < numfile; ++i)
     {
-        Stream *in = Common::File::OpenFileRead(filenames[i]);
+        Stream *in = AGSFile::OpenFileRead(filenames[i]);
         if (!in)
         {
             err_msg.Format("Unable to open asset file for reading: '%s'", filenames[i].GetCStr());
@@ -1804,8 +1794,8 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
 
     if (!err_msg.IsEmpty())
     {
-        unlink(dataFileName);
         ThrowManagedException(err_msg);
+        AGSFile::DeleteFile(dataFileName);
     }
 }
 
@@ -1863,7 +1853,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 		  }
 	  }
 	  soff_t thisFileSize = 0;
-	  Stream *tf = Common::File::OpenFileRead(fileNames[a]);
+	  Stream *tf = AGSFile::OpenFileRead(fileNames[a]);
 	  thisFileSize = tf->GetLength();
 	  delete tf;
 	  
@@ -1911,7 +1901,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	  }
 	  else 
 	  {
-          lib.LibFileNames[a] = make_libfilename(baseFileName);
+          lib.LibFileNames[a] = AGSPath::GetFilename(baseFileName);
 	  }
   }
 
@@ -1942,7 +1932,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
       }
       if (a == 0) strcpy(firstDataFileFullPath, outputFileName);
 
-	  wout = Common::File::OpenFile(outputFileName,
+	  wout = AGSFile::OpenFile(outputFileName,
           (a == 0) ? Common::kFile_Create : Common::kFile_CreateAlways, Common::kFile_Write);
 	  if (wout == NULL) 
 	  {
@@ -1984,7 +1974,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
     delete wout;
   }
 
-  wout = Common::File::OpenFile(firstDataFileFullPath, Common::kFile_Open, Common::kFile_ReadWrite);
+  wout = AGSFile::OpenFile(firstDataFileFullPath, Common::kFile_Open, Common::kFile_ReadWrite);
   wout->Seek(startOffset, Common::kSeekBegin);
   MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, 0, wout);
   delete wout;
@@ -4161,7 +4151,7 @@ void save_room_file(const char *path)
                                // Prepare script links
     convert_room_interactions_to_native();
 
-    Stream *out = AGS::Common::File::CreateFile(path);
+    Stream *out = AGSFile::CreateFile(path);
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");
 

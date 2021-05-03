@@ -183,8 +183,8 @@ void Test_File()
     // Assertions
     assert(int16val == 10);
     assert(int64val == -20202);
-    assert(strcmp(str1, "test.tmp") == 0);
-    assert(strcmp(str2, very_long_string) == 0);
+    assert(strcmp(str1.GetCStr(), "test.tmp") == 0);
+    assert(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
     assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     assert(int32val == 20);
 

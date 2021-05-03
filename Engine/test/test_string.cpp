@@ -79,7 +79,7 @@ void Test_String()
         assert(s4.GetCStr() == cstr + 5);
         s4.Append("12345");
         assert(s4.GetCStr() == cstr);
-        assert(strcmp(s4, "12345123456789012345") == 0);
+        assert(strcmp(s4.GetCStr(), "12345123456789012345") == 0);
     }
 
     // Test Compare
@@ -191,16 +191,16 @@ void Test_String()
         String s10 = s1.Mid(-1, 0);
         String s11 = s1.Right(0);
 
-        assert(strcmp(s2, "this") == 0);
-        assert(strcmp(s3, "this is a string to be split") == 0);
-        assert(strcmp(s4, "string to be split") == 0);
-        assert(strcmp(s5, "string") == 0);
-        assert(strcmp(s6, "this is a string to be split") == 0);
-        assert(strcmp(s7, "split") == 0);
-        assert(strcmp(s8, "this is a string to be split") == 0);
-        assert(strcmp(s9, "") == 0);
-        assert(strcmp(s10, "") == 0);
-        assert(strcmp(s11, "") == 0);
+        assert(strcmp(s2.GetCStr(), "this") == 0);
+        assert(strcmp(s3.GetCStr(), "this is a string to be split") == 0);
+        assert(strcmp(s4.GetCStr(), "string to be split") == 0);
+        assert(strcmp(s5.GetCStr(), "string") == 0);
+        assert(strcmp(s6.GetCStr(), "this is a string to be split") == 0);
+        assert(strcmp(s7.GetCStr(), "split") == 0);
+        assert(strcmp(s8.GetCStr(), "this is a string to be split") == 0);
+        assert(strcmp(s9.GetCStr(), "") == 0);
+        assert(strcmp(s10.GetCStr(), "") == 0);
+        assert(strcmp(s11.GetCStr(), "") == 0);
     }
 
     // Test Section
@@ -238,13 +238,13 @@ void Test_String()
     {
         String s1 = "a string to enlarge - ";
         s1.Append("make it bigger");
-        assert(strcmp(s1, "a string to enlarge - make it bigger") == 0);
+        assert(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger") == 0);
         s1.AppendChar('!');
-        assert(strcmp(s1, "a string to enlarge - make it bigger!") == 0);
+        assert(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger!") == 0);
         s1.AppendChar(' ');
-        assert(strcmp(s1, "a string to enlarge - make it bigger! ") == 0);
+        assert(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger! ") == 0);
         s1.Append("much much bigger!");
-        assert(strcmp(s1, "a string to enlarge - make it bigger! much much bigger!") == 0);
+        assert(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger! much much bigger!") == 0);
     }
 
     // Test Clip
@@ -260,11 +260,11 @@ void Test_String()
         str3.ClipMid(5, 12);
         str4.ClipMid(5, 0);
         str5.ClipMid(0);
-        assert(strcmp(str1, " truncateable string") == 0);
-        assert(strcmp(str2, "long truncateable ") == 0);
-        assert(strcmp(str3, "long  string") == 0);
-        assert(strcmp(str4, "long truncateable string") == 0);
-        assert(strcmp(str5, "") == 0);
+        assert(strcmp(str1.GetCStr(), " truncateable string") == 0);
+        assert(strcmp(str2.GetCStr(), "long truncateable ") == 0);
+        assert(strcmp(str3.GetCStr(), "long  string") == 0);
+        assert(strcmp(str4.GetCStr(), "long truncateable string") == 0);
+        assert(strcmp(str5.GetCStr(), "") == 0);
     }
 
     // Test ClipSection
@@ -292,35 +292,35 @@ void Test_String()
         str9.ClipSection('\\', 1, 3);
         str10.ClipSection('\\', 3, 1);
         str11.ClipSection('\\', 0, 4);
-        assert(strcmp(str1, "Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str2, "\\Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str3, "C:\\Games\\AGS") == 0);
-        assert(strcmp(str4, "C:\\Games\\AGS\\") == 0);
-        assert(strcmp(str5, "C:MyNewGame") == 0);
-        assert(strcmp(str6, "C:\\\\MyNewGame") == 0);
-        assert(strcmp(str7, "C:\\Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str8, "MyNewGame") == 0);
-        assert(strcmp(str9, "C:") == 0);
-        assert(strcmp(str10, "C:\\Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str11, "") == 0);
+        assert(strcmp(str1.GetCStr(), "Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str2.GetCStr(), "\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str3.GetCStr(), "C:\\Games\\AGS") == 0);
+        assert(strcmp(str4.GetCStr(), "C:\\Games\\AGS\\") == 0);
+        assert(strcmp(str5.GetCStr(), "C:MyNewGame") == 0);
+        assert(strcmp(str6.GetCStr(), "C:\\\\MyNewGame") == 0);
+        assert(strcmp(str7.GetCStr(), "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str8.GetCStr(), "MyNewGame") == 0);
+        assert(strcmp(str9.GetCStr(), "C:") == 0);
+        assert(strcmp(str10.GetCStr(), "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str11.GetCStr(), "") == 0);
     }
 
     // Test making new string
     {
         String s1 = "we have some string here";
-        assert(strcmp(s1, "we have some string here") == 0);
+        assert(strcmp(s1.GetCStr(), "we have some string here") == 0);
         s1.Empty();
-        assert(strcmp(s1, "") == 0);
+        assert(strcmp(s1.GetCStr(), "") == 0);
         s1.FillString('z', 10);
-        assert(strcmp(s1, "zzzzzzzzzz") == 0);
+        assert(strcmp(s1.GetCStr(), "zzzzzzzzzz") == 0);
         s1.FillString('a', 0);
-        assert(strcmp(s1, "") == 0);
+        assert(strcmp(s1.GetCStr(), "") == 0);
         s1.Format("this %d is %9ld a %x formatted %0.2f string %s", 1,2,100,22.55F,"abcd");
-        assert(strcmp(s1, "this 1 is         2 a 64 formatted 22.55 string abcd") == 0);
+        assert(strcmp(s1.GetCStr(), "this 1 is         2 a 64 formatted 22.55 string abcd") == 0);
         s1.SetString("some string");
-        assert(strcmp(s1, "some string") == 0);
+        assert(strcmp(s1.GetCStr(), "some string") == 0);
         s1.SetString("some string", 4);
-        assert(strcmp(s1, "some") == 0);
+        assert(strcmp(s1.GetCStr(), "some") == 0);
     }
 
     // Test Upper/Lower case
@@ -330,21 +330,21 @@ void Test_String()
         String s3 = s1;
         s2.MakeLower();
         s3.MakeUpper();
-        assert(strcmp(s2, "this string is twisted") == 0);
-        assert(strcmp(s3, "THIS STRING IS TWISTED") == 0);
+        assert(strcmp(s2.GetCStr(), "this string is twisted") == 0);
+        assert(strcmp(s3.GetCStr(), "THIS STRING IS TWISTED") == 0);
     }
 
     // Test Prepend
     {
         String s1 = "- a string to enlarge";
         s1.Prepend("make it bigger ");
-        assert(strcmp(s1, "make it bigger - a string to enlarge") == 0);
+        assert(strcmp(s1.GetCStr(), "make it bigger - a string to enlarge") == 0);
         s1.PrependChar('!');
-        assert(strcmp(s1, "!make it bigger - a string to enlarge") == 0);
+        assert(strcmp(s1.GetCStr(), "!make it bigger - a string to enlarge") == 0);
         s1.PrependChar(' ');
-        assert(strcmp(s1, " !make it bigger - a string to enlarge") == 0);
+        assert(strcmp(s1.GetCStr(), " !make it bigger - a string to enlarge") == 0);
         s1.Prepend("much much bigger!");
-        assert(strcmp(s1, "much much bigger! !make it bigger - a string to enlarge") == 0);
+        assert(strcmp(s1.GetCStr(), "much much bigger! !make it bigger - a string to enlarge") == 0);
     }
 
     // Test ReplaceMid
@@ -354,12 +354,12 @@ void Test_String()
         String new_long = "WITH A NEW TAD LONGER SUBSTRING";
         String new_short = "SMALL STRING";
         s1.ReplaceMid(19, 19, new_long);
-        assert(strcmp(s1, "we need to replace WITH A NEW TAD LONGER SUBSTRING in this string") == 0);
+        assert(strcmp(s1.GetCStr(), "we need to replace WITH A NEW TAD LONGER SUBSTRING in this string") == 0);
         s2.ReplaceMid(19, 19, new_short);
-        assert(strcmp(s2, "we need to replace SMALL STRING in this string") == 0);
+        assert(strcmp(s2.GetCStr(), "we need to replace SMALL STRING in this string") == 0);
         String s3 = "insert new string here: ";
         s3.ReplaceMid(s3.GetLength(), 0, "NEW STRING");
-        assert(strcmp(s3, "insert new string here: NEW STRING") == 0);
+        assert(strcmp(s3.GetCStr(), "insert new string here: NEW STRING") == 0);
     }
 
     // Test Reverse
@@ -367,28 +367,28 @@ void Test_String()
         String s1 = "Reverse this string";
         String s2 = s1;
         s2.Reverse();
-        assert(strcmp(s2, "gnirts siht esreveR") == 0);
-        assert(strcmp(s1, "Reverse this string") == 0);
+        assert(strcmp(s2.GetCStr(), "gnirts siht esreveR") == 0);
+        assert(strcmp(s1.GetCStr(), "Reverse this string") == 0);
         String s3 = "x";
         s3.Reverse();
-        assert(strcmp(s3, "x") == 0);
+        assert(strcmp(s3.GetCStr(), "x") == 0);
         String s4 = "xy";
         s4.Reverse();
-        assert(strcmp(s4, "yx") == 0);
+        assert(strcmp(s4.GetCStr(), "yx") == 0);
     }
 
     // Test SetAt
     {
         String s1 = "strimg wiyh typos";
         s1.SetAt(-1, 'a');
-        assert(strcmp(s1, "strimg wiyh typos") == 0);
+        assert(strcmp(s1.GetCStr(), "strimg wiyh typos") == 0);
         s1.SetAt(100, 'a');
-        assert(strcmp(s1, "strimg wiyh typos") == 0);
+        assert(strcmp(s1.GetCStr(), "strimg wiyh typos") == 0);
         s1.SetAt(1, 0);
-        assert(strcmp(s1, "strimg wiyh typos") == 0);
+        assert(strcmp(s1.GetCStr(), "strimg wiyh typos") == 0);
         s1.SetAt(4, 'n');
         s1.SetAt(9, 't');
-        assert(strcmp(s1, "string with typos") == 0);
+        assert(strcmp(s1.GetCStr(), "string with typos") == 0);
     }
 
     // Test Trim
@@ -405,11 +405,11 @@ void Test_String()
         str4.Trim('|');
         str5.Trim();
 
-        assert(strcmp(str1, "This string is quite long and should be cut a little bit\r\n    ") == 0);
-        assert(strcmp(str2, "\t   This string is quite long and should be cut a little bit") == 0);
-        assert(strcmp(str3, "This string is quite long and should be cut a little bit") == 0);
-        assert(strcmp(str4, "\t   This string is quite long and should be cut a little bit\r\n    ") == 0);
-        assert(strcmp(str5, "There's nothing to trim here") == 0);
+        assert(strcmp(str1.GetCStr(), "This string is quite long and should be cut a little bit\r\n    ") == 0);
+        assert(strcmp(str2.GetCStr(), "\t   This string is quite long and should be cut a little bit") == 0);
+        assert(strcmp(str3.GetCStr(), "This string is quite long and should be cut a little bit") == 0);
+        assert(strcmp(str4.GetCStr(), "\t   This string is quite long and should be cut a little bit\r\n    ") == 0);
+        assert(strcmp(str5.GetCStr(), "There's nothing to trim here") == 0);
     }
 
     // Test Truncate
@@ -425,11 +425,11 @@ void Test_String()
         str3.TruncateToMid(5, 12);
         str4.TruncateToMid(5, 0);
         str5.TruncateToMid(0);
-        assert(strcmp(str1, "long") == 0);
-        assert(strcmp(str2, "string") == 0);
-        assert(strcmp(str3, "truncateable") == 0);
-        assert(strcmp(str4, "") == 0);
-        assert(strcmp(str5, "long truncateable string") == 0);
+        assert(strcmp(str1.GetCStr(), "long") == 0);
+        assert(strcmp(str2.GetCStr(), "string") == 0);
+        assert(strcmp(str3.GetCStr(), "truncateable") == 0);
+        assert(strcmp(str4.GetCStr(), "") == 0);
+        assert(strcmp(str5.GetCStr(), "long truncateable string") == 0);
     }
 
     // Test TruncateToSection
@@ -459,18 +459,18 @@ void Test_String()
         str10.TruncateToSection('\\', 3, 1);
         str11.TruncateToSection('\\', 3, 3);
         str12.TruncateToSection('\\', 3, 3, false, false);
-        assert(strcmp(str1, "C:") == 0);
-        assert(strcmp(str2, "C:\\") == 0);
-        assert(strcmp(str3, "MyNewGame") == 0);
-        assert(strcmp(str4, "\\MyNewGame") == 0);
-        assert(strcmp(str5, "Games\\AGS") == 0);
-        assert(strcmp(str6, "\\Games\\AGS\\") == 0);
-        assert(strcmp(str7, "") == 0);
-        assert(strcmp(str8, "C:\\Games\\AGS") == 0);
-        assert(strcmp(str9, "Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str10, "") == 0);
-        assert(strcmp(str11, "MyNewGame") == 0);
-        assert(strcmp(str12, "\\MyNewGame") == 0);
+        assert(strcmp(str1.GetCStr(), "C:") == 0);
+        assert(strcmp(str2.GetCStr(), "C:\\") == 0);
+        assert(strcmp(str3.GetCStr(), "MyNewGame") == 0);
+        assert(strcmp(str4.GetCStr(), "\\MyNewGame") == 0);
+        assert(strcmp(str5.GetCStr(), "Games\\AGS") == 0);
+        assert(strcmp(str6.GetCStr(), "\\Games\\AGS\\") == 0);
+        assert(strcmp(str7.GetCStr(), "") == 0);
+        assert(strcmp(str8.GetCStr(), "C:\\Games\\AGS") == 0);
+        assert(strcmp(str9.GetCStr(), "Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str10.GetCStr(), "") == 0);
+        assert(strcmp(str11.GetCStr(), "MyNewGame") == 0);
+        assert(strcmp(str12.GetCStr(), "\\MyNewGame") == 0);
     }
 
     // Test Split
@@ -478,26 +478,26 @@ void Test_String()
         String str1 = "C:\\Games\\AGS\\MyNewGame\\";
         std::vector<String> result = str1.Split('\\');
         assert(result.size() == 5);
-        assert(strcmp(result[0], "C:") == 0);
-        assert(strcmp(result[1], "Games") == 0);
-        assert(strcmp(result[2], "AGS") == 0);
-        assert(strcmp(result[3], "MyNewGame") == 0);
-        assert(strcmp(result[4], "") == 0);
+        assert(strcmp(result[0].GetCStr(), "C:") == 0);
+        assert(strcmp(result[1].GetCStr(), "Games") == 0);
+        assert(strcmp(result[2].GetCStr(), "AGS") == 0);
+        assert(strcmp(result[3].GetCStr(), "MyNewGame") == 0);
+        assert(strcmp(result[4].GetCStr(), "") == 0);
         String str2 = "test,,,test";
         result = str2.Split(',');
         assert(result.size() == 4);
-        assert(strcmp(result[0], "test") == 0);
-        assert(strcmp(result[1], "") == 0);
-        assert(strcmp(result[2], "") == 0);
-        assert(strcmp(result[3], "test") == 0);
+        assert(strcmp(result[0].GetCStr(), "test") == 0);
+        assert(strcmp(result[1].GetCStr(), "") == 0);
+        assert(strcmp(result[2].GetCStr(), "") == 0);
+        assert(strcmp(result[3].GetCStr(), "test") == 0);
         String str3 = ",,test,,";
         result = str3.Split(',');
         assert(result.size() == 5);
-        assert(strcmp(result[0], "") == 0);
-        assert(strcmp(result[1], "") == 0);
-        assert(strcmp(result[2], "test") == 0);
-        assert(strcmp(result[3], "") == 0);
-        assert(strcmp(result[4], "") == 0);
+        assert(strcmp(result[0].GetCStr(), "") == 0);
+        assert(strcmp(result[1].GetCStr(), "") == 0);
+        assert(strcmp(result[2].GetCStr(), "test") == 0);
+        assert(strcmp(result[3].GetCStr(), "") == 0);
+        assert(strcmp(result[4].GetCStr(), "") == 0);
     }
 
     // Test Wrap

@@ -575,7 +575,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     AssetPath asset_name(filename, "audio");
 
     if (soundType == PSND_WAVE)
-        newcha = my_load_wave (asset_name, volume, loop);
+        newcha = my_load_wave (asset_name, volume, (loop != 0));
     else if (soundType == PSND_MP3STREAM)
         newcha = my_load_mp3 (asset_name, volume);
     else if (soundType == PSND_OGGSTREAM)
@@ -587,11 +587,11 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     else if (soundType == PSND_MIDI) {
         if (play.silent_midi != 0 || current_music_type == MUS_MIDI)
             quit("!IAGSEngine::PlaySoundChannel: MIDI already in use");
-        newcha = my_load_midi (asset_name, loop);
+        newcha = my_load_midi (asset_name, (loop != 0));
         newcha->set_volume (volume);
     }
     else if (soundType == PSND_MOD) {
-        newcha = my_load_mod (asset_name, loop);
+        newcha = my_load_mod (asset_name, (loop != 0));
         newcha->set_volume (volume);
     }
     else

@@ -305,7 +305,7 @@ void preparesavegamelist(int ctrllist)
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty
-  for (numsaves = 0; numsaves < (size_t)saves.size(); ++numsaves)
+  for (numsaves = 0; (size_t)numsaves < saves.size(); ++numsaves)
   {
       CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)saves[numsaves].Description.GetCStr());
       filenumbers[numsaves] = saves[numsaves].Slot;

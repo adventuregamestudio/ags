@@ -141,7 +141,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     if (SDL_GetRendererInfo(_renderer, &rinfo) == 0) {
       Debug::Printf("Created Renderer: %s", rinfo.name);
       Debug::Printf("Available texture formats:");
-      for (int i = 0; i < rinfo.num_texture_formats; i++) {
+      for (Uint32 i = 0; i < rinfo.num_texture_formats; i++) {
         Debug::Printf("\t- %s", SDL_GetPixelFormatName(rinfo.texture_formats[i]));
       }
     }

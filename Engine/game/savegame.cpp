@@ -363,7 +363,7 @@ void DoBeforeRestore(PreservedParams &pp)
 
     // cleanup dynamic sprites
     // NOTE: sprite 0 is a special constant sprite that cannot be dynamic
-    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {

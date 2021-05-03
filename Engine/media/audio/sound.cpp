@@ -14,7 +14,7 @@
 #include "media/audio/sound.h"
 #include "media/audio/clip_openal.h"
 
-SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, int loop)
+SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, bool loop)
 {
     return my_load_openal(asset_name, "WAV", voll, loop);
 }
@@ -39,13 +39,13 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     return my_load_openal(asset_name, "OGG", voll, false);
 }
 
-SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
+SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MIDI", 0, repet);
+    return my_load_openal(asset_name, "MIDI", 0, loop);
 }
 
-SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
+SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MOD", 0, repet);
+    return my_load_openal(asset_name, "MOD", 0, loop);
 }
 

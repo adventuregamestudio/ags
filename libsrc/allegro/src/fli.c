@@ -829,8 +829,6 @@ static void read_frame(void)
  */
 static int do_open_fli(void)
 {
-   long speed;
-
    /* read the header */
    if (_fli_read_header(&fli_header) != 0) {
       close_fli();

@@ -126,7 +126,7 @@ void DeleteSaveSlot (int slnum) {
             thisname = get_save_game_path(i);
             if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
-                rename (thisname, nametouse);
+                File::RenameFile(thisname, nametouse);
                 break;
             }
         }

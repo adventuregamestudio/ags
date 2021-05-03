@@ -83,6 +83,11 @@ bool File::DeleteFile(const String &filename)
     return true;
 }
 
+bool File::RenameFile(const String &old_name, const String &new_name)
+{
+    return ::rename(old_name, new_name) == 0;
+}
+
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)
 {
     // We do not test for 'b' and 't' here, because text mode reading/writing should be done with

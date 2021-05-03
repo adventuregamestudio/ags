@@ -250,7 +250,7 @@ void load_room(const String &filename, RoomStruct *room, bool game_is_hires, con
             err = UpdateRoomData(room, src.DataVersion, game_is_hires, sprinfos);
     }
     if (!err)
-        quitprintf("Unable to load the room file '%s'.\n%s.", filename, err->FullMessage().GetCStr());
+        quitprintf("Unable to load the room file '%s'.\n%s.", filename.GetCStr(), err->FullMessage().GetCStr());
 }
 
 PBitmap FixBitmap(PBitmap bmp, int width, int height)

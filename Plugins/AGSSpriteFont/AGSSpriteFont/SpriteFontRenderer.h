@@ -21,7 +21,7 @@ public:
 	
 private:
 	SpriteFont *getFontFor(int fontNum);
-	void Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height);
+	void Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour);
 	std::vector<SpriteFont * > _fonts;
 	IAGSEngine *_engine;
 };

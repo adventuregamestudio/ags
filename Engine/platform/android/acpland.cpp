@@ -586,7 +586,7 @@ int ReadString(char* variable, const ConfigTree &cfg, const char* section, const
   if (!INIreaditem(cfg, section, name, temp))
     temp = default_value;
 
-  strcpy(variable, temp);
+  strcpy(variable, temp.GetCStr());
 
   return 1;
 }

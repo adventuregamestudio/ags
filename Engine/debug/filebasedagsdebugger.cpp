@@ -28,7 +28,7 @@ bool FileBasedAGSDebugger::Initialize()
 {
     if (Path::IsFile(SENT_MESSAGE_FILE_NAME))
     {
-        ::remove(SENT_MESSAGE_FILE_NAME);
+        File::DeleteFile(SENT_MESSAGE_FILE_NAME);
     }
     return true;
 }
@@ -70,7 +70,7 @@ char* FileBasedAGSDebugger::GetNextMessage()
     char *msg = (char*)malloc(fileSize + 1);
     in->Read(msg, fileSize);
     delete in;
-    ::remove("dbgsend.tmp");
+    File::DeleteFile("dbgsend.tmp");
     msg[fileSize] = 0;
     return msg;
 }

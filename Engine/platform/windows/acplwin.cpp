@@ -21,6 +21,7 @@
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
+#undef DeleteFile
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <gameux.h>
@@ -228,7 +229,7 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
   // Remove any existing "Play.lnk" from a previous version
   char shortcutLocation[MAX_PATH];
   sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
-  ::remove(shortcutLocation);
+  File::DeleteFile(shortcutLocation);
 
   // Generate the shortcut file name (because it can appear on
   // the start menu's Recent area)

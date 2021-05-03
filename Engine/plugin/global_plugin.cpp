@@ -209,6 +209,18 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("AGS2Client::Initialize^2", Sc_PluginStub_Int0);
     if (is_agsteam)
     {
+      ccAddExternalStaticFunction("Steam::AddAchievement^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::AddStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::GetIntStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::GetFloatStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::SetIntStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::SetFloatStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::ResetAchievements^0", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("Steam::ResetStats^0", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("Steam::IsAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::SetAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("Steam::ResetStatsAndAchievements^0", Sc_PluginStub_Void);
+	    
       ccAddExternalStaticFunction("AGSteam::IsAchievementAchieved^1", Sc_PluginStub_Int0);
       ccAddExternalStaticFunction("AGSteam::SetAchievementAchieved^1", Sc_PluginStub_Int0);
       ccAddExternalStaticFunction("AGSteam::ResetAchievement^1", Sc_PluginStub_Int0);

@@ -80,7 +80,7 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 	Cstretch_sprite(dst->GetAllegroBitmap(), src->GetAllegroBitmap(), x, y, w, h);
 }
 
-void save_room_file(const char *path);
+void save_room_file(const AGSString &path);
 
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
@@ -380,7 +380,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   return 1;
 }
 
-HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber)
+HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
@@ -401,7 +401,7 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
       continue; // should not normally happen
 
     // don't extract the template metadata file
-    if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
+    if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
     soff_t size = 0;
@@ -431,7 +431,7 @@ HAGSError extract_room_template_files(const char *templateFileName, int newRoomN
   return HAGSError::None();
 }
 
-HAGSError extract_template_files(const char *templateFileName)
+HAGSError extract_template_files(const AGSString &templateFileName)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
@@ -452,7 +452,7 @@ HAGSError extract_template_files(const char *templateFileName)
       continue; // should not normally happen
 
     // don't extract the dummy template lock file
-    if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
+    if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
     soff_t size = 0;
@@ -501,7 +501,7 @@ void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char 
   }
 }
 
-int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
+int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
@@ -532,9 +532,9 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
 	  else if ((templateMgr->DoesAssetExist(old_editor_data_file)) || (templateMgr->DoesAssetExist(new_editor_data_file)))
 	  {
       Common::String oriname = lib->BaseFileName;
-      if ((strstr(oriname, ".exe") != NULL) ||
-          (strstr(oriname, ".dat") != NULL) ||
-          (strstr(oriname, ".ags") != NULL)) 
+      if ((oriname.FindString(".exe") != -1) ||
+          (oriname.FindString(".dat") != -1) ||
+          (oriname.FindString(".ags") != -1))
       {
         // wasn't originally meant as a template
 	      return 0;
@@ -906,10 +906,10 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 	
 }
 
-const char* import_sci_font(const char*fnn,int fslot) {
+AGSString import_sci_font(const AGSString &filename, int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
-  Stream*iii=AGSFile::OpenFileRead(fnn);
+  Stream*iii=AGSFile::OpenFileRead(filename);
   if (iii==NULL) {
     return "File not found";
   }
@@ -1454,11 +1454,11 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
     return HAGSError::None();
 }
 
-HAGSError load_dta_file_into_thisgame(const char *fileName)
+HAGSError load_dta_file_into_thisgame(const AGSString &filename)
 {
     AGS::Common::MainGameSource src;
     AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
-    HGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
+    HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
         load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
@@ -1645,9 +1645,9 @@ void copy_global_palette_to_room_palette()
   }
 }
 
-const char* load_room_file(const char*rtlo) {
+AGSString load_room_file(const AGSString &filename) {
 
-  load_room(rtlo, &thisroom, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
+  load_room(filename, &thisroom, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
 
   // Allocate enough memory to add extra variables
   thisroom.LocalVariables.resize(MAX_GLOBAL_VARIABLES);
@@ -1681,7 +1681,7 @@ const char* load_room_file(const char*rtlo) {
   validate_mask(thisroom.WalkBehindMask.get(), "walk-behind", MAX_WALK_AREAS + 1);
   validate_mask(thisroom.WalkAreaMask.get(), "walkable area", MAX_WALK_AREAS + 1);
   validate_mask(thisroom.RegionMask.get(), "regions", MAX_ROOM_REGIONS);
-  return NULL;
+  return AGSString();
 }
 
 void calculate_walkable_areas () {
@@ -1749,7 +1749,7 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
         AGS::Common::AssetInfo &asset = lib.AssetInfos[i];
         soff_t filesize = AGSFile::GetFileSize(filenames[i]);
         if (filesize < 0)
-            ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", filenames[i].GetCStr()));
+            ThrowManagedException((AGSString::FromFormat("Unable to retrieve file size: '%s'", filenames[i].GetCStr())).GetCStr());
         asset.FileName = AGSPath::GetFilename(filenames[i]);
         asset.Size = filesize;
     }
@@ -1757,7 +1757,7 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     // Write the header
     Stream *wout = AGSFile::CreateFile(dataFileName);
     if (!wout)
-        ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()));
+        ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()).GetCStr());
 
     MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, 0, wout);
 
@@ -1794,8 +1794,8 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
 
     if (!err_msg.IsEmpty())
     {
-        ThrowManagedException(err_msg);
         AGSFile::DeleteFile(dataFileName);
+        ThrowManagedException(err_msg.GetCStr());
     }
 }
 
@@ -1866,7 +1866,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 		  fileNameSrc = strrchr(fileNames[a], '/') + 1;
       if (strlen(fileNameSrc) >= MAX_PATH)
       {
-          ThrowManagedException(AGSString::FromFormat("Filename too long: %s", fileNames[a]));
+          ThrowManagedException(AGSString::FromFormat("Filename too long: %s", fileNames[a]).GetCStr());
       }
       lib.AssetInfos[a].FileName = fileNameSrc;
       lib.AssetInfos[a].LibUid = currentDataFile;
@@ -1909,7 +1909,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   // write the correct amount of data
   for (size_t b = 0; b < lib.AssetInfos.size(); b++) 
   {
-	Stream *iii = find_file_in_path(AssetMgr.get(), tomake, lib.AssetInfos[b].FileName);
+	Stream *iii = find_file_in_path(AssetMgr.get(), tomake, lib.AssetInfos[b].FileName.GetCStr());
 	if (iii != NULL)
 	{
 		delete iii;
@@ -1950,7 +1950,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
       if (asset.LibUid == a) {
           asset.Offset = wout->GetPosition() - startOffset;
 
-		Stream *iii = find_file_in_path(AssetMgr.get(), NULL, asset.FileName);
+		Stream *iii = find_file_in_path(AssetMgr.get(), NULL, asset.FileName.GetCStr());
         if (iii == NULL) {
           delete wout;
           unlink(outputFileName);
@@ -2174,7 +2174,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     {
         if (IO::File::Exists(sprfilename))
             IO::File::Delete(sprfilename);
-        IO::File::Move(gcnew String(temp_spritefile), sprfilename);
+        IO::File::Move(ToStr(temp_spritefile), sprfilename);
     }
     catch (Exception ^e)
     {
@@ -2187,7 +2187,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (IO::File::Exists(sprindexfilename))
             IO::File::Delete(sprindexfilename);
         if (!temp_indexfile.IsEmpty())
-            IO::File::Move(gcnew String(temp_indexfile), sprindexfilename);
+            IO::File::Move(ToStr(temp_indexfile), sprindexfilename);
     }
     catch (Exception ^e)
     {// TODO: ignore for now, but proper warning output system in needed here
@@ -2229,7 +2229,7 @@ void SaveNativeSprites(bool compressSprites)
         {
             throw gcnew AGSEditorException(
                 String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
-                    Environment::NewLine, gcnew String(saved_spritefile)), main_exception);
+                    Environment::NewLine, ToStr(saved_spritefile)), main_exception);
         }
     }
     spritesModified = false;
@@ -3009,8 +3009,8 @@ void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, AGS::Comm
          it != propToConvert->end(); ++it)
 	{
 		CustomProperty ^newProp = gcnew CustomProperty();
-		newProp->Name = gcnew String(it->first);
-		newProp->Value = gcnew String(it->second);
+		newProp->Name = ToStr(it->first);
+		newProp->Value = ToStr(it->second);
 		insertInto->PropertyValues->Add(newProp->Name, newProp);
 	}
 }
@@ -3273,7 +3273,7 @@ void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::Intera
 
 	for (size_t i = 0; i < source->ScriptFuncNames.size(); i++) 
 	{
-		destination->ScriptFunctionNames[i] = gcnew String(source->ScriptFuncNames[i]);
+		destination->ScriptFunctionNames[i] = ToStr(source->ScriptFuncNames[i]);
 	}
 }
 
@@ -3305,13 +3305,13 @@ void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *in
 // although technically it can now load game files of any version, more work is
 // required to properly fill in editor's Game object's fields depending on
 // which version is being loaded.
-Game^ import_compiled_game_dta(const char *fileName)
+Game^ import_compiled_game_dta(const AGSString &filename)
 {
-	HAGSError err = load_dta_file_into_thisgame(fileName);
+	HAGSError err = load_dta_file_into_thisgame(filename);
     loaded_game_file_version = kGameVersion_Current;
 	if (!err)
 	{
-		throw gcnew AGS::Types::AGSEditorException(gcnew String(err->FullMessage()));
+		throw gcnew AGS::Types::AGSEditorException(ToStr(err->FullMessage()));
 	}
 
 	Game^ game = gcnew Game();
@@ -3404,14 +3404,14 @@ Game^ import_compiled_game_dta(const char *fileName)
 			pluginData[j] = data_ptr[j];
 		}
 		
-		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(gcnew String(thisgamePlugins[i].Name), pluginData);
+		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(ToStr(thisgamePlugins[i].Name), pluginData);
 		game->Plugins->Add(plugin);
 	}
 
 	for (i = 0; i < numGlobalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(globalvars[i].Name), globalvars[i].Value);
+		intVar = gcnew OldInteractionVariable(ToStr(globalvars[i].Name), globalvars[i].Value);
 		game->OldInteractionVariables->Add(intVar);
 	}
 	
@@ -3419,7 +3419,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	for (i = 0; i < thisgame.numviews; i++) 
 	{
 		AGS::Types::View ^view = gcnew AGS::Types::View();
-		view->Name = gcnew String(thisgame.viewNames[i]);
+		view->Name = ToStr(thisgame.viewNames[i]);
 		view->ID = i + 1;
 
 		for (int j = 0; j < newViews[i].numLoops; j++) 
@@ -3530,8 +3530,8 @@ Game^ import_compiled_game_dta(const char *fileName)
 			newDialog->Options->Add(newOption);
 		}
 
-		newDialog->Name = gcnew String(thisgame.dialogScriptNames[i]);
-		newDialog->Script = gcnew String(dlgscript[i]);
+		newDialog->Name = ToStr(thisgame.dialogScriptNames[i]);
+		newDialog->Script = ToStr(dlgscript[i]);
 		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
 
 		game->Dialogs->Add(newDialog);
@@ -3587,7 +3587,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		invItem->HotspotX = thisgame.invinfo[i].hotx;
 		invItem->HotspotY = thisgame.invinfo[i].hoty;
 		invItem->ID = i;
-		invItem->Name = gcnew String(thisgame.invScriptNames[i]);
+		invItem->Name = ToStr(thisgame.invScriptNames[i]);
 		invItem->PlayerStartsWithItem = (thisgame.invinfo[i].flags & IFLG_STARTWITH);
 
 		ConvertCustomProperties(invItem->Properties, &thisgame.invProps[i]);
@@ -3603,9 +3603,9 @@ Game^ import_compiled_game_dta(const char *fileName)
          it != thisgame.propSchema.end(); ++it)
 	{
 		CustomPropertySchemaItem ^schemaItem = gcnew CustomPropertySchemaItem();
-		schemaItem->Name = gcnew String(it->second.Name);
-		schemaItem->Description = gcnew String(it->second.Description);
-		schemaItem->DefaultValue = gcnew String(it->second.DefaultValue);
+		schemaItem->Name = ToStr(it->second.Name);
+		schemaItem->Description = ToStr(it->second.Description);
+		schemaItem->DefaultValue = ToStr(it->second.DefaultValue);
 		schemaItem->Type = (AGS::Types::CustomPropertyType)it->second.Type;
 
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
@@ -3635,13 +3635,13 @@ Game^ import_compiled_game_dta(const char *fileName)
 			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
 			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].PopupStyle;
 			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
-			((NormalGUI^)newGui)->OnClick = gcnew String(guis[i].OnClickHandler);
+			((NormalGUI^)newGui)->OnClick = ToStr(guis[i].OnClickHandler);
       ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;
 		}
 		newGui->BackgroundColor = guis[i].BgColor;
 		newGui->BackgroundImage = guis[i].BgImage;
 		newGui->ID = i;
-		newGui->Name = gcnew String(guis[i].Name);
+		newGui->Name = ToStr(guis[i].Name);
 
 		for (int j = 0; j < guis[i].GetControlCount(); j++)
 		{
@@ -3673,8 +3673,8 @@ Game^ import_compiled_game_dta(const char *fileName)
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
                     newButton->ClipImage = copyFrom->IsClippingImage();
-					newButton->Text = gcnew String(copyFrom->GetText());
-					newButton->OnClick = gcnew String(copyFrom->EventHandlers[0]);
+					newButton->Text = ToStr(copyFrom->GetText());
+					newButton->OnClick = ToStr(copyFrom->EventHandlers[0]);
 				}
 				break;
 				}
@@ -3686,7 +3686,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
 				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
-				newLabel->Text = gcnew String(copyFrom->GetText());
+				newLabel->Text = ToStr(copyFrom->GetText());
 				break;
 				}
 			case Common::kGUITextBox:
@@ -3697,8 +3697,8 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newTextbox->TextColor = copyFrom->TextColor;
 				  newTextbox->Font = copyFrom->Font;
                   newTextbox->ShowBorder = copyFrom->IsBorderShown();
-				  newTextbox->Text = gcnew String(copyFrom->Text);
-				  newTextbox->OnActivate = gcnew String(copyFrom->EventHandlers[0]);
+				  newTextbox->Text = ToStr(copyFrom->Text);
+				  newTextbox->OnActivate = ToStr(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -3714,7 +3714,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newListbox->ShowBorder = copyFrom->IsBorderShown();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
-				  newListbox->OnSelectionChanged = gcnew String(copyFrom->EventHandlers[0]);
+				  newListbox->OnSelectionChanged = ToStr(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUISlider:
@@ -3728,7 +3728,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newSlider->HandleImage = copyFrom->HandleImage;
 			  	  newSlider->HandleOffset = copyFrom->HandleOffset;
 				  newSlider->BackgroundImage = copyFrom->BgImage;
-				  newSlider->OnChange = gcnew String(copyFrom->EventHandlers[0]);
+				  newSlider->OnChange = ToStr(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -3753,7 +3753,7 @@ Game^ import_compiled_game_dta(const char *fileName)
             newControl->Enabled = curObj->IsEnabled();
             newControl->Visible = curObj->IsVisible();
 			newControl->ID = j;
-			newControl->Name = gcnew String(curObj->Name);
+			newControl->Name = ToStr(curObj->Name);
 			newGui->Controls->Add(newControl);
 		}
 		
@@ -3781,7 +3781,7 @@ System::String ^load_room_script(System::String ^fileName)
     if (!err)
         quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName.GetCStr(), err->FullMessage()));
 
-	return gcnew String(scriptText, 0, scriptText.GetLength(), System::Text::Encoding::Default);;
+	return gcnew String(scriptText.GetCStr(), 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
 
 int GetCurrentlyLoadedRoomNumber()
@@ -3793,10 +3793,10 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 {
     AGSString roomFileName = ConvertFileNameToNativeString(roomToLoad->FileName);
 
-	const char *errorMsg = load_room_file(roomFileName);
-	if (errorMsg != NULL) 
+	AGSString errorMsg = load_room_file(roomFileName);
+	if (!errorMsg.IsEmpty()) 
 	{
-		throw gcnew AGSEditorException(gcnew String(errorMsg));
+		throw gcnew AGSEditorException(ToStr(errorMsg));
 	}
 
     RoomTools->loaded_room_number = roomToLoad->Number;
@@ -3824,14 +3824,14 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.LocalVariables[i].Name), thisroom.LocalVariables[i].Value);
+		intVar = gcnew OldInteractionVariable(ToStr(thisroom.LocalVariables[i].Name), thisroom.LocalVariables[i].Value);
 		room->OldInteractionVariables->Add(intVar);
 	}
 
     for (size_t i = 0; i < thisroom.MessageCount; ++i)
 	{
 		RoomMessage ^newMessage = gcnew RoomMessage(i);
-		newMessage->Text = gcnew String(thisroom.Messages[i]);
+		newMessage->Text = ToStr(thisroom.Messages[i]);
 		newMessage->ShowAsSpeech = (thisroom.MessageInfos[i].DisplayAs > 0);
 		newMessage->CharacterID = (thisroom.MessageInfos[i].DisplayAs - 1);
 		newMessage->DisplayNextMessageAfter = ((thisroom.MessageInfos[i].Flags & MSG_DISPLAYNEXT) != 0);
@@ -3849,8 +3849,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->Visible = (thisroom.Objects[i].IsOn != 0);
 		obj->Clickable = ((thisroom.Objects[i].Flags & OBJF_NOINTERACT) == 0);
 		obj->Baseline = thisroom.Objects[i].Baseline;
-		obj->Name = gcnew String(thisroom.Objects[i].ScriptName);
-		obj->Description = gcnew String(thisroom.Objects[i].Name);
+		obj->Name = ToStr(thisroom.Objects[i].ScriptName);
+		obj->Description = ToStr(thisroom.Objects[i].Name);
 		obj->UseRoomAreaScaling = ((thisroom.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
 		obj->UseRoomAreaLighting = ((thisroom.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
@@ -3873,8 +3873,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
 		hotspot->ID = i;
-		hotspot->Description = gcnew String(thisroom.Hotspots[i].Name);
-		hotspot->Name = (gcnew String(thisroom.Hotspots[i].ScriptName))->Trim();
+		hotspot->Description = ToStr(thisroom.Hotspots[i].Name);
+		hotspot->Name = (ToStr(thisroom.Hotspots[i].ScriptName))->Trim();
         hotspot->WalkToPoint = System::Drawing::Point(thisroom.Hotspots[i].WalkTo.X, thisroom.Hotspots[i].WalkTo.Y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 
@@ -4133,7 +4133,7 @@ void convert_room_interactions_to_native()
 #pragma unmanaged
 
 
-void save_room_file(const char *path)
+void save_room_file(const AGSString &path)
 {
     thisroom.DataVersion = kRoomVersion_Current;
     copy_room_palette_to_global_palette();

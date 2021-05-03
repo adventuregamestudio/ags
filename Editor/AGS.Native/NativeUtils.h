@@ -21,6 +21,8 @@
 
 typedef AGS::Common::String AGSString;
 
+System::String^ ToStr(const AGS::Common::String &str);
+
 AGSString ConvertStringToNativeString(System::String^ clrString);
 AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len);
 AGSString ConvertFileNameToNativeString(System::String^ clrString);

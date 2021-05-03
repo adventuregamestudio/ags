@@ -23,11 +23,11 @@ typedef AGS::Common::HError HAGSError;
 
 extern bool initialize_native();
 extern void shutdown_native();
-extern AGS::Types::Game^ import_compiled_game_dta(const char *fileName);
+extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
 extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
 extern void save_crm_file(Room ^roomToSave);
-extern const char* import_sci_font(const char*fnn,int fslot);
+extern AGSString import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
@@ -56,9 +56,9 @@ extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
 extern int GetCurrentlyLoadedRoomNumber();
-extern int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
-extern HAGSError extract_template_files(const char *templateFileName);
-extern HAGSError extract_room_template_files(const char *templateFileName, int newRoomNumber);
+extern int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
+extern HAGSError extract_template_files(const AGSString &templateFileName);
+extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
 extern void SaveGame(bool compressSprites);
@@ -93,6 +93,11 @@ extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
 AGSString editorVersionNumber;
+
+System::String^ ToStr(const AGS::Common::String &str)
+{
+    return gcnew String(str.GetCStr());
+}
 
 AGSString ConvertStringToNativeString(System::String^ clrString)
 {
@@ -181,7 +186,7 @@ namespace AGS
 			HAGSError err = reset_sprite_file();
 			if (!err)
 			{
-				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + gcnew String(err->FullMessage()));
+				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + ToStr(err->FullMessage()));
 			}
 		}
 
@@ -237,10 +242,10 @@ namespace AGS
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
 			AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
-			const char *errorMsg = import_sci_font(fileNameAnsi, fontSlot);
+			AGSString errorMsg = import_sci_font(fileNameAnsi, fontSlot);
 			if (errorMsg != NULL) 
 			{
-				throw gcnew AGSEditorException(gcnew String(errorMsg));
+				throw gcnew AGSEditorException(ToStr(errorMsg));
 			}
 		}
 
@@ -609,7 +614,7 @@ namespace AGS
             HAGSError err = extract_template_files(fileNameAnsi);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStr(err->FullMessage()));
 			}
 		}
 
@@ -619,7 +624,7 @@ namespace AGS
             HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + gcnew String(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStr(err->FullMessage()));
 			}
 		}
 				

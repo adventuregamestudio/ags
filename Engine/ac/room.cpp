@@ -201,7 +201,7 @@ const char* Room_GetMessages(int index) {
     }
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[index]), buffer, STD_BUFFER_SIZE);
+    replace_tokens(get_translation(thisroom.Messages[index].GetCStr()), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 

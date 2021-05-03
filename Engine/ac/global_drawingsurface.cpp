@@ -161,7 +161,7 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     RAW_START();
     color_t text_color = play.raw_color;
     for (size_t i = 0; i < Lines.Count(); i++)
-        wouttext_outline(RAW_SURFACE(), xx, yy + linespacing*i, font, text_color, Lines[i]);
+        wouttext_outline(RAW_SURFACE(), xx, yy + linespacing*i, font, text_color, Lines[i].GetCStr());
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();

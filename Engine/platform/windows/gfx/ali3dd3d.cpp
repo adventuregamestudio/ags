@@ -610,7 +610,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   if (hr != D3D_OK)
   {
     if (!previousError.IsEmpty())
-      SDL_SetError(previousError);
+      SDL_SetError(previousError.GetCStr());
     else
       SDL_SetError("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;

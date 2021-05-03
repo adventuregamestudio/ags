@@ -206,7 +206,7 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             allegro_exit();
             char quotedpath[MAX_PATH];
             snprintf(quotedpath, MAX_PATH, "\"%s\"", appPath.GetCStr());
-            _spawnl(_P_OVERLAY, appPath, quotedpath, NULL);
+            _spawnl(_P_OVERLAY, appPath.GetCStr(), quotedpath, NULL);
     }
 #endif
     return true;
@@ -951,7 +951,7 @@ void engine_init_game_settings()
 void engine_setup_scsystem_auxiliary()
 {
     // ScriptSystem::aci_version is only 10 chars long
-    strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
+    strncpy(scsystem.aci_version, EngineVersion.LongString.GetCStr(), 10);
     if (usetup.override_script_os >= 0)
     {
         scsystem.os = usetup.override_script_os;

@@ -52,7 +52,7 @@ void ListBox_Clear(GUIListBox *listbox) {
 void FillDirList(std::set<String> &files, const String &path)
 {
     al_ffblk dfb;
-    int	dun = al_findfirst(path, &dfb, FA_SEARCH);
+    int	dun = al_findfirst(path.GetCStr(), &dfb, FA_SEARCH);
     while (!dun) {
         files.insert(dfb.name);
         dun = al_findnext(&dfb);
@@ -132,7 +132,7 @@ int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer) {
   if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxGetItemText: invalid item specified");
-  strncpy(buffer, listbox->Items[index],198);
+  strncpy(buffer, listbox->Items[index].GetCStr(), 198);
   buffer[199] = 0;
   return buffer;
 }

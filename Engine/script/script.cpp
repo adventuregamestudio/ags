@@ -214,11 +214,11 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
         if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
             // Character or Inventory (global script)
-            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt].GetCStr());
         }
         else {
             // Other (room script)
-            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt].GetCStr());
         }
 
             int retval = 0;
@@ -598,7 +598,7 @@ void post_script_cleanup() {
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
         QueuedScript &script = copyof.ScFnQueue[jj];
-        RunScriptFunction(script.Instance, script.FnName, script.ParamCount, script.Param1, script.Param2);
+        RunScriptFunction(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Param1, script.Param2);
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {
             // some bogus hack for "on_call" event handler

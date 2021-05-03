@@ -139,7 +139,7 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
     pattern.Append("/*");
 
     Debug::Printf("Searching for game data in: %s", path.GetCStr());
-    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+    if (al_findfirst(pattern.GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) != 0)
         return "";
     do
     {
@@ -598,7 +598,7 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
             continue; // might be a library
 
         al_ffblk ff;
-        if (al_findfirst(Path::ConcatPaths(game_lib->BasePath, "*.*"), &ff, FA_ALL & ~(FA_DIREC)) == 0)
+        if (al_findfirst(Path::ConcatPaths(game_lib->BasePath, "*.*").GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) == 0)
         {
             do
             {

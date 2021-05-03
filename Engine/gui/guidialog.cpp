@@ -138,7 +138,7 @@ int loadgamedialog()
         else {
           toret = filenumbers[cursel];
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
           lpTemp = &bufTemp[0];
         }
       } else if (mes.id == ctrlcancel) {
@@ -260,7 +260,7 @@ int savegamedialog()
 
           toret = highestnum + 1;
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
         } 
         else {
           toret = filenumbers[cursell];
@@ -270,7 +270,7 @@ int savegamedialog()
         if (bufTemp[0] == 0)
         {
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path);
+          strcpy(bufTemp, path.GetCStr());
         }
 
         lpTemp = &bufTemp[0];

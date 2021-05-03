@@ -525,13 +525,13 @@ bool DoesAssetExistInLib(const AssetPath &path)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir.GetCStr(), filename.GetCStr()) );
     if (AssetManager::IsDataFile(libname))
         return libname;
     if (Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
       // Hack for running in Debugger
-      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2, filename) );
+      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2.GetCStr(), filename.GetCStr()) );
       if (AssetManager::IsDataFile(libname))
         return libname;
     }

@@ -220,9 +220,9 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
             param1 = game.playercharacter;
 
           if (param1 == DCHAR_NARRATOR)
-            Display(get_translation(old_speech_lines[param2]));
+            Display(get_translation(old_speech_lines[param2].GetCStr()));
           else
-            DisplaySpeech(get_translation(old_speech_lines[param2]), param1);
+            DisplaySpeech(get_translation(old_speech_lines[param2].GetCStr()), param1);
 
           said_speech_line = 1;
           break;
@@ -372,7 +372,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
     }
     for (size_t cc=0;cc<Lines.Count();cc++) {
-      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, Lines[cc]);
+      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, Lines[cc].GetCStr());
       curyp+=linespacing;
     }
     if (ww < numdisp-1)
@@ -1067,8 +1067,8 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
-    strcpy (play.lastParserEntry, parserInput->Text);
-    ParseText (parserInput->Text);
+    strcpy (play.lastParserEntry, parserInput->Text.GetCStr());
+    ParseText (parserInput->Text.GetCStr());
     chose = CHOSE_TEXTPARSER;
   }
 

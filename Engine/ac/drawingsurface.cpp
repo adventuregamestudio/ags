@@ -335,14 +335,14 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
         if (alignment & kMAlignHCenter)
         {
-            drawAtX = xx + ((wid / 2) - wgettextwidth(Lines[i], font) / 2);
+            drawAtX = xx + ((wid / 2) - wgettextwidth(Lines[i].GetCStr(), font) / 2);
         }
         else if (alignment & kMAlignRight)
         {
-            drawAtX = (xx + wid) - wgettextwidth(Lines[i], font);
+            drawAtX = (xx + wid) - wgettextwidth(Lines[i].GetCStr(), font);
         }
 
-        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, Lines[i]);
+        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, Lines[i].GetCStr());
     }
 
     sds->FinishedDrawing();

@@ -451,7 +451,7 @@ int ags_entry_point(int argc, char *argv[]) {
 
     if (justDisplayVersion)
     {
-        platform->WriteStdOut(get_engine_string());
+        platform->WriteStdOut(get_engine_string().GetCStr());
         return EXIT_NORMAL;
     }
 

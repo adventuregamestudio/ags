@@ -28,7 +28,7 @@ const char* TextBox_GetText_New(GUITextBox *texbox) {
 }
 
 void TextBox_GetText(GUITextBox *texbox, char *buffer) {
-    strcpy(buffer, texbox->Text);
+    strcpy(buffer, texbox->Text.GetCStr());
 }
 
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {

@@ -68,7 +68,7 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
     if (editor_debugging_initialized)
     {
         if (qreason & kQuitKind_GameException)
-            handledErrorInEditor = send_exception_to_editor(qmsg);
+            handledErrorInEditor = send_exception_to_editor(qmsg.GetCStr());
         send_message_to_editor("EXIT");
         editor_debugger->Shutdown();
     }

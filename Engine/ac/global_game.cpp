@@ -203,7 +203,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
     String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.???%s", svg_suff.GetCStr()));
 
     al_ffblk ffb;
-    for (int don = al_findfirst(searchPath, &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
+    for (int don = al_findfirst(searchPath.GetCStr(), &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
     {
         const char *numberExtension = strstr(ffb.name, ".") + 1;
         int saveGameSlot = atoi(numberExtension);
@@ -614,7 +614,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
+        strcpy(tempo,get_translation(thisroom.Objects[aa].Name.GetCStr()));
         // Compatibility: < 3.1.1 games returned space for nameless object
         // (presumably was a bug, but fixing it affected certain games behavior)
         if (loaded_game_file_version < kGameVersion_311 && tempo[0] == 0) {
@@ -627,7 +627,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
+    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name.GetCStr()));
     if (play.get_loc_name_last_time != onhs)
         GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;

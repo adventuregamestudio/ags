@@ -193,7 +193,7 @@ SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hin
     const auto asset_ext = AGS::Common::Path::GetFileExtension(asset_name.Name);
     const auto ext_hint = asset_ext.IsEmpty() ? String(extension_hint) : asset_ext;
     const auto sound_type = GuessSoundTypeFromExt(asset_ext);
-    const auto lengthMs = (int)std::round(audio_core_get_sound_length_ms(data, asset_ext));
+    const auto lengthMs = (int)std::round(audio_core_get_sound_length_ms(data, asset_ext.GetCStr()));
 
     auto slot = audio_core_slot_init(data, asset_ext, loop);
     if (slot < 0) { return nullptr; }

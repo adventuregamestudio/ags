@@ -296,7 +296,10 @@ int String::ToInt() const
 String String::Wrapper(const char *cstr)
 {
     String str;
-    str.Wrap(cstr);
+    // Note that String will NOT *modify* the const buffer.
+    // Any write operation on the buffer is preceded by a call to BecomeUnique.
+    str._cstr = cstr ? const_cast<char*>(cstr) : "";
+    str._len = strlen(str._cstr);
     return str;
 }
 
@@ -458,18 +461,15 @@ void String::Compact()
     }
 }
 
-void String::Append(const char *cstr)
+void String::Append(const String &str)
 {
-    if (cstr)
+    size_t length = str._len;
+    if (str._len > 0)
     {
-        size_t length = strlen(cstr);
-        if (length > 0)
-        {
-            ReserveAndShift(false, length);
-            memcpy(_cstr + _len, cstr, length);
-            _len += length;
-            _cstr[_len] = 0;
-        }
+        ReserveAndShift(false, length);
+        memcpy(_cstr + _len, str._cstr, length);
+        _len += length;
+        _cstr[_len] = 0;
     }
 }
 
@@ -678,18 +678,15 @@ void String::MergeSequences(char c)
     _len = wp - _cstr;
 }
 
-void String::Prepend(const char *cstr)
+void String::Prepend(const String &str)
 {
-    if (cstr)
+    size_t length = str._len;
+    if (length > 0)
     {
-        size_t length = strlen(cstr);
-        if (length > 0)
-        {
-            ReserveAndShift(true, length);
-            memcpy(_cstr - length, cstr, length);
-            _len += length;
-            _cstr -= length;
-        }
+        ReserveAndShift(true, length);
+        memcpy(_cstr - length, str._cstr, length);
+        _len += length;
+        _cstr -= length;
     }
 }
 
@@ -721,15 +718,13 @@ void String::Replace(char what, char with)
     }
 }
 
-void String::ReplaceMid(size_t from, size_t count, const char *cstr)
+void String::ReplaceMid(size_t from, size_t count, const String &str)
 {
-    if (!cstr)
-        cstr = "";
-    size_t length = strlen(cstr);
+    size_t length = str._len;
     Math::ClampLength(from, count, (size_t)0, _len);
     ReserveAndShift(false, Math::Surplus(length, count));
     memmove(_cstr + from + length, _cstr + from + count, _len - (from + count) + 1);
-    memcpy(_cstr + from, cstr, length);
+    memcpy(_cstr + from, str._cstr, length);
     _len += length - count;
 }
 
@@ -925,9 +920,8 @@ void String::Wrap(const char *cstr)
 {
     Free();
     _buf = nullptr;
-    // Note that String is NOT supposed to *modify* the const buffer.
-    // Any non-read operation on the buffer is preceded by a call to BecomeUnique,
-    // which in turn will allocate a reference-counted buffer copy.
+    // Note that String will NOT *modify* the const buffer.
+    // Any write operation on the buffer is preceded by a call to BecomeUnique.
     _cstr = cstr ? const_cast<char*>(cstr) : "";
     _len = strlen(_cstr);
 }

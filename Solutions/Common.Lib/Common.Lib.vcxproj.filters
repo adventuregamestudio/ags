@@ -503,6 +503,9 @@
     <ClCompile Include="..\..\libsrc\allegro\src\math.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\room_file_base.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">

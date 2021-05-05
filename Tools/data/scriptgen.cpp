@@ -190,6 +190,60 @@ String MakeGameAutoScriptHeader(const GameRef &game)
     return header;
 }
 
+
+//-----------------------------------------------------------------------------
+// _GlobalVariables.ash/asc
+//-----------------------------------------------------------------------------
+
+String MakeVariablesScriptHeader(std::vector<Variable> &vars)
+{
+    String header, buf;
+    for (const auto &var : vars)
+    {
+        buf.Format("import %s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
+        header.Append(buf);
+    }
+    return header;
+}
+
+String MakeVariablesScriptBody(std::vector<Variable> &vars)
+{
+    String body, buf;
+    // Generate declarations and init simple vars
+    for (const auto &var : vars)
+    {
+        if ((var.Type.Compare("int") == 0 || var.Type.Compare("bool") == 0 || var.Type.Compare("float") == 0) &&
+            !var.Value.IsEmpty())
+        {
+            buf.Format("%s %s = %s;\n", var.Type.GetCStr(), var.Name.GetCStr(), var.Value.GetCStr());
+        }
+        else
+        {
+            buf.Format("%s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
+        }
+        body.Append(buf);
+        buf.Format("export %s;\n", var.Name.GetCStr());
+        body.Append(buf);
+    }
+
+    // Generate initialization of String vars
+    body.Append("function game_start() {\n");
+    for (const auto &var : vars)
+    {
+        if (var.Type.Compare("String") == 0)
+        {
+            String value = var.Value;
+            // TODO:
+            // .Replace("\\", "\\\\").Replace("\"", "\\\"");
+            buf.Format("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
+            body.Append(buf);
+        }
+    }
+    body.Append("}\n");
+    return body;
+}
+
+
 //-----------------------------------------------------------------------------
 // Room.ash
 //-----------------------------------------------------------------------------

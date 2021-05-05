@@ -40,6 +40,14 @@ struct GUIRef : EntityRef
     std::vector<EntityRef> Controls;
 };
 
+// Game variable (for variables defined in the game project)
+struct Variable
+{
+    String Type;
+    String Name;
+    String Value;
+};
+
 // GameRef contains only game data strictly necessary for generating scripts.
 // NOTE: replace with full Game struct later if appears necessary
 struct GameRef

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crm2ash", "Tools.App\crm2as
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2autoash", "Tools.App\agf2autoash.vcxproj", "{1D6C40C4-D623-4889-9670-9B287D2B4F84}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2glvar", "Tools.App\agf2glvar.vcxproj", "{16D2E9E4-5357-49B8-A446-D99A2F276F89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{1D6C40C4-D623-4889-9670-9B287D2B4F84}.Release|x64.Build.0 = Release|x64
 		{1D6C40C4-D623-4889-9670-9B287D2B4F84}.Release|x86.ActiveCfg = Release|Win32
 		{1D6C40C4-D623-4889-9670-9B287D2B4F84}.Release|x86.Build.0 = Release|Win32
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Debug|x64.ActiveCfg = Debug|x64
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Debug|x64.Build.0 = Debug|x64
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Debug|x86.ActiveCfg = Debug|Win32
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Debug|x86.Build.0 = Debug|Win32
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x64.ActiveCfg = Release|x64
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x64.Build.0 = Release|x64
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x86.ActiveCfg = Release|Win32
+		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -188,6 +188,21 @@ String GUIControl::ReadType(DocElem elem)
     return "GUIControl";
 }
 
+void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
+{
+    DocElem list_node = root->FirstChildElement("GlobalVariables");
+    if (!list_node)
+        return;
+    list_node = list_node->FirstChildElement("Variables");
+    if (!list_node)
+        return;
+    for (DocElem node = list_node->FirstChildElement("GlobalVariable");
+        node; node = node->NextSiblingElement("GlobalVariable"))
+    {
+        elems.push_back(node);
+    };
+}
+
 
 //-----------------------------------------------------------------------------
 // Helper functions
@@ -210,6 +225,25 @@ void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser 
         DataUtil::EntityRef ent;
         ReadEntityRef(ent, parser, el);
         ents.push_back(ent);
+    }
+}
+
+void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
+{
+    AGF::GlobalVariables glvars;
+    std::vector<AGF::DocElem> var_elems;
+    glvars.GetAll(root, var_elems);
+    if (var_elems.size() == 0)
+        return;
+
+    AGF::GlobalVariable glvar;
+    for (const auto &el : var_elems)
+    {
+        DataUtil::Variable var;
+        var.Type = glvar.ReadType(el);
+        var.Name = glvar.ReadScriptName(el);
+        var.Value = glvar.ReadDefaultValue(el);
+        vars.push_back(var);
     }
 }
 

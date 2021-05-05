@@ -36,7 +36,8 @@ COMMON_OBJS = \
 	../../Common/util/string_utils.cpp
 
 TOOL_OBJS = \
-	../../Tools/data/room_utils.cpp
+	../../Tools/data/room_utils.cpp \
+	../../Tools/data/scriptgen.cpp
 
 OBJS := main.cpp \
 	$(COMMON_OBJS) \

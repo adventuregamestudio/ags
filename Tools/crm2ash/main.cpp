@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "data/room_utils.h"
+#include "data/scriptgen.h"
 #include "util/file.h"
 #include "util/string_compat.h"
 

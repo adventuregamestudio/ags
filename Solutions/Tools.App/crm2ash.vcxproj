@@ -32,9 +32,11 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Tools\crm2ash\main.cpp" />
     <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
+    <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\room_utils.h" />
+    <ClInclude Include="..\..\Tools\data\scriptgen.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}</ProjectGuid>

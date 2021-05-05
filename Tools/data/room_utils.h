@@ -22,7 +22,10 @@ namespace AGS
 namespace DataUtil
 {
 
-using namespace AGS::Common;
+using AGS::Common::Stream;
+using AGS::Common::String;
+using AGS::Common::HRoomFileError;
+using AGS::Common::RoomFileBlock;
 
 // Script names found in the room data
 struct RoomScNames
@@ -40,9 +43,6 @@ HRoomFileError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersio
 // reads only blocks necessary for retrieving script names.
 HRoomFileError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver);
-
-// Generates room script header out of the room data
-String MakeRoomScriptHeader(const RoomScNames &data);
 
 } // namespace DataUtil
 } // namespace AGS

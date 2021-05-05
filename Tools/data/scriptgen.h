@@ -14,6 +14,7 @@
 #ifndef __AGS_TOOL_DATA__SCRIPTGEN_H
 #define __AGS_TOOL_DATA__SCRIPTGEN_H
 
+#include "data/game_utils.h"
 #include "util/string.h"
 
 namespace AGS
@@ -25,6 +26,9 @@ namespace DataUtil
 using AGS::Common::String;
 struct RoomScNames;
 
+// Generates game auto script header out of the game data;
+// the header will contain game object and array declarations.
+String MakeGameAutoScriptHeader(const GameRef &game);
 // Generates room script header out of the room data;
 // the header will contain room object declarations.
 String MakeRoomScriptHeader(const RoomScNames &data);

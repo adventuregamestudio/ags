@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../Tools
+INCDIR = ../../Common ../../Tools ../../libsrc/tinyxml2
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -24,7 +24,6 @@ CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
 	../../Common/debug/debugmanager.cpp \
-	../../Common/game/room_file_base.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/datastream.cpp \
 	../../Common/util/file.cpp \
@@ -36,12 +35,16 @@ COMMON_OBJS = \
 	../../Common/util/string_utils.cpp
 
 TOOL_OBJS = \
-	../../Tools/data/room_utils.cpp \
+	../../Tools/data/agfreader.cpp \
 	../../Tools/data/scriptgen.cpp
+
+TINYXML2 = \
+	../../libsrc/tinyxml2/tinyxml2.cpp
 
 OBJS := main.cpp \
 	$(COMMON_OBJS) \
-	$(TOOL_OBJS)
+	$(TOOL_OBJS) \
+	$(TINYXML2)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 
@@ -51,16 +54,16 @@ DEPFILES = $(OBJS:.o=.d)
 
 .PHONY: printflags clean install uninstall rebuild
 
-all: printflags crm2ash
+all: printflags agf2autoash
 
-crm2ash: $(OBJS) 
+agf2autoash: $(OBJS) 
 	@echo "Linking..."
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS) $(LIBS)
 
 debug: CXXFLAGS += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: CFLAGS   += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: LDFLAGS  += -pg
-debug: printflags crm2ash
+debug: printflags agf2autoash
 
 -include $(DEPFILES)
 
@@ -82,11 +85,11 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	$(CMD_PREFIX) rm -f crm2ash $(OBJS) $(DEPFILES)
+	$(CMD_PREFIX) rm -f agf2autoash $(OBJS) $(DEPFILES)
 
-install: crm2ash
+install: agf2autoash
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin crm2ash
+	cp -t $(PREFIX)/bin agf2autoash
 
 uninstall:
-	rm -f $(PREFIX)/bin/crm2ash
+	rm -f $(PREFIX)/bin/agf2autoash

@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
@@ -30,19 +29,22 @@
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
-    <ClCompile Include="..\..\Tools\crm2ash\main.cpp" />
-    <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
+    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="..\..\Tools\agf2glvar\main.cpp" />
+    <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Tools\data\room_utils.h" />
+    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\..\Tools\data\agfreader.h" />
+    <ClInclude Include="..\..\Tools\data\game_utils.h" />
     <ClInclude Include="..\..\Tools\data\scriptgen.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}</ProjectGuid>
+    <ProjectGuid>{16D2E9E4-5357-49B8-A446-D99A2F276F89}</ProjectGuid>
     <RootNamespace>MakeRoomHeader</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>crm2ash</ProjectName>
+    <ProjectName>agf2glvar</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -91,11 +93,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)</IntDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)</IntDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -103,7 +105,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -126,7 +128,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

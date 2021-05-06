@@ -8,11 +8,14 @@
     <Filter Include="Common">
       <UniqueIdentifier>{eadadb9c-903a-4a50-8db9-a82dbf36b434}</UniqueIdentifier>
     </Filter>
-    <Filter Include="crm2ash">
+    <Filter Include="tinyxml2">
+      <UniqueIdentifier>{46208ff5-d822-4f9b-8208-d51993dbec22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="agf2autoash">
       <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
     </Filter>
     <Filter Include="data">
-      <UniqueIdentifier>{ebea7864-de2f-48c8-b3d2-51eb82b7a045}</UniqueIdentifier>
+      <UniqueIdentifier>{bdb62516-d050-4c05-81b5-4bedb3b8da0b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,13 +49,13 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Tools\crm2ash\main.cpp">
-      <Filter>crm2ash</Filter>
+    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp">
+      <Filter>tinyxml2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="..\..\Tools\agf2autoash\main.cpp">
+      <Filter>agf2autoash</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Tools\data\room_utils.cpp">
+    <ClCompile Include="..\..\Tools\data\agfreader.cpp">
       <Filter>data</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp">
@@ -60,10 +63,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Tools\data\room_utils.h">
+    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
+      <Filter>tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\agfreader.h">
       <Filter>data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Tools\data\scriptgen.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\game_utils.h">
       <Filter>data</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,6 +18,8 @@
 #define LEGACY_HOTSPOT_NAME_LEN 30
 #define MAX_SCRIPT_NAME_LEN 20
 
+using namespace AGS::Common;
+
 namespace AGS
 {
 namespace DataUtil
@@ -95,32 +97,6 @@ HRoomFileError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock bloc
         in->Seek(block_len); // skip block
         return HRoomFileError::None();
     }
-}
-
-String MakeRoomScriptHeader(const RoomScNames &data)
-{
-    String header;
-    // Room Object names
-    for (const auto &obj : data.ObjectNames)
-    {
-        if (!obj.IsEmpty())
-        {
-            header.Append("import Object ");
-            header.Append(obj);
-            header.Append(";\n");
-        }
-    }
-    // Hotspot names
-    for (const auto &hot : data.HotspotNames)
-    {
-        if (!hot.IsEmpty())
-        {
-            header.Append("import Hotspot ");
-            header.Append(hot);
-            header.Append(";\n");
-        }
-    }
-    return header;
 }
 
 } // namespace DataUtil

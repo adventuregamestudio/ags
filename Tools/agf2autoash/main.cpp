@@ -1,18 +1,22 @@
 #include <stdio.h>
-#include "data/room_utils.h"
+#include <vector>
+#include "data/agfreader.h"
+#include "data/game_utils.h"
 #include "data/scriptgen.h"
 #include "util/file.h"
+#include "util/stream.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
+namespace AGF = AGS::AGF;
 
 
-const char *HELP_STRING = "Usage: crm2ash <input-room.crm> <output-room.ash>\n";
+const char *HELP_STRING = "Usage: agf2autoash <input-game.agf> <output-auto.ash>\n";
 
 int main(int argc, char *argv[])
 {
-    printf("crm2ash v0.1.0 - AGS compiled room's script header generator\n"\
+    printf("agf2autoash v0.1.0 - AGS game's auto script header generator\n"\
         "Copyright (c) 2021 AGS Team and contributors\n");
     for (int i = 1; i < argc; ++i)
     {
@@ -32,38 +36,28 @@ int main(int argc, char *argv[])
 
     const char *src = argv[1];
     const char *dst = argv[2];
-    printf("Input room file: %s\n", src);
+    printf("Input game AGF: %s\n", src);
     printf("Output script header: %s\n", dst);
 
     //-----------------------------------------------------------------------//
-    // Read room struct
+    // Read Game.agf
     //-----------------------------------------------------------------------//
-    RoomDataSource datasrc;
-    auto err = OpenRoomFile(src, datasrc);
+    AGF::AGFReader reader;
+    HError err = reader.Open(src);
     if (!err)
     {
-        printf("Error: failed to open room file for reading:\n");
+        printf("Error: failed to open source AGF:\n");
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
-    
-    RoomScNames data;
-    auto read_cb = [&data](Stream *in, RoomFileBlock block, const String &ext_id,
-        soff_t block_len, RoomFileVersion data_ver, bool &read_next)
-        { return ReadRoomScNames(data, in, block, ext_id, block_len, data_ver); };
-    err = ReadRoomData(read_cb, datasrc.InputStream.get(), datasrc.DataVersion);
-    if (!err)
-    {
-        printf("Error: failed to read room file:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-    datasrc.InputStream.reset();
+
+    GameRef game_ref;
+    AGF::ReadGameRef(game_ref, reader);
 
     //-----------------------------------------------------------------------//
     // Create script header
     //-----------------------------------------------------------------------//
-    String header = MakeRoomScriptHeader(data);
+    String header = MakeGameAutoScriptHeader(game_ref);
 
     //-----------------------------------------------------------------------//
     // Write script header

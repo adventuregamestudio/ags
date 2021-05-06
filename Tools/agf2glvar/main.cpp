@@ -1,18 +1,22 @@
 #include <stdio.h>
-#include "data/room_utils.h"
+#include <vector>
+#include "data/agfreader.h"
+#include "data/game_utils.h"
 #include "data/scriptgen.h"
 #include "util/file.h"
+#include "util/stream.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
+namespace AGF = AGS::AGF;
 
 
-const char *HELP_STRING = "Usage: crm2ash <input-room.crm> <output-room.ash>\n";
+const char *HELP_STRING = "Usage: agf2glvar <in-game.agf> <out-glvar.ash> <out-glvar.asc>\n";
 
 int main(int argc, char *argv[])
 {
-    printf("crm2ash v0.1.0 - AGS compiled room's script header generator\n"\
+    printf("agf2glvar v0.1.0 - AGS game's global variables script generator\n"\
         "Copyright (c) 2021 AGS Team and contributors\n");
     for (int i = 1; i < argc; ++i)
     {
@@ -23,7 +27,7 @@ int main(int argc, char *argv[])
             return 0; // display help and bail out
         }
     }
-    if (argc < 3)
+    if (argc < 4)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
@@ -31,44 +35,37 @@ int main(int argc, char *argv[])
     }
 
     const char *src = argv[1];
-    const char *dst = argv[2];
-    printf("Input room file: %s\n", src);
-    printf("Output script header: %s\n", dst);
+    const char *dst_header = argv[2];
+    const char *dst_body = argv[3];
+    printf("Input game AGF: %s\n", src);
+    printf("Output script header: %s\n", dst_header);
+    printf("Output script body: %s\n", dst_body);
 
     //-----------------------------------------------------------------------//
-    // Read room struct
+    // Read Game.agf
     //-----------------------------------------------------------------------//
-    RoomDataSource datasrc;
-    auto err = OpenRoomFile(src, datasrc);
+    AGF::AGFReader reader;
+    HError err = reader.Open(src);
     if (!err)
     {
-        printf("Error: failed to open room file for reading:\n");
+        printf("Error: failed to open source AGF:\n");
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
-    
-    RoomScNames data;
-    auto read_cb = [&data](Stream *in, RoomFileBlock block, const String &ext_id,
-        soff_t block_len, RoomFileVersion data_ver, bool &read_next)
-        { return ReadRoomScNames(data, in, block, ext_id, block_len, data_ver); };
-    err = ReadRoomData(read_cb, datasrc.InputStream.get(), datasrc.DataVersion);
-    if (!err)
-    {
-        printf("Error: failed to read room file:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-    datasrc.InputStream.reset();
+
+    std::vector<Variable> vars;
+    AGF::ReadGlobalVariables(vars, reader.GetGameRoot());
 
     //-----------------------------------------------------------------------//
-    // Create script header
+    // Create script header & body with global variables
     //-----------------------------------------------------------------------//
-    String header = MakeRoomScriptHeader(data);
+    String header = MakeVariablesScriptHeader(vars);
+    String body = MakeVariablesScriptBody(vars);
 
     //-----------------------------------------------------------------------//
-    // Write script header
+    // Write script header & body
     //-----------------------------------------------------------------------//
-    Stream *out = File::CreateFile(dst);
+    Stream *out = File::CreateFile(dst_header);
     if (!out)
     {
         printf("Error: failed to open script header for writing.\n");
@@ -76,6 +73,15 @@ int main(int argc, char *argv[])
     }
     out->Write(header.GetCStr(), header.GetLength());
     delete out;
-    printf("Script header written successfully.\nDone.\n");
+    printf("Script header written successfully.\n");
+    out = File::CreateFile(dst_body);
+    if (!out)
+    {
+        printf("Error: failed to open script body for writing.\n");
+        return -1;
+    }
+    out->Write(body.GetCStr(), body.GetLength());
+    delete out;
+    printf("Script body written successfully.\nDone.\n");
     return 0;
 }

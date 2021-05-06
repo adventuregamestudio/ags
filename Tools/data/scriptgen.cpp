@@ -233,8 +233,8 @@ String MakeVariablesScriptBody(std::vector<Variable> &vars)
         if (var.Type.Compare("String") == 0)
         {
             String value = var.Value;
-            // TODO:
-            // .Replace("\\", "\\\\").Replace("\"", "\\\"");
+            value.Replace("\\", "\\\\");
+            value.Replace("\"", "\\\"");
             buf.Format("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
             body.Append(buf);
         }

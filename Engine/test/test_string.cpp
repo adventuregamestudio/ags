@@ -347,19 +347,61 @@ void Test_String()
         assert(strcmp(s1.GetCStr(), "much much bigger! !make it bigger - a string to enlarge") == 0);
     }
 
+    // Test Replace(char, char)
+    {
+        String s1 = "0abc0def0ghi0jk0lm00no0p0";
+        String s2 = " abc0def0ghi0jk0lm00no0p0";
+        String s3 = "0abc0def0ghi0jk0lm00no0p0";
+        String s4 = s1;
+        String s5 = s1;
+        s1.Replace('0', '1');
+        s2.Replace('0', '1');
+        s3.Replace('0', '1');
+        // don't change s4
+        s5.Replace('z', '1'); // pattern does not exist
+        assert(strcmp(s1.GetCStr(), "1abc1def1ghi1jk1lm11no1p1") == 0);
+        assert(strcmp(s2.GetCStr(), " abc1def1ghi1jk1lm11no1p1") == 0);
+        assert(strcmp(s3.GetCStr(), "1abc1def1ghi1jk1lm11no1p1") == 0);
+        assert(strcmp(s4.GetCStr(), "0abc0def0ghi0jk0lm00no0p0") == 0);
+        assert(strcmp(s5.GetCStr(), "0abc0def0ghi0jk0lm00no0p0") == 0);
+    }
+
+    // Test Replace(string, string)
+    {
+        String s1 = "-123-123-123-";
+        String s2 = s1;
+        String s3 = s1;
+        String s4 = s1;
+        String s5 = "\n\n\n\n\n\n\n\n\n";
+        s1.Replace("123", "456"); // same length
+        s2.Replace("123", "45678"); // longer length
+        s3.Replace("123", "4"); // shorter length
+        s4.Replace("1234", "+"); // pattern does not exist
+        s5.Replace("\n", "\r");
+        assert(strcmp(s1.GetCStr(), "-456-456-456-") == 0);
+        assert(strcmp(s2.GetCStr(), "-45678-45678-45678-") == 0);
+        assert(strcmp(s3.GetCStr(), "-4-4-4-") == 0);
+        assert(strcmp(s4.GetCStr(), "-123-123-123-") == 0);
+        assert(strcmp(s5.GetCStr(), "\r\r\r\r\r\r\r\r\r") == 0);
+    }
+
     // Test ReplaceMid
     {
         String s1 = "we need to replace PRECISELY THIS PART in this string";
         String s2 = s1;
+        String s3 = s1;
         String new_long = "WITH A NEW TAD LONGER SUBSTRING";
         String new_short = "SMALL STRING";
+        String new_same = "PRECISELY SAME PART";
         s1.ReplaceMid(19, 19, new_long);
         assert(strcmp(s1.GetCStr(), "we need to replace WITH A NEW TAD LONGER SUBSTRING in this string") == 0);
         s2.ReplaceMid(19, 19, new_short);
         assert(strcmp(s2.GetCStr(), "we need to replace SMALL STRING in this string") == 0);
-        String s3 = "insert new string here: ";
-        s3.ReplaceMid(s3.GetLength(), 0, "NEW STRING");
-        assert(strcmp(s3.GetCStr(), "insert new string here: NEW STRING") == 0);
+        s3.ReplaceMid(19, 19, new_same);
+        assert(strcmp(s3.GetCStr(), "we need to replace PRECISELY SAME PART in this string") == 0);
+        String s4 = "insert new string here: ";
+        s4.ReplaceMid(s4.GetLength(), 0, "NEW STRING");
+        assert(strcmp(s4.GetCStr(), "insert new string here: NEW STRING") == 0);
     }
 
     // Test Reverse

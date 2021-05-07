@@ -175,9 +175,7 @@ build_editor_task:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
-    AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
-    AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\build\Release
   nuget_packages_cache:
     folder: Solutions\packages
     fingerprint_script: type Editor\AGS.Editor\packages.config

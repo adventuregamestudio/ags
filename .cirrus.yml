@@ -6,7 +6,6 @@ build_windows_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_LIBOGG_LIB: C:\Lib\Xiph
     AGS_LIBTHEORA_LIB: C:\Lib\Xiph
     AGS_LIBVORBIS_LIB: C:\Lib\Xiph
@@ -175,7 +174,6 @@ build_editor_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
     AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86

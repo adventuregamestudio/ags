@@ -50,13 +50,6 @@ RUN curl -fLSs http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%
   move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\ && \
   rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION%
 
-RUN curl -fLSs https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0de-3e9096ed4b3a/dxsdk_aug2007.exe | tar -f - -xvzC %TEMP% && \
-  tar -f %TEMP%\dxsdk_aug2007.exe -xvzC %TEMP% Lib/x86/*.lib && \
-  mkdir Lib\DirectX && \
-  move %TEMP%\Lib\x86\*.lib Lib\DirectX\ && \
-  del %TEMP%\dxsdk_aug2007.exe && \
-  rd /s /q %TEMP%\Lib
-
 RUN mkdir Redist && \
   cd Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe

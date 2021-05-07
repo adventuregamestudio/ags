@@ -374,7 +374,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (game.numfonts == 0)
         return new GameInitError(kGameInitErr_NoFonts);
     if (game.audioClipTypes.size() > MAX_AUDIO_TYPES)
-        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %u, max: %d", game.audioClipTypes.size(), MAX_AUDIO_TYPES));
+        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %zu, max: %zu", game.audioClipTypes.size(), (size_t)MAX_AUDIO_TYPES));
 
     //
     // 3. Allocate and init game objects

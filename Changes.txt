@@ -5,10 +5,12 @@ VERSION 3.5.?, ??? 2021
 Editor:
  - Added "Attach game data to exe" option to General Settings. This lets you to package game data
    separately from the game.exe (only important on Windows at the moment).
- - Display aspect ratio in game resolution dialog.
- - Improved tab switching performance for script windows.
  - Deprecated "Limit display mode to 16-bit" property in Runtime Setup as it's no longer
    used by the engine.
+ - Display aspect ratio in game resolution dialog.
+ - Implemented classic Color Picker dialog for the Color type values in the property grid,
+   instead of the default one which does not allow user-defined colors.
+ - Improved tab switching performance for script windows.
  - Editor will now enforce full game rebuild after upgrading an older project, this ensures
    that all scripts are recompiled with the new version rules.
  - Fixed room lists in property editor were not updated after room number is changed.

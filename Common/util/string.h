@@ -81,6 +81,8 @@ public:
     {
         return _len == 0;
     }
+    // Tells if the string is either empty or has only whitespace characters
+    bool IsNullOrSpace() const;
 
     // Those getters are for tests only, hence if AGS_PLATFORM_DEBUG
 #if AGS_PLATFORM_DEBUG
@@ -148,6 +150,13 @@ public:
     int     CompareRightNoCase(const String &str, size_t count = -1) const
                 { return CompareRightNoCase(str._cstr, count != -1 ? count : str._len); }
     int     CompareRightNoCase(const char *cstr, size_t count = -1) const;
+    // Convenience aliases for Compare functions
+    inline bool Equals(const String &str) const { return Compare(str) == 0; }
+    inline bool Equals(const char *cstr) const { return Compare(cstr) == 0; }
+    inline bool StartsWith(const String &str) const { return CompareLeft(str) == 0; }
+    inline bool StartsWith(const char *cstr) const { return CompareLeft(cstr) == 0; }
+    inline bool EndsWidth(const String &str) const { return CompareRight(str) == 0; }
+    inline bool EndsWidth(const char *cstr) const { return CompareRight(cstr) == 0; }
 
     // These functions search for character or substring inside this string
     // and return the index of the (first) character, or -1 if nothing found.

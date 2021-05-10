@@ -27,24 +27,37 @@
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
+    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="..\..\Tools\agf2autoash\main.cpp" />
+    <ClCompile Include="..\..\Tools\agf2dlgasc\main.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
-    <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
+    <ClCompile Include="..\..\Tools\data\dialogscriptconv.cpp" />
+    <ClCompile Include="..\..\Tools\data\script_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\debug\out.h" />
+    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
+    <ClInclude Include="..\..\Common\util\datastream.h" />
+    <ClInclude Include="..\..\Common\util\file.h" />
+    <ClInclude Include="..\..\Common\util\filestream.h" />
+    <ClInclude Include="..\..\Common\util\stream.h" />
+    <ClInclude Include="..\..\Common\util\string.h" />
+    <ClInclude Include="..\..\Common\util\memorystream.h" />
+    <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\Tools\data\agfreader.h" />
+    <ClInclude Include="..\..\Tools\data\dialogscriptconv.h" />
     <ClInclude Include="..\..\Tools\data\game_utils.h" />
-    <ClInclude Include="..\..\Tools\data\scriptgen.h" />
+    <ClInclude Include="..\..\Tools\data\script_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1D6C40C4-D623-4889-9670-9B287D2B4F84}</ProjectGuid>
+    <ProjectGuid>{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}</ProjectGuid>
     <RootNamespace>MakeRoomHeader</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>agf2autoash</ProjectName>
+    <ProjectName>agf2dlgasc</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

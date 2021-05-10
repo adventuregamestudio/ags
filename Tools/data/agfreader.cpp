@@ -140,6 +140,18 @@ int EntityParser::ReadInt(DocElem elem, const char *field, int def_value)
     return def_value;
 }
 
+int Dialog::ReadOptionCount(DocElem elem)
+{
+    // Option count is not written in AGF, so we have to calculate number of elems
+    elem = elem->FirstChildElement("DialogOptions");
+    if (!elem)
+        return 0;
+    int count = 0;
+    for (elem = elem->FirstChildElement("DialogOption");
+        elem; elem = elem->NextSiblingElement("DialogOption"), count++);
+    return count;
+}
+
 int GUIMain::ReadID(DocElem elem)
 {
     DocElem self = GetNormalGUI(elem);
@@ -228,6 +240,13 @@ void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser 
     }
 }
 
+static void ReadDialog(DataUtil::DialogRef &dialog, AGF::DocElem elem)
+{
+    AGF::Dialog p_dialog;
+    ReadEntityRef(dialog, p_dialog, elem);
+    dialog.OptionCount = p_dialog.ReadOptionCount(elem);
+}
+
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
 {
     AGF::GlobalVariables glvars;
@@ -245,6 +264,13 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
         var.Value = glvar.ReadDefaultValue(el);
         vars.push_back(var);
     }
+}
+
+void ReadGameSettings(DataUtil::GameSettings &opt, DocElem elem)
+{
+    AGF::Game p_game;
+    opt.SayFunction = p_game.ReadSayFunction(elem);
+    opt.NarrateFunction = p_game.ReadNarrateFunction(elem);
 }
 
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
@@ -267,9 +293,17 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
     AGF::Cursor cursor;
     ReadAllEntityRefs(game.Cursors, cursors, cursor, root);
     // Dialogs
-    AGF::Dialogs dialogs;
-    AGF::Dialog dialog;
-    ReadAllEntityRefs(game.Dialogs, dialogs, dialog, root);
+    {
+        AGF::Dialogs dialogs;
+        std::vector<AGF::DocElem> elems;
+        dialogs.GetAll(root, elems);
+        for (const auto &el : elems)
+        {
+            DataUtil::DialogRef dialog;
+            ReadDialog(dialog, el);
+            game.Dialogs.push_back(dialog);
+        }
+    }
     // Fonts
     AGF::Fonts fonts;
     AGF::Font font;
@@ -281,7 +315,7 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
         AGF::GUIControls controls;
         AGF::GUIControl control;
         std::vector<AGF::DocElem> elems;
-        guis.GetAll(reader.GetGameRoot(), elems);
+        guis.GetAll(root, elems);
         for (const auto &el : elems)
         {
             DataUtil::GUIRef gui_ent;
@@ -298,6 +332,12 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
     AGF::View view;
     AGF::Views views;
     ReadAllEntityRefs(game.Views, views, view, root);
+
+    // Global Variables
+    ReadGlobalVariables(game.GlobalVars, root);
+
+    // Game settings
+    ReadGameSettings(game.Settings, root);
 }
 
 } // namespace AGF

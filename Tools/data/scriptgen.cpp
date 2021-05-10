@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/scriptgen.h"
+#include <iterator>
 #include <cctype>
 #include "data/room_utils.h"
 
@@ -178,7 +179,9 @@ String MakeGameAutoScriptHeader(const GameRef &game)
     // Cursors
     header.Append(DeclareEntitiesAsEnum(game.Cursors, "CursorMode", "eMode"));
     // Dialogs
-    header.Append(DeclareEntities(game.Dialogs, "Dialog", "dialog"));
+    std::vector<EntityRef> dialogs; // TODO: look for better solution later
+    std::copy(game.Dialogs.begin(), game.Dialogs.end(), std::back_inserter(dialogs));
+    header.Append(DeclareEntities(dialogs, "Dialog", "dialog"));
     // Fonts
     header.Append(DeclareEntitiesAsEnum(game.Fonts, "FontType", "eFont"));
     // GUI

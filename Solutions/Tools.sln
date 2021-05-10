@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2autoash", "Tools.App\ag
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2glvar", "Tools.App\agf2glvar.vcxproj", "{16D2E9E4-5357-49B8-A446-D99A2F276F89}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2dlgasc", "Tools.App\afg2dlgasc.vcxproj", "{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x64.Build.0 = Release|x64
 		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x86.ActiveCfg = Release|Win32
 		{16D2E9E4-5357-49B8-A446-D99A2F276F89}.Release|x86.Build.0 = Release|Win32
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x64.ActiveCfg = Debug|x64
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x64.Build.0 = Debug|x64
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x86.ActiveCfg = Debug|Win32
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x86.Build.0 = Debug|Win32
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Release|x64.ActiveCfg = Release|x64
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Release|x64.Build.0 = Release|x64
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Release|x86.ActiveCfg = Release|Win32
+		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

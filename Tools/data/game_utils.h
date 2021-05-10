@@ -33,6 +33,15 @@ struct EntityRef
     String ScriptName;
 };
 
+typedef EntityRef CharacterRef;
+
+// DialogRef contains only Dialog data strictly necessary for generating scripts.
+// NOTE: replace with full Dialog struct later if appears necessary
+struct DialogRef : EntityRef
+{
+    int OptionCount = 0;
+};
+
 // GUIRef contains only GUI data strictly necessary for generating scripts.
 // NOTE: replace with full GUI struct later if appears necessary
 struct GUIRef : EntityRef
@@ -48,19 +57,30 @@ struct Variable
     String Value;
 };
 
+// Game settings
+struct GameSettings
+{
+    String SayFunction; // Custom speech function name
+    String NarrateFunction; // Custom narrate function name
+};
+
 // GameRef contains only game data strictly necessary for generating scripts.
 // NOTE: replace with full Game struct later if appears necessary
 struct GameRef
 {
     std::vector<EntityRef> AudioClips;
     std::vector<EntityRef> AudioTypes;
-    std::vector<EntityRef> Characters;
+    std::vector<CharacterRef> Characters;
     std::vector<EntityRef> Cursors;
-    std::vector<EntityRef> Dialogs;
+    std::vector<DialogRef> Dialogs;
     std::vector<EntityRef> Fonts;
     std::vector<GUIRef>    GUI;
     std::vector<EntityRef> Inventory;
     std::vector<EntityRef> Views;
+
+    std::vector<Variable>  GlobalVars;
+
+    GameSettings           Settings;
 };
 
 } // namespace DataUtil

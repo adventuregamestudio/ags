@@ -1,5 +1,13 @@
 REVISION HISTORY
 ================
+VERSION 3.5.0 - Patch 10, May 2021
+
+Engine:
+ - Fixed managed handle error that occured if you would copy an element of any string array
+   returned by Dictionary.GetKeysAsArray(), GetValuesAsArray() and Set.GetItemsAsArray();
+   for example: assign array's element to a local variable.
+
+
 VERSION 3.5.0 - Patch 9, March 2021
 
 Editor:

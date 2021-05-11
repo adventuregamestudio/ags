@@ -1604,6 +1604,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
+  assert(allocatedWidth > 0);
+  assert(allocatedHeight > 0);
   if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
     throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
   int colourDepth = bitmap->GetColorDepth();
@@ -1622,6 +1624,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
   tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
+  assert(tilesAcross > 0);
+  assert(tilesDown > 0);
   int tileWidth = bitmap->GetWidth() / tilesAcross;
   int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
   int tileHeight = bitmap->GetHeight() / tilesDown;

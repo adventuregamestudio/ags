@@ -1563,6 +1563,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
+  assert(allocatedWidth > 0);
+  assert(allocatedHeight > 0);
   // NOTE: original bitmap object is not modified in this function
   if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
     throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
@@ -1583,6 +1585,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
   tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
+  assert(tilesAcross > 0);
+  assert(tilesDown > 0);
   int tileWidth = bitmap->GetWidth() / tilesAcross;
   int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
   int tileHeight = bitmap->GetHeight() / tilesDown;

@@ -38,6 +38,8 @@ class OpenALDecoder
 {
 public:
     OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat);
+    OpenALDecoder(OpenALDecoder&& dec);
+    ~OpenALDecoder();
     void Poll();
     void Play();
     void Pause();

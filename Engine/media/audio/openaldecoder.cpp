@@ -164,6 +164,26 @@ OpenALDecoder::OpenALDecoder(ALuint source, std::future<std::vector<char>> sampl
 
 }
 
+OpenALDecoder::OpenALDecoder(OpenALDecoder&& dec)
+{
+    source_ = dec.source_;
+    dec.source_ = 0;
+    sampleBufFuture_ = (std::move(dec.sampleBufFuture_));
+    sampleExt_ = std::move(dec.sampleExt_);
+    repeat_ = dec.repeat_;
+    dec.repeat_ = false;
+}
+
+OpenALDecoder::~OpenALDecoder()
+{
+    if (source_ > 0) {
+        alSourceStop(source_);
+        DecoderUnqueueProcessedBuffers();
+        alDeleteSources(1, &source_);
+        dump_al_errors();
+    }
+}
+
 void OpenALDecoder::Poll()
 {
     if (playState_ == AudioCorePlayState::PlayStateError) { return; }
@@ -285,7 +305,6 @@ void OpenALDecoder::Stop()
         playState_ = AudioCorePlayState::PlayStateStopped;
         alSourceStop(source_);
         DecoderUnqueueProcessedBuffers();
-        alDeleteSources(1, &source_);
         dump_al_errors();
         break;
     default:

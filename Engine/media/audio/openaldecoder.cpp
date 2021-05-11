@@ -284,6 +284,8 @@ void OpenALDecoder::Stop()
     case PlayStatePlaying:
         playState_ = AudioCorePlayState::PlayStateStopped;
         alSourceStop(source_);
+        DecoderUnqueueProcessedBuffers();
+        alDeleteSources(1, &source_);
         dump_al_errors();
         break;
     default:

@@ -96,6 +96,7 @@ namespace AGS.Types
         [DisplayNameAttribute("TextColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color TextColorRGB
         {
             get
@@ -123,6 +124,7 @@ namespace AGS.Types
         [DisplayName("SelectedTextColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color SelectedTextColorRGB
         {
             get
@@ -150,6 +152,7 @@ namespace AGS.Types
         [DisplayName("SelectedBackgroundColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Color SelectedBackgroundColorRGB
         {
             get

@@ -11,8 +11,8 @@ probably work.
 -   libsdl2 (2.0.12 or higher)
 -   libsdl_sound for sdl2 (revision 997e90562b35 or higher)
 -   libogg (1.2.2-1.3.0)
--   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
+-   libtheora (1.1.1-1.2.0)
 
 There are two general ways to proceed: either use [CMake scripts](../CMAKE.md) or install and build everything yourself using Makefiles provided in the Engine's directory.
 

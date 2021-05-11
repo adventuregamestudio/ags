@@ -178,6 +178,7 @@
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\IAGSEditorPlugin.cs" />
     <Compile Include="Plugins\RequiredAGSVersionAttribute.cs" />
+    <Compile Include="PropertyGridExtras\ColorUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />

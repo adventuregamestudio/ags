@@ -40,6 +40,18 @@ String::String(const String &str)
     *this = str;
 }
 
+String::String(String &&str)
+{
+    _cstr = str._cstr;
+    _len = str._len;
+    _buf = str._buf;
+    _bufHead = str._bufHead;
+    str._cstr = const_cast<char*>("");
+    str._len = 0;
+    str._buf = nullptr;
+    str._bufHead = nullptr;
+}
+
 String::String(const char *cstr)
     : _cstr(const_cast<char*>(""))
     , _len(0)
@@ -998,6 +1010,20 @@ String &String::operator=(const String& str)
             _bufHead->RefCount++;
         }
     }
+    return *this;
+}
+
+String &String::operator=(String &&str)
+{
+    Free();
+    _cstr = str._cstr;
+    _len = str._len;
+    _buf = str._buf;
+    _bufHead = str._bufHead;
+    str._cstr = const_cast<char*>("");
+    str._len = 0;
+    str._buf = nullptr;
+    str._bufHead = nullptr;
     return *this;
 }
 

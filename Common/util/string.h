@@ -58,6 +58,8 @@ public:
     String();
     // Copy constructor
     String(const String&);
+    // Move constructor
+    String(String&&);
     // Initialize with C-string
     String(const char *cstr);
     // Initialize by copying up to N chars from C-string
@@ -349,6 +351,8 @@ public:
 
     // Assign String by sharing data reference
     String &operator=(const String &str);
+    // Move operator
+    String &operator=(String &&str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
     inline char operator[](size_t index) const

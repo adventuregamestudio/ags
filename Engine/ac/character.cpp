@@ -1565,8 +1565,8 @@ float Character_GetRotation(CharacterInfo *chaa) {
     return charextra[chaa->index_id].rotation;
 }
 
-void Character_SetRotation(CharacterInfo *chaa, float rotation) {
-    charextra[chaa->index_id].rotation = rotation;
+void Character_SetRotation(CharacterInfo *chaa, float degrees) {
+    charextra[chaa->index_id].rotation = Math::ClampAngle360(degrees);
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 

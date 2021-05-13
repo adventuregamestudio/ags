@@ -458,7 +458,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 
 void GUIMain::SetRotation(float degrees)
 {
-    Rotation = degrees;
+    Rotation = Math::ClampAngle360(degrees);
     UpdateGraphicSpace();
 }
 

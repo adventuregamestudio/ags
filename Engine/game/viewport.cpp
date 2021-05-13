@@ -75,7 +75,7 @@ float Camera::GetRotation() const
 
 void Camera::SetRotation(float degrees)
 {
-    _rotation = degrees;
+    _rotation = Math::ClampAngle360(degrees);
 
     for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
     {

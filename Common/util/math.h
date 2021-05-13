@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
+#include <cmath>
 #include <limits>
 
 #ifndef M_PI
@@ -91,6 +92,14 @@ namespace Math
     inline float DegreesToRadians(float deg)
     {
         return deg * (float)(M_PI / 180.0);
+    }
+
+    // Wraps the angle in degrees into [0;360) range
+    inline float ClampAngle360(float degrees)
+    {
+        if (degrees >= 0.0)
+            return (float)std::fmod(degrees, 360.0);
+        return (float)std::fmod(360.0 + degrees, 360.0);
     }
 } // namespace Math
 

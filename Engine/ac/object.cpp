@@ -428,8 +428,8 @@ float Object_GetRotation(ScriptObject *objj) {
     return objs[objj->id].rotation;
 }
 
-void Object_SetRotation(ScriptObject *objj, float rotation) {
-    objs[objj->id].rotation = rotation;
+void Object_SetRotation(ScriptObject *objj, float degrees) {
+    objs[objj->id].rotation = Math::ClampAngle360(degrees);
     objs[objj->id].UpdateGraphicSpace();
 }
 

@@ -180,11 +180,11 @@ float Overlay_GetRotation(ScriptOverlay *scover) {
     return screenover[ovri].rotation;
 }
 
-void Overlay_SetRotation(ScriptOverlay *scover, float rotation) {
+void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
     int ovri = find_overlay_of_type(scover->overlayId);
     if (ovri < 0)
         quit("!invalid overlay ID specified");
-    screenover[ovri].rotation = rotation;
+    screenover[ovri].rotation = Math::ClampAngle360(degrees);
 }
 
 int Overlay_GetZOrder(ScriptOverlay *scover) {

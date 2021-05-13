@@ -1689,15 +1689,15 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
     return SUCCEEDED( hr );
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
-  int allocatedWidth = bitmap->GetWidth();
-  int allocatedHeight = bitmap->GetHeight();
-  if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
-    throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
-  int colourDepth = bitmap->GetColorDepth();
+  int allocatedWidth = width;
+  int allocatedHeight = height;
+  if (color_depth != GetCompatibleBitmapFormat(color_depth))
+    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+  int colourDepth = color_depth;
 
-  D3DBitmap *ddb = new D3DBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
+  D3DBitmap *ddb = new D3DBitmap(width, height, colourDepth, opaque);
 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
@@ -1711,10 +1711,10 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
   tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
-  int tileWidth = bitmap->GetWidth() / tilesAcross;
-  int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
-  int tileHeight = bitmap->GetHeight() / tilesDown;
-  int lastTileExtraHeight = bitmap->GetHeight() % tilesDown;
+  int tileWidth = width / tilesAcross;
+  int lastTileExtraWidth = width % tilesAcross;
+  int tileHeight = height / tilesDown;
+  int lastTileExtraHeight = height % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
 
@@ -1727,8 +1727,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   CUSTOMVERTEX *vertices = NULL;
 
   if ((numTiles == 1) &&
-      (allocatedWidth == bitmap->GetWidth()) &&
-      (allocatedHeight == bitmap->GetHeight()))
+      (allocatedWidth == width) &&
+      (allocatedHeight == height))
   {
     // use default whole-image vertices
   }
@@ -1819,9 +1819,6 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   ddb->_numTiles = numTiles;
   ddb->_tiles = tiles;
-
-  UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
-
   return ddb;
 }
 

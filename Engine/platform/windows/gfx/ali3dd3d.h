@@ -183,7 +183,7 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
-    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;

@@ -1743,16 +1743,16 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
-  int allocatedWidth = bitmap->GetWidth();
-  int allocatedHeight = bitmap->GetHeight();
+  int allocatedWidth = width;
+  int allocatedHeight = height;
   // NOTE: original bitmap object is not modified in this function
-  if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
-    throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
-  int colourDepth = bitmap->GetColorDepth();
+  if (color_depth != GetCompatibleBitmapFormat(color_depth))
+    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+  int colourDepth = color_depth;
 
-  OGLBitmap *ddb = new OGLBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
+  OGLBitmap *ddb = new OGLBitmap(width, height, colourDepth, opaque);
 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
@@ -1767,10 +1767,10 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
   tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
-  int tileWidth = bitmap->GetWidth() / tilesAcross;
-  int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
-  int tileHeight = bitmap->GetHeight() / tilesDown;
-  int lastTileExtraHeight = bitmap->GetHeight() % tilesDown;
+  int tileWidth = width / tilesAcross;
+  int lastTileExtraWidth = width % tilesAcross;
+  int tileHeight = height / tilesDown;
+  int lastTileExtraHeight = height % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
 
@@ -1783,8 +1783,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   OGLCUSTOMVERTEX *vertices = nullptr;
 
   if ((numTiles == 1) &&
-      (allocatedWidth == bitmap->GetWidth()) &&
-      (allocatedHeight == bitmap->GetHeight()))
+      (allocatedWidth == width) &&
+      (allocatedHeight == height))
   {
     // use default whole-image vertices
   }
@@ -1862,9 +1862,6 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   ddb->_numTiles = numTiles;
   ddb->_tiles = tiles;
-
-  UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
-
   return ddb;
 }
 

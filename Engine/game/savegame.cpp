@@ -33,6 +33,7 @@
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/timer.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
@@ -480,6 +481,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // If they didn't have the vox before, but now they do
     else if ((pp.SpeechVOX >= 0) && (play.want_speech < 0))
         play.want_speech = (-play.want_speech) - 1;
+
+    // Restore debug flags
+    if (debug_flags & DBG_DEBUGMODE)
+        play.debug_mode = 1;
 
     // recache queued clips
     for (int i = 0; i < play.new_music_queue_size; ++i)

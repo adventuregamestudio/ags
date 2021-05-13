@@ -129,5 +129,21 @@ Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &place
     }
 }
 
+Size RotateSize(Size sz, int degrees)
+{
+    // 1 degree = 181 degrees in terms of x/y size, so % 180
+    int fixangle = degrees % 180;
+    // and 0..90 is the same as 180..90
+    if (fixangle > 90)
+        fixangle = 180 - fixangle;
+    // useAngle is now between 0 and 90 (otherwise the sin/cos stuff doesn't work)
+    double rads = AGSMath::DegreesToRadians(fixangle);
+    double sinv = sin(rads);
+    double cosv = cos(rads);
+    int width = (int)(cosv * (double)sz.Width + sinv * (double)sz.Height);
+    int height = (int)(sinv * (double)sz.Width + cosv * (double)sz.Height);
+    return Size(width, height);
+}
+
 //} // namespace Common
 //} // namespace AGS

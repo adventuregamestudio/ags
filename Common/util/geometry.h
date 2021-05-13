@@ -399,6 +399,11 @@ Rect OffsetRect(const Rect &r, const Point off);
 Rect CenterInRect(const Rect &place, const Rect &item);
 Rect ClampToRect(const Rect &place, const Rect &item);
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
+
+// Calculates the size of a rectangle necessary to accomodate the rect of original size
+// if it were rotated by the given angle (in degrees)
+Size RotateSize(Size sz, int degrees);
+
 //} // namespace Common
 //} // namespace AGS
 

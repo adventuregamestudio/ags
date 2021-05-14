@@ -1208,11 +1208,33 @@ void apply_tint_or_light(int actspsindex, int light_level,
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to actsps; returns 0 if no
 // scaling or stretching was required, in which case nothing was done
-int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
+int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotation,
                           int sppic, int newwidth, int newheight,
                           int isMirrored) {
 
   int actsps_used = 1;
+
+  Bitmap *src_sprite = spriteset[sppic];
+  Bitmap *temp_rot = nullptr;
+  if (rotation != 0.f) { 
+      Size rot_sz = RotateSize(Size(newwidth, newheight), rotation);
+      newwidth = rot_sz.Width;
+      newheight = rot_sz.Height;
+
+      // TODO: allegro does not provide a ready function to combine stretch & rotate
+      // (only rotate & scale, but scale is a uniform factor, so not dst_width/dst_height),
+      // so we create another intermediate bitmap for rotation here...
+      // might investigate methods for optimizing this later.
+      if (zoom_level != 100 || isMirrored) {
+          Size src_sz = Size(src_sprite->GetWidth(), src_sprite->GetHeight());
+          Size rot_sz = RotateSize(src_sz, rotation);
+          temp_rot = new Bitmap(rot_sz.Width, rot_sz.Height, coldept);
+          // (+ width%2 fixes one pixel offset problem)
+          temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+              src_sz.Width / 2, src_sz.Height / 2, -rotation); // counter-clockwise
+          src_sprite = temp_rot;
+      }
+  }
 
   // create and blank out the new sprite
   actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight, true);
@@ -1230,19 +1252,20 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 
 
       if (isMirrored) {
+          // TODO: "flip self" function may allow to optimize this
           Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           tempspr->Fill (actsps[useindx]->GetMaskColor());
           if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
-              tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+              tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
-              tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+              tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
       else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
-          active_spr->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+          active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
-          active_spr->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+          active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
 
       /*  AASTR2 version of code (doesn't work properly, gives black borders)
       if (IS_ANTIALIAS_SPRITES) {
@@ -1276,10 +1299,14 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 
       if (isMirrored)
           active_spr->FlipBlt(spriteset[sppic], 0, 0, Common::kBitmap_HFlip);
+      else if (rotation != 0.f)
+          // (+ width%2 fixes one pixel offset problem)
+          active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
+              src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, -rotation); // counter-clockwise
       else
-          actsps_used = 0;
-      //->Blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
+          actsps_used = 0; // can use original sprite
   }
+  delete temp_rot;
 
   return actsps_used;
 }
@@ -1325,6 +1352,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (zoom_level != 100)
         scale_sprite_size(objs[aa].num, zoom_level, &sprwidth, &sprheight);
     objs[aa].zoom = zoom_level;
+
+    float rotation = objs[aa].rotation;
 
     // save width/height into parameters if requested
     if (drawnWidth)
@@ -1408,6 +1437,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         (objcache[aa].tintbluwas == tint_blue) &&
         (objcache[aa].lightlevwas == light_level) &&
         (objcache[aa].zoomWas == zoom_level) &&
+        (objcache[aa].rotation == rotation) &&
         (objcache[aa].mirroredWas == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
@@ -1431,7 +1461,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (!hardwareAccelerated)
     {
         // draw the base sprite, scaled and flipped as appropriate
-        actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level,
+        actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level, rotation,
             objs[aa].num, sprwidth, sprheight, isMirrored);
     }
     else
@@ -1663,6 +1693,8 @@ void prepare_characters_for_drawing() {
 
         charextra[aa].zoom = zoom_level;
 
+        float rotation = charextra[aa].rotation;
+
         tint_red = tint_green = tint_blue = tint_amount = tint_light = light_level = 0;
 
         if (chin->flags & CHF_HASTINT) {
@@ -1704,6 +1736,7 @@ void prepare_characters_for_drawing() {
         if ((charcache[aa].inUse) &&
             (charcache[aa].sppic == specialpic) &&
             (charcache[aa].scaling == zoom_level) &&
+            (charcache[aa].rotation == rotation) &&
             (charcache[aa].tintredwas == tint_red) &&
             (charcache[aa].tintgrnwas == tint_green) &&
             (charcache[aa].tintbluwas == tint_blue) &&
@@ -1728,7 +1761,6 @@ void prepare_characters_for_drawing() {
             usingCachedImage = true;
         }
         else if (charcache[aa].inUse) {
-            //destroy_bitmap (charcache[aa].image);
             charcache[aa].inUse = 0;
         }
 
@@ -1748,6 +1780,7 @@ void prepare_characters_for_drawing() {
         our_eip = 3336;
 
         charcache[aa].scaling = zoom_level;
+        charcache[aa].rotation = rotation;
         charcache[aa].sppic = specialpic;
         charcache[aa].tintredwas = tint_red;
         charcache[aa].tintgrnwas = tint_green;
@@ -1765,7 +1798,7 @@ void prepare_characters_for_drawing() {
             if (!is_3d_render)
             {
                 actspsUsed = scale_and_flip_sprite(
-                    useindx, coldept, zoom_level, sppic,
+                    useindx, coldept, zoom_level, rotation, sppic,
                     newwidth, newheight, isMirrored);
             }
             else 
@@ -1795,7 +1828,6 @@ void prepare_characters_for_drawing() {
 
             // update the character cache with the new image
             charcache[aa].inUse = 1;
-            //charcache[aa].image = BitmapHelper::CreateBitmap_ (coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image->Blit (actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
 

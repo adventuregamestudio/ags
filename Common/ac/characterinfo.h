@@ -79,7 +79,7 @@ struct CharacterInfo {
     short walking, animating;
     short walkspeed, animspeed;
     short inv[MAX_INV];
-    short actx, acty;
+    short actx__, acty__; // unused?
     char  name[40];
     char  scrname[MAX_SCRIPT_NAME_LEN];
     char  on;
@@ -131,7 +131,7 @@ struct OldCharacterInfo {
     short walking, animating;
     short walkspeed, animspeed;
     short inv[100];
-    short actx, acty;
+    short actx__, acty__;
     char  name[30];
     char  scrname[16];
     char  on;

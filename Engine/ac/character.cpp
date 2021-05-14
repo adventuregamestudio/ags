@@ -526,6 +526,8 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     if (objs[objid->id].on != 1)
         return 0;
 
+    // TODO: use GraphicSpace and proper transformed coords?
+
     Bitmap *checkblk = GetObjectImage(objid->id, nullptr);
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
@@ -2179,6 +2181,13 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
     return spriteset[sppic];
 }
 
+Bitmap *GetCharacterSourceImage(int charid)
+{
+    CharacterInfo*chin = &game.chars[charid];
+    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+    return spriteset[sppic];
+}
+
 CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
     int hsnum = GetCharIDAtScreen(xx, yy);
     if (hsnum < 0)
@@ -2216,8 +2225,9 @@ int is_pos_on_character(int xx,int yy) {
         int usewid = game.SpriteInfos[sppic].Width;
         int usehit = game.SpriteInfos[sppic].Height;
 
+        // TODO: support mirrored transformation in GraphicSpace
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
-        Bitmap *theImage = GetCharacterImage(cc, &mirrored);
+        Bitmap *theImage = GetCharacterSourceImage(cc);
 
         // Convert to local object coordinates
         Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);

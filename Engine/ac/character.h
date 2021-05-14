@@ -185,6 +185,8 @@ int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 void CheckViewFrameForCharacter(CharacterInfo *chi);
 Common::Bitmap *GetCharacterImage(int charid, int *isFlipped);
+// Gets current source image (untransformed) for the character
+Common::Bitmap *GetCharacterSourceImage(int charid);
 CharacterInfo *GetCharacterAtScreen(int xx, int yy);
 // Get character ID at the given room coordinates
 int is_pos_on_character(int xx,int yy);

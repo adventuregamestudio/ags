@@ -68,5 +68,7 @@ int  GetObjectProperty (int hss, const char *property);
 void GetObjectPropertyText (int item, const char *property, char *bufer);
 
 Common::Bitmap *GetObjectImage(int obj, int *isFlipped);
+// Gets current source image (untransformed) for the room object
+Common::Bitmap *GetObjectSourceImage(int obj);
 
 #endif // __AGS_EE_AC__GLOBALOBJECT_H

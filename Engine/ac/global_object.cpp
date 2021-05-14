@@ -79,10 +79,11 @@ int GetObjectIDAtRoom(int roomx, int roomy)
         int isflipped = 0;
         int spWidth = objs[aa].get_width();
         int spHeight = objs[aa].get_height();
+        // TODO: support mirrored transformation in GraphicSpace
         if (objs[aa].view != (uint16_t)-1)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
-        Bitmap *theImage = GetObjectImage(aa, &isflipped);
+        Bitmap *theImage = GetObjectSourceImage(aa);
 
         // Convert to local object coordinates
         Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
@@ -551,5 +552,10 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
             return actsps[obj];
         }
     }
+    return spriteset[objs[obj].num];
+}
+
+Bitmap *GetObjectSourceImage(int obj)
+{
     return spriteset[objs[obj].num];
 }

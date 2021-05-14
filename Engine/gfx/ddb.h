@@ -32,6 +32,10 @@ namespace Engine
 class IDriverDependantBitmap
 {
 public:
+  // Sprite's origin [0,1] is a relative position of texture around sprite's position;
+  // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
+  // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
+  virtual void SetOrigin(float originx, float originy) = 0;
   virtual int  GetTransparency() const = 0;
   virtual void SetTransparency(int transparency) = 0;  // 0-255
   virtual void SetFlippedLeftRight(bool isFlipped) = 0;

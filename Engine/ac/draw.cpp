@@ -1473,6 +1473,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 void prepare_objects_for_drawing() {
     our_eip=32;
 
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+
     for (int aa=0; aa<croom->numobj; aa++) {
         if (objs[aa].on != 1) continue;
         // offscreen, don't draw
@@ -1486,9 +1488,15 @@ void prepare_objects_for_drawing() {
         // update the cache for next time
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
-        int atxp = objs[aa].x;
-        int atyp = objs[aa].y - tehHeight;
+        const int objx = objs[aa].x;
+        const int objy = objs[aa].y;
 
+        //
+        // Sort out walk-behinds
+        //
+        // we must use actual image's top-left position here
+        const int imgx = objx;
+        const int imgy = objy - tehHeight;
         int usebasel = objs[aa].get_baseline();
 
         if (objs[aa].flags & OBJF_NOWALKBEHINDS) {
@@ -1500,11 +1508,11 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
+            sort_out_char_sprite_walk_behind(useindx, imgx, imgy, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
-            sort_out_walk_behinds(actsps[useindx], atxp, atyp, usebasel);
+            sort_out_walk_behinds(actsps[useindx], imgx, imgy, usebasel);
         }
 
         if ((!actspsIntact) || (actspsbmp[useindx] == nullptr))
@@ -1516,7 +1524,8 @@ void prepare_objects_for_drawing() {
             actspsbmp[useindx] = gfxDriver->CreateDDBFromBitmap(actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedTransform())
+        actspsbmp[useindx]->SetOrigin(0.f, 1.f);
+        if (is_3d_render)
         {
             actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
@@ -1537,10 +1546,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
-        actspsbmp[useindx]->SetBlendMode(objs[aa].blend_mode);
-        actspsbmp[useindx]->SetRotation(objs[aa].rotation);
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false);
+        add_to_sprite_list(actspsbmp[useindx], objx, objy, usebasel, false);
     }
 }
 
@@ -1599,6 +1605,8 @@ void prepare_characters_for_drawing() {
     int tint_red, tint_green, tint_blue, tint_amount, tint_light = 255;
 
     our_eip=33;
+
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
 
     // draw characters
     for (int aa=0; aa < game.numcharacters; aa++) {
@@ -1706,7 +1714,7 @@ void prepare_characters_for_drawing() {
         }
         else if ((charcache[aa].inUse) && 
             (charcache[aa].sppic == specialpic) &&
-            (gfxDriver->HasAcceleratedTransform()))
+            (is_3d_render))
         {
             usingCachedImage = true;
         }
@@ -1745,7 +1753,7 @@ void prepare_characters_for_drawing() {
             // create the base sprite in actsps[useindx], which will
             // be scaled and/or flipped, as appropriate
             int actspsUsed = 0;
-            if (!gfxDriver->HasAcceleratedTransform())
+            if (!is_3d_render)
             {
                 actspsUsed = scale_and_flip_sprite(
                     useindx, coldept, zoom_level, sppic,
@@ -1760,7 +1768,7 @@ void prepare_characters_for_drawing() {
             our_eip = 335;
 
             if (((light_level != 0) || (tint_amount != 0)) &&
-                (!gfxDriver->HasAcceleratedTransform())) {
+                (!is_3d_render)) {
                     // apply the lightening or tinting
                     Bitmap *comeFrom = nullptr;
                     // if possible, direct read from the source image
@@ -1789,19 +1797,18 @@ void prepare_characters_for_drawing() {
         charextra[aa].width = newwidth;
         charextra[aa].height = newheight;
         charextra[aa].UpdateGraphicSpace(chin);
-        // FIXME: use graphic space to know actual AABB after rotation
-        // Calculate the X & Y co-ordinates of where the sprite will be
-        const int atxp = chin->x - newwidth / 2;
-        const int atyp = chin->y - newheight
-            // adjust the Y positioning for the character's Z co-ord
-            - chin->z;
+        const int charx = chin->x + chin->pic_xoffs;
+        const int chary = chin->y - chin->z + chin->pic_yoffs;
 
+        //
+        // Sort out walk-behinds
+        //
+        // we must use actual image's top-left position here
+        const int imgx = charx - newwidth / 2;
+        const int imgy = chary - newheight;
         int usebasel = chin->get_baseline();
 
         our_eip = 336;
-
-        const int bgX = atxp + chin->pic_xoffs;
-        const int bgY = atyp + chin->pic_yoffs;
 
         if (chin->flags & CHF_NOWALKBEHINDS) {
             // ignore walk-behinds, do nothing
@@ -1812,11 +1819,11 @@ void prepare_characters_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, bgX, bgY, usebasel, charextra[aa].zoom, newwidth, newheight);
+            sort_out_char_sprite_walk_behind(useindx, imgx, imgy, usebasel, charextra[aa].zoom, newwidth, newheight);
         }
         else if (walkBehindMethod == DrawOverCharSprite)
         {
-            sort_out_walk_behinds(actsps[useindx], bgX, bgY, usebasel);
+            sort_out_walk_behinds(actsps[useindx], imgx, imgy, usebasel);
         }
 
         if ((!usingCachedImage) || (actspsbmp[useindx] == nullptr))
@@ -1826,9 +1833,11 @@ void prepare_characters_for_drawing() {
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedTransform()) 
+        actspsbmp[useindx]->SetOrigin(0.5f, 1.f);
+        if (is_3d_render)
         {
             actspsbmp[useindx]->SetStretch(newwidth, newheight);
+            actspsbmp[useindx]->SetRotation(charextra[chin->index_id].rotation);
             actspsbmp[useindx]->SetFlippedLeftRight(isMirrored != 0);
             actspsbmp[useindx]->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
 
@@ -1850,13 +1859,9 @@ void prepare_characters_for_drawing() {
 
         our_eip = 337;
 
-        chin->actx = atxp;
-        chin->acty = atyp;
-
         actspsbmp[useindx]->SetTransparency(chin->transparency);
         actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
-        actspsbmp[useindx]->SetRotation(charextra[chin->index_id].rotation);
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false);
+        add_to_sprite_list(actspsbmp[useindx], charx, chary, usebasel, false);
     }
 }
 

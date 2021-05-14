@@ -116,8 +116,9 @@ public:
         _colDepth = colDepth;
         _flipped = false;
         _hasAlpha = false;
-        _stretchToWidth = 0;
-        _stretchToHeight = 0;
+        _stretchToWidth = width;
+        _stretchToHeight = height;
+        _originX = _originY = 0.f;
         _useResampler = false;
         _rotation = 0;
         _red = _green = _blue = 0;
@@ -128,8 +129,8 @@ public:
         _blendMode = Common::kBlend_Normal;
     }
 
-    int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() const { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return _stretchToWidth; }
+    int GetHeightToRender() const { return _stretchToHeight; }
 
     void Dispose();
 

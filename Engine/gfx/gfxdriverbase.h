@@ -163,11 +163,18 @@ struct TextureTile
 class BaseDDB : public IDriverDependantBitmap
 {
 public:
+    void SetOrigin(float originx, float originy) override
+    {
+        _originX = originx;
+        _originY = originy;
+    }
+
     int GetWidth() const override { return _width; }
     int GetHeight() const override { return _height; }
     int GetColorDepth() const override { return _colDepth; }
 
     int _width = 0, _height = 0;
+    float _originX = 0.f, _originY = 0.f;
     int _colDepth = 0;
     bool _hasAlpha = false; // has meaningful alpha channel
     bool _opaque = false; // no mask color

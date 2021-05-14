@@ -1214,6 +1214,10 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       // and now shift it over to make it 0..w again
       thisX += width;
     }
+    // Apply sprite origin
+    thisX -= widthToScale * bmpToDraw->_originX;
+    thisY += heightToScale * bmpToDraw->_originY; // inverse axis
+    // Setup rotation and pivot
     float rotZ = bmpToDraw->_rotation;
     float pivotX = -(widthToScale * 0.5), pivotY = (heightToScale * 0.5);
 

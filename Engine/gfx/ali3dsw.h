@@ -50,7 +50,7 @@ public:
     int  GetTransparency() const override { return _transparency; }
     void SetTransparency(int transparency) override { _transparency = transparency; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
-    void SetStretch(int width, int height, bool useResampler = true) override 
+    void SetStretch(int width, int height, bool /*useResampler*/) override
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
@@ -77,8 +77,8 @@ public:
         _height = bmp->GetHeight();
         _colDepth = bmp->GetColorDepth();
         _flipped = false;
-        _stretchToWidth = 0;
-        _stretchToHeight = 0;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
         _rotation = 0;
         _transparency = 0;
         _opaque = opaque;
@@ -86,8 +86,8 @@ public:
         _blendMode = Common::kBlend_Normal;
     }
 
-    int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return _stretchToWidth; }
+    int GetHeightToRender() const { return _stretchToHeight; }
 
     void Dispose()
     {

@@ -34,7 +34,8 @@ struct CharacterExtras {
     short invorder_count;
     // TODO: implement full AABB and keep updated, so that engine could rely on these cached values all time;
     // TODO: consider having both fixed AABB and volatile one that changes with animation frame (unless you change how anims work)
-    short width;
+    int spr_width, spr_height; // last used sprite's size
+    short width; // width/height last time drawn (includes scaling)
     short height;
     short zoom;
     short xwas;

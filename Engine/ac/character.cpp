@@ -2213,10 +2213,8 @@ int is_pos_on_character(int xx,int yy) {
         }
 
         sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-        int usewid = charextra[cc].width;
-        int usehit = charextra[cc].height;
-        if (usewid==0) usewid=game.SpriteInfos[sppic].Width;
-        if (usehit==0) usehit= game.SpriteInfos[sppic].Height;
+        int usewid = game.SpriteInfos[sppic].Width;
+        int usehit = game.SpriteInfos[sppic].Height;
 
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
         Bitmap *theImage = GetCharacterImage(cc, &mirrored);

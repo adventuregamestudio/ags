@@ -37,6 +37,7 @@ RoomObject::RoomObject()
     tint_b = tint_level = 0;
     tint_light = 0;
     zoom = 0;
+    spr_width = spr_height = 0;
     last_width = last_height = 0;
     num = 0;
     baseline = 0;
@@ -216,5 +217,5 @@ void RoomObject::WriteToFile(Stream *out) const
 
 void RoomObject::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(x, y - last_height, last_width, last_height, rotation);
+    _gs = GraphicSpace(x, y - last_height, spr_width, spr_height, last_width, last_height, rotation);
 }

@@ -297,7 +297,7 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 
 void GUIMain::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(X, Y, Width, Height, Rotation);
+    _gs = GraphicSpace(X, Y, Width, Height, Width, Height, Rotation);
 }
 
 void GUIMain::Poll(int mx, int my)

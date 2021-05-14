@@ -1324,6 +1324,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (drawnHeight)
         *drawnHeight = sprheight;
 
+    objs[aa].spr_width = game.SpriteInfos[objs[aa].num].Width;
+    objs[aa].spr_height = game.SpriteInfos[objs[aa].num].Height;
     objs[aa].last_width = sprwidth;
     objs[aa].last_height = sprheight;
     objs[aa].UpdateGraphicSpace();
@@ -1725,17 +1727,8 @@ void prepare_characters_for_drawing() {
             newwidth = game.SpriteInfos[sppic].Width;
             newheight = game.SpriteInfos[sppic].Height;
         }
-        charextra[aa].width = newwidth;
-        charextra[aa].height = newheight;
-        charextra[aa].UpdateGraphicSpace(chin);
 
         our_eip = 3336;
-
-        // Calculate the X & Y co-ordinates of where the sprite will be
-        const int atxp = chin->x - newwidth/2;
-        const int atyp = chin->y - newheight
-            // adjust the Y positioning for the character's Z co-ord
-            - chin->z;
 
         charcache[aa].scaling = zoom_level;
         charcache[aa].sppic = specialpic;
@@ -1790,6 +1783,18 @@ void prepare_characters_for_drawing() {
             charcache[aa].image->Blit (actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
 
         } // end if !cache.inUse
+
+        charextra[aa].spr_width = spriteset[sppic]->GetWidth();
+        charextra[aa].spr_height = spriteset[sppic]->GetHeight();
+        charextra[aa].width = newwidth;
+        charextra[aa].height = newheight;
+        charextra[aa].UpdateGraphicSpace(chin);
+        // FIXME: use graphic space to know actual AABB after rotation
+        // Calculate the X & Y co-ordinates of where the sprite will be
+        const int atxp = chin->x - newwidth / 2;
+        const int atyp = chin->y - newheight
+            // adjust the Y positioning for the character's Z co-ord
+            - chin->z;
 
         int usebasel = chin->get_baseline();
 

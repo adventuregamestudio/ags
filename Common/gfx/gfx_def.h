@@ -51,10 +51,13 @@ class GraphicSpace
 {
 public:
     GraphicSpace() {}
-    GraphicSpace(int x, int y, int w, int h, float rot)
+    GraphicSpace(int x, int y, int src_w, int src_h, int dst_w, int dst_h, float rot)
     {
-        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f, 1.f,
-            Math::DegreesToRadians(rot), 0.5f * w, 0.5f * h);
+        const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
+        const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
+        assert((sx != 0.f) && (sy != 0.f));
+        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f / sx, 1.f / sy,
+            Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
         /* Uncomment if appears necessary: Local->world transform + AABB
         /*
         L2WTransform = glmex::make_transform2d((float)x, (float)y, 1.f, 1.f,

@@ -236,6 +236,7 @@ static void invalidate_and_subref(ScreenOverlay &over, ScriptOverlay *&scover)
 // Frees overlay resources and disposes script object if there are no more refs
 static void dispose_overlay(ScreenOverlay &over)
 {
+    over.helpbmp.reset();
     delete over.pic;
     over.pic = nullptr;
     if (over.bmp != nullptr)
@@ -308,7 +309,6 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     }
     ScreenOverlay over;
     over.pic=piccy;
-    over.bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     over.x=x;
     over.y=y;
     over._offsetX = pic_offx;
@@ -320,6 +320,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
     over.blendMode = blendMode;
+    recreate_overlay_image(over);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
@@ -334,7 +335,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     {
         play.speech_face_scover = create_scriptobj_addref(over);
     }
-    screenover.push_back(over);
+    screenover.push_back(std::move(over));
     return screenover.size() - 1;
 }
 
@@ -382,6 +383,36 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
     }
     *x = tdxp;
     *y = tdyp;
+}
+
+Point update_overlay_graphicspace(ScreenOverlay &over)
+{
+    int atx, aty;
+    get_overlay_position(over, &atx, &aty);
+    over._gs = GraphicSpace(atx, aty, over.pic->GetWidth(), over.pic->GetHeight(),
+        over.pic->GetWidth(), over.pic->GetHeight(), over.rotation);
+    return Point(atx, aty);
+}
+
+void recreate_overlay_image(ScreenOverlay &over)
+{
+    if (over.bmp)
+        gfxDriver->DestroyDDB(over.bmp);
+    Bitmap *use_pic = over.pic;
+    // For software renderer - apply all supported Overlay transforms
+    if (!gfxDriver->HasAcceleratedTransform() && over.rotation != 0.0)
+    {
+        Size final_sz = RotateSize(Size(over.pic->GetWidth(), over.pic->GetHeight()), over.rotation);
+        over.helpbmp.reset(recycle_bitmap(over.helpbmp.release(), over.pic->GetColorDepth(),
+            final_sz.Width, final_sz.Height, false));
+        const int dst_w = final_sz.Width;
+        const int dst_h = final_sz.Height;
+        // (+ width%2 fixes one pixel offset problem)
+        over.helpbmp->RotateBlt(over.pic, dst_w / 2 + dst_w % 2, dst_h / 2,
+            over.pic->GetWidth() / 2, over.pic->GetHeight() / 2, -over.rotation); // counter-clockwise
+        use_pic = over.helpbmp.get();
+    }
+    over.bmp = gfxDriver->CreateDDBFromBitmap(use_pic, over.hasAlphaChannel);
 }
 
 void recreate_overlay_ddbs()

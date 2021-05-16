@@ -2076,24 +2076,39 @@ void draw_gui_and_overlays()
 
     const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
 
-    // prepare overlays
-    for (const auto &over : screenover)
+    // Prepare overlays, check if their bitmap has to be redrawn (software only)
+    if (!is_3d_render)
     {
+        for (auto &over : screenover)
+        {
+            if (over.lastRotation != over.rotation)
+            {
+                // Create or resize GUI surface, accomodating for any GUI transformations
+                recreate_overlay_image(over);
+                over.lastRotation = over.rotation;
+            }
+        }
+    }
+    // Add active overlays to the sprite list
+    for (auto &over : screenover)
+    {
+        if (over.transparency == 255) continue; // skip fully transparent
+
         over.bmp->SetTransparency(over.transparency);
         over.bmp->SetBlendMode(over.blendMode);
         over.bmp->SetRotation(over.rotation);
+        const Point overpos = update_overlay_graphicspace(over);
+
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
         {
-            add_to_sprite_list(over.bmp, over.x, over.y, INT_MIN, false);
+            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), INT_MIN, false);
         }
         else
         {
-            int tdxp, tdyp;
-            get_overlay_position(over, &tdxp, &tdyp);
             // draw speech and portraits over GUI and the rest under GUI
             int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_TEXTSPEECH || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
-            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false);
+            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), zorder, false);
         }
     }
 

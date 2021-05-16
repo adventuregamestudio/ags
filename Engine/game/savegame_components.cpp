@@ -766,7 +766,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams &pp, 
         over.ReadFromFile(in, has_bitmap, cmp_ver);
         if (has_bitmap)
             over.pic = read_serialized_bitmap(in);
-        screenover.push_back(over);
+        screenover.push_back(std::move(over));
     }
     return err;
 }

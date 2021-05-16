@@ -697,7 +697,7 @@ namespace AGS.Editor.Components
                 scriptEditor.Room = _loadedRoom;
             }
             _roomScriptEditors[selectedRoom.Number] = new ContentDocument(scriptEditor,
-                selectedRoom.Script.FileName, this, SCRIPT_ICON);
+                selectedRoom.Script.FileNameWithoutPath, this, SCRIPT_ICON);
             _roomScriptEditors[selectedRoom.Number].ToolbarCommands = scriptEditor.ToolbarIcons;
             _roomScriptEditors[selectedRoom.Number].MainMenu = scriptEditor.ExtraMenu; 
         }

@@ -52,6 +52,7 @@ void GUIMain::InitDefaults()
     ID            = 0;
     Name.Empty();
     _flags        = kGUIMain_DefFlags;
+    _hasChanged   = true; // must be updated after creation
 
     X             = 0;
     Y             = 0;
@@ -459,6 +460,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 void GUIMain::SetRotation(float degrees)
 {
     Rotation = Math::ClampAngle360(degrees);
+    MarkChanged();
     UpdateGraphicSpace();
 }
 

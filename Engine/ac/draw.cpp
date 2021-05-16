@@ -172,6 +172,9 @@ std::vector<SpriteListEntry> thingsToDrawList;
 // sprlist - will be sorted using baseline and appended to main list
 std::vector<SpriteListEntry> sprlist;
 
+// Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
+std::vector<std::unique_ptr<Bitmap>> guihelpbg;
+// Final GUI surfaces
 Bitmap **guibg = nullptr;
 IDriverDependantBitmap **guibgbmp = nullptr;
 
@@ -2071,6 +2074,8 @@ void draw_gui_and_overlays()
 
     clear_sprite_list();
 
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+
     // prepare overlays
     for (const auto &over : screenover)
     {
@@ -2106,35 +2111,60 @@ void draw_gui_and_overlays()
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
         our_eip = 37;
         {
-            for (aa=0;aa<game.numgui;aa++) {
-                if (!guis[aa].IsDisplayed()) continue;
-                if (!guis[aa].HasChanged()) continue;
-                if (guis[aa].Transparency == 255) continue;
+            for (int index = 0; index < game.numgui; ++index) {
+                GUIMain &gui = guis[index];
+                if (!gui.IsDisplayed()) continue;
+                if (!gui.HasChanged()) continue;
+                if (gui.Transparency == 255) continue;
 
-                guis[aa].ClearChanged();
-                if (guibg[aa] == nullptr)
-                    recreate_guibg_image(&guis[aa]);
+                gui.ClearChanged();
+                
+                recreate_guibg_image(&gui);
 
-                eip_guinum = aa;
-                our_eip = 370;
-                guibg[aa]->ClearTransparent();
-                our_eip = 372;
-                guis[aa].DrawAt(guibg[aa], 0,0);
-                our_eip = 373;
-
-                bool isAlpha = false;
-                if (guis[aa].HasAlphaChannel()) 
+                eip_guinum = index;
+                Bitmap *guibg_final = guibg[index];
+                Bitmap *draw_at = guibg_final;
+                // For software drawing, if GUI requires visual transformation,
+                // then we first draw normal GUI on a helper surface, then blit
+                // that surface to the final bitmap
+                if (!is_3d_render && gui.Rotation != 0.f)
                 {
-                    isAlpha = true;
+                    guihelpbg[index].reset(
+                        recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.Width, gui.Height));
+                    draw_at = guihelpbg[index].get();
                 }
 
-                if (guibgbmp[aa] != nullptr) 
+                our_eip = 370;
+                draw_at->ClearTransparent();
+                our_eip = 372;
+                gui.DrawAt(draw_at, 0, 0);
+                our_eip = 373;
+
+                if (draw_at != guibg_final)
                 {
-                    gfxDriver->UpdateDDBFromBitmap(guibgbmp[aa], guibg[aa], isAlpha);
+                    if (gui.Rotation != 0.f)
+                    {
+                        const int dst_w = guibg_final->GetWidth();
+                        const int dst_h = guibg_final->GetHeight();
+                        // (+ width%2 fixes one pixel offset problem)
+                        guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
+                            gui.Width / 2, gui.Height / 2, -gui.Rotation); // counter-clockwise
+                    }
+                    else
+                    {
+                        guibg_final->StretchBlt(draw_at, RectWH(guibg_final->GetSize()));
+                    }
+                }
+
+                const bool isAlpha = gui.HasAlphaChannel();
+                IDriverDependantBitmap *&ddb = guibgbmp[index];
+                if (ddb != nullptr)
+                {
+                    gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final, isAlpha);
                 }
                 else
                 {
-                    guibgbmp[aa] = gfxDriver->CreateDDBFromBitmap(guibg[aa], isAlpha);
+                    ddb = gfxDriver->CreateDDBFromBitmap(guibg_final, isAlpha);
                 }
                 our_eip = 374;
             }
@@ -2152,10 +2182,12 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
+            guibgbmp[aa]->SetOrigin(0.f, 0.f);
             guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
             guibgbmp[aa]->SetBlendMode(guis[aa].BlendMode);
             guibgbmp[aa]->SetRotation(guis[aa].Rotation);
-            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false);
+            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y,
+                guis[aa].GetGraphicSpace().AABB(), guis[aa].ZOrder, false);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)

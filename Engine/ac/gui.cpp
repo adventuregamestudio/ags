@@ -45,6 +45,7 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
+#include "util/geometry.h"
 #include "util/string_compat.h"
 
 
@@ -134,9 +135,6 @@ void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
     return;
   
   tehgui->SetSize(w, h);
-  
-  recreate_guibg_image(tehgui);
-
   tehgui->MarkChanged();
 }
 
@@ -586,13 +584,16 @@ int adjust_y_for_guis ( int yy) {
 
 void recreate_guibg_image(GUIMain *tehgui)
 {
-  int ifn = tehgui->ID;
+  // Calculate all supported GUI transforms
+  const int ifn = tehgui->ID;
+  Size final_sz = gfxDriver->HasAcceleratedTransform() ?
+      Size(tehgui->Width, tehgui->Height) :
+      RotateSize(Size(tehgui->Width, tehgui->Height), tehgui->Rotation);
+  if (guibg[ifn] && guibg[ifn]->GetSize() == final_sz)
+    return; // all is fine
+      
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
-  if (guibg[ifn] == nullptr)
-    quit("SetGUISize: internal error: unable to reallocate gui cache");
-  guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
-
+  guibg[ifn] = new Bitmap(final_sz.Width, final_sz.Height, gfxDriver->GetCompatibleBitmapFormat(game.GetColorDepth()));
   if (guibgbmp[ifn] != nullptr)
   {
     gfxDriver->DestroyDDB(guibgbmp[ifn]);

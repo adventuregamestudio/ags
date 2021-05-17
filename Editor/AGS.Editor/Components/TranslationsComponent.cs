@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
@@ -88,12 +89,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        private string ConvertEscapedCharacters(string scriptStyleString)
-        {
-            // The translation source has \" and \\, but the engine expects " and \
-            return scriptStyleString.Replace("\\\"", "\"").Replace("\\\\", "\\");
-        }
-
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
             translation.LoadData();
@@ -124,8 +119,8 @@ namespace AGS.Editor.Components
                     if (translation.TranslatedLines[line].Length > 0)
                     {
                         foundTranslatedLine = true;
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(ConvertEscapedCharacters(line)));
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(ConvertEscapedCharacters(translation.TranslatedLines[line])));
+                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(line)));
+                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(translation.TranslatedLines[line])));
                     }
                 }
                 bw.Write(Factory.NativeProxy.TransformStringToBytes(string.Empty));

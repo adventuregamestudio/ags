@@ -834,9 +834,7 @@ namespace AGS.Editor.Components
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            XmlDocument xml = new XmlDocument();
-            xml.LoadXml(File.ReadAllText(newRoom.DataFileName));
-            _loadedRoom = new Room(xml.SelectSingleNode("Room"));
+            _loadedRoom = new Room(LoadData(newRoom));
             LoadImageCache();
 
             // TODO: group these in some UpdateRoomToNewVersion method
@@ -1834,10 +1832,7 @@ namespace AGS.Editor.Components
             {
                 if (File.Exists(_loadedRoom.GetBackgroundFileName(i)))
                 {
-                    using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetBackgroundFileName(i))))
-                    {
-                        _backgroundCache.Add(new Bitmap(ms));
-                    }
+                    _backgroundCache.Add(LoadBackground(i));
                 }
             }
 
@@ -1863,10 +1858,7 @@ namespace AGS.Editor.Components
 
                 if (File.Exists(_loadedRoom.GetMaskFileName(mask)))
                 {
-                    using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(_loadedRoom.GetMaskFileName(mask))))
-                    {
-                        _maskCache[mask] = new Bitmap(ms);
-                    }
+                    _maskCache[mask] = LoadMask(mask);
                 }
                 else
                 {
@@ -1879,6 +1871,32 @@ namespace AGS.Editor.Components
                         $"default image will be used instead.",
                         MessageBoxIcon.Warning);
                 }
+            }
+        }
+
+        private XmlNode LoadData(UnloadedRoom room)
+        {
+            XmlDocument xml = new XmlDocument();
+
+            using (FileStream filestream = File.Open(room.DataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (BinaryReader reader = new BinaryReader(filestream))
+            {
+                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
+                string xmlContent = Encoding.Default.GetString(bytes);
+                xml.LoadXml(xmlContent);
+                return xml.SelectSingleNode("Room");
+            }
+        }
+
+        private Bitmap LoadBackground(int i) => LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
+
+        private Bitmap LoadMask(RoomAreaMaskType mask) => LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
+
+        private Bitmap LoadNonLockedBitmap(string fileName)
+        {
+            using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(fileName)))
+            {
+                return new Bitmap(ms);
             }
         }
 

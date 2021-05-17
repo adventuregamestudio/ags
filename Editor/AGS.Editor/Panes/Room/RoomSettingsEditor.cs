@@ -217,6 +217,11 @@ namespace AGS.Editor
             _editAddressBar.CurrentNode = node;
             return true;
         }
+
+        /// <summary>
+        /// Invalidate the surface of the drawing control and causes the control to be redrawn
+        /// </summary>
+        public void InvalidateDrawingBuffer() => bufferedPanel1.Invalidate();
         
         private void SelectOldNode(IAddressNode currentNode)
         {

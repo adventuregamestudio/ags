@@ -36,6 +36,7 @@ namespace AGS.Editor.Components
 
         private readonly List<Bitmap> _backgroundCache = new List<Bitmap>(Room.MAX_BACKGROUNDS);
         private readonly Dictionary<RoomAreaMaskType, Bitmap> _maskCache = new Dictionary<RoomAreaMaskType, Bitmap>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
+        private readonly FileWatchHelpers _fileWatchers = new FileWatchHelpers();
 
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
@@ -77,6 +78,7 @@ namespace AGS.Editor.Components
         public void Dispose()
         {
             ClearImageCache();
+            _fileWatchers.Dispose();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -836,6 +838,8 @@ namespace AGS.Editor.Components
 
             _loadedRoom = new Room(LoadData(newRoom));
             LoadImageCache();
+            _fileWatchers.Clear();
+            _fileWatchers.AddRange(LoadFileWatchers());
 
             // TODO: group these in some UpdateRoomToNewVersion method
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
@@ -1571,9 +1575,13 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            SaveImages();
-            _loadedRoom.ToXmlDocument().Save(_loadedRoom.DataFileName);
-            _loadedRoom.Modified = false;
+            _fileWatchers.TemporarilyDisable(() =>
+            {
+                SaveImages();
+                _loadedRoom.ToXmlDocument().Save(_loadedRoom.DataFileName);
+                _fileWatchers[_loadedRoom.DataFileName].ChangedAt = DateTime.Now;
+                _loadedRoom.Modified = false;
+            });
         }
 
         Bitmap IRoomController.GetBackground(int background)
@@ -1617,7 +1625,7 @@ namespace AGS.Editor.Components
             if (background >= _backgroundCache.Count)
             {
                 _backgroundCache.Add(newBmp);
-                _loadedRoom.BackgroundCount++;
+                _fileWatchers[_loadedRoom.GetBackgroundFileName(_loadedRoom.BackgroundCount++)].Enabled = true;
             }
             else
             {
@@ -1643,7 +1651,7 @@ namespace AGS.Editor.Components
 
             _backgroundCache[background]?.Dispose();
             _backgroundCache.RemoveAt(background);
-            _loadedRoom.BackgroundCount--;
+            _fileWatchers[_loadedRoom.GetBackgroundFileName(--_loadedRoom.BackgroundCount)].Enabled = false;
             _loadedRoom.Modified = true;
         }
 
@@ -1888,9 +1896,29 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void RefreshData()
+        {
+            SerializeUtils.DeserializeFromXML(_loadedRoom, LoadData(_loadedRoom));
+            _guiController.RefreshPropertyGrid();
+        }
+
         private Bitmap LoadBackground(int i) => LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
 
+        private void RefreshBackground(int i)
+        {
+            _backgroundCache[i]?.Dispose();
+            _backgroundCache[i] = LoadBackground(i);
+            ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+        }
+
         private Bitmap LoadMask(RoomAreaMaskType mask) => LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
+
+        private void RefreshMask(RoomAreaMaskType mask)
+        {
+            _maskCache[mask]?.Dispose();
+            _maskCache[mask] = LoadMask(mask);
+            ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+        }
 
         private Bitmap LoadNonLockedBitmap(string fileName)
         {
@@ -1936,10 +1964,14 @@ namespace AGS.Editor.Components
             {
                 for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
                 {
+                    string fileName = _loadedRoom.GetBackgroundFileName(i);
+
                     if (i < _backgroundCache.Count)
-                        _backgroundCache[i].Save(_loadedRoom.GetBackgroundFileName(i), ImageFormat.Png);
+                        _backgroundCache[i].Save(fileName, ImageFormat.Png);
                     else
-                        File.Delete(_loadedRoom.GetBackgroundFileName(i));
+                        File.Delete(fileName);
+
+                    _fileWatchers[fileName].ChangedAt = DateTime.Now;
                 }
 
                 foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -1947,8 +1979,30 @@ namespace AGS.Editor.Components
                     if (mask == RoomAreaMaskType.None)
                         continue;
 
-                    _maskCache[mask].Save(_loadedRoom.GetMaskFileName(mask), ImageFormat.Png);
+                    string fileName = _loadedRoom.GetMaskFileName(mask);
+                    _maskCache[mask].Save(fileName, ImageFormat.Png);
+                    _fileWatchers[fileName].ChangedAt = DateTime.Now;
                 }
+            }
+        }
+
+        private IEnumerable<FileWatchHelper> LoadFileWatchers()
+        {
+            yield return new FileWatchHelper(_loadedRoom.DataFileName, this.RefreshData);
+
+            for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
+            {
+                // Have to make a copy otherwise i will be equal to Room.MAX_BACKGROUNDS when loadFile callback is executed
+                int roomNumber = i; 
+                yield return new FileWatchHelper(_loadedRoom.GetBackgroundFileName(roomNumber), () => RefreshBackground(roomNumber))
+                {
+                    Enabled = roomNumber < _loadedRoom.BackgroundCount
+                };
+            }
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
+            {
+                yield return new FileWatchHelper(_loadedRoom.GetMaskFileName(mask), () => RefreshMask(mask));
             }
         }
 

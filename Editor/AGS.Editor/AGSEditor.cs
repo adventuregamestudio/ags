@@ -850,6 +850,7 @@ namespace AGS.Editor
                 _fileWatcher.Changed += new FileSystemEventHandler(_fileWatcher_Changed);
                 _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
                 _fileWatcher.EnableRaisingEvents = true;
+                _fileWatcher.IncludeSubdirectories = true;
             }
 
             CloseLockFile();

@@ -38,6 +38,7 @@ namespace AGS.Editor
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
+        private readonly FileWatchHelper _fileWatcher;
         private Script _script;
         private Room _room;
         private int _roomNumber;
@@ -47,19 +48,17 @@ namespace AGS.Editor
         private string _lastSearchText = string.Empty;
         private bool _lastCaseSensitive = false;
         private AutoComplete.BackgroundCacheUpdateStatusChangedHandler _autocompleteUpdateHandler;
-        private EditorEvents.FileChangedInGameFolderHandler _fileChangedHandler;
-        private EventHandler _mainWindowActivatedHandler;
         private Action<Script> _showMatchingScript;
         private bool _allowZoomToFunction = true;
         private string _goToDefinition = null;
         private int? _goToSprite = null;
-        private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
         private int _firstVisibleLine;        
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
+            _fileWatcher = new FileWatchHelper(scriptToEdit.FileName, OnFileChangedExternally);
             _showMatchingScript = showMatchingScript;
             _agsEditor = agsEditor;
             Init(scriptToEdit);
@@ -92,10 +91,6 @@ namespace AGS.Editor
 
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
-            _fileChangedHandler = new EditorEvents.FileChangedInGameFolderHandler(Events_FileChangedInGameFolder);
-            Factory.Events.FileChangedInGameFolder += _fileChangedHandler;
-            _mainWindowActivatedHandler = new EventHandler(GUIController_OnMainWindowActivated);
-            Factory.GUIController.OnMainWindowActivated += _mainWindowActivatedHandler;
 
             _toolbarIcons.Add(new MenuCommand(CUT_COMMAND, "Cut", "CutIcon"));
             _toolbarIcons.Add(new MenuCommand(COPY_COMMAND, "Copy", "CopyIcon"));
@@ -176,6 +171,13 @@ namespace AGS.Editor
             ToggleBreakpoint(e.LineNumber);
         }
 
+
+        protected override void OnDispose()
+        {
+            _fileWatcher.Dispose();
+            base.OnDispose();
+        }
+
         private void ScriptEditor_Resize(object sender, EventArgs e)
         {
             if (this.ClientSize.Width > 50)
@@ -184,57 +186,11 @@ namespace AGS.Editor
             }
         }
 
-        private void PromptUserThatFileHasChangedExternally()
+        private void OnFileChangedExternally()
         {
-            _fileChangedExternally = false;
-
-            switch(Factory.AGSEditor.Settings.ReloadScriptOnExternalChange)
-            {
-                case Preferences.ReloadScriptOnExternalChange.Never:
-                    break;
-                case Preferences.ReloadScriptOnExternalChange.Prompt:
-                    string question = $"The file '{_script.FileName}' has been modified externally. Do you want to reload it?";
-                    if (Factory.GUIController.ShowQuestion(question, MessageBoxIcon.Question) != DialogResult.Yes)
-                    {
-                        break;
-                    }
-                    goto case Preferences.ReloadScriptOnExternalChange.Always;
-                case Preferences.ReloadScriptOnExternalChange.Always:
-                    _script.LoadFromDisk();
-                    scintilla.SetText(_script.Text);
-                    _editorTextModifiedSinceLastCopy = false;
-                    break;
-            }
-        }
-
-        private void GUIController_OnMainWindowActivated(object sender, EventArgs e)
-        {
-            if (_fileChangedExternally)
-            {
-                PromptUserThatFileHasChangedExternally();
-            }
-        }
-
-        private void Events_FileChangedInGameFolder(string fileName)
-        {
-            if (fileName.ToLower() == _script.FileName.ToLower() &&
-                !_script.IsBeingSaved)
-            {
-                if (DateTime.Now.Subtract(_script.LastSavedAt).TotalSeconds > 2)
-                {
-                    if (!Utilities.IsMonoRunning() && Utilities.IsThisApplicationCurrentlyActive())
-                    {
-                        //On Mono can't use the Win API to check if application is in focus.
-                        //Hopefully the prompt will be triggered by its second usage,
-                        //when the main window is activated.
-                        PromptUserThatFileHasChangedExternally();
-                    }
-                    else
-                    {
-                        _fileChangedExternally = true;
-                    }
-                }
-            }
+            _script.LoadFromDisk();
+            scintilla.SetText(_script.Text);
+            _editorTextModifiedSinceLastCopy = false;
         }
 
         private void UpdateStructHighlighting()
@@ -462,7 +418,11 @@ namespace AGS.Editor
 
             if (!scintilla.IsDisposed && scintilla.IsModified)
             {
+                _fileWatcher.Enabled = false;
                 _script.SaveToDisk();
+                _fileWatcher.ChangedAt = _script.LastSavedAt;
+                _fileWatcher.Enabled = true;
+
                 scintilla.SetSavePoint();
                 if (_script.IsHeader)
                 {
@@ -714,8 +674,6 @@ namespace AGS.Editor
         private void DisconnectEventHandlers()
         {
             AutoComplete.BackgroundCacheUpdateStatusChanged -= _autocompleteUpdateHandler;
-            Factory.Events.FileChangedInGameFolder -= _fileChangedHandler;
-            Factory.GUIController.OnMainWindowActivated -= _mainWindowActivatedHandler;
         }
 
         private void scintilla_IsModifiedChanged(object sender, EventArgs e)

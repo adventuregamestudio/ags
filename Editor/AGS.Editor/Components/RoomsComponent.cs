@@ -1363,14 +1363,31 @@ namespace AGS.Editor.Components
             bool success = true;
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
+                IEnumerable<string> missingMasks = Enum
+                    .GetValues(typeof(RoomAreaMaskType))
+                    .Cast<RoomAreaMaskType>()
+                    .Where(m => m != RoomAreaMaskType.None)
+                    .Select(m => unloadedRoom.GetMaskFileName(m))
+                    .Where(f => !File.Exists(f));
+
                 if (!File.Exists(unloadedRoom.ScriptFileName))
                 {
                     errors.Add(new CompileError("File not found: " + unloadedRoom.ScriptFileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
                     success = false;
                 }
-                else if (!File.Exists(unloadedRoom.FileName))
+                else if (!File.Exists(unloadedRoom.DataFileName))
                 {
-                    errors.Add(new CompileError("File not found: " + unloadedRoom.FileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.DataFileName + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    success = false;
+                }
+                else if (!File.Exists(unloadedRoom.GetBackgroundFileName(0)))
+                {
+                    errors.Add(new CompileError("File not found: " + unloadedRoom.GetBackgroundFileName(0) + "; If you deleted this file, use the Exclude From Game option to remove it from the game."));
+                    success = false;
+                }
+                else if (missingMasks.Any())
+                {
+                    errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, use the Exclude From Game option to remove it from the game.")));
                     success = false;
                 }
                 else if ((rebuildAll) ||
@@ -1582,6 +1599,8 @@ namespace AGS.Editor.Components
                 _fileWatchers[_loadedRoom.DataFileName].ChangedAt = DateTime.Now;
                 _loadedRoom.Modified = false;
             });
+
+            SaveCrm();
         }
 
         Bitmap IRoomController.GetBackground(int background)
@@ -1899,6 +1918,7 @@ namespace AGS.Editor.Components
         private void RefreshData()
         {
             SerializeUtils.DeserializeFromXML(_loadedRoom, LoadData(_loadedRoom));
+            _loadedRoom.Modified = true;
             _guiController.RefreshPropertyGrid();
         }
 
@@ -1908,6 +1928,7 @@ namespace AGS.Editor.Components
         {
             _backgroundCache[i]?.Dispose();
             _backgroundCache[i] = LoadBackground(i);
+            _loadedRoom.Modified = true;
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -1917,6 +1938,7 @@ namespace AGS.Editor.Components
         {
             _maskCache[mask]?.Dispose();
             _maskCache[mask] = LoadMask(mask);
+            _loadedRoom.Modified = true;
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -2073,6 +2095,42 @@ namespace AGS.Editor.Components
                 bmp.Save(filename, ImageFormat.Png);
             }
         });
+
+        /// <summary>
+        /// Saves .crm file from open format
+        /// </summary>
+        private void SaveCrm()
+        {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            if (!File.Exists(_loadedRoom.FileName))
+                Resources.ResourceManager.CopyFileFromResourcesToDisk("blank.crm", _loadedRoom.FileName);
+
+            // Load and forget; We need a valid RoomStruct instance because the Editor Native Proxy code
+            // expects to find it. We can't construct an instance easily directly from C#, but we get can get
+            // one by running the Native Proxy room loader code.
+            if (_loadedRoom._roomStructPtr == default(IntPtr))
+                _loadedRoom._roomStructPtr = _nativeProxy.LoadRoom(_loadedRoom)._roomStructPtr;
+
+            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+            {
+                _nativeProxy.ImportBackground(
+                    _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+            }
+
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
+            }
+
+            _nativeProxy.SaveRoom(_loadedRoom);
+        }
         #endregion
     }
 }

@@ -1401,7 +1401,7 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
     model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
-    model = glm::rotate(model, -desc.Transform.Rotate, { 0.f, 0.f, 1.f}); // rotate camera clockwise
+    model = glm::rotate(model, -Math::DegreesToRadians(desc.Transform.Rotate), { 0.f, 0.f, 1.f}); // rotate camera clockwise
     model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
     _spriteBatches[index].Matrix = model;
 

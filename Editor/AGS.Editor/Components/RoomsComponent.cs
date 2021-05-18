@@ -70,7 +70,7 @@ namespace AGS.Editor.Components
             _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(AGSEditor_PreSaveGame);
             _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
-            Factory.Events.GameLoad += ConvertAllRoomsFromCrmToOpenFormat;
+            Factory.Events.GamePostLoad += ConvertAllRoomsFromCrmToOpenFormat;
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
         }
@@ -2039,7 +2039,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private void ConvertAllRoomsFromCrmToOpenFormat(XmlNode root)
+        private void ConvertAllRoomsFromCrmToOpenFormat()
         {
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed

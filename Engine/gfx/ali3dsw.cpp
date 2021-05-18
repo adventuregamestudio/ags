@@ -439,7 +439,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
                     dst_h = helpsurf->GetHeight();
                     // (+ width%2 fixes one pixel offset problem)
                     helpsurf->RotateBlt(surface, dst_w / 2 + dst_w % 2, dst_h / 2,
-                        src_w / 2, src_h / 2, (int)-transform.Rotate); // counter-clockwise
+                        src_w / 2, src_h / 2, (int)transform.Rotate); // clockwise
                     blit_from = helpsurf;
                 }
                 virtualScreen->StretchBlt(blit_from,

@@ -1235,7 +1235,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
           temp_rot = new Bitmap(rot_sz.Width, rot_sz.Height, coldept);
           // (+ width%2 fixes one pixel offset problem)
           temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
-              src_sz.Width / 2, src_sz.Height / 2, -rotation); // counter-clockwise
+              src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
           src_sprite = temp_rot;
       }
   }
@@ -1306,7 +1306,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       else if (rotation != 0.f)
           // (+ width%2 fixes one pixel offset problem)
           active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
-              src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, -rotation); // counter-clockwise
+              src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, rotation); // clockwise
       else
           actsps_used = 0; // can use original sprite
   }
@@ -2164,7 +2164,7 @@ void draw_gui_and_overlays()
                         const int dst_h = guibg_final->GetHeight();
                         // (+ width%2 fixes one pixel offset problem)
                         guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
-                            gui.Width / 2, gui.Height / 2, -gui.Rotation); // counter-clockwise
+                            gui.Width / 2, gui.Height / 2, gui.Rotation); // clockwise
                     }
                     else
                     {

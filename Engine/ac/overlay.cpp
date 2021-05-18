@@ -409,7 +409,7 @@ void recreate_overlay_image(ScreenOverlay &over)
         const int dst_h = final_sz.Height;
         // (+ width%2 fixes one pixel offset problem)
         over.helpbmp->RotateBlt(over.pic, dst_w / 2 + dst_w % 2, dst_h / 2,
-            over.pic->GetWidth() / 2, over.pic->GetHeight() / 2, -over.rotation); // counter-clockwise
+            over.pic->GetWidth() / 2, over.pic->GetHeight() / 2, over.rotation); // clockwise
         use_pic = over.helpbmp.get();
     }
     over.bmp = gfxDriver->CreateDDBFromBitmap(use_pic, over.hasAlphaChannel);

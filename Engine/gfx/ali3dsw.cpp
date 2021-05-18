@@ -334,7 +334,7 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
         batch.IsVirtualScreen = false;
     }
     // Drawing directly on a viewport without transformation (other than offset)
-    else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
+    else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f && desc.Transform.Rotate == 0.f)
     {
         // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
         // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)
@@ -353,6 +353,14 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;
         batch.IsVirtualScreen = false;
+    }
+
+    // If there's a rotation tranform: prepare a helper surface
+    if (desc.Transform.Rotate != 0.f)
+    {
+        Size rot_sz = RotateSize(Size(batch.Surface->GetWidth(), batch.Surface->GetWidth()), (int)desc.Transform.Rotate);
+        if (batch.HelpSurface == nullptr || batch.HelpSurface->GetSize() != rot_sz)
+            batch.HelpSurface.reset(new Bitmap(rot_sz.Width, rot_sz.Height));
     }
 }
 
@@ -403,21 +411,48 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
 
         virtualScreen->SetClip(viewport);
         Bitmap *surface = batch.Surface.get();
-        const int view_offx = viewport.Left;
-        const int view_offy = viewport.Top;
+        const int view_x = viewport.Left;
+        const int view_y = viewport.Top;
+        const int view_w = viewport.GetWidth();
+        const int view_h = viewport.GetHeight();
+        // If there's an intermediate surface ready then draw sprite batch
+        // on that surface, then draw the surface onto virtual screen using
+        // its own transformation.
         if (surface)
         {
             if (!batch.Opaque)
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, transform.X, transform.Y);
+            // Blit batch surface over to the virtual screen
             if (!batch.IsVirtualScreen)
-                virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
+            {
+                Bitmap *blit_from = surface;
+                const int src_w = surface->GetWidth();
+                const int src_h = surface->GetHeight();
+                int dst_w = surface->GetWidth();
+                int dst_h = surface->GetHeight();
+                if (transform.Rotate != 0.f)
+                {
+                    Bitmap *helpsurf = batch.HelpSurface.get();
+                    dst_w = helpsurf->GetWidth();
+                    dst_h = helpsurf->GetHeight();
+                    // (+ width%2 fixes one pixel offset problem)
+                    helpsurf->RotateBlt(surface, dst_w / 2 + dst_w % 2, dst_h / 2,
+                        src_w / 2, src_h / 2, (int)-transform.Rotate); // counter-clockwise
+                    blit_from = helpsurf;
+                }
+                virtualScreen->StretchBlt(blit_from,
+                    RectWH((dst_w - src_w) / 2, (dst_h - src_h) / 2, src_w, src_h), // source rect
+                    RectWH(view_x, view_y, view_w, view_h), // destination
                     batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
+            }
         }
+        // If not intermediate surface is ready then draw sprite batch
+        // directly onto the virtual screen (no batch transformation)
         else
         {
-            RenderSpriteBatch(batch, virtualScreen, view_offx + transform.X, view_offy + transform.Y);
+            RenderSpriteBatch(batch, virtualScreen, view_x + transform.X, view_y + transform.Y);
         }
         _stageVirtualScreen = virtualScreen;
     }

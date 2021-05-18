@@ -459,6 +459,7 @@ void prepare_roomview_frame(Viewport *view)
     const int view_index = view->GetID();
     const Size view_sz = view->GetRect().GetSize();
     const Size cam_sz = view->GetCamera()->GetRect().GetSize();
+    const bool has_rotation = view->GetCamera()->GetRotation() != 0.f;
     RoomCameraDrawData &draw_dat = CameraDrawData[view_index];
     // We use intermediate bitmap to render camera/viewport pair in software mode under these conditions:
     // * camera size and viewport size are different (this may be suboptimal to paint dirty rects stretched,
@@ -466,7 +467,7 @@ void prepare_roomview_frame(Viewport *view)
     // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
     //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
     //   plugins may want to also use viewport bitmap, therefore it should retain full size.
-    if (cam_sz == view_sz && !draw_dat.IsOffscreen)
+    if (cam_sz == view_sz && !draw_dat.IsOffscreen && !has_rotation)
     { // note we keep the buffer allocated in case it will become useful later
         draw_dat.Frame.reset();
     }

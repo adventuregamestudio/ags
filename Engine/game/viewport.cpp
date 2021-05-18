@@ -83,6 +83,8 @@ void Camera::SetRotation(float degrees)
         if (locked_vp)
             locked_vp->AdjustTransformation();
     }
+
+    _hasChangedSize = true;
 }
 
 // Tells if camera is currently locked at custom position

@@ -24,6 +24,7 @@
 #include "ac/audioclip.h"
 #include "ac/gamesetup.h"
 #include "ac/path_helper.h"
+#include "ac/view.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -548,28 +549,17 @@ void stop_and_destroy_channel(int chid)
 
 int get_old_style_number_for_sound(int sound_number)
 {
-    int audio_clip_id = 0;
-
+    // In the legacy audio system treat sound_number as an old style number
     if (game.IsLegacyAudioSystem())
     {
-        // No sound assigned.
-        if (sound_number < 1)
-            return 0;
-
-        // Sound number is not yet updated to audio clip id.
-        if (sound_number <= 0x10000000)
-            return sound_number;
-
-        // Remove audio clip id flag.
-        audio_clip_id = sound_number - 0x10000000;
+        return sound_number;
     }
-    else
-        audio_clip_id = sound_number;
 
-    if (audio_clip_id >= 0)
+    // Treat sound_number as a real clip index
+    if (sound_number >= 0)
     {
         int old_style_number = 0;
-        if (sscanf(game.audioClips[audio_clip_id].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
+        if (sscanf(game.audioClips[sound_number].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
             return old_style_number;    
     }
     return 0;

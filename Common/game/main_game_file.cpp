@@ -542,7 +542,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Convert audio data to the current version
-void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320)
         return;
@@ -615,8 +615,7 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     game.audioClipTypes = audiocliptypes;
     game.audioClips = audioclips;
     
-    // Setup sound clip played on score event
-    game.scoreClipID = -1;
+    RemapLegacySoundNums(game, ents.Views, data_ver);
 }
 
 // Convert character data to the current version
@@ -674,18 +673,31 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Adjusts score clip id, depending on game data version
-void AdjustScoreSound(GameSetupStruct &game, GameDataVersion data_ver)
+void RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_320)
+    if (data_ver >= kGameVersion_320)
+        return;
+
+    // Setup sound clip played on score event
+    game.scoreClipID = -1;
+    if (game.options[OPT_SCORESOUND] > 0)
     {
-        game.scoreClipID = -1;
-        if (game.options[OPT_SCORESOUND] > 0)
+        ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, game.options[OPT_SCORESOUND]);
+        if (clip)
+            game.scoreClipID = clip->id;
+    }
+
+    // Reset view frame clip refs
+    // NOTE: we do not map these to real clips right away,
+    // instead we do this at runtime whenever we find a non-mapped frame sound.
+    for (size_t v = 0; v < (size_t)game.numviews; ++v)
+    {
+        for (size_t l = 0; l < (size_t)views[v].numLoops; ++l)
         {
-            ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, game.options[OPT_SCORESOUND]);
-            if (clip)
-                game.scoreClipID = clip->id;
-            else
-                game.scoreClipID = -1;
+            for (size_t f = 0; f < (size_t)views[v].loops[l].numFrames; ++f)
+            {
+                views[v].loops[l].frames[f].audioclip = -1;
+            }
         }
     }
 }
@@ -891,8 +903,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
     UpgradeFonts(game, data_ver);
-    UpgradeAudio(game, data_ver);
-    AdjustScoreSound(game, data_ver);
+    UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);

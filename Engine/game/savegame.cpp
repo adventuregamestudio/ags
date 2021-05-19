@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -69,6 +68,7 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 extern RoomStatus *croom;
+extern ViewStruct *views;
 
 
 namespace AGS
@@ -487,6 +487,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     {
         play.new_music_queue[i].cachedClip = nullptr;
     }
+
+    // Remap old sound nums in case we restored a save having a different list of audio clips
+    RemapLegacySoundNums(game, views, loaded_game_file_version);
 
     // restore these to the ones retrieved from the save game
     const size_t dynsurf_num = Math::Min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());

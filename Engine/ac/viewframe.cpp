@@ -74,6 +74,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
   if (newSound < 1)
   {
     views[svf->view].loops[svf->loop].frames[svf->frame].sound = -1;
+    views[svf->view].loops[svf->loop].frames[svf->frame].audioclip = -1;
   }
   else
   {
@@ -82,7 +83,9 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
     if (clip == nullptr)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (game.IsLegacyAudioSystem() ? 0x10000000 : 0);
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound =
+        game.IsLegacyAudioSystem() ? newSound : clip->id;
+    views[svf->view].loops[svf->loop].frames[svf->frame].audioclip = clip->id;
   }
 }
 
@@ -121,20 +124,19 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     ScriptAudioChannel *channel = nullptr;
     if (game.IsLegacyAudioSystem())
     {
-        if (views[view].loops[loop].frames[frame].sound > 0)
+        // sound field contains legacy sound num, so we also need an actual clip index
+        const int sound = views[view].loops[loop].frames[frame].sound;
+        int &clip_id = views[view].loops[loop].frames[frame].audioclip;
+        if (sound > 0)
         {
-            if (views[view].loops[loop].frames[frame].sound < 0x10000000)
+            if (clip_id < 0)
             {
-                ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, views[view].loops[loop].frames[frame].sound);
-                if (clip)
-                    views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
-                else
-                {
-                    views[view].loops[loop].frames[frame].sound = 0;
+                ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
+                if (!clip)
                     return;
-                }
+                clip_id = clip->id;
             }
-            channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
+            channel = play_audio_clip_by_index(clip_id);
         }
     }
     else

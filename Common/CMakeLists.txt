@@ -166,7 +166,7 @@ target_sources(common
     util/string_compat.h
 )
 
-target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr)
+target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
 
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)

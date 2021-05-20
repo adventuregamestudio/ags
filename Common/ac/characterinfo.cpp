@@ -62,8 +62,8 @@ void CharacterInfo::ReadFromFile(Stream *in)
     walkspeed = in->ReadInt16();
     animspeed = in->ReadInt16();
     in->ReadArrayOfInt16(inv, MAX_INV);
-    actx = in->ReadInt16();
-    acty = in->ReadInt16();
+    in->ReadInt16(); // actx__
+    in->ReadInt16(); // acty__
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
@@ -112,8 +112,8 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt16(walkspeed);
     out->WriteInt16(animspeed);
     out->WriteArrayOfInt16(inv, MAX_INV);
-    out->WriteInt16(actx);
-    out->WriteInt16(acty);
+    out->WriteInt16(0); // actx__
+    out->WriteInt16(0); // acty__
     out->Write(name, 40);
     out->Write(scrname, MAX_SCRIPT_NAME_LEN);
     out->WriteInt8(on);
@@ -143,8 +143,8 @@ void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
     COPY_CHAR_VAR (animating);
     COPY_CHAR_VAR (walkspeed);
     COPY_CHAR_VAR (animspeed);
-    COPY_CHAR_VAR (actx);
-    COPY_CHAR_VAR (acty);
+    COPY_CHAR_VAR (actx__);
+    COPY_CHAR_VAR (acty__);
     COPY_CHAR_VAR (on);
     strcpy (ci->name, oci->name);
     strcpy (ci->scrname, oci->scrname);

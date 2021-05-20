@@ -63,7 +63,7 @@ struct SpriteTransform
     // Translate
     int X, Y;
     float ScaleX, ScaleY;
-    float Rotate; // angle, in radians
+    float Rotate; // angle, in degrees, clockwise
 
     SpriteTransform()
         : X(0), Y(0), ScaleX(1.f), ScaleY(1.f), Rotate(0.f) {}
@@ -133,8 +133,11 @@ public:
   // sprites to this batch's list.
   virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
       const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) = 0;
-  // Adds sprite to the active batch
+  // Adds sprite to the active batch, providing it's origin position
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Adds sprite to the active batch, providing it's origin position and auxiliary
+  // position of the left-top image corner in the same coordinate space
+  virtual void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) = 0;
   // Adds fade overlay fx to the active batch
   virtual void SetScreenFade(int red, int green, int blue) = 0;
   // Adds tint overlay fx to the active batch

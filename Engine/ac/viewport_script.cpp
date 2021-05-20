@@ -98,6 +98,19 @@ void Camera_SetHeight(ScriptCamera *scam, int height)
     cam->SetSize(Size(cam->GetRect().GetWidth(), height));
 }
 
+float Camera_GetRotation(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return 0; }
+    return play.GetRoomCamera(scam->GetID())->GetRotation();
+}
+
+void Camera_SetRotation(ScriptCamera *scam, float rotation)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetRotation(rotation);
+}
+
 bool Camera_GetAutoTracking(ScriptCamera *scam)
 {
     if (scam->GetID() < 0) { debug_script_warn("Camera.AutoTracking: trying to use deleted camera"); return false; }
@@ -174,6 +187,16 @@ RuntimeScriptValue Sc_Camera_GetHeight(void *self, const RuntimeScriptValue *par
 RuntimeScriptValue Sc_Camera_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptCamera, Camera_SetHeight);
+}
+
+RuntimeScriptValue Sc_Camera_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptCamera, Camera_GetRotation);
+}
+
+RuntimeScriptValue Sc_Camera_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetRotation);
 }
 
 RuntimeScriptValue Sc_Camera_GetAutoTracking(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -471,6 +494,8 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Camera::set_Width", Sc_Camera_SetWidth);
     ccAddExternalObjectFunction("Camera::get_Height", Sc_Camera_GetHeight);
     ccAddExternalObjectFunction("Camera::set_Height", Sc_Camera_SetHeight);
+    ccAddExternalObjectFunction("Camera::get_Rotation", Sc_Camera_GetRotation);
+    ccAddExternalObjectFunction("Camera::set_Rotation", Sc_Camera_SetRotation);
     ccAddExternalObjectFunction("Camera::get_AutoTracking", Sc_Camera_GetAutoTracking);
     ccAddExternalObjectFunction("Camera::set_AutoTracking", Sc_Camera_SetAutoTracking);
     ccAddExternalObjectFunction("Camera::SetAt", Sc_Camera_SetAt);

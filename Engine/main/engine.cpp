@@ -102,6 +102,7 @@ extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
+extern std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 
 ResourcePaths ResPaths;
 
@@ -769,6 +770,7 @@ void engine_init_game_settings()
         guibg[ee] = nullptr;
         guibgbmp[ee] = nullptr;
     }
+    guihelpbg.resize(game.numgui);
 
     our_eip=-5;
     for (ee=0;ee<game.numinvitems;ee++) {

@@ -45,6 +45,7 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
+#include "util/geometry.h"
 #include "util/string_compat.h"
 
 
@@ -108,37 +109,32 @@ int GUI_GetX(ScriptGUI *tehgui) {
   return guis[tehgui->id].X;
 }
 
-void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  guis[tehgui->id].X = xx;
+void GUI_SetX(ScriptGUI *tehgui, int x) {
+  guis[tehgui->id].SetAt(x, guis[tehgui->id].Y);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
   return guis[tehgui->id].Y;
 }
 
-void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  guis[tehgui->id].Y = yy;
+void GUI_SetY(ScriptGUI *tehgui, int y) {
+    guis[tehgui->id].SetAt(guis[tehgui->id].X, y);
 }
 
-void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
-  GUI_SetX(tehgui, xx);
-  GUI_SetY(tehgui, yy);
+void GUI_SetPosition(ScriptGUI *tehgui, int x, int y) {
+    guis[tehgui->id].SetAt(x, y);
 }
 
-void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1))
-    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
+void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
+  if ((w < 1) || (h < 1))
+    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", w, h);
 
   GUIMain *tehgui = &guis[sgui->id];
 
-  if ((tehgui->Width == widd) && (tehgui->Height == hitt))
+  if ((tehgui->Width == w) && (tehgui->Height == h))
     return;
   
-  tehgui->Width = widd;
-  tehgui->Height = hitt;
-  
-  recreate_guibg_image(tehgui);
-
+  tehgui->SetSize(w, h);
   tehgui->MarkChanged();
 }
 
@@ -213,8 +209,9 @@ int GUI_GetTransparency(ScriptGUI *tehgui) {
 
 void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
-  tehgui->X = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
-  tehgui->Y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
+  int x = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
+  int y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
+  tehgui->SetAt(x, y);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
@@ -308,15 +305,9 @@ void GUI_ProcessClick(int x, int y, int mbut)
     int guiid = gui_get_interactable(x, y);
     if (guiid >= 0)
     {
-        const int real_mousex = mousex;
-        const int real_mousey = mousey;
-        mousex = x;
-        mousey = y;
-        guis[guiid].Poll();
+        guis[guiid].Poll(x, y);
         gui_on_mouse_down(guiid, mbut);
         gui_on_mouse_up(guiid, mbut);
-        mousex = real_mousex;
-        mousey = real_mousey;
     }
 }
 
@@ -328,6 +319,14 @@ void GUI_SetBlendMode(ScriptGUI *gui, int blendMode) {
     if ((blendMode < 0) || (blendMode >= kNumBlendModes))
         quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     guis[gui->id].BlendMode = (BlendMode)blendMode;
+}
+
+float GUI_GetRotation(ScriptGUI *gui) {
+    return guis[gui->id].Rotation;
+}
+
+void GUI_SetRotation(ScriptGUI *gui, float rotation) {
+    guis[gui->id].SetRotation(rotation);
 }
 
 //=============================================================================
@@ -585,13 +584,16 @@ int adjust_y_for_guis ( int yy) {
 
 void recreate_guibg_image(GUIMain *tehgui)
 {
-  int ifn = tehgui->ID;
+  // Calculate all supported GUI transforms
+  const int ifn = tehgui->ID;
+  Size final_sz = gfxDriver->HasAcceleratedTransform() ?
+      Size(tehgui->Width, tehgui->Height) :
+      RotateSize(Size(tehgui->Width, tehgui->Height), tehgui->Rotation);
+  if (guibg[ifn] && guibg[ifn]->GetSize() == final_sz)
+    return; // all is fine
+      
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
-  if (guibg[ifn] == nullptr)
-    quit("SetGUISize: internal error: unable to reallocate gui cache");
-  guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
-
+  guibg[ifn] = new Bitmap(final_sz.Width, final_sz.Height, gfxDriver->GetCompatibleBitmapFormat(game.GetColorDepth()));
   if (guibgbmp[ifn] != nullptr)
   {
     gfxDriver->DestroyDDB(guibgbmp[ifn]);
@@ -698,7 +700,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 void gui_on_mouse_down(const int guin, const int mbut)
 {
     debug_script_log("Mouse click over GUI %d", guin);
-    guis[guin].OnMouseButtonDown();
+    guis[guin].OnMouseButtonDown(mousex, mousey);
     // run GUI click handler if not on any control
     if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
         force_event(EV_IFACECLICK, guin, -1, mbut);
@@ -953,6 +955,16 @@ RuntimeScriptValue Sc_GUI_SetBlendMode(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_GUI_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptGUI, GUI_GetRotation);
+}
+
+RuntimeScriptValue Sc_GUI_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptGUI, GUI_SetRotation);
+}
+
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
@@ -997,6 +1009,8 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::get_Shown",               Sc_GUI_GetShown);
     ccAddExternalObjectFunction("GUI::get_BlendMode",           Sc_GUI_GetBlendMode);
     ccAddExternalObjectFunction("GUI::set_BlendMode",           Sc_GUI_SetBlendMode);
+    ccAddExternalObjectFunction("GUI::get_Rotation",            Sc_GUI_GetRotation);
+    ccAddExternalObjectFunction("GUI::set_Rotation",            Sc_GUI_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

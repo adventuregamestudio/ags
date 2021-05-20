@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "gui/cscidialog.h"
 #include <cctype>
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -22,7 +23,6 @@
 #include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
 #include "font/fonts.h"
-#include "gui/cscidialog.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
 #include "gui/mycontrols.h"
@@ -36,7 +36,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
 

@@ -52,6 +52,7 @@ void GUIMain::InitDefaults()
     ID            = 0;
     Name.Empty();
     _flags        = kGUIMain_DefFlags;
+    _hasChanged   = true; // must be updated after creation
 
     X             = 0;
     Y             = 0;
@@ -74,15 +75,25 @@ void GUIMain::InitDefaults()
     MouseWasAt.Y  = -1;
 
     BlendMode     = kBlend_Normal;
+    Rotation      = 0.f;
 
     OnClickHandler.Empty();
 
     _controls.clear();
     _ctrlRefs.clear();
     _ctrlDrawOrder.clear();
+
+    UpdateGraphicSpace();
 }
 
-int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
+int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable) const
+{
+    // translate to GUI's local coordinates
+    Point pt = _gs.WorldToLocal(atx, aty);
+    return FindControlAtLocal(pt.X, pt.Y, leeway, must_be_clickable);
+}
+
+int32_t GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
 {
     for (size_t i = _controls.size(); i-- > 0;)
     {
@@ -91,20 +102,10 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
             continue;
         if (!_controls[ctrl_index]->IsClickable() && must_be_clickable)
             continue;
-        if (_controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
+        if (_controls[ctrl_index]->IsOverControl(atx, aty, leeway))
             return ctrl_index;
     }
     return -1;
-}
-
-int GUIMain::FindControlUnderMouse() const
-{
-    return FindControlUnderMouse(0, true);
-}
-
-int GUIMain::FindControlUnderMouse(int leeway) const
-{
-    return FindControlUnderMouse(leeway, true);
 }
 
 int GUIMain::GetControlCount() const
@@ -154,9 +155,10 @@ bool GUIMain::IsInteractableAt(int x, int y) const
         return false;
     if (!IsClickable())
         return false;
-    if ((x >= X) & (y >= Y) & (x < X + Width) & (y < Y + Height))
-        return true;
-    return false;
+
+    // transform to GUI's local coordinates
+    Point pt = _gs.WorldToLocal(x, y);
+    return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < Width) && (pt.Y < Height));
 }
 
 bool GUIMain::IsTextWindow() const
@@ -294,18 +296,23 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
     ds->FillRect(Rect(x, y, x + 1, y + 1), draw_color);
 }
 
-void GUIMain::Poll()
+void GUIMain::UpdateGraphicSpace()
 {
-    int mxwas = mousex, mywas = mousey;
+    _gs = GraphicSpace(X, Y, Width, Height, Width, Height, Rotation);
+}
 
-    mousex -= X;
-    mousey -= Y;
-    if (mousex != MouseWasAt.X || mousey != MouseWasAt.Y)
+void GUIMain::Poll(int mx, int my)
+{
+    // transform to GUI's local coordinates
+    Point pt = _gs.WorldToLocal(mx, my);
+    mx = pt.X; my = pt.Y;
+
+    if (mx != MouseWasAt.X || my != MouseWasAt.Y)
     {
-        int ctrl_index = FindControlUnderMouse();
+        int ctrl_index = FindControlAtLocal(mx, my, 0, false);
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            _controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseDownCtrl]->OnMouseMove(mx, my);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
@@ -324,19 +331,17 @@ void GUIMain::Poll()
                 if (MouseOverCtrl >= 0)
                 {
                     _controls[MouseOverCtrl]->OnMouseEnter();
-                    _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+                    _controls[MouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
             MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
-            _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseOverCtrl]->OnMouseMove(mx, my);
     }
 
-    MouseWasAt.X = mousex;
-    MouseWasAt.Y = mousey;
-    mousex = mxwas;
-    mousey = mywas;
+    MouseWasAt.X = mx;
+    MouseWasAt.Y = my;
 }
 
 HError GUIMain::RebuildArray()
@@ -389,6 +394,13 @@ void GUIMain::ResortZOrder()
     _ctrlDrawOrder.resize(ctrl_sort.size());
     for (size_t i = 0; i < ctrl_sort.size(); ++i)
         _ctrlDrawOrder[i] = ctrl_sort[i]->Id;
+}
+
+void GUIMain::SetAt(int x, int y)
+{
+    X = x;
+    Y = y;
+    UpdateGraphicSpace();
 }
 
 void GUIMain::SetClickable(bool on)
@@ -445,6 +457,20 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     return true;
 }
 
+void GUIMain::SetRotation(float degrees)
+{
+    Rotation = Math::ClampAngle360(degrees);
+    MarkChanged();
+    UpdateGraphicSpace();
+}
+
+void GUIMain::SetSize(int w, int h)
+{
+    Width = w;
+    Height = h;
+    UpdateGraphicSpace();
+}
+
 void GUIMain::SetTextWindow(bool on)
 {
     if (on)
@@ -476,7 +502,7 @@ void GUIMain::OnControlPositionChanged()
     MarkChanged();
 }
 
-void GUIMain::OnMouseButtonDown()
+void GUIMain::OnMouseButtonDown(int mx, int my)
 {
     if (MouseOverCtrl < 0)
         return;
@@ -486,10 +512,13 @@ void GUIMain::OnMouseButtonDown()
         !_controls[MouseOverCtrl]->IsClickable())
     return;
 
+    // transform to GUI's local coordinates
+    Point pt = _gs.WorldToLocal(mx, my);
+
     MouseDownCtrl = MouseOverCtrl;
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
+    _controls[MouseDownCtrl]->OnMouseMove(pt.X, pt.Y);
     MarkChanged(); // TODO: only do if anything really changed
 }
 
@@ -584,6 +613,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     // Skip unused control slots in pre-3.4.0 games
     if (gui_version < kGuiVersion_340 && ctrl_count < LEGACY_MAX_OBJS_ON_GUI)
         in->Seek((LEGACY_MAX_OBJS_ON_GUI - ctrl_count) * sizeof(int32_t));
+
+    UpdateGraphicSpace();
 }
 
 void GUIMain::WriteToFile(Stream *out) const
@@ -667,6 +698,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
     }
+
+    UpdateGraphicSpace();
 }
 
 void GUIMain::WriteToSavegame(Common::Stream *out) const
@@ -865,7 +898,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, Stream *in)
 
         // perform fixups
         if (gui.Height < 2)
-            gui.Height = 2;
+            gui.SetSize(gui.Width, 2);
 
         // GUI popup style and visibility
         if (GameGuiVersion < kGuiVersion_350)

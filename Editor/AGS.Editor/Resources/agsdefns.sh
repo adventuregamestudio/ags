@@ -940,6 +940,8 @@ builtin managed struct Overlay {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the overlay's image rotation in degrees.
+  import attribute float Rotation;
   /// Gets/sets the transparency of this overlay.
   import attribute int Transparency;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
@@ -1378,6 +1380,8 @@ builtin managed struct GUI {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the GUI's image rotation in degrees.
+  import attribute float Rotation;
 #endif
 };
 
@@ -1825,6 +1829,8 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this object.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the object's sprite rotation in degrees.
+  import attribute float GraphicRotation;
 #endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2052,6 +2058,8 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v399
   /// Gets/sets the character's current blend mode.
   import attribute BlendMode BlendMode;
+  /// Gets/sets the character's sprite rotation in degrees.
+  import attribute float GraphicRotation;
 #endif
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
@@ -2320,6 +2328,10 @@ builtin managed struct Camera {
   import attribute int Width;
   /// Gets/sets the camera's capture height in room coordinates.
   import attribute int Height;
+#ifdef SCRIPT_API_v399
+  /// Gets/sets the camera rotation in degrees.
+  import attribute float Rotation;
+#endif
 
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;

@@ -11,11 +11,17 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/characterextras.h"
+#include "ac/characterinfo.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
+
+void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
+{
+    _gs = GraphicSpace(chin->x - width / 2 + chin->pic_xoffs,
+        chin->y - height - chin->z + chin->pic_yoffs, spr_width, spr_height, width, height, rotation);
+}
 
 void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {

@@ -26,6 +26,7 @@ struct CharacterCache {
     Common::Bitmap *image;
     int sppic;
     int scaling;
+    float rotation;
     int inUse;
     short tintredwas, tintgrnwas, tintbluwas, tintamntwas;
     short lightlevwas, tintlightwas;

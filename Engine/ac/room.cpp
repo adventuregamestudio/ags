@@ -526,6 +526,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             if (thisroom.Objects[cc].Baseline>=0)
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
             croom->obj[cc].blend_mode = thisroom.Objects[cc].BlendMode;
+            croom->obj[cc].UpdateGraphicSpace();
             if (thisroom.Objects[cc].Sprite > UINT16_MAX)
                 debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
                     cc, thisroom.Objects[cc].Sprite, UINT16_MAX);

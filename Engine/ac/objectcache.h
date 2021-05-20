@@ -24,6 +24,7 @@ struct ObjectCache {
     int   sppic;
     short tintredwas, tintgrnwas, tintbluwas, tintamntwas, tintlightwas;
     short lightlevwas, mirroredWas, zoomWas;
+    float rotation;
     // The following are used to determine if the character has moved
     int   xwas, ywas;
 };

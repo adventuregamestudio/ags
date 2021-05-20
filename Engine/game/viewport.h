@@ -61,6 +61,10 @@ public:
     void SetSize(const Size sz);
     // Puts room camera to the new location in the room
     void SetAt(int x, int y);
+    // Returns camera's rotation, in degrees
+    float GetRotation() const;
+    // Sets camera's rotation, in degrees
+    void SetRotation(float degrees);
     // Tells if camera is currently locked at custom position
     bool IsLocked() const;
     // Locks room camera at its current position
@@ -91,6 +95,8 @@ private:
     int _id = -1;
     // Actual position and orthographic size
     Rect _position;
+    // Rotation in degrees
+    float _rotation = 0.0;
     // Locked or following player automatically
     bool _locked = false;
     // Linked viewport refs, used to notify viewports of camera changes
@@ -118,8 +124,10 @@ public:
     void SetID(int id);
     // Returns viewport's position on screen
     inline const Rect &GetRect() const { return _position; }
-    // Returns viewport's room-to-screen transformation
-    inline const AGS::Engine::PlaneScaling &GetTransform() const { return _transform; }
+    // Returns viewport's room-to-screen (camera -> viewport) transformation
+    inline const glm::mat4 &GetR2STransform() const { return _c2vTransform; }
+    // Returns viewport's screen-to-room (viewport -> camera) transformation
+    inline const glm::mat4 &GetS2RTransform() const { return _v2cTransform; }
     // Set viewport's rectangle on screen
     void SetRect(const Rect &rc);
     // Sets viewport size
@@ -144,7 +152,6 @@ public:
     // pass nullptr to leave viewport without a camera link
     void LinkCamera(PCamera cam);
 
-    // TODO: provide a Transform object here that does these conversions instead
     // Converts room coordinates to the game screen coordinates through this viewport;
     // if clipping is on, the function will fail for room coordinates outside of camera
     VpPoint RoomToScreen(int roomx, int roomy, bool clip = false) const;
@@ -169,13 +176,12 @@ private:
     int _id = -1;
     // Position of the viewport on screen
     Rect _position;
-    // TODO: Camera reference (when supporting multiple cameras)
-    // Coordinate tranform between camera and viewport
-    // TODO: need to add rotate conversion to let script API support that;
-    // (maybe use full 3D matrix for that)
-    AGS::Engine::PlaneScaling _transform;
     // Linked camera reference
     CameraRef _camera;
+    // Coordinate tranform camera -> viewport
+    glm::mat4 _c2vTransform;
+    // Coordinate tranform viewport -> camera
+    glm::mat4 _v2cTransform;
     bool _visible = true;
     int _zorder = 0;
     // Flags that tell whether this viewport's position on screen has changed recently

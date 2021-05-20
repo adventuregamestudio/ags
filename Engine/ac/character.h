@@ -185,6 +185,8 @@ int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 void CheckViewFrameForCharacter(CharacterInfo *chi);
 Common::Bitmap *GetCharacterImage(int charid, int *isFlipped);
+// Gets current source image (untransformed) for the character
+Common::Bitmap *GetCharacterSourceImage(int charid);
 CharacterInfo *GetCharacterAtScreen(int xx, int yy);
 // Get character ID at the given room coordinates
 int is_pos_on_character(int xx,int yy);
@@ -194,7 +196,6 @@ int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr);
 int my_getpixel(Common::Bitmap *blk, int x, int y);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
-int is_pos_on_character(int xx,int yy);
 void _DisplaySpeechCore(int chid, const char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
 void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought);

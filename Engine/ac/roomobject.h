@@ -32,7 +32,8 @@ struct RoomObject {
     short tint_b, tint_level;
     short tint_light;
     short zoom;           // zoom level, either manual or from the current area
-    short last_width, last_height;   // width/height last time drawn
+    int   spr_width, spr_height; // last used sprite's size
+    short last_width, last_height; // width/height last time drawn (includes scaling)
     uint16_t num;            // sprite slot number
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
@@ -43,6 +44,7 @@ struct RoomObject {
     char  flags;
     short blocking_width, blocking_height;
     Common::BlendMode blend_mode;
+    float rotation;
 
     RoomObject();
 
@@ -53,12 +55,18 @@ struct RoomObject {
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
-	void UpdateCyclingView(int ref_id);
-	void update_cycle_view_forwards();
-	void update_cycle_view_backwards();
+    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    void UpdateGraphicSpace();
+
+    void UpdateCyclingView(int ref_id);
+    void update_cycle_view_forwards();
+    void update_cycle_view_backwards();
 
     void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out) const;
+
+private:
+    Common::GraphicSpace _gs;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

@@ -526,6 +526,8 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     if (objs[objid->id].on != 1)
         return 0;
 
+    // TODO: use GraphicSpace and proper transformed coords?
+
     Bitmap *checkblk = GetObjectImage(objid->id, nullptr);
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
@@ -1552,7 +1554,6 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
 }
 
 int Character_GetBlendMode(CharacterInfo *chaa) {
-
     return charextra[chaa->index_id].blend_mode;
 }
 
@@ -1560,6 +1561,15 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
     if ((blendMode < 0) || (blendMode >= kNumBlendModes))
         quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
+}
+
+float Character_GetRotation(CharacterInfo *chaa) {
+    return charextra[chaa->index_id].rotation;
+}
+
+void Character_SetRotation(CharacterInfo *chaa, float degrees) {
+    charextra[chaa->index_id].rotation = Math::ClampAngle360(degrees);
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
@@ -1597,6 +1607,7 @@ int Character_GetX(CharacterInfo *chaa) {
 
 void Character_SetX(CharacterInfo *chaa, int newval) {
     chaa->x = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetY(CharacterInfo *chaa) {
@@ -1605,6 +1616,7 @@ int Character_GetY(CharacterInfo *chaa) {
 
 void Character_SetY(CharacterInfo *chaa, int newval) {
     chaa->y = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 int Character_GetZ(CharacterInfo *chaa) {
@@ -1613,6 +1625,7 @@ int Character_GetZ(CharacterInfo *chaa) {
 
 void Character_SetZ(CharacterInfo *chaa, int newval) {
     chaa->z = newval;
+    charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
 extern int char_speaking;
@@ -2168,6 +2181,13 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
     return spriteset[sppic];
 }
 
+Bitmap *GetCharacterSourceImage(int charid)
+{
+    CharacterInfo*chin = &game.chars[charid];
+    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+    return spriteset[sppic];
+}
+
 CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
     int hsnum = GetCharIDAtScreen(xx, yy);
     if (hsnum < 0)
@@ -2202,19 +2222,17 @@ int is_pos_on_character(int xx,int yy) {
         }
 
         sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-        int usewid = charextra[cc].width;
-        int usehit = charextra[cc].height;
-        if (usewid==0) usewid=game.SpriteInfos[sppic].Width;
-        if (usehit==0) usehit= game.SpriteInfos[sppic].Height;
-        int xxx = chin->x - usewid / 2;
-        int yyy = chin->get_effective_y() - usehit;
+        int usewid = game.SpriteInfos[sppic].Width;
+        int usehit = game.SpriteInfos[sppic].Height;
 
+        // TODO: support mirrored transformation in GraphicSpace
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
-        Bitmap *theImage = GetCharacterImage(cc, &mirrored);
+        Bitmap *theImage = GetCharacterSourceImage(cc);
 
-        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
-            usewid,
-            usehit, mirrored) == FALSE)
+        // Convert to local object coordinates
+        Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
+            usewid, usehit, mirrored) == FALSE)
             continue;
 
         int use_base = chin->get_baseline();
@@ -3764,16 +3782,24 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetZ);
 }
 
-// int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetBlendMode);
 }
 
-// void (CharacterInfo *chaa, int blend_mode)
 RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
+}
+
+RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
+}
+
+RuntimeScriptValue Sc_Character_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetRotation);
 }
 
 //=============================================================================
@@ -3960,6 +3986,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
     ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
     ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
+    ccAddExternalObjectFunction("Character::get_GraphicRotation",       Sc_Character_GetRotation);
+    ccAddExternalObjectFunction("Character::set_GraphicRotation",       Sc_Character_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

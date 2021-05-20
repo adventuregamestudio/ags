@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#define NOMINMAX
 #include "gfx/gfxdriverfactory.h"
 
 #include "core/platform.h"

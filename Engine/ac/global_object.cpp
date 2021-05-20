@@ -79,12 +79,15 @@ int GetObjectIDAtRoom(int roomx, int roomy)
         int isflipped = 0;
         int spWidth = objs[aa].get_width();
         int spHeight = objs[aa].get_height();
+        // TODO: support mirrored transformation in GraphicSpace
         if (objs[aa].view != (uint16_t)-1)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
-        Bitmap *theImage = GetObjectImage(aa, &isflipped);
+        Bitmap *theImage = GetObjectSourceImage(aa);
 
-        if (is_pos_in_sprite(roomx, roomy, xxx, yyy - spHeight, theImage,
+        // Convert to local object coordinates
+        Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
+        if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
             spWidth, spHeight, isflipped) == FALSE)
             continue;
 
@@ -398,6 +401,7 @@ void SetObjectPosition(int objj, int tox, int toy) {
 
     objs[objj].x = tox;
     objs[objj].y = toy;
+    objs[objj].UpdateGraphicSpace();
 }
 
 void GetObjectName(int obj, char *buffer) {
@@ -548,5 +552,10 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
             return actsps[obj];
         }
     }
+    return spriteset[objs[obj].num];
+}
+
+Bitmap *GetObjectSourceImage(int obj)
+{
     return spriteset[objs[obj].num];
 }

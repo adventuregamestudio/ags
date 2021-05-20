@@ -174,9 +174,13 @@ public:
     // Draw bitmap using lighting preset
     void    LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount);
     // TODO: generic "draw transformed" function? What about mask option?
+    // TODO: "flip self" function
     void    FlipBlt(Bitmap *src, int dst_x, int dst_y, BitmapFlip flip);
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle);
-    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle);
+    // Draws rotated bitmap, using angle given in degrees.
+    // Warning: does not resize destination bitmap; if it's not large enough
+    // then the resulting image may end up cropped.
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int angle);
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
 
     //=========================================================================
     // Pixel operations

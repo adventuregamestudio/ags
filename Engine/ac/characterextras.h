@@ -26,13 +26,16 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+struct CharacterInfo;
+
 // TODO: now safe to merge with CharacterInfo into one class
 struct CharacterExtras {
     short invorder[MAX_INVORDER];
     short invorder_count;
     // TODO: implement full AABB and keep updated, so that engine could rely on these cached values all time;
     // TODO: consider having both fixed AABB and volatile one that changes with animation frame (unless you change how anims work)
-    short width;
+    int spr_width, spr_height; // last used sprite's size
+    short width; // width/height last time drawn (includes scaling)
     short height;
     short zoom;
     short xwas;
@@ -46,9 +49,16 @@ struct CharacterExtras {
     char  slow_move_counter;
     short animwait;
     Common::BlendMode blend_mode;
+    float rotation;
 
+    inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+
+    void UpdateGraphicSpace(const CharacterInfo *chin);
     void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    Common::GraphicSpace _gs;
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

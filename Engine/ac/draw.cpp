@@ -156,15 +156,14 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 struct SpriteListEntry
 {
     IDriverDependantBitmap *bmp = nullptr;
-    int transparent = 0;
     int x = 0, y = 0;
+    Rect aabb;
     int zorder = 0;
     // Tells if this item should take priority during sort if z1 == z2
     // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
     bool takesPriorityIfEqual = false;
     // Mark for the render stage callback (if >= 0 other fields are ignored)
     int renderStage = -1;
-    BlendMode blendMode = kBlend_Normal;
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -173,6 +172,9 @@ std::vector<SpriteListEntry> thingsToDrawList;
 // sprlist - will be sorted using baseline and appended to main list
 std::vector<SpriteListEntry> sprlist;
 
+// Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
+std::vector<std::unique_ptr<Bitmap>> guihelpbg;
+// Final GUI surfaces
 Bitmap **guibg = nullptr;
 IDriverDependantBitmap **guibgbmp = nullptr;
 
@@ -457,6 +459,7 @@ void prepare_roomview_frame(Viewport *view)
     const int view_index = view->GetID();
     const Size view_sz = view->GetRect().GetSize();
     const Size cam_sz = view->GetCamera()->GetRect().GetSize();
+    const bool has_rotation = view->GetCamera()->GetRotation() != 0.f;
     RoomCameraDrawData &draw_dat = CameraDrawData[view_index];
     // We use intermediate bitmap to render camera/viewport pair in software mode under these conditions:
     // * camera size and viewport size are different (this may be suboptimal to paint dirty rects stretched,
@@ -464,7 +467,7 @@ void prepare_roomview_frame(Viewport *view)
     // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
     //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
     //   plugins may want to also use viewport bitmap, therefore it should retain full size.
-    if (cam_sz == view_sz && !draw_dat.IsOffscreen)
+    if (cam_sz == view_sz && !draw_dat.IsOffscreen && !has_rotation)
     { // note we keep the buffer allocated in case it will become useful later
         draw_dat.Frame.reset();
     }
@@ -762,14 +765,13 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, BlendMode blendMode = kBlend_Normal)
+static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y)
 {
     SpriteListEntry sprite;
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
-    sprite.transparent = trans;
-    sprite.blendMode = blendMode;
+    sprite.aabb = RectWH(x, y, bmp->GetWidth(), bmp->GetHeight());
     thingsToDrawList.push_back(sprite);
 }
 
@@ -785,13 +787,12 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind, int trans = 0,
-    BlendMode blendMode = kBlend_Normal)
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, const Rect &aabb, int zorder, bool isWalkBehind)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
     // completely invisible, so don't draw it at all
-    if (trans == 255)
+    if (spp->GetTransparency() == 255)
         return;
 
     SpriteListEntry sprite;
@@ -799,8 +800,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     sprite.zorder = zorder;
     sprite.x = xx;
     sprite.y = yy;
-    sprite.transparent = trans;
-    sprite.blendMode = blendMode;
+    sprite.aabb = aabb;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
@@ -808,6 +808,11 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
         sprite.takesPriorityIfEqual = isWalkBehind;
 
     sprlist.push_back(sprite);
+}
+
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
+{
+    add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder, isWalkBehind);
 }
 
 // function to sort the sprites into baseline order
@@ -1207,11 +1212,33 @@ void apply_tint_or_light(int actspsindex, int light_level,
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to actsps; returns 0 if no
 // scaling or stretching was required, in which case nothing was done
-int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
+int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotation,
                           int sppic, int newwidth, int newheight,
                           int isMirrored) {
 
   int actsps_used = 1;
+
+  Bitmap *src_sprite = spriteset[sppic];
+  Bitmap *temp_rot = nullptr;
+  if (rotation != 0.f) { 
+      Size rot_sz = RotateSize(Size(newwidth, newheight), rotation);
+      newwidth = rot_sz.Width;
+      newheight = rot_sz.Height;
+
+      // TODO: allegro does not provide a ready function to combine stretch & rotate
+      // (only rotate & scale, but scale is a uniform factor, so not dst_width/dst_height),
+      // so we create another intermediate bitmap for rotation here...
+      // might investigate methods for optimizing this later.
+      if (zoom_level != 100 || isMirrored) {
+          Size src_sz = Size(src_sprite->GetWidth(), src_sprite->GetHeight());
+          Size rot_sz = RotateSize(src_sz, rotation);
+          temp_rot = BitmapHelper::CreateTransparentBitmap(rot_sz.Width, rot_sz.Height, coldept);
+          // (+ width%2 fixes one pixel offset problem)
+          temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
+              src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
+          src_sprite = temp_rot;
+      }
+  }
 
   // create and blank out the new sprite
   actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight, true);
@@ -1229,19 +1256,20 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 
 
       if (isMirrored) {
+          // TODO: "flip self" function may allow to optimize this
           Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           tempspr->Fill (actsps[useindx]->GetMaskColor());
           if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
-              tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+              tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
-              tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+              tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
       else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
-          active_spr->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+          active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
-          active_spr->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+          active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
 
       /*  AASTR2 version of code (doesn't work properly, gives black borders)
       if (IS_ANTIALIAS_SPRITES) {
@@ -1275,10 +1303,14 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 
       if (isMirrored)
           active_spr->FlipBlt(spriteset[sppic], 0, 0, Common::kBitmap_HFlip);
+      else if (rotation != 0.f)
+          // (+ width%2 fixes one pixel offset problem)
+          active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
+              src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, rotation); // clockwise
       else
-          actsps_used = 0;
-      //->Blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
+          actsps_used = 0; // can use original sprite
   }
+  delete temp_rot;
 
   return actsps_used;
 }
@@ -1303,6 +1335,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     int tint_level, tint_light, light_level;
     int zoom_level = 100;
 
+    // TODO: move this to update function, to where UpdateCycleView is called
+    // TODO: also do this when script sets a new graphic/view
     // calculate the zoom level
     if ((objs[aa].flags & OBJF_USEROOMSCALING) == 0)
     {
@@ -1323,14 +1357,19 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         scale_sprite_size(objs[aa].num, zoom_level, &sprwidth, &sprheight);
     objs[aa].zoom = zoom_level;
 
+    float rotation = objs[aa].rotation;
+
     // save width/height into parameters if requested
     if (drawnWidth)
         *drawnWidth = sprwidth;
     if (drawnHeight)
         *drawnHeight = sprheight;
 
+    objs[aa].spr_width = game.SpriteInfos[objs[aa].num].Width;
+    objs[aa].spr_height = game.SpriteInfos[objs[aa].num].Height;
     objs[aa].last_width = sprwidth;
     objs[aa].last_height = sprheight;
+    objs[aa].UpdateGraphicSpace();
 
     tint_red = tint_green = tint_blue = tint_level = tint_light = light_level = 0;
 
@@ -1402,6 +1441,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         (objcache[aa].tintbluwas == tint_blue) &&
         (objcache[aa].lightlevwas == light_level) &&
         (objcache[aa].zoomWas == zoom_level) &&
+        (objcache[aa].rotation == rotation) &&
         (objcache[aa].mirroredWas == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
@@ -1425,7 +1465,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (!hardwareAccelerated)
     {
         // draw the base sprite, scaled and flipped as appropriate
-        actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level,
+        actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level, rotation,
             objs[aa].num, sprwidth, sprheight, isMirrored);
     }
     else
@@ -1475,6 +1515,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 void prepare_objects_for_drawing() {
     our_eip=32;
 
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+
     for (int aa=0; aa<croom->numobj; aa++) {
         if (objs[aa].on != 1) continue;
         // offscreen, don't draw
@@ -1488,9 +1530,16 @@ void prepare_objects_for_drawing() {
         // update the cache for next time
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
-        int atxp = objs[aa].x;
-        int atyp = objs[aa].y - tehHeight;
+        const int objx = objs[aa].x;
+        const int objy = objs[aa].y;
 
+        //
+        // Sort out walk-behinds
+        //
+        // we must use actual image's top-left position here
+        const Rect &aabb = objs[aa].GetGraphicSpace().AABB();
+        const int imgx = aabb.Left;
+        const int imgy = aabb.Top;
         int usebasel = objs[aa].get_baseline();
 
         if (objs[aa].flags & OBJF_NOWALKBEHINDS) {
@@ -1502,11 +1551,11 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
+            sort_out_char_sprite_walk_behind(useindx, imgx, imgy, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
-            sort_out_walk_behinds(actsps[useindx], atxp, atyp, usebasel);
+            sort_out_walk_behinds(actsps[useindx], imgx, imgy, usebasel);
         }
 
         if ((!actspsIntact) || (actspsbmp[useindx] == nullptr))
@@ -1518,7 +1567,8 @@ void prepare_objects_for_drawing() {
             actspsbmp[useindx] = gfxDriver->CreateDDBFromBitmap(actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedTransform())
+        actspsbmp[useindx]->SetOrigin(0.f, 1.f);
+        if (is_3d_render)
         {
             actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
@@ -1539,7 +1589,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false, objs[aa].transparent, objs[aa].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], objx, objy, aabb, usebasel, false);
     }
 }
 
@@ -1599,6 +1649,8 @@ void prepare_characters_for_drawing() {
 
     our_eip=33;
 
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+
     // draw characters
     for (int aa=0; aa < game.numcharacters; aa++) {
         if (game.chars[aa].on==0) continue;
@@ -1645,6 +1697,8 @@ void prepare_characters_for_drawing() {
 
         charextra[aa].zoom = zoom_level;
 
+        float rotation = charextra[aa].rotation;
+
         tint_red = tint_green = tint_blue = tint_amount = tint_light = light_level = 0;
 
         if (chin->flags & CHF_HASTINT) {
@@ -1686,6 +1740,7 @@ void prepare_characters_for_drawing() {
         if ((charcache[aa].inUse) &&
             (charcache[aa].sppic == specialpic) &&
             (charcache[aa].scaling == zoom_level) &&
+            (charcache[aa].rotation == rotation) &&
             (charcache[aa].tintredwas == tint_red) &&
             (charcache[aa].tintgrnwas == tint_green) &&
             (charcache[aa].tintbluwas == tint_blue) &&
@@ -1705,42 +1760,31 @@ void prepare_characters_for_drawing() {
         }
         else if ((charcache[aa].inUse) && 
             (charcache[aa].sppic == specialpic) &&
-            (gfxDriver->HasAcceleratedTransform()))
+            (is_3d_render))
         {
             usingCachedImage = true;
         }
         else if (charcache[aa].inUse) {
-            //destroy_bitmap (charcache[aa].image);
             charcache[aa].inUse = 0;
         }
 
         our_eip = 3332;
 
+        // TODO: do this in update, and probably when script changes view too
         if (zoom_level != 100) {
             // it needs to be stretched, so calculate the new dimensions
-
             scale_sprite_size(sppic, zoom_level, &newwidth, &newheight);
-            charextra[aa].width=newwidth;
-            charextra[aa].height=newheight;
         }
         else {
             // draw at original size, so just use the sprite width and height
-            // TODO: store width and height always, that's much simplier to use for reference!
-            charextra[aa].width=0;
-            charextra[aa].height=0;
             newwidth = game.SpriteInfos[sppic].Width;
             newheight = game.SpriteInfos[sppic].Height;
         }
 
         our_eip = 3336;
 
-        // Calculate the X & Y co-ordinates of where the sprite will be
-        const int atxp = chin->x - newwidth/2;
-        const int atyp = chin->y - newheight
-            // adjust the Y positioning for the character's Z co-ord
-            - chin->z;
-
         charcache[aa].scaling = zoom_level;
+        charcache[aa].rotation = rotation;
         charcache[aa].sppic = specialpic;
         charcache[aa].tintredwas = tint_red;
         charcache[aa].tintgrnwas = tint_green;
@@ -1755,10 +1799,10 @@ void prepare_characters_for_drawing() {
             // create the base sprite in actsps[useindx], which will
             // be scaled and/or flipped, as appropriate
             int actspsUsed = 0;
-            if (!gfxDriver->HasAcceleratedTransform())
+            if (!is_3d_render)
             {
                 actspsUsed = scale_and_flip_sprite(
-                    useindx, coldept, zoom_level, sppic,
+                    useindx, coldept, zoom_level, rotation, sppic,
                     newwidth, newheight, isMirrored);
             }
             else 
@@ -1770,7 +1814,7 @@ void prepare_characters_for_drawing() {
             our_eip = 335;
 
             if (((light_level != 0) || (tint_amount != 0)) &&
-                (!gfxDriver->HasAcceleratedTransform())) {
+                (!is_3d_render)) {
                     // apply the lightening or tinting
                     Bitmap *comeFrom = nullptr;
                     // if possible, direct read from the source image
@@ -1788,18 +1832,29 @@ void prepare_characters_for_drawing() {
 
             // update the character cache with the new image
             charcache[aa].inUse = 1;
-            //charcache[aa].image = BitmapHelper::CreateBitmap_ (coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image->Blit (actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
 
         } // end if !cache.inUse
 
+        charextra[aa].spr_width = spriteset[sppic]->GetWidth();
+        charextra[aa].spr_height = spriteset[sppic]->GetHeight();
+        charextra[aa].width = newwidth;
+        charextra[aa].height = newheight;
+        charextra[aa].UpdateGraphicSpace(chin);
+        const int charx = chin->x + chin->pic_xoffs;
+        const int chary = chin->y - chin->z + chin->pic_yoffs;
+
+        //
+        // Sort out walk-behinds
+        //
+        // we must use actual image's top-left position here
+        const Rect &aabb = charextra[aa].GetGraphicSpace().AABB();
+        const int imgx = aabb.Left;
+        const int imgy = aabb.Top;
         int usebasel = chin->get_baseline();
 
         our_eip = 336;
-
-        const int bgX = atxp + chin->pic_xoffs;
-        const int bgY = atyp + chin->pic_yoffs;
 
         if (chin->flags & CHF_NOWALKBEHINDS) {
             // ignore walk-behinds, do nothing
@@ -1810,11 +1865,11 @@ void prepare_characters_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, bgX, bgY, usebasel, charextra[aa].zoom, newwidth, newheight);
+            sort_out_char_sprite_walk_behind(useindx, imgx, imgy, usebasel, charextra[aa].zoom, newwidth, newheight);
         }
         else if (walkBehindMethod == DrawOverCharSprite)
         {
-            sort_out_walk_behinds(actsps[useindx], bgX, bgY, usebasel);
+            sort_out_walk_behinds(actsps[useindx], imgx, imgy, usebasel);
         }
 
         if ((!usingCachedImage) || (actspsbmp[useindx] == nullptr))
@@ -1824,9 +1879,11 @@ void prepare_characters_for_drawing() {
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedTransform()) 
+        actspsbmp[useindx]->SetOrigin(0.5f, 1.f);
+        if (is_3d_render)
         {
             actspsbmp[useindx]->SetStretch(newwidth, newheight);
+            actspsbmp[useindx]->SetRotation(charextra[chin->index_id].rotation);
             actspsbmp[useindx]->SetFlippedLeftRight(isMirrored != 0);
             actspsbmp[useindx]->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
 
@@ -1848,10 +1905,9 @@ void prepare_characters_for_drawing() {
 
         our_eip = 337;
 
-        chin->actx = atxp;
-        chin->acty = atyp;
-
-        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false, chin->transparency, charextra[chin->index_id].blend_mode);
+        actspsbmp[useindx]->SetTransparency(chin->transparency);
+        actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
+        add_to_sprite_list(actspsbmp[useindx], charx, chary, aabb, usebasel, false);
     }
 }
 
@@ -1881,7 +1937,7 @@ void prepare_room_sprites()
                 update_walk_behind_images();
             }
         }
-        add_thing_to_draw(roomBackgroundBmp, 0, 0, 0);
+        add_thing_to_draw(roomBackgroundBmp, 0, 0);
     }
     current_background_is_dirty = false; // Note this is only place where this flag is checked
 
@@ -2019,21 +2075,41 @@ void draw_gui_and_overlays()
 
     clear_sprite_list();
 
-    // prepare overlays
-    for (const auto &over : screenover)
+    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+
+    // Prepare overlays, check if their bitmap has to be redrawn (software only)
+    if (!is_3d_render)
     {
+        for (auto &over : screenover)
+        {
+            if (over.lastRotation != over.rotation)
+            {
+                // Create or resize GUI surface, accomodating for any GUI transformations
+                recreate_overlay_image(over);
+                over.lastRotation = over.rotation;
+            }
+        }
+    }
+    // Add active overlays to the sprite list
+    for (auto &over : screenover)
+    {
+        if (over.transparency == 255) continue; // skip fully transparent
+
+        over.bmp->SetTransparency(over.transparency);
+        over.bmp->SetBlendMode(over.blendMode);
+        over.bmp->SetRotation(over.rotation);
+        const Point overpos = update_overlay_graphicspace(over);
+
         // complete overlay draw in non-transparent mode
         if (over.type == OVER_COMPLETE)
         {
-            add_to_sprite_list(over.bmp, over.x, over.y, INT_MIN, false, over.transparency, over.blendMode);
+            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), INT_MIN, false);
         }
         else
         {
-            int tdxp, tdyp;
-            get_overlay_position(over, &tdxp, &tdyp);
             // draw speech and portraits over GUI and the rest under GUI
             int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_TEXTSPEECH || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
-            add_to_sprite_list(over.bmp, tdxp, tdyp, zorder, false, over.transparency, over.blendMode);
+            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), zorder, false);
         }
     }
 
@@ -2051,35 +2127,61 @@ void draw_gui_and_overlays()
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
         our_eip = 37;
         {
-            for (aa=0;aa<game.numgui;aa++) {
-                if (!guis[aa].IsDisplayed()) continue;
-                if (!guis[aa].HasChanged()) continue;
-                if (guis[aa].Transparency == 255) continue;
+            for (int index = 0; index < game.numgui; ++index) {
+                GUIMain &gui = guis[index];
+                if (!gui.IsDisplayed()) continue;
+                if (!gui.HasChanged()) continue;
+                if (gui.Transparency == 255) continue;
 
-                guis[aa].ClearChanged();
-                if (guibg[aa] == nullptr)
-                    recreate_guibg_image(&guis[aa]);
+                gui.ClearChanged();
+                
+                recreate_guibg_image(&gui);
 
-                eip_guinum = aa;
-                our_eip = 370;
-                guibg[aa]->ClearTransparent();
-                our_eip = 372;
-                guis[aa].DrawAt(guibg[aa], 0,0);
-                our_eip = 373;
-
-                bool isAlpha = false;
-                if (guis[aa].HasAlphaChannel()) 
+                eip_guinum = index;
+                Bitmap *guibg_final = guibg[index];
+                Bitmap *draw_at = guibg_final;
+                // For software drawing, if GUI requires visual transformation,
+                // then we first draw normal GUI on a helper surface, then blit
+                // that surface to the final bitmap
+                if (!is_3d_render && gui.Rotation != 0.f)
                 {
-                    isAlpha = true;
+                    guihelpbg[index].reset(
+                        recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.Width, gui.Height));
+                    draw_at = guihelpbg[index].get();
                 }
 
-                if (guibgbmp[aa] != nullptr) 
+                our_eip = 370;
+                draw_at->ClearTransparent();
+                our_eip = 372;
+                gui.DrawAt(draw_at, 0, 0);
+                our_eip = 373;
+
+                if (draw_at != guibg_final)
                 {
-                    gfxDriver->UpdateDDBFromBitmap(guibgbmp[aa], guibg[aa], isAlpha);
+                    guibg_final->ClearTransparent();
+                    if (gui.Rotation != 0.f)
+                    {
+                        const int dst_w = guibg_final->GetWidth();
+                        const int dst_h = guibg_final->GetHeight();
+                        // (+ width%2 fixes one pixel offset problem)
+                        guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
+                            gui.Width / 2, gui.Height / 2, gui.Rotation); // clockwise
+                    }
+                    else
+                    {
+                        guibg_final->StretchBlt(draw_at, RectWH(guibg_final->GetSize()));
+                    }
+                }
+
+                const bool isAlpha = gui.HasAlphaChannel();
+                IDriverDependantBitmap *&ddb = guibgbmp[index];
+                if (ddb != nullptr)
+                {
+                    gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final, isAlpha);
                 }
                 else
                 {
-                    guibgbmp[aa] = gfxDriver->CreateDDBFromBitmap(guibg[aa], isAlpha);
+                    ddb = gfxDriver->CreateDDBFromBitmap(guibg_final, isAlpha);
                 }
                 our_eip = 374;
             }
@@ -2097,12 +2199,17 @@ void draw_gui_and_overlays()
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false, guis[aa].Transparency, guis[aa].BlendMode);
+            guibgbmp[aa]->SetOrigin(0.f, 0.f);
+            guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
+            guibgbmp[aa]->SetBlendMode(guis[aa].BlendMode);
+            guibgbmp[aa]->SetRotation(guis[aa].Rotation);
+            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y,
+                guis[aa].GetGraphicSpace().AABB(), guis[aa].ZOrder, false);
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
             if (IsInterfaceEnabled())
-                guis[aa].Poll();
+                guis[aa].Poll(mousex, mousey);
         }
     }
 
@@ -2119,24 +2226,15 @@ void put_sprite_list_on_screen(bool in_room)
     {
         const auto *thisThing = &thingsToDrawList[i];
 
-        if (thisThing->bmp != nullptr) {
-            // mark the image's region as dirty
-            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
-        }
-        else if ((thisThing->renderStage < 0) &&
-            (thisThing->bmp == nullptr)) 
-        {
-            quit("Null pointer added to draw list");
-        }
-
         if (thisThing->bmp != nullptr)
         {
-            if (thisThing->transparent <= 255)
-            {
-                thisThing->bmp->SetTransparency(thisThing->transparent);
-            }
-            thisThing->bmp->SetBlendMode(thisThing->blendMode);
-            gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
+            if (thisThing->bmp->GetTransparency() == 255)
+                continue; // skip completely invisible things
+            // mark the image's region as dirty
+            invalidate_sprite(thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp, in_room);
+            // push to the graphics driver
+            gfxDriver->DrawSprite(thisThing->x, thisThing->y,
+                thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp);
         }
         else if (thisThing->renderStage >= 0)
         {
@@ -2144,7 +2242,9 @@ void put_sprite_list_on_screen(bool in_room)
             gfxDriver->DrawSprite(thisThing->renderStage, 0, nullptr);
         }
         else
-            quit("Unknown entry in draw list");
+        {
+            quit("Null pointer added to draw list");
+        }
     }
 
     our_eip = 1100;
@@ -2185,7 +2285,7 @@ static void construct_room_view()
         SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
-            0.f);
+            camera->GetRotation());
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
             gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);

@@ -62,11 +62,12 @@ struct OGLTextureTile : public TextureTile
     unsigned int texture;
 };
 
-class OGLBitmap : public VideoMemDDB
+class OGLBitmap : public BaseDDB
 {
 public:
     // Transparency is a bit counter-intuitive
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
+    int  GetTransparency() const override { return _transparency; }
     void SetTransparency(int transparency) override { _transparency = transparency; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
     void SetStretch(int width, int height, bool useResampler = true) override
@@ -75,6 +76,8 @@ public:
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
+    // Rotation is set in degrees, clockwise
+    void SetRotation(float degrees) override { _rotation = _rotation = -Common::Math::DegreesToRadians(degrees); }
     void SetLightLevel(int lightLevel) override  { _lightLevel = lightLevel; }
     void SetTint(int red, int green, int blue, int tintSaturation) override 
     {
@@ -85,42 +88,49 @@ public:
     }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
 
+    // OpenGL texture data
+    OGLCUSTOMVERTEX* _vertex;
+    OGLTextureTile *_tiles;
+    int _numTiles;
+
+    // Drawing parameters
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    float _rotation;
     bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
     bool _hasAlpha;
     int _transparency;
-    OGLCUSTOMVERTEX* _vertex;
-    OGLTextureTile *_tiles;
-    int _numTiles;
     Common::BlendMode _blendMode;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
+        _vertex = nullptr;
+        _tiles = nullptr;
+        _numTiles = 0;
+
         _width = width;
         _height = height;
         _colDepth = colDepth;
         _flipped = false;
         _hasAlpha = false;
-        _stretchToWidth = 0;
-        _stretchToHeight = 0;
+        _stretchToWidth = width;
+        _stretchToHeight = height;
+        _originX = _originY = 0.f;
         _useResampler = false;
+        _rotation = 0;
         _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;
         _opaque = opaque;
-        _vertex = nullptr;
-        _tiles = nullptr;
-        _numTiles = 0;
         _blendMode = Common::kBlend_Normal;
     }
 
-    int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() const { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return _stretchToWidth; }
+    int GetHeightToRender() const { return _stretchToHeight; }
 
     void Dispose();
 
@@ -216,7 +226,9 @@ public:
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
-    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override
+         { DrawSprite(x, y, x, y, bitmap); }
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;

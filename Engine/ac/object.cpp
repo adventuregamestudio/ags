@@ -424,6 +424,15 @@ void Object_SetBlendMode(ScriptObject *objj, int blendMode) {
     objs[objj->id].blend_mode = (BlendMode)blendMode;
 }
 
+float Object_GetRotation(ScriptObject *objj) {
+    return objs[objj->id].rotation;
+}
+
+void Object_SetRotation(ScriptObject *objj, float degrees) {
+    objs[objj->id].rotation = Math::ClampAngle360(degrees);
+    objs[objj->id].UpdateGraphicSpace();
+}
+
 
 void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
@@ -529,18 +538,6 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
         // if it's transparent, or off the edge of the sprite, ignore
         int xpos = xx - arx;
         int ypos = yy - ary;
-
-        if (System_GetHardwareAcceleration())
-        {
-            // hardware acceleration, so the sprite in memory will not have
-            // been stretched, it will be original size. Thus, adjust our
-            // calculations to compensate
-
-            if (spww != sprit->GetWidth())
-                xpos = (xpos * sprit->GetWidth()) / spww;
-            if (sphh != sprit->GetHeight())
-                ypos = (ypos * sprit->GetHeight()) / sphh;
-        }
 
         if (flipped)
             xpos = (sprit->GetWidth() - 1) - xpos;
@@ -955,6 +952,16 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Object_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetRotation);
+}
+
+RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetRotation);
+}
+
 
 void RegisterObjectAPI()
 {
@@ -1031,6 +1038,8 @@ void RegisterObjectAPI()
 
     ccAddExternalObjectFunction("Object::get_BlendMode",            Sc_Object_GetBlendMode);
     ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
+    ccAddExternalObjectFunction("Object::get_GraphicRotation",      Sc_Object_GetRotation);
+    ccAddExternalObjectFunction("Object::set_GraphicRotation",      Sc_Object_SetRotation);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

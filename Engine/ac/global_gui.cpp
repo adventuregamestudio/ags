@@ -70,7 +70,7 @@ void InterfaceOn(int ifn) {
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
   // clear the cached mouse position
   guis[ifn].OnControlPositionChanged();
-  guis[ifn].Poll();
+  guis[ifn].Poll(mousex, mousey);
 }
 
 void InterfaceOff(int ifn) {

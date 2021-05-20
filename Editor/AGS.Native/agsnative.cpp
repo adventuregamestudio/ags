@@ -5,6 +5,7 @@ void ThrowManagedException(const char *message);
 extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
+#define NOMINMAX
 #include "agsnative.h"
 #include <allegro.h>
 #include <winalleg.h>
@@ -676,8 +677,8 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
-  int grid_size   = max(10, char_height);
-  int grid_margin = max(4, grid_size / 4);
+  int grid_size   = std::max(10, char_height);
+  int grid_margin = std::max(4, grid_size / 4);
   grid_size += grid_margin * 2;
   grid_size *= blockSize;
   int first_char = 0;
@@ -686,7 +687,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
 
   if (doubleSize > 1)
       width /= 2;
-  int chars_per_row = max(1, (width - (padding * 2)) / grid_size);
+  int chars_per_row = std::max(1, (width - (padding * 2)) / grid_size);
   int height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
 
   if (!hdc)

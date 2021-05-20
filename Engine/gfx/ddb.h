@@ -14,6 +14,10 @@
 //
 // Driver-dependant bitmap interface
 //
+// TODO: split into texture object that has only tex data
+// and object describing a drawing operation, with ref to texture and
+// drawing parameters (modes, shaders, etc).
+// Then we will also be able to share one texture among multiple game entities.
 //=============================================================================
 #ifndef __AGS_EE_GFX__DDB_H
 #define __AGS_EE_GFX__DDB_H
@@ -28,18 +32,26 @@ namespace Engine
 class IDriverDependantBitmap
 {
 public:
-  virtual ~IDriverDependantBitmap() = default;
-
+  // Sprite's origin [0,1] is a relative position of texture around sprite's position;
+  // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
+  // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
+  virtual void SetOrigin(float originx, float originy) = 0;
+  virtual int  GetTransparency() const = 0;
   virtual void SetTransparency(int transparency) = 0;  // 0-255
   virtual void SetFlippedLeftRight(bool isFlipped) = 0;
   virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
+  virtual void SetRotation(float rotation) = 0; // degrees
   virtual void SetLightLevel(int light_level) = 0;   // 0-255
   virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;  // 0-255
   virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
 
-  virtual int GetWidth() = 0;
-  virtual int GetHeight() = 0;
-  virtual int GetColorDepth() = 0;
+  virtual int GetWidth() const = 0;
+  virtual int GetHeight() const = 0;
+  virtual int GetColorDepth() const = 0;
+
+protected:
+  IDriverDependantBitmap() = default;
+  ~IDriverDependantBitmap() = default;
 };
 
 } // namespace Engine

@@ -796,5 +796,8 @@
     <ClInclude Include="..\..\Common\util\memory_compat.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\matrix.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -18,6 +18,10 @@
 #ifndef __AGS_CN_GFX__GFXDEF_H
 #define __AGS_CN_GFX__GFXDEF_H
 
+#include <algorithm>
+#include "util/geometry.h"
+#include "util/matrix.h"
+
 namespace AGS
 {
 namespace Common
@@ -38,6 +42,63 @@ enum BlendMode
     kBlend_Dodge,
     kNumBlendModes
 };
+
+
+// GraphicSpace provides information about object's graphic location and basic shape on screen;
+// this may be used for e.g. hit and collision detection.
+// TODO: better name?
+class GraphicSpace
+{
+public:
+    GraphicSpace() {}
+    GraphicSpace(int x, int y, int src_w, int src_h, int dst_w, int dst_h, float rot)
+    {
+        const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
+        const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
+        assert((sx != 0.f) && (sy != 0.f));
+        // World->local transform
+        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f / sx, 1.f / sy,
+            Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
+        // Local->world transform + AABB
+        L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
+            -Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
+        // TODO: search for the faster AABB transform algorithm
+        Rect aabb = RectWH(0, 0, src_w, src_h);
+        glm::vec4 p1 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Top);
+        glm::vec4 p2 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Top);
+        glm::vec4 p3 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Bottom);
+        glm::vec4 p4 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Bottom);
+        float xmin = std::min(p1.x, std::min(p2.x, std::min(p3.x, p4.x)));
+        float ymin = std::min(p1.y, std::min(p2.y, std::min(p3.y, p4.y)));
+        float xmax = std::max(p1.x, std::max(p2.x, std::max(p3.x, p4.x)));
+        float ymax = std::max(p1.y, std::max(p2.y, std::max(p3.y, p4.y)));
+        // TODO: better rounding
+        _AABB = Rect((int)xmin, (int)ymin, (int)xmax, (int)ymax);
+    }
+
+    // Get axis-aligned bounding box
+    inline const Rect &AABB() const { return _AABB; }
+
+    // Converts world coordinate into local object space
+    inline Point WorldToLocal(int x, int y) const
+    {
+        glm::vec4 v = W2LTransform * glmex::vec4((float)x, (float)y);
+        return Point((int)v.x, (int)v.y); // TODO: better rounding
+    }
+
+    // Converts local object coordinates into world space
+    inline Point LocalToWorld(int x, int y) const
+    {
+        glm::vec4 v = L2WTransform * glmex::vec4((float)x, (float)y);
+        return Point((int)v.x, (int)v.y); // TODO: better rounding
+    }
+
+private:
+    glm::mat4 W2LTransform; // transform from world to local space
+    glm::mat4 L2WTransform; // transform from local to world space
+    Rect _AABB; // axis-aligned bounding box
+};
+
 
 namespace GfxDef
 {

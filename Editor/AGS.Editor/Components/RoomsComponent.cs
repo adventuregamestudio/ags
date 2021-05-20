@@ -2044,17 +2044,25 @@ namespace AGS.Editor.Components
             if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
                 return; // Upgrade already completed
 
-            BusyDialog.Show("Converting rooms from .crm to open format.", new BusyDialog.ProcessingHandler(ConvertAllRoomsFromCrmToOpenFormat), null);
-        }
+            IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
+            object progressLock = new object();
+            string progressText = "Converting rooms from .crm to open format.";
 
-        private object ConvertAllRoomsFromCrmToOpenFormat(object paramenter)
-        {
-            Task.WaitAll(
-                _agsEditor.CurrentGame.Rooms
-                .Cast<UnloadedRoom>()
-                .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r))
-                .ToArray());
-            return null;
+            using (Progress progressForm = new Progress(rooms.Count, progressText))
+            {
+                progressForm.Show();
+                int progress = 0;
+
+                Task.WaitAll(
+                    rooms
+                    .Cast<UnloadedRoom>()
+                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, () =>
+                    {
+                        lock (progressLock) { progress++; }
+                        progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms converted.");
+                    }))
+                    .ToArray());
+            }
         }
 
         /// <summary>
@@ -2062,7 +2070,7 @@ namespace AGS.Editor.Components
         /// </summary>
         /// <param name="room">The room to convert to open format</param>
         /// <returns>A collection of tasks that converts the room async.</returns>
-        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom)
+        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, Action report = null)
         {
             Room room = _nativeProxy.LoadRoom(unloadedRoom);
 
@@ -2081,6 +2089,8 @@ namespace AGS.Editor.Components
             string oldUserFileName = $"room{room.Number}.crm.user";
             if (File.Exists(oldUserFileName))
                 File.Move(oldUserFileName, room.UserFileName);
+
+            report?.Invoke();
         }
 
         private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>

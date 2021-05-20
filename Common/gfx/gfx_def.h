@@ -56,19 +56,28 @@ public:
         const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
         const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
         assert((sx != 0.f) && (sy != 0.f));
+        // World->local transform
         W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f / sx, 1.f / sy,
             Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
-        /* Uncomment if appears necessary: Local->world transform + AABB
-        /*
-        L2WTransform = glmex::make_transform2d((float)x, (float)y, 1.f, 1.f,
-            -Math::DegreesToRadians(rot), -0.5f * w, -0.5f * h);
+        // Local->world transform + AABB
+        L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
+            -Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
+        // TODO: search for the faster AABB transform algorithm
+        Rect aabb = RectWH(0, 0, src_w, src_h);
+        glm::vec4 p1 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Top);
+        glm::vec4 p2 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Top);
+        glm::vec4 p3 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Bottom);
+        glm::vec4 p4 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Bottom);
+        float xmin = std::min(p1.x, std::min(p2.x, std::min(p3.x, p4.x)));
+        float ymin = std::min(p1.y, std::min(p2.y, std::min(p3.y, p4.y)));
+        float xmax = std::max(p1.x, std::max(p2.x, std::max(p3.x, p4.x)));
+        float ymax = std::max(p1.y, std::max(p2.y, std::max(p3.y, p4.y)));
         // TODO: better rounding
-        Rect aabb = RectWH(0, 0, w, h);
-        glm::vec4 lt = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Top);
-        glm::vec4 rb = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Bottom);
-        AABB = RectWH((int)std::min(lt.x, rb.x), (int)std::min(lt.y, rb.y), (int)std::abs(rb.x - lt.x), (int)std::abs(rb.y - lt.y));
-        */
+        _AABB = Rect((int)xmin, (int)ymin, (int)xmax, (int)ymax);
     }
+
+    // Get axis-aligned bounding box
+    inline const Rect &AABB() const { return _AABB; }
 
     // Converts world coordinate into local object space
     inline Point WorldToLocal(int x, int y) const
@@ -77,20 +86,17 @@ public:
         return Point((int)v.x, (int)v.y); // TODO: better rounding
     }
 
-    /* Uncomment if appears necessary
     // Converts local object coordinates into world space
     inline Point LocalToWorld(int x, int y) const
     {
         glm::vec4 v = L2WTransform * glmex::vec4((float)x, (float)y);
         return Point((int)v.x, (int)v.y); // TODO: better rounding
     }
-    */
 
 private:
-    glm::mat4 W2LTransform; // transform from world to local space           
-    // Uncomment if appears necessary: Local->world transform + AABB
-    //glm::mat4 L2WTransform; // transform from local to world space
-    //Rect AABB; // axis-aligned bounding box
+    glm::mat4 W2LTransform; // transform from world to local space
+    glm::mat4 L2WTransform; // transform from local to world space
+    Rect _AABB; // axis-aligned bounding box
 };
 
 

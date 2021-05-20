@@ -1452,9 +1452,9 @@ void OGLGraphicsDriver::RestoreDrawLists()
     _actSpriteBatch = _backupBatchDescs.size() - 1;
 }
 
-void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void OGLGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* bitmap)
 {
-    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, x, y));
+    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, ox, oy));
 }
 
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)

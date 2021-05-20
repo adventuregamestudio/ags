@@ -157,6 +157,7 @@ struct SpriteListEntry
 {
     IDriverDependantBitmap *bmp = nullptr;
     int x = 0, y = 0;
+    Rect aabb;
     int zorder = 0;
     // Tells if this item should take priority during sort if z1 == z2
     // TODO: this is some compatibility feature - find out if may be omited and done without extra struct?
@@ -766,6 +767,7 @@ static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y)
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
+    sprite.aabb = RectWH(x, y, bmp->GetWidth(), bmp->GetHeight());
     thingsToDrawList.push_back(sprite);
 }
 
@@ -781,7 +783,7 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, const Rect &aabb, int zorder, bool isWalkBehind)
 {
     if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
@@ -794,6 +796,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     sprite.zorder = zorder;
     sprite.x = xx;
     sprite.y = yy;
+    sprite.aabb = aabb;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
@@ -801,6 +804,11 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
         sprite.takesPriorityIfEqual = isWalkBehind;
 
     sprlist.push_back(sprite);
+}
+
+static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, bool isWalkBehind)
+{
+    add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder, isWalkBehind);
 }
 
 // function to sort the sprites into baseline order
@@ -1495,8 +1503,9 @@ void prepare_objects_for_drawing() {
         // Sort out walk-behinds
         //
         // we must use actual image's top-left position here
-        const int imgx = objx;
-        const int imgy = objy - tehHeight;
+        const Rect &aabb = objs[aa].GetGraphicSpace().AABB();
+        const int imgx = aabb.Left;
+        const int imgy = aabb.Top;
         int usebasel = objs[aa].get_baseline();
 
         if (objs[aa].flags & OBJF_NOWALKBEHINDS) {
@@ -1546,7 +1555,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx], objx, objy, usebasel, false);
+        add_to_sprite_list(actspsbmp[useindx], objx, objy, aabb, usebasel, false);
     }
 }
 
@@ -1804,8 +1813,9 @@ void prepare_characters_for_drawing() {
         // Sort out walk-behinds
         //
         // we must use actual image's top-left position here
-        const int imgx = charx - newwidth / 2;
-        const int imgy = chary - newheight;
+        const Rect &aabb = charextra[aa].GetGraphicSpace().AABB();
+        const int imgx = aabb.Left;
+        const int imgy = aabb.Top;
         int usebasel = chin->get_baseline();
 
         our_eip = 336;
@@ -1861,7 +1871,7 @@ void prepare_characters_for_drawing() {
 
         actspsbmp[useindx]->SetTransparency(chin->transparency);
         actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
-        add_to_sprite_list(actspsbmp[useindx], charx, chary, usebasel, false);
+        add_to_sprite_list(actspsbmp[useindx], charx, chary, aabb, usebasel, false);
     }
 }
 
@@ -2140,9 +2150,10 @@ void put_sprite_list_on_screen(bool in_room)
             if (thisThing->bmp->GetTransparency() == 255)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
-            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
+            invalidate_sprite(thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp, in_room);
             // push to the graphics driver
-            gfxDriver->DrawSprite(thisThing->x, thisThing->y, thisThing->bmp);
+            gfxDriver->DrawSprite(thisThing->x, thisThing->y,
+                thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp);
         }
         else if (thisThing->renderStage >= 0)
         {

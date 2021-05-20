@@ -362,9 +362,9 @@ void SDLRendererGraphicsDriver::ResetAllBatches()
         it->List.clear();
 }
 
-void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
-{
-    _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
+void SDLRendererGraphicsDriver::DrawSprite(int /*ox*/, int /*oy*/, int ltx, int lty, IDriverDependantBitmap* bitmap)
+{ // Note we are only interested in left-top coords for software renderer
+    _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, ltx, lty));
 }
 
 void SDLRendererGraphicsDriver::SetScreenFade(int red, int green, int blue)
@@ -447,6 +447,9 @@ void SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Co
     }
 
     ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
+    // A sprite entry provides us with the "top-left" image's position here,
+    // disregarding sprite origin, because we expect an already transformed
+    // image that should be drawn from top-left.
     int drawAtX = drawlist[i].x + surf_offx;
     int drawAtY = drawlist[i].y + surf_offy;
 

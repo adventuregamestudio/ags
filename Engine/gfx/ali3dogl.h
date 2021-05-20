@@ -226,7 +226,9 @@ public:
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
-    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override
+         { DrawSprite(x, y, x, y, bitmap); }
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;

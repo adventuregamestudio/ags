@@ -1545,9 +1545,9 @@ void D3DGraphicsDriver::RestoreDrawLists()
     _actSpriteBatch = _backupBatchDescs.size() - 1;
 }
 
-void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void D3DGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* bitmap)
 {
-    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, x, y));
+    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, ox, oy));
 }
 
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)

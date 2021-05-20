@@ -169,7 +169,9 @@ public:
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
 
-    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override
+         { DrawSprite(x, y, x, y, bitmap); }
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
 

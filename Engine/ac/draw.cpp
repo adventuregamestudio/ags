@@ -1232,7 +1232,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       if (zoom_level != 100 || isMirrored) {
           Size src_sz = Size(src_sprite->GetWidth(), src_sprite->GetHeight());
           Size rot_sz = RotateSize(src_sz, rotation);
-          temp_rot = new Bitmap(rot_sz.Width, rot_sz.Height, coldept);
+          temp_rot = BitmapHelper::CreateTransparentBitmap(rot_sz.Width, rot_sz.Height, coldept);
           // (+ width%2 fixes one pixel offset problem)
           temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
               src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
@@ -2158,6 +2158,7 @@ void draw_gui_and_overlays()
 
                 if (draw_at != guibg_final)
                 {
+                    guibg_final->ClearTransparent();
                     if (gui.Rotation != 0.f)
                     {
                         const int dst_w = guibg_final->GetWidth();

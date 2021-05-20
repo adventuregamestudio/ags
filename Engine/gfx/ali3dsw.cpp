@@ -437,6 +437,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
                     Bitmap *helpsurf = batch.HelpSurface.get();
                     dst_w = helpsurf->GetWidth();
                     dst_h = helpsurf->GetHeight();
+                    helpsurf->Clear(0); // TODO: check later, might create problems with multi-viewports
                     // (+ width%2 fixes one pixel offset problem)
                     helpsurf->RotateBlt(surface, dst_w / 2 + dst_w % 2, dst_h / 2,
                         src_w / 2, src_h / 2, (int)transform.Rotate); // clockwise

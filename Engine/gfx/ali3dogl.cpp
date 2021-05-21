@@ -1172,12 +1172,16 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
         case kBlend_Multiply:
         case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
             // fade to white
+#if !AGS_OPENGL_ES2 // glTexEnvi and glColor4f are not available on OpenGL ES2, need to rewrite the code here
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
             glColor4f(invalpha, invalpha, invalpha, invalpha);
+#endif // !AGS_OPENGL_ES2
             break;
         default:
+#if !AGS_OPENGL_ES2
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             glColor4f(alpha, alpha, alpha, alpha);
+#endif // !AGS_OPENGL_ES2
             break;
         }
     }

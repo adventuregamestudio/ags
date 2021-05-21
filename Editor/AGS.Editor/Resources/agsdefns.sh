@@ -324,6 +324,12 @@ enum eKeyCode
   eKeyPageDown = 381,
   eKeyInsert = 382,
   eKeyDelete = 383,
+#ifdef SCRIPT_API_v399
+  eKeyShiftLeft = 403, 
+  eKeyShiftRight = 404, 
+  eKeyCtrlLeft = 405, 
+  eKeyCtrlRight = 406,
+#endif
   eKeyF11 = 433,
   eKeyF12 = 434
 };

@@ -29,19 +29,6 @@ LOCAL_ARM_MODE  := arm
 include $(BUILD_SHARED_LIBRARY)
 
 
-# PE file format helper
-include $(CLEAR_VARS)
-
-LOCAL_MODULE    := pe
-LOCAL_SRC_FILES := ../Android/library/jni/pe_jni.c ../Common/util/stdio_compat.c ../Engine/platform/util/pe.c
-LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
-LOCAL_LDLIBS    := -lc -llog
-LOCAL_LDFLAGS   :=
-
-include $(BUILD_SHARED_LIBRARY)
-
-
 # Snowrain plugin
 include $(CLEAR_VARS)
 

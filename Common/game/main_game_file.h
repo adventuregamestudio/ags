@@ -134,6 +134,8 @@ struct LoadedGameEntities
 bool               IsMainGameLibrary(const String &filename);
 // Scans given directory path for a package containing main game data, returns first found or none.
 String             FindGameData(const String &path);
+// Scans given directory path for a package containing main game data,
+// tests each one using provided callback, returns first found or none.
 String             FindGameData(const String &path, std::function<bool(const String&)> fn_testfile);
 // Opens main game file for reading from an arbitrary file
 HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src);

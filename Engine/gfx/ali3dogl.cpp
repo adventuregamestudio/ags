@@ -40,8 +40,6 @@ extern "C"
   void android_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);
 }
 
-extern "C" void android_debug_printf(char* format, ...);
-
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;

@@ -84,7 +84,7 @@ namespace AGS.Types
         /// <param name="writer"></param>
         public static void SerializePropertiesToXML(object obj, XmlTextWriter writer)
         {
-            IEnumerable<PropertyInfo> properties = obj.GetType().GetProperties().OrderBy(p => p.Name);
+            IEnumerable<PropertyInfo> properties = obj.GetType().GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal);
 
             foreach (PropertyInfo prop in properties)
             {

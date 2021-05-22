@@ -580,7 +580,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = hwnd;
   d3dpp.Windowed = mode.Windowed;
-  d3dpp.EnableAutoDepthStencil = FALSE;
+  d3dpp.EnableAutoDepthStencil = TRUE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
   if(mode.Vsync)

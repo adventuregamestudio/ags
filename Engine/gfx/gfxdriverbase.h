@@ -187,12 +187,22 @@ public:
     Bitmap* GetStageBackBuffer(bool mark_dirty) override;
     bool GetStageMatrixes(RenderMatrixes &rm) override;
 
+    IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque = false) override;
+
 protected:
+    // Creates a "raw" DDB, without pixel initialization
+    virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
     // at certain drawing stages. If used at least once these buffers are then
     // rendered as additional sprites in their respected order.
-    PBitmap CreateStageScreen(size_t index, const Size &sz);
-    PBitmap GetStageScreen(size_t index);
+    struct StageScreen
+    {
+        PBitmap Bitmap;
+        IDriverDependantBitmap *DDB = nullptr;
+    };
+    StageScreen CreateStageScreen(size_t index, const Size &sz);
+    StageScreen GetStageScreen(size_t index);
     void DestroyAllStageScreens();
     // Use engine callback to acquire replacement for the null sprite;
     // returns true if the sprite was provided onto the virtual screen,
@@ -215,8 +225,7 @@ protected:
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)
-    PBitmap _stageVirtualScreen;
-    IDriverDependantBitmap *_stageVirtualScreenDDB;
+    StageScreen _stageScreen;
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer
     RenderMatrixes _stageMatrixes;
@@ -229,7 +238,7 @@ protected:
 
 private:
     // Virtual screens for rendering stages (sprite batches)
-    std::vector<PBitmap> _stageScreens;
+    std::vector<StageScreen> _stageScreens;
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.
     bool _stageScreenDirty;

@@ -19,6 +19,7 @@
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
 #include "ac/runtime_defines.h"
+#include "game/main_game_file.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
 #include <stdio.h>
@@ -148,7 +149,32 @@ const int CONFIG_DEBUG_LOGCAT = 18;
 const int CONFIG_MOUSE_METHOD = 19;
 const int CONFIG_MOUSE_LONGCLICK = 20;
 
-extern void android_debug_printf(const char* format, ...);
+
+JNIEXPORT jstring JNICALL
+  Java_com_bigbluecup_android_EngineGlue_findGameDataInDirectory(JNIEnv* env, jclass klass, jstring path)
+{
+  int tmp_errno = 0;
+  int *orig_allegro_errno;
+  auto path_c = env->GetStringUTFChars(path, NULL);
+  auto path_str = String(path_c);
+
+  // We have to configure our own allegro_errno because
+  // - we call al_find* during the search
+  // - allegro might not have been initialised yet
+
+  orig_allegro_errno = allegro_errno;
+  allegro_errno = &tmp_errno;
+
+  auto result_str = FindGameData(path_str);
+  
+  allegro_errno = orig_allegro_errno;
+
+  if (result_str.GetLength() == 0) { return NULL; }
+
+  auto result_jni = env->NewStringUTF(result_str.GetCStr());
+  return result_jni;
+}
+
 
 JNIEXPORT jboolean JNICALL
   Java_com_bigbluecup_android_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)

@@ -3,7 +3,7 @@ package com.bigbluecup.android.launcher;
 import com.bigbluecup.android.AgsEngine;
 import com.bigbluecup.android.CreditsActivity;
 import com.bigbluecup.android.PreferencesActivity;
-import com.bigbluecup.android.PEHelper;
+import com.bigbluecup.android.EngineGlue;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -33,8 +33,6 @@ import android.widget.Toast;
 
 public class GamesList extends ListActivity
 {
-	private PEHelper pe;
-
 	String filename = null;
 	@SuppressWarnings("unused")
 	private ProgressDialog dialog;
@@ -52,8 +50,6 @@ public class GamesList extends ListActivity
 	public void onCreate(Bundle bundle)
 	{
 		super.onCreate(bundle);
-		
-		pe = new PEHelper();
 		
 		// Get base directory from data storage
 		SharedPreferences settings = getSharedPreferences("gameslist", 0);
@@ -230,9 +226,10 @@ public class GamesList extends ListActivity
 		filenameList = null;
 		
 		// Check for ac2game.dat in the base directory
-		File ac2game = new File(baseDirectory + "/ac2game.dat");
-		if (ac2game.isFile())
-			return baseDirectory + "/ac2game.dat";
+		String agsgame_path = EngineGlue.findGameDataInDirectory(baseDirectory);
+		if (agsgame_path != null && new File(agsgame_path).isFile()) {
+			return agsgame_path;
+		}
 		
 		// Check for games in folders
 		File agsDirectory = new File(baseDirectory);
@@ -257,41 +254,12 @@ public class GamesList extends ListActivity
 			int i;
 			for (i = 0; i < tempList.length; i++)
 			{
-				if ((new File(agsDirectory + "/" + tempList[i] + "/ac2game.dat").isFile())
-						&& (pe.isAgsDatafile(this, agsDirectory + "/" + tempList[i] + "/ac2game.dat")))
-				{
-					folderList.add(tempList[i]);
-					filenameList.add(agsDirectory + "/" + tempList[i] + "/ac2game.dat");
-				}
-				else
-				{
-					File directory = new File(agsDirectory + "/" + tempList[i]);
-					String[] list = directory.list(new FilenameFilter() {
-						
-						private boolean found = false;
-						
-						public boolean accept(File dir, String filename) {
-							
-							if (found)
-								return false;
-							else
-							{
-								if ((filename.indexOf(".exe") > 0) 
-										&& (pe.isAgsDatafile(this, dir.getAbsolutePath() + "/" + filename)))
-								{
-									found = true;
-									return true;
-								}
-							}
-							
-							return false;
-						}
-					});
-					
-					if ((list != null) && (list.length > 0))
-					{
+				agsgame_path = EngineGlue.findGameDataInDirectory(agsDirectory + "/" + tempList[i]);
+				if (agsgame_path != null) {
+					File agsgame_file = new File(agsgame_path);
+					if (agsgame_file.isFile()) {
 						folderList.add(tempList[i]);
-						filenameList.add(agsDirectory + "/" + tempList[i] + "/" + list[0]);
+						filenameList.add(agsgame_path);
 					}
 				}
 			}

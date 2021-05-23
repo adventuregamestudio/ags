@@ -101,6 +101,7 @@ RoomStruct thisroom;
 
 volatile int switching_away_from_game = 0;
 volatile bool switched_away = false;
+volatile int game_update_suspend = 0;
 volatile char want_exit = 0, abort_engine = 0;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 int frames_per_second=40;
@@ -1406,9 +1407,9 @@ void display_switch_out_suspend()
 {
     // this is only called if in SWITCH_PAUSE mode
     //debug_script_warn("display_switch_out");
-    display_switch_out();
-
     switching_away_from_game++;
+    game_update_suspend++;
+    display_switch_out();
 
     platform->PauseApplication();
 
@@ -1438,7 +1439,6 @@ void display_switch_out_suspend()
 // Called whenever game gets input focus
 void display_switch_in()
 {
-    switched_away = false;
     if (gfxDriver)
     {
         DisplayMode mode = gfxDriver->GetDisplayMode();
@@ -1450,6 +1450,7 @@ void display_switch_in()
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
+    switched_away = false;
 }
 
 void display_switch_in_resume()
@@ -1471,6 +1472,7 @@ void display_switch_in_resume()
         gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 
     platform->ResumeApplication();
+    game_update_suspend--;
 }
 
 void replace_tokens(const char*srcmes,char*destm, int maxlen) {

@@ -14,7 +14,7 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX
+#if AGS_HAS_OPENGL
 
 #include "gfx/gfxfilter_aaogl.h"
 #include "ogl_headers.h"

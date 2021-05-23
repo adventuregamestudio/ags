@@ -60,7 +60,7 @@ RUN mkdir Lib\SDL2 && \
   echo endif ^(^)  >> "Lib\SDL2\sdl2-config.cmake" && \
   echo string^(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES^) >> "Lib\SDL2\sdl2-config.cmake" 
  
-ARG SDL_SOUND_VERSION=997e90562b35 
+ARG SDL_SOUND_VERSION=4b78007f035f 
 RUN mkdir Lib\SDL_sound && \
   echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild.bat && \
   mkdir Lib\SDL_sound\build  && \	

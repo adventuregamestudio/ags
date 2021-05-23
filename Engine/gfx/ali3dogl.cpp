@@ -13,7 +13,7 @@
 //=============================================================================
 #include "gfx/ogl_headers.h"
 
-#if AGS_OPENGL_DRIVER
+#if AGS_HAS_OPENGL
 #include "gfx/ali3dogl.h"
 #include <algorithm>
 #include <SDL.h>

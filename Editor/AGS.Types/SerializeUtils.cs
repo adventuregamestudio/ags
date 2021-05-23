@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Globalization;
+using System.Linq;
 
 namespace AGS.Types
 {
@@ -83,7 +84,8 @@ namespace AGS.Types
         /// <param name="writer"></param>
         public static void SerializePropertiesToXML(object obj, XmlTextWriter writer)
         {
-            PropertyInfo[] properties = obj.GetType().GetProperties();
+            IEnumerable<PropertyInfo> properties = obj.GetType().GetProperties().OrderBy(p => p.Name, StringComparer.Ordinal);
+
             foreach (PropertyInfo prop in properties)
             {
                 if (prop.GetCustomAttributes(typeof(AGSNoSerializeAttribute), true).Length > 0 ||

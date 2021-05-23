@@ -1,14 +1,8 @@
 # base will already have Chocolatey installed
-FROM cirrusci/windowsservercore:2019
+FROM ericoporto/min-ags-dev-env:1.0.0
 
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
-
-ARG VISUALCPP_BUILD_TOOLS_VERSION=14.0.25420.1
-RUN cinst visualcpp-build-tools --version %VISUALCPP_BUILD_TOOLS_VERSION% -y && \
-  mkdir empty && \
-  robocopy empty %TEMP% /MIR > nul & \
-  rd /s /q empty
 
 # Windows 8.0 SDK (but only install the .NET 4.5 SDK)
 RUN pushd %TEMP% && \
@@ -21,10 +15,8 @@ RUN pushd %TEMP% && \
 
 ARG NUGET_VERSION=5.7.0
 ARG INNO_SETUP_VERSION=6.0.5
-ARG CMAKE_VERSION=3.19.1
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
   cinst innosetup --version %INNO_SETUP_VERSION% -y && \
-  cinst cmake --version %CMAKE_VERSION% --installargs ADD_CMAKE_TO_PATH=System -y && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty

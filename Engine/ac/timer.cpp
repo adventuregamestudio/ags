@@ -11,12 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/timer.h"
-
 #include "core/platform.h"
 #include <thread>
+#include "ac/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
+
+extern volatile bool game_update_suspend;
 
 namespace {
 
@@ -60,6 +61,11 @@ void WaitForNextFrame()
     // early exit if we're trying to maximise framerate
     if (frameDuration <= std::chrono::milliseconds::zero()) {
         next_frame_timestamp = now;
+        // suspend while the game is being switched out
+        while (game_update_suspend > 0) {
+            sys_evt_process_pending();
+            platform->YieldCPU();
+        }
         return;
     }
 
@@ -74,6 +80,12 @@ void WaitForNextFrame()
     }
     
     next_frame_timestamp += frameDuration;
+
+    // suspend while the game is being switched out
+    while (game_update_suspend > 0) {
+        sys_evt_process_pending();
+        platform->YieldCPU();
+    }
 }
 
 void skipMissedTicks() 

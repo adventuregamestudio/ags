@@ -461,8 +461,9 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
     }
-    // If it's an old template with Music/Sound folder, create the folder
-    AGSDirectory::CreateAllDirectories(".", thisFile);
+    // Make sure to create necessary subfolders,
+    // e.g. if it's an old template with Music & Sound folders
+    AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(thisFile));
     Stream *wrout = AGSFile::CreateFile(thisFile);
     if (!wrout)
     {

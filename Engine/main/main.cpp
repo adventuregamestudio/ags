@@ -186,7 +186,7 @@ void main_print_help() {
 #endif
            "  --gfxfilter FILTER [SCALING]\n"
            "                               Request graphics filter. Available options:\n"           
-           "                                 hqx, linear, none, stdscale\n"
+           "                                 linear, none, stdscale\n"
            "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
            "  --help                       Print this help message and stop\n"

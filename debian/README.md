@@ -10,8 +10,8 @@ probably work.
 
 -   Allegro 4 (>= 4.4.3, but 4.4.2 will also work with minimal differences)
 -   libogg (1.2.2-1.3.0)
--   libvorbis (1.3.2)
 -   libtheora (1.1.1-1.2.0)
+-   libvorbis (1.3.2)
 -   libXext (1.3.3)
 -   libXxf86vm (1.1.4)
 
@@ -19,11 +19,11 @@ There are two general ways to proceed: either use [CMake scripts](../CMAKE.md) o
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel libogg-devel libvorbis-devel libtheora-devel libXext-devel libXxf86vm-devel
+    yum -y install git allegro-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config liballegro4-dev libogg-dev libvorbis-dev libtheora-dev
+    sudo apt-get install git debhelper build-essential pkg-config liballegro4-dev libogg-dev libtheora-dev libvorbis-dev
 
 Other Linux systems use their respective package managers.
 

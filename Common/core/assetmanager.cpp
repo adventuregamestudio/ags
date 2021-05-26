@@ -189,7 +189,7 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
         if (IsAssetLibDir(lib))
         {
             // TODO: write util function for getting list of files in dir using standard C/C++
-            String path = Path::ConcatPaths(lib->BaseDir, "*.*");
+            String path = Path::ConcatPaths(lib->BaseDir, "*");
             al_ffblk dfb;
             int	dun = al_findfirst(path.GetCStr(), &dfb, -1);
             while (!dun) {

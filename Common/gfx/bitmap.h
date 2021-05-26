@@ -67,6 +67,7 @@ namespace BitmapHelper
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 	Bitmap *LoadFromFile(const char *filename);
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
+    Bitmap *LoadFromFile(PACKFILE *pf);
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 

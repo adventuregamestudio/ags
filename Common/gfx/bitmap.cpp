@@ -79,6 +79,17 @@ Bitmap *LoadFromFile(const char *filename)
 	return bitmap;
 }
 
+Bitmap *LoadFromFile(PACKFILE *pf)
+{
+    Bitmap *bitmap = new Bitmap();
+    if (!bitmap->LoadFromFile(pf))
+    {
+        delete bitmap;
+        bitmap = nullptr;
+    }
+    return bitmap;
+}
+
 Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
 {
     int oldw = src->GetWidth(), oldh = src->GetHeight();

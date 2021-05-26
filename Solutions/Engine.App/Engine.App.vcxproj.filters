@@ -1691,18 +1691,6 @@
     <ClInclude Include="..\..\Engine\media\audio\clip_openal.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\openal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
@@ -1735,6 +1723,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\openal_support.h">
       <Filter>Library Sources\apeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\openal.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h">
+      <Filter>Header Files\media\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

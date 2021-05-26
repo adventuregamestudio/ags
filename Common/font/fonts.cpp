@@ -166,7 +166,7 @@ void set_font_outline(size_t font_number, int outline_type)
 {
     if (font_number >= fonts.size())
         return;
-    fonts[font_number].Info.Outline = FONT_OUTLINE_AUTO;
+    fonts[font_number].Info.Outline = outline_type;
 }
 
 int getfontheight(size_t fontNumber)

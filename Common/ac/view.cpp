@@ -39,8 +39,8 @@ void ViewFrame::ReadFromFile(Stream *in)
     speed = in->ReadInt16();
     flags = in->ReadInt32();
     sound = in->ReadInt32();
-    reserved_for_future[0] = in->ReadInt32();
-    reserved_for_future[1] = in->ReadInt32();
+    in->ReadInt32(); // reserved 1
+    in->ReadInt32(); // reserved 1
 }
 
 void ViewFrame::WriteToFile(Stream *out)
@@ -51,8 +51,8 @@ void ViewFrame::WriteToFile(Stream *out)
     out->WriteInt16(speed);
     out->WriteInt32(flags);
     out->WriteInt32(sound);
-    out->WriteInt32(reserved_for_future[0]);
-    out->WriteInt32(reserved_for_future[1]);
+    out->WriteInt32(0); // reserved 1
+    out->WriteInt32(0); // reserved 1
 }
 
 ViewLoopNew::ViewLoopNew()

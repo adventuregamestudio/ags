@@ -24,6 +24,7 @@
 #include "ac/audioclip.h"
 #include "ac/gamesetup.h"
 #include "ac/path_helper.h"
+#include "ac/view.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -552,10 +553,11 @@ int get_old_style_number_for_sound(int sound_number)
 
     audio_clip_id = sound_number;
 
-    if (audio_clip_id >= 0)
+    // Treat sound_number as a real clip index
+    if (sound_number >= 0)
     {
         int old_style_number = 0;
-        if (sscanf(game.audioClips[audio_clip_id].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
+        if (sscanf(game.audioClips[sound_number].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
             return old_style_number;    
     }
     return 0;

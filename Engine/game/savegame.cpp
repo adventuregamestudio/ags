@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -33,6 +32,7 @@
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/timer.h"
+#include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
@@ -66,6 +66,7 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 extern RoomStatus *croom;
+extern ViewStruct *views;
 
 
 namespace AGS
@@ -413,11 +414,18 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     else if ((pp.SpeechVOX >= 0) && (play.want_speech < 0))
         play.want_speech = (-play.want_speech) - 1;
 
+    // Restore debug flags
+    if (debug_flags & DBG_DEBUGMODE)
+        play.debug_mode = 1;
+
     // recache queued clips
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         play.new_music_queue[i].cachedClip = nullptr;
     }
+
+    // Remap old sound nums in case we restored a save having a different list of audio clips
+    RemapLegacySoundNums(game, views, loaded_game_file_version);
 
     // restore these to the ones retrieved from the save game
     const size_t dynsurf_num = Math::Min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
@@ -540,7 +548,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if ((size_t)chan_info.ClipID >= game.audioClips.size())
         {
             return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %u).", chan_info.ClipID, game.audioClips.size()));
+                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);

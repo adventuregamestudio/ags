@@ -170,6 +170,7 @@ void audio_core_slot_stop(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->decoder_.Stop();
+    g_acore.slots_.erase(slot_handle);
     g_acore.mixer_cv.notify_all();
 }
 

@@ -287,6 +287,7 @@
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
@@ -339,6 +340,7 @@
     <ClCompile Include="..\..\Common\util\inifile.cpp" />
     <ClCompile Include="..\..\Common\util\ini_util.cpp" />
     <ClCompile Include="..\..\Common\util\lzw.cpp" />
+    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\misc.cpp" />
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
@@ -485,6 +487,7 @@
     <ClInclude Include="..\..\Common\util\math.h" />
     <ClInclude Include="..\..\Common\util\matrix.h" />
     <ClInclude Include="..\..\Common\util\memory.h" />
+    <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\memory_compat.h" />
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\multifilelib.h" />

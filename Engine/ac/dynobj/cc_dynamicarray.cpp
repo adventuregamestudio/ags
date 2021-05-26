@@ -155,6 +155,9 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
     for (auto s : items)
     {
         DynObjectRef str = stringClassImpl->CreateString(s);
+        // We must add reference count, because the string is going to be saved
+        // within another object (array), not returned to script directly
+        ccAddObjectReference(str.first);
         *(slots++) = str.first;
     }
     return arr;

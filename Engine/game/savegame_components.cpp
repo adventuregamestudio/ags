@@ -1254,7 +1254,7 @@ HSaveError ReadAll(Stream *in, SavegameVersion svg_version, const PreservedParam
         if (!err)
         {
             return new SavegameError(kSvgErr_ComponentUnserialization,
-                String::FromFormat("(#%d) %s, version %i, at offset %u.",
+                String::FromFormat("(#%d) %s, version %i, at offset %lld.",
                 idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
                 err);
         }

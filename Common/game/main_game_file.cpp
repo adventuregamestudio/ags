@@ -350,7 +350,7 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
         size_t datasize = in->ReadInt32();
         // just check for silly datasizes
         if (datasize > PLUGIN_SAVEBUFFERSIZE)
-            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, String::FromFormat("Required: %u, max: %u", datasize, PLUGIN_SAVEBUFFERSIZE));
+            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, String::FromFormat("Required: %zu, max: %zu", datasize, (size_t)PLUGIN_SAVEBUFFERSIZE));
 
         PluginInfo info;
         info.Name = name;
@@ -452,7 +452,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Convert audio data to the current version
-void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
 }
 
@@ -466,7 +466,7 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Adjusts score clip id, depending on game data version
-void AdjustScoreSound(GameSetupStruct &game, GameDataVersion data_ver)
+void RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver)
 {
 }
 
@@ -526,7 +526,7 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
     else
         sprcount = in->ReadInt32();
     if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
-        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %u, max: %u", sprcount, (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1));
+        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
     ents.SpriteCount = sprcount;
     ents.SpriteFlags.reset(new char[sprcount]);
@@ -680,11 +680,11 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         if (cur_pos > block_end)
         {
             return new MainGameFileError(kMGFErr_ExtBlockDataOverlapping,
-                String::FromFormat("Extension: %s, expected to end at offset: %u, finished reading at %u.", ext_id.GetCStr(), block_end, cur_pos));
+                String::FromFormat("Extension: %s, expected to end at offset: %lld, finished reading at %lld.", ext_id.GetCStr(), block_end, cur_pos));
         }
         else if (cur_pos < block_end)
         {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: game data blocks nonsequential, ext %s expected to end at %u, finished reading at %u",
+            Debug::Printf(kDbgMsg_Warn, "WARNING: game data blocks nonsequential, ext %s expected to end at %lld, finished reading at %lld",
                 ext_id.GetCStr(), block_end, cur_pos);
             in->Seek(block_end, Common::kSeekBegin);
         }
@@ -698,8 +698,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
     UpgradeFonts(game, data_ver);
-    UpgradeAudio(game, data_ver);
-    AdjustScoreSound(game, data_ver);
+    UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);

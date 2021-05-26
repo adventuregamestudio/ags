@@ -18,7 +18,7 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_HAS_DIRECT3D
 #define NOMINMAX
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <SDL.h>
@@ -587,7 +587,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = hwnd;
-  d3dpp.Windowed = mode.Windowed;
+  d3dpp.Windowed = TRUE;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
@@ -850,7 +850,8 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 
   // create initial stage screen for plugin raw drawing
-  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  CreateStageScreen(0, _srcRect.GetSize());
+  _stageScreen = GetStageScreen(0);
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -1427,12 +1428,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         {
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
         }
-        _stageVirtualScreen = GetStageScreen(i);
+        _stageScreen = GetStageScreen(i);
         memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[i].Matrix.m, sizeof(float[16]));
         RenderSpriteBatch(batch);
     }
 
-    _stageVirtualScreen = GetStageScreen(0);
+    _stageScreen = GetStageScreen(0);
     memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[0].Matrix.m, sizeof(float[16]));
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
@@ -1451,7 +1452,7 @@ void D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch)
     if (listToDraw[i].bitmap == NULL)
     {
       if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
-        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageVirtualScreenDDB);
+        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB);
       else
         continue;
       sprite = &stageEntry;
@@ -1672,15 +1673,17 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
     return SUCCEEDED( hr );
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
-  int allocatedWidth = bitmap->GetWidth();
-  int allocatedHeight = bitmap->GetHeight();
-  if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
-    throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
-  int colourDepth = bitmap->GetColorDepth();
+  int allocatedWidth = width;
+  int allocatedHeight = height;
+  assert(allocatedWidth > 0);
+  assert(allocatedHeight > 0);
+  if (color_depth != GetCompatibleBitmapFormat(color_depth))
+    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+  int colourDepth = color_depth;
 
-  D3DBitmap *ddb = new D3DBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
+  D3DBitmap *ddb = new D3DBitmap(width, height, colourDepth, opaque);
 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
@@ -1694,10 +1697,12 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
   tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
-  int tileWidth = bitmap->GetWidth() / tilesAcross;
-  int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
-  int tileHeight = bitmap->GetHeight() / tilesDown;
-  int lastTileExtraHeight = bitmap->GetHeight() % tilesDown;
+  assert(tilesAcross > 0);
+  assert(tilesDown > 0);
+  int tileWidth = width / tilesAcross;
+  int lastTileExtraWidth = width % tilesAcross;
+  int tileHeight = height / tilesDown;
+  int lastTileExtraHeight = height % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
 
@@ -1710,8 +1715,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   CUSTOMVERTEX *vertices = NULL;
 
   if ((numTiles == 1) &&
-      (allocatedWidth == bitmap->GetWidth()) &&
-      (allocatedHeight == bitmap->GetHeight()))
+      (allocatedWidth == width) &&
+      (allocatedHeight == height))
   {
     // use default whole-image vertices
   }
@@ -1802,9 +1807,6 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   ddb->_numTiles = numTiles;
   ddb->_tiles = tiles;
-
-  UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
-
   return ddb;
 }
 

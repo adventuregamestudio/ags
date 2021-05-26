@@ -5,16 +5,19 @@ VERSION 3.5.?, ??? 2021
 Editor:
  - Added "Attach game data to exe" option to General Settings. This lets you to package game data
    separately from the game.exe (only important on Windows at the moment).
- - Display aspect ratio in game resolution dialog.
- - Improved tab switching performance for script windows.
  - Deprecated "Limit display mode to 16-bit" property in Runtime Setup as it's no longer
    used by the engine.
+ - Display aspect ratio in game resolution dialog.
+ - Implemented classic Color Picker dialog for the Color type values in the property grid,
+   instead of the default one which does not allow user-defined colors.
+ - Improved tab switching performance for script windows.
  - Editor will now enforce full game rebuild after upgrading an older project, this ensures
    that all scripts are recompiled with the new version rules.
  - Fixed room lists in property editor were not updated after room number is changed.
  - Fixed importing pre-3.* projects broken by incorrect assignment of "Game file name" property.
  - Fixed importing Characters and GUI without sprites still created empty sprite folders.
  - Fixed crash when exporting/importing Characters with no Normal View.
+ - Fixed translation compiler did not correctly save some of the escaped sequences, such as "\n".
 
 Scripting:
  - Implemented correct parsing of a "const string" function return type.
@@ -81,6 +84,8 @@ Engine:
    during certain skippable game states.
  - Fixed overlay was set to wrong position if it were using TextWindow gui and either its text
    or X, Y properties got changed.
+ - Fixed crash occuring when the speech is using text window gui with zero Padding and the speech
+   text is an empty line.
  - Fixed characters and room objects were not updating their looks if their current graphic was
    a Dynamic Sprite, and that sprite was modified with ChangeCanvasSize, CopyTransparencyMask,
    Crop, Flip, Resize, Rotate or Tint function.
@@ -93,7 +98,10 @@ Engine:
    pattern but do not exactly match; for example: "agssave.001_".
  - Fixed engine was ignoring audio files in game directory when running games which use
    old audio system.
+ - Fixed crash in Direct3D and OpenGL renderers that occured if game uses a plugin that performs
+   software drawing on screen, and one of the rooms is smaller than the game's resolution.
  - Fixed Direct3D was assigning wrong fullscreen refresh rate sometimes, slowing alt-tabbing.
+ - Fixed "--test" mode was lost upon restoring a save.
 
 Engine Plugin API:
  - Added IAGSEngine::GetRenderStageDesc() function which returns current render stage parameters.
@@ -107,6 +115,13 @@ Compatibility:
  - Fixed GUI.Visible not returning expected values for GUIs with "Popup At Y" style in
    pre-3.5.0 games, breaking some older games logic.
  - Fixed potential buffer overflow when reading pre-3.1.0 games with old dialog script texts.
+ - Fixed engine was applying player's position too early when ChangeRoom was called for 2.72 and
+   earlier games, which could result in wrong placement in the new room if the character was
+   walking right before the transition.
+
+Android:
+ - Corrected game scanning in AGS launcher, now it will work consistently with the desktop ports,
+   and detect any compatible game data files named "*.ags" or "*.exe".
 
 OSX:
  - When looking for game files engine will no longer use hardcoded filename, will search for any
@@ -121,6 +136,14 @@ Windows:
 
 WinSetup:
  - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
+
+
+VERSION 3.5.0 - Patch 10, May 2021
+
+Engine:
+ - Fixed managed handle error that occured if you would copy an element of any string array
+   returned by Dictionary.GetKeysAsArray(), GetValuesAsArray() and Set.GetItemsAsArray();
+   for example: assign array's element to a local variable.
 
 
 VERSION 3.5.0 - Patch 9, March 2021

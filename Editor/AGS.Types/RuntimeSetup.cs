@@ -33,7 +33,6 @@ namespace AGS.Types
             _gfxFiltersAll = new Dictionary<GraphicsDriver, Dictionary<string, string>>();
             Dictionary<string, string> filters = new Dictionary<string, string>();
             filters["stdscale"] = "Nearest-neighbour";
-            filters["hqx"] = "High quality (Hqx)";
             _gfxFiltersAll.Add(GraphicsDriver.Software, filters);
             filters = new Dictionary<string, string>();
             filters["stdscale"] = "Nearest-neighbour";

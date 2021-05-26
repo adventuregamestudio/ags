@@ -519,7 +519,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     _cacheSize += size;
 
 #ifdef DEBUG_SPRITECACHE
-    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %u KB", index, _cacheSize / 1024);
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %zu KB", index, _cacheSize / 1024);
 #endif
 
     return size;

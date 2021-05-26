@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_VIEW_H
 #define __AC_VIEW_H
 
@@ -28,7 +27,7 @@ struct ViewFrame {
     short speed;
     int   flags;
     int   sound;  // play sound when this frame comes round
-    int   reserved_for_future[2];
+    int   reserved_for_future[2]; // kept only for plugin api
     ViewFrame();
 
     void ReadFromFile(Common::Stream *in);

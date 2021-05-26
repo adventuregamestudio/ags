@@ -58,6 +58,8 @@ public:
     String();
     // Copy constructor
     String(const String&);
+    // Move constructor
+    String(String&&);
     // Initialize with C-string
     String(const char *cstr);
     // Initialize by copying up to N chars from C-string
@@ -81,6 +83,8 @@ public:
     {
         return _len == 0;
     }
+    // Tells if the string is either empty or has only whitespace characters
+    bool IsNullOrSpace() const;
 
     // Those getters are for tests only, hence if AGS_PLATFORM_DEBUG
 #if AGS_PLATFORM_DEBUG
@@ -148,6 +152,13 @@ public:
     int     CompareRightNoCase(const String &str, size_t count = -1) const
                 { return CompareRightNoCase(str._cstr, count != -1 ? count : str._len); }
     int     CompareRightNoCase(const char *cstr, size_t count = -1) const;
+    // Convenience aliases for Compare functions
+    inline bool Equals(const String &str) const { return Compare(str) == 0; }
+    inline bool Equals(const char *cstr) const { return Compare(cstr) == 0; }
+    inline bool StartsWith(const String &str) const { return CompareLeft(str) == 0; }
+    inline bool StartsWith(const char *cstr) const { return CompareLeft(cstr) == 0; }
+    inline bool EndsWidth(const String &str) const { return CompareRight(str) == 0; }
+    inline bool EndsWidth(const char *cstr) const { return CompareRight(cstr) == 0; }
 
     // These functions search for character or substring inside this string
     // and return the index of the (first) character, or -1 if nothing found.
@@ -290,6 +301,10 @@ public:
     void    PrependChar(char c);
     // Replaces all occurences of one character with another character
     void    Replace(char what, char with);
+    // Replaces all occurences of one substring with another substring
+    void    Replace(const String &what, const String &with);
+    void    Replace(const char *what, const char *with)
+            { String whats = String::Wrapper(what), withs = String::Wrapper(with); Replace(whats, withs); }
     // Replaces particular substring with another substring; new substring
     // may have different length
     void    ReplaceMid(size_t from, size_t count, const String &str);
@@ -336,6 +351,8 @@ public:
 
     // Assign String by sharing data reference
     String &operator=(const String &str);
+    // Move operator
+    String &operator=(String &&str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
     inline char operator[](size_t index) const

@@ -15,7 +15,7 @@
 #include "core/platform.h"
 #include "gfx/gfxfilter_aad3d.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_HAS_DIRECT3D
 #include <d3d9.h>
 #endif
 

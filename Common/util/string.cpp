@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <cctype>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -37,6 +38,18 @@ String::String(const String &str)
     , _buf(nullptr)
 {
     *this = str;
+}
+
+String::String(String &&str)
+{
+    _cstr = str._cstr;
+    _len = str._len;
+    _buf = str._buf;
+    _bufHead = str._bufHead;
+    str._cstr = const_cast<char*>("");
+    str._len = 0;
+    str._buf = nullptr;
+    str._bufHead = nullptr;
 }
 
 String::String(const char *cstr)
@@ -66,6 +79,18 @@ String::String(char c, size_t count)
 String::~String()
 {
     Free();
+}
+
+bool String::IsNullOrSpace() const
+{
+    if (_len == 0)
+        return true;
+    for (const char *ptr = _cstr; *ptr; ++ptr)
+    {
+        if (!std::isspace(*ptr))
+            return false;
+    }
+    return true;
 }
 
 void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
@@ -703,18 +728,63 @@ void String::PrependChar(char c)
 
 void String::Replace(char what, char with)
 {
-    if ((_len != 0) && what && with && what != with)
+    if ((_len == 0) || !what || !with || (what == with))
+        return;
+    char *ptr = _cstr;
+    // Special case for calling BecomeUnique on the first find
+    if (IsShared())
     {
-        BecomeUnique();
-        char *rep_ptr = _cstr;
-        while (*rep_ptr)
+        for (; *ptr; ++ptr)
         {
-            if (*rep_ptr == what)
+            if (*ptr == what)
             {
-                *rep_ptr = with;
+                ptrdiff_t diff = ptr - _cstr;
+                BecomeUnique();
+                ptr = _cstr + diff; // BecomeUnique will realloc memory
+                break;
             }
-            rep_ptr++;
         }
+    }
+    // Do the full search & replace
+    for (; *ptr; ++ptr)
+    {
+        if (*ptr == what)
+            *ptr = with;
+    }
+}
+
+void String::Replace(const String &what, const String &with)
+{
+    if ((what._len == 0) || (_len < what._len) || strcmp(what._cstr, with._cstr) == 0)
+        return;
+
+    const size_t len_src = what._len;
+    const size_t len_dst = with._len;
+    const size_t len_add = Math::Surplus(len_dst, len_src);
+    char *ptr = strstr(_cstr, what._cstr);
+    if (!ptr)
+        return; // pattern not found once, bail out early
+    // Special case for calling BecomeUnique on the first find
+    if (IsShared() && len_add == 0)
+    {
+        ptrdiff_t diff = ptr - _cstr;
+        BecomeUnique(); // if same length make a unique copy once
+        ptr = _cstr + diff; // BecomeUnique will realloc memory
+    }
+    // Do the full search & replace
+    for (; ptr; ptr = strstr(ptr, what._cstr))
+    {
+        if (len_add > 0)
+        {
+            ptrdiff_t diff = ptr - _cstr;
+            ReserveAndShift(false, len_add);
+            ptr = _cstr + diff; // ReserveAndShift may realloc memory
+        }
+        if (len_src != len_dst)
+            memmove(ptr + len_dst, ptr + len_src, _len - (ptr - _cstr + len_src) + 1);
+        memcpy(ptr, with._cstr, len_dst);
+        _len += len_dst - len_src;
+        ptr += len_dst;
     }
 }
 
@@ -723,7 +793,8 @@ void String::ReplaceMid(size_t from, size_t count, const String &str)
     size_t length = str._len;
     Math::ClampLength(from, count, (size_t)0, _len);
     ReserveAndShift(false, Math::Surplus(length, count));
-    memmove(_cstr + from + length, _cstr + from + count, _len - (from + count) + 1);
+    if (count != str._len)
+        memmove(_cstr + from + length, _cstr + from + count, _len - (from + count) + 1);
     memcpy(_cstr + from, str._cstr, length);
     _len += length - count;
 }
@@ -939,6 +1010,20 @@ String &String::operator=(const String& str)
             _bufHead->RefCount++;
         }
     }
+    return *this;
+}
+
+String &String::operator=(String &&str)
+{
+    Free();
+    _cstr = str._cstr;
+    _len = str._len;
+    _buf = str._buf;
+    _bufHead = str._bufHead;
+    str._cstr = const_cast<char*>("");
+    str._len = 0;
+    str._buf = nullptr;
+    str._bufHead = nullptr;
     return *this;
 }
 

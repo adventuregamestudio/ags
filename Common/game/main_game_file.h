@@ -136,6 +136,8 @@ struct LoadedGameEntities
 bool               IsMainGameLibrary(const String &filename);
 // Scans given directory path for a package containing main game data, returns first found or none.
 String             FindGameData(const String &path);
+// Scans given directory path for a package containing main game data,
+// tests each one using provided callback, returns first found or none.
 String             FindGameData(const String &path, std::function<bool(const String&)> fn_testfile);
 // Opens main game file for reading from an arbitrary file
 HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src);
@@ -150,6 +152,8 @@ void               PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVe
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
 void               FixupSaveDirectory(GameSetupStruct &game);
+// Maps legacy sound numbers to real audio clips
+void               RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

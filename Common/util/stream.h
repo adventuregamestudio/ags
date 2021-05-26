@@ -31,6 +31,14 @@ namespace AGS
 namespace Common
 {
 
+// TODO: merge with FileWorkMode (historical mistake)
+enum StreamWorkMode
+{
+    kStream_Read,
+    kStream_Write
+};
+
+
 class Stream : public IAGSStream
 {
 public:

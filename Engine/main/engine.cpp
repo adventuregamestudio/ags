@@ -987,13 +987,6 @@ void allegro_bitmap_test_init()
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
-// Only allow searching around for game data on desktop systems;
-// otherwise use explicit argument either from program wrapper, command-line
-// or read from default config.
-#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
-    #define AGS_SEARCH_FOR_GAME_ON_LAUNCH
-#endif
-
 // Define location of the game data either using direct settings or searching
 // for the available resource packs in common locations.
 // Returns two paths:
@@ -1021,7 +1014,7 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
         }
     }
 
-#if defined (AGS_SEARCH_FOR_GAME_ON_LAUNCH)
+#if AGS_SEARCH_FOR_GAME_ON_LAUNCH
     // No direct filepath provided, search in common locations.
     data_path = search_for_game_data_file(startup_dir);
     if (data_path.IsEmpty())
@@ -1191,7 +1184,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         AGS::Engine::GetGfxDriverFactoryNames(drv);
         for (size_t i = 0; i < drv.size(); ++i)
         {
-            data["graphicdriver"][String::FromFormat("%u", i)] = drv[i];
+            data["graphicdriver"][String::FromFormat("%zu", i)] = drv[i];
         }
     }
     if (all || keys.count("configpath") > 0)

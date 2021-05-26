@@ -52,7 +52,7 @@ int File_Exists(const char *fnmm) {
     return 0;
 
   if (rp.AssetMgr)
-      return AssetMgr->DoesAssetExist(rp.FullPath);
+      return AssetMgr->DoesAssetExist(rp.FullPath, "*");
 
   return (File::TestReadFile(rp.FullPath) || File::TestReadFile(rp.AltPath)) ? 1 : 0;
 }

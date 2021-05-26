@@ -179,8 +179,9 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
 
     for (const auto *lib : _activeLibs)
     {
-        auto match = std::find(lib->Filters.begin(), lib->Filters.end(), filter);
-        if (match == lib->Filters.end())
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
             continue; // filter does not match
 
         bool found = false;
@@ -247,8 +248,9 @@ bool AssetManager::GetAsset(const String &asset_name, const String &filter, bool
 {
     for (const auto *lib : _activeLibs)
     {
-        auto match = std::find(lib->Filters.begin(), lib->Filters.end(), filter);
-        if (match == lib->Filters.end())
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
             continue; // filter does not match
 
         bool found = false;

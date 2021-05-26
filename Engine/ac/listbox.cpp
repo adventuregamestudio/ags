@@ -71,7 +71,7 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   std::vector<String> files;
   if (rp.AssetMgr)
   {
-    AssetMgr->FindAssets(files, rp.FullPath);
+    AssetMgr->FindAssets(files, rp.FullPath, "*");
   }
   else
   {

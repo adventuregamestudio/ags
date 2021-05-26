@@ -58,6 +58,7 @@ public:
     bool    LoadFromFile(const String &filename)
             { return LoadFromFile(filename.GetCStr()); }
     bool    LoadFromFile(const char *filename);
+    bool    LoadFromFile(PACKFILE *pf);
     bool    SaveToFile(const String &filename, const void *palette)
             { return SaveToFile(filename.GetCStr(), palette); }
     bool    SaveToFile(const char *filename, const void *palette);

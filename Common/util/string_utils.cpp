@@ -11,11 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "util/string_utils.h"
 #include <errno.h>
 #include <string.h>
+#include <regex>
 #include "core/platform.h"
 #include "util/math.h"
-#include "util/string_utils.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -61,6 +62,19 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
         return StrUtil::kOutOfRange;
     val = (int)lval;
     return StrUtil::kNoError;
+}
+
+String StrUtil::WildcardToRegex(const String &wildcard)
+{
+    // https://stackoverflow.com/questions/40195412/c11-regex-search-for-exact-string-escape
+    // matches any characters that need to be escaped in RegEx
+    std::regex esc{ R"([-[\]{}()*+?.,\^$|#\s])" };
+    std::string sanitized = std::regex_replace(wildcard.GetCStr(), esc, R"(\$&)");
+    // convert (now escaped) wildcard "\\*" and "\\?" into ".*" and "." respectively
+    String pattern(sanitized.c_str());
+    pattern.Replace("\\*", ".*");
+    pattern.Replace("\\?", ".");
+    return pattern;
 }
 
 String StrUtil::ReadString(Stream *in)

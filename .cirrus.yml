@@ -237,8 +237,8 @@ editor_packaging_task:
     copy %SYSTEMDRIVE%\Redist\vc_redist.x86.exe Windows\Installer\Source\Redist\
   get_editor_script: >
     mkdir Windows\Installer\Source\Editor &&
-    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" --output %TEMP%\binaries.zip &&
-    tar -f %TEMP%\binaries.zip -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
+    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" --output "%TEMP%\binaries.zip" &&
+    tar -f "%TEMP%\binaries.zip" -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
   get_windows_engine_script: >
     mkdir Windows\Installer\Source\Engine &&
     curl -fLSso Windows\Installer\Source\Engine\acwin.exe

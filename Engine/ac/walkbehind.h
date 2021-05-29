@@ -18,10 +18,20 @@
 #ifndef __AGS_EE_AC__WALKBEHIND_H
 #define __AGS_EE_AC__WALKBEHIND_H
 
+// A method of rendering walkbehinds on screen:
+// DrawAsSeparateSprite - draws whole walkbehind as a sprite; this
+//     method is most simple and is optimal for 3D renderers.
+// DrawOverCharSprite and DrawAsSeparateCharSprite - are alternatives
+//     optimized for software render.
+// DrawOverCharSprite - turns parts of the character and object sprites
+//     transparent when they are covered by walkbehind (walkbehind itself
+//     is not drawn separately in this case).
+// DrawAsSeparateCharSprite - draws smaller *parts* of walkbehind as
+//     separate sprites, only ones that cover characters or objects.
 enum WalkBehindMethodEnum
 {
-    DrawOverCharSprite,
     DrawAsSeparateSprite,
+    DrawOverCharSprite,
     DrawAsSeparateCharSprite
 };
 

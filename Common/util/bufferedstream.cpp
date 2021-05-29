@@ -26,18 +26,20 @@ namespace Common
 BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
         : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferStreamSize), _bufferPosition(0), _position(0)
 {
-    if (FileStream::Seek(0, kSeekEnd) == false)
-        throw std::runtime_error("Error determining stream end.");
-
-    _end = FileStream::GetPosition();
+    _end = -1;
+    if (FileStream::Seek(0, kSeekEnd))
+    {
+        _end = FileStream::GetPosition();
+        if (!FileStream::Seek(0, kSeekBegin))
+            _end = -1;
+    }
     if (_end == -1)
+    {
+        FileStream::Close();
         throw std::runtime_error("Error determining stream end.");
-
-    if (FileStream::Seek(0, kSeekBegin) == false)
-        throw std::runtime_error("Error determining stream end.");
+    }
 
     _buffer.resize(0);
-
 }
 
 void BufferedStream::FillBufferFromPosition(soff_t position)

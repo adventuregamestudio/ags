@@ -342,19 +342,22 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
         return false;
 
     String base_dir;
-    String newSaveGameDir = FixSlashAfterToken(newFolder);
+    String newSaveGameDir = newFolder;
 
-    if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
+    if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken) == 0)
     {
+        // IMPORTANT: for compatibility reasons we support both cases:
+        // when token is followed by the path separator and when it is not, in which case it's assumed.
         if (saveGameParent.IsEmpty())
         {
             base_dir = PathFromInstallDir(platform->GetUserSavedgamesDirectory());
-            newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(), base_dir);
+            newSaveGameDir = Path::ConcatPaths(base_dir, newFolder.Mid(newSaveGameDir.GetLength()));
         }
         else
         {
             // If there is a custom save parent directory, then replace
-            // not only root token, but also first subdirectory
+            // not only root token, but also first subdirectory after the token
+            newSaveGameDir = Path::ConcatPaths(".", newFolder.Mid(newSaveGameDir.GetLength()));
             newSaveGameDir.ClipSection('/', 0, 1); // TODO: Path helper function for this?
             newSaveGameDir = Path::ConcatPaths(saveGameParent, newSaveGameDir);
             base_dir = saveGameParent;

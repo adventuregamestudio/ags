@@ -13,6 +13,8 @@
 //=============================================================================
 #include "core/assetmanager.h"
 #include <algorithm>
+#include <regex>
+#include <allegro.h> // find files
 #include "util/misc.h" // ci_fopen
 #include "util/multifilelib.h"
 #include "util/path.h"
@@ -169,6 +171,49 @@ String AssetManager::FindAssetFileOnly(const String &asset_name, const String &f
     return "";
 }
 
+void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard,
+    const String &filter) const
+{
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
+    std::cmatch mr;
+
+    for (const auto *lib : _activeLibs)
+    {
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
+            continue; // filter does not match
+
+        bool found = false;
+        if (IsAssetLibDir(lib))
+        {
+            // TODO: write util function for getting list of files in dir using standard C/C++
+            String path = Path::ConcatPaths(lib->BaseDir, "*");
+            al_ffblk dfb;
+            int	dun = al_findfirst(path.GetCStr(), &dfb, -1);
+            while (!dun) {
+                if (std::regex_match(dfb.name, mr, regex))
+                    assets.push_back(dfb.name);
+                dun = al_findnext(&dfb);
+            }
+            al_findclose(&dfb);
+        }
+        else
+        {
+            for (const auto &a : lib->AssetInfos)
+            {
+                if (std::regex_match(a.FileName.GetCStr(), mr, regex))
+                    assets.push_back(a.FileName);
+            }
+        }
+    }
+
+    // Sort and remove duplicates
+    std::sort(assets.begin(), assets.end());
+    assets.erase(std::unique(assets.begin(), assets.end()), assets.end());
+}
+
 AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_lib)
 {
     // Test for a directory
@@ -211,8 +256,9 @@ bool AssetManager::GetAsset(const String &asset_name, const String &filter, bool
 {
     for (const auto *lib : _activeLibs)
     {
-        auto match = std::find(lib->Filters.begin(), lib->Filters.end(), filter);
-        if (match == lib->Filters.end())
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
             continue; // filter does not match
 
         bool found = false;
@@ -282,10 +328,11 @@ Stream *AssetManager::OpenAsset(const String &asset_name, const String &filter, 
     AssetLocation loc;
     if (GetAsset(asset_name, filter, false, &loc, open_mode, work_mode))
     {
-        Stream *s = File::OpenFile(loc.FileName, open_mode, work_mode);
+        Stream *s = work_mode == kFile_Read ?
+            File::OpenFile(loc.FileName, loc.Offset, loc.Offset + loc.Size) :
+            File::OpenFile(loc.FileName, open_mode, work_mode);
         if (s)
         {
-            s->Seek(loc.Offset, kSeekBegin);
             if (asset_size)
                 *asset_size = loc.Size;
         }

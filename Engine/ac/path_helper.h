@@ -75,6 +75,7 @@ struct ResolvedPath
     String BaseDir;  // base directory, which we assume already exists
     String FullPath; // full path, including filename
     String AltPath;  // alternative full path, for backwards compatibility
+    bool   AssetMgr = false; // file is to be accessed through the asset manager
 };
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.

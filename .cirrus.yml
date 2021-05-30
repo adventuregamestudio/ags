@@ -6,7 +6,6 @@ build_windows_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_LIBOGG_LIB: C:\Lib\Xiph
     AGS_LIBTHEORA_LIB: C:\Lib\Xiph
     AGS_LIBVORBIS_LIB: C:\Lib\Xiph
@@ -175,11 +174,8 @@ build_editor_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
-    AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
-    AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\build\Release
   nuget_packages_cache:
     folder: Solutions\packages
     fingerprint_script:
@@ -192,6 +188,7 @@ build_editor_task:
     copy C:\Lib\irrKlang\*.dll Editor\References\ &&
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\8.0\Lib\Win8\um\x86;!LIB!" &&
+    set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
     msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
   test_script: |
     curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
@@ -253,8 +250,8 @@ editor_packaging_task:
     copy %SYSTEMDRIVE%\Redist\vc_redist.x86.exe Windows\Installer\Source\Redist\
   get_editor_script: >
     mkdir Windows\Installer\Source\Editor &&
-    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" |
-    tar -f - -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
+    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" --output "%TEMP%\binaries.zip" &&
+    tar -f "%TEMP%\binaries.zip" -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
   get_windows_engine_script: >
     mkdir Windows\Installer\Source\Engine &&
     curl -fLSso Windows\Installer\Source\Engine\acwin.exe
@@ -301,7 +298,9 @@ pdb_packaging_task:
       "build_editor/ags_editor_pdb.zip" \
       "build_editor/ags_native_pdb.zip"
     do
-      curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download" | bsdtar -f - -xvzC /tmp/pdb -s "!.*/Debug/.*!!p" -s "!.*/!!p"
+      curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download" --output /tmp/tmp_pdb.zip 
+      bsdtar -f /tmp/tmp_pdb.zip -xvzC /tmp/pdb -s "!.*/Debug/.*!!p" -s "!.*/!!p"
+      rm /tmp/tmp_pdb.zip
     done
   make_pdb_archive_script: |
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
@@ -352,7 +351,9 @@ make_release_task:
     baseurl="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID"
     mkdir -p /tmp/github_release && \
     cd /tmp/github_release && \
-    curl -fLSs "$baseurl/editor_packaging/installer.zip" | bsdtar -f - -xv --strip-components 3 && \
+    curl -fLSs "$baseurl/editor_packaging/installer.zip" -o /tmp/github_release/installer.zip && \
+    bsdtar -f /tmp/github_release/installer.zip -xv --strip-components 3 && \
+    rm /tmp/github_release/installer.zip  && \
     for download in "editor_packaging/archive/$(basename AGS-*.exe .exe).zip" \
       "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \

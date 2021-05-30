@@ -225,34 +225,6 @@ String PathFromInstallDir(const String &path)
     return path;
 }
 
-// Tests if there is a special path token in the beginning of the given path;
-// if there is and there is no slash between token and the rest of the string,
-// then assigns new string that has such slash.
-// Returns TRUE if the new string was created, and FALSE if the path was good.
-bool FixSlashAfterToken(const String &path, const String &token, String &new_path)
-{
-    if (path.CompareLeft(token) == 0 && path.GetLength() > token.GetLength() &&
-        path[token.GetLength()] != '/')
-    {
-        new_path = Path::ConcatPaths(token, path.Mid(token.GetLength()));
-        return true;
-    }
-    return false;
-}
-
-String FixSlashAfterToken(const String &path)
-{
-    String fixed_path = path;
-    Path::FixupPath(fixed_path);
-    if (FixSlashAfterToken(fixed_path, GameInstallRootToken,    fixed_path) ||
-        FixSlashAfterToken(fixed_path, UserSavedgamesRootToken, fixed_path) ||
-        FixSlashAfterToken(fixed_path, GameSavedgamesDirToken,  fixed_path) ||
-        FixSlashAfterToken(fixed_path, GameDataDirToken,        fixed_path) ||
-        FixSlashAfterToken(fixed_path, GameAssetToken,          fixed_path))
-        return fixed_path;
-    return path;
-}
-
 String PreparePathForWriting(const FSLocation& fsloc, const String &filename)
 {
     if (Directory::CreateAllDirectories(fsloc.BaseDir, fsloc.FullDir))
@@ -338,8 +310,10 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     // Resolve location tokens
-    String sc_path = FixSlashAfterToken(orig_sc_path);
-    if (sc_path.CompareLeft(GameAssetToken, GameAssetToken.GetLength()) == 0)
+    // IMPORTANT: for compatibility reasons we support both cases:
+    // when token is followed by the path separator and when it is not, in which case it's assumed.
+    String sc_path = orig_sc_path;
+    if (sc_path.CompareLeft(GameAssetToken) == 0)
     {
         if (!read_only)
         {
@@ -354,7 +328,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     FSLocation parent_dir;
     String child_path;
     String alt_path;
-    if (sc_path.CompareLeft(GameInstallRootToken, GameInstallRootToken.GetLength()) == 0)
+    if (sc_path.CompareLeft(GameInstallRootToken) == 0)
     {
         if (!read_only)
         {
@@ -365,12 +339,12 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = FSLocation(ResPaths.DataDir);
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
-    else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
+    else if (sc_path.CompareLeft(GameSavedgamesDirToken) == 0)
     {
         parent_dir = FSLocation(get_save_game_directory()); // FIXME: get FSLocation of save dir 
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
-    else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
+    else if (sc_path.CompareLeft(GameDataDirToken) == 0)
     {
         parent_dir = GetGameAppDataDir();
         child_path = sc_path.Mid(GameDataDirToken.GetLength());

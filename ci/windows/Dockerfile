@@ -1,14 +1,8 @@
 # base will already have Chocolatey installed
-FROM cirrusci/windowsservercore:2019
+FROM ericoporto/min-ags-dev-env:1.0.0
 
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
-
-ARG VISUALCPP_BUILD_TOOLS_VERSION=14.0.25420.1
-RUN cinst visualcpp-build-tools --version %VISUALCPP_BUILD_TOOLS_VERSION% -y && \
-  mkdir empty && \
-  robocopy empty %TEMP% /MIR > nul & \
-  rd /s /q empty
 
 # Windows 8.0 SDK (but only install the .NET 4.5 SDK)
 RUN pushd %TEMP% && \
@@ -21,10 +15,8 @@ RUN pushd %TEMP% && \
 
 ARG NUGET_VERSION=5.7.0
 ARG INNO_SETUP_VERSION=6.0.5
-ARG CMAKE_VERSION=3.19.1
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
   cinst innosetup --version %INNO_SETUP_VERSION% -y && \
-  cinst cmake --version %CMAKE_VERSION% --installargs ADD_CMAKE_TO_PATH=System -y && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty
@@ -50,13 +42,6 @@ RUN curl -fLSs http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%
   move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\ && \
   rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION%
 
-RUN curl -fLSs https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0de-3e9096ed4b3a/dxsdk_aug2007.exe | tar -f - -xvzC %TEMP% && \
-  tar -f %TEMP%\dxsdk_aug2007.exe -xvzC %TEMP% Lib/x86/*.lib && \
-  mkdir Lib\DirectX && \
-  move %TEMP%\Lib\x86\*.lib Lib\DirectX\ && \
-  del %TEMP%\dxsdk_aug2007.exe && \
-  rd /s /q %TEMP%\Lib
-
 RUN mkdir Redist && \
   cd Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
@@ -75,7 +60,7 @@ RUN mkdir Lib\SDL2 && \
   echo endif ^(^)  >> "Lib\SDL2\sdl2-config.cmake" && \
   echo string^(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES^) >> "Lib\SDL2\sdl2-config.cmake" 
  
-ARG SDL_SOUND_VERSION=997e90562b35 
+ARG SDL_SOUND_VERSION=4b78007f035f 
 RUN mkdir Lib\SDL_sound && \
   echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild.bat && \
   mkdir Lib\SDL_sound\build  && \	

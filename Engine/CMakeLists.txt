@@ -591,7 +591,7 @@ else()
 endif()
 
 if (WIN32)
-    target_link_libraries(engine PUBLIC DirectX::Direct3D9 shlwapi)
+    target_link_libraries(engine PUBLIC shlwapi)
 elseif (LINUX)
     target_link_libraries(engine PUBLIC X11::X11)
 endif()

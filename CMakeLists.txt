@@ -156,9 +156,7 @@ endif()
 find_package(PkgConfig)
 find_package(Threads)
 
-if (WIN32)
-    find_package(DirectX)
-elseif (LINUX)
+if (LINUX)
     find_package(X11)
 endif()
 

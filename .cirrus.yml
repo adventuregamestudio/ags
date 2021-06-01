@@ -13,6 +13,7 @@ build_windows_task:
     AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\build\Release
+  get_submodule_script: git submodule update --init Common/libsrc/googletest
   build_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&

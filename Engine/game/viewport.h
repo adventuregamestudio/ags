@@ -119,7 +119,7 @@ public:
     // Returns viewport's position on screen
     inline const Rect &GetRect() const { return _position; }
     // Returns viewport's room-to-screen transformation
-    inline const AGS::Engine::PlaneScaling &GetTransform() const { return _transform; }
+    inline const AGS::Common::PlaneScaling &GetTransform() const { return _transform; }
     // Set viewport's rectangle on screen
     void SetRect(const Rect &rc);
     // Sets viewport size
@@ -177,7 +177,7 @@ private:
     // Coordinate tranform between camera and viewport
     // TODO: need to add rotate conversion to let script API support that;
     // (maybe use full 3D matrix for that)
-    AGS::Engine::PlaneScaling _transform;
+    AGS::Common::PlaneScaling _transform;
     // Linked camera reference
     CameraRef _camera;
     bool _visible = true;

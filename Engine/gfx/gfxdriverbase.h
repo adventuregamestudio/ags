@@ -29,6 +29,7 @@ namespace Engine
 {
 
 using Common::Bitmap;
+using Common::PlaneScaling;
 
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc

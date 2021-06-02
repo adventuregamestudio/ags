@@ -752,7 +752,6 @@
     <ClInclude Include="..\..\Engine\util\mutex_pthread.h" />
     <ClInclude Include="..\..\Engine\util\mutex_wii.h" />
     <ClInclude Include="..\..\Engine\util\mutex_windows.h" />
-    <ClInclude Include="..\..\Engine\util\scaling.h" />
     <ClInclude Include="..\..\Engine\util\thread.h" />
     <ClInclude Include="..\..\Engine\util\thread_psp.h" />
     <ClInclude Include="..\..\Engine\util\thread_pthread.h" />

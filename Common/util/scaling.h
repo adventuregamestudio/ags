@@ -18,15 +18,15 @@
 // Maybe implement as real matrix and/or floats if that is better/runs faster.
 //
 //=============================================================================
-#ifndef __AGS_EE_UTIL__SCALING_H
-#define __AGS_EE_UTIL__SCALING_H
+#ifndef __AGS_CN_UTIL__SCALING_H
+#define __AGS_CN_UTIL__SCALING_H
 
 #include "core/types.h"
 #include "util/geometry.h"
 
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 
 class AxisScaling
@@ -167,7 +167,7 @@ struct PlaneScaling
     }
 };
 
-} // namespace Engine
+} // namespace Common
 } // namespace AGS
 
-#endif // __AGS_EE_UTIL__SCALING_H
+#endif // __AGS_CN_UTIL__SCALING_H

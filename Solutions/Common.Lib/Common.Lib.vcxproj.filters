@@ -805,5 +805,8 @@
     <ClInclude Include="..\..\Common\util\memorystream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\scaling.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

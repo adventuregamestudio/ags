@@ -79,6 +79,27 @@
     <ClCompile Include="..\..\Common\util\file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\path_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>Libs\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>Libs\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>Libs\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>Libs\allegro\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\libc.c">
+      <Filter>Libs\allegro</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
@@ -86,6 +107,15 @@
     </Filter>
     <Filter Include="Test">
       <UniqueIdentifier>{76aa8a6f-9262-4388-87ec-0049ffd7332f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs">
+      <UniqueIdentifier>{e487ab81-e22c-4e9d-9917-ba8927e08216}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs\allegro">
+      <UniqueIdentifier>{e70feea7-e6e2-4632-9434-da2bce15dda9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs\allegro\win">
+      <UniqueIdentifier>{f310cba0-f6de-4414-a0db-89378785652e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +177,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\path.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

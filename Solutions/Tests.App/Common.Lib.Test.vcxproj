@@ -21,15 +21,24 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
+    <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
+    <ClCompile Include="..\..\Common\test\math_test.cpp" />
+    <ClCompile Include="..\..\Common\test\memory_test.cpp" />
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
+    <ClCompile Include="..\..\Common\test\version_test.cpp" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
+    <ClCompile Include="..\..\Common\util\version.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
+    <ClInclude Include="..\..\Common\util\math.h" />
+    <ClInclude Include="..\..\Common\util\memory.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
     <ClInclude Include="..\..\Common\util\string_compat.h" />
+    <ClInclude Include="..\..\Common\util\version.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{212724F9-66FC-4BB6-97F5-975CA10EFFEB}</ProjectGuid>

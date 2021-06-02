@@ -22,33 +22,50 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
+    <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
     <ClCompile Include="..\..\Common\test\math_test.cpp" />
     <ClCompile Include="..\..\Common\test\memory_test.cpp" />
     <ClCompile Include="..\..\Common\test\stream_test.cpp" />
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
     <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
+    <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
+    <ClCompile Include="..\..\Common\util\file.cpp" />
+    <ClCompile Include="..\..\Common\util\filestream.cpp" />
+    <ClCompile Include="..\..\Common\util\inifile.cpp" />
+    <ClCompile Include="..\..\Common\util\ini_util.cpp" />
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\proxystream.cpp" />
+    <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
+    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
+    <ClInclude Include="..\..\Common\util\file.h" />
+    <ClInclude Include="..\..\Common\util\filestream.h" />
+    <ClInclude Include="..\..\Common\util\inifile.h" />
+    <ClInclude Include="..\..\Common\util\ini_util.h" />
     <ClInclude Include="..\..\Common\util\math.h" />
     <ClInclude Include="..\..\Common\util\memory.h" />
     <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\proxystream.h" />
+    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
     <ClInclude Include="..\..\Common\util\string_compat.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
+    <ClInclude Include="..\..\Common\util\textstreamreader.h" />
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -132,7 +149,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -167,7 +184,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

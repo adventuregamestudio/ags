@@ -21,63 +21,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
-    <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
-    <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
-    <ClCompile Include="..\..\Common\test\math_test.cpp" />
-    <ClCompile Include="..\..\Common\test\memory_test.cpp" />
-    <ClCompile Include="..\..\Common\test\path_test.cpp" />
-    <ClCompile Include="..\..\Common\test\stream_test.cpp" />
-    <ClCompile Include="..\..\Common\test\string_test.cpp" />
-    <ClCompile Include="..\..\Common\test\version_test.cpp" />
-    <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\datastream.cpp" />
-    <ClCompile Include="..\..\Common\util\file.cpp" />
-    <ClCompile Include="..\..\Common\util\filestream.cpp" />
-    <ClCompile Include="..\..\Common\util\inifile.cpp" />
-    <ClCompile Include="..\..\Common\util\ini_util.cpp" />
-    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
-    <ClCompile Include="..\..\Common\util\path.cpp" />
-    <ClCompile Include="..\..\Common\util\proxystream.cpp" />
-    <ClCompile Include="..\..\Common\util\stdio_compat.c" />
-    <ClCompile Include="..\..\Common\util\stream.cpp" />
-    <ClCompile Include="..\..\Common\util\string.cpp" />
-    <ClCompile Include="..\..\Common\util\string_compat.c" />
-    <ClCompile Include="..\..\Common\util\string_utils.cpp" />
-    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
-    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
-    <ClCompile Include="..\..\Common\util\version.cpp" />
-    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\file.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\libc.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
-    <ClInclude Include="..\..\Common\util\alignedstream.h" />
-    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
-    <ClInclude Include="..\..\Common\util\datastream.h" />
-    <ClInclude Include="..\..\Common\util\file.h" />
-    <ClInclude Include="..\..\Common\util\filestream.h" />
-    <ClInclude Include="..\..\Common\util\inifile.h" />
-    <ClInclude Include="..\..\Common\util\ini_util.h" />
-    <ClInclude Include="..\..\Common\util\math.h" />
-    <ClInclude Include="..\..\Common\util\memory.h" />
-    <ClInclude Include="..\..\Common\util\memorystream.h" />
-    <ClInclude Include="..\..\Common\util\path.h" />
-    <ClInclude Include="..\..\Common\util\proxystream.h" />
-    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
-    <ClInclude Include="..\..\Common\util\stream.h" />
-    <ClInclude Include="..\..\Common\util\string.h" />
-    <ClInclude Include="..\..\Common\util\string_compat.h" />
-    <ClInclude Include="..\..\Common\util\string_utils.h" />
-    <ClInclude Include="..\..\Common\util\textstreamreader.h" />
-    <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
-    <ClInclude Include="..\..\Common\util\version.h" />
+    <ClCompile Include="..\..\Engine\script\script_api.cpp" />
+    <ClCompile Include="..\..\Engine\test\scsprintf_test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{212724F9-66FC-4BB6-97F5-975CA10EFFEB}</ProjectGuid>
+    <ProjectGuid>{E5EBFBA9-1617-412B-843E-682609C65100}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>EngineAppTest</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
@@ -150,7 +98,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -184,7 +132,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;ALLEGRO_USE_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libsrc\googletest;..\..\Common\libsrc\googletest\include;..\..\libsrc\allegro\include;..\..\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>

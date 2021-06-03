@@ -452,15 +452,6 @@
     <ClCompile Include="..\..\Engine\script\script_engine.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_all.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_file.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_gfx.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_inifile.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_math.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_memory.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_sprintf.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_string.cpp" />
-    <ClCompile Include="..\..\Engine\test\test_version.cpp" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
   </ItemGroup>
   <ItemGroup>

@@ -453,16 +453,6 @@ target_sources(engine
     script/script_runtime.h
     script/systemimports.cpp
     script/systemimports.h
-    test/test_all.cpp
-    test/test_all.h
-    test/test_file.cpp
-    test/test_gfx.cpp
-    test/test_inifile.cpp
-    test/test_math.cpp
-    test/test_memory.cpp
-    test/test_sprintf.cpp
-    test/test_string.cpp
-    test/test_version.cpp
     util/library.h
     util/library_dummy.h
     util/library_posix.h
@@ -471,7 +461,6 @@ target_sources(engine
     util/mutex_lock.h
     util/mutex_pthread.h
     util/mutex_std.h
-    util/scaling.h
     util/thread.h
     util/thread_pthread.h
     util/thread_std.h

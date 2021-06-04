@@ -41,13 +41,8 @@ static bool ReadIni(const String &file, IniFile &ini)
     return false;
 }
 
-bool IniUtil::Read(const String &file, ConfigTree &tree)
+void IniUtil::CopyIniToTree(const IniFile &ini, ConfigTree &tree)
 {
-    // Read ini content
-    IniFile ini;
-    if (!ReadIni(file, ini))
-        return false;
-
     // Copy items into key-value tree
     for (CSectionIterator sec = ini.CBegin(); sec != ini.CEnd(); ++sec)
     {
@@ -61,13 +56,29 @@ bool IniUtil::Read(const String &file, ConfigTree &tree)
             subtree[item->GetKey()] = item->GetValue();
         }
     }
+}
+
+bool IniUtil::Read(const String &file, ConfigTree &tree)
+{
+    // Read ini content
+    IniFile ini;
+    if (!ReadIni(file, ini))
+        return false;
+
+    CopyIniToTree(ini, tree);
     return true;
 }
 
-void IniUtil::Write(const String &file, const ConfigTree &tree)
+void IniUtil::Read(Stream *in, ConfigTree &tree)
 {
-    UStream fs(File::CreateFile(file));
-    TextStreamWriter writer(fs.get());
+    IniFile ini;
+    ini.Read(in);
+    CopyIniToTree(ini, tree);
+}
+
+void IniUtil::Write(Stream *out, const ConfigTree &tree)
+{
+    TextStreamWriter writer(out);
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
     {
@@ -96,6 +107,14 @@ void IniUtil::Write(const String &file, const ConfigTree &tree)
     writer.ReleaseStream();
 }
 
+void IniUtil::Write(const String &file, const ConfigTree &tree)
+{
+    UStream fs(File::CreateFile(file));
+    if (!fs)
+        return;
+    IniUtil::Write(fs.get(), tree);
+}
+
 void IniUtil::WriteToString(String &s, const ConfigTree &tree)
 {
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
@@ -113,12 +132,8 @@ void IniUtil::WriteToString(String &s, const ConfigTree &tree)
     }
 }
 
-bool IniUtil::Merge(const String &file, const ConfigTree &tree)
+void IniUtil::Merge(IniFile &ini, const ConfigTree &tree)
 {
-    // Read ini content
-    IniFile ini;
-    ReadIni(file, ini); // NOTE: missing file is a valid case
-
     // Remember the sections we find in file, if some sections are not found,
     // they will be appended to the end of file.
     std::map<String, bool> sections_found;
@@ -181,6 +196,15 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
         for (StrStrOIter keyval = subtree.begin(); keyval != subtree.end(); ++keyval)
             ini.InsertItem(sec, sec->End(), keyval->first, keyval->second);
     }
+}
+
+bool IniUtil::Merge(const String &file, const ConfigTree &tree)
+{
+    // Read ini content
+    IniFile ini;
+    ReadIni(file, ini); // NOTE: missing file is a valid case
+
+    IniUtil::Merge(ini, tree);
 
     // Write the resulting set of lines
     UStream fs(File::CreateFile(file));

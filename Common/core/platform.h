@@ -102,6 +102,11 @@
     #define AGS_PLATFORM_DEBUG  (0)
 #endif
 
+// Certain methods or classes may be meant for the code testing purposes only
+#if !defined(AGS_PLATFORM_TEST)
+    #define AGS_PLATFORM_TEST (AGS_PLATFORM_DEBUG)
+#endif
+
 #define AGS_HAS_DIRECT3D (AGS_PLATFORM_OS_WINDOWS)
 #define AGS_HAS_OPENGL (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX)
 #define AGS_OPENGL_ES2 (AGS_PLATFORM_OS_ANDROID)

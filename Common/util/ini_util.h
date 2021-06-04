@@ -27,6 +27,8 @@ namespace AGS
 namespace Common
 {
 
+class IniFile;
+
 typedef std::map<String, String>         StringOrderMap;
 typedef StringOrderMap::const_iterator   StrStrOIter;
 
@@ -35,15 +37,22 @@ typedef ConfigTree::const_iterator       ConfigNode;
 
 namespace IniUtil
 {
+    // Copies the contents of an IniFile object to a key-value tree.
+    // The pre-existing tree items, if any, are NOT erased.
+    void CopyIniToTree(const IniFile &ini, ConfigTree &tree);
     // Parse the contents of given file as INI format and insert values
     // into the tree. The pre-existing tree items, if any, are NOT erased.
     // Returns FALSE if the file could not be opened.
     bool Read(const String &file, ConfigTree &tree);
-    // Serialize given tree to the stream in INI text format.
+    // Same as above, but reads from the provided stream.
+    void Read(Stream *in, ConfigTree &tree);
+    // Serialize given tree to the given file in INI text format.
     // The INI format suggests only one nested level (group - items).
     // The first level values are treated as a global section items.
     // The sub-nodes beyond 2nd level are ignored completely.
     void Write(const String &file, const ConfigTree &tree);
+    // Same as above, but writes to the provided stream
+    void Write(Stream *out, const ConfigTree &tree);
     // Serialize given tree to the string in INI text format.
     // TODO: implement proper memory/string stream compatible with base Stream
     // class and merge this with Write function.
@@ -58,6 +67,9 @@ namespace IniUtil
     // or same stream opened for both reading and writing.
     // Returns FALSE if the file could not be opened for writing.
     bool Merge(const String &file, const ConfigTree &tree);
+    // Similar to the above, but merges the key-value tree into the provided
+    // IniFile object in memory.
+    void Merge(IniFile &ini, const ConfigTree &tree);
 };
 
 } // namespace Common

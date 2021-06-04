@@ -27,6 +27,8 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::PlaneScaling;
+
 class ScalingGfxFilter : public IGfxFilter
 {
 public:

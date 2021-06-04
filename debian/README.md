@@ -11,8 +11,8 @@ probably work.
 -   libsdl2 (2.0.12 or higher)
 -   libsdl_sound for sdl2 (revision 997e90562b35 or higher)
 -   libogg (1.2.2-1.3.0)
--   libvorbis (1.3.2)
 -   libtheora (1.1.1-1.2.0)
+-   libvorbis (1.3.2)
 
 There are two general ways to proceed: either use [CMake scripts](../CMAKE.md) or install and build everything yourself using Makefiles provided in the Engine's directory.
 
@@ -22,7 +22,7 @@ Fedora package installation
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config libsdl2-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install git debhelper build-essential pkg-config libsdl2-dev libogg-dev libtheora-dev libvorbis-dev
 
 Other Linux systems use their respective package managers.
 

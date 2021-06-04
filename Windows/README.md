@@ -11,8 +11,8 @@
   * SDL 2.0.12 or higher (https://www.libsdl.org/download-2.0.php)
   * SDL_Sound 2.0.* (revision 997e90562b35 or higher) https://hg.icculus.org/icculus/SDL_sound/archive/997e90562b35.tar.gz
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
-  * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
+  * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 * To build Windows installer:
@@ -70,8 +70,8 @@ Engine requires following libraries:
 * SDL2
 * SDL_Sound
 * libogg
-* libvorbis
 * libtheora
+* libvorbis
 
 You may download the prebuilt libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
 FIXME!!! -- need sdl2 related library set
@@ -87,8 +87,8 @@ In order to direct Studio to necessary libraries and their headers setup followi
 * AGS_SDL_SOUND_INCLUDE - pointing to the location of SDL Sound headers;
 * AGS_SDL_SOUND_LIB - pointing to the location of SDL Sound library files;
 * AGS_LIBOGG_LIB - pointing to the location of libogg library files;
-* AGS_LIBVORBIS_LIB - pointing to the location of libvorbis library files;
 * AGS_LIBTHEORA_LIB - pointing to the location of libtheora library files;
+* AGS_LIBVORBIS_LIB - pointing to the location of libvorbis library files;
 
 
 ## Building AGS Editor

@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.5.?, ??? 2021
+VERSION 3.5.1, June 2021
 
 Editor:
  - Added "Attach game data to exe" option to General Settings. This lets you to package game data

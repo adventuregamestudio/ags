@@ -1695,9 +1695,14 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            _maskCache[mask]?.Dispose();
-            _maskCache[mask] = bmp.Clone() as Bitmap;
-            _loadedRoom.Modified = true;
+            if (ValidateMask(mask, bmp))
+            {
+                Bitmap toDispose;
+                _maskCache.TryGetValue(mask, out toDispose);
+                toDispose?.Dispose();
+                _maskCache[mask] = bmp.Clone() as Bitmap;
+                _loadedRoom.Modified = true;
+            }
         }
 
         int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
@@ -1878,7 +1883,7 @@ namespace AGS.Editor.Components
 
                 if (File.Exists(_loadedRoom.GetMaskFileName(mask)))
                 {
-                    _maskCache[mask] = LoadMask(mask);
+                    ((IRoomController)this).SetMask(mask, LoadMask(mask));
                 }
                 else
                 {
@@ -1933,6 +1938,48 @@ namespace AGS.Editor.Components
             _maskCache[mask] = LoadMask(mask);
             _loadedRoom.Modified = true;
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+        }
+
+        /// <summary>
+        /// Validates if the bitmap is valid to be used as a mask, or if possible, fixes it so
+        /// that it can be usable. (For example by replacing illgal pixels with legal pixels)
+        /// </summary>
+        private bool ValidateMask(RoomAreaMaskType type, Bitmap newMask)
+        {
+            if (type == RoomAreaMaskType.None) throw new ArgumentException("Don't use mask type None.");
+            if (newMask == null) throw new NullReferenceException($"{nameof(newMask)} is null.");
+            if (newMask.GetColorDepth() != 8)
+            {
+                _guiController.ShowMessage($"Trying to set an invalid {type} mask, make sure it's an 8-bit image.", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            int maxColor = Room.GetMaskMaxColor(type);
+            bool invalidPixel = false;
+
+            newMask.SetRawData(newMask.GetRawData().Select(p =>
+            {
+                if (p >= maxColor)
+                {
+                    invalidPixel = true;
+                    return (byte)0;
+                }
+                return p;
+            }).ToArray());
+
+            if (invalidPixel)
+            {
+                _guiController.ShowMessage(
+                    $"Invalid colours were found in the {type} mask. They have now been removed." +
+                    "\n\nWhen drawing a mask in an external paint package, you need to make" +
+                    "sure that the image is set as 256-colour (Indexed Palette), and that" +
+                    "you use the first 16 colours in the palette for drawing your areas. Palette " +
+                    "entry 0 corresponds to No Area, palette index 1 corresponds to area 1, and " +
+                    "so forth.",
+                    MessageBoxIcon.Information);
+            }
+
+            return true;
         }
 
         private Bitmap LoadNonLockedBitmap(string fileName)

@@ -170,6 +170,21 @@ namespace AGS.Types
             Assert.That(_room.BottomEdgeY, Is.EqualTo(bottomEdgeY));
         }
 
+        [TestCase(RoomAreaMaskType.Hotspots, Room.MAX_HOTSPOTS)]
+        [TestCase(RoomAreaMaskType.Regions, Room.MAX_REGIONS)]
+        [TestCase(RoomAreaMaskType.WalkableAreas, Room.MAX_WALKABLE_AREAS)]
+        [TestCase(RoomAreaMaskType.WalkBehinds, Room.MAX_WALK_BEHINDS)]
+        public void GetsMaskMaxColor(RoomAreaMaskType mask, int expected)
+        {
+            Assert.That(Room.GetMaskMaxColor(mask), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void GetsMaskMaxColorThrowsExceptionWithIllegalMask()
+        {
+            Assert.Throws<ArgumentException>(() => Room.GetMaskMaxColor(RoomAreaMaskType.None));
+        }
+
         [TestCase(1, RoomAreaMaskType.WalkBehinds, 1.00)]
         [TestCase(2, RoomAreaMaskType.WalkBehinds, 1.00)]
         [TestCase(1, RoomAreaMaskType.Hotspots, 1.00)]

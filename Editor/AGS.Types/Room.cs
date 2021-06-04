@@ -403,6 +403,19 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
+        public static int GetMaskMaxColor(RoomAreaMaskType mask)
+        {
+            switch (mask)
+            {
+                case RoomAreaMaskType.WalkBehinds: return MAX_WALK_BEHINDS;
+                case RoomAreaMaskType.Hotspots: return MAX_HOTSPOTS;
+                case RoomAreaMaskType.WalkableAreas: return MAX_WALKABLE_AREAS;
+                case RoomAreaMaskType.Regions: return MAX_REGIONS;
+                default:
+                    throw new ArgumentException($"Illegal mask type, mask {mask} doesn't have colors");
+            }
+        }
+
         public double GetMaskScale(RoomAreaMaskType mask)
         {
             switch (mask)

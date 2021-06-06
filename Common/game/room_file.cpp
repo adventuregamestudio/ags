@@ -668,7 +668,7 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
     };
 
     HRoomFileError err = ReadRoomData(reader, in, data_ver);
-    if (!err && script.IsEmpty())
+    if (err && script.IsEmpty())
         new RoomFileError(kRoomFileErr_BlockNotFound);
     return err;
 }

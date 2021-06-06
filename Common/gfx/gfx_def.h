@@ -62,18 +62,8 @@ public:
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
             -Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
-        // TODO: search for the faster AABB transform algorithm
         Rect aabb = RectWH(0, 0, src_w, src_h);
-        glm::vec4 p1 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Top);
-        glm::vec4 p2 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Top);
-        glm::vec4 p3 = L2WTransform * glmex::vec4((float)aabb.Left, (float)aabb.Bottom);
-        glm::vec4 p4 = L2WTransform * glmex::vec4((float)aabb.Right, (float)aabb.Bottom);
-        float xmin = std::min(p1.x, std::min(p2.x, std::min(p3.x, p4.x)));
-        float ymin = std::min(p1.y, std::min(p2.y, std::min(p3.y, p4.y)));
-        float xmax = std::max(p1.x, std::max(p2.x, std::max(p3.x, p4.x)));
-        float ymax = std::max(p1.y, std::max(p2.y, std::max(p3.y, p4.y)));
-        // TODO: better rounding
-        _AABB = Rect((int)xmin, (int)ymin, (int)xmax, (int)ymax);
+        _AABB = glmex::full_transform(aabb, L2WTransform);
     }
 
     // Get axis-aligned bounding box

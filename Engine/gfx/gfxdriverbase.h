@@ -19,9 +19,9 @@
 #define __AGS_EE_GFX__GFXDRIVERBASE_H
 
 #include <vector>
+#include <glm/mat4x4.hpp>
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "util/scaling.h"
 
 namespace AGS
 {
@@ -136,7 +136,7 @@ protected:
     Rect                _srcRect;       // rendering source rect
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
-    PlaneScaling        _scaling;       // native -> render dest coordinate transformation
+    glm::mat4           _mRenderFrame;  // native -> render dest coordinate transformation
 
     // Callbacks
     GFXDRV_CLIENTCALLBACK _pollingCallback;

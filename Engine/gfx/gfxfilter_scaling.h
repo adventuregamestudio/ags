@@ -15,12 +15,11 @@
 // Base class for graphic filter which provides virtual screen scaling
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__SCALINGGFXFILTER_H
 #define __AGS_EE_GFX__SCALINGGFXFILTER_H
 
+#include <glm/mat4x4.hpp>
 #include "gfx/gfxfilter.h"
-#include "util/scaling.h"
 
 namespace AGS
 {
@@ -36,8 +35,8 @@ public:
     Rect GetDestination() const override;
 
 protected:
-    Rect            _dstRect;
-    PlaneScaling    _scaling;
+    Rect            _dstRect; // destination rect
+    glm::mat4       _m; // transform matrix
 };
 
 } // namespace Engine

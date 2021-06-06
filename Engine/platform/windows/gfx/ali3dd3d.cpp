@@ -958,7 +958,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because D3D redraws whole game frame each time
   if (!direct3ddevice) return;
   Rect r(x1, y1, x2, y2);
-  r = _scaling.ScaleRange(r);
+  r = glmex::linear_transform(r, _mRenderFrame);
   ClearScreenRect(r, colorToUse);
 }
 
@@ -1407,21 +1407,13 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         if (!viewport.IsEmpty())
         {
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+            Rect scr = _renderSprAtScreenRes ?
+                glmex::linear_transform(viewport, _mRenderFrame) : viewport;
             RECT scissor;
-            if (_renderSprAtScreenRes)
-            {
-                scissor.left = _scaling.X.ScalePt(viewport.Left);
-                scissor.top = _scaling.Y.ScalePt(viewport.Top);
-                scissor.right = _scaling.X.ScalePt(viewport.Right + 1);
-                scissor.bottom = _scaling.Y.ScalePt(viewport.Bottom + 1);
-            }
-            else
-            {
-                scissor.left = viewport.Left;
-                scissor.top = viewport.Top;
-                scissor.right = viewport.Right + 1;
-                scissor.bottom = viewport.Bottom + 1;
-            }
+            scissor.left = scr.Left;
+            scissor.top = scr.Top;
+            scissor.right = scr.Right + 1;
+            scissor.bottom = scr.Bottom + 1;
             direct3ddevice->SetScissorRect(&scissor);
         }
         else

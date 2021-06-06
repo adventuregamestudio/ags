@@ -1319,7 +1319,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
         const OGLSpriteBatch &batch = _spriteBatches[i];
         if (!viewport.IsEmpty())
         {
-            Rect scissor = _do_render_to_texture ? viewport : _scaling.ScaleRange(viewport);
+            Rect scissor = _do_render_to_texture ?
+                viewport : glmex::linear_transform(viewport, _mRenderFrame);
             scissor = ConvertTopDownRect(scissor, surface_height);
             glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
         }

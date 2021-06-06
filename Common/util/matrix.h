@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_UTIL__MATRIX_H
 #define __AGS_CN_UTIL__MATRIX_H
 
+#include <algorithm>
 #include <glm/ext/matrix_transform.hpp>
+#include "util/geometry.h"
 
 namespace AGS
 {
@@ -67,6 +69,35 @@ namespace glmex
     {
         return inv_transform2d(glmex::identity(), x, y, sx, sy, anglez, pivotx, pivoty);
     }
+
+
+    // Linearly transform a rectangle using the given matrix;
+    // This is an optimized case where rotation is not expected.
+    inline Rect linear_transform(const Rect &r, const glm::mat4 &m)
+    {
+        glm::vec4 v1 = m * vec4((float)r.Left, (float)r.Top);
+        glm::vec4 v2 = m * vec4((float)r.Right, (float)r.Bottom);
+        // TODO: better rounding
+        return Rect((int)v1.x, (int)v1.y, (int)v2.x, (int)v2.y);
+    }
+
+    // Transform a rectangle using the given matrix;
+    // This is a full transform case which assumes rotation may be included.
+    inline Rect full_transform(const Rect &r, const glm::mat4 &m)
+    {
+        // TODO: search for the faster AABB transform algorithm
+        glm::vec4 p1 = m * glmex::vec4((float)r.Left, (float)r.Top);
+        glm::vec4 p2 = m * glmex::vec4((float)r.Right, (float)r.Top);
+        glm::vec4 p3 = m * glmex::vec4((float)r.Left, (float)r.Bottom);
+        glm::vec4 p4 = m * glmex::vec4((float)r.Right, (float)r.Bottom);
+        float xmin = std::min(p1.x, std::min(p2.x, std::min(p3.x, p4.x)));
+        float ymin = std::min(p1.y, std::min(p2.y, std::min(p3.y, p4.y)));
+        float xmax = std::max(p1.x, std::max(p2.x, std::max(p3.x, p4.x)));
+        float ymax = std::max(p1.y, std::max(p2.y, std::max(p3.y, p4.y)));
+        // TODO: better rounding
+        return Rect((int)xmin, (int)ymin, (int)xmax, (int)ymax);
+    }
+
 } // namespace glmex
 
 } // namespace Common

@@ -18,10 +18,10 @@
 #ifndef __AGS_EE_AC__TRANSLATION_H
 #define __AGS_EE_AC__TRANSLATION_H
 
-#include "util/string.h"
+#include "util/string_types.h"
 
 using AGS::Common::String;
-struct TreeMap;
+using AGS::Common::StringMap;
 
 void close_translation ();
 bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error);
@@ -30,6 +30,6 @@ String get_translation_name();
 // Returns fill path to the translation file, or empty string if default translation is used
 String get_translation_path();
 // Returns translation map for reading only
-const TreeMap* get_translation_tree();
+const StringMap &get_translation_tree();
 
 #endif // __AGS_EE_AC__TRANSLATION_H

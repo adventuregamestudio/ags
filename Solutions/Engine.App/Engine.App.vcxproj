@@ -358,7 +358,6 @@
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
-    <ClCompile Include="..\..\Engine\ac\tree_map.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
@@ -629,7 +628,6 @@
     <ClInclude Include="..\..\Engine\ac\timer.h" />
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\ac\translation.h" />
-    <ClInclude Include="..\..\Engine\ac\tree_map.h" />
     <ClInclude Include="..\..\Engine\ac\viewframe.h" />
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
     <ClInclude Include="..\..\Engine\ac\walkbehind.h" />

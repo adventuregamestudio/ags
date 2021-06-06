@@ -21,7 +21,6 @@
 #include "ac/global_game.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
-#include "ac/tree_map.h"
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
 #include "util/misc.h"
@@ -36,11 +35,11 @@ extern GameState play;
 
 String trans_name;
 String trans_filename;
-std::unique_ptr<TreeMap> transtree;
+StringMap transtree;
 
 
 void close_translation () {
-    transtree.reset();
+    transtree.clear();
     trans_name = "";
     trans_filename = "";
 }
@@ -68,7 +67,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         return false;
     }
 
-    transtree.reset(new TreeMap());
+    transtree.clear();
 
     String parse_error;
     bool result = parse_translation(language_file, parse_error);
@@ -108,9 +107,9 @@ String get_translation_path()
     return trans_filename;
 }
 
-const TreeMap* get_translation_tree()
+const StringMap& get_translation_tree()
 {
-    return transtree.get();
+    return transtree;
 }
 
 bool parse_translation(Stream *language_file, String &parse_error)
@@ -134,7 +133,7 @@ bool parse_translation(Stream *language_file, String &parse_error)
                     parse_error = "Translation file is corrupt";
                     return false;
                 }
-                transtree->addText (original, translation);
+                transtree.insert(std::make_pair(String(original), String(translation)));
             }
 
         }
@@ -177,7 +176,7 @@ bool parse_translation(Stream *language_file, String &parse_error)
         }
     }
 
-    if (transtree->text == nullptr)
+    if (transtree.size() == 0)
     {
         parse_error = "The translation file was empty.";
         return false;

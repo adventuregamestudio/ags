@@ -82,6 +82,8 @@ target_sources(common
     game/room_version.h
     game/roomstruct.cpp
     game/roomstruct.h
+    game/tra_file.cpp
+    game/tra_file.h
     gfx/allegrobitmap.cpp
     gfx/allegrobitmap.h
     gfx/bitmap.cpp

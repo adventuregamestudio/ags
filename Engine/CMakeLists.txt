@@ -286,8 +286,6 @@ target_sources(engine
     ac/topbarsettings.h
     ac/translation.cpp
     ac/translation.h
-    ac/tree_map.cpp
-    ac/tree_map.h
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp

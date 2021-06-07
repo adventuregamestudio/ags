@@ -2081,8 +2081,18 @@ namespace AGS.Editor.Components
         /// </remarks>
         private void ConvertAllRoomsFromCrmToOpenFormat()
         {
-            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX)
                 return; // Upgrade already completed
+
+            // Room directory might already exist for whatever reason so rename it to a backup location
+            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY)) 
+            {
+                string backupDir = Enumerable
+                    .Range(0, int.MaxValue)
+                    .Select(i => $"{UnloadedRoom.ROOM_DIRECTORY}Backup-{i}")
+                    .First(dir => !Directory.Exists(dir));
+                Directory.Move(UnloadedRoom.ROOM_DIRECTORY, backupDir);
+            }
 
             IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
             object progressLock = new object();

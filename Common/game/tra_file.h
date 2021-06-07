@@ -64,7 +64,7 @@ struct Translation
     // Localization parameters
     int NormalFont = -1; // replacement for normal font, or -1 for default
     int SpeechFont = -1; // replacement for speech font, or -1 for default
-    int RightToLeft = -1; // r2l text mode (0, 1), or -1 for default
+    int RightToLeft = -1; // r2l text mode (1, 2), or -1 for default
 };
 
 
@@ -77,6 +77,13 @@ typedef std::function<HTraFileError(Stream *in, TraFileBlock block_id,
     soff_t block_len, bool &read_next)> PfnReadTraBlock;
 // Parses tra file, passing each found block into callback; does not read any actual data itself
 HTraFileError ReadTraData(PfnReadTraBlock reader, Stream *in);
+
+// Writes all translation data to the stream
+HTraFileError WriteTraData(const Translation &tra, Stream *out);
+// Type of function that writes single room block.
+typedef std::function<HTraFileError(const Translation &tra, Stream *out)> PfnWriteTraBlock;
+// Writes room block with a old-style numeric id
+void WriteTraBlock(const Translation &tra, TraFileBlock block_id, PfnWriteTraBlock writer, Stream *out);
 
 } // namespace Common
 } // namespace AGS

@@ -12,14 +12,19 @@
 //
 //=============================================================================
 #include "game/tra_file.h"
+#include <string.h>
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
 #include "util/string_compat.h"
+#include "util/string_utils.h"
 
 namespace AGS
 {
 namespace Common
 {
+
+const char *TRASignature = "AGSTranslation";
+
 
 String GetTraFileErrorText(TraFileErrorType err)
 {
@@ -96,10 +101,9 @@ HTraFileError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, sof
 HTraFileError ReadTraData(PfnReadTraBlock reader, Stream *in)
 {
     // Test the file signature
-    const char *tra_sig = "AGSTranslation";
     char sigbuf[16] = { 0 };
     in->Read(sigbuf, 15);
-    if (ags_stricmp(tra_sig, sigbuf) != 0)
+    if (ags_stricmp(TRASignature, sigbuf) != 0)
         return new TraFileError(kTraFileErr_SignatureFailed);
 
     while (!in->EOS())
@@ -173,6 +177,95 @@ HTraFileError ReadTraData(Translation &tra, Stream *in)
         soff_t block_len, bool &read_next)
     { return ReadTraBlock(tra, in, block_id, block_len); };
     return ReadTraData(reader, in);
+}
+
+// TODO: perhaps merge with encrypt/decrypt utilities
+static const char *EncryptText(std::vector<char> &en_buf, const String &s)
+{
+    if (en_buf.size() < s.GetLength() + 1)
+        en_buf.resize(s.GetLength() + 1);
+    strncpy(&en_buf.front(), s.GetCStr(), s.GetLength() + 1);
+    encrypt_text(&en_buf.front());
+    return &en_buf.front();
+}
+
+// TODO: perhaps merge with encrypt/decrypt utilities
+static const char *EncryptEmptyString(std::vector<char> &en_buf)
+{
+    en_buf[0] = 0;
+    encrypt_text(&en_buf.front());
+    return &en_buf.front();
+}
+
+HTraFileError WriteGameID(const Translation &tra, Stream *out)
+{
+    std::vector<char> en_buf;
+    out->WriteInt32(tra.GameUid);
+    StrUtil::WriteString(EncryptText(en_buf, tra.GameName), tra.GameName.GetLength() + 1, out);
+    return HTraFileError::None();
+}
+
+HTraFileError WriteDict(const Translation &tra, Stream *out)
+{
+    std::vector<char> en_buf;
+    for (const auto &kv : tra.Dict)
+    {
+        const String &src = kv.first;
+        const String &dst = kv.second;
+        if (!dst.IsNullOrSpace())
+        {
+            String unsrc = StrUtil::Unescape(src);
+            String undst = StrUtil::Unescape(dst);
+            StrUtil::WriteString(EncryptText(en_buf, unsrc), unsrc.GetLength() + 1, out);
+            StrUtil::WriteString(EncryptText(en_buf, undst), undst.GetLength() + 1, out);
+        }
+    }
+    // Write a pair of empty key/values
+    StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
+    StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
+    return HTraFileError::None();
+}
+
+HTraFileError WriteTextOpts(const Translation &tra, Stream *out)
+{
+    out->WriteInt32(tra.NormalFont);
+    out->WriteInt32(tra.SpeechFont);
+    out->WriteInt32(tra.RightToLeft);
+    return HTraFileError::None();
+}
+
+HTraFileError WriteTraData(const Translation &tra, Stream *out)
+{
+    // Write header
+    out->Write(TRASignature, strlen(TRASignature) + 1);
+
+    // Write all blocks
+    WriteTraBlock(tra, kTraFblk_GameID, WriteGameID, out);
+    WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out);
+    WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out);
+
+    // Write ending
+    out->WriteInt32(kTraFile_EOF);
+    return HTraFileError::None();
+}
+
+void WriteTraBlock(const Translation &tra, TraFileBlock block_id, PfnWriteTraBlock writer, Stream *out)
+{
+    // Write block's header
+    out->WriteInt32(block_id);
+    soff_t sz_at = out->GetPosition();
+    out->WriteInt32(0); // block size placeholder
+    // Call writer to save actual block contents
+    writer(tra, out);
+
+    // Now calculate the block's size...
+    soff_t end_at = out->GetPosition();
+    soff_t block_size = (end_at - sz_at) - sizeof(int32_t);
+    // ...return back and write block's size in the placeholder
+    out->Seek(sz_at, Common::kSeekBegin);
+    out->WriteInt32((int)block_size);
+    // ...and get back to the end of the file
+    out->Seek(0, Common::kSeekEnd);
 }
 
 } // namespace Common

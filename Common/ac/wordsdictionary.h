@@ -39,7 +39,7 @@ struct WordsDictionary {
 
 extern const char *passwencstring;
 
-extern void decrypt_text(char*toenc);
+extern void decrypt_text(char *toenc, size_t buf_sz);
 extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
 extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
 

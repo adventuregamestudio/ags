@@ -65,8 +65,8 @@ HTraFileError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, sof
             // Read lines until we find zero-length key & value
             while (true)
             {
-                read_string_decrypt(in, original, 1024);
-                read_string_decrypt(in, translation, 1024);
+                read_string_decrypt(in, original, sizeof(original));
+                read_string_decrypt(in, translation, sizeof(translation));
                 if (!original[0] && !translation[0])
                     break;
                 tra.Dict.insert(std::make_pair(String(original), String(translation)));
@@ -77,7 +77,7 @@ HTraFileError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, sof
         {
             char gamename[256];
             tra.GameUid = in->ReadInt32();
-            read_string_decrypt(in, gamename, 256);
+            read_string_decrypt(in, gamename, sizeof(gamename));
             tra.GameName = gamename;
         }
         break;

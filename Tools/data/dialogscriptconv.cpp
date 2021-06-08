@@ -389,7 +389,7 @@ String DialogScriptConverter::ProcessOptionOnOff(const String &line, const char 
         return "";
     }
 
-    const char *option_str = mr[3].str().c_str();
+    String option_str = mr[3].str().c_str();
     int option_num;
     if (StrUtil::StringToInt(option_str, option_num, 0) == StrUtil::kNoError)
     {

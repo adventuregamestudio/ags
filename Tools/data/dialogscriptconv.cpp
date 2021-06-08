@@ -343,7 +343,7 @@ String DialogScriptConverter::ProcessCmdGotoDialog(const String &line)
         }
     }
 
-    CompileError(String::FromFormat("Dialog not found: %s", dialog_name));
+    CompileError(String::FromFormat("Dialog not found: %s", dialog_name.GetCStr()));
     return "";
 }
 

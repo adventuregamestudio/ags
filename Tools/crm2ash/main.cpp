@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "data/room_utils.h"
 #include "data/scriptgen.h"
+#include "util/data_ext.h"
 #include "util/file.h"
 #include "util/string_compat.h"
 
@@ -48,10 +49,11 @@ int main(int argc, char *argv[])
     }
     
     RoomScNames data;
-    auto read_cb = [&data](Stream *in, RoomFileBlock block, const String &ext_id,
+    RoomFileVersion data_ver = datasrc.DataVersion;
+    auto read_cb = [&data, data_ver](Stream *in, RoomFileBlock block, const String &ext_id,
         soff_t block_len, RoomFileVersion data_ver, bool &read_next)
-        { return ReadRoomScNames(data, in, block, ext_id, block_len, data_ver); };
-    err = ReadRoomData(read_cb, datasrc.InputStream.get(), datasrc.DataVersion);
+        { return ReadRoomScNames(data, in, (RoomFileBlock)block, ext_id, block_len, data_ver); };
+    err = ReadRoomData(read_cb, datasrc.InputStream.get(), data_ver);
     if (!err)
     {
         printf("Error: failed to read room file:\n");

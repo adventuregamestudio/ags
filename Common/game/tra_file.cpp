@@ -15,6 +15,7 @@
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
+#include "util/data_ext.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -59,7 +60,17 @@ String GetTraBlockName(TraFileBlock id)
     return "unknown";
 }
 
-HTraFileError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, soff_t block_len)
+HError OpenTraFile(Stream *in)
+{
+    // Test the file signature
+    char sigbuf[16] = { 0 };
+    in->Read(sigbuf, 15);
+    if (ags_stricmp(TRASignature, sigbuf) != 0)
+        return new TraFileError(kTraFileErr_SignatureFailed);
+    return HError::None();
+}
+
+HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, soff_t block_len)
 {
     switch (block)
     {
@@ -95,70 +106,30 @@ HTraFileError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, sof
         return new TraFileError(kTraFileErr_UnknownBlockType,
             String::FromFormat("Type: %d, known range: %d - %d.", block, kTraFblk_Dict, kTraFblk_TextOpts));
     }
-    return HTraFileError::None();
+    return HError::None();
 }
 
-HTraFileError ReadTraData(PfnReadTraBlock reader, Stream *in)
+HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
 {
-    // Test the file signature
-    char sigbuf[16] = { 0 };
-    in->Read(sigbuf, 15);
-    if (ags_stricmp(TRASignature, sigbuf) != 0)
-        return new TraFileError(kTraFileErr_SignatureFailed);
+    HError err = OpenTraFile(in);
+    if (!err)
+        return err;
 
-    while (!in->EOS())
-    {
-        TraFileBlock block_id = (TraFileBlock)in->ReadInt32();
-        if (block_id == kTraFile_EOF)
-            break; // end of list
-
-        soff_t block_len = in->ReadInt32();
-        soff_t block_end = in->GetPosition() + block_len;
-        String ext_id = GetTraBlockName(block_id);
-
-        bool read_next = true;
-        HTraFileError err = reader(in, block_id, block_len, read_next);
-        if (!err)
-            return err;
-
-        soff_t cur_pos = in->GetPosition();
-        if (cur_pos > block_end)
-        {
-            return new TraFileError(kTraFileErr_BlockDataOverlapping,
-                String::FromFormat("Block: %s, expected to end at offset: %lld, finished reading at %lld.",
-                    ext_id.GetCStr(), block_end, cur_pos));
-        }
-        else if (cur_pos < block_end)
-        {
-            Debug::Printf(kDbgMsg_Warn,
-                "WARNING: translation data blocks nonsequential, block type %s expected to end at %lld, finished reading at %lld",
-                ext_id.GetCStr(), block_end, cur_pos);
-            in->Seek(block_end, Common::kSeekBegin);
-        }
-
-        if (!read_next)
-            break;
-    }
-    return HTraFileError::None();
-}
-
-HTraFileError TestTraGameID(int game_uid, const String &game_name, Stream *in)
-{
     // This reader would only process kTraFblk_GameID and exit as soon as one is found
     Translation tra;
-    auto reader = [&tra](Stream *in, TraFileBlock block_id,
+    auto reader = [&tra](Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next)
     {
         if (block_id == kTraFblk_GameID)
         {
             read_next = false;
-            return ReadTraBlock(tra, in, block_id, block_len);
+            return ReadTraBlock(tra, in, (TraFileBlock)block_id, block_len);
         }
         in->Seek(block_len); // skip block
-        return HTraFileError::None();
+        return HError::None();
     };
 
-    HTraFileError err = ReadTraData(reader, in);
+    err = ReadExtData(reader, kDataExt_NumID32 | kDataExt_File32, in);
     if (!err)
         return err;
     // Test the identifiers, if they are not present then skip the test
@@ -166,17 +137,21 @@ HTraFileError TestTraGameID(int game_uid, const String &game_name, Stream *in)
         !tra.GameName.IsEmpty() && (game_name != tra.GameName))
         return new TraFileError(kTraFileErr_GameIDMismatch,
             String::FromFormat("The translation is designed for '%s'", tra.GameName.GetCStr()));
-    return HTraFileError::None();
+    return HError::None();
 }
 
-HTraFileError ReadTraData(Translation &tra, Stream *in)
+HError ReadTraData(Translation &tra, Stream *in)
 {
+    HError err = OpenTraFile(in);
+    if (!err)
+        return err;
+
     // This reader will process all blocks inside ReadTraBlock() function,
     // and read compatible data into the given Translation object
-    auto reader = [&tra](Stream *in, TraFileBlock block_id,
+    auto reader = [&tra](Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next)
-    { return ReadTraBlock(tra, in, block_id, block_len); };
-    return ReadTraData(reader, in);
+    { return ReadTraBlock(tra, in, (TraFileBlock)block_id, block_len); };
+    return ReadExtData(reader, kDataExt_NumID32 | kDataExt_File32, in);
 }
 
 // TODO: perhaps merge with encrypt/decrypt utilities
@@ -197,15 +172,14 @@ static const char *EncryptEmptyString(std::vector<char> &en_buf)
     return &en_buf.front();
 }
 
-HTraFileError WriteGameID(const Translation &tra, Stream *out)
+void WriteGameID(const Translation &tra, Stream *out)
 {
     std::vector<char> en_buf;
     out->WriteInt32(tra.GameUid);
     StrUtil::WriteString(EncryptText(en_buf, tra.GameName), tra.GameName.GetLength() + 1, out);
-    return HTraFileError::None();
 }
 
-HTraFileError WriteDict(const Translation &tra, Stream *out)
+void WriteDict(const Translation &tra, Stream *out)
 {
     std::vector<char> en_buf;
     for (const auto &kv : tra.Dict)
@@ -223,18 +197,23 @@ HTraFileError WriteDict(const Translation &tra, Stream *out)
     // Write a pair of empty key/values
     StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
     StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
-    return HTraFileError::None();
 }
 
-HTraFileError WriteTextOpts(const Translation &tra, Stream *out)
+void WriteTextOpts(const Translation &tra, Stream *out)
 {
     out->WriteInt32(tra.NormalFont);
     out->WriteInt32(tra.SpeechFont);
     out->WriteInt32(tra.RightToLeft);
-    return HTraFileError::None();
 }
 
-HTraFileError WriteTraData(const Translation &tra, Stream *out)
+inline void WriteTraBlock(const Translation &tra, TraFileBlock block,
+    void(*writer)(const Translation &tra, Stream *out), Stream *out)
+{
+    WriteExtBlock(block, [&tra, writer](Stream *out){ writer(tra, out); },
+        kDataExt_NumID32 | kDataExt_File32, out);
+}
+
+void WriteTraData(const Translation &tra, Stream *out)
 {
     // Write header
     out->Write(TRASignature, strlen(TRASignature) + 1);
@@ -246,26 +225,6 @@ HTraFileError WriteTraData(const Translation &tra, Stream *out)
 
     // Write ending
     out->WriteInt32(kTraFile_EOF);
-    return HTraFileError::None();
-}
-
-void WriteTraBlock(const Translation &tra, TraFileBlock block_id, PfnWriteTraBlock writer, Stream *out)
-{
-    // Write block's header
-    out->WriteInt32(block_id);
-    soff_t sz_at = out->GetPosition();
-    out->WriteInt32(0); // block size placeholder
-    // Call writer to save actual block contents
-    writer(tra, out);
-
-    // Now calculate the block's size...
-    soff_t end_at = out->GetPosition();
-    soff_t block_size = (end_at - sz_at) - sizeof(int32_t);
-    // ...return back and write block's size in the placeholder
-    out->Seek(sz_at, Common::kSeekBegin);
-    out->WriteInt32((int)block_size);
-    // ...and get back to the end of the file
-    out->Seek(0, Common::kSeekEnd);
 }
 
 } // namespace Common

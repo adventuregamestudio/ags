@@ -37,10 +37,20 @@ target_sources(compiler
 
 target_link_libraries(compiler PUBLIC AGS::Common)
 
-get_target_property(COMMON_SOURCES compiler SOURCES)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMMON_SOURCES})
+get_target_property(COMPILER_SOURCES compiler SOURCES)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMPILER_SOURCES})
 
 add_library(AGS::Compiler ALIAS compiler)
+
+add_executable(agscc main.cpp compiler.cpp compiler.h)
+set_target_properties(agscc PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        )
+
+target_link_libraries(agscc PUBLIC AGS::Compiler)
 
 if(AGS_TESTS)
     add_executable(

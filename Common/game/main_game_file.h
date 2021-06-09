@@ -63,9 +63,8 @@ enum MainGameFileErrorType
     kMGFErr_GameEntityFailed,
     kMGFErr_PluginDataFmtNotSupported,
     kMGFErr_PluginDataSizeTooLarge,
-    kMGFErr_ExtUnexpectedEOF,
+    kMGFErr_ExtListFailed,
     kMGFErr_ExtUnknown,
-    kMGFErr_ExtBlockDataOverlapping
 };
 
 String GetMainGameFileErrorText(MainGameFileErrorType err);

@@ -87,7 +87,7 @@ public:
     bool IsNullOrSpace() const;
 
     // Those getters are for tests only, hence if AGS_PLATFORM_DEBUG
-#if AGS_PLATFORM_DEBUG
+#if AGS_PLATFORM_TEST
     inline const char *GetBuffer() const
     {
         return _buf;

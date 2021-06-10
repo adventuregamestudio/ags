@@ -24,7 +24,7 @@ namespace DataUtil
 
 using AGS::Common::Stream;
 using AGS::Common::String;
-using AGS::Common::HRoomFileError;
+using AGS::Common::HError;
 using AGS::Common::RoomFileBlock;
 
 // Script names found in the room data
@@ -36,12 +36,12 @@ struct RoomScNames
 
 // Following functions parse the binary room file and extract script names
 // Reads only script names from the main room block, ignores other data
-HRoomFileError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len);
+HError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len);
 // Reads room object script names block
-HRoomFileError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver);
+HError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver);
 // A room reading callback of type PfnReadRoomBlock, meant to be passed into ReadRoomData();
 // reads only blocks necessary for retrieving script names.
-HRoomFileError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver);
 
 } // namespace DataUtil

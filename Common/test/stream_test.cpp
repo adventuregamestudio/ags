@@ -1,24 +1,8 @@
-//=============================================================================
-//
-// Adventure Game Studio (AGS)
-//
-// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
-// The full list of copyright holders can be found in the Copyright.txt
-// file, which is part of this source code distribution.
-//
-// The AGS source code is provided under the Artistic License 2.0.
-// A copy of this license can be found in the file License.txt and at
-// http://www.opensource.org/licenses/artistic-license-2.0.php
-//
-//=============================================================================
-
-#include "core/platform.h"
-#ifdef AGS_RUN_TESTS
-
-#include <string.h>
-#include "debug/assert.h"
+#include <memory>
+#include <vector>
+#include "gtest/gtest.h"
 #include "util/alignedstream.h"
-#include "util/file.h"
+#include "util/memorystream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -50,18 +34,53 @@ struct TTrickyAlignedData
     char    final;
 };
 
-void Test_File()
-{
-    //-----------------------------------------------------
-    // Operations
-    Stream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+TEST(Stream, Common) {
+    // Storage buffer
+    std::vector<char> membuf;
+
+    //-------------------------------------------------------------------------
+    // Write data
+    std::unique_ptr<Stream> out(
+        new MemoryStream(membuf, kStream_Write));
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
-    StrUtil::WriteCStr("test.tmp", out);
+    StrUtil::WriteCStr("test.tmp", out.get());
     String very_long_string;
     very_long_string.FillString('a', 10000);
-    very_long_string.Write(out);
+    very_long_string.Write(out.get());
+
+    out.reset();
+
+    //-------------------------------------------------------------------------
+    // Read data back
+    std::unique_ptr<Stream> in(
+        new MemoryStream(membuf));
+
+    int16_t int16val = in->ReadInt16();
+    int64_t int64val = in->ReadInt64();
+    String str1 = String::FromStream(in.get());
+    String str2 = String::FromStream(in.get());
+
+    in.reset();
+
+    //-----------------------------------------------------
+    // Assertions
+
+    ASSERT_TRUE(int16val == 10);
+    ASSERT_TRUE(int64val == -20202);
+    ASSERT_TRUE(strcmp(str1.GetCStr(), "test.tmp") == 0);
+    ASSERT_TRUE(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
+}
+
+TEST(Stream, AlignedStream) {
+    // Storage buffer
+    std::vector<char> membuf;
+
+    //-------------------------------------------------------------------------
+    // Write data
+    std::unique_ptr<Stream> out(
+        new MemoryStream(membuf, kStream_Write));
 
     TTrickyAlignedData tricky_data_out;
     memset(&tricky_data_out, 0xAA, sizeof(tricky_data_out));
@@ -98,7 +117,7 @@ void Test_File()
         tricky_data_out.final = 38;
 #if defined (TEST_BIGENDIAN)
         TTrickyAlignedData bigend_data = tricky_data_out;
-        bigend_data.b =BBOp::SwapBytesInt32(bigend_data.b);
+        bigend_data.b = BBOp::SwapBytesInt32(bigend_data.b);
         bigend_data.c = BBOp::SwapBytesInt32(bigend_data.c);
         for (int i = 0; i < 3; ++i)
         {
@@ -133,21 +152,17 @@ void Test_File()
 
     out->WriteInt32(20);
 
-    delete out;
+    out.reset();
 
     //-------------------------------------------------------------------------
-
-    Stream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
-
-    int16_t int16val    = in->ReadInt16();
-    int64_t int64val    = in->ReadInt64();
-    String str1         = String::FromStream(in);
-    String str2         = String::FromStream(in);
+    // Read data back
+    std::unique_ptr<Stream> in(
+        new MemoryStream(membuf));
 
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_in));
     {
-        AlignedStream as(in, AGS::Common::kAligned_Read);
+        AlignedStream as(in.get(), AGS::Common::kAligned_Read);
         tricky_data_in.a = as.ReadInt8();
         tricky_data_in.b = as.ReadInt32();
         tricky_data_in.c = as.ReadInt32();
@@ -173,22 +188,13 @@ void Test_File()
         tricky_data_in.final = as.ReadInt8();
     }
 
-    int32_t int32val    = in->ReadInt32();
+    int32_t int32val = in->ReadInt32();
 
-    delete in;
-
-    File::DeleteFile("test.tmp");
+    in.reset();
 
     //-----------------------------------------------------
     // Assertions
-    assert(int16val == 10);
-    assert(int64val == -20202);
-    assert(strcmp(str1.GetCStr(), "test.tmp") == 0);
-    assert(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
-    assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
-    assert(int32val == 20);
-
-    assert(!File::TestReadFile("test.tmp"));
+    
+    ASSERT_TRUE(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
+    ASSERT_TRUE(int32val == 20);
 }
-
-#endif // AGS_RUN_TESTS

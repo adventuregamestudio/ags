@@ -19,7 +19,6 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/translation.h"
-#include "ac/tree_map.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -46,19 +45,16 @@ const char *get_translation (const char *text) {
     }
 #endif
 
-    const auto *transtree = get_translation_tree();
-    if (transtree != nullptr) {
-        // translate the text using the translation file
-        const char * transl = transtree->findValue (text);
-        if (transl != nullptr)
-            return transl;
-    }
+    const auto &transtree = get_translation_tree();
+    const auto it = transtree.find(text);
+    if (it != transtree.end())
+        return it->second.GetCStr();
     // return the original text
     return text;
 }
 
 int IsTranslationAvailable () {
-    if (get_translation_tree() != nullptr)
+    if (get_translation_tree().size() > 0)
         return 1;
     return 0;
 }

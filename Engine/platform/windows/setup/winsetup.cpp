@@ -1217,8 +1217,8 @@ void WinSetupDialog::UpdateMouseSpeedText()
 //=============================================================================
 void SetWinIcon()
 {
-    SetClassLong((HWND)sys_win_get_window(), GCL_HICON,
-        (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
+    SetClassLongPtr((HWND)sys_win_get_window(), GCLP_HICON,
+        (LONG_PTR) LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
 }
 
 SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,

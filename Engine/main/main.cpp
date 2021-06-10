@@ -48,9 +48,6 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/win_ex_handling.h"
 #endif
-#if AGS_PLATFORM_DEBUG
-#include "test/test_all.h"
-#endif
 
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER
@@ -431,10 +428,6 @@ String GetPathFromCmdArg(int arg_index)
 }
 
 int ags_entry_point(int argc, char *argv[]) { 
-
-#ifdef AGS_RUN_TESTS
-    Test_DoAllTests();
-#endif
     main_init(argc, argv);
 
 #if AGS_PLATFORM_OS_WINDOWS

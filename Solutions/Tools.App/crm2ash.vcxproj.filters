@@ -58,6 +58,9 @@
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\data_ext.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\room_utils.h">

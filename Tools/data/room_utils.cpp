@@ -25,7 +25,7 @@ namespace AGS
 namespace DataUtil
 {
 
-HRoomFileError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len)
+HError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len)
 {
     soff_t start_pos = in->GetPosition();
     if (data_ver >= kRoomVersion_208)
@@ -67,10 +67,10 @@ HRoomFileError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion 
     }
     // Skip the rest
     in->Seek(start_pos + block_len, kSeekBegin);
-    return HRoomFileError::None();
+    return HError::None();
 }
 
-HRoomFileError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver)
+HError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver)
 {
     size_t obj_count = in->ReadByte();
     data.ObjectNames.resize(obj_count);
@@ -81,10 +81,10 @@ HRoomFileError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersio
         else
             data.ObjectNames[i].ReadCount(in, MAX_SCRIPT_NAME_LEN);
     }
-    return HRoomFileError::None();
+    return HError::None();
 }
 
-HRoomFileError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
     switch (block)
@@ -95,7 +95,7 @@ HRoomFileError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock bloc
         return ReadObjScNamesBlock(data, in, data_ver);
     default:
         in->Seek(block_len); // skip block
-        return HRoomFileError::None();
+        return HError::None();
     }
 }
 

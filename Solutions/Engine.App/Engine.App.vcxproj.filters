@@ -59,9 +59,6 @@
     <Filter Include="Source Files\font">
       <UniqueIdentifier>{d80f48e0-98d9-4b7e-8e6d-55948449f1b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\test">
-      <UniqueIdentifier>{4b202579-8161-451c-bea0-733409be96db}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{c0ec3579-115c-40be-8a7b-d59abd533b3b}</UniqueIdentifier>
     </Filter>
@@ -438,9 +435,6 @@
     <ClCompile Include="..\..\Engine\ac\translation.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\tree_map.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -704,33 +698,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\font\fonts_engine.cpp">
       <Filter>Source Files\font</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_all.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_file.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_gfx.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_inifile.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_math.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_memory.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_sprintf.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_string.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\test\test_version.cpp">
-      <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\game\game_init.cpp">
       <Filter>Source Files\game</Filter>
@@ -1130,9 +1097,6 @@
     <ClInclude Include="..\..\Engine\ac\translation.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\tree_map.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\viewframe.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -1500,9 +1464,6 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\util\mutex_windows.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\scaling.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\util\thread.h">

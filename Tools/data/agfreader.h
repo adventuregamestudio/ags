@@ -339,6 +339,16 @@ public:
     int    ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
 
+    DocElem GetSettings(DocElem elem);
+};
+
+class GameSettings : public EntityParser
+{
+public:
+    String ReadType(DocElem elem) override { return "GameSettings"; }
+    int    ReadID(DocElem elem) override { return -1; }
+    String ReadScriptName(DocElem elem) override { return ""; }
+
     String ReadSayFunction(DocElem elem) { return ReadString(elem, "DialogScriptSayFunction"); }
     String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
 };

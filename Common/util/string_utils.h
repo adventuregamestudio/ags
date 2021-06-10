@@ -53,6 +53,8 @@ namespace StrUtil
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
 
+    // A simple unescape string implementation, unescapes '\\x' into '\x'.
+    String          Unescape(const String &s);
     // Converts a classic wildcard search pattern into C++11 compatible regex pattern
     String          WildcardToRegex(const String &wildcard);
 
@@ -65,6 +67,7 @@ namespace StrUtil
     void            SkipString(Stream *in);
     void            WriteString(const String &s, Stream *out);
     void            WriteString(const char *cstr, Stream *out);
+    void            WriteString(const char *cstr, size_t len, Stream *out);
 
     // Serialize and unserialize string as c-string (null-terminated sequence)
     void            ReadCStr(char *buf, Stream *in, size_t buf_limit);

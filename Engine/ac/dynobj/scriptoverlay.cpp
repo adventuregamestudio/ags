@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/common.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
+#include "debug/debug_log.h"
 
 int ScriptOverlay::Dispose(const char *address, bool force) 
 {
@@ -68,7 +68,8 @@ void ScriptOverlay::Remove()
     int overlayIndex = find_overlay_of_type(overlayId);
     if (overlayIndex < 0)
     {
-        quit("ScriptOverlay::Remove: overlay is not there!");
+        debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
+        return;
     }
     remove_screen_overlay_index(overlayIndex);
     overlayId = -1;

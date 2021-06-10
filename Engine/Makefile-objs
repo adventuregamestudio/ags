@@ -17,8 +17,7 @@ platform/base \
 plugin \
 resource \
 script \
-setup \
-test
+setup
 
 ifdef TARGET_ARCH_ABI
 # For Android: make the path relative to the build directory to search for

@@ -215,6 +215,11 @@ void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
     };
 }
 
+DocElem Game::GetSettings(DocElem elem)
+{
+    return elem->FirstChildElement("Settings");
+}
+
 
 //-----------------------------------------------------------------------------
 // Helper functions
@@ -269,8 +274,10 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
 void ReadGameSettings(DataUtil::GameSettings &opt, DocElem elem)
 {
     AGF::Game p_game;
-    opt.SayFunction = p_game.ReadSayFunction(elem);
-    opt.NarrateFunction = p_game.ReadNarrateFunction(elem);
+    AGF::GameSettings p_set;
+    DocElem set_elem = p_game.GetSettings(elem);
+    opt.SayFunction = p_set.ReadSayFunction(set_elem);
+    opt.NarrateFunction = p_set.ReadNarrateFunction(set_elem);
 }
 
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)

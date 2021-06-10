@@ -11,24 +11,26 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#ifndef __AGS_TOOL_DATA__CRMUTIL_H
+#define __AGS_TOOL_DATA__CRMUTIL_H
 
-#include "core/platform.h"
-#ifdef AGS_RUN_TESTS
+#include "game/tra_file.h"
 
-void Test_DoAllTests();
-// Math tests
-void Test_Math();
-// File tests
-void Test_File();
-void Test_IniFile();
-// Graphics tests
-void Test_Gfx();
-// Memory / bit-byte operations
-void Test_Memory();
-// String tests
-void Test_ScriptSprintf();
-void Test_String();
-void Test_Path();
-void Test_Version();
+namespace AGS
+{
+namespace DataUtil
+{
 
-#endif // AGS_RUN_TESTS
+using AGS::Common::HError;
+using AGS::Common::Stream;
+using AGS::Common::String;
+using AGS::Common::Translation;
+
+// Parses a TRS format and fills Translation data
+HError ReadTRS(Translation &tra, Stream *in);
+HError WriteTRA(const Translation &tra, Stream *out);
+
+} // namespace DataUtil
+} // namespace AGS
+
+#endif // __AGS_TOOL_DATA__CRMUTIL_H

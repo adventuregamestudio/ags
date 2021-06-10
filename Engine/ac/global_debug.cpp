@@ -27,7 +27,6 @@
 #include "ac/properties.h"
 #include "ac/sys_events.h"
 #include "ac/translation.h"
-#include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
@@ -75,7 +74,7 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.want_speech >= 1)
         runtimeInfo.Append("[SPEECH.VOX enabled");
-    if (get_translation_tree() != nullptr) {
+    if (get_translation_tree().size() > 0) {
         runtimeInfo.Append("[Using translation ");
         runtimeInfo.Append(get_translation_name());
     }

@@ -354,7 +354,7 @@ HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ve
 }
 
 // Early development version of "ags4"
-HRoomFileError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     // New room object properties
     for (size_t i = 0; i < room->ObjectCount; ++i)
@@ -365,7 +365,7 @@ HRoomFileError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver
         // Reserved for transform options (see list in savegame format)
         in->Seek(sizeof(int32_t) * 11);
     }
-    return HRoomFileError::None();
+    return HError::None();
 }
 
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,

@@ -505,14 +505,14 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_DIALOGGAP] = game.Settings.DialogOptionsGap;
             options[NativeConstants.GameOptions.OPT_DIALOGIFACE] = game.Settings.DialogOptionsGUI;
             options[NativeConstants.GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_STRICTSTRINGS] = 1; // always enable (disables old str API)
+            options[NativeConstants.GameOptions.OPT_STRICTSCRIPTING] = 1; // always enable (disables lots of old API)
             options[NativeConstants.GameOptions.OPT_HIRES_FONTS] = 0; // always ignore this setting
             options[NativeConstants.GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_FIXEDINVCURSOR] = (game.Settings.InventoryCursors ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
                 game.Settings.GlobalSpeechAnimationDelay : (-game.Settings.GlobalSpeechAnimationDelay - 1));
-            options[NativeConstants.GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_LETTERBOX] = 0; // always disable
             options[NativeConstants.GameOptions.OPT_MOUSEWHEEL] = 1; // always enable
             options[NativeConstants.GameOptions.OPT_DIALOGNUMBERED] = (int)game.Settings.NumberDialogOptions;
             options[NativeConstants.GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
@@ -530,12 +530,12 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
             options[NativeConstants.GameOptions.OPT_SAFEFILEPATHS] = 1; // always use safe file paths in new games
-            options[NativeConstants.GameOptions.OPT_DIALOGOPTIONSAPI] = (game.Settings.UseOldCustomDialogOptionsAPI ? -1 : 1);
+            options[NativeConstants.GameOptions.OPT_DIALOGOPTIONSAPI] = 1; // always use new one
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersionReal;
             options[NativeConstants.GameOptions.OPT_SCRIPTCOMPATLEV] = (int)game.Settings.ScriptCompatLevelReal;
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
             options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = 0; // always disable
-            options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = (game.Settings.ScaleMovementSpeedWithMaskResolution ? 0 : 1);
+            options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = 0; // always disable
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {

@@ -4189,7 +4189,7 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
         return kERR_None;
     }
 
-    ConvertAXStringToStringObject(rhsvartype, lhsvartype);
+    ConvertAXStringToStringObject(lhsvartype, rhsvartype);
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype))
     {
         Error(

@@ -514,7 +514,7 @@ private:
     // 'current_vartype' must be the vartype of AX. If it is 'string' and
     // wanted_vartype is 'String', then AX will be converted to 'String'.
     // then convert AX into a String object and set its type accordingly
-    void ConvertAXStringToStringObject(Vartype current_vartype, Vartype &wanted_vartype);
+    void ConvertAXStringToStringObject(Vartype wanted_vartype, Vartype &current_vartype);
 
     static int GetReadCommandForSize(int the_size);
 

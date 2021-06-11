@@ -2492,3 +2492,67 @@ TEST_F(Bytecode1, DynarrayLength2) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, StringLiteral2String) {
+
+    char inpl[] = "\
+        internalstring autoptr builtin managed struct String    \n\
+        {};                     \n\
+                                \n\
+        struct StructWithString \n\
+        {                       \n\
+            String Txt;         \n\
+        };                      \n\
+                                \n\
+        int func1()             \n\
+        {                       \n\
+            StructWithString a; \n\
+            a.Txt = \"Cause bug!\"; \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("StringLiteral2String", scrip);
+
+    size_t const codesize = 26;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,    0,   51,    4,           64,    3,   47,    3,    // 15
+      51,    4,   49,    2,            1,    4,    6,    3,    // 23
+       0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       9,  -999
+    };
+    char fixuptypes[] = {
+      3,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 11;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+
+    char strings[] = {
+    'C',  'a',  'u',  's',          'e',  ' ',  'b',  'u',     // 7
+    'g',  '!',    0,  '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}

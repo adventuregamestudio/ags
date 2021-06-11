@@ -11,10 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#include "gfx/gfxfilter_scaling.h"
-#include "util/matrix.h"
 
-using namespace AGS::Common;
+#include "gfx/gfxfilter_scaling.h"
 
 namespace AGS
 {
@@ -36,10 +34,7 @@ Rect ScalingGfxFilter::SetTranslation(const Size src_size, const Rect dst_rect)
 {
     // do not restrict scaling by default
     _dstRect = dst_rect;
-    _m = glmex::scale(
-        glmex::translate(dst_rect.Left, dst_rect.Top),
-        (float)dst_rect.GetWidth() / src_size.Width,
-        (float)dst_rect.GetHeight() / src_size.Height);
+    _scaling.Init(src_size, dst_rect);
     return _dstRect;
 }
 

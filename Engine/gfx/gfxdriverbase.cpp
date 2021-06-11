@@ -106,10 +106,7 @@ void GraphicsDriverBase::OnScalingChanged()
         _filterRect = filter->SetTranslation(_srcRect.GetSize(), _dstRect);
     else
         _filterRect = Rect();
-    _mRenderFrame = glmex::scale(
-        glmex::translate(_dstRect.Left, _dstRect.Top),
-        _dstRect.GetWidth() / _srcRect.GetWidth(),
-        _dstRect.GetHeight() / _srcRect.GetHeight());
+    _scaling.Init(_srcRect.GetSize(), _dstRect);
 }
 
 void GraphicsDriverBase::OnSetNativeSize(const Size &src_size)

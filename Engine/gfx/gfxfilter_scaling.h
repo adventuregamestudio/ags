@@ -18,13 +18,15 @@
 #ifndef __AGS_EE_GFX__SCALINGGFXFILTER_H
 #define __AGS_EE_GFX__SCALINGGFXFILTER_H
 
-#include <glm/mat4x4.hpp>
 #include "gfx/gfxfilter.h"
+#include "util/scaling.h"
 
 namespace AGS
 {
 namespace Engine
 {
+
+using Common::PlaneScaling;
 
 class ScalingGfxFilter : public IGfxFilter
 {
@@ -35,8 +37,8 @@ public:
     Rect GetDestination() const override;
 
 protected:
-    Rect            _dstRect; // destination rect
-    glm::mat4       _m; // transform matrix
+    Rect            _dstRect;
+    PlaneScaling    _scaling;
 };
 
 } // namespace Engine

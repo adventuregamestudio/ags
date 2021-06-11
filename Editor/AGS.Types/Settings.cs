@@ -581,7 +581,7 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public bool UseOldCustomDialogOptionsAPI { get { return true; } }
+        public bool UseOldCustomDialogOptionsAPI { get { return false; } }
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]

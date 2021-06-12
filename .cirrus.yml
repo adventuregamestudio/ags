@@ -315,11 +315,16 @@ ags_windows_tests_task:
   env:
     BUILD_CONFIG: Release
   get_submodule_script: git submodule update --init Common/libsrc/googletest
-  build_compiler_test_runner_script: >
+  build_legacy_compiler_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
     msbuild Compiler.Lib.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
-  run_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  run_legacy_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  build_new_compiler_test_runner_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Compiler2.Lib.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+  run_new_compiler_tests_script: Solutions\.test\Release\Compiler2.Lib.Test.exe
   build_ags_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&

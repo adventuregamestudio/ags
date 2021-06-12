@@ -2321,7 +2321,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList 
         Error(
             "Expected an integer expression after '%s' but found type %s",
             _sym.GetName(op_sym).c_str(),
-            _sym.GetName(vartype));
+            _sym.GetName(vartype).c_str());
         return kERR_UserError;
     }
 

@@ -29,12 +29,10 @@
 #include <windows.h>
 #undef BITMAP
 #include "glad/glad.h"
-#include "glad/glad_wgl.h"
 
 #elif AGS_PLATFORM_OS_LINUX
 #include <SDL.h>
 #include "glad/glad.h"
-#include "glad/glad_glx.h"
 
 #elif AGS_PLATFORM_OS_MACOS
 #include "SDL.h"

@@ -203,15 +203,13 @@ linux_packaging_task:
     - build_linux_debian
   container:
     image: alpine:3.10
-  env:
-    ALLEGRO_RELEASE: v4.4.3.1-agspatch-3
   install_packages_script: apk add --no-cache curl libarchive-tools
   package_script: |
     tmp=/tmp/bundle$$
     mkdir -p $tmp/data
-    for archbit in i386-32 amd64-64; do
-      echo Downloading files for ${archbit%-*}
-      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux_debian/data_files/data_${archbit%-*}.tar.gz"
+    for arch in i386 amd64; do
+      echo Downloading files for $arch
+      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux_debian/data_files/data_$arch.tar.gz"
       curl -fLsS "$url" | bsdtar -f - -xvzC $tmp/data
     done
     cp -v debian/copyright $tmp/data/licenses/ags-copyright

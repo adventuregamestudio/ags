@@ -12,14 +12,6 @@ target_sources(glad
         include/KHR/khrplatform.h
         include/glad/glad.h
         src/glad.c
-        $<$<PLATFORM_ID:Windows>:
-            include/glad/glad_wgl.h
-            src/glad_wgl.c
-        >
-        $<$<PLATFORM_ID:Linux>:
-            include/glad/glad_glx.h
-            src/glad_glx.c
-        >
 )
 
 target_link_libraries(glad PUBLIC ${CMAKE_DL_LIBS})

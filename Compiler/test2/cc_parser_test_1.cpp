@@ -1913,3 +1913,22 @@ TEST_F(Compile1, CompileTimeConstant6)
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("in use"));
 }
+
+TEST_F(Compile1, StaticThisExtender)
+{
+    // A 'static' extender function cannot have a 'this'.
+    // This declaration should be written
+    //     "import int foo (static Struct);"
+
+    char *inpl = "\
+        managed struct Struct                   \n\
+        {                                       \n\
+            int Payload;                        \n\
+        };                                      \n\
+        import static int Foo(this Struct *);   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'static'"));
+}

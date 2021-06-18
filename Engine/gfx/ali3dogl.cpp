@@ -1402,10 +1402,10 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     glDisable(GL_BLEND);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
+    glBindTexture(GL_TEXTURE_2D, _backbuffer);
+
     // use correct sampling method when stretching buffer to the final rect
     _filter->SetFilteringForStandardSprite();
-
-    glBindTexture(GL_TEXTURE_2D, _backbuffer);
 
     glTexCoordPointer(2, GL_FLOAT, 0, _backbuffer_texture_coordinates);
     glVertexPointer(2, GL_FLOAT, 0, _backbuffer_vertices);

@@ -523,10 +523,12 @@ void update_gui_disabled_status() {
     }
 
     if (all_buttons_was != all_buttons_disabled) {
+        // As controls become enabled we must notify parent GUIs
+        // to let them reset control-under-mouse detection
+        for (int aa = 0; aa < game.numgui; aa++) {
+            guis[aa].OnControlPositionChanged(); // this marks GUI as changed too
+        }
         if (gui_disabled_style != GUIDIS_UNCHANGED) {
-            for (int aa = 0; aa < game.numgui; aa++) {
-                guis[aa].OnControlPositionChanged(); // this marks GUI for update
-            }
             invalidate_screen();
         }
     }

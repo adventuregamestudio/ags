@@ -1083,6 +1083,11 @@ AGS::ErrorType AGS::Parser::ParseDynArrayMarkerIfPresent(Vartype &vartype)
 // We'll accept something like "this Character *"
 AGS::ErrorType AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &strct, Symbol &unqualified_name, TypeQualifierSet &tqs)
 {
+    if (tqs[TQ::kStatic])
+    {
+        ErrorType retval = Expect(kKW_Static, _src.PeekNext());
+        if (retval < 0) return retval;
+    }
     if (is_static_extender)
         tqs[TQ::kStatic] = true;
 
@@ -6277,6 +6282,7 @@ AGS::ErrorType AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype 
             Error("Can't use extender syntax with a function name that follows '::'");
             return kERR_UserError;
         }
+
         // Rewrite extender function as a component function of the corresponding struct.
         ErrorType retval = ParseFuncdecl_ExtenderPreparations(func_is_static_extender, struct_name, func_name, tqs);
         if (retval < 0) return retval;

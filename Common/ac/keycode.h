@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__KEYCODE_H
 
 #include "core/platform.h"
+#include "core/types.h"
 
 #define EXTENDED_KEY_CODE ('\0')
 #define EXTENDED_KEY_CODE_MACOS ('?')
@@ -243,6 +244,18 @@ enum eAGSKeyCode
     case 425: __allegro_KEY_NUMLOCK
     case 426: __allegro_KEY_CAPSLOCK
     */
+};
+
+
+// Combined key code and a textual representation in UTF-8
+struct KeyInput
+{
+    const static size_t UTF8_ARR_SIZE = 5;
+
+    eAGSKeyCode Key = eAGSKeyCodeNone;
+    char        Text[UTF8_ARR_SIZE] = { 0 };
+
+    KeyInput() = default;
 };
 
 

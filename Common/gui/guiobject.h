@@ -25,7 +25,7 @@
 #define GUIDIS_UNCHANGED 4
 #define GUIDIS_GUIOFF  0x80
 
-
+struct KeyInput;
 
 
 namespace AGS
@@ -68,7 +68,7 @@ public:
 
     // Events
     // Key pressed for control
-    virtual void    OnKeyPress(int keycode) { }
+    virtual void    OnKeyPress(const KeyInput &ki) { }
     // Mouse button down - return 'True' to lock focus
     virtual bool    OnMouseDown() { return false; }
     // Mouse moves onto control

@@ -29,29 +29,35 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt);
+
 // Converts SDL scan and key codes to the ags keycode
-eAGSKeyCode ags_keycode_from_sdl(const SDL_Event &event)
+KeyInput ags_keycode_from_sdl(const SDL_Event &event)
 {
+    KeyInput ki;
     // Printable ASCII characters are returned only from SDL_TEXTINPUT event,
     // as it has key presses + mods correctly converted using current system locale already,
     // so no need to do that manually.
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
     // received when user presses for example Shift + 1 on regular keyboard, but only on
     // systems where single keypress can produce that symbol.
-    // NOTE: following will not work for Unicode, will need to reimplement whole thing
     if (event.type == SDL_TEXTINPUT)
     {
         unsigned char textch = event.text.text[0];
-        if (textch >= 32 && textch <= 255) {
-            return static_cast<eAGSKeyCode>(textch);
-        }
-        return eAGSKeyCodeNone;
+        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        if (textch >= 32 && textch <= 255)
+            ki.Key = static_cast<eAGSKeyCode>(textch);
+        return ki;
     }
 
-    if (event.type != SDL_KEYDOWN)
-        return eAGSKeyCodeNone;
+    if (event.type == SDL_KEYDOWN)
+        ki.Key = sdl_key_to_ags_key(event.key);
+    return ki;
+}
 
-    const SDL_Keysym key = event.key.keysym;
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt)
+{
+    const SDL_Keysym key = kbevt.keysym;
     const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
     // Ctrl and Alt combinations realign the letter code to certain offset

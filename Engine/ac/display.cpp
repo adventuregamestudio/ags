@@ -283,9 +283,9 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
                 if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
                     break;
             }
-            int kp;
+            KeyInput kp;
             if (run_service_key_controls(kp)) {
-                check_skip_cutscene_keypress (kp);
+                check_skip_cutscene_keypress (kp.Key);
                 if (play.fast_forward)
                     break;
                 if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())

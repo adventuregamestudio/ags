@@ -155,8 +155,9 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         cscim->id = -1;
         cscim->code = 0;
         smcode = 0;
-        int keywas;
-        if (run_service_key_controls(keywas) && !play.IsIgnoringInput()) {
+        KeyInput ki;
+        if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
+            int keywas = ki.Key;
             if (keywas == eAGSKeyCodeReturn) {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);
                 cscim->code = CM_COMMAND;

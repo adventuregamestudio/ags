@@ -68,9 +68,10 @@ int fliTargetWidth, fliTargetHeight;
 volatile int fli_timer = 0; // TODO: use SDL thread conditions instead?
 int check_if_user_input_should_cancel_video()
 {
-    int key, mbut, mwheelz;
+    KeyInput key;
+    int mbut, mwheelz;
     if (run_service_key_controls(key)) {
-        if ((key==eAGSKeyCodeEscape) && (canabort==1))
+        if ((key.Key==eAGSKeyCodeEscape) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key

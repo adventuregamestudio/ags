@@ -49,7 +49,7 @@ namespace AGS.Editor
         // be exactly 'fixed_length' in size. In such case the larger string
         // gets truncated, and in case of shorter string all the unused bytes
         // are zeroed. No null terminator is appended explicitly though.
-        private static byte[] GetAnsiBytes(string text, int fixed_length)
+        public static byte[] GetAnsiBytes(string text, int fixed_length)
         {
             return GetAnsiBytes(text, fixed_length, fixed_length, 0);
         }
@@ -63,7 +63,7 @@ namespace AGS.Editor
         // If converted string appears larger than array is allowed to accomodate,
         // then it gets truncated; if it is shorter, all the unused bytes are
         // zeroed.
-        private static byte[] GetAnsiBytes(string text, int min_size, int max_size, int reserve_bytes)
+        public static byte[] GetAnsiBytes(string text, int min_size, int max_size, int reserve_bytes)
         {
             // We must convert original Unicode string into ANSI string,
             // because AGS engine currently supports only these.
@@ -228,7 +228,7 @@ namespace AGS.Editor
         /// </summary>
         /// <param name="text"></param>
         /// <param name="writer"></param>
-        static void FilePutString(string text, BinaryWriter writer)
+        public static void FilePutString(string text, BinaryWriter writer)
         {
             if (String.IsNullOrEmpty(text))
                 writer.Write((int)0);
@@ -636,7 +636,7 @@ namespace AGS.Editor
         /// Writes a string to the file as bytes. Length must be provided
         /// and will pad or truncate the text as necessary.
         /// </summary>
-        private static void WriteString(string src, int length, BinaryWriter writer)
+        public static void WriteString(string src, int length, BinaryWriter writer)
         {
             if ((writer == null) || (length <= 0)) return;
             byte[] bytes = GetAnsiBytes(src, length);

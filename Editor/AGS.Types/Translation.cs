@@ -14,6 +14,7 @@ namespace AGS.Types
         private const string NORMAL_FONT_TAG = "//#NormalFont=";
         private const string SPEECH_FONT_TAG = "//#SpeechFont=";
         private const string TEXT_DIRECTION_TAG = "//#TextDirection=";
+        private const string ENCODING_TAG = "//#Encoding=";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
@@ -24,6 +25,7 @@ namespace AGS.Types
         private int? _normalFont;
         private int? _speechFont;
         private bool? _rightToLeftText;
+        private string _encoding;
         private Dictionary<string, string> _translatedLines;
 
         public Translation(string name)
@@ -33,6 +35,7 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
+            _encoding = null;
         }
 
         public string Name
@@ -70,6 +73,11 @@ namespace AGS.Types
         public bool? RightToLeftText
         {
             get { return _rightToLeftText; }
+        }
+
+        public string TextEncoding
+        {
+            get { return _encoding; }
         }
 
         public bool Modified
@@ -110,6 +118,8 @@ namespace AGS.Types
                 sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
                 sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
+                sw.WriteLine("// Text encoding hint");
+                sw.WriteLine("//#Encoding=" + (_encoding ?? "ASCII"));
                 sw.WriteLine("//  ");
                 sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
@@ -177,6 +187,10 @@ namespace AGS.Types
                 {
                     _rightToLeftText = null;
                 }
+            }
+            else if (line.StartsWith(ENCODING_TAG))
+            {
+                _encoding = line.Substring(ENCODING_TAG.Length);
             }
         }
 

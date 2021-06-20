@@ -25,6 +25,7 @@ namespace AGS.Editor.Components
         private const int TRANSLATION_BLOCK_TRANSLATION_DATA = 1;
         private const int TRANSLATION_BLOCK_GAME_ID = 2;
         private const int TRANSLATION_BLOCK_OPTIONS = 3;
+        private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
@@ -131,6 +132,20 @@ namespace AGS.Editor.Components
                 bw.Write(translation.NormalFont ?? -1);
                 bw.Write(translation.SpeechFont ?? -1);
                 bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
+
+                bw.Write((int)0); // required for compatibility
+                DataFileWriter.WriteString(TRANSLATION_BLOCK_STROPTIONS, 16, bw);
+                var data_len_pos = bw.BaseStream.Position;
+                bw.Write((long)0); // data length placeholder
+                bw.Write((int)1); // size of key/value table
+                DataFileWriter.FilePutString("encoding", bw);
+                DataFileWriter.FilePutString(translation.TextEncoding, bw);
+                var end_pos = bw.BaseStream.Position;
+                var data_len = end_pos - data_len_pos - 8;
+                bw.Seek((int)data_len_pos, SeekOrigin.Begin);
+                bw.Write(data_len);
+                bw.Seek((int)end_pos, SeekOrigin.Begin);
+
                 bw.Write(TRANSLATION_BLOCK_END_OF_FILE);
                 bw.Write((int)0);
                 bw.Seek((int)offsetOfBlockSize, SeekOrigin.Begin);

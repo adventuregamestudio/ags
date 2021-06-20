@@ -30,6 +30,7 @@ namespace DataUtil
 const String NORMAL_FONT_TAG("//#NormalFont=");
 const String SPEECH_FONT_TAG("//#SpeechFont=");
 const String TEXT_DIRECTION_TAG("//#TextDirection=");
+const String ENCODING_TAG("//#Encoding=");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
 const char *TAG_DIRECTION_RIGHT = "RIGHT";
@@ -66,6 +67,10 @@ static void ReadSpecialTags(Translation &tra, const String &line)
         {
             tra.RightToLeft = -1;
         }
+    }
+    else if (line.StartsWith(ENCODING_TAG))
+    {
+        tra.StrOptions["encoding"] = line.Mid(ENCODING_TAG.GetLength());
     }
 }
 

@@ -136,6 +136,10 @@ AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 void main_init(int argc, char*argv[])
 {
+    // Init libraries: set text encoding
+    set_uformat(U_UTF8);
+    set_filename_encoding(U_UNICODE);
+
     EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined (BUILD_STR)
     EngineVersion.BuildInfo = BUILD_STR;

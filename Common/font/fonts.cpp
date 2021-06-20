@@ -205,6 +205,8 @@ void unescape_script_string(const char *cstr, std::vector<char> &out)
         cstr++;
     }
     // Replace all other occurrences as they're found
+    // NOTE: we do not need to decode utf8 here, because
+    // we are only searching for low-code ascii chars.
     const char *off;
     for (off = cstr; *off; ++off)
     {
@@ -241,67 +243,77 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     unescape_script_string(todis, lines.LineBuf);
     char *theline = &lines.LineBuf.front();
 
-    size_t i = 0;
-    size_t splitAt;
-    char nextCharWas;
+    char *scan_ptr = theline;
+    char *prev_ptr = theline;
+    char *last_whitespace = nullptr;
     while (1) {
-        splitAt = -1;
+        char *split_at = nullptr;
 
-        if (theline[i] == 0) {
+        if (*scan_ptr == 0) {
             // end of the text, add the last line if necessary
-            if (i > 0) {
+            if (scan_ptr > theline) {
                 lines.Add(theline);
             }
             break;
         }
 
-        // temporarily terminate the line here and test its width
-        nextCharWas = theline[i + 1];
-        theline[i + 1] = 0;
+        if (*scan_ptr == ' ')
+            last_whitespace = scan_ptr;
 
         // force end of line with the \n character
-        if (theline[i] == '\n')
-            splitAt = i;
+        if (*scan_ptr == '\n') {
+            split_at = scan_ptr;
         // otherwise, see if we are too wide
-        else if (wgettextwidth_compensate(theline, fonnt) > wii) {
-            int endline = i;
-            while ((theline[endline] != ' ') && (endline > 0))
-                endline--;
+        } else {
+            // temporarily terminate the line in the *next* char and test its width
+            char *next_ptr = scan_ptr;
+            ugetx(&next_ptr);
+            const int next_chwas = ugetc(next_ptr);
+            *next_ptr = 0;
 
-            // single very wide word, display as much as possible
-            if (endline == 0)
-                endline = i - 1;
+            if (wgettextwidth_compensate(theline, fonnt) > wii) {
+                // line is too wide, order the split
+                if (last_whitespace)
+                    // revert to the last whitespace
+                    split_at = last_whitespace;
+                else
+                    // single very wide word, display as much as possible
+                    split_at = prev_ptr;
+            }
 
-            splitAt = endline;
+            // restore the character that was there before
+            usetc(next_ptr, next_chwas);
         }
 
-        // restore the character that was there before
-        theline[i + 1] = nextCharWas;
-
-        if (splitAt != -1) {
-            if (splitAt == 0 && !((theline[0] == ' ') || (theline[0] == '\n'))) {
+        if (split_at == nullptr) {
+            prev_ptr = scan_ptr;
+            ugetx(&scan_ptr);
+        } else {
+            // check if even one char cannot fit...
+            if (split_at == theline && !((*theline == ' ') || (*theline == '\n'))) {
               // cannot split with current width restriction
               lines.Reset();
               break;
             }
-            // add this line
-            nextCharWas = theline[splitAt];
-            theline[splitAt] = 0;
+            // add this line; do the temporary terminator trick again
+            const int next_chwas = *split_at;
+            *split_at = 0;
             lines.Add(theline);
-            theline[splitAt] = nextCharWas;
+            usetc(split_at, next_chwas);
+            // check if too many lines
             if (lines.Count() >= max_lines) {
                 lines[lines.Count() - 1].Append("...");
                 break;
             }
-            // the next line starts from here
-            theline += splitAt;
+            // the next line starts from the split point
+            theline = split_at;
             // skip the space or new line that caused the line break
-            if ((theline[0] == ' ') || (theline[0] == '\n'))
+            if ((*theline == ' ') || (*theline == '\n'))
                 theline++;
-            i = -1;
+            scan_ptr = theline;
+            prev_ptr = theline;
+            last_whitespace = nullptr;
         }
-
-        i++;
     }
     return lines.Count();
 }

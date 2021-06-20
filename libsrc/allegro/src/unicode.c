@@ -312,7 +312,7 @@ static int unicode_isok(int c)
 /* utf8_getc:
  *  Reads a character from a UTF-8 string.
  */
-static int utf8_getc(AL_CONST char *s)
+/*static*/ int utf8_getc(AL_CONST char *s)
 {
    int c = *((unsigned char *)(s++));
    int n, t;
@@ -342,7 +342,7 @@ static int utf8_getc(AL_CONST char *s)
 /* utf8_getx:
  *  Reads a character from a UTF-8 string, advancing the pointer position.
  */
-static int utf8_getx(char **s)
+/*static*/ int utf8_getx(char **s)
 {
    int c = *((unsigned char *)((*s)++));
    int n, t;
@@ -374,7 +374,7 @@ static int utf8_getx(char **s)
 /* utf8_setc:
  *  Sets a character in a UTF-8 string.
  */
-static int utf8_setc(char *s, int c)
+/*static*/ int utf8_setc(char *s, int c)
 {
    int size, bits, b, i;
 
@@ -414,7 +414,7 @@ static int utf8_setc(char *s, int c)
 /* utf8_width:
  *  Returns the width of a UTF-8 character.
  */
-static int utf8_width(AL_CONST char *s)
+/*static*/ int utf8_width(AL_CONST char *s)
 {
    int c = *((unsigned char *)s);
    int n = 1;
@@ -432,7 +432,7 @@ static int utf8_width(AL_CONST char *s)
 /* utf8_cwidth:
  *  Returns the width of a UTF-8 character.
  */
-static int utf8_cwidth(int c)
+/*static*/ int utf8_cwidth(int c)
 {
    int size, bits, b;
 
@@ -459,7 +459,7 @@ static int utf8_cwidth(int c)
 /* utf8_isok:
  *  Checks whether this character can be encoded in UTF-8 format.
  */
-static int utf8_isok(int c)
+/*static*/ int utf8_isok(int c)
 {
    return TRUE;
 }

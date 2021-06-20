@@ -30,6 +30,17 @@
 #endif
 
 
+ /* Use strictly UTF-8 encoding for the file paths
+ */
+#define U_CURRENT U_UTF8
+#define ugetc     utf8_getc
+#define ugetx     utf8_getx
+#define ugetxc    utf8_getx
+#define usetc     utf8_setc
+#define uwidth    utf8_width
+#define ucwidth   utf8_cwidth
+#define uisok     utf8_isok
+
 
 /* _al_file_isok:
  *  Helper function to check if it is safe to access a file on a floppy

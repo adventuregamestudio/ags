@@ -255,7 +255,9 @@ namespace AGS.Editor.Components
             const string dialogPrefix = "Dialog ";
             if (name.StartsWith(dialogPrefix))
             {
-                return Convert.ToInt32(name.Substring(dialogPrefix.Length));
+                int num;
+                return Int32.TryParse(name.Substring(dialogPrefix.Length), out num) ?
+                    num : -1;
             }
             return -1;
         }

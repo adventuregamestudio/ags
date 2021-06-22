@@ -1,5 +1,19 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 1, June 2021
+
+Editor:
+ - Fixed script compiler sometimes was not specifying actual Dialog number when reporting errors
+   in the dialog scripts.
+
+Engine:
+ - Fixed Game.TranslationFilename always returning empty string (regression).
+ - Fixed GUI controls which were toggled from disabled to enabled state not responding to the
+   mouse clicks until the mouse is moved (regression).
+ - Fixed OpenGL did not apply a Linear filter when "Render sprites in screen resolution"
+   option is off.
+
+
 VERSION 3.5.1, June 2021
 
 Editor:

@@ -49,6 +49,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     if (lang.IsEmpty())
         return false;
+    trans_name = lang;
     trans_filename = String::FromFormat("%s.tra", lang.GetCStr());
 
     std::unique_ptr<Stream> in(AssetMgr->OpenAsset(trans_filename));

@@ -410,7 +410,6 @@
     <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\ogg.c" />
     <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\recon.c" />
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c" />
-    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c" />
     <ClCompile Include="..\..\Engine\main\config.cpp" />
     <ClCompile Include="..\..\Engine\main\engine.cpp" />
     <ClCompile Include="..\..\Engine\main\engine_setup.cpp" />

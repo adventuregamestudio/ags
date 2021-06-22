@@ -20,7 +20,6 @@ CFLAGS := -O2 -g \
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 LIBS += $(FT_LDFLAGS)
-LIBS += $(shell pkg-config --libs x11)
 LIBS += $(shell pkg-config --libs ogg)
 LIBS += $(shell pkg-config --libs theora)
 
@@ -63,4 +62,4 @@ platform/linux/acpllnx.cpp \
 platform/util/pe.c \
 platform/util/libc.c
 
-GLAD := libsrc/glad/src/glad.c libsrc/glad/src/glad_glx.c
+GLAD := libsrc/glad/src/glad.c

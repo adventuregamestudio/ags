@@ -579,8 +579,6 @@ endif()
 
 if (WIN32)
     target_link_libraries(engine PUBLIC shlwapi)
-elseif (LINUX)
-    target_link_libraries(engine PUBLIC X11::X11)
 endif()
 
 get_target_property(ENGINE_SOURCES engine SOURCES)

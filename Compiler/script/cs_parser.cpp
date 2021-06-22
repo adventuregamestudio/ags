@@ -291,7 +291,11 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
             if (strncmp(thissymbol, NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
+                snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &thissymbol[18]);
+                ccCurScriptName = scriptNameBuffer;
+
                 linenum = 0;
+                currentline = 0;
             }
         }
         targ->write(towrite);
@@ -3473,7 +3477,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
         if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
         {
-            strcpy(scriptNameBuffer, &sym.get_name(cursym)[18]);
+            snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &sym.get_name(cursym)[18]);
             scriptNameBuffer[strlen(scriptNameBuffer) - 1] = 0;  // strip closing speech mark
             ccCurScriptName = scriptNameBuffer;
 

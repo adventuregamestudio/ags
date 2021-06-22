@@ -53,7 +53,8 @@ public:
    || AGS_PLATFORM_OS_ANDROID
 #include "library_posix.h"
 
-#elif AGS_PLATFORM_OS_IOS
+#elif AGS_PLATFORM_OS_IOS \
+   || AGS_PLATFORM_OS_EMSCRIPTEN
 #include "library_dummy.h"
 
 #endif

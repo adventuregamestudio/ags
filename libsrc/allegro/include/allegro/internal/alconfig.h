@@ -51,6 +51,8 @@
    #endif
 #elif defined(__linux__)
    #define ALLEGRO_UNIX
+#elif defined(__EMSCRIPTEN__)
+   #define ALLEGRO_UNIX
 #endif
 
 

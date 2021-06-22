@@ -156,10 +156,6 @@ endif()
 find_package(PkgConfig)
 find_package(Threads)
 
-if (LINUX)
-    find_package(X11)
-endif()
-
 include(FetchSDL2)
 include(FetchSDL_Sound)
 

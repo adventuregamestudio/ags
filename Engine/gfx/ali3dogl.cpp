@@ -1270,11 +1270,11 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // use correct sampling method when stretching buffer to the final rect
-    _filter->SetFilteringForStandardSprite();
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _backbuffer);
+
+    // use correct sampling method when stretching buffer to the final rect
+    _filter->SetFilteringForStandardSprite();
 
     glEnableVertexAttribArray(0);
     GLint a_Position = glGetAttribLocation(program.Program, "a_Position");

@@ -1,5 +1,5 @@
 
-#include "cs_parser_common.h"
+#include "cs_message_handler.h"
 
 AGS::MessageHandler::Entry::Entry(enum Severity sev, std::string const &section, size_t lineno, std::string const &msg)
     : Severity(sev)
@@ -10,10 +10,3 @@ AGS::MessageHandler::Entry::Entry(enum Severity sev, std::string const &section,
 }
 
 AGS::MessageHandler::Entry AGS::MessageHandler::_noError = { AGS::MessageHandler::kSV_Error, "", 0u, "((no error))" };
-
-AGS::MessageHandler::Entry const &AGS::MessageHandler::GetError(void) const
-{
-    if (_entries.empty() || kSV_Error != _entries.back().Severity)
-        return _noError;
-    return _entries.back();
-}

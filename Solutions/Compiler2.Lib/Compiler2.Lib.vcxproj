@@ -170,7 +170,7 @@
     <ClCompile Include="..\..\Compiler\script2\cs_compiler.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cs_compile_time.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cs_parser.cpp" />
-    <ClCompile Include="..\..\Compiler\script2\cs_parser_common.cpp" />
+    <ClCompile Include="..\..\Compiler\script2\cs_message_handler.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cs_scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +184,7 @@
     <ClInclude Include="..\..\Compiler\script2\cc_symboltable.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_compile_time.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_compiler.h" />
+    <ClInclude Include="..\..\Compiler\script2\cs_message_handler.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_parser.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_parser_common.h" />
     <ClInclude Include="..\..\Compiler\script2\cs_scanner.h" />

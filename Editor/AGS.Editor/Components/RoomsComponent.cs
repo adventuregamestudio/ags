@@ -609,7 +609,11 @@ namespace AGS.Editor.Components
             Room room = (Room)parameter;
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
-            _agsEditor.CompileScript(room.Script, headers, null);
+            CompileMessages messages = new CompileMessages();
+            _agsEditor.CompileScript(room.Script, headers, messages);
+            if (messages.HasErrors)
+                throw messages.Errors[0];
+
             ((IRoomController)this).Save();
 
             return null;            

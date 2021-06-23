@@ -35,14 +35,14 @@ namespace AGS
 	namespace Native
 	{
 
-    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game)
+    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^messages)
     {
         if (script->CompiledData != nullptr)
             script->CompiledData = nullptr;
 
         if (game->Settings->ExtendedCompiler)
         {
-            ccScript *scrpt = NULL;
+            ccScript *scrpt = nullptr;
 
             // Concatenate the whole thing together
             String^ all_the_script = "";
@@ -54,17 +54,32 @@ namespace AGS
                 SCOPT_LINENUMBERS |
                 SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
                 false;
-            char *mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
-            char *mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-            scrpt = ccCompileText2(mainScript, mainScriptName, options);
+
+            AGS::MessageHandler mh;
+
+            char *mainScript = (char *) System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
+            char *mainScriptName = (char *) System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
+            scrpt = ccCompileText2(mainScript, mainScriptName, options, mh);
             System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
             System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
 
-            if (nullptr == scrpt)
+            auto compiler_messages = mh.GetMessages();
+            for (auto msg = compiler_messages.begin(); msg != compiler_messages.end(); msg++)
+                if (msg->Severity >= mh.kSV_Error)
+                    messages->Add(gcnew CompileError(
+                        gcnew String (msg->Message.c_str()),
+                        gcnew String (msg->Section.c_str()),
+                        static_cast<int>(msg->Lineno)));
+                else
+                    messages->Add(gcnew CompileWarning(
+                        gcnew String(msg->Message.c_str()),
+                        gcnew String(msg->Section.c_str()),
+                        static_cast<int>(msg->Lineno)));
+
+            if (mh.HasError())
             {
-                CompileMessage ^exceptionToThrow =
-                    gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
-                throw exceptionToThrow;
+                delete scrpt;
+                return;
             }
             script->CompiledData = gcnew CompiledScript(PScript(scrpt));
         }
@@ -72,7 +87,7 @@ namespace AGS
         {
             ccRemoveDefaultHeaders();
 
-            CompileMessage ^exceptionToThrow = nullptr;
+            CompileMessage ^compile_error = nullptr;
 
             char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
             char *mainScript;
@@ -88,42 +103,43 @@ namespace AGS
 
                     if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header"))
                     {
-                        exceptionToThrow = gcnew CompileError("Too many scripts in game");
+                        compile_error = gcnew CompileError("Too many scripts in game");
+                        break;
                     }
                     headerCount++;
                 }
             }
-            mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
-            mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-
             ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 
             ccSetOption(SCOPT_EXPORTALL, 1);
             ccSetOption(SCOPT_LINENUMBERS, 1);
             ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
 
-            if (exceptionToThrow == nullptr)
+            if (compile_error == nullptr)
             {
+                mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
+                mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
                 scrpt = ccCompileText(mainScript, mainScriptName);
+                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
+                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
                 if ((scrpt == NULL) || (ccError != 0))
                 {
-                    exceptionToThrow = gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                    compile_error = gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
                 }
             }
 
-            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
-
+            
             for (int i = 0; i < preProcessedScripts->Length - 1; i++)
             {
                 System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
             }
             delete scriptHeaders;
 
-            if (exceptionToThrow != nullptr)
+            if (compile_error != nullptr)
             {
                 delete scrpt;
-                throw exceptionToThrow;
+                messages->Add(compile_error);
+                return;
             }
 
             script->CompiledData = gcnew CompiledScript(PScript(scrpt));

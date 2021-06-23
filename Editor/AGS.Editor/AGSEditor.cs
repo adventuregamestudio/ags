@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using System.Threading;
+using System.Threading.Tasks;
 using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
@@ -895,48 +897,44 @@ namespace AGS.Editor
 
 		/// <summary>
 		/// Preprocesses and then compiles the script using the supplied headers.
+        /// Warnings and errors are collected in 'messages'.
+		/// Will _not_ throw whenever compiling results in an error.
 		/// </summary>
-		public void CompileScript(Script script, List<Script> headers, CompileMessages errors)
+		public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
 		{
-			IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
-			DefineMacrosAccordingToGameSettings(preprocessor);
+			messages = messages ?? new CompileMessages();
+            List<string> preProcessedCode;
+            CompileMessages preProcessingResults;
+            PreprocessScript(script, headers, out preProcessedCode, out preProcessingResults);
+            messages.AddRange(preProcessingResults);
 
-			List<string> preProcessedCode = new List<string>();
-			foreach (Script header in headers)
-			{
-				preProcessedCode.Add(preprocessor.Preprocess(header.Text, header.FileName));
-			}
+            // If the preprocessor has found any errors then don't attempt compiling proper
+            if (preProcessingResults.Count > 0)
+                return;
 
-			preProcessedCode.Add(preprocessor.Preprocess(script.Text, script.FileName));
-
-#if DEBUG
-			// TODO: REMOVE BEFORE DISTRIBUTION
-/*			if (true)
-			{
-                string wholeScript = string.Join("\n", preProcessedCode.ToArray());
-				IScriptCompiler compiler = CompilerFactory.CreateScriptCompiler();
-				CompileResults output = compiler.CompileScript(wholeScript);
-				preprocessor.Results.AddRange(output);
-			}*/
-#endif
-
-			if (preprocessor.Results.Count > 0)
-			{
-				foreach (AGS.CScript.Compiler.Error error in preprocessor.Results)
-				{
-					CompileError newError = new CompileError(error.Message, error.ScriptName, error.LineNumber);
-					if (errors == null)
-					{
-						throw newError;
-					}
-					errors.Add(newError);
-				}
-			}
-			else
-			{
-				Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game);
-			}
+            Factory.NativeProxy.CompileScript(script, preProcessedCode.ToArray(), _game, messages);
 		}
+
+        private void PreprocessScript(Script script, List<Script> headers, out List<string> preProcessedCode, out CompileMessages results)
+        {
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            DefineMacrosAccordingToGameSettings(preprocessor);
+
+            preProcessedCode = new List<string>();
+            foreach (Script header in headers)
+                preProcessedCode.Add(preprocessor.Preprocess(header.Text, header.FileName));
+
+            preProcessedCode.Add(preprocessor.Preprocess(script.Text, script.FileName));
+
+            // Note that preProcessingResults is a list of CompilerMessage, 
+            // which is completely different to  a list of CompileMessage.
+            // So rewrite each CompilerMessage into a CompileMessage.
+            // Currently, the preprocessor can only issue errors, no warnings,
+            // so specifically, rewrite each CompilerMessage into a CompileError.
+            results = new CompileMessages();
+            foreach (CompilerMessage msg in preprocessor.Results)
+                results.Add(new CompileError(msg.Message, msg.ScriptName, msg.LineNumber));
+        }
 
         private Script CompileDialogs(CompileMessages errors, bool rebuildAll)
         {
@@ -953,47 +951,88 @@ namespace AGS.Editor
             return dialogScripts;
         }
 
+        private struct CompileTask
+        {
+            public Script Script;
+            public List<Script> Headers;
+            public CompileTask(Script script, List<Script> headers)
+            {
+                Script = script;
+                Headers = headers;
+            }
+        };
+
         private object CompileScripts(object parameter)
         {
             CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
             CompileMessages errors = parameters.Errors;
-            CompileMessage errorToReturn = null;
+            CompileMessages messagesToReturn = new CompileMessages();
             RegenerateScriptHeader(null);
             List<Script> headers = GetInternalScriptHeaders();
 
-            try
+            Script dialogScripts = CompileDialogs(errors, parameters.RebuildAll);
+
+            // Collect the scripts that need to be compiled
+            _game.ScriptsToCompile = new ScriptsAndHeaders();
+            List<CompileTask> compileTasks = new List<CompileTask>();
+            foreach (Script script in GetInternalScriptModules())
             {
-                Script dialogScripts = CompileDialogs(errors, parameters.RebuildAll);
-
-                _game.ScriptsToCompile = new ScriptsAndHeaders();
-
-                foreach (Script script in GetInternalScriptModules())
-                {
-                    CompileScript(script, headers, errors);
-                    _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
-                }
-
-                foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
-                {
-                    headers.Add(scripts.Header);
-                    CompileScript(scripts.Script, headers, errors);
-                    _game.ScriptsToCompile.Add(scripts);					
-                }
-
-                CompileScript(dialogScripts, headers, errors);
-                _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
-			}
-            catch (CompileMessage ex)
+                compileTasks.Add(new CompileTask(script, headers));
+                _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
+            }
+            foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
             {
-                errorToReturn = ex;
+                headers.Add(scripts.Header);
+                compileTasks.Add(new CompileTask(scripts.Script, headers));
+                _game.ScriptsToCompile.Add(scripts);
+            }
+            compileTasks.Add(new CompileTask(dialogScripts, headers));
+            _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
+
+            // Compile the scripts
+            if (_game.Settings.ExtendedCompiler)
+            {
+                // The extended compiler doesn't use static memory, 
+                // so several instances can run in parallel.
+                Parallel.ForEach(compileTasks, (ct, state) =>
+                {
+                    CompileMessages messages = new CompileMessages();
+
+                    CompileScript(ct.Script, ct.Headers, messages);
+                    lock (messagesToReturn)
+                    {
+                        if (!messagesToReturn.HasErrors)
+                            messagesToReturn.AddRange(messages);
+                    }
+                    if (messages.HasErrors)
+                        state.Stop();
+                });
+            }
+            else
+            {
+                foreach (CompileTask ct in compileTasks)
+                {
+                    CompileMessages messages = new CompileMessages();
+                    CompileScript(ct.Script, ct.Headers, messages);
+                    messagesToReturn.AddRange(messages);
+                    if (messages.HasErrors)
+                        break;
+                }
             }
 
-            if (ExtraCompilationStep != null)
+            // Copy the messages, but deduplicate the warnings
+            // (duplicate warnings can show up if they are for a header
+            // that is included in several source assemblies)
             {
-                ExtraCompilationStep(errors);
+                var alreadyIncluded = new HashSet<Tuple<string, int, string>>();
+                foreach (CompileMessage mes in messagesToReturn)
+                    if (mes is CompileError ||
+                        alreadyIncluded.Add(Tuple.Create(mes.ScriptName, mes.LineNumber, mes.Message)))
+                        errors.Add(mes);
             }
-
-            return errorToReturn;
+            ExtraCompilationStep?.Invoke(errors);
+            
+            return messagesToReturn;
         }
 
         private void DeleteAnyExistingSplitResourceFiles()
@@ -1234,7 +1273,7 @@ namespace AGS.Editor
 		public CompileMessages CompileGame(bool forceRebuild, bool createMiniExeForDebug)
         {
             Factory.GUIController.ClearOutputPanel();
-            CompileMessages errors = new CompileMessages();
+            CompileMessages messages = new CompileMessages();
 
             Utilities.EnsureStandardSubFoldersExist();
 
@@ -1243,46 +1282,44 @@ namespace AGS.Editor
             if (PreCompileGame != null)
             {
 				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
-				evArgs.Errors = errors;
+				evArgs.Errors = messages;
 
                 PreCompileGame(evArgs);
 
                 if (!evArgs.AllowCompilation)
                 {
-                    Factory.GUIController.ShowOutputPanel(errors);
-					ReportErrorsIfAppropriate(errors);
-                    return errors;
+                    Factory.GUIController.ShowOutputPanel(messages);
+					ReportErrorsIfAppropriate(messages);
+                    return messages;
                 }
             }
 
-            RunPreCompilationChecks(errors);
+            RunPreCompilationChecks(messages);
 
-			if (!errors.HasErrors)
+			if (!messages.HasErrors)
+				BusyDialog.Show(
+                    "Please wait while your scripts are compiled...",
+                    new BusyDialog.ProcessingHandler(CompileScripts),
+                    new CompileScriptsParameters(messages, forceRebuild));
+
+            if (!messages.HasErrors)
 			{
-				CompileMessage result = (CompileMessage)BusyDialog.Show("Please wait while your scripts are compiled...", new BusyDialog.ProcessingHandler(CompileScripts), new CompileScriptsParameters(errors, forceRebuild));
-				if (result != null)
+				if (createMiniExeForDebug)
 				{
-					errors.Add(result);
+					CreateMiniEXEForDebugging(messages);
 				}
-				else if (!errors.HasErrors)
+				else
 				{
-					if (createMiniExeForDebug)
-					{
-						CreateMiniEXEForDebugging(errors);
-					}
-					else
-					{
-						CreateCompiledFiles(errors, forceRebuild);
-					}
-                    _game.WorkspaceState.RequiresRebuild = false;
-                }
-			}
+					CreateCompiledFiles(messages, forceRebuild);
+				}
+                _game.WorkspaceState.RequiresRebuild = false;
+            }
 
-            Factory.GUIController.ShowOutputPanel(errors);
+            Factory.GUIController.ShowOutputPanel(messages);
 
-			ReportErrorsIfAppropriate(errors);
+			ReportErrorsIfAppropriate(messages);
 
-            return errors;
+            return messages;
         }
 
         /// <summary>

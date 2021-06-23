@@ -66,7 +66,7 @@ namespace AGS
       void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
 			String ^LoadRoomScript(String ^roomFileName);
-			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game);
+			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^errors);
 			void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE);
 			void CreateVOXFile(String ^fileName, cli::array<String^> ^fileList);
 			GameTemplate^ LoadTemplateFile(String ^fileName);

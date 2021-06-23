@@ -14,17 +14,12 @@
 
 // A  wrapper around cc_compile(), in order to squeeze the C++ style parameters 
 // through the limited means of Managed C++ (CLR) into the C# Editor.
-ccScript *ccCompileText2(char const *script, char const *scriptName, long const options)
+ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, long const options, MessageHandler &mh)
 {
-    // All warnings and the error (if present) end up here.
-    // TODO: This is what will need to be sqeezed through the interface
-    // into the editor so that the editor can display the warnings, too
-    MessageHandler mh;
-
     ccCompiledScript *compiled_script =
         new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
 
-    compiled_script->StartNewSection(scriptName ? scriptName : "Unnamed script");
+    compiled_script->StartNewSection(scriptName.empty() ? scriptName : "Unnamed script");
     int const error_code = cc_compile(script, options, *compiled_script, mh);
     if (error_code < 0)
     {

@@ -50,7 +50,8 @@ public:
 
 #elif AGS_PLATFORM_OS_LINUX \
    || AGS_PLATFORM_OS_MACOS \
-   || AGS_PLATFORM_OS_ANDROID
+   || AGS_PLATFORM_OS_ANDROID \
+   || AGS_PLATFORM_OS_FREEBSD
 #include "library_posix.h"
 
 #elif AGS_PLATFORM_OS_IOS \

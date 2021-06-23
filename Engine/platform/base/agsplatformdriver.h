@@ -41,7 +41,8 @@ enum eScriptSystemOSID
     eOS_Android,
     eOS_iOS,
     eOS_PSP,
-    eOS_Web
+    eOS_Web,
+    eOS_FreeBSD
 };
 
 enum SetupReturnValue

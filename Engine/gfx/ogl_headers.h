@@ -30,7 +30,7 @@
 #undef BITMAP
 #include "glad/glad.h"
 
-#elif AGS_PLATFORM_OS_LINUX
+#elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD
 #include <SDL.h>
 #include "glad/glad.h"
 

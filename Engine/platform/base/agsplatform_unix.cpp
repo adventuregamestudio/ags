@@ -14,7 +14,7 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_LINUX
+#if AGS_PLATFORM_IS_FREEDESKTOP_UNIX
 #include "platform/base/agsplatform_unix.h"
 
 #include <cstdio>

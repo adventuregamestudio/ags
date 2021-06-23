@@ -16,9 +16,12 @@
 //
 //=============================================================================
 
+#ifndef __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
+#define __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
+
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_LINUX
+#if AGS_PLATFORM_IS_FREEDESKTOP_UNIX
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -33,4 +36,6 @@ struct AGSPlatformUnix : AGSPlatformDriver {
     const char* GetBackendFailUserHint() override;
 };
 
-#endif
+#endif // AGS_PLATFORM_IS_FREEDESKTOP_UNIX
+
+#endif // __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H

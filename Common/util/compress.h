@@ -19,18 +19,11 @@ struct RGB;
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
-void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const RGB pala[256]);
 // RLE compression
-void cpackbitl(const uint8_t *line, int size, Common::Stream *out);
-void cpackbitl16(const uint16_t *line, int size, Common::Stream *out);
-void cpackbitl32(const uint32_t *line, int size, Common::Stream *out);
-// RLE decompression
-int  cunpackbitl(uint8_t *line, int size, Common::Stream *in);
-int  cunpackbitl16(uint16_t *line, int size, Common::Stream *in);
-int  cunpackbitl32(uint32_t *line, int size, Common::Stream *in);
+void rle_compress(Common::Bitmap*, Common::Stream*);
+void rle_decompress(Common::Bitmap*, Common::Stream*);
 
-//=============================================================================
-
+// LZW compression
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);
 void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, RGB *pall);
 void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);

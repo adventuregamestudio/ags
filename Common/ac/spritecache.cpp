@@ -505,46 +505,6 @@ void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteFile::CompressSprite(Bitmap *sprite, Stream *out)
-{
-    const int depth = sprite->GetBPP();
-    if (depth == 1)
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cpackbitl(&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), out);
-    }
-    else if (depth == 2)
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cpackbitl16((unsigned short *)&sprite->GetScanLine(y)[0], sprite->GetWidth(), out);
-    }
-    else
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cpackbitl32((unsigned int *)&sprite->GetScanLine(y)[0], sprite->GetWidth(), out);
-    }
-}
-
-void SpriteFile::UnCompressSprite(Bitmap *sprite, Stream *in)
-{
-    const int depth = sprite->GetBPP();
-    if (depth == 1)
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cunpackbitl(&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
-    }
-    else if (depth == 2)
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cunpackbitl16((unsigned short*)&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
-    }
-    else
-    {
-        for (int y = 0; y < sprite->GetHeight(); y++)
-            cunpackbitl32((unsigned int*)&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
-    }
-}
-
 int SpriteFile::SaveToFile(const String &save_to_file,
     const std::vector<Bitmap*> &sprites,
     SpriteFile *read_from_file,
@@ -613,7 +573,7 @@ int SpriteFile::SaveToFile(const String &save_to_file,
                 // write some space for the length data
                 output->WriteInt32(0);
 
-                CompressSprite(image, output.get());
+                rle_compress(image, output.get());
 
                 soff_t fileSizeSoFar = output->GetPosition();
                 // write the length of the compressed data
@@ -915,7 +875,7 @@ HAGSError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
             delete image;
             return new Error(String::FromFormat("LoadSprite: bad compressed data for sprite %d.", index));
         }
-        UnCompressSprite(image, _stream.get());
+        rle_decompress(image, _stream.get());
     }
     else
     {

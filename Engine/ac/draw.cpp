@@ -1570,8 +1570,9 @@ void prepare_objects_for_drawing() {
         actspsbmp[useindx]->SetOrigin(0.f, 1.f);
         if (is_3d_render)
         {
-            actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
+            actspsbmp[useindx]->SetRotation(objs[aa].rotation);
+            actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetTint(objcache[aa].tintredwas, objcache[aa].tintgrnwas, objcache[aa].tintbluwas, (objcache[aa].tintamntwas * 256) / 100);
 
             if (objcache[aa].tintamntwas > 0)
@@ -1589,6 +1590,8 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
+        actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
+        actspsbmp[useindx]->SetBlendMode(objs[aa].blend_mode);
         add_to_sprite_list(actspsbmp[useindx], objx, objy, aabb, usebasel, false);
     }
 }

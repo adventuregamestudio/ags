@@ -177,8 +177,8 @@ void initialize_sprite(int spnum) {
   fix_sprite(spnum);
 }
 
-void pre_save_sprite(int spnum) {
-  fix_sprite(spnum);
+void pre_save_sprite(Common::Bitmap *image) {
+  fix_block(image);
 }
 
 Common::Bitmap *get_sprite (int spnr) {
@@ -2147,7 +2147,7 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (spriteset.SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    if (SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
         saved_indexfile = n_temp_indexfile;
 }
 

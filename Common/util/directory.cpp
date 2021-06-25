@@ -3,8 +3,16 @@
 #include <string.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
+#include <windows.h>
+#undef CreateFile
+#undef DeleteFile
+#undef CreateDirectory
+#undef GetCurrentDirectory
+#undef SetCurrentDirectory
 #else
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <unistd.h>
 #endif
 #include "util/path.h"
@@ -71,6 +79,38 @@ String GetCurrentDirectory()
     String str(buf);
     Path::FixupPath(str);
     return str;
+}
+
+bool GetFiles(const String &dir_path, std::vector<String> &files)
+{
+#if ! AGS_PLATFORM_OS_WINDOWS
+    struct dirent *ent;
+    DIR *dir = opendir(dir_path.GetCStr());
+    if (!dir)
+        return false;
+    struct stat f_stat;
+    while ((ent = readdir(dir)) != nullptr)
+    {
+        if (stat(ent->d_name, &f_stat) != 0) continue;
+        if (S_ISREG(f_stat.st_mode))
+            files.push_back(ent->d_name);
+    }
+    closedir(dir);
+#else
+    char pattern[MAX_PATH];
+    snprintf(pattern, MAX_PATH, "%s/%s", dir_path.GetCStr(), "*");
+    WIN32_FIND_DATAA findData;
+    HANDLE hFind = FindFirstFileA(pattern, &findData);
+    if (hFind == INVALID_HANDLE_VALUE)
+        return false;
+    do
+    {
+        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+            files.push_back(findData.cFileName);
+    } while (FindNextFileA(hFind, &findData) != 0);
+    FindClose(hFind);
+#endif
+    return true;
 }
 
 } // namespace Directory

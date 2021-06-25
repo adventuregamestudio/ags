@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__DIRECTORY_H
 #define __AGS_CN_UTIL__DIRECTORY_H
 
+#include <vector>
 #include "core/platform.h"
 #include "util/string.h"
 
@@ -37,6 +38,9 @@ namespace Directory
     String SetCurrentDirectory(const String &path);
     // Gets current working directory
     String GetCurrentDirectory();
+
+    // Get list of files found in the given directory
+    bool   GetFiles(const String &dir_path, std::vector<String> &files);
 } // namespace Directory
 
 } // namespace Common

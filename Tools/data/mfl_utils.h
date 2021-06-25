@@ -16,6 +16,8 @@
 
 #include "core/asset.h"
 #include "util/error.h"
+#include "util/multifilelib.h"
+#include "util/stream.h"
 
 namespace AGS
 {
@@ -23,7 +25,9 @@ namespace DataUtil
 {
     using AGS::Common::AssetLibInfo;
     using AGS::Common::HError;
+    using AGS::Common::Stream;
     using AGS::Common::String;
+    namespace MFLUtil = AGS::Common::MFLUtil;
 
     // Unpacks the library by reading its parts and writing assets into files.
     // lib_dir - tells the directory where the library parts are located,
@@ -34,6 +38,13 @@ namespace DataUtil
     // directories inside dst_dir.
     HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
         const String &lib_basefile, const String &dst_dir);
+    // Gather a list of files from a given directory and write into AssetLibInfo
+    HError MakeAssetLibInfo(AssetLibInfo &lib, const String &asset_dir,
+        const String &lib_basefile);
+    // Writes the library into the file lib_filename;
+    // recalculates asset offsets and stores in lib as it goes.
+    HError WriteLibrary(AssetLibInfo &lib, const String &src_dir,
+        const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index);
 
 } // namespace DataUtil
 } // namespace AGS

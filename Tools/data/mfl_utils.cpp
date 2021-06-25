@@ -77,5 +77,53 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
     return HError::None();
 }
 
+HError MakeAssetLibInfo(AssetLibInfo &lib, const String &asset_dir,
+    const String &lib_basefile)
+{
+    std::vector<String> files;
+    Directory::GetFiles(asset_dir, files);
+
+    lib.LibFileNames.push_back(lib_basefile);
+    for (const auto &file : files)
+    {
+        if (file == "." || file == "..") continue;
+        AssetInfo asset;
+        asset.FileName = file;
+        String path = Path::ConcatPaths(asset_dir, file);
+        asset.Size = File::GetFileSize(path);
+        lib.AssetInfos.push_back(asset);
+    }
+    return HError::None();
+}
+
+HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir,
+    const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index)
+{
+    std::unique_ptr<Stream> out(File::CreateFile(lib_filename));
+    if (!out)
+        return new Error("Error: failed to open pack file for writing.");
+
+    soff_t s_offset = out->GetPosition();
+    MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, lib_index, out.get());
+    for (auto &asset : lib.AssetInfos)
+    {
+        if (asset.LibUid == lib_index)
+        {
+            asset.Offset = out->GetPosition() - s_offset;
+            String path = Path::ConcatPaths(asset_dir, asset.FileName);
+            std::unique_ptr<Stream> in(File::OpenFileRead(path));
+            if (!in)
+                return new Error("Failed to open the file for reading.");
+            if (CopyStream(in.get(), out.get(), asset.Size) < asset.Size)
+                return new Error(String::FromFormat("Failed to write the asset '%s'.", asset.FileName.GetCStr()));
+        }
+    }
+    out->Seek(s_offset, kSeekBegin);
+    MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, lib_index, out.get());
+    out->Seek(0, kSeekEnd);
+    MFLUtil::WriteEnder(s_offset, lib_version, out.get());
+    return HError::None();
+}
+
 } // namespace DataUtil
 } // namespace AGS

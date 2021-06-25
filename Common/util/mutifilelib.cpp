@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/bbop.h"
 #include "util/multifilelib.h"
 #include "util/stream.h"
@@ -408,9 +407,9 @@ void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *
     }
 }
 
-void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out)
+void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out)
 {
-    if (lib_index < kMFLVersion_MultiV30)
+    if (lib_version < kMFLVersion_MultiV30)
         out->WriteInt32((int32_t)lib_offset);
     else
         out->WriteInt64(lib_offset);

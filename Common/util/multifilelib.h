@@ -20,7 +20,6 @@
 // of the CLIB reader.
 //
 //=============================================================================
-
 #ifndef __AGS_CN_UTIL__MULTIFILELIB_H
 #define __AGS_CN_UTIL__MULTIFILELIB_H
 
@@ -67,7 +66,7 @@ namespace MFLUtil
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
 
     void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
-    void     WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out);
+    void     WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
 };
 
 } // namespace Common

@@ -31,6 +31,7 @@ const String NORMAL_FONT_TAG("//#NormalFont=");
 const String SPEECH_FONT_TAG("//#SpeechFont=");
 const String TEXT_DIRECTION_TAG("//#TextDirection=");
 const String ENCODING_TAG("//#Encoding=");
+const String KEYENCODING_TAG("//#KeyEncoding=");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
 const char *TAG_DIRECTION_RIGHT = "RIGHT";
@@ -68,9 +69,14 @@ static void ReadSpecialTags(Translation &tra, const String &line)
             tra.RightToLeft = -1;
         }
     }
+    // TODO: make a generic dictionary instead and save any option
     else if (line.StartsWith(ENCODING_TAG))
     {
         tra.StrOptions["encoding"] = line.Mid(ENCODING_TAG.GetLength());
+    }
+    else if (line.StartsWith(KEYENCODING_TAG))
+    {
+        tra.StrOptions["keyencoding"] = line.Mid(KEYENCODING_TAG.GetLength());
     }
 }
 

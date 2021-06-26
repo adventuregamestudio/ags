@@ -15,6 +15,7 @@ namespace AGS.Types
         private const string SPEECH_FONT_TAG = "//#SpeechFont=";
         private const string TEXT_DIRECTION_TAG = "//#TextDirection=";
         private const string ENCODING_TAG = "//#Encoding=";
+        private const string GAMEENCODING_TAG = "//#GameEncoding=";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
@@ -25,7 +26,8 @@ namespace AGS.Types
         private int? _normalFont;
         private int? _speechFont;
         private bool? _rightToLeftText;
-        private string _encoding;
+        private string _encodingHint;
+        private string _gameEncodingHint;
         private Dictionary<string, string> _translatedLines;
 
         public Translation(string name)
@@ -35,7 +37,7 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
-            _encoding = null;
+            _encodingHint = null;
         }
 
         public string Name
@@ -75,9 +77,14 @@ namespace AGS.Types
             get { return _rightToLeftText; }
         }
 
-        public string TextEncoding
+        public string EncodingHint
         {
-            get { return _encoding; }
+            get { return _encodingHint; }
+        }
+
+        public string GameEncodingHint
+        {
+            get { return _gameEncodingHint; }
         }
 
         public bool Modified
@@ -119,7 +126,9 @@ namespace AGS.Types
                 sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
                 sw.WriteLine("// Text encoding hint");
-                sw.WriteLine("//#Encoding=" + (_encoding ?? "ASCII"));
+                sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
+                sw.WriteLine("// Source text encoding hint");
+                sw.WriteLine("//#GameEncoding=" + (_gameEncodingHint ?? ""));
                 sw.WriteLine("//  ");
                 sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
@@ -188,9 +197,14 @@ namespace AGS.Types
                     _rightToLeftText = null;
                 }
             }
+            // TODO: make a generic dictionary instead and save any option
             else if (line.StartsWith(ENCODING_TAG))
             {
-                _encoding = line.Substring(ENCODING_TAG.Length);
+                _encodingHint = line.Substring(ENCODING_TAG.Length);
+            }
+            else if (line.StartsWith(GAMEENCODING_TAG))
+            {
+                _gameEncodingHint = line.Substring(GAMEENCODING_TAG.Length);
             }
         }
 

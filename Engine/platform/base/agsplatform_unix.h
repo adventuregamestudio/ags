@@ -21,7 +21,7 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_IS_FREEDESKTOP_UNIX
+#if AGS_PLATFORM_IS_XDG_UNIX
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -36,6 +36,6 @@ struct AGSPlatformUnix : AGSPlatformDriver {
     const char* GetBackendFailUserHint() override;
 };
 
-#endif // AGS_PLATFORM_IS_FREEDESKTOP_UNIX
+#endif // AGS_PLATFORM_IS_XDG_UNIX
 
 #endif // __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H

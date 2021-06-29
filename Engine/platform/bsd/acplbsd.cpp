@@ -14,42 +14,38 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_LINUX
+#if AGS_PLATFORM_OS_FREEBSD
 
 // *************** LINUX DRIVER ***************
 
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/agsplatform_xdg_unix.h"
-#include "libsrc/libcda-0.5/libcda.h"
+#include "platform/base/agsplatform_unix.h"
 
-struct AGSLinux : AGSPlatformXDGUnix {
-  int  CDPlayerCommand(int cmdd, int datt) override;
-  eScriptSystemOSID GetSystemOSID() override;
-  int  InitializeCDPlayer() override;
-  void ShutdownCDPlayer() override;
+struct AGSFreeBSD : AGSPlatformXDGUnix {
+    eScriptSystemOSID GetSystemOSID() override;
+    int  CDPlayerCommand(int cmdd, int datt) override;
+    int  InitializeCDPlayer() override;
+    void ShutdownCDPlayer() override;
 };
 
-
-int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
-  return cd_player_control(cmdd, datt);
+int AGSFreeBSD::CDPlayerCommand(int cmdd, int datt) {
+    return 0;
 }
 
-eScriptSystemOSID AGSLinux::GetSystemOSID() {
-  return eOS_Linux;
+int AGSFreeBSD::InitializeCDPlayer() {
+    return 0;
 }
 
-int AGSLinux::InitializeCDPlayer() {
-  return cd_player_init();
-}
+void AGSFreeBSD::ShutdownCDPlayer() { }
 
-void AGSLinux::ShutdownCDPlayer() {
-  cd_exit();
+eScriptSystemOSID AGSFreeBSD::GetSystemOSID() {
+  return eOS_FreeBSD;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == nullptr)
-    instance = new AGSLinux();
-  return instance;
+    if (instance == nullptr)
+        instance = new AGSFreeBSD();
+    return instance;
 }
 
-#endif
+#endif // AGS_PLATFORM_OS_FREEBSD

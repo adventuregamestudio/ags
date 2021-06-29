@@ -419,6 +419,8 @@ target_sources(engine
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
+    platform/base/agsplatform_xdg_unix.cpp
+    platform/base/agsplatform_xdg_unix.h
     platform/base/sys_main.cpp
     platform/base/sys_main.h
     platform/util/libc.c
@@ -478,6 +480,7 @@ target_sources(engine
 
     platform/ios/acplios.cpp
 
+    platform/bsd/acplbsd.cpp
 
     platform/windows/win_ex_handling.cpp
     platform/windows/win_ex_handling.h
@@ -611,7 +614,7 @@ else ()
     add_library(ags SHARED)
 endif (NOT ANDROID)
 
-if (LINUX)
+if (LINUX OR FREEBSD)
     install(TARGETS ags RUNTIME DESTINATION bin)
 endif ()
 

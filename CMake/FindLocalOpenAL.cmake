@@ -1,6 +1,6 @@
 # Grab system openAL or use embedded mojoAL
 
-if(WIN32 OR LINUX OR MACOS)
+if(WIN32 OR LINUX OR MACOS OR FREEBSD)
     add_subdirectory(libsrc/mojoAL EXCLUDE_FROM_ALL)
 
     add_library(openal-interface INTERFACE)

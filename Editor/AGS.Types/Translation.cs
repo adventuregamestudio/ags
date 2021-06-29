@@ -28,6 +28,7 @@ namespace AGS.Types
         private bool? _rightToLeftText;
         private string _encodingHint;
         private string _gameEncodingHint;
+        private Encoding _encoding;
         private Dictionary<string, string> _translatedLines;
 
         public Translation(string name)
@@ -38,6 +39,8 @@ namespace AGS.Types
             _speechFont = null;
             _rightToLeftText = null;
             _encodingHint = null;
+            _gameEncodingHint = null;
+            _encoding = Encoding.Default;
         }
 
         public string Name
@@ -80,6 +83,21 @@ namespace AGS.Types
         public string EncodingHint
         {
             get { return _encodingHint; }
+            set
+            {
+                _encodingHint = value;
+                _encoding = Encoding.Default;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    if (string.Compare(_encodingHint, "UTF-8", true) == 0)
+                        _encoding = new UTF8Encoding(false); // UTF-8 w/o BOM
+                }
+            }
+        }
+
+        public Encoding Encoding
+        {
+            get { return _encoding; }
         }
 
         public string GameEncodingHint
@@ -96,6 +114,13 @@ namespace AGS.Types
         public Translation(XmlNode node)
         {
             this.Name = SerializeUtils.GetElementString(node, "Name");
+            _modified = false;
+            _normalFont = null;
+            _speechFont = null;
+            _rightToLeftText = null;
+            _encodingHint = null;
+            _gameEncodingHint = null;
+            _encoding = Encoding.Default;
             LoadData();
         }
 
@@ -108,7 +133,7 @@ namespace AGS.Types
 
         public void SaveData()
         {
-            using (StreamWriter sw = new StreamWriter(FileName, false, Encoding.Default))
+            using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
                 sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
                 sw.WriteLine("// Format is alternating lines with original game text and replacement");
@@ -145,8 +170,9 @@ namespace AGS.Types
         public void LoadData()
         {
             _translatedLines = new Dictionary<string, string>();
+            string old_encoding = _encodingHint;
 
-            using (StreamReader sr = new StreamReader(FileName, Encoding.Default))
+            using (StreamReader sr = new StreamReader(FileName, _encoding))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -154,6 +180,12 @@ namespace AGS.Types
                     if (line.StartsWith("//"))
                     {
                         ReadSpecialTags(line);
+                        if (string.Compare(old_encoding, _encodingHint) != 0)
+                        {
+                            sr.Close();
+                            LoadData(); // try again with the new encoding
+                            return;
+                        }
                         continue;
                     }
                     string originalText = line;
@@ -200,7 +232,7 @@ namespace AGS.Types
             // TODO: make a generic dictionary instead and save any option
             else if (line.StartsWith(ENCODING_TAG))
             {
-                _encodingHint = line.Substring(ENCODING_TAG.Length);
+                EncodingHint = line.Substring(ENCODING_TAG.Length);
             }
             else if (line.StartsWith(GAMEENCODING_TAG))
             {

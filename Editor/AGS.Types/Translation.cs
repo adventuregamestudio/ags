@@ -153,7 +153,8 @@ namespace AGS.Types
                 sw.WriteLine("// Text encoding hint");
                 sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
                 sw.WriteLine("// Source text encoding hint");
-                sw.WriteLine("//#GameEncoding=" + (_gameEncodingHint ?? ""));
+                sw.WriteLine("//#GameEncoding=" +
+                    (string.IsNullOrEmpty(_gameEncodingHint) ? ("." + Encoding.Default.CodePage) : _gameEncodingHint));
                 sw.WriteLine("//  ");
                 sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");

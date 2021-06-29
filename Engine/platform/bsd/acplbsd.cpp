@@ -21,7 +21,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/agsplatform_unix.h"
 
-struct AGSFreeBSD : AGSPlatformUnix {
+struct AGSFreeBSD : AGSPlatformXDGUnix {
     eScriptSystemOSID GetSystemOSID() override;
     int  CDPlayerCommand(int cmdd, int datt) override;
     int  InitializeCDPlayer() override;

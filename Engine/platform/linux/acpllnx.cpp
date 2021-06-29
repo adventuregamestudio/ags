@@ -19,10 +19,10 @@
 // *************** LINUX DRIVER ***************
 
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/agsplatform_unix.h"
+#include "platform/base/agsplatform_xdg_unix.h"
 #include "libsrc/libcda-0.5/libcda.h"
 
-struct AGSLinux : AGSPlatformUnix {
+struct AGSLinux : AGSPlatformXDGUnix {
   int  CDPlayerCommand(int cmdd, int datt) override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;

@@ -25,7 +25,7 @@
 
 #include "platform/base/agsplatformdriver.h"
 
-struct AGSPlatformUnix : AGSPlatformDriver {
+struct AGSPlatformXDGUnix : AGSPlatformDriver {
     void DisplayAlert(const char*, ...) override;
     const char *GetAllUsersDataDirectory() override;
     const char *GetUserSavedgamesDirectory() override;

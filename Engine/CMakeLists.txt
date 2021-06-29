@@ -419,8 +419,8 @@ target_sources(engine
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
-    platform/base/agsplatform_unix.cpp
-    platform/base/agsplatform_unix.h
+    platform/base/agsplatform_xdg_unix.cpp
+    platform/base/agsplatform_xdg_unix.h
     platform/base/sys_main.cpp
     platform/base/sys_main.h
     platform/util/libc.c

@@ -15,7 +15,7 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_IS_XDG_UNIX
-#include "platform/base/agsplatform_unix.h"
+#include "platform/base/agsplatform_xdg_unix.h"
 
 #include <cstdio>
 #include <unistd.h>
@@ -32,7 +32,7 @@ String CommonDataDirectory;
 String UserDataDirectory;
 
 
-void AGSPlatformUnix::DisplayAlert(const char *text, ...) {
+void AGSPlatformXDGUnix::DisplayAlert(const char *text, ...) {
     char displbuf[2000];
     va_list ap;
     va_start(ap, text);
@@ -80,40 +80,40 @@ void DetermineDataDirectories()
     mkdir(CommonDataDirectory.GetCStr(), 0755);
 }
 
-const char *AGSPlatformUnix::GetAllUsersDataDirectory()
+const char *AGSPlatformXDGUnix::GetAllUsersDataDirectory()
 {
     DetermineDataDirectories();
     return CommonDataDirectory.GetCStr();
 }
 
-const char *AGSPlatformUnix::GetUserSavedgamesDirectory()
+const char *AGSPlatformXDGUnix::GetUserSavedgamesDirectory()
 {
     DetermineDataDirectories();
     return UserDataDirectory.GetCStr();
 }
 
-const char *AGSPlatformUnix::GetUserConfigDirectory()
+const char *AGSPlatformXDGUnix::GetUserConfigDirectory()
 {
     return GetUserSavedgamesDirectory();
 }
 
-const char *AGSPlatformUnix::GetUserGlobalConfigDirectory()
+const char *AGSPlatformXDGUnix::GetUserGlobalConfigDirectory()
 {
     return GetUserSavedgamesDirectory();
 }
 
-const char *AGSPlatformUnix::GetAppOutputDirectory()
+const char *AGSPlatformXDGUnix::GetAppOutputDirectory()
 {
     DetermineDataDirectories();
     return UserDataDirectory.GetCStr();
 }
 
-unsigned long AGSPlatformUnix::GetDiskFreeSpaceMB() {
+unsigned long AGSPlatformXDGUnix::GetDiskFreeSpaceMB() {
     // placeholder
     return 100;
 }
 
-const char* AGSPlatformUnix::GetBackendFailUserHint()
+const char* AGSPlatformXDGUnix::GetBackendFailUserHint()
 {
     return "Make sure you have latest version of SDL2 libraries installed, and X server is running.";
 }

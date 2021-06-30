@@ -1,7 +1,7 @@
 FetchContent_Declare(
     sdlsound_content
-    URL https://hg.icculus.org/icculus/SDL_sound/archive/4b78007f035f.tar.gz
-    URL_HASH MD5=ff2448f5a789ae2a07636c243d8f8780
+    URL https://github.com/icculus/SDL_sound/archive/574e3174e311d21cc879f2a5bf26735c52bf1cf2.tar.gz
+    URL_HASH MD5=e4c5da22f5e9edbb74608c2ddded493e
 )
 
 FetchContent_GetProperties(sdlsound_content)

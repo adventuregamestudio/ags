@@ -10,6 +10,7 @@ project(AGS
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+option(AGS_TESTS "Build tests" OFF)
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
@@ -158,6 +159,11 @@ endif()
 
 find_package(PkgConfig)
 find_package(Threads)
+
+if(AGS_TESTS)
+    include(FetchGoogleTest)
+    enable_testing()
+endif()
 
 include(FetchSDL2)
 include(FetchSDL_Sound)

@@ -201,3 +201,25 @@ get_target_property(COMMON_SOURCES common SOURCES)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMMON_SOURCES})
 
 add_library(AGS::Common ALIAS common)
+
+if(AGS_TESTS)
+    add_executable(
+        common_test
+        test/gfxdef_test.cpp
+        test/inifile_test.cpp
+        test/math_test.cpp
+        test/memory_test.cpp
+        test/path_test.cpp
+        test/stream_test.cpp
+        test/string_test.cpp
+        test/version_test.cpp
+    )
+    target_link_libraries(
+        common_test
+        common
+        gtest_main
+    )
+
+    include(GoogleTest)
+    gtest_discover_tests(common_test)
+endif()

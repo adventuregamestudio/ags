@@ -139,6 +139,9 @@ target_sources(common
     util/lzw.h
     util/math.h
     util/memory.h
+    util/memory_compat.h
+    util/memorystream.cpp
+    util/memorystream.h
     util/misc.cpp
     util/misc.h
     util/multifilelib.h

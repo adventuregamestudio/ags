@@ -90,6 +90,28 @@ namespace AGS.Editor.Components
             }
         }
 
+        // "Avis Durgan" in ASCII
+        private byte[] EncryptKey = Encoding.ASCII.GetBytes("Avis Durgan");
+
+        private byte[] EncryptStringToBytes(string text, Encoding encoding)
+        {
+            var bytes = encoding.GetBytes(text);
+            for (int i = 0, key = 0; i < bytes.Length; ++i)
+            {
+                bytes[i] += EncryptKey[key++];
+                if (key > 10)
+                    key = 0;
+            }
+            return bytes;
+        }
+
+        private void WriteString(BinaryWriter bw, string text, Encoding encoding)
+        {
+            var bytes = EncryptStringToBytes(text, encoding);
+            bw.Write(bytes.Length);
+            bw.Write(bytes);
+        }
+
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
             translation.LoadData();
@@ -103,14 +125,16 @@ namespace AGS.Editor.Components
             string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
             bool foundTranslatedLine = false;
+            Encoding textEncoding = translation.Encoding;
 
             using (BinaryWriter bw = new BinaryWriter(new FileStream(compiledFile, FileMode.Create, FileAccess.Write)))
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
                 bw.Write(TRANSLATION_BLOCK_GAME_ID);
-                byte[] gameName = Factory.NativeProxy.TransformStringToBytes(_agsEditor.CurrentGame.Settings.GameName);
-                bw.Write(gameName.Length + 4);
+                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, Encoding.Default);
+                bw.Write(gameName.Length + 4 + 4);
                 bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
+                bw.Write(gameName.Length);
                 bw.Write(gameName);
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
@@ -120,12 +144,12 @@ namespace AGS.Editor.Components
                     if (translation.TranslatedLines[line].Length > 0)
                     {
                         foundTranslatedLine = true;
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(line)));
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(translation.TranslatedLines[line])));
+                        WriteString(bw, Regex.Unescape(line), textEncoding);
+                        WriteString(bw, Regex.Unescape(translation.TranslatedLines[line]), textEncoding);
                     }
                 }
-                bw.Write(Factory.NativeProxy.TransformStringToBytes(string.Empty));
-                bw.Write(Factory.NativeProxy.TransformStringToBytes(string.Empty));
+                WriteString(bw, string.Empty, textEncoding);
+                WriteString(bw, string.Empty, textEncoding);
                 long mainBlockSize = (bw.BaseStream.Position - offsetOfBlockSize) - 4;
                 bw.Write(TRANSLATION_BLOCK_OPTIONS);
                 bw.Write((int)12);

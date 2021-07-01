@@ -250,10 +250,6 @@ int GetPaletteAsHPalette() {
   return (int)convert_palette_to_hpalette(palette);
 }
 
-void transform_string(char *text) {
-	encrypt_text(text);
-}
-
 int find_free_sprite_slot() {
   return spriteset.GetFreeIndex();
 }

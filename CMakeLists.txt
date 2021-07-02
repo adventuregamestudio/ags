@@ -11,6 +11,7 @@ project(AGS
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_TESTS "Build tests" OFF)
+option(AGS_BUILD_COMPILER "Build compiler library" OFF)
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
@@ -191,5 +192,8 @@ endif()
 add_subdirectory(Engine/libsrc/libcda-0.5       EXCLUDE_FROM_ALL)
 
 add_subdirectory(Engine)
+if(AGS_BUILD_COMPILER)
+    add_subdirectory(Compiler)
+endif()
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)

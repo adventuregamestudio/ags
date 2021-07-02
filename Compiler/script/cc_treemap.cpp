@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <cstring>
 #include "cc_treemap.h"
 
 int ccTreeMap::findValue(const char *key) {

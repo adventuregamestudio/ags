@@ -10,14 +10,13 @@
 #pragma unmanaged
 #endif
 
-#include <stdio.h>
-#include <Stdarg.h>
-#include <io.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cstring>
+#include <cstdlib>
 #include "fmem.h"
 
-char*fmemcopyr="FMEM v1.00 (c) 2000 Chris Jones";
+const char*fmemcopyr="FMEM v1.00 (c) 2000 Chris Jones";
 #define FMEM_MAGIC 0xcddebeef
 
 FMEM*tempy;

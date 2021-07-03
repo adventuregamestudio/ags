@@ -649,6 +649,22 @@ if (WIN32)
     )
 endif()
 
+# Test
+# -----------------------------------------------------------------------------
+if(AGS_TESTS)
+    add_executable(
+        engine_test
+        test/scsprintf_test.cpp
+    )
+    target_link_libraries(
+        engine_test
+        engine
+        gtest_main
+    )
+
+    include(GoogleTest)
+    gtest_discover_tests(engine_test)
+endif()
 
 # macOS App Bundle
 # -----------------------------------------------------------------------------

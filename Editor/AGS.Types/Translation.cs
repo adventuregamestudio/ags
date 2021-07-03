@@ -38,9 +38,8 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
-            _encodingHint = null;
-            _gameEncodingHint = null;
-            _encoding = Encoding.Default;
+            _gameEncodingHint = "." + Encoding.Default.CodePage;
+            EncodingHint = "UTF-8";
         }
 
         public string Name

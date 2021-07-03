@@ -884,11 +884,16 @@ bool DialogOptions::Run()
           // TODO: find out what are these key commands, and are these documented?
           if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            size_t last_len = strlen(play.lastParserEntry);
-            KeyInput ki;
-            for (unsigned int i = parserInput->Text.GetLength(); i < last_len; i++) {
-              ki.Key = (eAGSKeyCode)play.lastParserEntry[i];
-              parserInput->OnKeyPress(ki);
+            size_t last_len = ustrlen(play.lastParserEntry);
+            size_t cur_len = ustrlen(parserInput->Text.GetCStr());
+            // [ikm] CHECKME: tbh I don't quite get the logic here (it was like this in original code);
+            // but what we do is copying only the last part of the previous string
+            if (cur_len < last_len)
+            {
+              const char *entry = play.lastParserEntry;
+              // TODO: utility function for advancing N utf-8 chars
+              for (size_t i = 0; i < cur_len; ++i) ugetxc(&entry);
+              parserInput->Text.Append(entry);
             }
             //ags_domouse(DOMOUSE_DISABLE);
             Redraw();

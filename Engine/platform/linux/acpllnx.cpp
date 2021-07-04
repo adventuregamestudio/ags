@@ -25,9 +25,6 @@ struct AGSLinux : AGSPlatformXDGUnix {
   eScriptSystemOSID GetSystemOSID() override;
 };
 
-
-}
-
 eScriptSystemOSID AGSLinux::GetSystemOSID() {
   return eOS_Linux;
 }

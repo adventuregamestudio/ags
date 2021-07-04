@@ -73,7 +73,7 @@ This repository now holds two generations of AGS, referred to as "AGS 3" and "AG
 
 ## Other repositories
 
-There are few other repositories along with the main one, which contains additional resources and may be of interest to you.
+There are other repositories which contain additional resources and may be of interest to you:
 
 - [ags-manual](https://github.com/adventuregamestudio/ags-manual) - holds AGS documentation.
 

@@ -39,6 +39,7 @@
 #include "gfx/blender.h"
 #include "core/assetmanager.h"
 #include "util/alignedstream.h"
+#include "util/textstreamreader.h"
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
 #include "game/game_init.h"
@@ -124,15 +125,75 @@ HError preload_game_data()
     return HError::None();
 }
 
+static inline HError MakeScriptLoadError(const char *name)
+{
+    return new Error(String::FromFormat(
+        "Failed to load a script module: %s", name),
+        ccErrorString);
+}
+
+// Looks up for the game scripts available as separate assets.
+// These are optional, so no error is raised if some of these are not found.
+// For those that do exist, reads them and replaces any scripts of same kind
+// in the already loaded game data.
+HError LoadGameScripts(LoadedGameEntities &ents, GameDataVersion data_ver)
+{
+    // Global script
+    std::unique_ptr<Stream> in(AssetMgr->OpenAsset("GlobalScript.o"));
+    if (in)
+    {
+        PScript script(ccScript::CreateFromStream(in.get()));
+        if (!script)
+            return MakeScriptLoadError("GlobalScript.o");
+        ents.GlobalScript = script;
+    }
+    // Dialog script
+    in.reset(AssetMgr->OpenAsset("DialogScript.o"));
+    if (in)
+    {
+        PScript script(ccScript::CreateFromStream(in.get()));
+        if (!script)
+            return MakeScriptLoadError("DialogScript.o");
+        ents.DialogScript = script;
+    }
+    // Script modules
+    // First load a modules list
+    std::vector<String> modules;
+    in.reset(AssetMgr->OpenAsset("ScriptModules.lst"));
+    if (in)
+    {
+        TextStreamReader reader(in.get());
+        in.release(); // TextStreamReader got it
+        while (!reader.EOS())
+            modules.push_back(reader.ReadLine());
+    }
+    if (modules.size() > ents.ScriptModules.size())
+        ents.ScriptModules.resize(modules.size());
+    // Now run by the list and try loading everything
+    for (size_t i = 0; i < modules.size(); ++i)
+    {
+        in.reset(AssetMgr->OpenAsset(modules[i]));
+        if (in)
+        {
+            PScript script(ccScript::CreateFromStream(in.get()));
+            if (!script)
+                return MakeScriptLoadError(modules[i].GetCStr());
+            ents.ScriptModules[i] = script;
+        }
+    }
+    return HError::None();
+}
+
 HError load_game_file()
 {
     MainGameSource src;
     LoadedGameEntities ents(game, dialog, views);
-    HGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
-    if (load_err)
+    HError err = (HError)OpenMainGameFileFromDefaultAsset(src);
+    if (err)
     {
-        load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);
-        if (load_err)
+        err = (HError)ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+        src.InputStream.reset();
+        if (err)
         {
             // Upscale mode -- for old games that supported it.
             // NOTE: this must be done before UpdateGameData, or resolution-dependant
@@ -145,14 +206,17 @@ HError load_game_file()
                     game.SetGameResolution(kGameResolution_640x480);
             }
 
-            load_err = UpdateGameData(ents, src.DataVersion);
+            err = (HError)UpdateGameData(ents, src.DataVersion);
         }
     }
-    if (!load_err)
-        return (HError)load_err;
-    HGameInitError init_err = InitGameState(ents, src.DataVersion);
-    if (!init_err)
-        return (HError)init_err;
+    if (!err)
+        return err;
+    err = LoadGameScripts(ents, src.DataVersion);
+    if (!err)
+        return err;
+    err = (HError)InitGameState(ents, src.DataVersion);
+    if (!err)
+        return err;
     return HError::None();
 }
 

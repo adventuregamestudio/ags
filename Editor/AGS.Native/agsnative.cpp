@@ -250,10 +250,6 @@ int GetPaletteAsHPalette() {
   return (int)convert_palette_to_hpalette(palette);
 }
 
-void transform_string(char *text) {
-	encrypt_text(text);
-}
-
 int find_free_sprite_slot() {
   return spriteset.GetFreeIndex();
 }
@@ -1167,11 +1163,12 @@ void new_font () {
 
 bool initialize_native()
 {
+    set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+    install_allegro(SYSTEM_NONE, &errno, atexit);
+
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
 
-	set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
-	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;

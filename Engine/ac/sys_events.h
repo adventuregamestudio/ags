@@ -43,7 +43,7 @@ union SDL_Event;
 
 // Converts SDL key data to eAGSKeyCode, which may be also directly used as an ASCII char
 // if it is in proper range, see comments to eAGSKeyCode for details.
-eAGSKeyCode ags_keycode_from_sdl(const SDL_Event &event);
+KeyInput ags_keycode_from_sdl(const SDL_Event &event);
 // Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
 bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);

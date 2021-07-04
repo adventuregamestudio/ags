@@ -123,7 +123,6 @@ bool engine_init_backend()
     }
     
     // Initialize stripped allegro library
-    set_uformat(U_ASCII);
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
         platform->DisplayAlert("Internal error: unable to initialize stripped Allegro 4 library.");
@@ -692,6 +691,9 @@ void engine_init_game_settings()
 {
     our_eip=-7;
     Debug::Printf("Initialize game settings");
+
+    // Setup a text encoding mode depending on the game data hint
+    set_uformat(U_ASCII);
 
     int ee;
 

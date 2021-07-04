@@ -14,6 +14,8 @@ namespace AGS.Types
         private const string NORMAL_FONT_TAG = "//#NormalFont=";
         private const string SPEECH_FONT_TAG = "//#SpeechFont=";
         private const string TEXT_DIRECTION_TAG = "//#TextDirection=";
+        private const string ENCODING_TAG = "//#Encoding=";
+        private const string GAMEENCODING_TAG = "//#GameEncoding=";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
@@ -24,6 +26,9 @@ namespace AGS.Types
         private int? _normalFont;
         private int? _speechFont;
         private bool? _rightToLeftText;
+        private string _encodingHint;
+        private string _gameEncodingHint;
+        private Encoding _encoding;
         private Dictionary<string, string> _translatedLines;
 
         public Translation(string name)
@@ -33,6 +38,8 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
+            _gameEncodingHint = "." + Encoding.Default.CodePage;
+            EncodingHint = "UTF-8";
         }
 
         public string Name
@@ -72,6 +79,31 @@ namespace AGS.Types
             get { return _rightToLeftText; }
         }
 
+        public string EncodingHint
+        {
+            get { return _encodingHint; }
+            set
+            {
+                _encodingHint = value;
+                _encoding = Encoding.Default;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    if (string.Compare(_encodingHint, "UTF-8", true) == 0)
+                        _encoding = new UTF8Encoding(false); // UTF-8 w/o BOM
+                }
+            }
+        }
+
+        public Encoding Encoding
+        {
+            get { return _encoding; }
+        }
+
+        public string GameEncodingHint
+        {
+            get { return _gameEncodingHint; }
+        }
+
         public bool Modified
         {
             get { return _modified; }
@@ -81,6 +113,13 @@ namespace AGS.Types
         public Translation(XmlNode node)
         {
             this.Name = SerializeUtils.GetElementString(node, "Name");
+            _modified = false;
+            _normalFont = null;
+            _speechFont = null;
+            _rightToLeftText = null;
+            _encodingHint = null;
+            _gameEncodingHint = null;
+            _encoding = Encoding.Default;
             LoadData();
         }
 
@@ -93,7 +132,7 @@ namespace AGS.Types
 
         public void SaveData()
         {
-            using (StreamWriter sw = new StreamWriter(FileName, false, Encoding.Default))
+            using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
                 sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
                 sw.WriteLine("// Format is alternating lines with original game text and replacement");
@@ -110,6 +149,11 @@ namespace AGS.Types
                 sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
                 sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
+                sw.WriteLine("// Text encoding hint");
+                sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
+                sw.WriteLine("// Source text encoding hint");
+                sw.WriteLine("//#GameEncoding=" +
+                    (string.IsNullOrEmpty(_gameEncodingHint) ? ("." + Encoding.Default.CodePage) : _gameEncodingHint));
                 sw.WriteLine("//  ");
                 sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
@@ -126,8 +170,9 @@ namespace AGS.Types
         public void LoadData()
         {
             _translatedLines = new Dictionary<string, string>();
+            string old_encoding = _encodingHint;
 
-            using (StreamReader sr = new StreamReader(FileName, Encoding.Default))
+            using (StreamReader sr = new StreamReader(FileName, _encoding))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -135,6 +180,12 @@ namespace AGS.Types
                     if (line.StartsWith("//"))
                     {
                         ReadSpecialTags(line);
+                        if (string.Compare(old_encoding, _encodingHint) != 0)
+                        {
+                            sr.Close();
+                            LoadData(); // try again with the new encoding
+                            return;
+                        }
                         continue;
                     }
                     string originalText = line;
@@ -177,6 +228,15 @@ namespace AGS.Types
                 {
                     _rightToLeftText = null;
                 }
+            }
+            // TODO: make a generic dictionary instead and save any option
+            else if (line.StartsWith(ENCODING_TAG))
+            {
+                EncodingHint = line.Substring(ENCODING_TAG.Length);
+            }
+            else if (line.StartsWith(GAMEENCODING_TAG))
+            {
+                _gameEncodingHint = line.Substring(GAMEENCODING_TAG.Length);
             }
         }
 

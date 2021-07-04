@@ -413,9 +413,9 @@ void IAGSEngine::PollSystem () {
     int mbut, mwheelz;
     if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput())
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
-    int kp;
+    KeyInput kp;
     if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
-        pl_run_plugin_hooks (AGSE_KEYPRESS, kp);
+        pl_run_plugin_hooks (AGSE_KEYPRESS, kp.Key);
     }
 
 }

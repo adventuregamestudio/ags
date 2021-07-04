@@ -1,7 +1,7 @@
 include(TestBigEndian)
 include(CheckFseeko)
 
-add_library(common STATIC)
+add_library(common STATIC EXCLUDE_FROM_ALL)
 
 set_target_properties(common PROPERTIES
     CXX_STANDARD 11

@@ -398,6 +398,26 @@ static void update_all_viewcams_with_newroom()
     }
 }
 
+// Looks up for the room script available as a separate asset.
+// This is optional, so no error is raised if one is not found.
+// If found however, it will replace room script if one had been loaded
+// from the room file itself.
+HError LoadRoomScript(RoomStruct *room, int newnum)
+{
+    String filename = String::FromFormat("room%d.o", newnum);
+    std::unique_ptr<Stream> in(AssetMgr->OpenAsset(filename));
+    if (in)
+    {
+        PScript script(ccScript::CreateFromStream(in.get()));
+        if (!script)
+            return new Error(String::FromFormat(
+                "Failed to load a script module: %s", filename.GetCStr()),
+                ccErrorString);
+        room->CompiledScript = script;
+    }
+    return HError::None();
+}
+
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
@@ -427,6 +447,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         (thisroom.GameID != game.uniqueid)) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
+
+    HError err = LoadRoomScript(&thisroom, newnum);
+    if (!err)
+        quitprintf("!Unable to load '%s'. Error: %s", room_filename.GetCStr(),
+            err->FullMessage().GetCStr());
 
     update_polled_stuff_if_runtime();
     our_eip=201;

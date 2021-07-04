@@ -72,8 +72,6 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
         return "Failed to deserialize custom properties schema.";
     case kMGFErr_InvalidPropertyValues:
         return "Errors encountered when reading custom properties.";
-    case kMGFErr_NoGlobalScript:
-        return "No global script in game.";
     case kMGFErr_CreateGlobalScriptFailed:
         return "Failed to load global script.";
     case kMGFErr_CreateDialogScriptFailed:
@@ -605,17 +603,18 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     game.read_interaction_scripts(in, data_ver);
     game.read_words_dictionary(in);
 
-    if (!game.load_compiled_script)
-        return new MainGameFileError(kMGFErr_NoGlobalScript);
-    ents.GlobalScript.reset(ccScript::CreateFromStream(in));
-    if (!ents.GlobalScript)
-        return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, ccErrorString);
-    err = ReadDialogScript(ents.DialogScript, in, data_ver);
-    if (!err)
-        return err;
-    err = ReadScriptModules(ents.ScriptModules, in, data_ver);
-    if (!err)
-        return err;
+    if (game.load_compiled_script)
+    {
+        ents.GlobalScript.reset(ccScript::CreateFromStream(in));
+        if (!ents.GlobalScript)
+            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, ccErrorString);
+        err = ReadDialogScript(ents.DialogScript, in, data_ver);
+        if (!err)
+            return err;
+        err = ReadScriptModules(ents.ScriptModules, in, data_ver);
+        if (!err)
+            return err;
+    }
 
     ReadViews(game, ents.Views, in, data_ver);
 

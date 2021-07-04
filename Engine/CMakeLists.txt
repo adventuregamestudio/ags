@@ -419,6 +419,8 @@ target_sources(engine
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
+    platform/base/agsplatform_xdg_unix.cpp
+    platform/base/agsplatform_xdg_unix.h
     platform/base/sys_main.cpp
     platform/base/sys_main.h
     platform/util/libc.c
@@ -478,6 +480,7 @@ target_sources(engine
 
     platform/ios/acplios.cpp
 
+    platform/bsd/acplbsd.cpp
 
     platform/windows/win_ex_handling.cpp
     platform/windows/win_ex_handling.h
@@ -610,7 +613,7 @@ else ()
     add_library(ags SHARED)
 endif (NOT ANDROID)
 
-if (LINUX)
+if (LINUX OR FREEBSD)
     install(TARGETS ags RUNTIME DESTINATION bin)
 endif ()
 
@@ -645,6 +648,22 @@ if (WIN32)
     )
 endif()
 
+# Test
+# -----------------------------------------------------------------------------
+if(AGS_TESTS)
+    add_executable(
+        engine_test
+        test/scsprintf_test.cpp
+    )
+    target_link_libraries(
+        engine_test
+        engine
+        gtest_main
+    )
+
+    include(GoogleTest)
+    gtest_discover_tests(engine_test)
+endif()
 
 # macOS App Bundle
 # -----------------------------------------------------------------------------

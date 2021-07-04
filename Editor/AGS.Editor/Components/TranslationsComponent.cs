@@ -25,6 +25,7 @@ namespace AGS.Editor.Components
         private const int TRANSLATION_BLOCK_TRANSLATION_DATA = 1;
         private const int TRANSLATION_BLOCK_GAME_ID = 2;
         private const int TRANSLATION_BLOCK_OPTIONS = 3;
+        private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
@@ -89,6 +90,28 @@ namespace AGS.Editor.Components
             }
         }
 
+        // "Avis Durgan" in ASCII
+        private byte[] EncryptKey = Encoding.ASCII.GetBytes("Avis Durgan");
+
+        private byte[] EncryptStringToBytes(string text, Encoding encoding)
+        {
+            var bytes = encoding.GetBytes(text);
+            for (int i = 0, key = 0; i < bytes.Length; ++i)
+            {
+                bytes[i] += EncryptKey[key++];
+                if (key > 10)
+                    key = 0;
+            }
+            return bytes;
+        }
+
+        private void WriteString(BinaryWriter bw, string text, Encoding encoding)
+        {
+            var bytes = EncryptStringToBytes(text, encoding);
+            bw.Write(bytes.Length);
+            bw.Write(bytes);
+        }
+
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
             translation.LoadData();
@@ -102,14 +125,16 @@ namespace AGS.Editor.Components
             string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
             bool foundTranslatedLine = false;
+            Encoding textEncoding = translation.Encoding;
 
             using (BinaryWriter bw = new BinaryWriter(new FileStream(compiledFile, FileMode.Create, FileAccess.Write)))
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
                 bw.Write(TRANSLATION_BLOCK_GAME_ID);
-                byte[] gameName = Factory.NativeProxy.TransformStringToBytes(_agsEditor.CurrentGame.Settings.GameName);
-                bw.Write(gameName.Length + 4);
+                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, Encoding.Default);
+                bw.Write(gameName.Length + 4 + 4);
                 bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
+                bw.Write(gameName.Length);
                 bw.Write(gameName);
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
@@ -119,18 +144,34 @@ namespace AGS.Editor.Components
                     if (translation.TranslatedLines[line].Length > 0)
                     {
                         foundTranslatedLine = true;
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(line)));
-                        bw.Write(Factory.NativeProxy.TransformStringToBytes(Regex.Unescape(translation.TranslatedLines[line])));
+                        WriteString(bw, Regex.Unescape(line), textEncoding);
+                        WriteString(bw, Regex.Unescape(translation.TranslatedLines[line]), textEncoding);
                     }
                 }
-                bw.Write(Factory.NativeProxy.TransformStringToBytes(string.Empty));
-                bw.Write(Factory.NativeProxy.TransformStringToBytes(string.Empty));
+                WriteString(bw, string.Empty, textEncoding);
+                WriteString(bw, string.Empty, textEncoding);
                 long mainBlockSize = (bw.BaseStream.Position - offsetOfBlockSize) - 4;
                 bw.Write(TRANSLATION_BLOCK_OPTIONS);
                 bw.Write((int)12);
                 bw.Write(translation.NormalFont ?? -1);
                 bw.Write(translation.SpeechFont ?? -1);
                 bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
+
+                bw.Write((int)0); // required for compatibility
+                DataFileWriter.WriteString(TRANSLATION_BLOCK_STROPTIONS, 16, bw);
+                var data_len_pos = bw.BaseStream.Position;
+                bw.Write((long)0); // data length placeholder
+                bw.Write((int)2); // size of key/value table
+                DataFileWriter.FilePutString("encoding", bw);
+                DataFileWriter.FilePutString(translation.EncodingHint, bw);
+                DataFileWriter.FilePutString("gameencoding", bw);
+                DataFileWriter.FilePutString(translation.GameEncodingHint, bw);
+                var end_pos = bw.BaseStream.Position;
+                var data_len = end_pos - data_len_pos - 8;
+                bw.Seek((int)data_len_pos, SeekOrigin.Begin);
+                bw.Write(data_len);
+                bw.Seek((int)end_pos, SeekOrigin.Begin);
+
                 bw.Write(TRANSLATION_BLOCK_END_OF_FILE);
                 bw.Write((int)0);
                 bw.Seek((int)offsetOfBlockSize, SeekOrigin.Begin);

@@ -89,6 +89,19 @@ static int filename_encoding = U_ASCII;
  ***************************************************/
 
 
+
+/* Use strictly UTF-8 encoding for the file paths
+*/
+#define U_CURRENT U_UTF8
+#define ugetc     utf8_getc
+#define ugetx     utf8_getx
+#define ugetxc    utf8_getx
+#define usetc     utf8_setc
+#define uwidth    utf8_width
+#define ucwidth   utf8_cwidth
+#define uisok     utf8_isok
+
+
 /* fix_filename_case:
  *  Converts filename to upper case.
  */

@@ -53,6 +53,8 @@
    #define ALLEGRO_UNIX
 #elif defined(__EMSCRIPTEN__)
    #define ALLEGRO_UNIX
+#elif defined(__FreeBSD__)
+    #define ALLEGRO_UNIX
 #endif
 
 

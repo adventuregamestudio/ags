@@ -124,7 +124,6 @@ bool engine_init_backend()
     }
     
     // Initialize stripped allegro library
-    set_uformat(U_ASCII);
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
         platform->DisplayAlert("Internal error: unable to initialize stripped Allegro 4 library.");
@@ -674,14 +673,14 @@ int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
 
-    HError err = spriteset.InitFile(SpriteCache::DefaultSpriteFileName, SpriteCache::DefaultSpriteIndexName);
+    HError err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
     if (!err) 
     {
         sys_main_shutdown();
         allegro_exit();
         proper_exit=1;
         platform->DisplayAlert("Could not load sprite set file %s\n%s",
-            SpriteCache::DefaultSpriteFileName.GetCStr(),
+            SpriteFile::DefaultSpriteFileName.GetCStr(),
             err->FullMessage().GetCStr());
         return EXIT_ERROR;
     }
@@ -693,6 +692,9 @@ void engine_init_game_settings()
 {
     our_eip=-7;
     Debug::Printf("Initialize game settings");
+
+    // Setup a text encoding mode depending on the game data hint
+    set_uformat(U_ASCII);
 
     int ee;
 

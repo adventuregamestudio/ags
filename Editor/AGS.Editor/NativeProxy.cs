@@ -358,11 +358,6 @@ namespace AGS.Editor
             get { return _native.HaveSpritesBeenModified(); }
         }
 
-        public byte[] TransformStringToBytes(string text)
-        {
-            return _native.TransformStringToBytes(text);
-        }
-
         /// <summary>
         /// Allows the Editor to reuse constants from the native code. If a constant required by the Editor
         /// is not also required by the Engine, then it should instead by moved into AGS.Types (AGS.Native

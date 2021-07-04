@@ -755,22 +755,32 @@ bool DialogOptions::Run()
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
       }
 
-      int gkey;
-      if (run_service_key_controls(gkey) && !play.IsIgnoringInput()) {
+      KeyInput ki;
+      if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
+        eAGSKeyCode gkey = ki.Key;
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
+          // TODO: find out what are these key commands, and are these documented?
           if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = parserInput->Text.GetLength(); i < strlen(play.lastParserEntry); i++) {
-              parserInput->OnKeyPress(play.lastParserEntry[i]);
+            size_t last_len = ustrlen(play.lastParserEntry);
+            size_t cur_len = ustrlen(parserInput->Text.GetCStr());
+            // [ikm] CHECKME: tbh I don't quite get the logic here (it was like this in original code);
+            // but what we do is copying only the last part of the previous string
+            if (cur_len < last_len)
+            {
+              const char *entry = play.lastParserEntry;
+              // TODO: utility function for advancing N utf-8 chars
+              for (size_t i = 0; i < cur_len; ++i) ugetxc(&entry);
+              parserInput->Text.Append(entry);
             }
             //ags_domouse(DOMOUSE_DISABLE);
             Redraw();
             return true; // continue running loop
           }
           else if ((gkey >= eAGSKeyCodeSpace) || (gkey == eAGSKeyCodeReturn) || (gkey == eAGSKeyCodeBackspace)) {
-            parserInput->OnKeyPress(gkey);
+            parserInput->OnKeyPress(ki);
             if (!parserInput->IsActivated) {
               //ags_domouse(DOMOUSE_DISABLE);
               Redraw();
@@ -788,9 +798,9 @@ bool DialogOptions::Run()
         else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&
                  gkey >= '1' && gkey <= '9')
         {
-          gkey -= '1';
-          if (gkey < numdisp) {
-            chose = disporder[gkey];
+          int numkey = gkey - '1';
+          if (numkey < numdisp) {
+            chose = disporder[numkey];
             return false; // end dialog options running loop
           }
         }

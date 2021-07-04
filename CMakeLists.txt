@@ -10,6 +10,8 @@ project(AGS
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+option(AGS_TESTS "Build tests" OFF)
+option(AGS_BUILD_COMPILER "Build compiler library" OFF)
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
@@ -43,6 +45,8 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Android")
     set(ANDROID TRUE)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    set(FREEBSD TRUE)
 else()
     message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
 endif ()
@@ -52,6 +56,7 @@ message( "WIN32:" ${WIN32} )
 message( "LINUX:" ${LINUX} )
 message( "MACOS:" ${MACOS} )
 message( "ANDROID:" ${ANDROID} )
+message( "FREEBSD:" ${FREEBSD} )
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
@@ -156,6 +161,11 @@ endif()
 find_package(PkgConfig)
 find_package(Threads)
 
+if(AGS_TESTS)
+    include(FetchGoogleTest)
+    enable_testing()
+endif()
+
 include(FetchSDL2)
 include(FetchSDL_Sound)
 
@@ -181,5 +191,8 @@ else()
 endif()
 
 add_subdirectory(Engine)
+if(AGS_BUILD_COMPILER)
+    add_subdirectory(Compiler)
+endif()
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)

@@ -356,7 +356,7 @@ bool InventoryScreen::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
-    int kgn;
+    KeyInput kgn;
     if (run_service_key_controls(kgn) && !play.IsIgnoringInput())
     {
         return false; // end inventory screen loop

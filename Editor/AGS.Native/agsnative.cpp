@@ -154,8 +154,8 @@ void initialize_sprite(int spnum) {
   fix_sprite(spnum);
 }
 
-void pre_save_sprite(int spnum) {
-  fix_sprite(spnum);
+void pre_save_sprite(Common::Bitmap *image) {
+  fix_block(image);
 }
 
 Common::Bitmap *get_sprite (int spnr) {
@@ -225,10 +225,6 @@ int GetSpriteColorDepth(int slot) {
 
 int GetPaletteAsHPalette() {
   return (int)convert_palette_to_hpalette(palette);
-}
-
-void transform_string(char *text) {
-	encrypt_text(text);
 }
 
 int find_free_sprite_slot() {
@@ -843,11 +839,12 @@ void new_font () {
 
 bool initialize_native()
 {
+    set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+    install_allegro(SYSTEM_NONE, &errno, atexit);
+
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
 
-	set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
-	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;
@@ -1716,7 +1713,7 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (spriteset.SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    if (SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
         saved_indexfile = n_temp_indexfile;
 }
 

@@ -530,27 +530,6 @@ namespace AGS
 				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStr(err->FullMessage()));
 			}
 		}
-				
-		cli::array<unsigned char>^ NativeMethods::TransformStringToBytes(String ^text) 
-		{
-			char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(text).ToPointer();
-			int textLength = text->Length + 1;
-			cli::array<unsigned char>^ toReturn = gcnew cli::array<unsigned char>(textLength + 4);
-			toReturn[0] = textLength % 256;
-			toReturn[1] = textLength / 256;
-			toReturn[2] = 0;
-			toReturn[3] = 0;
-	
-			transform_string(stringPointer);
-
-			{ pin_ptr<unsigned char> nativeBytes = &toReturn[4];
-				memcpy(nativeBytes, stringPointer, textLength);
-			}
-
-			Marshal::FreeHGlobal(IntPtr(stringPointer));
-
-			return toReturn;
-		}
 
 		bool NativeMethods::HaveSpritesBeenModified()
 		{

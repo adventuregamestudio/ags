@@ -36,7 +36,7 @@ public:
     void SetShowBorder(bool on);
  
     // Events
-    void OnKeyPress(int keycode) override;
+    void OnKeyPress(const KeyInput &ki) override;
  
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;

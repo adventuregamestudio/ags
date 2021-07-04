@@ -18,7 +18,7 @@
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
-#include "util/string.h"
+#include "util/string_types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -74,6 +74,10 @@ namespace StrUtil
     void            SkipCStr(Stream *in);
     void            WriteCStr(const char *cstr, Stream *out);
     void            WriteCStr(const String &s, Stream *out);
+
+    // Serialize and unserialize a string map, both keys and values are read using ReadString
+    void            ReadStringMap(StringMap &map, Stream *in);
+    void            WriteStringMap(const StringMap &map, Stream *out);
 }
 } // namespace Common
 } // namespace AGS

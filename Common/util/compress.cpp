@@ -31,6 +31,10 @@
 
 using namespace AGS::Common;
 
+//-----------------------------------------------------------------------------
+// RLE
+//-----------------------------------------------------------------------------
+
 void cpackbitl(const uint8_t *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
@@ -284,7 +288,49 @@ int cunpackbitl32(uint32_t *line, int size, Stream *in)
   return in->HasErrors() ? -1 : 0;
 }
 
-//=============================================================================
+void rle_compress(Bitmap *bmp, Stream *out)
+{
+    const int depth = bmp->GetBPP();
+    if (depth == 1)
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cpackbitl(&bmp->GetScanLineForWriting(y)[0], bmp->GetWidth(), out);
+    }
+    else if (depth == 2)
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cpackbitl16((unsigned short *)&bmp->GetScanLine(y)[0], bmp->GetWidth(), out);
+    }
+    else
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cpackbitl32((unsigned int *)&bmp->GetScanLine(y)[0], bmp->GetWidth(), out);
+    }
+}
+
+void rle_decompress(Bitmap *bmp, Stream *in)
+{
+    const int depth = bmp->GetBPP();
+    if (depth == 1)
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cunpackbitl(&bmp->GetScanLineForWriting(y)[0], bmp->GetWidth(), in);
+    }
+    else if (depth == 2)
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cunpackbitl16((unsigned short*)&bmp->GetScanLineForWriting(y)[0], bmp->GetWidth(), in);
+    }
+    else
+    {
+        for (int y = 0; y < bmp->GetHeight(); y++)
+            cunpackbitl32((unsigned int*)&bmp->GetScanLineForWriting(y)[0], bmp->GetWidth(), in);
+    }
+}
+
+//-----------------------------------------------------------------------------
+// LZW
+//-----------------------------------------------------------------------------
 
 const char *lztempfnm = "~aclzw.tmp";
 

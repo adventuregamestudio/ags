@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include <cstdio>
 #include "ac/string.h"
 #include "ac/common.h"
@@ -58,39 +59,51 @@ const char* String_AppendChar(const char *thisString, char extraOne) {
 }
 
 const char* String_ReplaceCharAt(const char *thisString, int index, char newChar) {
-    if ((index < 0) || (index >= (int)strlen(thisString)))
+    size_t len = ustrlen(thisString);
+    if ((index < 0) || ((size_t)index >= len))
         quit("!String.ReplaceCharAt: index outside range of string");
 
-    char *buffer = (char*)malloc(strlen(thisString) + 1);
-    strcpy(buffer, thisString);
-    buffer[index] = newChar;
+    size_t off = uoffset(thisString, index);
+    int uchar = ugetc(thisString + off);
+    size_t remain_sz = strlen(thisString + off);
+    size_t old_sz = ucwidth(uchar);
+    size_t new_sz = sizeof(char); // TODO: support unicode char in API
+    size_t total_sz = off + remain_sz + new_sz - old_sz + 1;
+    char *buffer = (char*)malloc(total_sz);
+    memcpy(buffer, thisString, off);
+    usetc(buffer + off, newChar);
+    memcpy(buffer + off + new_sz, thisString + off + old_sz, remain_sz - old_sz + 1);
     return CreateNewScriptString(buffer, false);
 }
 
 const char* String_Truncate(const char *thisString, int length) {
     if (length < 0)
         quit("!String.Truncate: invalid length");
-
-    if (length >= (int)strlen(thisString))
-    {
+    size_t strlen = ustrlen(thisString);
+    if ((size_t)length >= strlen)
         return thisString;
-    }
 
-    char *buffer = (char*)malloc(length + 1);
-    strncpy(buffer, thisString, length);
-    buffer[length] = 0;
+    size_t sz = uoffset(thisString, length);
+    char *buffer = (char*)malloc(sz + 1);
+    memcpy(buffer, thisString, sz);
+    buffer[sz] = 0;
     return CreateNewScriptString(buffer, false);
 }
 
 const char* String_Substring(const char *thisString, int index, int length) {
     if (length < 0)
         quit("!String.Substring: invalid length");
-    if ((index < 0) || (index > (int)strlen(thisString)))
+    size_t strlen = ustrlen(thisString);
+    if ((index < 0) || ((size_t)index > strlen))
         quit("!String.Substring: invalid index");
+    size_t sublen = std::min((size_t)length, strlen - index);
+    size_t start = uoffset(thisString, index);
+    size_t end = uoffset(thisString + start, sublen) + start;
+    size_t copysz = end - start;
 
-    char *buffer = (char*)malloc(length + 1);
-    strncpy(buffer, &thisString[index], length);
-    buffer[length] = 0;
+    char *buffer = (char*)malloc(copysz + 1);
+    memcpy(buffer, thisString + start, copysz);
+    buffer[copysz] = 0;
     return CreateNewScriptString(buffer, false);
 }
 
@@ -100,7 +113,7 @@ int String_CompareTo(const char *thisString, const char *otherString, bool caseS
         return strcmp(thisString, otherString);
     }
     else {
-        return ags_stricmp(thisString, otherString);
+        return ustricmp(thisString, otherString);
     }
 }
 
@@ -110,75 +123,84 @@ int String_StartsWith(const char *thisString, const char *checkForString, bool c
         return (strncmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
     }
     else {
-        return (ags_strnicmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
+        return (ustrnicmp(thisString, checkForString, ustrlen(checkForString)) == 0) ? 1 : 0;
     }
 }
 
 int String_EndsWith(const char *thisString, const char *checkForString, bool caseSensitive) {
-
-    int checkAtOffset = strlen(thisString) - strlen(checkForString);
-
-    if (checkAtOffset < 0)
-    {
+    // NOTE: we need size in bytes here
+    size_t thislen = strlen(thisString), checklen = strlen(checkForString);
+    if (checklen > thislen)
         return 0;
-    }
 
     if (caseSensitive) 
     {
-        return (strcmp(&thisString[checkAtOffset], checkForString) == 0) ? 1 : 0;
+        return (strcmp(thisString + (thislen - checklen), checkForString) == 0) ? 1 : 0;
     }
     else 
     {
-        return (ags_stricmp(&thisString[checkAtOffset], checkForString) == 0) ? 1 : 0;
+        return (ustricmp(thisString + (thislen - checklen), checkForString) == 0) ? 1 : 0;
     }
 }
 
 const char* String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText, bool caseSensitive)
 {
     char resultBuffer[STD_BUFFER_SIZE] = "";
-    int thisStringLen = (int)strlen(thisString);
-    int outputSize = 0;
-    for (int i = 0; i < thisStringLen; i++)
+    size_t outputSize = 0; // length in bytes
+    if (caseSensitive)
     {
-        bool matchHere = false;
-        if (caseSensitive)
+        size_t lookForLen = strlen(lookForText);
+        size_t replaceLen = strlen(replaceWithText);
+        for (const char *ptr = thisString; *ptr; ++ptr)
         {
-            matchHere = (strncmp(&thisString[i], lookForText, strlen(lookForText)) == 0);
+            if (strncmp(ptr, lookForText, lookForLen) == 0)
+            {
+                memcpy(&resultBuffer[outputSize], replaceWithText, replaceLen);
+                outputSize += replaceLen;
+                ptr += lookForLen - 1;
+            }
+            else
+            {
+                resultBuffer[outputSize] = *ptr;
+                outputSize++;
+            }
         }
-        else
+    }
+    else
+    {
+        size_t lookForLen = ustrlen(lookForText);
+        size_t lookForSz = strlen(lookForText); // length in bytes
+        size_t replaceSz = strlen(replaceWithText); // length in bytes
+        const char *p_cur = thisString;
+        for (int c = ugetxc(&thisString); *p_cur; p_cur = thisString, c = ugetxc(&thisString))
         {
-            matchHere = (ags_strnicmp(&thisString[i], lookForText, strlen(lookForText)) == 0);
-        }
-
-        if (matchHere)
-        {
-            strcpy(&resultBuffer[outputSize], replaceWithText);
-            outputSize += strlen(replaceWithText);
-            i += strlen(lookForText) - 1;
-        }
-        else
-        {
-            resultBuffer[outputSize] = thisString[i];
-            outputSize++;
+            if (ustrnicmp(p_cur, lookForText, lookForLen) == 0)
+            {
+                memcpy(&resultBuffer[outputSize], replaceWithText, replaceSz);
+                outputSize += replaceSz;
+                thisString = p_cur + lookForSz;
+            }
+            else
+            {
+                usetc(&resultBuffer[outputSize], c);
+                outputSize += ucwidth(c);
+            }
         }
     }
 
-    resultBuffer[outputSize] = 0;
-
+    resultBuffer[outputSize] = 0; // terminate
     return CreateNewScriptString(resultBuffer, true);
 }
 
 const char* String_LowerCase(const char *thisString) {
-    char *buffer = (char*)malloc(strlen(thisString) + 1);
-    strcpy(buffer, thisString);
-    ags_strlwr(buffer);
+    char *buffer = ags_strdup(thisString);
+    ustrlwr(buffer);
     return CreateNewScriptString(buffer, false);
 }
 
 const char* String_UpperCase(const char *thisString) {
-    char *buffer = (char*)malloc(strlen(thisString) + 1);
-    strcpy(buffer, thisString);
-    ags_strupr(buffer);
+    char *buffer = ags_strdup(thisString);
+    ustrupr(buffer);
     return CreateNewScriptString(buffer, false);
 }
 
@@ -195,21 +217,25 @@ int StringToInt(const char*stino) {
 int StrContains (const char *s1, const char *s2) {
     VALIDATE_STRING (s1);
     VALIDATE_STRING (s2);
-    char *tempbuf1 = (char*)malloc(strlen(s1) + 1);
-    char *tempbuf2 = (char*)malloc(strlen(s2) + 1);
-    strcpy(tempbuf1, s1);
-    strcpy(tempbuf2, s2);
-    ags_strlwr(tempbuf1);
-    ags_strlwr(tempbuf2);
+    char *tempbuf1 = ags_strdup(s1);
+    char *tempbuf2 = ags_strdup(s2);
+    ustrlwr(tempbuf1);
+    ustrlwr(tempbuf2);
 
-    char *offs = strstr (tempbuf1, tempbuf2);
-    free(tempbuf1);
-    free(tempbuf2);
+    char *offs = ustrstr(tempbuf1, tempbuf2);
 
     if (offs == nullptr)
+    {
+        free(tempbuf1);
+        free(tempbuf2);
         return -1;
+    }
 
-    return (offs - tempbuf1);
+    *offs = 0;
+    int at = ustrlen(tempbuf1);
+    free(tempbuf1);
+    free(tempbuf2);
+    return at;
 }
 
 //=============================================================================
@@ -270,7 +296,9 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
     // write it as normal
     if (game.options[OPT_RIGHTLEFTWRITE])
         for (size_t rr = 0; rr < lines.Count(); rr++) {
-            lines[rr].Reverse();
+            (get_uformat() == U_UTF8) ?
+                lines[rr].ReverseUTF8() :
+                lines[rr].Reverse();
             line_length = wgettextwidth_compensate(lines[rr].GetCStr(), fonnt);
             if (line_length > longestline)
                 longestline = line_length;
@@ -435,7 +463,7 @@ RuntimeScriptValue Sc_String_GetChars(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_strlen(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_SELF(strlen);
-    return RuntimeScriptValue().SetInt32(strlen((const char*)self));
+    return RuntimeScriptValue().SetInt32(ustrlen((const char*)self));
 }
 
 //=============================================================================

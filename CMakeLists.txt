@@ -19,6 +19,8 @@ set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
 
 message("------ AGS selected CMake options ------")
+message(" AGS_TESTS: ${AGS_TESTS}")
+message(" AGS_BUILD_COMPILER: ${AGS_BUILD_COMPILER}")
 message(" AGS_NO_MP3_PLAYER: ${AGS_NO_MP3_PLAYER}")
 message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
 message(" AGS_BUILTIN_PLUGINS: ${AGS_BUILTIN_PLUGINS}")
@@ -75,6 +77,10 @@ endif (LINUX)
 if(ANDROID)
     set(AGS_OPENGLES2 TRUE)
 endif(ANDROID)
+
+if(AGS_TESTS)
+    add_compile_definitions("AGS_PLATFORM_TEST=1") #make sure it's test even on Release
+endif()
 
 # Unfortunately there's an upstream bug in Android NDK with Clang
 # https://github.com/android/ndk/issues/721

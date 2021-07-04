@@ -214,6 +214,13 @@ if(AGS_TESTS)
         test/string_test.cpp
         test/version_test.cpp
     )
+    set_target_properties(common_test PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+        )
     target_link_libraries(
         common_test
         common
@@ -221,5 +228,5 @@ if(AGS_TESTS)
     )
 
     include(GoogleTest)
-    gtest_discover_tests(common_test)
+    gtest_add_tests(TARGET common_test)
 endif()

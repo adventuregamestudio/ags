@@ -50,6 +50,13 @@ if(AGS_TESTS)
             test/cc_treemap_test.cpp
             test/cs_parser_test.cpp
     )
+    set_target_properties(compiler_test PROPERTIES
+            CXX_STANDARD 11
+            CXX_EXTENSIONS NO
+            C_STANDARD 11
+            C_EXTENSIONS NO
+            INTERPROCEDURAL_OPTIMIZATION FALSE
+            )
     target_link_libraries(
             compiler_test
             compiler
@@ -57,5 +64,5 @@ if(AGS_TESTS)
     )
 
     include(GoogleTest)
-    gtest_discover_tests(compiler_test)
+    gtest_add_tests(TARGET compiler_test)
 endif()

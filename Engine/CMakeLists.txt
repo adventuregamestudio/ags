@@ -656,6 +656,13 @@ if(AGS_TESTS)
         engine_test
         test/scsprintf_test.cpp
     )
+    set_target_properties(engine_test PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+        )
     target_link_libraries(
         engine_test
         engine
@@ -663,7 +670,7 @@ if(AGS_TESTS)
     )
 
     include(GoogleTest)
-    gtest_discover_tests(engine_test)
+    gtest_add_tests(TARGET engine_test)
 endif()
 
 # macOS App Bundle

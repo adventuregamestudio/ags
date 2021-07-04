@@ -48,7 +48,7 @@ if(AGS_TESTS)
             test/cc_internallist_test.cpp
             test/cc_symboltable_test.cpp
             test/cc_treemap_test.cpp
-            test/cc_symboltable_test.cpp
+            test/cs_parser_test.cpp
     )
     target_link_libraries(
             compiler_test

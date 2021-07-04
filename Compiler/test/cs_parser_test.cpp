@@ -1,4 +1,5 @@
 #include <string>
+#include <util/string_compat.h>
 #include "gtest/gtest.h"
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
@@ -26,13 +27,13 @@ const char *last_seen_cc_error()
 std::pair<AGSString, AGSString> cc_error_at_line(const char *error_msg)
 {
     // printf("error: %s\n", error_msg);
-    last_cc_error_buf = _strdup(error_msg);
+    last_cc_error_buf = ags_strdup(error_msg);
     return std::make_pair(AGSString::FromFormat("Error (line %d): %s", currentline, error_msg), AGSString());
 }
 
 AGSString cc_error_without_line(const char *error_msg)
 {
-    last_cc_error_buf = _strdup(error_msg);
+    last_cc_error_buf = ags_strdup(error_msg);
     return AGSString::FromFormat("Error (line unknown): %s", error_msg);
 }
 
@@ -48,11 +49,12 @@ TEST(Tokenize, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // This incorrect code would crash the tokenizer.
-    char *inpl = "struct MyStruct \
-        {\
-          readonly int2 a; \
-          readonly int2 b; \
-        };";
+    const char *inpl = ""
+        "struct MyStruct "
+        "{"
+        "  readonly int2 a; "
+        "  readonly int2 b; "
+        "};";
 
     ccInternalList targ;
     int tokenizeResult = cc_tokenize(inpl, &targ, scrip);
@@ -63,11 +65,12 @@ TEST(Tokenize, UnknownKeywordAfterReadonly) {
 TEST(Compile, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "struct MyStruct \
-        {\
-          readonly int2 a; \
-          readonly int2 b; \
-        };";
+    const char *inpl = ""
+        "struct MyStruct "
+        "{ "
+        "  readonly int2 a; "
+        "  readonly int2 b; "
+        "}; ";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -79,14 +82,14 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
 TEST(Compile, DynamicArrayReturnValueErrorText) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct DynamicSprite { };\
-        \
-        int[] Func()\
-        {\
-          DynamicSprite *r[] = new DynamicSprite[10];\
-          return r;\
-        }";
+    const char *inpl = ""
+        "managed struct DynamicSprite { };"
+        ""
+        "int[] Func()"
+        "{"
+        "DynamicSprite *r[] = new DynamicSprite[10];"
+        "return r;"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -101,12 +104,12 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
 
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct DynamicSprite { };\
-        \
-        DynamicSprite[] Func()\
-        {\
-        }";
+    const char *inpl = ""
+        "managed struct DynamicSprite { };"
+        ""
+        "DynamicSprite[] Func()"
+        "{"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -118,14 +121,13 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
 TEST(Compile, StructMemberQualifierOrder) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        struct BothOrders { \
-            protected readonly import _tryimport static attribute int something; \
-            attribute static _tryimport import readonly writeprotected int another; \
-            readonly import attribute int MyAttrib; \
-            import readonly attribute int YourAttrib; \
-        };\
-        ";
+    const char *inpl = ""
+        "struct BothOrders { "
+        "  protected readonly import _tryimport static attribute int something; "
+        "  attribute static _tryimport import readonly writeprotected int another; "
+        "  readonly import attribute int MyAttrib; "
+        "  import readonly attribute int YourAttrib; "
+        "};";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -136,10 +138,10 @@ TEST(Compile, StructMemberQualifierOrder) {
 TEST(Compile, ParsingIntSuccess) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        import  int  importedfunc(int data1 = 1, int data2=2, int data3=3);\
-        int testfunc(int x ) { int y = 42; } \
-        ";
+    const char *inpl = ""
+        "import  int  importedfunc(int data1 = 1, int data2=2, int data3=3);"
+        "int testfunc(int x ) { int y = 42; } "
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -150,14 +152,13 @@ TEST(Compile, ParsingIntSuccess) {
 TEST(Compile, ParsingIntLimits) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-                 import int int_limits(int param_min = -2147483648, int param_max = 2147483647);\
-                 int int_limits(int param_min, int param_max)\
-                 {\
-                 int var_min = - 2147483648;\
-                 int var_max = 2147483647;\
-                 }\
-                 ";
+    const char *inpl = ""
+        "import int int_limits(int param_min = -2147483648, int param_max = 2147483647);"
+        "int int_limits(int param_min, int param_max)"
+        "{"
+        "int var_min = - 2147483648;"
+        "int var_max = 2147483647;"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -168,9 +169,9 @@ TEST(Compile, ParsingIntLimits) {
 TEST(Compile, ParsingIntDefaultOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        import  int  importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);\
-        ";
+    const char *inpl = ""
+        "import  int  importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -181,9 +182,9 @@ TEST(Compile, ParsingIntDefaultOverflow) {
 TEST(Compile, ParsingNegIntDefaultOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);\
-        ";
+    const char *inpl = ""
+        "import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -194,9 +195,9 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
 TEST(Compile, ParsingIntOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        int testfunc(int x ) { int y = 4200000000000000000000; } \
-        ";
+    const char *inpl = ""
+        "int testfunc(int x ) { int y = 4200000000000000000000; } "
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -207,9 +208,9 @@ TEST(Compile, ParsingIntOverflow) {
 TEST(Compile, ParsingNegIntOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-                 int testfunc(int x ) { int y = -4200000000000000000000; } \
-                 ";
+    const char *inpl = ""
+        "int testfunc(int x ) { int y = -4200000000000000000000; } "
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -221,22 +222,22 @@ TEST(Compile, ParsingNegIntOverflow) {
 TEST(Compile, EnumNegative) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        enum TestMyEnums {\
-            cat,\
-            dog,\
-            fish,\
-            money=100,\
-            death,\
-            taxes,\
-            popularity=-3,\
-            x,\
-            y,\
-            z,\
-            intmin=-2147483648,\
-            intmax=2147483647\
-        };\
-        ";
+    const char *inpl = ""
+        "enum TestMyEnums {"
+        "cat,"
+        "dog,"
+        "fish,"
+        "money=100,"
+        "death,"
+        "taxes,"
+        "popularity=-3,"
+        "x,"
+        "y,"
+        "z,"
+        "intmin=-2147483648,"
+        "intmax=2147483647"
+        "};"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -264,19 +265,19 @@ TEST(Compile, EnumNegative) {
 TEST(Compile, DefaultParametersLargeInts) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        import int importedfunc(\
-            int data0 = 0, \
-            int data1 = 1, \
-            int data2 = 2, \
-            int data3 = -32000, \
-            int data4 = 32001, \
-            int data5 = 2147483647, \
-            int data6 = -2147483648 , \
-            int data7 = -1, \
-            int data8 = -2  \
-            );\
-        ";
+    const char *inpl = ""
+        "import int importedfunc("
+        "    int data0 = 0,"
+        "    int data1 = 1, "
+        "    int data2 = 2, "
+        "    int data3 = -32000, "
+        "    int data4 = 32001, "
+        "    int data5 = 2147483647, "
+        "    int data6 = -2147483648 , "
+        "    int data7 = -1, "
+        "    int data8 = -2  "
+        ");"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -316,12 +317,12 @@ TEST(Compile, DefaultParametersLargeInts) {
 TEST(Compile, ImportFunctionReturningDynamicArray) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        struct A\
-        {\
-            import static int[] MyFunc();\
-        };\
-        ";
+    const char *inpl = ""
+        "struct A"
+        "{"
+        "import static int[] MyFunc();"
+        "};"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -338,11 +339,11 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 TEST(Compile, DoubleNegatedConstant) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        import int MyFunction(\
-            int data0 = - -69\
-            );\
-        ";
+    const char *inpl = ""
+        "import int MyFunction("
+        "    int data0 = - -69"
+        ");"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -353,12 +354,12 @@ TEST(Compile, DoubleNegatedConstant) {
 TEST(Compile, SubtractionWithoutSpaces) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        int MyFunction()\
-        {\
-            int data0 = 2-4;\
-        }\
-        ";
+    const char *inpl = ""
+        "int MyFunction()"
+        "{"
+        "    int data0 = 2-4;"
+        "}"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -368,82 +369,82 @@ TEST(Compile, SubtractionWithoutSpaces) {
 TEST(Compile, NegationLHSOfExpression) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        enum MyEnum\
-        {\
-            cat\
-        };\
-        \
-        int MyFunctionA()\
-        {\
-            return 0;\
-        }\
-        \
-        int MyFunctionB()\
-        {\
-            int data0 = - 4 * 4;\
-            int data1 = - MyFunctionA() * 4;\
-            int data2 = -cat * 4;\
-            \
-            return 0;\
-        }\
-        ";
+    const char *inpl = ""
+        "enum MyEnum"
+        "{"
+        "    cat"
+        "};"
+        ""
+        "int MyFunctionA()"
+        "{"
+        "    return 0;"
+        "}"
+        ""
+        "int MyFunctionB()"
+        "{"
+        "    int data0 = - 4 * 4;"
+        "    int data1 = - MyFunctionA() * 4;"
+        "    int data2 = -cat * 4;"
+        "    "
+        "    return 0;"
+        "}"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
+    //printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }
 
 TEST(Compile, NegationRHSOfExpression) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        enum MyEnum\
-        {\
-            cat\
-        };\
-        \
-        int MyFunctionA()\
-        {\
-            return 0;\
-        }\
-        \
-        int MyFunctionB()\
-        {\
-            int data0 = 3 - - 4 * 4;\
-            int data1 = 3 - - MyFunctionA() * 4;\
-            int data2 = 3 - -cat * 4;\
-            \
-            return 0;\
-        }\
-        ";
+    const char *inpl = ""
+        "enum MyEnum"
+        "{"
+        "    cat"
+        "};"
+        ""
+        "int MyFunctionA()"
+        "{"
+        "    return 0;"
+        "}"
+        ""
+        "int MyFunctionB()"
+        "{"
+        "    int data0 = 3 - - 4 * 4;"
+        "    int data1 = 3 - - MyFunctionA() * 4;"
+        "    int data2 = 3 - -cat * 4;"
+        "    "
+        "    return 0;"
+        "}"
+        "";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
+    //printf("Error: %s\n", last_seen_cc_error()); fails because it's interpreted as error, but left here for debug
     ASSERT_EQ(0, compileResult);
 }
 
 TEST(Compile, CheckPropertyHandlersAreInPlace) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct A {\
-            readonly import attribute int x;\
-        };\
-        \
-        managed struct B {\
-            import attribute A *a;\
-        };\
-        \
-        managed struct C {\
-            readonly import attribute B *b;\
-        };";
+    const char *inpl = ""
+        "managed struct A {"
+        "    readonly import attribute int x;"
+        "};"
+        ""
+        "managed struct B {"
+        "    import attribute A *a;"
+        "};"
+        ""
+        "managed struct C {"
+        "    readonly import attribute B *b;"
+        "};";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
+    //printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 
     EXPECT_EQ(0, sym.entries[sym.find("A::x")].get_propget());
@@ -457,60 +458,60 @@ TEST(Compile, CheckPropertyHandlersAreInPlace) {
 TEST(Compile, AccessMembersInSequence) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct A {\
-            import attribute int X;\
-        };\
-        \
-        managed struct B {\
-            import attribute A *a;\
-        };\
-        \
-        managed struct C {\
-            import attribute B *b;\
-        };\
-        \
-        int get_X(this A*)\
-        {\
-            return 0;\
-        }\
-        \
-        A* get_a(this B*)\
-        {\
-            return null;\
-        }\
-        \
-        B* get_b(this C*)\
-        {\
-            return null;\
-        }\
-        \
-        void Func() {\
-            C *c;\
-            int a = c.b.a.X;\
-        }";
+    const char *inpl = ""
+        "managed struct A {"
+        "    import attribute int X;"
+        "};"
+        ""
+        "managed struct B {"
+        "    import attribute A *a;"
+        "};"
+        ""
+        "managed struct C {"
+        "    import attribute B *b;"
+        "};"
+        ""
+        "int get_X(this A*)"
+        "{"
+        "    return 0;"
+        "}"
+        ""
+        "A* get_a(this B*)"
+        "{"
+        "    return null;"
+        "}"
+        ""
+        "B* get_b(this C*)"
+        "{"
+        "    return null;"
+        "}"
+        ""
+        "void Func() {"
+        "    C *c;"
+        "    int a = c.b.a.X;"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
+    //printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }
 
 TEST(Compile, AccessNonStaticMemberOfAType) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct A {\
-            import attribute int x;\
-        };\
-        \
-        builtin struct B {\
-            import readonly attribute A *a;\
-        };\
-        \
-        void Func() {\
-            int a = B.a.x;\
-        }";
+    const char *inpl = ""
+        "managed struct A {"
+        "    import attribute int x;"
+        "};"
+        ""
+        "builtin struct B {"
+        "    import readonly attribute A *a;"
+        "};"
+        ""
+        "void Func() {"
+        "    int a = B.a.x;"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -521,21 +522,21 @@ TEST(Compile, AccessNonStaticMemberOfAType) {
 TEST(Compile, AccessNonStaticMemberOfAStaticMember) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
-        managed struct A {\
-            import attribute int x;\
-        };\
-        \
-        builtin struct B {\
-            import static readonly attribute A *a;\
-        };\
-        \
-        void Func() {\
-            int a = B.a.x;\
-        }";
+    const char *inpl = ""
+        "managed struct A {"
+        "    import attribute int x;"
+        "};"
+        ""
+        "builtin struct B {"
+        "    import static readonly attribute A *a;"
+        "};"
+        ""
+        "void Func() {"
+        "    int a = B.a.x;"
+        "}";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
+    //printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }

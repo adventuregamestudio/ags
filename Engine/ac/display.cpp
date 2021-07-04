@@ -296,7 +296,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
                     break;
                 if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
                 {
-                    play.SetWaitSkipResult(SKIP_KEYPRESS, kp);
+                    play.SetWaitSkipResult(SKIP_KEYPRESS, kp.Key);
                     break;
                 }
             }

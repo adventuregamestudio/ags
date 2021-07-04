@@ -59,6 +59,7 @@ message( "LINUX:" ${LINUX} )
 message( "MACOS:" ${MACOS} )
 message( "ANDROID:" ${ANDROID} )
 message( "FREEBSD:" ${FREEBSD} )
+message("----------------------------------------")
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")

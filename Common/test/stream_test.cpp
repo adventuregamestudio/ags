@@ -194,7 +194,31 @@ TEST(Stream, AlignedStream) {
 
     //-----------------------------------------------------
     // Assertions
-    
+
+    ASSERT_EQ(tricky_data_out.a, tricky_data_in.a);
+    ASSERT_EQ(tricky_data_out.b, tricky_data_in.b);
+    ASSERT_EQ(tricky_data_out.d[0], tricky_data_in.d[0]);
+    ASSERT_EQ(tricky_data_out.d[1], tricky_data_in.d[1]);
+    ASSERT_EQ(tricky_data_out.d[2], tricky_data_in.d[2]);
+    ASSERT_EQ(tricky_data_out.e, tricky_data_in.e);
+    ASSERT_EQ(tricky_data_out.f[0], tricky_data_in.f[0]);
+    ASSERT_EQ(tricky_data_out.g[0], tricky_data_in.g[0]);
+    ASSERT_EQ(tricky_data_out.h[0], tricky_data_in.h[0]);
+    ASSERT_EQ(tricky_data_out.i[0], tricky_data_in.i[0]);
+    ASSERT_EQ(tricky_data_out.j, tricky_data_in.j);
+    ASSERT_EQ(tricky_data_out.k, tricky_data_in.k);
+    ASSERT_EQ(tricky_data_out.l, tricky_data_in.l);
+    ASSERT_EQ(tricky_data_out.m, tricky_data_in.m);
+    ASSERT_EQ(tricky_data_out.n, tricky_data_in.n);
+    ASSERT_EQ(tricky_data_out.i64a, tricky_data_in.i64a);
+    ASSERT_EQ(tricky_data_out.o, tricky_data_in.o);
+    ASSERT_EQ(tricky_data_out.i64b, tricky_data_in.i64b);
+    ASSERT_EQ(tricky_data_out.p, tricky_data_in.p);
+    ASSERT_EQ(tricky_data_out.i64c, tricky_data_in.i64c);
+    ASSERT_EQ(tricky_data_out.q, tricky_data_in.q);
+    ASSERT_EQ(tricky_data_out.r, tricky_data_in.r);
+    ASSERT_EQ(tricky_data_out.i64d, tricky_data_in.i64d);
+    ASSERT_EQ(tricky_data_out.final, tricky_data_in.final);
     ASSERT_TRUE(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     ASSERT_TRUE(int32val == 20);
 }

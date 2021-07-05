@@ -31,7 +31,7 @@ const String NORMAL_FONT_TAG("//#NormalFont=");
 const String SPEECH_FONT_TAG("//#SpeechFont=");
 const String TEXT_DIRECTION_TAG("//#TextDirection=");
 const String ENCODING_TAG("//#Encoding=");
-const String KEYENCODING_TAG("//#KeyEncoding=");
+const String GAMEENCODING_TAG("//#GameEncoding=");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
 const char *TAG_DIRECTION_RIGHT = "RIGHT";
@@ -74,9 +74,9 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     {
         tra.StrOptions["encoding"] = line.Mid(ENCODING_TAG.GetLength());
     }
-    else if (line.StartsWith(KEYENCODING_TAG))
+    else if (line.StartsWith(GAMEENCODING_TAG))
     {
-        tra.StrOptions["keyencoding"] = line.Mid(KEYENCODING_TAG.GetLength());
+        tra.StrOptions["gameencoding"] = line.Mid(GAMEENCODING_TAG.GetLength());
     }
 }
 

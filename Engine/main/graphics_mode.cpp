@@ -33,8 +33,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 
-// Don't try to figure out the window size on the mac because the port resizes itself.
-#if AGS_PLATFORM_OS_MACOS || defined(ALLEGRO_SDL2) || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
+// Don't try to figure out the window size on the these ports because the port resizes itself.
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 #define USE_SIMPLE_GFX_INIT
 #endif
 

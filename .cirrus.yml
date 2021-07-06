@@ -41,7 +41,12 @@ build_linux_cmake_task:
     arch=$(dpkg --print-architecture)
     filename=${BUILD_TYPE}_$arch
     mkdir build_$filename && cd build_$filename
-    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DAGS_BUILD_COMPILER=1 -DAGS_TESTS=1  .. && make
+  test_linux_script: |
+    arch=$(dpkg --print-architecture)
+    filename=${BUILD_TYPE}_$arch
+    cd build_$filename
+    ctest --output-on-failure
   binaries_artifacts:
     path: build_*/ags
 
@@ -120,15 +125,19 @@ build_macos_task:
     matrix:
       - BUILD_TYPE: debug
       - BUILD_TYPE: release
-    CMAKE_VERSION: 3.14.5
+    CMAKE_VERSION: 3.20.5
   install_cmake_script: |
-    url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-Darwin-x86_64.tar.gz"
+    url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-macos-universal.tar.gz"
     echo "Downloading CMake from $url"
     curl -fLSs "$url" | bsdtar -f - -xvzC /Applications --strip-components 1
   build_script: |
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
     mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
-    /Applications/CMake.app/Contents/bin/cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+    /Applications/CMake.app/Contents/bin/cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DAGS_TESTS=1 -DAGS_BUILD_COMPILER=1 .. && make
+  test_macos_script: |
+    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
+    cd build_${xcode}_$BUILD_TYPE
+    ctest --output-on-failure
   binaries_artifacts:
     path: build_*/ags
 

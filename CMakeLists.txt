@@ -19,6 +19,8 @@ set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
 
 message("------ AGS selected CMake options ------")
+message(" AGS_TESTS: ${AGS_TESTS}")
+message(" AGS_BUILD_COMPILER: ${AGS_BUILD_COMPILER}")
 message(" AGS_NO_MP3_PLAYER: ${AGS_NO_MP3_PLAYER}")
 message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
 message(" AGS_BUILTIN_PLUGINS: ${AGS_BUILTIN_PLUGINS}")
@@ -57,6 +59,7 @@ message( "LINUX:" ${LINUX} )
 message( "MACOS:" ${MACOS} )
 message( "ANDROID:" ${ANDROID} )
 message( "FREEBSD:" ${FREEBSD} )
+message("----------------------------------------")
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
@@ -75,6 +78,10 @@ endif (LINUX)
 if(ANDROID)
     set(AGS_OPENGLES2 TRUE)
 endif(ANDROID)
+
+if(AGS_TESTS)
+    add_compile_definitions("AGS_PLATFORM_TEST=1") #make sure it's test even on Release
+endif()
 
 # Unfortunately there's an upstream bug in Android NDK with Clang
 # https://github.com/android/ndk/issues/721
@@ -181,7 +188,7 @@ add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
-add_subdirectory(Common                         EXCLUDE_FROM_ALL)
+add_subdirectory(Common)
 
 add_subdirectory(Engine/libsrc/apeg-1.2.1       EXCLUDE_FROM_ALL)
 if(AGS_OPENGLES2)

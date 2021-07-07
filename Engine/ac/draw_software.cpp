@@ -167,10 +167,11 @@ void DirtyRects::Reset()
         DirtyRows[i].numSpans = 0;
 }
 
-// Dirty rects for the main viewport background (black screen);
+// Dirty rects for the game screen background (black screen);
 // these are used when the room viewport does not cover whole screen,
 // so that we know when to paint black after mouse cursor and gui.
 DirtyRects BlackRects;
+Point GlobalOffs;
 // Dirty rects object for the single room camera
 std::vector<DirtyRects> RoomCamRects;
 // Saved room camera offsets to know if we must invalidate whole surface.
@@ -182,6 +183,11 @@ void dispose_invalid_regions(bool /* room_only */)
 {
     RoomCamRects.clear();
     RoomCamPositions.clear();
+}
+
+void set_invalidrects_globaloffs(int x, int y)
+{
+    GlobalOffs = Point(x, y);
 }
 
 void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport)
@@ -356,7 +362,7 @@ void invalidate_rect_ds(DirtyRects &rects, int x1, int y1, int x2, int y2, bool 
         y2 = rects.Screen2DirtySurf.Y.ScalePt(y2);
     }
     else
-    {
+    {   // Transform only from camera pos to room background
         x1 -= rects.Room2Screen.X.GetSrcOffset();
         y1 -= rects.Room2Screen.Y.GetSrcOffset();
         x2 -= rects.Room2Screen.X.GetSrcOffset();
@@ -368,6 +374,14 @@ void invalidate_rect_ds(DirtyRects &rects, int x1, int y1, int x2, int y2, bool 
 
 void invalidate_rect_ds(int x1, int y1, int x2, int y2, bool in_room)
 {
+    if (!in_room)
+    { // convert from game viewport to global screen coords
+        x1 += GlobalOffs.X;
+        x2 += GlobalOffs.X;
+        y1 += GlobalOffs.Y;
+        y2 += GlobalOffs.Y;
+    }
+
     for (auto &rects : RoomCamRects)
         invalidate_rect_ds(rects, x1, y1, x2, y2, in_room);
 }

@@ -26,14 +26,22 @@ void MacroTable::merge(MacroTable *others) {
     }
 
 }
-int MacroTable::find_name(char* namm) {
+int MacroTable::find_name(const char* namm) {
     int ss;
     for (ss=0;ss<num;ss++) {
         if (strcmp(namm,name[ss])==0) return ss;
     }
     return -1;
 }
-void MacroTable::add(char*namm,char*mac) {
+bool MacroTable::contains(const char * namm) {
+    return find_name(namm) != -1;
+}
+char* MacroTable::get_macro(const char * namm) {
+    int i = find_name(namm);
+    if(i == -1) return nullptr;
+    return macro[i];
+}
+void MacroTable::add(const char*namm, const char*mac) {
     if (find_name(namm) >= 0) {
         cc_error("macro '%s' already defined",namm);
         return;
@@ -56,6 +64,11 @@ void MacroTable::remove(int index) {
     // just blank out the entry, don't bother to remove it
     name[index][0] = 0;
     macro[index][0] = 0;
+}
+void MacroTable::remove_name(const char * namm) {
+    int i = find_name(namm);
+    if(i == -1) return;
+    remove(i);
 }
 
 MacroTable macros;

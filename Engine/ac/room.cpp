@@ -416,6 +416,7 @@ void update_letterbox_mode()
 
     play.SetMainViewport(CenterInRect(game_frame, new_main_view));
     play.SetUIViewport(new_main_view);
+    on_mainviewport_changed();
 }
 
 // Automatically reset primary room viewport and camera to match the new room size

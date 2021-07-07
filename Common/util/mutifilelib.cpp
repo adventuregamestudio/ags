@@ -175,7 +175,7 @@ MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLV
     int passwmodifier = in->ReadByte();
     in->ReadInt8(); // unused byte
     lib.LibFileNames.resize(1); // only one library part
-    size_t asset_count = in->ReadInt16();
+    size_t asset_count = (uint16_t)in->ReadInt16();
     lib.AssetInfos.resize(asset_count);
 
     in->Seek(SingleFilePswLen, kSeekCurrent); // skip password dooberry
@@ -192,7 +192,7 @@ MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLV
     }
     for (size_t i = 0; i < asset_count; ++i)
     {
-        lib.AssetInfos[i].Size = in->ReadInt32();
+        lib.AssetInfos[i].Size = (uint32_t)in->ReadInt32();
     }
     in->Seek(2 * asset_count, kSeekCurrent); // skip flags & ratio
     lib.AssetInfos[0].Offset = in->GetPosition();
@@ -232,7 +232,7 @@ MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVe
 MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
 {
     // number of clib parts
-    size_t mf_count = in->ReadInt32();
+    size_t mf_count = (uint32_t)in->ReadInt32();
     lib.LibFileNames.resize(mf_count);
     // filenames for all clib parts; filenames are only 20 chars long in this format version
     for (size_t i = 0; i < mf_count; ++i)
@@ -241,7 +241,7 @@ MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib
     }
 
     // number of files in clib
-    size_t asset_count = in->ReadInt32();
+    size_t asset_count = (uint32_t)in->ReadInt32();
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     // filename array is only 25 chars long in this format version
@@ -254,18 +254,18 @@ MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib
         lib.AssetInfos[i].FileName = fn_buf;
     }
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Offset = in->ReadInt32();
+        lib.AssetInfos[i].Offset = (uint32_t)in->ReadInt32();
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Size = in->ReadInt32();
+        lib.AssetInfos[i].Size = (uint32_t)in->ReadInt32();
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].LibUid = in->ReadInt8();
+        lib.AssetInfos[i].LibUid = (uint8_t)in->ReadInt8();
     return kMFLNoError;
 }
 
 MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
 {
     // number of clib parts
-    size_t mf_count = in->ReadInt32();
+    size_t mf_count = (uint32_t)in->ReadInt32();
     lib.LibFileNames.resize(mf_count);
     // filenames for all clib parts
     for (size_t i = 0; i < mf_count; ++i)
@@ -274,13 +274,13 @@ MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
     }
 
     // number of files in clib
-    size_t asset_count = in->ReadInt32();
+    size_t asset_count = (uint32_t)in->ReadInt32();
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     char fn_buf[MaxAssetFileLen];
     for (size_t i = 0; i < asset_count; ++i)
     {
-        short len = in->ReadInt16();
+        size_t len = in->ReadInt16();
         len /= 5; // CHECKME: why 5?
         if (len > MaxAssetFileLen)
             return kMFLErrAssetNameLong;
@@ -290,11 +290,11 @@ MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
         lib.AssetInfos[i].FileName = fn_buf;
     }
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Offset = in->ReadInt32();
+        lib.AssetInfos[i].Offset = (uint32_t)in->ReadInt32();
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Size = in->ReadInt32();
+        lib.AssetInfos[i].Size = (uint32_t)in->ReadInt32();
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].LibUid = in->ReadInt8();
+        lib.AssetInfos[i].LibUid = (uint8_t)in->ReadInt8();
     return kMFLNoError;
 }
 
@@ -303,7 +303,7 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
     // init randomizer
     int rand_val = in->ReadInt32() + EncryptionRandSeed;
     // number of clib parts
-    size_t mf_count = ReadEncInt32(in, rand_val);
+    size_t mf_count = (uint32_t)ReadEncInt32(in, rand_val);
     lib.LibFileNames.resize(mf_count);
     // filenames for all clib parts
     char fn_buf[MaxDataFileLen > MaxAssetFileLen ? MaxDataFileLen : MaxAssetFileLen];
@@ -314,7 +314,7 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
     }
 
     // number of files in clib
-    size_t asset_count = ReadEncInt32(in, rand_val);
+    size_t asset_count = (uint32_t)ReadEncInt32(in, rand_val);
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     for (size_t i = 0; i < asset_count; ++i)
@@ -323,11 +323,11 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
         lib.AssetInfos[i].FileName = fn_buf;
     }
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Offset = ReadEncInt32(in, rand_val);
+        lib.AssetInfos[i].Offset = (uint32_t)ReadEncInt32(in, rand_val);
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].Size = ReadEncInt32(in, rand_val);
+        lib.AssetInfos[i].Size = (uint32_t)ReadEncInt32(in, rand_val);
     for (size_t i = 0; i < asset_count; ++i)
-        lib.AssetInfos[i].LibUid = ReadEncInt8(in, rand_val);
+        lib.AssetInfos[i].LibUid = (uint8_t)ReadEncInt8(in, rand_val);
     return kMFLNoError;
 }
 
@@ -338,20 +338,20 @@ MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* 
     // as one of the options here.
     /* int flags = */ in->ReadInt32(); // reserved options
     // number of clib parts
-    size_t mf_count = in->ReadInt32();
+    size_t mf_count = (uint32_t)in->ReadInt32();
     lib.LibFileNames.resize(mf_count);
     // filenames for all clib parts
     for (size_t i = 0; i < mf_count; ++i)
         lib.LibFileNames[i] = String::FromStream(in);
 
     // number of files in clib
-    size_t asset_count = in->ReadInt32();
+    size_t asset_count = (uint32_t)in->ReadInt32();
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     for (auto &asset : lib.AssetInfos)
     {
         asset.FileName = String::FromStream(in);
-        asset.LibUid = in->ReadInt8();
+        asset.LibUid = (uint8_t)in->ReadInt8();
         asset.Offset = in->ReadInt64();
         asset.Size = in->ReadInt64();
     }

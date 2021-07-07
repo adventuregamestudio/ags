@@ -21,6 +21,18 @@
     <Filter Include="Header Files\script">
       <UniqueIdentifier>{88b38dc3-7935-47f5-b029-b8795f386220}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common Source Files">
+      <UniqueIdentifier>{dd17ec87-e7d5-48f2-bf6b-2a4041eb37fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common Header Files">
+      <UniqueIdentifier>{a7d52cc8-335a-417b-805a-f5cd4d2a373e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\preproc">
+      <UniqueIdentifier>{f81f94b4-2caf-47e6-95d3-cceae31dd823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\preproc">
+      <UniqueIdentifier>{1708ce39-05d7-418b-a0b9-f045fd8ca22d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Compiler\fmem.cpp">
@@ -59,6 +71,22 @@
     <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp">
+      <Filter>Source Files\preproc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Common\util\version.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\util\version.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\preproc\preprocessor.h">
+      <Filter>Header Files\preproc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\fmem.h">

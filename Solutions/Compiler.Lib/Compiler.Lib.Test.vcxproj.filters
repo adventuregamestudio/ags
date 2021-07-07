@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\Compiler\test\cs_parser_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\test\preprocessor_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Compiler\test\cc_test_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

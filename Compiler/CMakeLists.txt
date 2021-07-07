@@ -49,6 +49,7 @@ if(AGS_TESTS)
             test/cc_symboltable_test.cpp
             test/cc_treemap_test.cpp
             test/cs_parser_test.cpp
+            test/preprocessor_test.cpp
             test/cc_test_helper.cpp
             test/cc_test_helper.h
     )

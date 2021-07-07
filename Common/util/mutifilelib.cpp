@@ -282,6 +282,8 @@ MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
     {
         short len = in->ReadInt16();
         len /= 5; // CHECKME: why 5?
+        if (len > MaxAssetFileLen)
+            return kMFLErrAssetNameLong;
         in->Read(fn_buf, len);
         // decrypt filenames
         DecryptText(fn_buf);

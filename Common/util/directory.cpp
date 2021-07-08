@@ -1,15 +1,15 @@
-
-#include "core/platform.h"
+#include "util/directory.h"
 #include <errno.h>
+#include <string.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
-#include "util/directory.h"
 #include "util/path.h"
-#include "stdio_compat.h"
+#include "util/stdio_compat.h"
+
 
 namespace AGS
 {

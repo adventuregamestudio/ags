@@ -57,6 +57,22 @@ namespace MFLUtil
 };
 
 
+String MFLUtil::GetMFLErrorText(MFLError err)
+{
+    switch (err)
+    {
+    case kMFLNoError:
+        return "No error.";
+    case kMFLErrNoLibSig:
+        return "Not an asset library file or unsupported format.";
+    case kMFLErrLibVersion:
+        return "Format version not supported.";
+    case kMFLErrNoLibBase:
+        return "Not the base asset library file.";
+    }
+    return "Unknown error.";
+}
+
 MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
 {
     MFLVersion lib_version;

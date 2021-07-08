@@ -43,7 +43,7 @@ namespace MFLUtil
         kMFLErrNoLibSig       = -1, // library signature does not match
         kMFLErrLibVersion     = -2, // library version unsupported
         kMFLErrNoLibBase      = -3, // file is not library base (head)
-        kMFLErrLibAssetCount  = -4, // too many assets in library
+        kMFLErrLibAssetCount  = -4, // too many assets in library (unused)
         kMFLErrAssetNameLong  = -5, // asset name is too long (old formats only)
     };
 
@@ -60,6 +60,8 @@ namespace MFLUtil
 
     // Maximal number of the data files in one library chain (1-byte index)
     const size_t MaxMultiLibFiles = 256;
+
+    String   GetMFLErrorText(MFLError err);
 
     MFLError TestIsMFL(Stream *in, bool test_is_main = false);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);

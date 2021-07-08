@@ -255,6 +255,7 @@ private:
     bool _smoothScaling;
     bool _legacyPixelShader;
 
+    bool _shaders_created {};
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
     ShaderProgram _transparencyShader;
@@ -291,7 +292,7 @@ private:
     void ResetAllBatches() override;
 
     // Sets up GL objects not related to particular display mode
-    void FirstTimeInit();
+    bool FirstTimeInit();
     // Initializes Gl rendering context
     bool InitGlScreen(const DisplayMode &mode);
     bool CreateWindowAndGlContext(const DisplayMode &mode);
@@ -304,7 +305,7 @@ private:
     // Test if supersampling should be allowed with the current setup
     void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
-    void CreateShaders();
+    bool CreateShaders();
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();

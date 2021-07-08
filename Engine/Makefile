@@ -5,12 +5,6 @@
 
 UNAME := $(shell uname)
 
-ifeq ($(V), 1)
-CMD_PREFIX :=
-else
-CMD_PREFIX := @
-endif
-
 include Makefile-objs
 
 ifeq ($(UNAME), Darwin)
@@ -34,6 +28,12 @@ DEPFILES = $(OBJS:.o=.d) $(OBJS_COMMON:.o=.d)
 
 CXXFLAGS += $(USER_CXXFLAGS)
 CFLAGS += $(USER_CFLAGS)
+
+ifeq ($(V), 1)
+CMD_PREFIX :=
+else
+CMD_PREFIX := @
+endif
 
 .PHONY: printflags clean install uninstall rebuild
 

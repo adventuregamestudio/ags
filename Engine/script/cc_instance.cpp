@@ -1638,7 +1638,7 @@ bool ccInstance::ResolveScriptImports(PScript scri)
     }
 
     resolved_imports = new int[numimports];
-    int errors = 0;
+    int errors = 0, last_err_idx;
     for (int i = 0; i < scri->numimports; ++i) {
         if (scri->imports[i] == nullptr) {
             resolved_imports[i] = -1;
@@ -1647,11 +1647,18 @@ bool ccInstance::ResolveScriptImports(PScript scri)
 
         resolved_imports[i] = simp.get_index_of(scri->imports[i]);
         if (resolved_imports[i] < 0) {
-            AGS::Common::Debug::Printf(kDbgMsg_Info, "unresolved import '%s' in %s", scri->imports[i], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
+            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[i], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
             errors++;
+            last_err_idx = i;
         }
     }
-    if (errors > 0) cc_error("unresolved imports, quitting.");
+
+    if (errors > 0)
+       cc_error("in %s: %d unresolved imports (last: %s)",
+         scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>",
+         errors,
+         scri->imports[last_err_idx]);
+
     return errors == 0;
 }
 

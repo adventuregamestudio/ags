@@ -115,6 +115,15 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     fix_filename_slashes(filename);
   }
 
+  if(directory && filename) {
+    char buf[1024];
+    snprintf(buf, sizeof buf, "%s/%s", directory, filename);
+    lstat(buf, &statbuf);
+    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+      diamond = strdup(buf); goto out;
+    }
+  }
+
   if (directory == nullptr) {
     char  *match    = nullptr;
     int   match_len = 0;
@@ -174,6 +183,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   fchdir(dirfd(prevdir));
   closedir(prevdir);
 
+out:;
   free(directory);
   free(filename);
 

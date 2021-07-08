@@ -22,7 +22,7 @@
 #ifndef __AGS_EE_AC__PATHHELPER_H
 #define __AGS_EE_AC__PATHHELPER_H
 
-#include "util/string.h"
+#include "util/path.h"
 
 using AGS::Common::String;
 
@@ -45,11 +45,13 @@ String PathFromInstallDir(const String &path);
 // sub-path subdirectories, and only if secure path exists.
 struct FSLocation
 {
-    String BaseDir; // parent part of the full path that is not our responsibility
-    String FullDir; // full path to the directory
+    String BaseDir; // base directory, which we assume already exists; not our responsibility
+    String SubDir;  // sub-directory, relative to BaseDir
+    String FullDir; // full path to location
     FSLocation() = default;
     FSLocation(const String &base) : BaseDir(base), FullDir(base) {}
-    FSLocation(const String &base, const String &full) : BaseDir(base), FullDir(full) {}
+    FSLocation(const String &base, const String &subdir)
+        : BaseDir(base), SubDir(subdir), FullDir(AGS::Common::Path::ConcatPaths(base, subdir)) {}
 };
 // Makes sure that given system location is available, makes directories if have to (and if it's allowed to)
 // Returns full file path on success, empty string on failure.
@@ -68,9 +70,14 @@ FSLocation GetGameUserDataDir();
 // ResolvedPath describes an actual location pointed by a user path (e.g. from script)
 struct ResolvedPath
 {
-    String BaseDir;  // base directory, which we assume already exists
+    FSLocation Loc;  // location (directory)
     String FullPath; // full path, including filename
-    String AltPath;  // alternative full path, for backwards compatibility
+    String AltPath;  // alternative read-only full path, for backwards compatibility
+    ResolvedPath() = default;
+    ResolvedPath(const String &file, const String &alt = "")
+        : FullPath(file), AltPath(alt) {}
+    ResolvedPath(const FSLocation &loc, const String &file, const String &alt = "")
+        : Loc(loc), FullPath(AGS::Common::Path::ConcatPaths(loc.FullDir, file)), AltPath(alt) {}
 };
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.

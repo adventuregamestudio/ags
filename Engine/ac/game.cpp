@@ -334,34 +334,34 @@ String get_save_game_path(int slotNum)
 }
 
 // Convert a path possibly containing path tags into acceptable save path
-bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
+bool MakeSaveGameDir(const String &newFolder, FSLocation &fsloc)
 {
-    rp = ResolvedPath();
+    fsloc = FSLocation();
     // don't allow absolute paths
     if (!Path::IsRelativePath(newFolder))
         return false;
 
     String base_dir;
-    String newSaveGameDir = newFolder;
+    String sub_dir;
 
-    if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken) == 0)
+    if (newFolder.CompareLeft(UserSavedgamesRootToken) == 0)
     {
         // IMPORTANT: for compatibility reasons we support both cases:
         // when token is followed by the path separator and when it is not, in which case it's assumed.
         if (saveGameParent.IsEmpty())
         {
             base_dir = PathFromInstallDir(platform->GetUserSavedgamesDirectory());
-            newSaveGameDir = Path::ConcatPaths(base_dir, newFolder.Mid(newSaveGameDir.GetLength()));
+            sub_dir = newFolder.Mid(UserSavedgamesRootToken.GetLength());
         }
         else
         {
             // If there is a custom save parent directory, then replace
             // not only root token, but also first subdirectory after the token
-            newSaveGameDir = Path::ConcatPaths(".", newFolder.Mid(newSaveGameDir.GetLength()));
-            newSaveGameDir.ClipSection('/', 0, 1); // TODO: Path helper function for this?
-            newSaveGameDir = Path::ConcatPaths(saveGameParent, newSaveGameDir);
             base_dir = saveGameParent;
+            sub_dir = Path::ConcatPaths(".", newFolder.Mid(UserSavedgamesRootToken.GetLength()));
+            sub_dir.ClipSection('/', 0, 1); // TODO: Path helper function for this?
         }
+        fsloc = FSLocation(base_dir, sub_dir);
     }
     else
     {
@@ -370,22 +370,21 @@ bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
         if (saveGameParent.IsEmpty())
         {
             base_dir = PathFromInstallDir(platform->GetUserSavedgamesDirectory());
-            newSaveGameDir = Path::ConcatPaths(Path::ConcatPaths(base_dir, game.saveGameFolderName), newFolder);
+            sub_dir = Path::ConcatPaths(game.saveGameFolderName, newFolder);
         }
         else
         {
             base_dir = saveGameParent;
-            newSaveGameDir = Path::ConcatPaths(saveGameParent, newFolder);
+            sub_dir = newFolder;
         }
+        fsloc = FSLocation(base_dir, sub_dir);
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])
         {
             debug_script_warn("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
-                newFolder.GetCStr(), newSaveGameDir.GetCStr());
+                newFolder.GetCStr(), fsloc.FullDir.GetCStr());
         }
     }
-    rp.BaseDir = base_dir;
-    rp.FullPath = newSaveGameDir;
     return true;
 }
 
@@ -411,15 +410,15 @@ bool SetSaveGameDirectoryPath(const String &new_dir, bool explicit_path)
     }
     else
     {
-        ResolvedPath rp;
-        if (!MakeSaveGameDir(newFolder, rp))
+        FSLocation fsloc;
+        if (!MakeSaveGameDir(newFolder, fsloc))
             return false;
-        if (!Directory::CreateAllDirectories(rp.BaseDir, rp.FullPath))
+        if (!Directory::CreateAllDirectories(fsloc.BaseDir, fsloc.FullDir))
         {
-            debug_script_warn("SetSaveGameDirectory: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
+            debug_script_warn("SetSaveGameDirectory: failed to create all subdirectories: %s", fsloc.FullDir.GetCStr());
             return false;
         }
-        newSaveGameDir = rp.FullPath;
+        newSaveGameDir = fsloc.FullDir;
     }
 
     String newFolderTempFile = Path::ConcatPaths(newSaveGameDir, "agstmp.tmp");

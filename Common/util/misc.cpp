@@ -85,7 +85,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 }
 
 #else
-/* Case Insensitive File Find */
+/* Case Sensitive File Find - only used on UNIX platforms */
 char *ci_find_file(const char *dir_name, const char *file_name)
 {
   struct stat   statbuf;
@@ -131,7 +131,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
     match = get_filename(filename);
     if (match == nullptr)
-      return nullptr;
+      goto out;
 
     match_len = strlen(match);
     dir_len   = (match - filename);
@@ -152,17 +152,17 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
   if ((prevdir = opendir(".")) == nullptr) {
     fprintf(stderr, "ci_find_file: cannot open current working directory\n");
-    return nullptr;
+    goto out;
   }
 
   if (chdir(directory) == -1) {
     fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    return nullptr;
+    goto out;
   }
-  
+
   if ((rough = opendir(directory)) == nullptr) {
     fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    return nullptr;
+    goto out;
   }
 
   while ((entry = readdir(rough)) != nullptr) {
@@ -184,8 +184,8 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   closedir(prevdir);
 
 out:;
-  free(directory);
-  free(filename);
+  if(directory) free(directory);
+  if(filename) free(filename);
 
   return diamond;
 }

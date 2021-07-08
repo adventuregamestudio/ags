@@ -261,11 +261,6 @@ namespace AGS.Editor
             _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
         }
 
-        public void DeleteBackground(Room room, int backgroundNumber)
-        {
-            _native.DeleteBackground(room, backgroundNumber);
-        }
-
         public Bitmap GetBitmapForBackground(Room room, int backgroundNumber)
         {
             return _native.GetBitmapForBackground(room, backgroundNumber);

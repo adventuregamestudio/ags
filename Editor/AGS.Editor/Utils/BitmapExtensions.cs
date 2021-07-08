@@ -119,7 +119,7 @@ namespace AGS.Editor
 
             foreach (PaletteEntry global in Factory.AGSEditor.CurrentGame.Palette)
             {
-                palette.Entries[global.Index] = Color.FromArgb(global.Index == 0 ? 0 : 255, global.Colour);
+                palette.Entries[global.Index] = Color.FromArgb(255, global.Colour);
             }
 
             bmp.Palette = palette; // Get Bitmap.Palette is deep copy so we need to set it back

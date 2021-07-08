@@ -223,6 +223,11 @@ namespace AGS.Types
 
         #endregion
 
-        public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);
+        public void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer, false);
+            _interactions.ToXml(writer);
+            writer.WriteEndElement();
+        }
     }
 }

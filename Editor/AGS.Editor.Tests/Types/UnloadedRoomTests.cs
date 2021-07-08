@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.IO;
 using System.Xml;
 
 namespace AGS.Types
@@ -55,7 +56,7 @@ namespace AGS.Types
         public void GetsUserFileName(int number)
         {
             _unloadedRoom.Number = number;
-            Assert.That(_unloadedRoom.UserFileName, Is.EqualTo($"room{number}.crm.user"));
+            Assert.That(_unloadedRoom.UserFileName, Is.EqualTo(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{number}", $"room{number}.crm.user")));
         }
 
         [TestCase(0)]
@@ -64,7 +65,7 @@ namespace AGS.Types
         public void GetsScriptFileName(int number)
         {
             _unloadedRoom.Number = number;
-            Assert.That(_unloadedRoom.ScriptFileName, Is.EqualTo($"room{number}.asc"));
+            Assert.That(_unloadedRoom.ScriptFileName, Is.EqualTo(Path.Combine(UnloadedRoom.ROOM_DIRECTORY, $"{number}", $"room{number}.asc")));
         }
 
         [TestCase("test1file", "test1", false)]

@@ -19,9 +19,21 @@ namespace AGS.Editor
             lblTask.Text = text;
         }
 
+        public void SetProgress(int value, string text)
+        {
+            SetProgressValue(value);
+            SetProgressText(text);
+        }
+
         public void SetProgressValue(int value)
         {
             progressBar.Value = Math.Min(value, progressBar.Maximum);
+        }
+
+        public void SetProgressText(string text)
+        {
+            lblTask.Text = text;
+            lblTask.Refresh();
         }
 
         private void Progress_Activated(object sender, EventArgs e)

@@ -20,6 +20,12 @@
 
 #include "util/string.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#define PATH_ALT_SEPARATOR ('\\')
+#else
+#define PATH_ALT_SEPARATOR ('/')
+#endif
+
 namespace AGS
 {
 namespace Common

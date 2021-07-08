@@ -28,25 +28,32 @@ bool CreateDirectory(const String &path)
         ) == 0 || errno == EEXIST;
 }
 
-bool CreateAllDirectories(const String &parent, const String &path)
+bool CreateAllDirectories(const String &parent, const String &sub_dirs)
 {
     if (parent.IsEmpty() || !ags_directory_exists(parent.GetCStr()))
-        return false;
-    if (path.IsEmpty())
-        return true;
-    if (!Path::IsSameOrSubDir(parent, path))
-        return false;
+        return false; // no sense, or base dir not exist
+    if (sub_dirs.IsEmpty())
+        return true; // nothing to create, so fine
 
-    String fixup_parent = Path::MakeTrailingSlash(parent);
-    String sub_path = Path::MakeRelativePath(fixup_parent, path);
-    String make_path = parent;
-    std::vector<String> dirs = Path::Split(sub_path);
-    for (const String &dir : dirs)
+    String make_path = String::FromFormat("%s/", parent.GetCStr());
+    for (const char *sect = sub_dirs.GetCStr();
+        sect < sub_dirs.GetCStr() + sub_dirs.GetLength();)
     {
-        if (dir.IsEmpty() || dir.Compare(".") == 0) continue;
-        make_path = Path::ConcatPaths(make_path, dir);
+        const char *cur = sect + 1;
+        for (; *cur && *cur != '/' && *cur != PATH_ALT_SEPARATOR; ++cur);
+        // Skip empty dirs (duplicated separators etc)
+        if ((cur - sect == 1) && (*cur == '.' || *cur == '/' || *cur == PATH_ALT_SEPARATOR))
+        {
+            sect = cur;
+            continue;
+        }
+        // In case of ".." just fail
+        if (strncmp(sect, "..", cur - sect) == 0)
+            return false;
+        make_path.Append(sect, cur - sect);
         if (!CreateDirectory(make_path))
             return false;
+        sect = cur;
     }
     return true;
 }

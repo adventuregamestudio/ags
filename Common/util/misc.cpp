@@ -115,7 +115,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     fix_filename_slashes(filename);
   }
 
-  if(directory && filename) {
+  if(directory && filename && !strstr(filename, "..")) {
     char buf[1024];
     snprintf(buf, sizeof buf, "%s/%s", directory, filename);
     lstat(buf, &statbuf);

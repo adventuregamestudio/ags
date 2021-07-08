@@ -1,3 +1,8 @@
+# if you want to use custom CFLAGS or CXXFLAGS, you can set
+# USER_CFLAGS and USER_CXXFLAGS respectively in a file called config.mak,
+# which is automatically included if existing.
+# you may also override CC and other variables relevant to the build there.
+
 UNAME := $(shell uname)
 
 ifeq ($(V), 1)
@@ -26,6 +31,9 @@ OBJS_COMMON := $(OBJS_COMMON:.c=.o)
 DEPFILES = $(OBJS:.o=.d) $(OBJS_COMMON:.o=.d)
 
 -include config.mak
+
+CXXFLAGS += $(USER_CXXFLAGS)
+CFLAGS += $(USER_CFLAGS)
 
 .PHONY: printflags clean install uninstall rebuild
 

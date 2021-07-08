@@ -13,6 +13,7 @@
 //=============================================================================
 #include "data/mfl_utils.h"
 #include <memory>
+#include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stream.h"
@@ -51,6 +52,13 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
         {
             if (asset.LibUid != i) continue;
             String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
+            String sub_dir = Path::GetParent(asset.FileName);
+            if (!sub_dir.IsEmpty() && sub_dir != "." &&
+                !Directory::CreateAllDirectories(dst_dir, sub_dir))
+            {
+                printf("Error: unable to create a subdirectory: %s\n", sub_dir.GetCStr());
+                continue;
+            }
             std::unique_ptr<Stream> out(File::CreateFile(dst_f));
             if (!out)
             {

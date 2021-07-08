@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\Common\core\asset.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
+    <ClCompile Include="..\..\Common\util\directory.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />

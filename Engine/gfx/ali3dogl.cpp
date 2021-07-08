@@ -208,7 +208,7 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-void OGLGraphicsDriver::FirstTimeInit()
+bool OGLGraphicsDriver::FirstTimeInit()
 {
   String ogl_v_str;
 #ifdef GLAPI
@@ -222,8 +222,13 @@ void OGLGraphicsDriver::FirstTimeInit()
   OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 
   TestRenderToTexture();
-  CreateShaders();
+
+  if(!CreateShaders()) { // requires glad Load successful
+    SDL_SetError("Failed to create Shaders.");
+    return false;
+  }
   _firstTimeInit = true;
+  return true;
 }
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
@@ -328,7 +333,6 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
     return false;
   }
 #endif
-
   _sdlWindow = sdl_window;
   _sdlGlContext = sdlgl_ctx;
   return true;
@@ -395,15 +399,15 @@ void OGLGraphicsDriver::TestSupersampling()
 
 
 
-void CreateTransparencyShader(ShaderProgram &prg);
-void CreateTintShader(ShaderProgram &prg);
-void CreateLightShader(ShaderProgram &prg);
-void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src);
+bool CreateTransparencyShader(ShaderProgram &prg);
+bool CreateTintShader(ShaderProgram &prg);
+bool CreateLightShader(ShaderProgram &prg);
+bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src);
 void DeleteShaderProgram(ShaderProgram &prg);
 void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
 
 
-void OGLGraphicsDriver::CreateShaders()
+bool OGLGraphicsDriver::CreateShaders()
 {
 #if AGS_OPENGL_ES2
   if (!GLAD_GL_ES_VERSION_2_0) {
@@ -411,11 +415,13 @@ void OGLGraphicsDriver::CreateShaders()
   if (!GLAD_GL_VERSION_2_0) {
 #endif
     Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
-    return;
+    return false;
   }
-  CreateTransparencyShader(_transparencyShader);
-  CreateTintShader(_tintShader);
-  CreateLightShader(_lightShader);
+  bool shaders_created = true;
+  shaders_created &= CreateTransparencyShader(_transparencyShader);
+  shaders_created &= CreateTintShader(_tintShader);
+  shaders_created &= CreateLightShader(_lightShader);
+  return shaders_created;
 }
 
 
@@ -556,41 +562,41 @@ void main()
 )EOS";
 
 
-void CreateTransparencyShader(ShaderProgram &prg)
+bool CreateTransparencyShader(ShaderProgram &prg)
 {
-  CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src);
-
+  if(!CreateShaderProgram(prg, "Transparency", default_vertex_shader_src, transparency_fragment_shader_src)) return false;
   prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
   prg.TextureId = glGetUniformLocation(prg.Program, "textID");
   prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+  return true;
 }
 
 
-void CreateTintShader(ShaderProgram &prg)
+bool CreateTintShader(ShaderProgram &prg)
 {
-  CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src);
-
+  if(!CreateShaderProgram(prg, "Tinting", default_vertex_shader_src, tint_fragment_shader_src)) return false;
   prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
   prg.TextureId = glGetUniformLocation(prg.Program, "textID");
   prg.TintHSV = glGetUniformLocation(prg.Program, "tintHSV");
   prg.TintAmount = glGetUniformLocation(prg.Program, "tintAmount");
   prg.TintLuminance = glGetUniformLocation(prg.Program, "tintLuminance");
   prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+  return true;
 }
 
-void CreateLightShader(ShaderProgram &prg)
+bool CreateLightShader(ShaderProgram &prg)
 {
-  CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src);
-
+  if(!CreateShaderProgram(prg, "Lighting", default_vertex_shader_src, light_fragment_shader_src)) return false;
   prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
   prg.TextureId = glGetUniformLocation(prg.Program, "textID");
   prg.LightingAmount = glGetUniformLocation(prg.Program, "light");
   prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
+  return true;
 }
 
 
 
-void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src)
+bool CreateShaderProgram(ShaderProgram &prg, const char *name, const char *vertex_shader_src, const char *fragment_shader_src)
 {
   GLint result;
 
@@ -601,7 +607,7 @@ void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *verte
   if (result == GL_FALSE)
   {
     OutputShaderError(vertex_shader, String::FromFormat("%s program's vertex shader", name), true);
-    return;
+    return false;
   }
 
   GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -612,7 +618,7 @@ void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *verte
   {
     OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name), true);
     glDeleteShader(fragment_shader); //not sure yet if this goes here
-    return;
+    return false;
   }
 
   GLuint program = glCreateProgram();
@@ -625,7 +631,7 @@ void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *verte
     OutputShaderError(program, String::FromFormat("%s program", name), false);
     glDeleteProgram(program); //not sure yet if this goes here
     glDeleteShader(fragment_shader); //not sure yet if this goes here
-    return;
+    return false;
   }
 
   glDetachShader(program, vertex_shader);
@@ -636,6 +642,7 @@ void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *verte
 
   prg.Program = program;
   Debug::Printf("OGL: %s shader program created successfully", name);
+  return true;
 }
 
 void DeleteShaderProgram(ShaderProgram &prg)
@@ -757,7 +764,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     if (!InitGlScreen(mode))
       return false;
     if (!_firstTimeInit)
-      FirstTimeInit();
+      if(!FirstTimeInit()) return false;
     InitGlParams(mode);
   }
   catch (Ali3DException exception)

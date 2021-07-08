@@ -74,6 +74,18 @@ String GetFileExtension(const String &path)
     return "";
 }
 
+String RemoveExtension(const String &filename)
+{
+    const char *cstr = filename.GetCStr();
+    const char *ptr_end = cstr + filename.GetLength();
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
+    {
+        if (*ptr == '.') return String(cstr, ptr - cstr);
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR) break;
+    }
+    return filename;
+}
+
 String GetDirectoryPath(const String &path)
 {
     if (IsDirectory(path))

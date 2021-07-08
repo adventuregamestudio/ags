@@ -23,6 +23,7 @@ namespace AGS
 {
 namespace DataUtil
 {
+    using AGS::Common::AssetInfo;
     using AGS::Common::AssetLibInfo;
     using AGS::Common::HError;
     using AGS::Common::Stream;
@@ -38,13 +39,21 @@ namespace DataUtil
     // directories inside dst_dir.
     HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
         const String &lib_basefile, const String &dst_dir);
-    // Gather a list of files from a given directory and write into AssetLibInfo
-    HError MakeAssetLibInfo(AssetLibInfo &lib, const String &asset_dir,
+    // Gather a list of files from a given directory
+    HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
         const String &lib_basefile);
-    // Writes the library into the file lib_filename;
+    // Generate AssetLibInfo based on a list of assets, optionally limiting each
+    // library partition by part_size bytes
+    HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
+        std::vector<AssetInfo> &assets, soff_t part_size = 0);
+    // Writes the library partition into the file lib_filename;
     // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibrary(AssetLibInfo &lib, const String &src_dir,
+    HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir,
         const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index);
+    // Writes the potentially multi-file library into the dst_dir directory;
+    // recalculates asset offsets and stores in lib as it goes.
+    HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir,
+        const String &dst_dir, MFLUtil::MFLVersion lib_version);
 
 } // namespace DataUtil
 } // namespace AGS

@@ -115,6 +115,13 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     fix_filename_slashes(filename);
   }
 
+  // the ".." check here prevents file system traversal -
+  // since only in this fast-path it's possible a potentially evil
+  // script could try to break out of the directories it's restricted
+  // to, whereas the latter chdir/opendir approach checks file by file
+  // in the directory. it's theoretically possible a valid filename
+  // could contain "..", but in that case it will just fallback to the
+  // slower method later on and succeed.
   if(directory && filename && !strstr(filename, "..")) {
     char buf[1024];
     snprintf(buf, sizeof buf, "%s/%s", directory, filename);

@@ -85,7 +85,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 }
 
 #else
-/* Case Insensitive File Find */
+/* Case Sensitive File Find - only used on UNIX platforms */
 char *ci_find_file(const char *dir_name, const char *file_name)
 {
   struct stat   statbuf;
@@ -115,6 +115,22 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     fix_filename_slashes(filename);
   }
 
+  // the ".." check here prevents file system traversal -
+  // since only in this fast-path it's possible a potentially evil
+  // script could try to break out of the directories it's restricted
+  // to, whereas the latter chdir/opendir approach checks file by file
+  // in the directory. it's theoretically possible a valid filename
+  // could contain "..", but in that case it will just fallback to the
+  // slower method later on and succeed.
+  if(directory && filename && !strstr(filename, "..")) {
+    char buf[1024];
+    snprintf(buf, sizeof buf, "%s/%s", directory, filename);
+    lstat(buf, &statbuf);
+    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+      diamond = strdup(buf); goto out;
+    }
+  }
+
   if (directory == nullptr) {
     char  *match    = nullptr;
     int   match_len = 0;
@@ -122,7 +138,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
     match = get_filename(filename);
     if (match == nullptr)
-      return nullptr;
+      goto out;
 
     match_len = strlen(match);
     dir_len   = (match - filename);
@@ -143,17 +159,17 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
   if ((prevdir = opendir(".")) == nullptr) {
     fprintf(stderr, "ci_find_file: cannot open current working directory\n");
-    return nullptr;
+    goto out;
   }
 
   if (chdir(directory) == -1) {
     fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    return nullptr;
+    goto out_pd;
   }
-  
+
   if ((rough = opendir(directory)) == nullptr) {
     fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    return nullptr;
+    goto out_pd;
   }
 
   while ((entry = readdir(rough)) != nullptr) {
@@ -171,11 +187,13 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   }
   closedir(rough);
 
+out_pd:;
   fchdir(dirfd(prevdir));
   closedir(prevdir);
 
-  free(directory);
-  free(filename);
+out:;
+  if(directory) free(directory);
+  if(filename) free(filename);
 
   return diamond;
 }

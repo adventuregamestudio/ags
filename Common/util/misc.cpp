@@ -164,12 +164,12 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
   if (chdir(directory) == -1) {
     fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    goto out;
+    goto out_pd;
   }
 
   if ((rough = opendir(directory)) == nullptr) {
     fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    goto out;
+    goto out_pd;
   }
 
   while ((entry = readdir(rough)) != nullptr) {
@@ -187,6 +187,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   }
   closedir(rough);
 
+out_pd:;
   fchdir(dirfd(prevdir));
   closedir(prevdir);
 

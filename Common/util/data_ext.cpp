@@ -76,9 +76,12 @@ HError DataExtParser::PostAssert()
     const soff_t block_end = block_start + block_len;
     if (cur_pos > block_end)
     {
-        return new DataExtError(kDataExtErr_BlockDataOverlapping,
-            String::FromFormat("Block: '%s', expected to end at offset: %lld, finished reading at %lld.",
-                ext_id.GetCStr(), block_end, cur_pos));
+        String err = String::FromFormat("Block: '%s', expected to end at offset: %lld, finished reading at %lld.",
+            ext_id.GetCStr(), block_end, cur_pos);
+        if (cur_pos <= block_end + GetOverLeeway(block_id))
+            Debug::Printf(kDbgMsg_Warn, err);
+        else
+            return new DataExtError(kDataExtErr_BlockDataOverlapping, err);
     }
     else if (cur_pos < block_end)
     {

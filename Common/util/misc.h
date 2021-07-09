@@ -45,8 +45,8 @@
 #define __MISC_H
 
 #include "util/file.h" // TODO: extract filestream mode constants
+#include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 // Case-insensitive file lookup functions. On case-insensitive systems
@@ -59,7 +59,7 @@ Common::Stream *ci_fopen(const char *file_name,
                              Common::FileOpenMode open_mode = Common::kFile_Open,
                              Common::FileWorkMode work_mode = Common::kFile_Read);
 // TODO: return String object
-char *ci_find_file(const char *dir_name, const char *file_name);
+Common::String ci_find_file(const Common::String& dir_name, const Common::String& file_name);
 
 
 #endif  // __MISC_H

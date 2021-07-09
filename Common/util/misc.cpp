@@ -91,7 +91,6 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   struct stat   statbuf;
   struct dirent *entry     = nullptr;
   DIR           *rough     = nullptr;
-  DIR           *prevdir   = nullptr;
   char          *diamond   = nullptr;
   char          *directory = nullptr;
   char          *filename  = nullptr;
@@ -122,11 +121,15 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   // in the directory. it's theoretically possible a valid filename
   // could contain "..", but in that case it will just fallback to the
   // slower method later on and succeed.
-  if(directory && filename && !strstr(filename, "..")) {
+  if(filename && !strstr(filename, "..")) {
     char buf[1024];
-    snprintf(buf, sizeof buf, "%s/%s", directory, filename);
-    lstat(buf, &statbuf);
-    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+    if(!directory && filename[0] == '/')
+      snprintf(buf, sizeof buf, "%s", filename);
+    else
+      snprintf(buf, sizeof buf, "%s/%s", directory?directory:".", filename);
+
+    if (lstat(buf, &statbuf) == 0 &&
+        (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode))) {
       diamond = strdup(buf); goto out;
     }
   }
@@ -157,25 +160,15 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     filename[match_len] = '\0';
   }
 
-  if ((prevdir = opendir(".")) == nullptr) {
-    fprintf(stderr, "ci_find_file: cannot open current working directory\n");
+  if ((rough = opendir(directory)) == nullptr) {
+    fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
     goto out;
   }
 
-  if (chdir(directory) == -1) {
-    fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    goto out_pd;
-  }
-
-  if ((rough = opendir(directory)) == nullptr) {
-    fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    goto out_pd;
-  }
-
   while ((entry = readdir(rough)) != nullptr) {
-    lstat(entry->d_name, &statbuf);
-    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-      if (strcasecmp(filename, entry->d_name) == 0) {
+    if (strcasecmp(filename, entry->d_name) == 0) {
+      if(lstat(entry->d_name, &statbuf) == 0 &&
+         (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode))) {
 #if AGS_PLATFORM_DEBUG
         fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
 #endif // AGS_PLATFORM_DEBUG
@@ -186,10 +179,6 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     }
   }
   closedir(rough);
-
-out_pd:;
-  fchdir(dirfd(prevdir));
-  closedir(prevdir);
 
 out:;
   if(directory) free(directory);

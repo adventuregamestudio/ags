@@ -39,6 +39,8 @@ namespace Directory
     // Gets current working directory
     String GetCurrentDirectory();
 
+    // Get list of subdirs found in the given directory
+    bool   GetDirs(const String &dir_path, std::vector<String> &dirs);
     // Get list of files found in the given directory
     bool   GetFiles(const String &dir_path, std::vector<String> &files);
 } // namespace Directory

@@ -177,9 +177,9 @@ char *ci_find_file(const char *dir_name, const char *file_name)
   }
 
   while ((entry = readdir(rough)) != nullptr) {
-    if(lstat(entry->d_name, &statbuf) == 0 &&
-       (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-      if (strcasecmp(filename, entry->d_name) == 0) {
+    if (strcasecmp(filename, entry->d_name) == 0) {
+      if(lstat(entry->d_name, &statbuf) == 0 &&
+         (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode))) {
 #if AGS_PLATFORM_DEBUG
         fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
 #endif // AGS_PLATFORM_DEBUG

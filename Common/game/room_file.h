@@ -116,11 +116,6 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
 // Reads room data header using stream assigned to RoomDataSource;
 // tests and saves its format index if successful
 HRoomFileError ReadRoomHeader(RoomDataSource &src);
-// Type of function that reads single room block and tells whether to continue reading
-typedef std::function<HError(Stream *in, RoomFileBlock block_id, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver, bool &read_next)> PfnReadRoomBlock;
-// Parses room file, passing each found block into callback; does not read any actual data itself
-HRoomFileError ReadRoomData(PfnReadRoomBlock reader, Stream *in, RoomFileVersion data_ver);
 
 // Type of function that writes single room block.
 typedef std::function<void(const RoomStruct *room, Stream *out)> PfnWriteRoomBlock;

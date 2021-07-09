@@ -761,7 +761,27 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
     return HGameFileError::None();
 }
 
-static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const String &ext_id, soff_t block_len, GameDataVersion data_ver)
+
+// GameDataExtReader reads main game data's extension blocks
+class GameDataExtReader : public DataExtReader
+{
+public:
+    GameDataExtReader(LoadedGameEntities &ents, GameDataVersion data_ver, Stream *in)
+        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+        , _ents(ents)
+        , _dataVer(data_ver)
+    {}
+
+protected:
+    HError ReadBlock(int block_id, const String &ext_id,
+        soff_t block_len, bool &read_next) override;
+
+    LoadedGameEntities &_ents;
+    GameDataVersion _dataVer {};
+};
+
+HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
+    soff_t block_len, bool &read_next)
 {
     // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
     // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
@@ -770,6 +790,7 @@ static HGameFileError ReadExtBlock(LoadedGameEntities &ents, Stream *in, const S
     // }
     return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
+
 
 HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
@@ -854,13 +875,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     //-------------------------------------------------------------------------
     // All the extended data, for AGS > 3.5.0.
     //-------------------------------------------------------------------------
-    // This reader will process all blocks inside ReadExtBlock() function,
-    // and read compatible data into the given LoadedGameEntities object.
-    auto reader = [&ents, data_ver](Stream *in, int /*block_id*/, const String &ext_id,
-        soff_t block_len, bool &read_next)
-    { return (HError)ReadExtBlock(ents, in, ext_id, block_len, data_ver); };
-
-    HError ext_err = ReadExtData(reader, kDataExt_NumID8 | kDataExt_File64, in);
+    GameDataExtReader reader(ents, data_ver, in);
+    HError ext_err = reader.Read();
     return ext_err ? HGameFileError::None() : new MainGameFileError(kMGFErr_ExtListFailed, ext_err);
 }
 

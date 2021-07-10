@@ -42,12 +42,26 @@ bool IsFileOrDir(const String &filename)
 
 String GetFilename(const String &path)
 {
-    return get_filename(path.GetCStr());
+    const char *cstr = path.GetCStr();
+    const char *ptr_end = cstr + path.GetLength();
+    for (const char *ptr = ptr_end; ptr > cstr; --ptr)
+    {
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
+            return String(ptr + 1);
+    }
+    return path;
 }
 
 String GetFileExtension(const String &path)
 {
-    return get_extension(path.GetCStr());
+    const char *cstr = path.GetCStr();
+    const char *ptr_end = cstr + path.GetLength();
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
+    {
+        if (*ptr == '.') return String(ptr + 1);
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR) break;
+    }
+    return "";
 }
 
 int ComparePaths(const String &path1, const String &path2)

@@ -1,6 +1,8 @@
 //-----------------------------------------------------------------------//
 // TODO:
 // * append cmdline option (create new file / append to existing)
+// * option for full recursive subdirs?
+// * option for explicit file list
 //-----------------------------------------------------------------------//
 #include <algorithm>
 #include <stdio.h>
@@ -15,7 +17,10 @@
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
-const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak>\n\t[-p <max MB per part>]";
+const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
+"Options:\n"
+"  -p <MB>        split game assets between partitions of this size max\n"
+"  -d             add all files in the *first level* subdirectories too";
 
 int main(int argc, char *argv[])
 {
@@ -38,10 +43,13 @@ int main(int argc, char *argv[])
     }
 
     size_t part_size = 0;
+    bool do_subdirs = false;
     for (int i = 3; i < argc; ++i)
     {
         if (ags_stricmp(argv[i], "-p") == 0 && (i < argc - 1))
             part_size = StrUtil::StringToInt(argv[++i]);
+        else if (ags_stricmp(argv[i], "-d") == 0)
+            do_subdirs = true;
     }
 
     const char *src = argv[1];
@@ -62,7 +70,7 @@ int main(int argc, char *argv[])
     String lib_basefile = dst;
 
     std::vector<AssetInfo> assets;
-    HError err = MakeAssetList(assets, asset_dir, lib_basefile);
+    HError err = MakeAssetList(assets, asset_dir, do_subdirs, lib_basefile);
     if (!err)
     {
         printf("Error: failed to gather list of assets:\n");

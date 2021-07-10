@@ -41,7 +41,7 @@ namespace DataUtil
         const String &lib_basefile, const String &dst_dir);
     // Gather a list of files from a given directory
     HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
-        const String &lib_basefile);
+        bool do_subdirs, const String &lib_basefile);
     // Generate AssetLibInfo based on a list of assets, optionally limiting each
     // library partition by part_size bytes
     HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,

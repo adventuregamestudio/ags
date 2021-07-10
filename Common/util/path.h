@@ -82,6 +82,9 @@ namespace Path
     String  MakeRelativePath(const String &base, const String &path);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
+    // Concatenates paths into the buffer, returns the buffer;
+    // warning: passing buffer as one of the path params results in UB
+    String  ConcatPaths(String &buf, const String &parent, const String &child);
     // Creates path by combining directory, file name and extension
     String  MakePath(const String &parent, const String &filename, const String &ext);
     // Splits path into components, divided by path separator

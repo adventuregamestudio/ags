@@ -71,7 +71,6 @@
 #include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
-#include "util/misc.h"
 #include "util/path.h"
 
 using namespace AGS::Common;

@@ -30,7 +30,6 @@
 #include "util/string_utils.h"
 #include "device/mousew32.h"
 #include "ac/route_finder.h"
-#include "util/misc.h"
 #include "script/cc_error.h"
 
 // include last since we affect windows includes

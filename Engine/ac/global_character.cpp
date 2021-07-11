@@ -346,7 +346,7 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     GameLoopUntilNotMoving(&game.chars[chaa].walking);
 }
 
-void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
+int MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
     if (!is_valid_character (chaa))
         quit("!MoveCharacterBlocking: invalid character");
 
@@ -355,7 +355,7 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
     if (game.chars[chaa].on != 1)
     {
         debug_script_warn("MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
-        return;
+        return 0;
     }
 
     if (direct)
@@ -364,6 +364,7 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
         MoveCharacter(chaa,xx,yy);
 
     GameLoopUntilNotMoving(&game.chars[chaa].walking);
+    return -1; // replicates legacy engine effect
 }
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)

@@ -32,3 +32,4 @@ target_include_directories(ogg PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include ${CMAKE_
 
 
 add_library(Ogg::Ogg ALIAS ogg)
+set(OGG_LIBRARIES Ogg::Ogg)

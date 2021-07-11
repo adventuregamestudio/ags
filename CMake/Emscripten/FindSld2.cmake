@@ -1,0 +1,8 @@
+set(SDL2_FOUND TRUE)
+set(SDL2_INCLUDE_DIRS "${EMSCRIPTEN_ROOT_PATH}/sysroot/include" "${EMSCRIPTEN_ROOT_PATH}/sysroot/include/SDL2/")
+set(SDL2_LIBRARIES "nul")
+
+mark_as_advanced(SDL2_LIBRARY
+        SDL2_RUNTIME_LIBRARY
+        SDL2_INCLUDE_DIR
+        SDL2_SDLMAIN_LIBRARY) 

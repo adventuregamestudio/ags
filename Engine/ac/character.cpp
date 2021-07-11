@@ -2488,15 +2488,17 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (viewWasLocked)
             charFrameWas = speakingChar->frame;
 
-        // if the current loop doesn't exist in talking view, use loop 0
-        if (speakingChar->loop >= views[speakingChar->view].numLoops)
-            speakingChar->loop = 0;
-
-        if ((speakingChar->view < 0) || 
-            (speakingChar->loop >= views[speakingChar->view].numLoops) ||
-            (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1))
+        // If speech view is missing a loop or the loop does not have frames - use loop 0
+        if (speakingChar->loop >= views[speakingChar->view].numLoops ||
+            views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)
         {
-            quitprintf("Unable to display speech because the character %s has an invalid view frame (View %d, loop %d, frame %d)", speakingChar->scrname, speakingChar->view + 1, speakingChar->loop, speakingChar->frame);
+            String err = String::FromFormat("Character %s speech view %d does not have necessary loop %d or it has no frames",
+                speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
+            // is there even a fallback loop?
+            if (views[speakingChar->view].numLoops == 0 || views[speakingChar->view].loops[0].numFrames == 0)
+                quitprintf("!%s; and there's no valid loop to fall back.", err.GetCStr());
+            debug_script_warn("WARNING: %s; switching to loop 0.", err.GetCStr());
+            speakingChar->loop = 0;
         }
 
         our_eip=1504;
@@ -2746,20 +2748,20 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             speakingChar->frame=0;
             speakingChar->flags|=CHF_FIXVIEW;
 
-            if (speakingChar->loop >= views[speakingChar->view].numLoops)
+            // If speech view is missing a loop or the loop does not have frames - use loop 0
+            if (speakingChar->loop >= views[speakingChar->view].numLoops ||
+                views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)
             {
-                // current character loop is outside the normal talking directions
+                String err = String::FromFormat("Character %s speech view %d does not have necessary loop %d or it has no frames",
+                    speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
+                // is there even a fallback loop?
+                if (views[speakingChar->view].numLoops == 0 || views[speakingChar->view].loops[0].numFrames == 0)
+                    quitprintf("!%s; and there's no valid loop to fall back.", err.GetCStr());
+                debug_script_warn("WARNING: %s; switching to loop 0.", err.GetCStr());
                 speakingChar->loop = 0;
             }
 
             facetalkBlinkLoop = speakingChar->loop;
-
-            if (speakingChar->on && // don't bother checking if character is not visible (also fixes 'Trilby's Notes' legacy game)
-                ((speakingChar->loop >= views[speakingChar->view].numLoops) ||
-                (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)))
-            {
-                quitprintf("!Unable to display speech because the character %s has an invalid speech view (View %d, loop %d, frame %d)", speakingChar->scrname, speakingChar->view + 1, speakingChar->loop, speakingChar->frame);
-            }
 
             // set up the speed of the first frame
             speakingChar->wait = GetCharacterSpeechAnimationDelay(speakingChar) + 

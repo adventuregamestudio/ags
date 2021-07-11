@@ -38,6 +38,7 @@
     <ClCompile Include="..\..\Common\util\ini_util.cpp" />
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
+    <ClCompile Include="..\..\Common\util\path_ex.cpp" />
     <ClCompile Include="..\..\Common\util\proxystream.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />

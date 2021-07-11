@@ -147,6 +147,7 @@ target_sources(common
     util/multifilelib.h
     util/mutifilelib.cpp
     util/path.cpp
+    util/path_ex.cpp
     util/path.h
     util/proxystream.cpp
     util/proxystream.h

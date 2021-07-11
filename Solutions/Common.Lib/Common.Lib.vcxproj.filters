@@ -515,6 +515,9 @@
     <ClCompile Include="..\..\Common\util\data_ext.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\path_ex.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">

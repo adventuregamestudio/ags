@@ -61,6 +61,9 @@
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">

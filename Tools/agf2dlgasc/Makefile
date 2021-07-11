@@ -29,6 +29,7 @@ COMMON_OBJS = \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/memorystream.cpp \
+	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \
 	../../Common/util/stream.cpp \
 	../../Common/util/string.cpp \

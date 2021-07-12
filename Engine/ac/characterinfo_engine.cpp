@@ -73,10 +73,16 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, in
 		return;				      //  must be careful not to screw things up
 	}
     
-    // Make sure it doesn't flash up a blue cup
-    if (view < 0) ;
-    else if (loop >= views[view].numLoops)
-      loop = 0;
+    // Fixup character's view when possible
+    if (view >= 0 &&
+        (loop >= views[view].numLoops || frame >= views[view].loops[loop].numFrames))
+    {
+        for (loop = 0;
+            (loop < loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);
+            ++loop);
+        if (loop == views[view].numLoops)
+            quitprintf("!Character %s is assigned view %d that has no frames!", name, view);
+    }
 
     int doing_nothing = 1;
 

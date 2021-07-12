@@ -45,7 +45,7 @@ String GetParent(const String &path)
     for (const char *ptr = ptr_end; ptr > cstr; --ptr)
     {
         if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
-            return String(cstr, cstr - ptr);
+            return String(cstr, ptr - cstr);
     }
     return ".";
 }

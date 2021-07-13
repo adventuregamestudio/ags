@@ -426,9 +426,13 @@ bool OGLGraphicsDriver::CreateShaders()
 
 
 
-static const auto default_vertex_shader_src = R"EOS(
-#version 100
-
+static const auto default_vertex_shader_src =  ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform mat4 uMVPMatrix;
 
 attribute vec2 a_Position;
@@ -445,11 +449,14 @@ void main() {
 )EOS";
 
 
-static const auto transparency_fragment_shader_src = R"EOS(
-#version 100
-
-precision mediump float;
-
+static const auto transparency_fragment_shader_src = ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+"precision mediump float; \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform sampler2D textID;
 uniform float alpha;
 
@@ -475,11 +482,14 @@ void main()
 // tintHSV - tint color in HSV,
 // tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
 
-static const auto tint_fragment_shader_src = R"EOS(
-#version 100
-
-precision mediump float;
-
+static const auto tint_fragment_shader_src = ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+"precision mediump float; \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform sampler2D textID;
 uniform vec3 tintHSV;
 uniform float tintAmount;
@@ -537,11 +547,14 @@ void main()
 // light - light level,
 // alpha - color alpha value.
 
-static const auto light_fragment_shader_src = R"EOS(
-#version 100
-
-precision mediump float;
-
+static const auto light_fragment_shader_src = ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+"precision mediump float; \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform sampler2D textID;
 uniform float light;
 uniform float alpha;

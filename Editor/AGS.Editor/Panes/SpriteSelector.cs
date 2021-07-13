@@ -1605,6 +1605,21 @@ namespace AGS.Editor
                 SetSpritePreviewMultiplier(2);
                 return true;
             }
+            else if (keyData == (Keys.Control | Keys.D1))
+            {
+                SetSpritePreviewMultiplier(4);
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.D2))
+            {
+                SetSpritePreviewMultiplier(6);
+                return true;
+            }
+            else if (keyData == (Keys.Control | Keys.D3))
+            {
+                SetSpritePreviewMultiplier(8);
+                return true;
+            }
             return base.ProcessCmdKey(ref msg, keyData);
         }
 

@@ -1392,22 +1392,10 @@ namespace AGS.Editor
             }
             else if(e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                // it's a new file we need to import
-
                 string[] filePaths = (string[])e.Data.GetData(DataFormats.FileDrop, false);
 
-                string[] possiblyValidFiles = filePaths.Where(a =>
-                   a.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-                   a.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
-                   a.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
-                   a.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                   a.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)).ToArray();
-
-                if (possiblyValidFiles.Length > 0)
-                {
-                    ImportNewSprite(_currentFolder, possiblyValidFiles);
-                }
-
+                // don't block the UI thread, see asyncFileDropWorker_DoWork
+                asyncFileDropWorker.RunWorkerAsync(filePaths);
             }
         }
 
@@ -1620,6 +1608,30 @@ namespace AGS.Editor
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void asyncFileDropWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            string[] filePaths = (string[])e.Argument; // from RunWorkerAsync
+
+            string[] possiblyValidFiles = filePaths.Where(a =>
+               a.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            e.Result = possiblyValidFiles;
+        }
+
+        private void asyncFileDropWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            string[] possiblyValidFiles = (string[])e.Result;
+
+            if (possiblyValidFiles.Length > 0)
+            {
+                ImportNewSprite(_currentFolder, possiblyValidFiles);
+            }            
         }
     }
 

@@ -36,6 +36,7 @@ namespace AGS.Editor
             this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
             this.spriteList = new System.Windows.Forms.ListView();
+            this.asyncFileDropWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
             this.splitWindow.Panel2.SuspendLayout();
@@ -173,6 +174,11 @@ namespace AGS.Editor
             this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
             this.spriteList.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseWheel);
             // 
+            // asyncFileDropWorker
+            // 
+            this.asyncFileDropWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.asyncFileDropWorker_DoWork);
+            this.asyncFileDropWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.asyncFileDropWorker_RunWorkerCompleted);
+            // 
             // SpriteSelector
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -206,5 +212,6 @@ namespace AGS.Editor
         private System.Windows.Forms.TrackBar sliderPreviewSize;
         private System.Windows.Forms.Button button_importNew;
         private System.Windows.Forms.Label label1;
+        private System.ComponentModel.BackgroundWorker asyncFileDropWorker;
     }
 }

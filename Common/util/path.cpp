@@ -74,6 +74,18 @@ String GetFileExtension(const String &path)
     return "";
 }
 
+String RemoveExtension(const String &filename)
+{
+    const char *cstr = filename.GetCStr();
+    const char *ptr_end = cstr + filename.GetLength();
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
+    {
+        if (*ptr == '.') return String(cstr, ptr - cstr);
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR) break;
+    }
+    return filename;
+}
+
 String GetDirectoryPath(const String &path)
 {
     if (IsDirectory(path))
@@ -132,6 +144,18 @@ String ConcatPaths(const String &parent, const String &child)
     String path = String::FromFormat("%s/%s", parent.GetCStr(), child.GetCStr());
     FixupPath(path);
     return path;
+}
+
+String ConcatPaths(String &buf, const String &parent, const String &child)
+{
+    if (parent.IsEmpty())
+        buf = child;
+    else if (child.IsEmpty())
+        buf = parent;
+    else
+        buf.Format("%s/%s", parent.GetCStr(), child.GetCStr());
+    FixupPath(buf);
+    return buf;
 }
 
 String MakePath(const String &parent, const String &filename)

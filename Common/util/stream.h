@@ -86,6 +86,10 @@ public:
     size_t WriteByteCount(uint8_t b, size_t count);
 };
 
+// Copies N bytes from one stream into another;
+// returns number of bytes actually written
+soff_t CopyStream(Stream *in, Stream *out, soff_t length);
+
 } // namespace Common
 } // namespace AGS
 

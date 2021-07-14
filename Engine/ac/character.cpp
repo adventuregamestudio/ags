@@ -1468,7 +1468,7 @@ void Character_SetScaling(CharacterInfo *chaa, int zoomlevel) {
         debug_script_warn("Character.Scaling: scaling level must be between 1 and %d%%, asked for: %d",
                         (int)(INT16_MAX), zoomlevel);
 
-    charextra[chaa->index_id].zoom = zoomlevel;
+    charextra[chaa->index_id].zoom = zoom_fixed;
 }
 
 int Character_GetSolid(CharacterInfo *chaa) {

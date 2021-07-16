@@ -259,7 +259,6 @@ int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_of
     over.associatedOverlayHandle = 0;
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
-    return numscreenover - 1;
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
@@ -274,6 +273,7 @@ int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_of
     {
         play.speech_face_scover = create_scriptobj_addref(over);
     }
+    return numscreenover - 1;
 }
 
 

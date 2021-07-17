@@ -101,6 +101,9 @@ void audio_core_shutdown()
     g_acore.audio_core_thread_running = false;
     g_acore.audio_core_thread.join();
 
+    // dispose all the active slots
+    g_acore.slots_.clear();
+
     // SDL_Sound
     Sound_Quit();
 

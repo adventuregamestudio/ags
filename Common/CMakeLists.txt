@@ -179,6 +179,10 @@ target_sources(common
 
 target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
+if (WIN32)
+    target_link_libraries(common PUBLIC shlwapi)
+endif()
+
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)
     target_compile_definitions(common PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)

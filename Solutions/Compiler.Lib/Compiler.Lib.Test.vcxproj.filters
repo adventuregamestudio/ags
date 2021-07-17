@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\Compiler\test\cs_parser_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\test\cc_test_helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,5 +45,10 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Compiler\test\cc_test_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -102,6 +102,8 @@
     <ClCompile Include="..\..\Compiler\test\cc_symboltable_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cc_treemap_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cs_parser_test.cpp" />
+    <ClCompile Include="..\..\Compiler\test\cc_test_helper.cpp" />
+    <ClInclude Include="..\..\Compiler\test\cc_test_helper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

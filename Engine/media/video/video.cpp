@@ -286,7 +286,9 @@ int theora_playing_callback(BITMAP *theoraBuffer)
 // Open stream for reading (return suggested cache buffer size).
 int apeg_stream_init(void *ptr)
 {
-    return ptr != nullptr ? F_BUF_SIZE : 0;
+    if (!ptr) return 0;
+    ((Stream*)ptr)->Seek(0, kSeekBegin);
+    return F_BUF_SIZE;
 }
 // Read requested number of bytes into provided buffer,
 // return actual number of bytes managed to read.

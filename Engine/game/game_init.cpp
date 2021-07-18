@@ -21,11 +21,13 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
+#include "ac/lipsync.h"
 #include "ac/movelist.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "core/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
@@ -34,6 +36,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
+#include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
@@ -41,7 +44,6 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
-#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;
@@ -93,6 +95,10 @@ extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 // Old dialog support (defined in ac/dialog)
 extern std::vector< std::shared_ptr<unsigned char> > old_dialog_scripts;
 extern std::vector<String> old_speech_lines;
+
+// Lipsync
+extern SpeechLipSyncLine *splipsync;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 StaticArray StaticCharacterArray;
 StaticArray StaticObjectArray;
@@ -332,6 +338,33 @@ void LoadFonts(GameDataVersion data_ver)
     }
 }
 
+void LoadLipsyncData()
+{
+    std::unique_ptr<Stream> speechsync( AssetMgr->OpenAsset("syncdata.dat", "voice") );
+    if (!speechsync)
+        return;
+    // this game has voice lip sync
+    int lipsync_fmt = speechsync->ReadInt32();
+    if (lipsync_fmt != 4)
+    {
+        Debug::Printf(kDbgMsg_Info, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
+    }
+    else {
+        numLipLines = speechsync->ReadInt32();
+        splipsync = (SpeechLipSyncLine*)malloc(sizeof(SpeechLipSyncLine) * numLipLines);
+        for (int ee = 0; ee < numLipLines; ee++)
+        {
+            splipsync[ee].numPhonemes = speechsync->ReadInt16();
+            speechsync->Read(splipsync[ee].filename, 14);
+            splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhonemes * sizeof(int));
+            speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhonemes);
+            splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhonemes * sizeof(short));
+            speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
+        }
+    }
+    Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
+}
+
 void AllocScriptModules()
 {
     moduleInst.resize(numScriptModules, nullptr);
@@ -396,6 +429,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(data_ver);
+    LoadLipsyncData();
 
     //
     // 4. Initialize certain runtime variables

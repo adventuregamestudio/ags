@@ -24,7 +24,6 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
@@ -110,12 +109,12 @@ void File_ReadRawLine(sc_File *fil, char* buffer) {
   int i = 0;
   while (i < MAXSTRLEN - 1) {
     buffer[i] = in->ReadInt8();
-    if (buffer[i] == 13) {
+    if (buffer[i] == '\r') {
       // CR -- skip LF and abort
       in->ReadInt8();
       break;
     }
-    if (buffer[i] == 10)  // LF only -- abort
+    if (buffer[i] == '\n')  // LF only -- abort
       break;
     if (in->EOS())  // EOF -- abort
       break;
@@ -140,9 +139,12 @@ const char* File_ReadStringBack(sc_File *fil) {
     return CreateNewScriptString("");
   }
 
-  int lle = in->ReadInt32();
-  if ((lle >= 20000) || (lle < 1))
-    quit("!File.ReadStringBack: file was not written by WriteString");
+  size_t lle = (uint32_t)in->ReadInt32();
+  if (lle == 0)
+  {
+    debug_script_warn("File.ReadStringBack: file was not written by WriteString");
+    return CreateNewScriptString("");;
+  }
 
   char *retVal = (char*)malloc(lle);
   in->Read(retVal, lle);
@@ -227,7 +229,7 @@ String PathFromInstallDir(const String &path)
 
 String PreparePathForWriting(const FSLocation& fsloc, const String &filename)
 {
-    if (Directory::CreateAllDirectories(fsloc.BaseDir, fsloc.FullDir))
+    if (Directory::CreateAllDirectories(fsloc.BaseDir, fsloc.SubDir))
         return Path::ConcatPaths(fsloc.FullDir, filename);
     return "";
 }
@@ -236,20 +238,20 @@ FSLocation GetGlobalUserConfigDir()
 {
     String dir = platform->GetUserGlobalConfigDirectory();
     if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
-        return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
-    return FSLocation(dir, dir);
+        return FSLocation(ResPaths.DataDir, dir);
+    return FSLocation(dir);
 }
 
 FSLocation GetGameUserConfigDir()
 {
     String dir = platform->GetUserConfigDirectory();
     if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
-        return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
+        return FSLocation(ResPaths.DataDir, dir);
     else if (usetup.local_user_conf) // directive to use game dir location
         return FSLocation(ResPaths.DataDir);
     // For absolute dir, we assume it's a special directory prepared for AGS engine
     // and therefore amend it with a game own subdir
-    return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
+    return FSLocation(dir, game.saveGameFolderName);
 }
 
 // A helper function that deduces a data directory either using default system location,
@@ -261,17 +263,17 @@ static FSLocation MakeGameDataDir(const String &default_dir, const String &user_
     {
         String dir = default_dir;
         if (Path::IsRelativePath(dir)) // relative dir is resolved relative to the game data dir
-            return FSLocation(ResPaths.DataDir, Path::ConcatPaths(ResPaths.DataDir, dir));
+            return FSLocation(ResPaths.DataDir, dir);
         // For absolute dir, we assume it's a special directory prepared for AGS engine
         // and therefore amend it with a game own subdir
-        return FSLocation(dir, Path::ConcatPaths(dir, game.saveGameFolderName));
+        return FSLocation(dir, game.saveGameFolderName);
     }
     // If this location is set up by user config, then use it as is (resolving relative path if necessary)
     String dir = user_option;
     if (Path::IsSameOrSubDir(ResPaths.DataDir, dir)) // check if it's inside game dir
         return FSLocation(ResPaths.DataDir, Path::MakeRelativePath(ResPaths.DataDir, dir));
     dir = Path::MakeAbsolutePath(dir);
-    return FSLocation(dir, dir);
+    return FSLocation(dir);
 }
 
 FSLocation GetGameAppDataDir()
@@ -292,8 +294,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     if (orig_sc_path.Compare(UserConfigFileToken) == 0)
     {
         auto loc = GetGameUserConfigDir();
-        rp.FullPath = Path::ConcatPaths(loc.FullDir, DefaultConfigFileName);
-        rp.BaseDir = loc.BaseDir;
+        rp = ResolvedPath(loc, DefaultConfigFileName);
         return true;
     }
 
@@ -305,7 +306,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
             debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
             return false;
         }
-        rp.FullPath = orig_sc_path;
+        rp = ResolvedPath(orig_sc_path);
         return true;
     }
 
@@ -377,19 +378,17 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         }
     }
 
-    String full_path = Path::ConcatPaths(parent_dir.FullDir, child_path);
     // don't allow write operations for relative paths outside game dir
+    ResolvedPath test_rp = ResolvedPath(parent_dir, child_path, alt_path);
     if (!read_only)
     {
-        if (!Path::IsSameOrSubDir(parent_dir.FullDir, full_path))
+        if (!Path::IsSameOrSubDir(test_rp.Loc.FullDir, test_rp.FullPath))
         {
             debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
             return false;
         }
     }
-    rp.BaseDir = parent_dir.BaseDir;
-    rp.FullPath = full_path;
-    rp.AltPath = alt_path;
+    rp = test_rp;
     return true;
 }
 
@@ -397,7 +396,9 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
 {
     if (!ResolveScriptPath(sc_path, false, rp))
         return false;
-    if (!Directory::CreateAllDirectories(rp.BaseDir, Path::GetDirectoryPath(rp.FullPath)))
+
+    if (!rp.Loc.SubDir.IsEmpty() &&
+        !Directory::CreateAllDirectories(rp.Loc.BaseDir, rp.Loc.SubDir))
     {
         debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
         return false;
@@ -514,13 +515,13 @@ bool DoesAssetExistInLib(const AssetPath &path)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir.GetCStr(), filename.GetCStr()) );
+    String libname = File::FindFileCI(ResPaths.DataDir, filename);
     if (AssetManager::IsDataFile(libname))
         return libname;
     if (Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
       // Hack for running in Debugger
-      libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2.GetCStr(), filename.GetCStr()) );
+      libname = File::FindFileCI(ResPaths.DataDir2, filename);
       if (AssetManager::IsDataFile(libname))
         return libname;
     }

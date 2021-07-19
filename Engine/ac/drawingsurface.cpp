@@ -111,8 +111,8 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
     return nullptr;
 }
 
-void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src, int dst_x, int dst_y, int trans, BlendMode mode,
-    int dst_width, int dst_height,
+void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
+    int dst_x, int dst_y, int trans, BlendMode mode, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height, int sprite_id, bool src_has_alpha)
 {
     Bitmap *ds = sds->GetBitmapSurface();
@@ -126,7 +126,7 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src, int ds
     if (dst_width < 1 || dst_height < 1 || src_width < 1 || src_height < 1)
         return; // invalid src or dest rectangles
 
-    // Setup uninitialized arguments; convert coordinates for legacy script mode
+    // Setup uninitialized arguments
     if (dst_width == SCR_NO_VALUE) { dst_width = src->GetWidth(); }
     if (dst_height == SCR_NO_VALUE) { dst_height = src->GetHeight(); }
 
@@ -177,7 +177,8 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src, int ds
         delete src;
 }
 
-void DrawingSurface_DrawImageEx(ScriptDrawingSurface* sds, int dst_x, int dst_y, int slot, BlendMode mode, int trans,
+void DrawingSurface_DrawImageEx(ScriptDrawingSurface* sds,
+    int dst_x, int dst_y, int slot, BlendMode mode, int trans,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
@@ -193,8 +194,8 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
 }
 
 void DrawingSurface_DrawSurfaceEx(ScriptDrawingSurface* target, ScriptDrawingSurface* source, BlendMode mode, int trans,
-                                  int dst_x, int dst_y, int dst_width, int dst_height,
-                                  int src_x, int src_y, int src_width, int src_height)
+    int dst_x, int dst_y, int dst_width, int dst_height,
+    int src_x, int src_y, int src_width, int src_height)
 {
     DrawingSurface_DrawImageImpl(target, source->GetBitmapSurface(), dst_x, dst_y, trans, mode, dst_width, dst_height,
         src_x, src_y, src_width, src_height, -1, source->hasAlphaChannel);

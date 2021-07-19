@@ -303,6 +303,7 @@ Instead we accumulate button presses over a couple of timer loops.
 static int mouse_button_state = 0;
 static int mouse_accum_button_state = 0;
 static auto mouse_clear_at_time = AGS_Clock::now();
+// For accumulating relative mouse movement to be applied at a poll
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 
 // Returns accumulated mouse button state and clears internal cache by timer
@@ -428,12 +429,29 @@ int ags_check_mouse_wheel() {
 
 
 
-void ags_clear_input_buffer()
+void ags_clear_input_state()
 {
+    // clear everything related to the input state
     g_keyEvtQueue.clear();
     mouse_button_state = 0;
     mouse_accum_button_state = 0;
-    mouse_clear_at_time = AGS_Clock::now() + std::chrono::milliseconds(50);
+    mouse_clear_at_time = AGS_Clock::now();
+    mouse_accum_relx = 0;
+    mouse_accum_rely = 0;
+}
+
+void ags_clear_input_buffer()
+{
+    g_keyEvtQueue.clear();
+    // accumulated state only helps to not miss clicks
+    mouse_accum_button_state = 0;
+    // forget about recent mouse relative movement too
+    mouse_accum_relx = 0;
+    mouse_accum_rely = 0;
+}
+
+void ags_clear_mouse_movement()
+{
     mouse_accum_relx = 0;
     mouse_accum_rely = 0;
 }

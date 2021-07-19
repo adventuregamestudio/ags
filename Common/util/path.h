@@ -20,6 +20,12 @@
 
 #include "util/string.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#define PATH_ALT_SEPARATOR ('\\')
+#else
+#define PATH_ALT_SEPARATOR ('/')
+#endif
+
 namespace AGS
 {
 namespace Common
@@ -34,10 +40,15 @@ namespace Path
     // Tells if the given path is file or directory;
     // may be used to check if it's valid to use
     bool    IsFileOrDir(const String &filename);
+    // Returns parent directory of the given path;
+    // returns "." (current dir) if the path does not contain a parent segment
+    String  GetParent(const String &path);
     // Returns filename part out of the longer path
     String  GetFilename(const String &path);
     // Returns file's extension; file may be a fully qualified path too
     String  GetFileExtension(const String &path);
+    // Returns part of the filename without extension
+    String  RemoveExtension(const String &filename);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and
@@ -71,6 +82,9 @@ namespace Path
     String  MakeRelativePath(const String &base, const String &path);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
+    // Concatenates paths into the buffer, returns the buffer;
+    // warning: passing buffer as one of the path params results in UB
+    String  ConcatPaths(String &buf, const String &parent, const String &child);
     // Creates path by combining directory, file name and extension
     String  MakePath(const String &parent, const String &filename, const String &ext);
     // Splits path into components, divided by path separator

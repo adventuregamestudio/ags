@@ -2467,7 +2467,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
   }
 
   int oploc = find_lowest_bonding_operator(symlist,listlen);
-  bool hasNegatedLiteral;
+  bool hasNegatedLiteral = false;
 
   // A literal is being negated on the left
   if ((oploc == 0) && (listlen > 1) && (sym.get_type(symlist[1]) == SYM_LITERALVALUE) &&

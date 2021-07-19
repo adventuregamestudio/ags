@@ -167,8 +167,8 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     viw--;
     if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
     if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used (%d, range is 0 - %d)", lop, views[viw].numLoops - 1);
-    // AGS <= 3.5.1 let user to pass literally any positive invalid frame value by silently reassigning it to zero...
-    if (game.options[OPT_BASESCRIPTAPI] <= kScriptAPI_v351)
+    // AGS < 3.6.0 let user to pass literally any positive invalid frame value by silently reassigning it to zero...
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     {
         if (fra >= views[viw].loops[lop].numFrames)
         {

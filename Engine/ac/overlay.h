@@ -50,6 +50,5 @@ void recreate_overlay_image(ScreenOverlay &over);
 // Recalculates overlay's transform matrix and AABB, returns overlay object's position
 Point update_overlay_graphicspace(ScreenOverlay &over);
 
-
 extern std::vector<ScreenOverlay> screenover;
 #endif // __AGS_EE_AC__OVERLAY_H

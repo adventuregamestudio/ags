@@ -11,8 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/stream.h"
+#include <algorithm>
 
 namespace AGS
 {
@@ -30,6 +30,30 @@ size_t Stream::WriteByteCount(uint8_t b, size_t count)
             break;
     }
     return size;
+}
+
+soff_t CopyStream(Stream *in, Stream *out, soff_t length)
+{
+    char buf[4096];
+    soff_t wrote_num = 0;
+    while (length > 0)
+    {
+        size_t to_read = (size_t)std::min((soff_t)sizeof(buf), length);
+        size_t was_read = in->Read(buf, to_read);
+        if (was_read == 0)
+            return wrote_num;
+        length -= was_read;
+        size_t to_write = was_read;
+        while (to_write > 0)
+        {
+            size_t wrote = out->Write(buf + was_read - to_write, to_write);
+            if (wrote == 0)
+                return wrote_num;
+            to_write -= wrote;
+            wrote_num += wrote;
+        };
+    };
+    return wrote_num;
 }
 
 } // namespace Common

@@ -80,6 +80,7 @@ Name: "{app}\Templates";
 [Files]
 ; Engine files
 Source: "Source\Engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
+Source: "Source\Engine\SDL2.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
 ; Editor files
 Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\acsprset.spr"; DestDir: "{app}"; Flags: ignoreversion; Components: main

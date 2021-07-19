@@ -100,6 +100,9 @@
     <ClCompile Include="..\..\libsrc\allegro\src\libc.c">
       <Filter>Libs\allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\path_ex.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">

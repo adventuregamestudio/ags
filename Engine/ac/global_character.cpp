@@ -378,7 +378,7 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     if (game.chars[chaa].on != 1)
     {
         debug_script_warn("MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
-        return;
+        return 0;
     }
 
     if (direct)

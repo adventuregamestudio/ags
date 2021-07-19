@@ -39,6 +39,8 @@ void Camera::SetSize(const Size cam_size)
     // (or rather - looking outside of the room background); look into this later
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
     Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
+    if (_position.GetWidth() == real_size.Width && _position.GetHeight() == real_size.Height)
+        return;
 
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
@@ -56,6 +58,8 @@ void Camera::SetAt(int x, int y)
     int room_height = thisroom.Height;
     x = Math::Clamp(x, 0, room_width - cw);
     y = Math::Clamp(y, 0, room_height - ch);
+    if (_position.Left == x && _position.Top == y)
+        return;
     _position.MoveTo(Point(x, y));
 
     for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
@@ -158,7 +162,10 @@ void Viewport::SetRect(const Rect &rc)
 {
     // TODO: consider allowing size 0,0, in which case viewport is considered not visible
     Size fix_size = rc.GetSize().IsNull() ? Size(1, 1) : rc.GetSize();
-    _position = RectWH(rc.Left, rc.Top, fix_size.Width, fix_size.Height);
+    Rect new_pos = RectWH(rc.Left, rc.Top, fix_size.Width, fix_size.Height);
+    if (new_pos == _position)
+        return;
+    _position = new_pos;
     AdjustTransformation();
     _hasChangedPosition = true;
     _hasChangedSize = true;
@@ -168,6 +175,8 @@ void Viewport::SetSize(const Size sz)
 {
     // TODO: consider allowing size 0,0, in which case viewport is considered not visible
     Size fix_size = sz.IsNull() ? Size(1, 1) : sz;
+    if (_position.GetWidth() == fix_size.Width && _position.GetHeight() == fix_size.Height)
+        return;
     _position = RectWH(_position.Left, _position.Top, fix_size.Width, fix_size.Height);
     AdjustTransformation();
     _hasChangedSize = true;
@@ -175,6 +184,8 @@ void Viewport::SetSize(const Size sz)
 
 void Viewport::SetAt(int x, int y)
 {
+    if (_position.Left == x && _position.Top == y)
+        return;
     _position.MoveTo(Point(x, y));
     AdjustTransformation();
     _hasChangedPosition = true;

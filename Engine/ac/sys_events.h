@@ -102,8 +102,14 @@ extern volatile int sys_mouse_z; // mouse wheel position
 
 // Other input utilities
 //
-// Clears buffered keypresses and mouse clicks, if any
+// Clears buffered keypresses and mouse clicks;
+// resets current key/mb states
+void ags_clear_input_state();
+// Clears buffered keypresses and mouse clicks, if any;
+// does NOT reset current key/mb states
 void ags_clear_input_buffer();
+// Clears buffered mouse movement
+void ags_clear_mouse_movement();
 // Halts execution until any user input
 // TODO: seriously not a good design, replace with event listening
 void ags_wait_until_keypress();

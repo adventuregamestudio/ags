@@ -850,6 +850,9 @@ HAGSError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
         new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
             index, 0, _spriteData.size() - 1));
 
+    if (_spriteData[index].Offset == 0)
+        return HError::None(); // sprite is not in file
+
     SeekToSprite(index);
     _curPos = -2; // mark undefined pos
 
@@ -904,9 +907,14 @@ HAGSError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
 HError SpriteFile::LoadSpriteData(sprkey_t index, Size &metric, int &bpp,
     std::vector<char> &data)
 {
+    metric = Size();
+    bpp = 0;
     if (index < 0 || (size_t)index >= _spriteData.size())
         new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
             index, 0, _spriteData.size() - 1));
+
+    if (_spriteData[index].Offset == 0)
+        return HError::None(); // sprite is not in file
 
     SeekToSprite(index);
     _curPos = -2; // mark undefined pos

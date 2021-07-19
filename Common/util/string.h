@@ -257,6 +257,7 @@ public:
     // Appends another string to this string
     void    Append(const String &str);
     void    Append(const char *cstr) { String str = String::Wrapper(cstr); Append(str); }
+    void    Append(const char *cstr, size_t len);
     // Appends a single character
     void    AppendChar(char c);
     // Clip* methods decrease the string, removing defined part

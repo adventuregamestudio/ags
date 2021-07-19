@@ -270,7 +270,7 @@ void remove_screen_overlay_index(size_t over_idx)
     screenover.erase(screenover.begin() + over_idx);
     // if an overlay before the sierra-style speech one is removed, update the index
     // TODO: this is bad, need more generic system to store overlay references
-    if (face_talking >= 0 && (size_t)face_talking > over_idx)
+    if ((size_t)face_talking > over_idx)
         face_talking--;
 }
 

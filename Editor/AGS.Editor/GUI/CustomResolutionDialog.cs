@@ -27,6 +27,7 @@ namespace AGS.Editor
         {
             Size[] def_resolutions = new Size[]
             {
+                new Size (320, 180),
                 new Size (320, 200),
                 new Size (320, 240),
                 new Size (640, 360),

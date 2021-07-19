@@ -80,10 +80,7 @@ bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 
 int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
 {
-    // TODO: check for device caps to know which depth is supported?
-    if (native_color_depth > 8)
-        return 32;
-    return native_color_depth;
+    return 32;
 }
 
 IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int color_depth)

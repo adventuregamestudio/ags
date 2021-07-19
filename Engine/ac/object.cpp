@@ -86,7 +86,7 @@ void Object_RemoveTint(ScriptObject *objj) {
 }
 
 void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
-    if (game.options[OPT_BASESCRIPTAPI] <= kScriptAPI_v3507)
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     { // Previous version of SetView had negative loop and frame mean "use latest values"
         auto &obj = objs[objj->id];
         if (loop < 0) loop = obj.loop;
@@ -365,7 +365,8 @@ void Object_SetScaling(ScriptObject *objj, int zoomlevel) {
     }
     int zoom_fixed = Math::Clamp(zoomlevel, 1, (int)(INT16_MAX)); // RoomObject.zoom is int16
     if (zoomlevel != zoom_fixed)
-        debug_script_warn("Object.Scaling: scaling level must be between 1 and %d%%", (int)(INT16_MAX));
+        debug_script_warn("Object.Scaling: scaling level must be between 1 and %d%%, asked for: %d",
+                        (int)(INT16_MAX), zoomlevel);
     objs[objj->id].zoom = zoom_fixed;
 }
 

@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\Common\util\data_ext.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
+    <ClCompile Include="..\..\Common\util\path.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />

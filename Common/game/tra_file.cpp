@@ -120,27 +120,52 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
 
+
+// TRABlockReader reads whole TRA data, block by block
+class TRABlockReader : public DataExtReader
+{
+public:
+    TRABlockReader(Translation &tra, Stream *in)
+        : DataExtReader(in, kDataExt_NumID32 | kDataExt_File32)
+        , _tra(tra) {}
+
+    // Reads only the Game ID block and stops
+    HError ReadGameID()
+    {
+        HError err = FindOne(kTraFblk_GameID);
+        if (!err)
+            return err;
+        return ReadTraBlock(_tra, in, kTraFblk_GameID, "", block_len);
+    }
+
+private:
+    String GetOldBlockName(int block_id) const override
+    { return GetTraBlockName((TraFileBlock)block_id); }
+    soff_t GetOverLeeway(int block_id) const
+    {
+        // TRA files made by pre-3.0 editors have a block length miscount by 1 byte
+        if (block_id == kTraFblk_GameID) return 1;
+        return 0;
+    }
+    HError ReadBlock(int block_id, const String &ext_id,
+        soff_t block_len, bool &read_next) override
+    {
+        return ReadTraBlock(_tra, in, (TraFileBlock)block_id, ext_id, block_len);
+    }
+
+    Translation &_tra;
+};
+
+
 HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
 {
     HError err = OpenTraFile(in);
     if (!err)
         return err;
 
-    // This reader would only process kTraFblk_GameID and exit as soon as one is found
     Translation tra;
-    auto reader = [&tra](Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next)
-    {
-        if (block_id == kTraFblk_GameID)
-        {
-            read_next = false;
-            return ReadTraBlock(tra, in, (TraFileBlock)block_id, ext_id, block_len);
-        }
-        in->Seek(block_len); // skip block
-        return HError::None();
-    };
-
-    err = ReadExtData(reader, kDataExt_NumID32 | kDataExt_File32, in);
+    TRABlockReader reader(tra, in);
+    err = reader.ReadGameID();
     if (!err)
         return err;
     // Test the identifiers, if they are not present then skip the test
@@ -157,12 +182,8 @@ HError ReadTraData(Translation &tra, Stream *in)
     if (!err)
         return err;
 
-    // This reader will process all blocks inside ReadTraBlock() function,
-    // and read compatible data into the given Translation object
-    auto reader = [&tra](Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next)
-    { return ReadTraBlock(tra, in, (TraFileBlock)block_id, ext_id, block_len); };
-    return ReadExtData(reader, kDataExt_NumID32 | kDataExt_File32, in);
+    TRABlockReader reader(tra, in);
+    return reader.Read();
 }
 
 // TODO: perhaps merge with encrypt/decrypt utilities

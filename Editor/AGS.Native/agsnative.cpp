@@ -11,7 +11,6 @@ extern int Scintilla_LinkLexers();
 #include <winalleg.h>
 #undef CreateFile
 #undef DeleteFile
-#include "util/misc.h"
 #include "util/wgt2allg.h"
 #include "ac/spritecache.h"
 #include "ac/gamesetupstruct.h"

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cstdio>
 #include <string.h>
 #include "ac/common.h"
@@ -28,13 +27,13 @@
 #include "script/systemimports.h"
 #include "util/bbop.h"
 #include "util/stream.h"
-#include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
+#include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
@@ -1359,7 +1358,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         return;
     }
 
-    Stream *data_s = ci_fopen("script.log", kFile_Create, kFile_Write);
+    Stream *data_s = File::OpenFileCI("script.log", kFile_Create, kFile_Write);
     TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 
@@ -1638,6 +1637,7 @@ bool ccInstance::ResolveScriptImports(PScript scri)
     }
 
     resolved_imports = new int[numimports];
+    int errors = 0, last_err_idx;
     for (int i = 0; i < scri->numimports; ++i) {
         if (scri->imports[i] == nullptr) {
             resolved_imports[i] = -1;
@@ -1646,11 +1646,19 @@ bool ccInstance::ResolveScriptImports(PScript scri)
 
         resolved_imports[i] = simp.get_index_of(scri->imports[i]);
         if (resolved_imports[i] < 0) {
-            cc_error("unresolved import '%s' in %s", scri->imports[i], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
-            return false;
+            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[i], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
+            errors++;
+            last_err_idx = i;
         }
     }
-    return true;
+
+    if (errors > 0)
+       cc_error("in %s: %d unresolved imports (last: %s)",
+         scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>",
+         errors,
+         scri->imports[last_err_idx]);
+
+    return errors == 0;
 }
 
 // TODO: it is possible to deduce global var's size at start with

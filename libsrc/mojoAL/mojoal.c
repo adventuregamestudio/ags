@@ -531,7 +531,7 @@ struct ALCcontext_struct
 };
 
 /* forward declarations */
-static int source_get_offset(ALsource *src, ALenum param);
+static float source_get_offset(ALsource *src, ALenum param);
 static void source_set_offset(ALsource *src, ALenum param, ALfloat value);
 
 /* the just_queued list is backwards. Add it to the queue in the correct order. */
@@ -3940,9 +3940,9 @@ static void source_pause(ALCcontext *ctx, const ALuint name)
     }
 }
 
-static int source_get_offset(ALsource *src, ALenum param)
+static float source_get_offset(ALsource *src, ALenum param)
 {
-    int offset = 0;
+    float offset = 0.0f;
     int framesize = sizeof(float);
     int freq = 1;
     if (src->type == AL_STREAMING) {
@@ -3965,7 +3965,7 @@ static int source_get_offset(ALsource *src, ALenum param)
         case AL_SAMPLE_OFFSET: return offset / framesize; break;
         case AL_SEC_OFFSET: return (offset / framesize) / freq; break;
         case AL_BYTE_OFFSET: return offset; break;
-        default: return 0; break;
+        default: return 0.0f; break;
     }
 }
 

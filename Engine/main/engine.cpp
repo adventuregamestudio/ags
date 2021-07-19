@@ -71,7 +71,6 @@
 #include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
-#include "util/misc.h"
 #include "util/path.h"
 
 using namespace AGS::Common;
@@ -338,30 +337,6 @@ void engine_locate_speech_pak()
             if (AssetMgr->AddLibrary(speech_filepath) != Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
                 return;
-            }
-            // TODO: why is this read right here??? move this to InitGameState!
-            Stream *speechsync = AssetMgr->OpenAsset("syncdata.dat");
-            if (speechsync != nullptr) {
-                // this game has voice lip sync
-                int lipsync_fmt = speechsync->ReadInt32();
-                if (lipsync_fmt != 4)
-                {
-                    Debug::Printf(kDbgMsg_Info, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
-                }
-                else {
-                    numLipLines = speechsync->ReadInt32();
-                    splipsync = (SpeechLipSyncLine*)malloc (sizeof(SpeechLipSyncLine) * numLipLines);
-                    for (int ee = 0; ee < numLipLines; ee++)
-                    {
-                        splipsync[ee].numPhonemes = speechsync->ReadInt16();
-                        speechsync->Read(splipsync[ee].filename, 14);
-                        splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhonemes * sizeof(int));
-                        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhonemes);
-                        splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhonemes * sizeof(short));
-                        speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
-                    }
-                }
-                delete speechsync;
             }
             Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
             play.want_speech=1;
@@ -1456,7 +1431,7 @@ bool engine_try_switch_windowed_gfxmode()
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
     }
-    ags_clear_input_buffer();
+    ags_clear_input_state();
     return res;
 }
 

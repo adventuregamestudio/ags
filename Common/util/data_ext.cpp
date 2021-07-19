@@ -34,7 +34,7 @@ String GetDataExtErrorText(DataExtErrorType err)
     return "Unknown error.";
 }
 
-HError OpenExtBlock(Stream *in, int flags, int &block_id, String &ext_id, soff_t &block_len)
+HError DataExtParser::OpenBlock()
 {
     //    - 1 or 4 bytes - an old-style unsigned numeric ID:
     //               where 0 would indicate following string ID,
@@ -53,57 +53,78 @@ HError OpenExtBlock(Stream *in, int flags, int &block_id, String &ext_id, soff_t
     if (block_id > 0)
     { // old-style block identified by a numeric id
         block_len = ((flags & kDataExt_File64) != 0) ? in->ReadInt64() : in->ReadInt32();
+        ext_id = GetOldBlockName(block_id);
     }
     else
     { // new style block identified by a string id
         ext_id = String::FromStreamCount(in, 16);
         block_len = in->ReadInt64();
     }
+    block_start = in->GetPosition();
     return HError::None();
 }
 
-HError ReadExtData(PfnReadExtBlock reader, int flags, Stream *in)
+void DataExtParser::SkipBlock()
 {
-    while (!in->EOS())
+    if (block_id >= 0)
+        in->Seek(block_len);
+}
+
+HError DataExtParser::PostAssert()
+{
+    const soff_t cur_pos = in->GetPosition();
+    const soff_t block_end = block_start + block_len;
+    if (cur_pos > block_end)
     {
-        // First try open the next block
-        int block_id;
-        String ext_id;
-        soff_t block_len;
-        HError err = OpenExtBlock(in, flags, block_id, ext_id, block_len);
-        if (!err)
-            return err;
-        if (block_id < 0)
-            break; // end of list
-        if (ext_id.IsEmpty()) // we may need some name for the messages
-            ext_id.Format("id:%d", block_id);
-
-        // Now call the reader function to read current block's data
-        soff_t block_end = in->GetPosition() + block_len;
-        bool read_next = true;
-        err = reader(in, block_id, ext_id, block_len, read_next);
-        if (!err)
-            return err;
-
-        // Finally test that we did not read too much or too little
-        soff_t cur_pos = in->GetPosition();
-        if (cur_pos > block_end)
-        {
-            return new DataExtError(kDataExtErr_BlockDataOverlapping,
-                String::FromFormat("Block: '%s', expected to end at offset: %lld, finished reading at %lld.",
-                    ext_id.GetCStr(), block_end, cur_pos));
-        }
-        else if (cur_pos < block_end)
-        {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: room data blocks nonsequential, block '%s' expected to end at %lld, finished reading at %lld",
-                ext_id.GetCStr(), block_end, cur_pos);
-            in->Seek(block_end, Common::kSeekBegin);
-        }
-
-        if (!read_next)
-            break; // reader requested a stop, do so
+        String err = String::FromFormat("Block: '%s', expected to end at offset: %lld, finished reading at %lld.",
+            ext_id.GetCStr(), block_end, cur_pos);
+        if (cur_pos <= block_end + GetOverLeeway(block_id))
+            Debug::Printf(kDbgMsg_Warn, err);
+        else
+            return new DataExtError(kDataExtErr_BlockDataOverlapping, err);
+    }
+    else if (cur_pos < block_end)
+    {
+        Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %lld, finished reading at %lld",
+            ext_id.GetCStr(), block_end, cur_pos);
+        in->Seek(block_end, Common::kSeekBegin);
     }
     return HError::None();
+}
+
+HError DataExtParser::FindOne(int id)
+{
+    if (id <= 0) return new DataExtError(kDataExtErr_BlockNotFound);
+
+    HError err = HError::None();
+    for (err = OpenBlock(); err && !AtEnd(); err = OpenBlock())
+    {
+        if (id == block_id)
+            return HError::None();
+        in->Seek(block_len); // skip it
+    }
+    if (!err)
+        return err;
+    return new DataExtError(kDataExtErr_BlockNotFound);
+}
+
+HError DataExtReader::Read()
+{
+    HError err = HError::None();
+    bool read_next = true;
+    for (err = OpenBlock(); err && !AtEnd() && read_next; err = OpenBlock())
+    {
+        // Call the reader function to read current block's data
+        read_next = true;
+        err = ReadBlock(block_id, ext_id, block_len, read_next);
+        if (!err)
+            return err;
+        // Test that we did not read too much or too little
+        err = PostAssert();
+        if (!err)
+            return err;
+    }
+    return err;
 }
 
 // Generic function that saves a block and automatically adds its size into header

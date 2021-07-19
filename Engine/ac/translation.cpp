@@ -25,7 +25,6 @@
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
 #include "game/tra_file.h"
-#include "util/misc.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
 

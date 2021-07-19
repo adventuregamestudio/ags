@@ -236,7 +236,7 @@ void Mouse::SetMovementControl(bool on)
     ControlEnabled = false;
     Debug::Printf(kDbgMsg_Warn, "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
 #endif
-    ags_clear_input_buffer();
+    ags_clear_mouse_movement();
 }
 
 bool Mouse::IsControlEnabled()

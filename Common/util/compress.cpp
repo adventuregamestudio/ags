@@ -22,8 +22,8 @@
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/compress.h"
+#include "util/file.h"
 #include "util/lzw.h"
-#include "util/misc.h"
 #include "util/stream.h"
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"
@@ -337,14 +337,14 @@ const char *lztempfnm = "~aclzw.tmp";
 void save_lzw(Stream *out, const Bitmap *bmpp, const RGB *pall)
 {
   // First write original bitmap into temporary file
-  Stream *lz_temp_s = ci_fopen(lztempfnm, kFile_CreateAlways, kFile_Write);
+  Stream *lz_temp_s = File::OpenFileCI(lztempfnm, kFile_CreateAlways, kFile_Write);
   lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
   lz_temp_s->WriteInt32(bmpp->GetHeight());
   lz_temp_s->WriteArray(bmpp->GetData(), bmpp->GetLineLength(), bmpp->GetHeight());
   delete lz_temp_s;
 
   // Now open same file for reading, and begin writing compressed data into required output stream
-  lz_temp_s = ci_fopen(lztempfnm);
+  lz_temp_s = File::OpenFileCI(lztempfnm);
   soff_t temp_sz = lz_temp_s->GetLength();
   out->WriteArray(&pall[0], sizeof(RGB), 256);
   out->WriteInt32(temp_sz);

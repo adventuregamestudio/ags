@@ -366,6 +366,7 @@ void update_letterbox_mode()
 
     play.SetMainViewport(CenterInRect(game_frame, new_main_view));
     play.SetUIViewport(new_main_view);
+    on_mainviewport_changed();
 }
 
 // Automatically reset primary room viewport and camera to match the new room size
@@ -1130,7 +1131,6 @@ RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(RoomProcessClick);
 }
 
-// bool (int room)
 RuntimeScriptValue Sc_Room_Exists(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_BOOL_PINT(Room_Exists);

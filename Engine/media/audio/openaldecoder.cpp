@@ -338,8 +338,6 @@ AudioCorePlayState OpenALDecoder::GetPlayState()
 float OpenALDecoder::GetPositionMs()
 {
     float alSecOffset = 0.0f;
-    // disabled with mojoal
-    // if source available:
     alGetSourcef(source_, AL_SEC_OFFSET, &alSecOffset);
     dump_al_errors();
     auto positionMs_ = processedBuffersDurationMs_ + alSecOffset*1000.0f;

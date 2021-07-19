@@ -9,6 +9,28 @@ using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
 
+class RoomScNamesReader : public DataExtReader
+{
+public:
+    RoomScNamesReader(RoomScNames &data, RoomFileVersion data_ver, Stream *in)
+        : DataExtReader(in,
+            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+        , _data(data)
+        , _dataVer(data_ver)
+    {}
+
+private:
+    HError ReadBlock(int block_id, const String &ext_id,
+        soff_t block_len, bool &read_next) override
+    {
+        return ReadRoomScNames(_data, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+    }
+
+    RoomScNames &_data;
+    RoomFileVersion _dataVer;
+};
+
+
 const char *HELP_STRING = "Usage: crm2ash <input-room.crm> <output-room.ash>\n";
 
 int main(int argc, char *argv[])
@@ -40,7 +62,7 @@ int main(int argc, char *argv[])
     // Read room struct
     //-----------------------------------------------------------------------//
     RoomDataSource datasrc;
-    auto err = OpenRoomFile(src, datasrc);
+    HError err = OpenRoomFile(src, datasrc);
     if (!err)
     {
         printf("Error: failed to open room file for reading:\n");
@@ -49,11 +71,8 @@ int main(int argc, char *argv[])
     }
     
     RoomScNames data;
-    RoomFileVersion data_ver = datasrc.DataVersion;
-    auto read_cb = [&data, data_ver](Stream *in, RoomFileBlock block, const String &ext_id,
-        soff_t block_len, RoomFileVersion data_ver, bool &read_next)
-        { return ReadRoomScNames(data, in, (RoomFileBlock)block, ext_id, block_len, data_ver); };
-    err = ReadRoomData(read_cb, datasrc.InputStream.get(), data_ver);
+    RoomScNamesReader reader(data, datasrc.DataVersion, datasrc.InputStream.get());
+    err = reader.Read();
     if (!err)
     {
         printf("Error: failed to read room file:\n");

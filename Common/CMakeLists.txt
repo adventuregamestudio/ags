@@ -1,7 +1,7 @@
 include(TestBigEndian)
 include(CheckFseeko)
 
-add_library(common STATIC)
+add_library(common STATIC EXCLUDE_FROM_ALL)
 
 set_target_properties(common PROPERTIES
     CXX_STANDARD 11
@@ -146,6 +146,7 @@ target_sources(common
     util/multifilelib.h
     util/mutifilelib.cpp
     util/path.cpp
+    util/path_ex.cpp
     util/path.h
     util/proxystream.cpp
     util/proxystream.h
@@ -176,6 +177,10 @@ target_sources(common
 )
 
 target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
+
+if (WIN32)
+    target_link_libraries(common PUBLIC shlwapi)
+endif()
 
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)
@@ -213,6 +218,13 @@ if(AGS_TESTS)
         test/string_test.cpp
         test/version_test.cpp
     )
+    set_target_properties(common_test PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        INTERPROCEDURAL_OPTIMIZATION FALSE
+        )
     target_link_libraries(
         common_test
         common
@@ -220,5 +232,5 @@ if(AGS_TESTS)
     )
 
     include(GoogleTest)
-    gtest_discover_tests(common_test)
+    gtest_add_tests(TARGET common_test)
 endif()

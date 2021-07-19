@@ -92,6 +92,8 @@ public:
     }
 
 private:
+    void AdjustTransformations();
+
     int _id = -1;
     // Actual position and orthographic size
     Rect _position;

@@ -44,31 +44,28 @@ void Camera::SetSize(const Size cam_size)
 
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
-    // readjust in case went off-room after size changed, also updates matrixes
-    SetAt(_position.Left, _position.Top);
+    // readjust in case went off-room after size changed
+    int x = Math::Clamp(x, 0, thisroom.Width - _position.GetWidth());
+    int y = Math::Clamp(y, 0, thisroom.Height - _position.GetHeight());
+    if (_position.Left != x || _position.Top != y)
+    {
+        _position.MoveTo(Point(x, y));
+        _hasChangedPosition = true;
+    }
+    AdjustTransformations();
     _hasChangedSize = true;
 }
 
 // Puts room camera to the new location in the room
 void Camera::SetAt(int x, int y)
 {
-    int cw = _position.GetWidth();
-    int ch = _position.GetHeight();
-    int room_width = thisroom.Width;
-    int room_height = thisroom.Height;
-    x = Math::Clamp(x, 0, room_width - cw);
-    y = Math::Clamp(y, 0, room_height - ch);
+    x = Math::Clamp(x, 0, thisroom.Width - _position.GetWidth());
+    y = Math::Clamp(y, 0, thisroom.Height - _position.GetHeight());
     if (_position.Left == x && _position.Top == y)
         return;
+
     _position.MoveTo(Point(x, y));
-
-    for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
-    {
-        auto locked_vp = vp->lock();
-        if (locked_vp)
-            locked_vp->AdjustTransformation();
-    }
-
+    AdjustTransformations();
     _hasChangedPosition = true;
 }
 
@@ -80,15 +77,18 @@ float Camera::GetRotation() const
 void Camera::SetRotation(float degrees)
 {
     _rotation = Math::ClampAngle360(degrees);
+    AdjustTransformations();
+    _hasChangedSize = true;
+}
 
+void Camera::AdjustTransformations()
+{
     for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)
     {
         auto locked_vp = vp->lock();
         if (locked_vp)
             locked_vp->AdjustTransformation();
     }
-
-    _hasChangedSize = true;
 }
 
 // Tells if camera is currently locked at custom position

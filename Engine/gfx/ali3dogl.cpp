@@ -813,9 +813,9 @@ void OGLGraphicsDriver::CreateVirtualScreen()
   _stageScreen = GetStageScreen(0);
 }
 
-bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
+bool OGLGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
-  OnSetNativeSize(src_size);
+  OnSetNativeRes(native_res);
   SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();

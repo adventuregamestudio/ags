@@ -227,9 +227,9 @@ void SDLRendererGraphicsDriver::ReleaseDisplayMode()
   ClearDrawLists();
 }
 
-bool SDLRendererGraphicsDriver::SetNativeSize(const Size &src_size)
+bool SDLRendererGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
-  OnSetNativeSize(src_size);
+  OnSetNativeRes(native_res);
   CreateVirtualScreen();
   return !_srcRect.IsEmpty();
 }

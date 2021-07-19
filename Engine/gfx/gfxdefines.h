@@ -16,6 +16,7 @@
 #define __AGS_EE_GFX__GFXDEFINES_H
 
 #include "core/types.h"
+#include "util/geometry.h"
 
 namespace AGS
 {
@@ -32,25 +33,18 @@ enum GlobalFlipType
 };
 
 // GraphicResolution struct determines image size and color depth
-struct GraphicResolution
+struct GraphicResolution : Size
 {
-    int32_t Width;
-    int32_t Height;
-    int32_t ColorDepth;
+    int32_t ColorDepth; // color depth in bits per pixel
 
     GraphicResolution()
-        : Width(0)
-        , Height(0)
-        , ColorDepth(0)
-    {
-    }
+        : ColorDepth(0) {}
 
     GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
-    {
-        Width = width;
-        Height = height;
-        ColorDepth = color_depth;
-    }
+        : Size(width, height), ColorDepth(color_depth) {}
+
+    GraphicResolution(Size size, int32_t color_depth)
+        : Size(size), ColorDepth(color_depth) {}
 
     inline bool IsValid() const { return Width > 0 && Height > 0 && ColorDepth > 0; }
 };

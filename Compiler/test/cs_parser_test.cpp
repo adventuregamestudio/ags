@@ -195,7 +195,7 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
 TEST(Compile, ParsingIntDefaultFloatMismatch) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         import  int  importedfunc(int data1 = 156.15);\
         ";
 
@@ -208,7 +208,7 @@ TEST(Compile, ParsingIntDefaultFloatMismatch) {
 TEST(Compile, ParsingFloatDefault) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         import  int  importedfunc(float data1 = 0, float data2=12.5, float data3=-35654.156);\
         ";
 
@@ -220,7 +220,7 @@ TEST(Compile, ParsingFloatDefault) {
 TEST(Compile, ParsingFloatDefaultIntMismatch) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         import  int  importedfunc(float data1 = 1);\
         ";
 
@@ -233,7 +233,7 @@ TEST(Compile, ParsingFloatDefaultIntMismatch) {
 TEST(Compile, ParsingStringDefaultNull) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct String { };\
         import  int  importedfunc(String data1 = 0);\
         ";
@@ -246,7 +246,7 @@ TEST(Compile, ParsingStringDefaultNull) {
 TEST(Compile, ParsingStringDefaultInvalid) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct String { };\
         import  int  importedfunc(String data1 = 1);\
         ";
@@ -260,7 +260,7 @@ TEST(Compile, ParsingStringDefaultInvalid) {
 TEST(Compile, ParsingPointerDefaultNull) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Character { };\
         import  int  importedfunc(Character *data1 = 0);\
         ";
@@ -273,7 +273,7 @@ TEST(Compile, ParsingPointerDefaultNull) {
 TEST(Compile, ParsingPointerDefaultInvalid) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Character { };\
         import  int  importedfunc(Character *data1 = 10);\
         ";

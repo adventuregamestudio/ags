@@ -589,7 +589,7 @@ HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
             in->Seek(sizeof(int32_t) * 11);
         }
 
-        return HGameFileError::None();
+        return HError::None();
     }
     return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
 }

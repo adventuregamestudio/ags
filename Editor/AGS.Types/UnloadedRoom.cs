@@ -24,6 +24,12 @@ namespace AGS.Types
         protected string _description;
         protected Script _script = null;
 
+        public static bool DoRoomDirectoryExist(int roomNumber)
+        {
+            string roomDirectory = Path.Combine(ROOM_DIRECTORY, $"{roomNumber}");
+            return System.IO.Directory.Exists(roomDirectory);
+        }
+
 		public static bool DoRoomFilesExist(int roomNumber)
 		{
             string roomDirectory = Path.Combine(ROOM_DIRECTORY, $"{roomNumber}");

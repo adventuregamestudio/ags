@@ -2084,33 +2084,46 @@ namespace AGS.Editor.Components
             if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX)
                 return; // Upgrade already completed
 
-            // Room directory might already exist for whatever reason so rename it to a backup location
-            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY)) 
+            IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
+
+            // If the room directory we want to write to already exists then backup
+            if (Directory.Exists(UnloadedRoom.ROOM_DIRECTORY))
             {
-                string backupDir = Enumerable
+                string backupRootDir = Enumerable
                     .Range(0, int.MaxValue)
                     .Select(i => $"{UnloadedRoom.ROOM_DIRECTORY}Backup-{i}")
                     .First(dir => !Directory.Exists(dir));
-                Directory.Move(UnloadedRoom.ROOM_DIRECTORY, backupDir);
+
+                foreach (var room in rooms)
+                {
+                    if (UnloadedRoom.DoRoomDirectoryExist(room.Number))
+                    {
+                        DirectoryInfo backupDir = new DirectoryInfo(Path.Combine(backupRootDir, room.Number.ToString()));
+                        DirectoryInfo di = new DirectoryInfo(room.Directory);
+                        di.CopyAll(backupDir);
+                        // Don't crash the upgrade if a file can't be deleted
+                        di.DeleteWithoutException(recursive: true);
+                    }
+                }
             }
 
-            IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
+            // Now upgrade
             object progressLock = new object();
             string progressText = "Converting rooms from .crm to open format.";
-
             using (Progress progressForm = new Progress(rooms.Count, progressText))
             {
                 progressForm.Show();
                 int progress = 0;
+                Action progressReporter = () =>
+                {
+                    lock (progressLock) { progress++; }
+                    progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms converted.");
+                };
 
                 Task.WaitAll(
                     rooms
                     .Cast<UnloadedRoom>()
-                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, () =>
-                    {
-                        lock (progressLock) { progress++; }
-                        progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms converted.");
-                    }))
+                    .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, progressReporter))
                     .ToArray());
             }
         }

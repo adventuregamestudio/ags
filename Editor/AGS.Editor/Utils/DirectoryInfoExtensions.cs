@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace AGS.Editor
@@ -50,16 +50,15 @@ namespace AGS.Editor
             if (recursive)
             {
                 foreach (DirectoryInfo di in source.GetDirectories())
-                {
-                    try
-                    {
-                        di.DeleteWithoutException(recursive);
-                        di.Delete(recursive);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
+                    di.DeleteWithoutException(recursive);
+            }
+
+            try
+            {
+                source.Delete(recursive);
+            }
+            catch (Exception)
+            {
             }
         }
     }

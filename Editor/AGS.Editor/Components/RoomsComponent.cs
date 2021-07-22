@@ -2094,17 +2094,11 @@ namespace AGS.Editor.Components
                     .Select(i => $"{UnloadedRoom.ROOM_DIRECTORY}Backup-{i}")
                     .First(dir => !Directory.Exists(dir));
 
-                foreach (var room in rooms)
-                {
-                    if (UnloadedRoom.DoRoomDirectoryExist(room.Number))
-                    {
-                        DirectoryInfo backupDir = new DirectoryInfo(Path.Combine(backupRootDir, room.Number.ToString()));
-                        DirectoryInfo di = new DirectoryInfo(room.Directory);
-                        di.CopyAll(backupDir);
-                        // Don't crash the upgrade if a file can't be deleted
-                        di.DeleteWithoutException(recursive: true);
-                    }
-                }
+                DirectoryInfo roomDir = new DirectoryInfo(UnloadedRoom.ROOM_DIRECTORY);
+                DirectoryInfo backupDir = new DirectoryInfo(backupRootDir);
+                roomDir.CopyAll(backupDir);
+                // Don't crash the upgrade if a file can't be deleted
+                roomDir.DeleteWithoutException(recursive: true);
             }
 
             // Now upgrade

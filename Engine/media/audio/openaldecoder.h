@@ -54,6 +54,7 @@ public:
     void Seek(float pos_ms);
     AudioCorePlayState GetPlayState();
     float GetPositionMs();
+    float GetDurationMs();
 
 private:
     ALuint source_;
@@ -66,6 +67,7 @@ private:
     AGS::Common::String sampleExt_ = "";
     ALenum sampleOpenAlFormat_ = 0;
     SoundSampleUniquePtr sample_ = nullptr;
+    float duration_ = 0.f;
 
     AudioCorePlayState onLoadPlayState_ = PlayStatePaused;
     float onLoadPositionMs = 0.0f;

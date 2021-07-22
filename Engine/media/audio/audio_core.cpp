@@ -234,6 +234,15 @@ float audio_core_slot_get_pos_ms(int slot_handle)
     g_acore.mixer_cv.notify_all();
     return pos;
 }
+
+float audio_core_slot_get_duration(int slot_handle)
+{
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
+    auto dur = g_acore.slots_[slot_handle]->decoder_.GetDurationMs();
+    g_acore.mixer_cv.notify_all();
+    return dur;
+}
+
 AudioCorePlayState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
@@ -268,19 +277,4 @@ static void audio_core_entry()
 
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));
     }
-}
-
-
-// -------------------------------------------------------------------------------------------------
-// UTILITY
-// -------------------------------------------------------------------------------------------------
-// TODO: originally written by [sonneveld] for OpenAL sound impl,
-// investigate if it's possible to avoid using full sound data here,
-// maybe by letting decoder read a header from stream and find out format.
-float audio_core_get_sound_length_ms(const std::vector<char> &data, const char *extension_hint)
-{
-    auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((Uint8 *)data.data(), data.size(), extension_hint, nullptr, 32 * 1024));
-    if (sample == nullptr) { return -1; }
-
-    return Sound_GetDuration(sample.get());
 }

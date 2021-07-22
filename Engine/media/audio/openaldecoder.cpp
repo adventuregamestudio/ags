@@ -232,6 +232,7 @@ bool OpenALDecoder::Init()
 
     sample_ = std::move(sample);
     sampleOpenAlFormat_ = bufferFormat;
+    duration_ = Sound_GetDuration(sample_.get());
 
     playState_ = onLoadPlayState_;
     if (onLoadPositionMs >= 0.0f) {
@@ -367,4 +368,9 @@ float OpenALDecoder::GetPositionMs()
     printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
 #endif
     return positionMs_;
+}
+
+float OpenALDecoder::GetDurationMs()
+{
+    return duration_;
 }

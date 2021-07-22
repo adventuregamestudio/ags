@@ -112,7 +112,6 @@ namespace AGS.Types
 
         public Room(XmlNode node) : base(node)
         {
-            LoadScript();
             _interactions.FromXml(node);
             _messages.AddRange(GetXmlChildren(node, "/Room/Messages", int.MaxValue).Select((xml, i) => new RoomMessage(i, xml)));
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));

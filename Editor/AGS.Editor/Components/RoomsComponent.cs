@@ -836,7 +836,7 @@ namespace AGS.Editor.Components
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            _loadedRoom = new Room(LoadData(newRoom));
+            _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
             LoadImageCache();
             _fileWatchers.Clear();
             _fileWatchers.AddRange(LoadFileWatchers());

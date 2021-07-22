@@ -14,6 +14,10 @@
 //
 // OpenAL Decoder.
 //
+// TODO: support sound data streaming! research what means are available to use
+// along with SDL_Sound and Sound_Sample API;
+// maybe utilizing SDL RWops?
+//
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__OPENALDECODER_H
 #define __AGS_EE_MEDIA__OPENALDECODER_H
@@ -40,6 +44,8 @@ public:
     OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat);
     OpenALDecoder(OpenALDecoder&& dec);
     ~OpenALDecoder();
+    // Try initializing the sound sample
+    bool Init();
     void Poll();
     void Play();
     void Pause();

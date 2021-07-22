@@ -41,7 +41,8 @@ using SoundSampleUniquePtr = std::unique_ptr<Sound_Sample, SoundSampleDeleterFun
 class OpenALDecoder
 {
 public:
-    OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat);
+    OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
+                  AGS::Common::String sampleExt, bool repeat);
     OpenALDecoder(OpenALDecoder&& dec);
     ~OpenALDecoder();
     // Try initializing the sound sample
@@ -61,7 +62,6 @@ private:
 
     AudioCorePlayState playState_ = PlayStateInitial;
 
-    std::future<std::vector<char>> sampleBufFuture_{};
     std::vector<char> sampleData_{};
     AGS::Common::String sampleExt_ = "";
     ALenum sampleOpenAlFormat_ = 0;

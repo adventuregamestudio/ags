@@ -165,8 +165,12 @@ void OpenALDecoder::PollBuffers()
 }
 
 
-OpenALDecoder::OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat)
-    : source_(source), sampleBufFuture_(std::move(sampleBufFuture)), sampleExt_(sampleExt), repeat_(repeat) {
+OpenALDecoder::OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
+                             AGS::Common::String sampleExt, bool repeat)
+    : source_(source)
+    , sampleData_(std::move(sampleBuf))
+    , sampleExt_(sampleExt)
+    , repeat_(repeat) {
 
 }
 
@@ -174,7 +178,7 @@ OpenALDecoder::OpenALDecoder(OpenALDecoder&& dec)
 {
     source_ = dec.source_;
     dec.source_ = 0;
-    sampleBufFuture_ = (std::move(dec.sampleBufFuture_));
+    sampleData_ = (std::move(dec.sampleData_));
     sampleExt_ = std::move(dec.sampleExt_);
     repeat_ = dec.repeat_;
     dec.repeat_ = false;
@@ -194,8 +198,6 @@ bool OpenALDecoder::Init()
 {
     if (playState_ != AudioCorePlayState::PlayStateInitial)
         return true; // already inited, nothing to do
-
-    sampleData_ = std::move(sampleBufFuture_.get());
 
     auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
         (uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), nullptr, SampleDefaultBufferSize));
@@ -243,9 +245,6 @@ void OpenALDecoder::Poll()
     if (playState_ == AudioCorePlayState::PlayStateError) { return; }
 
     if (playState_ == AudioCorePlayState::PlayStateInitial) {
-
-        if (sampleBufFuture_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) { return; }
-
         Init();
     }
 

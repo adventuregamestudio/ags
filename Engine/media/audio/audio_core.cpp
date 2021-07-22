@@ -133,17 +133,16 @@ static int avail_slot_id()
 
 int audio_core_slot_init(const std::vector<char> &data, const ags::String &extension_hint, bool repeat)
 {
-    auto handle = avail_slot_id();
-
+    // TODO: move source gen to OpenALDecoder?
     ALuint source_;
     alGenSources(1, &source_);
     dump_al_errors();
 
-    auto promise = std::promise<std::vector<char>>();
-    promise.set_value(std::move(data));
+    auto decoder = OpenALDecoder(source_, data, extension_hint, repeat);
+    if (!decoder.Init())
+        return -1;
 
-    auto decoder = OpenALDecoder(source_, promise.get_future(), extension_hint, repeat);
-
+    auto handle = avail_slot_id();
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[handle] = std::make_unique<AudioCoreSlot>(handle, source_, std::move(decoder));
     g_acore.mixer_cv.notify_all();

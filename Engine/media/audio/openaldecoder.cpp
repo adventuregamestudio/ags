@@ -137,16 +137,22 @@ void OpenALDecoder::PollBuffers()
 
         auto sz = Sound_Decode(sample_.get());
 
-        if (sz <= 0) {
+        // If read less than the buffer size - that means
+        // either we reached end of sound stream OR decoding error occured
+        if (sz < sample_->buffer_size) {
             EOS_ = true;
+            if ((sample_->flags & SOUND_SAMPLEFLAG_ERROR) != 0) {
+                playState_ = PlayStateError;
+            }
             // if repeat, then seek to start.
-            if (repeat_) {
+            else if (repeat_) {
                 auto res = Sound_Rewind(sample_.get());
                 auto success = (res != 0);
                 EOS_ = !success;
             }
-            continue;
         }
+        // Nothing was decoded last time - skip
+        if (sz == 0) { continue; }
 
         alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
         dump_al_errors();

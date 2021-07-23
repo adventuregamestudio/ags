@@ -1861,11 +1861,13 @@ namespace AGS.Editor.Components
                 }
             }
 
+            bool imageNotFound = false;
+
             if (!_backgroundCache.Any())
             {
                 _backgroundCache.Add(new Bitmap(_loadedRoom.Width, _loadedRoom.Height));
                 _loadedRoom.BackgroundCount = 1;
-                _loadedRoom.Modified = true;
+                imageNotFound = true;
                 _guiController.ShowMessage(
                     $"Could not to find any background images at \"{_loadedRoom.Directory}\", an empty " +
                     $"default image will be used instead.",
@@ -1890,13 +1892,15 @@ namespace AGS.Editor.Components
                     double scale = _loadedRoom.GetMaskScale(mask);
                     _maskCache[mask] = new Bitmap((int)(_loadedRoom.Width * scale), (int)(_loadedRoom.Height * scale), PixelFormat.Format8bppIndexed);
                     _maskCache[mask].SetPaletteFromGlobalPalette();
-                    _loadedRoom.Modified = true;
+                    imageNotFound = true;
                     _guiController.ShowMessage(
                         $"Could not to find mask at \"{_loadedRoom.GetMaskFileName(mask)}\", an empty " +
                         $"default image will be used instead.",
                         MessageBoxIcon.Warning);
                 }
             }
+
+            _loadedRoom.Modified = imageNotFound;
         }
 
         private XmlNode LoadData(UnloadedRoom room)

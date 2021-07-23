@@ -1916,7 +1916,6 @@ namespace AGS.Editor.Components
         private void RefreshData()
         {
             SerializeUtils.DeserializeFromXML(_loadedRoom, LoadData(_loadedRoom));
-            _loadedRoom.Modified = true;
             _guiController.RefreshPropertyGrid();
         }
 
@@ -1926,7 +1925,6 @@ namespace AGS.Editor.Components
         {
             _backgroundCache[i]?.Dispose();
             _backgroundCache[i] = LoadBackground(i);
-            _loadedRoom.Modified = true;
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -1936,7 +1934,6 @@ namespace AGS.Editor.Components
         {
             _maskCache[mask]?.Dispose();
             _maskCache[mask] = LoadMask(mask);
-            _loadedRoom.Modified = true;
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 

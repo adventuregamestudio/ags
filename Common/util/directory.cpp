@@ -17,6 +17,7 @@
 #endif
 #include "util/path.h"
 #include "util/stdio_compat.h"
+#include "util/string_utils.h"
 
 
 namespace AGS
@@ -85,10 +86,10 @@ String GetCurrentDirectory()
 bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
     int is_reg, int is_dir)
 {
-    struct dirent *ent;
     DIR *dir = opendir(dir_path.GetCStr());
     if (!dir)
         return false;
+    struct dirent *ent;
     struct stat f_stat;
     while ((ent = readdir(dir)) != nullptr)
     {
@@ -143,6 +144,145 @@ bool GetFiles(const String &dir_path, std::vector<String> &files)
 }
 
 } // namespace Directory
+
+
+struct FindFile::Internal
+{
+    Internal() = default;
+    Internal(Internal &&ffi)
+    {
+#if AGS_PLATFORM_OS_WINDOWS
+        ff = ffi.ff;
+        ffi.ff = nullptr;
+        fdata = ffi.fdata;
+#else
+        dir = ffi.dir;
+        ffi.dir = nullptr;
+        regex = std::move(ffi.regex);
+#endif
+        attrFile = ffi.attrFile;
+        attrDir = ffi.attrDir;
+    }
+
+#if AGS_PLATFORM_OS_WINDOWS
+    HANDLE ff = nullptr;
+    WIN32_FIND_DATAA fdata = {};
+#else
+    DIR *dir = nullptr;
+    std::regex regex;
+#endif
+    int attrFile = 0;
+    int attrDir = 0;
+};
+
+
+FindFile::FindFile(Internal &&ffi)
+    : _i(new Internal(std::move(ffi)))
+{
+}
+
+FindFile::FindFile(FindFile &&ff)
+{
+    *this = std::move(ff);
+}
+
+FindFile::~FindFile()
+{
+    Close();
+}
+
+FindFile &FindFile::operator =(FindFile &&ff)
+{
+    _i = std::move(ff._i);
+    _current = std::move(ff._current);
+    return *this;
+}
+
+FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file, bool do_dir)
+{
+    Internal ffi;
+#if AGS_PLATFORM_OS_WINDOWS
+    char pattern[MAX_PATH];
+    snprintf(pattern, MAX_PATH, "%s/%s", path.GetCStr(), wildcard.GetCStr());
+    HANDLE hFind = FindFirstFileA(pattern, &ffi.fdata);
+    if (hFind == INVALID_HANDLE_VALUE)
+        return FindFile(); // return invalid object
+    ffi.ff = hFind;
+    ffi.attrFile = do_file ? 1 : 0; // TODO
+    ffi.attrDir = do_dir ? FILE_ATTRIBUTE_DIRECTORY : 0;
+#else
+    DIR *dir = opendir(path.GetCStr());
+    if (!dir)
+        return FindFile(); // return invalid object
+    ffi.dir = dir;
+    ffi.attrFile = do_file ? 1 : 0;
+    ffi.attrDir = do_dir ? 1 : 0;
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    ffi.regex = std::regex(pattern.GetCStr(), std::regex_constants::icase);
+#endif
+    FindFile ff(std::move(ffi));
+    // Try get the first matching entry
+    if (!ff.Next())
+        return FindFile(); // return invalid object
+    return ff; // success
+}
+
+void FindFile::Close()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    if (_i)
+        FindClose(_i->ff);
+#else
+    if (_i)
+        closedir(_i->dir);
+#endif
+    _i.reset();
+}
+
+bool FindFile::Next()
+{
+    if (!_i)
+        return false;
+#if AGS_PLATFORM_OS_WINDOWS
+    auto ff = _i->ff;
+    auto &fdata = _i->fdata;
+    const int attrDir = _i->attrDir;
+    // We already have an entry opened at this point, so check that first;
+    // if it's not valid then continue searching
+    _current.Empty();
+    for (; (fdata.cFileName[0] != 0) && _current.IsEmpty();
+        fdata.cFileName[0] = 0, FindNextFileA(ff, &fdata) != 0)
+    {
+        if (strcmp(fdata.cFileName, ".") == 0 ||
+            strcmp(fdata.cFileName, "..") == 0) continue;
+        if ((fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != attrDir)
+            continue;
+        _current = fdata.cFileName;
+    }
+#else
+    auto dir = _i->dir;
+    const int is_reg = _i->attrFile;
+    const int is_dir = _i->attrDir;
+    struct dirent *ent;
+    struct stat f_stat;
+    std::cmatch mr;
+    _current.Empty();
+    while ((ent = readdir(dir)) != nullptr)
+    {
+        if (strcmp(ent->d_name, ".") == 0 ||
+            strcmp(ent->d_name, "..") == 0) continue;
+        if (stat(ent->d_name, &f_stat) != 0) continue;
+        if (S_ISREG(f_stat.st_mode) != is_reg ||
+            S_ISDIR(f_stat.st_mode) != is_dir)
+            continue;
+        if (!std::regex_match(ent->d_name, mr, _i->regex))
+            continue;
+        _current = ent->d_name;
+        break;
+    }
+#endif
+    return !_current.IsEmpty();
+}
 
 } // namespace Common
 } // namespace AGS

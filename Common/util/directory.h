@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__DIRECTORY_H
 #define __AGS_CN_UTIL__DIRECTORY_H
 
+#include <memory>
+#include <regex>
 #include <vector>
 #include "core/platform.h"
 #include "util/string.h"
@@ -44,6 +46,38 @@ namespace Directory
     // Get list of files found in the given directory
     bool   GetFiles(const String &dir_path, std::vector<String> &files);
 } // namespace Directory
+
+
+class FindFile
+{
+public:
+    FindFile() = default;
+    FindFile(FindFile &&ff);
+    ~FindFile();
+    static FindFile OpenFiles(const String &path, const String &wildcard = "*")
+        { return Open(path, wildcard, true, false); }
+    static FindFile OpenDirs(const String &path, const String &wildcard = "*")
+        { return Open(path, wildcard, false, true); }
+    bool AtEnd() const { return _current.IsEmpty(); }
+    String Current() const { return _current; }
+    void Close();
+    bool Next();
+
+    FindFile &operator =(FindFile &&ff);
+
+private:
+    // Internal data type, platform-dependent
+    struct Internal;
+
+    FindFile(Internal &&ffi);
+
+    static FindFile Open(const String &path, const String &wildcard,
+                         bool do_file, bool do_dir);
+
+    std::unique_ptr<Internal> _i;
+    String _current;
+};
+
 
 } // namespace Common
 } // namespace AGS

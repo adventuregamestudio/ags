@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <regex>
+#include <stack>
 #include <vector>
 #include "core/platform.h"
 #include "util/string.h"
@@ -76,6 +77,36 @@ private:
 
     std::unique_ptr<Internal> _i;
     String _current;
+};
+
+
+class FindFileRecursive
+{
+public:
+    FindFileRecursive(FindFileRecursive &&ff);
+    ~FindFileRecursive();
+    static FindFileRecursive Open(const String &path, const String &wildcard = "*",
+                                  size_t max_level = -1);
+    // TODO: directory mode, like in FindFile
+    bool AtEnd() const { return _ffile.AtEnd(); }
+    String Current() const { return _curFile; }
+    void Close();
+    bool Next();
+
+    FindFileRecursive &operator =(FindFileRecursive &&ff);
+
+private:
+    FindFileRecursive() = default;
+    bool PushDir(const String &sub);
+    bool PopDir();
+
+    std::stack<FindFile> _fdirs;
+    FindFile _fdir; // current find dir iterator
+    FindFile _ffile; // current find file iterator
+    size_t _maxLevel = -1; // max nesting level, -1 for unrestricted
+    String _fullDir; // full directory path
+    String _curDir; // current dir path, relative to the base path
+    String _curFile; // current file path with parent dirs
 };
 
 

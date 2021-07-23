@@ -175,7 +175,7 @@ target_sources(common
     util/string_compat.h
 )
 
-target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr)
+target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

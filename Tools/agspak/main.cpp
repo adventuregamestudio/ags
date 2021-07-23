@@ -20,7 +20,7 @@ using namespace AGS::DataUtil;
 const char *HELP_STRING = "Usage: agspak <input-dir> <output-pak> [OPTIONS]\n"
 "Options:\n"
 "  -p <MB>        split game assets between partitions of this size max\n"
-"  -d             add all files in the *first level* subdirectories too";
+"  -r             recursive mode: include all subdirectories too";
 
 int main(int argc, char *argv[])
 {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     {
         if (ags_stricmp(argv[i], "-p") == 0 && (i < argc - 1))
             part_size = StrUtil::StringToInt(argv[++i]);
-        else if (ags_stricmp(argv[i], "-d") == 0)
+        else if (ags_stricmp(argv[i], "-r") == 0)
             do_subdirs = true;
     }
 

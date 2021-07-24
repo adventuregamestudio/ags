@@ -1,6 +1,5 @@
 using AGS.Types;
 using AGS.Editor.Utils;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,10 +7,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using System.Text;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -37,6 +34,9 @@ namespace AGS.Editor
 
         [DllImport("user32.dll", EntryPoint = "DestroyIcon")]
         private static extern bool DestroyIcon(IntPtr hIcon);
+
+        private static char[] PathSeparators = new char[]
+        { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         public static string SelectedReligion = "Not a Believer";
 
@@ -178,6 +178,39 @@ namespace AGS.Editor
             }
 
             return sourcePath;
+        }
+
+        /// <summary>
+        /// Tells if the given path equals to or subdirectory of a basepath.
+        /// </summary>
+        public static bool PathsAreSameOrNested(string path, string basepath)
+        {
+            Uri baseUri = new Uri(basepath + Path.DirectorySeparatorChar);
+            Uri pathUri = new Uri(path + Path.DirectorySeparatorChar);
+            return baseUri.IsBaseOf(pathUri);
+        }
+
+        /// <summary>
+        /// Tells if the given path equals to or is a subdirectory of one
+        /// of the given basepaths
+        /// </summary>
+        public static bool PathIsSameOrNestedAmong(string path, string[] basepaths)
+        {
+            foreach (string basepath in basepaths)
+            {
+                if (Utilities.PathsAreSameOrNested(path, basepath))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tells if the path contains "." or ".." sections.
+        /// </summary>
+        public static bool DoesPathContainDotDirs(string path)
+        {
+            string[] parts = path.Split(PathSeparators);
+            return parts.Contains(".") || parts.Contains("..");
         }
 
         /// <summary>

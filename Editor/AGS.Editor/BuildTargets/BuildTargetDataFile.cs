@@ -63,11 +63,23 @@ namespace AGS.Editor
             }
             Utilities.AddAllMatchingFiles(files, "*.ogv");
 
+            List<string> userFiles = new List<string>();
+            string user_dir = Factory.AGSEditor.CurrentGame.Settings.CustomDataDir;
+            if (!string.IsNullOrWhiteSpace(user_dir))
+            {
+                Utilities.AddAllMatchingFiles(userFiles, user_dir, "*", true, SearchOption.AllDirectories);
+            }
+
             // Regular files are registered under their filenames (w/o dir)
             var assetList = new List<Tuple<string, string>>();
             foreach (var f in files)
             {
                 assetList.Add(new Tuple<string, string>(Path.GetFileName(f), f));
+            }
+            // User files are registered under their relative paths
+            foreach (var f in userFiles)
+            {
+                assetList.Add(new Tuple<string, string>(f, f));
             }
             return assetList.ToArray();
         }

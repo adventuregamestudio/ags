@@ -49,6 +49,7 @@ namespace AGS.Types
         private bool _autoMoveInWalkMode = true;
         private bool _letterboxMode = false;
         private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
+        private string _customDataDir = null;
         private int _splitResources = 0;
         private bool _attachDataToExe = true;
         private bool _turnBeforeWalking = true;
@@ -392,6 +393,15 @@ namespace AGS.Types
         {
             get { return _scaleMovementSpeedWithMaskRes; }
             set { _scaleMovementSpeedWithMaskRes = value; }
+        }
+
+        [DisplayName("Package custom data folder")]
+        [Description("Contents of this folder and all of its subfolders will be added to the game resources")]
+        [Category("Compiler")]
+        public string CustomDataDir
+        {
+            get { return _customDataDir; }
+            set { _customDataDir = value; }
         }
 
         [DisplayName("Split resource files into X MB-sized chunks")]

@@ -87,8 +87,14 @@ namespace AGS.Editor
          * 25: 3.5.0.22   - Full editor version saved into XML header, RuntimeSetup.ThreadedAudio.
          * 26:            - Fixed sound references in game properties.
          * 27: 3.5.1      - Settings.AttachDataToExe
+         * --------------------------------------------------------------------
+         * Since 3.6.0 define format value as AGS version represented as NN,NN,NN,NN:
+         * e.g. 3.6.0     is 03,06,00,00 (3060000),
+         *      4.12.3.25 is 04,12,03,25 (4120325), and so on
+         * --------------------------------------------------------------------
+         * 3.6.0          - Settings.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 27;
+        public const int    LATEST_XML_VERSION_INDEX = 3060000;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

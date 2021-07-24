@@ -137,6 +137,22 @@ namespace AGS.Editor
             }
         }
 
+        public static void AddAllMatchingFiles(IList<string> list, string parentDir,
+            string fileMask, bool fullPaths, SearchOption searchOption)
+        {
+            foreach (string fileName in GetDirectoryFileList(parentDir, fileMask, searchOption))
+            {
+                if (fullPaths)
+                {
+                    list.Add(fileName);
+                }
+                else
+                {
+                    list.Add(fileName.Substring(parentDir.Length + 1));
+                }
+            }
+        }
+
         public static string GetRelativeToProjectPath(string absolutePath)
         {
             if (String.IsNullOrEmpty(absolutePath) ||

@@ -75,6 +75,12 @@ int main(int argc, char *argv[])
     {
         printf("Error: failed to gather list of assets:\n");
         printf("%s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
+    if (assets.size() == 0)
+    {
+        printf("No valid assets found in the provided directory.\nDone.\n");
+        return 0;
     }
 
     AssetLibInfo lib;
@@ -84,6 +90,7 @@ int main(int argc, char *argv[])
     {
         printf("Error: failed to configure asset library:\n");
         printf("%s\n", err->FullMessage().GetCStr());
+        return -1;
     }
 
     //-----------------------------------------------------------------------//
@@ -95,6 +102,7 @@ int main(int argc, char *argv[])
     {
         printf("Error: failed to write pack file:\n");
         printf("%s\n", err->FullMessage().GetCStr());
+        return -1;
     }
     printf("Pack file(s) written successfully.\nDone.\n");
     return 0;

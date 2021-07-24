@@ -58,7 +58,7 @@ namespace AGS.Editor
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
-            _fileWatcher = new FileWatchHelper(scriptToEdit.FileName, OnFileChangedExternally);
+            _fileWatcher = new FileWatchHelper(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
             _showMatchingScript = showMatchingScript;
             _agsEditor = agsEditor;
             Init(scriptToEdit);
@@ -420,7 +420,6 @@ namespace AGS.Editor
             {
                 _fileWatcher.Enabled = false;
                 _script.SaveToDisk();
-                _fileWatcher.ChangedAt = _script.LastSavedAt;
                 _fileWatcher.Enabled = true;
 
                 scintilla.SetSavePoint();

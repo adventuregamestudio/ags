@@ -1,7 +1,9 @@
 ﻿using AGS.Editor.Preferences;
+using AGS.Types.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -69,42 +71,52 @@ namespace AGS.Editor
     {
         private delegate void LoadFileOnGUIThread();
 
+        private readonly FileSystemWatcher _fileWatcher;
+        private readonly ISaveable _saveable;
         private readonly Action _loadFile;
         private readonly GUIController _guiController;
         private readonly IAppSettings _settings;
-        private readonly EditorEvents _events;
 
         private bool _changed;
 
-        public FileWatchHelper(string fileName, Action loadFile)
+        public FileWatchHelper(string fileName, ISaveable saveable, Action loadFile)
         {
+            AGSEditor agsEditor = Factory.AGSEditor;
+
+            string path = agsEditor.CurrentGame.DirectoryPath;
+            // It doesn' seem to work for unknown reason when I use the filename with fullt path
+            // as a filter in the FileSystemWatcher constructor, if we could make that work we
+            // can guarantee the watcher only reacts to the correct file.
+            string filter = Path.GetFileName(fileName);
+            _fileWatcher = new FileSystemWatcher(path, filter);
+            _fileWatcher.Changed += OnFileChanged;
+            _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            _fileWatcher.EnableRaisingEvents = true;
+            _fileWatcher.IncludeSubdirectories = true;
+
             FileName = fileName;
+            _saveable = saveable;
             _loadFile = loadFile;
 
             _guiController = Factory.GUIController;
             _guiController.OnMainWindowActivated += OnMainWindowActivated;
 
             _settings = Factory.AGSEditor.Settings;
-
-            _events = Factory.Events;
-            _events.FileChangedInGameFolder += OnFileChanged;
         }
 
         public string FileName { get; }
-        public DateTime ChangedAt { get; set; }
-        public bool Enabled { get; set; } = true;
 
-        /// <summary>
-        /// Use this flag to suppress the file watcher when saving is handled from AGS
-        /// </summary>
-        //public bool SavingInternally { get; set; } = false;
+        public bool Enabled
+        {
+            get { return _fileWatcher.EnableRaisingEvents; }
+            set { _fileWatcher.EnableRaisingEvents = value; }
+        }
 
         public void Dispose()
         {
+            _fileWatcher.Dispose();
             _guiController.OnMainWindowActivated -= OnMainWindowActivated;
-            _events.FileChangedInGameFolder -= OnFileChanged;
         }
-
 
         /// <summary>
         /// If editor window is not the active window we wait to update the UI until
@@ -131,30 +143,21 @@ namespace AGS.Editor
         /// returning empty file reads for some reason. Make sure any code loading data or
         /// updating UI loads on the GUI thread.
         /// </remarks>
-        private void OnFileChanged(string fileName)
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
         {
-            if (FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+            if (Enabled && !_saveable.IsBeingSaved && FileName.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
             {
-                DateTime now = DateTime.Now;
-
-                if (Enabled)
+                if (!Utilities.IsMonoRunning() && Utilities.IsThisApplicationCurrentlyActive())
                 {
-                    if (now.Subtract(ChangedAt).TotalSeconds > 2 &&
-                        !Utilities.IsMonoRunning() &&
-                        Utilities.IsThisApplicationCurrentlyActive())
-                    {
-                        //On Mono can't use the Win API to check if application is in focus.
-                        //Hopefully the prompt will be triggered by its second usage,
-                        //when the main window is activated.
-                        _guiController.Invoke((LoadFileOnGUIThread)LoadFile); // GuiController.Invoke runs on UI thread
-                    }
-                    else
-                    {
-                        _changed = true;
-                    }
+                    //On Mono can't use the Win API to check if application is in focus.
+                    //Hopefully the prompt will be triggered by its second usage,
+                    //when the main window is activated.
+                    _guiController.Invoke((LoadFileOnGUIThread)LoadFile); // GuiController.Invoke runs on UI thread
                 }
-
-                ChangedAt = now;
+                else
+                {
+                    _changed = true;
+                }
             }
         }
 

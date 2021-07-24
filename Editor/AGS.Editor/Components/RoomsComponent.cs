@@ -13,10 +13,11 @@ using System.Linq;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using AGS.Types.Interfaces;
 
 namespace AGS.Editor.Components
 {
-    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, IDisposable, IRoomController
+    class RoomsComponent : BaseComponentWithScripts<IRoom, UnloadedRoomFolder>, ISaveable, IDisposable, IRoomController
     {
         private const string ROOMS_COMMAND_ID = "Rooms";
         private const string COMMAND_NEW_ITEM = "NewRoom";
@@ -94,6 +95,10 @@ namespace AGS.Editor.Components
         {
             get { return ComponentIDs.Rooms; }
         }
+
+        public bool IsBeingSaved { get; private set; }
+
+        public DateTime LastSavedAt { get; private set; }
 
         protected override void ItemCommandClick(string controlID)
         {
@@ -1594,9 +1599,11 @@ namespace AGS.Editor.Components
 
             _fileWatchers.TemporarilyDisable(() =>
             {
+                IsBeingSaved = true;
                 SaveImages();
                 _loadedRoom.ToXmlDocument().Save(_loadedRoom.DataFileName);
-                _fileWatchers[_loadedRoom.DataFileName].ChangedAt = DateTime.Now;
+                IsBeingSaved = false;
+                LastSavedAt = DateTime.Now;
                 _loadedRoom.Modified = false;
             });
 
@@ -2033,8 +2040,6 @@ namespace AGS.Editor.Components
                         _backgroundCache[i].Save(fileName, ImageFormat.Png);
                     else
                         File.Delete(fileName);
-
-                    _fileWatchers[fileName].ChangedAt = DateTime.Now;
                 }
 
                 foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -2044,20 +2049,19 @@ namespace AGS.Editor.Components
 
                     string fileName = _loadedRoom.GetMaskFileName(mask);
                     _maskCache[mask].Save(fileName, ImageFormat.Png);
-                    _fileWatchers[fileName].ChangedAt = DateTime.Now;
                 }
             }
         }
 
         private IEnumerable<FileWatchHelper> LoadFileWatchers()
         {
-            yield return new FileWatchHelper(_loadedRoom.DataFileName, this.RefreshData);
+            yield return new FileWatchHelper(_loadedRoom.DataFileName, this, RefreshData);
 
             for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
             {
                 // Have to make a copy otherwise i will be equal to Room.MAX_BACKGROUNDS when loadFile callback is executed
                 int roomNumber = i; 
-                yield return new FileWatchHelper(_loadedRoom.GetBackgroundFileName(roomNumber), () => RefreshBackground(roomNumber))
+                yield return new FileWatchHelper(_loadedRoom.GetBackgroundFileName(roomNumber), this, () => RefreshBackground(roomNumber))
                 {
                     Enabled = roomNumber < _loadedRoom.BackgroundCount
                 };
@@ -2065,7 +2069,7 @@ namespace AGS.Editor.Components
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
             {
-                yield return new FileWatchHelper(_loadedRoom.GetMaskFileName(mask), () => RefreshMask(mask));
+                yield return new FileWatchHelper(_loadedRoom.GetMaskFileName(mask), this, () => RefreshMask(mask));
             }
         }
 

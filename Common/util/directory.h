@@ -55,6 +55,7 @@ public:
     FindFile() = default;
     FindFile(FindFile &&ff);
     ~FindFile();
+
     static FindFile OpenFiles(const String &path, const String &wildcard = "*")
         { return Open(path, wildcard, true, false); }
     static FindFile OpenDirs(const String &path, const String &wildcard = "*")
@@ -83,8 +84,10 @@ private:
 class FindFileRecursive
 {
 public:
-    FindFileRecursive(FindFileRecursive &&ff);
-    ~FindFileRecursive();
+    FindFileRecursive() = default;
+    FindFileRecursive(FindFileRecursive &&ff) = default;
+    ~FindFileRecursive() = default;
+
     static FindFileRecursive Open(const String &path, const String &wildcard = "*",
                                   size_t max_level = -1);
     // TODO: directory mode, like in FindFile
@@ -93,10 +96,9 @@ public:
     void Close();
     bool Next();
 
-    FindFileRecursive &operator =(FindFileRecursive &&ff);
+    FindFileRecursive &operator =(FindFileRecursive &&ff) = default;
 
 private:
-    FindFileRecursive() = default;
     bool PushDir(const String &sub);
     bool PopDir();
 

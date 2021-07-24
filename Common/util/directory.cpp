@@ -285,28 +285,6 @@ bool FindFile::Next()
 }
 
 
-FindFileRecursive::FindFileRecursive(FindFileRecursive &&ff)
-{
-    *this = std::move(ff);
-}
-
-FindFileRecursive::~FindFileRecursive()
-{
-    Close();
-}
-
-FindFileRecursive &FindFileRecursive::operator =(FindFileRecursive &&ff)
-{
-    _fdirs = std::move(ff._fdirs);
-    _fdir = std::move(ff._fdir);
-    _ffile = std::move(ff._ffile);
-    _maxLevel = ff._maxLevel;
-    _fullDir = std::move(ff._fullDir);
-    _curDir = std::move(ff._curDir);
-    _curFile = std::move(ff._curFile);
-    return *this;
-}
-
 FindFileRecursive FindFileRecursive::Open(const String &path, const String &wildcard, size_t max_level)
 {
     FindFile fdir = FindFile::OpenDirs(path);

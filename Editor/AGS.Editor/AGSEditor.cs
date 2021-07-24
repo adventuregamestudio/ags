@@ -158,7 +158,6 @@ namespace AGS.Editor
         private IEngineCommunication _engineComms = new NamedPipesEngineCommunication();
         private DebugController _debugger;
 		private bool _applicationStarted = false;
-        private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
 
         private static readonly IDictionary<ScriptAPIVersion, string> _scriptAPIVersionMacros =
@@ -743,13 +742,6 @@ namespace AGS.Editor
 
         public void LoadGameFile(string fileName)
         {
-            if (_fileWatcher != null)
-            {
-                _fileWatcher.EnableRaisingEvents = false;
-                _fileWatcher.Dispose();
-                _fileWatcher = null;
-            }
-
             if (File.Exists(LOCK_FILE_NAME))
             {
                 VerifyGameNotAlreadyOpenInAnotherEditor();
@@ -847,16 +839,6 @@ namespace AGS.Editor
 			{
 				_engineComms.ResetWithCurrentPath();
 			}
-            
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                // file system watcher only works on NT
-                _fileWatcher = new FileSystemWatcher(newGame.DirectoryPath);
-                _fileWatcher.Changed += new FileSystemEventHandler(_fileWatcher_Changed);
-                _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                _fileWatcher.EnableRaisingEvents = true;
-                _fileWatcher.IncludeSubdirectories = true;
-            }
 
             CloseLockFile();
 
@@ -878,11 +860,6 @@ namespace AGS.Editor
                 _lockFile.Close();
                 _lockFile = null;
             }
-        }
-
-        private void _fileWatcher_Changed(object sender, FileSystemEventArgs e)
-        {
-            Factory.Events.OnFileChangedInGameFolder(e.Name);
         }
 
 		private void DefineMacrosAccordingToGameSettings(IPreprocessor preprocessor)

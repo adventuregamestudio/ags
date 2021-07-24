@@ -38,7 +38,7 @@ namespace AGS.Editor
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
-        private readonly FileWatchHelper _fileWatcher;
+        private readonly FileWatcher _fileWatcher;
         private Script _script;
         private Room _room;
         private int _roomNumber;
@@ -58,7 +58,7 @@ namespace AGS.Editor
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
-            _fileWatcher = new FileWatchHelper(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
+            _fileWatcher = new FileWatcher(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
             _showMatchingScript = showMatchingScript;
             _agsEditor = agsEditor;
             Init(scriptToEdit);

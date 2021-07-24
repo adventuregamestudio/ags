@@ -363,7 +363,7 @@
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
-    <Compile Include="Utils\FileWatchHelper.cs" />
+    <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">

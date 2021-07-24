@@ -37,7 +37,7 @@ namespace AGS.Editor.Components
 
         private readonly List<Bitmap> _backgroundCache = new List<Bitmap>(Room.MAX_BACKGROUNDS);
         private readonly Dictionary<RoomAreaMaskType, Bitmap> _maskCache = new Dictionary<RoomAreaMaskType, Bitmap>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
-        private readonly FileWatchHelpers _fileWatchers = new FileWatchHelpers();
+        private readonly FileWatcherCollection _fileWatchers = new FileWatcherCollection();
 
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
@@ -2053,15 +2053,15 @@ namespace AGS.Editor.Components
             }
         }
 
-        private IEnumerable<FileWatchHelper> LoadFileWatchers()
+        private IEnumerable<FileWatcher> LoadFileWatchers()
         {
-            yield return new FileWatchHelper(_loadedRoom.DataFileName, this, RefreshData);
+            yield return new FileWatcher(_loadedRoom.DataFileName, this, RefreshData);
 
             for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
             {
                 // Have to make a copy otherwise i will be equal to Room.MAX_BACKGROUNDS when loadFile callback is executed
                 int roomNumber = i; 
-                yield return new FileWatchHelper(_loadedRoom.GetBackgroundFileName(roomNumber), this, () => RefreshBackground(roomNumber))
+                yield return new FileWatcher(_loadedRoom.GetBackgroundFileName(roomNumber), this, () => RefreshBackground(roomNumber))
                 {
                     Enabled = roomNumber < _loadedRoom.BackgroundCount
                 };
@@ -2069,7 +2069,7 @@ namespace AGS.Editor.Components
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
             {
-                yield return new FileWatchHelper(_loadedRoom.GetMaskFileName(mask), this, () => RefreshMask(mask));
+                yield return new FileWatcher(_loadedRoom.GetMaskFileName(mask), this, () => RefreshMask(mask));
             }
         }
 

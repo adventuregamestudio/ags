@@ -12,17 +12,17 @@ namespace AGS.Editor
     /// <summary>
     /// Helper class to watch a set of related files, like the room files.
     /// </summary>
-    public class FileWatchHelpers : KeyedCollection<string, FileWatchHelper>, IDisposable
+    public class FileWatcherCollection : KeyedCollection<string, FileWatcher>, IDisposable
     {
         public void Dispose()
         {
-            foreach (FileWatchHelper item in Items)
+            foreach (FileWatcher item in Items)
                 item.Dispose();
         }
 
-        public void AddRange(IEnumerable<FileWatchHelper> items)
+        public void AddRange(IEnumerable<FileWatcher> items)
         {
-            foreach (FileWatchHelper item in items)
+            foreach (FileWatcher item in items)
                 Add(item);
         }
 
@@ -34,16 +34,16 @@ namespace AGS.Editor
         {
             Dictionary<string, bool> backup = Items.ToDictionary(i => i.FileName, i => i.Enabled);
 
-            foreach (FileWatchHelper item in Items)
+            foreach (FileWatcher item in Items)
                 item.Enabled = false;
 
             doWhenDisabled();
 
-            foreach (FileWatchHelper item in Items)
+            foreach (FileWatcher item in Items)
                 item.Enabled = backup[item.FileName];
         }
 
-        protected override string GetKeyForItem(FileWatchHelper item) => item.FileName;
+        protected override string GetKeyForItem(FileWatcher item) => item.FileName;
 
         protected override void ClearItems()
         {
@@ -51,7 +51,7 @@ namespace AGS.Editor
             base.ClearItems();
         }
 
-        protected override void SetItem(int i, FileWatchHelper item)
+        protected override void SetItem(int i, FileWatcher item)
         {
             this[i].Dispose();
             base.SetItem(i, item);
@@ -67,7 +67,7 @@ namespace AGS.Editor
     /// <summary>
     /// Helper utility to watch specific files.
     /// </summary>
-    public class FileWatchHelper : IDisposable
+    public class FileWatcher : IDisposable
     {
         private delegate void LoadFileOnGUIThread();
 
@@ -79,7 +79,7 @@ namespace AGS.Editor
 
         private bool _changed;
 
-        public FileWatchHelper(string fileName, ISaveable saveable, Action loadFile)
+        public FileWatcher(string fileName, ISaveable saveable, Action loadFile)
         {
             AGSEditor agsEditor = Factory.AGSEditor;
 

@@ -33,7 +33,10 @@ namespace AGS.Editor
             }
         }
 
-        private string[] ConstructFileListForDataFile()
+        /// Creates a list of game resources as a list of tuples:
+        /// - first tuple's element is resource's name,
+        /// - second is real file path
+        private Tuple<string, string>[] ConstructFileListForDataFile()
         {
             List<string> files = new List<string>();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
@@ -59,7 +62,14 @@ namespace AGS.Editor
                 }
             }
             Utilities.AddAllMatchingFiles(files, "*.ogv");
-            return files.ToArray();
+
+            // Regular files are registered under their filenames (w/o dir)
+            var assetList = new List<Tuple<string, string>>();
+            foreach (var f in files)
+            {
+                assetList.Add(new Tuple<string, string>(Path.GetFileName(f), f));
+            }
+            return assetList.ToArray();
         }
 
         private void CreateAudioVOXFile(bool forceRebuild)

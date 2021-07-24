@@ -88,13 +88,15 @@ namespace AGS.Editor
         {
             public class MultiFile
             {
+                public string Name;
                 public string Filename;
                 public long Offset;
                 public long Length;
                 public byte Datafile;
 
-                public MultiFile(string fileName, byte dataFile, long length)
+                public MultiFile(string name, string fileName, byte dataFile, long length)
                 {
+                    Name = name;
                     Filename = fileName;
                     Datafile = dataFile;
                     Length = length;
@@ -292,7 +294,7 @@ namespace AGS.Editor
             FilePutInt32(ourlib.Files.Count, writer);
             for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                FilePutNullTerminatedString(ourlib.Files[i].Filename, writer);
+                FilePutNullTerminatedString(ourlib.Files[i].Name, writer);
                 FilePutInt8(ourlib.Files[i].Datafile, writer);
                 FilePutInt64(ourlib.Files[i].Offset, writer);
                 FilePutInt64(ourlib.Files[i].Length, writer);
@@ -344,20 +346,23 @@ namespace AGS.Editor
             return success;
         }
 
-        public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName, bool makeFileNameAssumptions)
         {
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             ourlib.DataFilenames.Clear();
             ourlib.Files.Clear();
-            ourlib.Files.Capacity = fileNames.Length;
+            ourlib.Files.Capacity = assets.Length;
             int currentDataFile = 0;
             long sizeSoFar = 0;
             bool doSplitting = false;
-            for (int i = 0; i < fileNames.Length; ++i)
+            foreach (var asset in assets)
             {
+                // Bring resource name slashes to the uniform style, as required by the AGS engine
+                var assetName = asset.Item1.Replace('\\', '/');
+                var assetFile = asset.Item2;
                 if (splitSize > 0)
                 {
-                    if (string.Compare(fileNames[i], NativeConstants.SPRSET_NAME, true) == 0)
+                    if (string.Compare(assetName, NativeConstants.SPRSET_NAME, true) == 0)
                     {
                         // the sprite file's appearance signifies it's time to start splitting
                         doSplitting = true;
@@ -371,17 +376,16 @@ namespace AGS.Editor
                     }
                 }
                 long thisFileSize = 0;
-                using (Stream tf = File.OpenRead(fileNames[i]))
+                using (Stream tf = File.OpenRead(assetFile))
                 {
                     thisFileSize = tf.Length;
                 }
                 sizeSoFar += thisFileSize;
-                string fileNameSrc = Path.GetFileName(fileNames[i]);
-                if (fileNameSrc.Length >= DataFileWriter.MAX_PATH)
+                if (assetName.Length >= DataFileWriter.MAX_PATH)
                 {
-                    return "Filename too long: " + fileNames[i];
+                    return "Filename too long: " + assetName;
                 }
-                ourlib.Files.Add(new MultiFileLibNew.MultiFile(fileNameSrc, (byte)currentDataFile, thisFileSize));
+                ourlib.Files.Add(new MultiFileLibNew.MultiFile(assetName, assetFile, (byte)currentDataFile, thisFileSize));
             }
             ourlib.DataFilenames.Capacity = currentDataFile + 1;
             long startOffset = 0;

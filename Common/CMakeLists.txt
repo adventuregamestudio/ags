@@ -142,8 +142,6 @@ target_sources(common
     util/memory_compat.h
     util/memorystream.cpp
     util/memorystream.h
-    util/misc.cpp
-    util/misc.h
     util/multifilelib.h
     util/mutifilelib.cpp
     util/path.cpp

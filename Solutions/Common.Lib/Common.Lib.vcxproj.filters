@@ -197,9 +197,6 @@
     <ClCompile Include="..\..\Common\util\lzw.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\misc.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -653,9 +650,6 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\memory.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\misc.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\multifilelib.h">

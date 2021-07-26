@@ -344,7 +344,6 @@
     <ClCompile Include="..\..\Common\util\ini_util.cpp" />
     <ClCompile Include="..\..\Common\util\lzw.cpp" />
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />
-    <ClCompile Include="..\..\Common\util\misc.cpp" />
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
     <ClCompile Include="..\..\Common\util\path_ex.cpp" />
@@ -494,7 +493,6 @@
     <ClInclude Include="..\..\Common\util\memory.h" />
     <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\memory_compat.h" />
-    <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\multifilelib.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\proxystream.h" />

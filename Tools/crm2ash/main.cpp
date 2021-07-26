@@ -23,7 +23,7 @@ private:
     HError ReadBlock(int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
-        return ReadRoomScNames(_data, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return ReadRoomScNames(_data, _in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
     RoomScNames &_data;

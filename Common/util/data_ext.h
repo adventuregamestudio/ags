@@ -84,7 +84,7 @@ typedef TypedCodeError<DataExtErrorType, GetDataExtErrorText> DataExtError;
 class DataExtParser
 {
 public:
-    DataExtParser(Stream *in, int flags) : in(in), flags(flags) {}
+    DataExtParser(Stream *in, int flags) : _in(in), _flags(flags) {}
     virtual ~DataExtParser() = default;
 
     // Returns the conventional string ID for an old-style block with numeric ID
@@ -95,9 +95,9 @@ public:
     virtual soff_t GetOverLeeway(int block_id) const { return 0; }
 
     // Gets a stream
-    inline Stream *GetStream() { return in; }
+    inline Stream *GetStream() { return _in; }
     // Tells if the end of the block list was reached
-    inline bool AtEnd() const { return block_id < 0; }
+    inline bool AtEnd() const { return _blockID < 0; }
     // Tries to opens a next standard block from the stream,
     // fills in identifier and length on success
     HError OpenBlock();
@@ -110,13 +110,13 @@ public:
     HError FindOne(int id);
 
 protected:
-    Stream *in {};
-    int flags {};
+    Stream *_in {};
+    int _flags {};
 
-    int block_id {-1};
-    String ext_id;
-    soff_t block_start {};
-    soff_t block_len {};
+    int _blockID {-1};
+    String _extID;
+    soff_t _blockStart {};
+    soff_t _blockLen {};
 };
 
 // DataExtReader is a virtual base class of a block list reader; provides

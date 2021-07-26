@@ -504,7 +504,7 @@ public:
         if (!err)
             return err;
         char *buf = nullptr;
-        err = ReadScriptBlock(buf, in, _dataVer);
+        err = ReadScriptBlock(buf, _in, _dataVer);
         script = buf;
         delete buf;
         return err;
@@ -516,7 +516,7 @@ private:
     HError ReadBlock(int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
-        return ReadRoomBlock(_room, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return ReadRoomBlock(_room, _in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
     RoomStruct *_room {};

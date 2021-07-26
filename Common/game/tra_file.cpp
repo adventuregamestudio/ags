@@ -135,7 +135,7 @@ public:
         HError err = FindOne(kTraFblk_GameID);
         if (!err)
             return err;
-        return ReadTraBlock(_tra, in, kTraFblk_GameID, "", block_len);
+        return ReadTraBlock(_tra, _in, kTraFblk_GameID, "", _blockLen);
     }
 
 private:
@@ -150,7 +150,7 @@ private:
     HError ReadBlock(int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
-        return ReadTraBlock(_tra, in, (TraFileBlock)block_id, ext_id, block_len);
+        return ReadTraBlock(_tra, _in, (TraFileBlock)block_id, ext_id, block_len);
     }
 
     Translation &_tra;

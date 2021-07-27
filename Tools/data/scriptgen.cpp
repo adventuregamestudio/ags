@@ -69,14 +69,15 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
         if (name.IsEmpty())
             continue;
         // Remove any non-letter or non-digit characters
-        String const_name;
+        String macro_name;
         for (size_t c = 0; c < name.GetLength(); ++c)
         {
             if (std::isalnum(name[c]))
-                const_name.AppendChar(name[c]);
+                macro_name.AppendChar(name[c]);
         }
+        macro_name.MakeUpper();
         int id = ent.ID;
-        buf.Format("#define %s %d\n", const_name.GetCStr(), id);
+        buf.Format("#define %s %d\n", macro_name.GetCStr(), id);
         header.Append(buf);
     }
     return header;

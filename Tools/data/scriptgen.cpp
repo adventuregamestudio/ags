@@ -51,33 +51,37 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 }
 
 // Generates game object declarations in the form of *macros*.
-// const_prefix is an optional prefix for the macro name.
-// The macro name will be <const_prefix><script_name>, where
-// "script_name" is read from the object data and converted to uppercase.
+// check_prefix is an optional prefix that has to be present in an original
+// name; if it's set then names without such prefix will be skipped.
+// The macro name will be <script_name>, where "script_name" is read from the
+// object data, have check_prefix stripped and converted to uppercase.
 // The macro values are made equal to object's ID (numeric index).
 static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
-    const char *const_prefix = nullptr)
+    const char *check_prefix = nullptr)
 {
     if (ents.size() == 0)
         return "";
 
     String header;
+    String name;
     String buf;
     for (const auto &ent : ents)
     {
         String name = ent.ScriptName;
-        if (name.IsEmpty())
-            continue;
-        // Remove any non-letter or non-digit characters
-        String macro_name;
-        for (size_t c = 0; c < name.GetLength(); ++c)
+        // if check_prefix is defined, skip those which do not have it;
+        // if it has one, remove the prefix and proceed
+        if (check_prefix)
         {
-            if (std::isalnum(name[c]))
-                macro_name.AppendChar(name[c]);
+            if (!name.StartsWith(check_prefix))
+                continue;
+            name.ClipLeft(strlen(check_prefix));
         }
-        macro_name.MakeUpper();
-        int id = ent.ID;
-        buf.Format("#define %s %d\n", macro_name.GetCStr(), id);
+        // skip if the name is empty or begins with non-alpha character
+        if (name.IsEmpty() || !std::isalpha(name[0]))
+            continue;
+
+        name.MakeUpper();
+        buf.Format("#define %s %d\n", name.GetCStr(), ent.ID);
         header.Append(buf);
     }
     return header;
@@ -99,6 +103,7 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
     }
 
     String header;
+    String const_name;
     String buf;
     buf.Format("enum %s {\n", enum_name);
     header.Append(buf);
@@ -108,15 +113,15 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
         String name = ent.ScriptName;
         if (name.IsEmpty())
             continue;
-        // Remove any non-letter or non-digit characters
-        String const_name = const_prefix;
-        for (size_t c = 0; c < name.GetLength(); ++c)
-        {
-            if (std::isalnum(name[c]))
-                const_name.AppendChar(name[c]);
-        }
-        int id = ent.ID;
-        buf.Format("%s  %s = %d", first ? "" : ",\n", const_name.GetCStr(), id);
+
+        if (const_prefix)
+            const_name = const_prefix;
+        // skip if the name begins with non-alpha character
+        else if (!std::isalpha(name[0]))
+            continue;
+
+        const_name.Append(name);
+        buf.Format("%s  %s = %d", first ? "" : ",\n", const_name.GetCStr(), ent.ID);
         header.Append(buf);
         first = false;
     }
@@ -137,6 +142,7 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
     header.Append(String::FromFormat("import GUI gui[%d];\n", guis.size()));
 
     String buf;
+    String macro_name;
     for (const auto &gui : guis)
     {
         String name = gui.ScriptName;
@@ -148,7 +154,7 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
 
         if (name.GetAt(0) == 'g')
         {
-            String macro_name = name.Mid(1);
+            macro_name = name.Mid(1);
             macro_name.MakeUpper();
             buf.Format("#define %s FindGUIID(\"%s\")\n", macro_name.GetCStr(), macro_name.GetCStr());
             header.Append(buf);

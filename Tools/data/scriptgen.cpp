@@ -28,15 +28,17 @@ namespace DataUtil
 // Generates game object declarations of the given type.
 // type_name defines the script name of the type.
 // If array_name is provided then also declares array of objects of that type.
+// If array_base is > 0, it will be added to the array size in declaration.
 static String DeclareEntities(const std::vector<EntityRef> &ents,
-    const char *type_name, const char *array_name = nullptr)
+    const char *type_name, const char *array_name = nullptr, const int array_base = 0)
 {
     if (ents.size() == 0)
         return "";
 
     String header;
     if (array_name)
-        header.Append(String::FromFormat("import %s %s[%d];\n", type_name, array_name, ents.size()));
+        header.Append(String::FromFormat("import %s %s[%d];\n",
+            type_name, array_name, ents.size() + array_base));
 
     String buf;
     for (const auto &ent : ents)
@@ -194,8 +196,8 @@ String MakeGameAutoScriptHeader(const GameRef &game)
     header.Append(DeclareEntitiesAsEnum(game.Fonts, "FontType", "eFont"));
     // GUI
     header.Append(DeclareGUI(game.GUI));
-    // Inventory items
-    header.Append(DeclareEntities(game.Inventory, "InventoryItem", "inventory"));
+    // Inventory items (array is 1-based)
+    header.Append(DeclareEntities(game.Inventory, "InventoryItem", "inventory", 1));
     // Views
     header.Append(DeclareEntitiesAsMacros(game.Views));
     return header;

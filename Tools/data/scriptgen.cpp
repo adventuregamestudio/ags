@@ -183,6 +183,7 @@ String MakeGameAutoScriptHeader(const GameRef &game)
     header.Append(DeclareEntitiesAsEnum(game.AudioTypes, "AudioType", "eAudioType"));
     // Characters
     header.Append(DeclareEntities(game.Characters, "Character", "character"));
+    header.Append(DeclareEntitiesAsMacros(game.Characters, "c"));
     // Cursors
     header.Append(DeclareEntitiesAsEnum(game.Cursors, "CursorMode", "eMode"));
     // Dialogs

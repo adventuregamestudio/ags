@@ -1,28 +1,23 @@
 #ifndef __CC_MACROTABLE_H
 #define __CC_MACROTABLE_H
 
+#include <map>
+#include "util/string.h"
+
+typedef AGS::Common::String AGString;
+
 #define MAX_LINE_LENGTH 500
-#define MAXDEFINES 1500
+
 struct MacroTable {
-    int num;
-    char*name[MAXDEFINES];
-    char*macro[MAXDEFINES];
-    void init();
-    void shutdown();
-    int  find_name(const char*);
-    bool contains(const char *);
-    char* get_macro(const char *);
-    void add(const char*,const char*);
-    void remove(int index);
-    void remove_name(const char *);
-    void merge(MacroTable *);
-
-    MacroTable() {
-        init();
-    }
+private:
+    std::map<AGString,AGString> _macro_table;
+public:
+    bool contains(const AGString &name);
+    AGString get_macro(const AGString &name) ;
+    void add(const AGString &macroname, const AGString &value);
+    void remove(AGString &macroname);
+    void merge(MacroTable & macro_table);
+    void clear();
 };
-
-
-extern MacroTable macros;
 
 #endif // __CC_MACROTABLE_H

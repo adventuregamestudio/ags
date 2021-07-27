@@ -171,7 +171,10 @@
     <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp" />
-    <ClCompile Include="..\..\Compiler\script\cs_prepro.cpp" />
+    <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\util\version.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_error.h" />
@@ -189,7 +192,7 @@
     <ClInclude Include="..\..\Compiler\script\cs_compiler.h" />
     <ClInclude Include="..\..\Compiler\script\cs_parser.h" />
     <ClInclude Include="..\..\Compiler\script\cs_parser_common.h" />
-    <ClInclude Include="..\..\Compiler\script\cs_prepro.h" />
+    <ClInclude Include="..\..\Compiler\preproc\preprocessor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

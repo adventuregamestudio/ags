@@ -31,8 +31,8 @@ target_sources(compiler
         script/cs_parser.h
         script/cs_parser_common.cpp
         script/cs_parser_common.h
-        script/cs_prepro.cpp
-        script/cs_prepro.h
+        preproc/preprocessor.cpp
+        preproc/preprocessor.h
         )
 
 target_link_libraries(compiler PUBLIC AGS::Common)

@@ -10,7 +10,6 @@
 #include "script/cc_options.h"
 #include "script/script_common.h"
 
-#include "cs_prepro.h"
 #include "cs_parser.h"
 
 const char *ccSoftwareVersion = "1.0";
@@ -41,15 +40,6 @@ void ccRemoveDefaultHeaders() {
     numheaders = 0;
 }
 
-void ccDefineMacro(const char *macro, const char *definition) {
-    predefinedMacros.add((char*)macro, (char*)definition);
-}
-
-void ccClearAllMacros() {
-    predefinedMacros.shutdown();
-    predefinedMacros.init();
-}
-
 void ccSetSoftwareVersion(const char *versionNumber) {
     ccSoftwareVersion = versionNumber;
 }
@@ -60,7 +50,6 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     cctemp->init();
 
     sym.reset();
-    preproc_startup(&predefinedMacros);
 
     if (scriptName == NULL)
         scriptName = "Main script";
@@ -84,7 +73,6 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         cctemp->start_new_section(ccCurScriptName);
         cc_compile(texo,cctemp);
     }
-    preproc_shutdown();
 
     if (ccError) {
         cctemp->shutdown();

@@ -47,9 +47,6 @@
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cs_prepro.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_error.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cs_parser_common.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Compiler\script\cs_prepro.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cc_treemap.h">

@@ -88,11 +88,9 @@ namespace AGS.Editor
             if (string.IsNullOrEmpty(userOpt)) return null;
 
             string curDir = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            string[] restrictedDirs = new string[] {
-                Path.Combine(curDir, AGSEditor.OUTPUT_DIRECTORY),
-                Path.Combine(curDir, AGSEditor.DEBUG_OUTPUT_DIRECTORY),
-                Path.Combine(curDir, "AudioCache"),
-                Path.Combine(curDir, "Speech") };
+            string[] restrictedDirs = new string[Factory.AGSEditor.RestrictedGameDirectories.Length];
+            for (int i = 0; i < restrictedDirs.Length; ++i)
+                restrictedDirs[i] = Path.Combine(curDir, Factory.AGSEditor.RestrictedGameDirectories[i]);
 
             List<string> userFiles = new List<string>();
             string[] user_dirs = userOpt.Split(',');

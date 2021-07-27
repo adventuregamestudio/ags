@@ -127,6 +127,12 @@ namespace AGS.Editor
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
 		public const string GAME_EXPLORER_THUMBNAIL_FILE_NAME = "GameExplorer.png";
 
+        public readonly string[] RestrictedGameDirectories = new string[]
+        {
+            OUTPUT_DIRECTORY, DEBUG_OUTPUT_DIRECTORY, AudioClip.AUDIO_CACHE_DIRECTORY,
+            Components.SpeechComponent.SPEECH_DIRECTORY
+        };
+
         private Game _game;
         private string _editorExePath;
         private Script _builtInScriptHeader;

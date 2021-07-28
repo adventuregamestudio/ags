@@ -14,6 +14,7 @@
 #include "data/agfreader.h"
 #include <tinyxml2.h>
 #include "debug/out.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 const char *XML_ROOT_NODE_NAME = "AGSEditorDocument";
@@ -91,6 +92,18 @@ void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elem
     return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
 }
 
+void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems,
+    const char *root_elem, const char *folder_elem, const char *list_elem, const char *type_elem)
+{
+    DocElem list_root = game_root->FirstChildElement(root_elem);
+    DocElem node = list_root;
+    if (folder_elem)
+    { // Get the main folder
+        node = node->FirstChildElement(folder_elem);
+    }
+    return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
+}
+
 void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &elems,
      const char *folder_elem, const char *list_elem, const char *type_elem)
 {
@@ -124,7 +137,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
 // Entity parsers
 //-----------------------------------------------------------------------------
 
-const char* EntityParser::ReadString(DocElem elem, const char *field, const char *def_value)
+const char* ValueParser::ReadString(DocElem elem, const char *field, const char *def_value)
 {
     DocElem name_f = elem->FirstChildElement(field);
     if (name_f)
@@ -132,11 +145,19 @@ const char* EntityParser::ReadString(DocElem elem, const char *field, const char
     return def_value;
 }
 
-int EntityParser::ReadInt(DocElem elem, const char *field, int def_value)
+int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
 {
     DocElem name_f = elem->FirstChildElement(field);
     if (name_f)
         return StrUtil::StringToInt(name_f->GetText(), def_value);
+    return def_value;
+}
+
+bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
+{
+    DocElem name_f = elem->FirstChildElement(field);
+    if (name_f)
+        return ags_stricmp(name_f->GetText(), "True") == 0;
     return def_value;
 }
 
@@ -218,6 +239,22 @@ void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
 DocElem Game::GetSettings(DocElem elem)
 {
     return elem->FirstChildElement("Settings");
+}
+
+DocElem ScriptWithHeader::GetHeader(DocElem elem)
+{
+    DocElem headelem = elem->FirstChildElement("ScriptAndHeader_Header");
+    if (headelem)
+        return headelem->FirstChildElement("Script");
+    return nullptr;
+}
+
+DocElem ScriptWithHeader::GetBody(DocElem elem)
+{
+    DocElem headelem = elem->FirstChildElement("ScriptAndHeader_Script");
+    if (headelem)
+        return headelem->FirstChildElement("Script");
+    return nullptr;
 }
 
 
@@ -352,6 +389,33 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
 
     // Game settings
     ReadGameSettings(game.Settings, root);
+}
+
+void ReadScriptList(std::vector<String> &script_list, DocElem root)
+{
+    AGF::ScriptModules scmodules;
+    AGF::ScriptWithHeader scmodule;
+    AGF::ScriptElem scelem;
+    std::vector<DocElem> modules;
+    scmodules.GetAll(root, modules);
+    for (const auto &m : modules)
+    {
+        DocElem body = scmodule.GetBody(m);
+        if (!body) continue;
+        script_list.push_back(scelem.ReadFilename(body));
+    }
+}
+
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
+{
+    AGF::Rooms rooms;
+    AGF::Room room;
+    std::vector<DocElem> room_els;
+    rooms.GetAll(root, room_els);
+    for (const auto &r : room_els)
+    {
+        room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
+    }
 }
 
 } // namespace AGF

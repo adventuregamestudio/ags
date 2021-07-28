@@ -230,13 +230,13 @@ void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem)
     ent.TypeName = parser.ReadType(elem);
     ent.ID = parser.ReadID(elem);
     String name = parser.ReadScriptName(elem);
-    ent.ScriptName = "";
     // Remove any non-alphanumeric characters from the script name
     for (size_t c = 0; c < name.GetLength(); ++c)
     {
-        if (std::isalnum(name[c]))
-            ent.ScriptName.AppendChar(name[c]);
+        if (!std::isalnum(name[c]) && name[c] != '_')
+            name.ClipMid(c--, 1);
     }
+    ent.ScriptName = name;
 }
 
 void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser,

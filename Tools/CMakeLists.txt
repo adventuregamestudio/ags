@@ -84,6 +84,14 @@ set_target_properties(agf2glvar PROPERTIES
         )
 target_link_libraries(agf2glvar PUBLIC libtools)
 
+#----- agfexport -----------------------------------------------
+add_executable(agfexport agfexport/main.cpp)
+set_target_properties(agfexport PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(agfexport PUBLIC libtools)
+
 #----- agspak -------------------------------------------------
 add_executable(agspak agspak/main.cpp)
 set_target_properties(agspak PROPERTIES
@@ -124,7 +132,7 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
-list(APPEND TOOLS_TARGETS agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2ash crmpak trac)
+list(APPEND TOOLS_TARGETS agf2autoash agf2dlgasc agf2glvar agfexport agspak agsunpak crm2ash crmpak trac)
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)

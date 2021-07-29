@@ -477,7 +477,9 @@ static long ags_pf_fwrite(AL_CONST void *p, long n, void *userdata)
 
 static int ags_pf_fseek(void *userdata, int offset)
 {
-    return -1; // don't support seek
+    AGS_PACKFILE_OBJ* obj = (AGS_PACKFILE_OBJ*)userdata;
+    obj->stream->Seek(offset, kSeekCurrent);
+    return 0;
 }
 
 static int ags_pf_feof(void *userdata)

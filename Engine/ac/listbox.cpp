@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#include <algorithm>
-#include <set>
-#include <allegro.h> // find files
 #include "ac/listbox.h"
+#include <algorithm>
+#include <vector>
+#include <allegro.h> // find files
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -22,6 +22,7 @@
 #include "ac/global_game.h"
 #include "ac/path_helper.h"
 #include "ac/string.h"
+#include "core/assetmanager.h"
 #include "gui/guimain.h"
 #include "debug/debug_log.h"
 #include "util/path.h"
@@ -49,12 +50,12 @@ void ListBox_Clear(GUIListBox *listbox) {
   listbox->Clear();
 }
 
-void FillDirList(std::set<String> &files, const String &path)
+void FillDirList(std::vector<String> &files, const String &path)
 {
     al_ffblk dfb;
     int	dun = al_findfirst(path.GetCStr(), &dfb, FA_SEARCH);
     while (!dun) {
-        files.insert(dfb.name);
+        files.push_back(dfb.name);
         dun = al_findnext(&dfb);
     }
     al_findclose(&dfb);
@@ -67,13 +68,23 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   if (!ResolveScriptPath(filemask, true, rp))
     return;
 
-  std::set<String> files;
-  FillDirList(files, rp.FullPath);
-  if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-    FillDirList(files, rp.AltPath);
+  std::vector<String> files;
+  if (rp.AssetMgr)
+  {
+    AssetMgr->FindAssets(files, rp.FullPath, "*");
+  }
+  else
+  {
+    FillDirList(files, rp.FullPath);
+    if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+      FillDirList(files, rp.AltPath);
+    // Sort and remove duplicates
+    std::sort(files.begin(), files.end());
+    files.erase(std::unique(files.begin(), files.end()), files.end());
+  }
 
   // TODO: method for adding item batch to speed up update
-  for (std::set<String>::const_iterator it = files.begin(); it != files.end(); ++it)
+  for (auto it = files.cbegin(); it != files.cend(); ++it)
   {
     listbox->AddItem(*it);
   }

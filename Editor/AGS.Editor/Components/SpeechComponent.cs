@@ -13,6 +13,7 @@ namespace AGS.Editor.Components
 {
     class SpeechComponent : BaseComponent
     {
+        public static readonly string SPEECH_DIRECTORY = "Speech";
         private static readonly string PAMELA_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
         private static readonly string PAPAGAYO_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.dat";
         private static readonly string OGG_VORBIS_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.ogg";

@@ -49,6 +49,7 @@ namespace AGS.Types
         private bool _autoMoveInWalkMode = true;
         private bool _letterboxMode = false;
         private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
+        private string _customDataDir = null;
         private int _splitResources = 0;
         private bool _attachDataToExe = true;
         private bool _turnBeforeWalking = true;
@@ -147,7 +148,14 @@ namespace AGS.Types
                 StringSplitOptions.RemoveEmptyEntries), checkAvailable);
         }
 
-		public void GenerateNewGameID()
+        private static string GetCustomDirsString(string input)
+        {
+            var dirs = input.Split(StringListUIEditor.Separators, StringSplitOptions.RemoveEmptyEntries).
+                Select(d => d.Trim());
+            return string.Join(",", dirs);
+        }
+
+        public void GenerateNewGameID()
 		{
 			_uniqueID = Environment.TickCount;
 			_guid = Guid.NewGuid();
@@ -392,6 +400,15 @@ namespace AGS.Types
         {
             get { return _scaleMovementSpeedWithMaskRes; }
             set { _scaleMovementSpeedWithMaskRes = value; }
+        }
+
+        [DisplayName("Package custom data folder(s)")]
+        [Description("A comma-separated list of folders; their contents will be added to the game resources")]
+        [Category("Compiler")]
+        public string CustomDataDir
+        {
+            get { return _customDataDir; }
+            set { _customDataDir = GetCustomDirsString(value); }
         }
 
         [DisplayName("Split resource files into X MB-sized chunks")]

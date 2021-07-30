@@ -19,6 +19,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "core/assetmanager.h"
 #include "debug/debug_log.h"
 #include "util/directory.h"
 #include "util/path.h"
@@ -79,9 +80,17 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
       return 0;
   }
 
-  Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
-  if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-    s = File::OpenFile(rp.AltPath, open_mode, work_mode);
+  Stream *s;
+  if (rp.AssetMgr)
+  {
+    s = AssetMgr->OpenAsset(rp.FullPath, "*", nullptr, open_mode, work_mode);
+  }
+  else
+  {
+    s = File::OpenFile(rp.FullPath, open_mode, work_mode);
+    if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+      s = File::OpenFile(rp.AltPath, open_mode, work_mode);
+  }
 
   valid_handles[useindx].stream = s;
   if (valid_handles[useindx].stream == nullptr)

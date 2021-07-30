@@ -13,6 +13,8 @@
 //=============================================================================
 #include "core/assetmanager.h"
 #include <algorithm>
+#include <regex>
+#include "util/directory.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
 #include "util/string_utils.h" // cbuf_to_string_and_free
@@ -168,6 +170,42 @@ String AssetManager::FindAssetFileOnly(const String &asset_name, const String &f
     return "";
 }
 
+void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard,
+    const String &filter) const
+{
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
+    std::cmatch mr;
+
+    for (const auto *lib : _activeLibs)
+    {
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
+            continue; // filter does not match
+
+        bool found = false;
+        if (IsAssetLibDir(lib))
+        {
+            for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
+                 !ff.AtEnd(); ff.Next())
+                assets.push_back(ff.Current());
+        }
+        else
+        {
+            for (const auto &a : lib->AssetInfos)
+            {
+                if (std::regex_match(a.FileName.GetCStr(), mr, regex))
+                    assets.push_back(a.FileName);
+            }
+        }
+    }
+
+    // Sort and remove duplicates
+    std::sort(assets.begin(), assets.end());
+    assets.erase(std::unique(assets.begin(), assets.end()), assets.end());
+}
+
 AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_lib)
 {
     // Test for a directory
@@ -210,8 +248,9 @@ bool AssetManager::GetAsset(const String &asset_name, const String &filter, bool
 {
     for (const auto *lib : _activeLibs)
     {
-        auto match = std::find(lib->Filters.begin(), lib->Filters.end(), filter);
-        if (match == lib->Filters.end())
+        if (filter != "*" &&
+            std::find(lib->Filters.begin(), lib->Filters.end(), filter)
+            == lib->Filters.end())
             continue; // filter does not match
 
         bool found = false;

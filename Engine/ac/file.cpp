@@ -51,6 +51,9 @@ int File_Exists(const char *fnmm) {
   if (!ResolveScriptPath(fnmm, true, rp))
     return 0;
 
+  if (rp.AssetMgr)
+      return AssetMgr->DoesAssetExist(rp.FullPath, "*");
+
   return (File::TestReadFile(rp.FullPath) || File::TestReadFile(rp.AltPath)) ? 1 : 0;
 }
 
@@ -196,6 +199,7 @@ const String GameInstallRootToken    = "$INSTALLDIR$";
 const String UserSavedgamesRootToken = "$MYDOCS$";
 const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
 const String GameDataDirToken        = "$APPDATADIR$";
+const String GameAssetToken          = "$DATA$";
 const String UserConfigFileToken     = "$CONFIGFILE$";
 
 void FixupFilename(char *filename)
@@ -295,15 +299,13 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     // Test absolute paths
-    bool is_absolute = !Path::IsRelativePath(orig_sc_path);
-    if (is_absolute && !read_only)
+    if (!Path::IsRelativePath(orig_sc_path))
     {
-        debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
-        return false;
-    }
-
-    if (is_absolute)
-    {
+        if (!read_only)
+        {
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
+            return false;
+        }
         rp = ResolvedPath(orig_sc_path);
         return true;
     }
@@ -312,6 +314,18 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     // IMPORTANT: for compatibility reasons we support both cases:
     // when token is followed by the path separator and when it is not, in which case it's assumed.
     String sc_path = orig_sc_path;
+    if (sc_path.CompareLeft(GameAssetToken, GameAssetToken.GetLength()) == 0)
+    {
+        if (!read_only)
+        {
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to game assets)", orig_sc_path.GetCStr());
+            return false;
+        }
+        rp.FullPath = sc_path.Mid(GameAssetToken.GetLength() + 1);
+        rp.AssetMgr = true;
+        return true;
+    }
+
     FSLocation parent_dir;
     String child_path;
     String alt_path;

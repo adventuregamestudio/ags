@@ -123,33 +123,22 @@ namespace AGS.Editor
 
         public static void AddAllMatchingFiles(IList<string> list, string fileMask, bool fullPaths)
         {
-            string currentDirectory = Directory.GetCurrentDirectory();
-            foreach (string fileName in GetDirectoryFileList(currentDirectory, fileMask))
-            {
-                if (fullPaths)
-                {
-                    list.Add(fileName);
-                }
-                else
-                {
-                    list.Add(fileName.Substring(currentDirectory.Length + 1));
-                }
-            }
+            AddAllMatchingFiles(list, Directory.GetCurrentDirectory(), fileMask, fullPaths);
         }
 
         public static void AddAllMatchingFiles(IList<string> list, string parentDir,
-            string fileMask, bool fullPaths, SearchOption searchOption)
+            string fileMask, bool fullPaths, SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
-            foreach (string fileName in GetDirectoryFileList(parentDir, fileMask, searchOption))
+            var files = GetDirectoryFileList(parentDir, fileMask, searchOption);
+            if (fullPaths)
             {
-                if (fullPaths)
-                {
+                foreach (string fileName in files)
                     list.Add(fileName);
-                }
-                else
-                {
+            }
+            else
+            {
+                foreach (string fileName in files)
                     list.Add(fileName.Substring(parentDir.Length + 1));
-                }
             }
         }
 
@@ -194,14 +183,9 @@ namespace AGS.Editor
         /// Tells if the given path equals to or is a subdirectory of one
         /// of the given basepaths
         /// </summary>
-        public static bool PathIsSameOrNestedAmong(string path, string[] basepaths)
+        public static bool PathIsSameOrNestedAmong(string path, IEnumerable<string> basepaths)
         {
-            foreach (string basepath in basepaths)
-            {
-                if (Utilities.PathsAreSameOrNested(path, basepath))
-                    return true;
-            }
-            return false;
+            return basepaths.Any(basep => Utilities.PathsAreSameOrNested(path, basep));
         }
 
         /// <summary>
@@ -210,7 +194,7 @@ namespace AGS.Editor
         public static bool DoesPathContainDotDirs(string path)
         {
             string[] parts = path.Split(PathSeparators);
-            return parts.Contains(".") || parts.Contains("..");
+            return parts.Any(p => p == "." || p == "..");
         }
 
         /// <summary>

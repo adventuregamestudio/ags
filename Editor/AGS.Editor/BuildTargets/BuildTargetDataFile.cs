@@ -2,8 +2,7 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Windows.Forms;
+using System.Linq;
 
 namespace AGS.Editor
 {
@@ -34,10 +33,12 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Creates a list of game resources as a list of tuples:
+        /// Creates a list of game resources as a list of tuples.
+        /// </summary>
+        /// <returns>
         /// - first tuple's element is resource's name,
         /// - second is real file path
-        /// </summary>
+        /// </returns>
         private Tuple<string, string>[] ConstructFileListForDataFile(CompileMessages errors)
         {
             List<string> files = new List<string>();
@@ -66,31 +67,29 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(files, "*.ogv");
 
             // Regular files are registered under their filenames (w/o dir)
-            var assetList = new List<Tuple<string, string>>();
-            foreach (var f in files)
-            {
-                assetList.Add(new Tuple<string, string>(Path.GetFileName(f), f));
-            }
-
-            var userFiles = ConstructCustomFileListForDataFile(errors);
-            if (userFiles != null) assetList.AddRange(userFiles);
-            return assetList.ToArray();
+            return files
+                .Select(f => new Tuple<string, string>(Path.GetFileName(f), f))
+                // Also add custom user files (if any)
+                .Concat(ConstructCustomFileListForDataFile(errors))
+                .ToArray();
         }
 
         /// <summary>
-        /// Creates a list of custom game resources as a list of tuples:
+        /// /// <summary>
+        /// Creates a list of custom game resources as a list of tuples.
+        /// </summary>
+        /// <returns>
         /// - first tuple's element is resource's name,
         /// - second is real file path
-        /// </summary>
+        /// </returns>
         private Tuple<string, string>[] ConstructCustomFileListForDataFile(CompileMessages errors)
         {
             string userOpt = Factory.AGSEditor.CurrentGame.Settings.CustomDataDir;
-            if (string.IsNullOrEmpty(userOpt)) return null;
+            if (string.IsNullOrEmpty(userOpt)) return Enumerable.Empty<Tuple<string, string>>().ToArray();
 
             string curDir = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            string[] restrictedDirs = new string[Factory.AGSEditor.RestrictedGameDirectories.Length];
-            for (int i = 0; i < restrictedDirs.Length; ++i)
-                restrictedDirs[i] = Path.Combine(curDir, Factory.AGSEditor.RestrictedGameDirectories[i]);
+            string[] restrictedDirs = Factory.AGSEditor.RestrictedGameDirectories.
+                Select(d => Path.Combine(curDir, d)).ToArray();
 
             List<string> userFiles = new List<string>();
             string[] user_dirs = userOpt.Split(',');
@@ -122,7 +121,7 @@ namespace AGS.Editor
                         string.Format("Cannot use restricted location as a custom data source: {0}", dir)));
                     continue;
                 }
-                if (Utilities.PathIsSameOrNestedAmong(testDir, usedCustomDirs.ToArray()))
+                if (Utilities.PathIsSameOrNestedAmong(testDir, usedCustomDirs))
                     continue; // don't report, simply skip
 
                 Utilities.AddAllMatchingFiles(userFiles, dir, "*", true, SearchOption.AllDirectories);
@@ -130,12 +129,7 @@ namespace AGS.Editor
             }
 
             // User files are registered under their relative paths
-            var assetList = new List<Tuple<string, string>>();
-            foreach (var f in userFiles)
-            {
-                assetList.Add(new Tuple<string, string>(f, f));
-            }
-            return assetList.ToArray();
+            return userFiles.Select(f => new Tuple<string, string>(f, f)).ToArray();
         }
 
         private void CreateAudioVOXFile(bool forceRebuild)

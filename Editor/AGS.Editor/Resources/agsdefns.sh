@@ -650,10 +650,6 @@ builtin struct Room {
   import static bool SetTextProperty(const string property, const string value);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
-#ifdef SCRIPT_API_v399
-  /// Checks if the specified room exists
-  import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
-#endif
 #ifdef SCRIPT_API_v360
   /// Checks if the specified room exists
   import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
@@ -2181,7 +2177,7 @@ builtin struct Game {
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
 #endif
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v360
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
 #endif
@@ -2325,7 +2321,6 @@ builtin struct Speech {
   import static readonly attribute Overlay* TextOverlay;
   /// Gets the overlay representing displayed portrait, or null if it is not displayed at the moment.
   import static readonly attribute Overlay* PortraitOverlay;
-#endif
 #endif
 };
 

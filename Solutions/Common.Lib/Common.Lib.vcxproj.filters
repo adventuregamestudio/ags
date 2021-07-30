@@ -197,7 +197,7 @@
     <ClCompile Include="..\..\Common\util\lzw.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\mutifilelib.cpp">
+    <ClCompile Include="..\..\Common\util\multifilelib.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">

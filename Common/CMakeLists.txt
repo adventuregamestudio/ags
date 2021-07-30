@@ -143,7 +143,7 @@ target_sources(common
     util/memorystream.cpp
     util/memorystream.h
     util/multifilelib.h
-    util/mutifilelib.cpp
+    util/multifilelib.cpp
     util/path.cpp
     util/path_ex.cpp
     util/path.h

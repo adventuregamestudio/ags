@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     // Read room struct
     //-----------------------------------------------------------------------//
     RoomDataSource datasrc;
-    HError err = OpenRoomFile(src, datasrc);
+    HError err = static_cast<PError>(OpenRoomFile(src, datasrc));
     if (!err)
     {
         printf("Error: failed to open room file for reading:\n");

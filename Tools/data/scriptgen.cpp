@@ -14,6 +14,7 @@
 #include "data/scriptgen.h"
 #include <iterator>
 #include <cctype>
+#include <cstring>
 #include "data/room_utils.h"
 
 namespace AGS

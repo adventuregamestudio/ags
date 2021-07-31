@@ -144,8 +144,9 @@ build_macos_task:
 build_android_task:
   container:
     dockerfile: ci/android/Dockerfile
-    cpu: 6
-    memory: 6G
+    cpu: 4
+    memory: 8G
+    greedy: true
   git_submodules_script: git submodule update --init --recursive
   build_debug_library_and_runtime_script: |
     pushd Android/agsplayer && ./gradlew assembleDebug && popd

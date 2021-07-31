@@ -1,61 +1,39 @@
 
-#include <stdlib.h>
-#include <string.h>
+#include "util/string.h"
 #include "cc_macrotable.h"
 #include "script/cc_error.h"
 
-void MacroTable::init() {
-    num = 0;
-    memset(name, 0, sizeof(name));
-    memset(macro, 0, sizeof(macro));
-}
-void MacroTable::shutdown() {
-    int rr;
-    for (rr=0;rr<num;rr++) {
-        free(macro[rr]);
-        free(name[rr]);
-        macro[rr]=NULL;
-        name[rr]=NULL;
-    }
-    num = 0;
-}
-void MacroTable::merge(MacroTable *others) {
+using namespace AGS::Common;
 
-    for (int aa = 0; aa < others->num; aa++) {
-        this->add(others->name[aa], others->macro[aa]);
-    }
 
+void MacroTable::merge(MacroTable &others) {
+    _macro_table.insert(others._macro_table.begin(), others._macro_table.end());
 }
-int MacroTable::find_name(char* namm) {
-    int ss;
-    for (ss=0;ss<num;ss++) {
-        if (strcmp(namm,name[ss])==0) return ss;
+bool MacroTable::contains(const String &name) {
+    return _macro_table.count(name);
+}
+String MacroTable::get_macro(const String &name) {
+    if(_macro_table.count(name)) {
+        return _macro_table[name];
     }
-    return -1;
+    return nullptr;
 }
-void MacroTable::add(char*namm,char*mac) {
-    if (find_name(namm) >= 0) {
-        cc_error("macro '%s' already defined",namm);
+void MacroTable::add(const String &macroname, const String &value) {
+    if (this->contains(macroname)) {
+        cc_error("macro '%s' already defined",macroname.GetCStr());
         return;
     }
-    if (num>=MAXDEFINES) {
-        cc_error("too many macros defined");
-        return;
-    }
-    name[num]=(char*)malloc(strlen(namm)+5);
-    strcpy(name[num],namm);
-    macro[num]=(char*)malloc(strlen(mac)+5);
-    strcpy(macro[num],mac);
-    num++;
+
+    _macro_table[macroname] = value;
 }
-void MacroTable::remove(int index) {
-    if ((index < 0) || (index >= num)) {
-        cc_error("MacroTable::Remove: index out of range");
+void MacroTable::remove(String &macroname) {
+    if (!this->contains(macroname)) {
+        cc_error("MacroTable::Remove: macro '%s' not found", macroname.GetCStr());
         return;
     }
-    // just blank out the entry, don't bother to remove it
-    name[index][0] = 0;
-    macro[index][0] = 0;
+    _macro_table.erase(macroname);
 }
 
-MacroTable macros;
+void MacroTable::clear() {
+    _macro_table.clear();
+}

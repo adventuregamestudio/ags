@@ -38,6 +38,14 @@ public:
     // - the open mode could not be determined
     FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
         DataEndianess stream_endianess = kLittleEndian);
+    // Constructs a file stream over an open FILE handle;
+    // Take an ownership over it and will close upon disposal
+    static FileStream *OwnHandle(FILE *file, FileWorkMode work_mode, DataEndianess stream_end = kLittleEndian)
+        { return new FileStream(file, true, work_mode, stream_end); }
+    // Constructs a file stream over an open FILE handle;
+    // does NOT take an ownership over it
+    static FileStream *WrapHandle(FILE *file, FileWorkMode work_mode, DataEndianess stream_end = kLittleEndian)
+        { return new FileStream(file, false, work_mode, stream_end); }
     ~FileStream() override;
 
     bool    HasErrors() const override;
@@ -64,9 +72,11 @@ public:
     bool    Seek(soff_t offset, StreamSeek origin) override;
 
 private:
-    void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+    FileStream(FILE *file, bool own, FileWorkMode work_mode, DataEndianess stream_end);
+    void    Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
     FILE                *_file;
+    bool                 _ownHandle;
     const FileOpenMode  _openMode;
     const FileWorkMode  _workMode;
 };

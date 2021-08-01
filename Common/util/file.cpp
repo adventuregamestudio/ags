@@ -182,6 +182,22 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
     return fs;
 }
 
+
+Stream *File::OpenStdin()
+{
+    return FileStream::WrapHandle(stdin, kFile_Read, kDefaultSystemEndianess);
+}
+
+Stream *File::OpenStdout()
+{
+    return FileStream::WrapHandle(stdout, kFile_Write, kDefaultSystemEndianess);
+}
+
+Stream *File::OpenStderr()
+{
+    return FileStream::WrapHandle(stderr, kFile_Write, kDefaultSystemEndianess);
+}
+
 String File::FindFileCI(const String &dir_name, const String &file_name)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)

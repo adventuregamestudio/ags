@@ -137,8 +137,8 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     int src_x, int src_y, int src_width, int src_height, int sprite_id, bool src_has_alpha)
 {
     Bitmap *ds = sds->GetBitmapSurface();
-    if (src == ds)
-        quit("!DrawingSurface.DrawImage: cannot draw onto itself");
+    if (src == ds) {} // ignore for now; bitmap lib supports, and may be used for effects
+        /* debug_script_warn("DrawingSurface.DrawImage: drawing onto itself"); */
     if ((trans < 0) || (trans > 100))
         quit("!DrawingSurface.DrawImage: invalid transparency setting");
 
@@ -147,7 +147,7 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     if (dst_width < 1 || dst_height < 1 || src_width < 1 || src_height < 1)
         return; // invalid src or dest rectangles
 
-                // Setup uninitialized arguments; convert coordinates for legacy script mode
+    // Setup uninitialized arguments; convert coordinates for legacy script mode
     if (dst_width == SCR_NO_VALUE) { dst_width = src->GetWidth(); }
     else { sds->SizeToGameResolution(&dst_width); }
     if (dst_height == SCR_NO_VALUE) { dst_height = src->GetHeight(); }
@@ -164,7 +164,7 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     if (dst_x >= ds->GetWidth() || dst_x + dst_width <= 0 || dst_y >= ds->GetHeight() || dst_y + dst_height <= 0 ||
         src_x >= src->GetWidth() || src_x + src_width <= 0 || src_y >= src->GetHeight() || src_y + src_height <= 0)
         return; // source or destination rects lie completely off surface
-                // Clamp the source rect to the valid limits to prevent exceptions (ignore dest, bitmap drawing deals with that)
+    // Clamp the source rect to the valid limits to prevent exceptions (ignore dest, bitmap drawing deals with that)
     Math::ClampLength(src_x, src_width, 0, src->GetWidth());
     Math::ClampLength(src_y, src_height, 0, src->GetHeight());
 

@@ -1,6 +1,7 @@
 include ':runtime'
 project (":runtime").projectDir = new File(settingsDir, '../library/runtime')
 include ':app'
+include ':game'
 include ':play_licensing_library'
 include ':downloader_library'
 rootProject.name = "My Game"

@@ -616,6 +616,12 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
             room->Hotspots[i].WalkTo.Y *= mul;
         }
 
+        for (size_t i = 0; i < room->WalkAreaCount; ++i)
+        {
+            room->WalkAreas[i].Top *= mul;
+            room->WalkAreas[i].Bottom *= mul;
+        }
+
         for (size_t i = 0; i < room->WalkBehindCount; ++i)
         {
             room->WalkBehinds[i].Baseline *= mul;

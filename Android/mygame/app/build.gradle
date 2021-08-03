@@ -42,6 +42,5 @@ android {
 
 dependencies {
     api project(':runtime')
-    api project(':downloader_library')
     implementation 'androidx.core:core:1.3.2'
 }

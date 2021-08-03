@@ -24,15 +24,15 @@ RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
 RUN pushd %TEMP% && \
   mkdir Lib\Xiph && \
   pushd Lib\Xiph && \
-  nuget install ericoporto.xiph-for-ags -Version 2020.12.12.1 && \
+  nuget install ericoporto.xiph-for-ags -Version 2021.8.3 && \
   popd && \
   popd && \
   mkdir Lib\Xiph && \
   pushd Lib\Xiph && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libogg_static.lib libogg_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libtheora_static.lib libtheora_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libvorbis_static.lib libvorbis_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libvorbisfile_static.lib libvorbisfile_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libogg_static.lib libogg_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libtheora_static.lib libtheora_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbis_static.lib libvorbis_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbisfile_static.lib libvorbisfile_static.lib && \
   popd && \
   rd /s /q %TEMP%\Lib
 

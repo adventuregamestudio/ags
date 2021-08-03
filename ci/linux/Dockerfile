@@ -57,15 +57,15 @@ RUN apt-get install \
   libxkbcommon-dev 
 
 # Build newer libogg
-ARG LIBOGG_VERSION=1.3.4
-RUN curl -fLsS "https://github.com/xiph/ogg/releases/download/v${LIBOGG_VERSION}/libogg-${LIBOGG_VERSION}.tar.gz" --output /tmp/libogg-${LIBOGG_VERSION}.tar.gz && \
-  tar --file=/tmp/libogg-${LIBOGG_VERSION}.tar.gz -xvzC /tmp && \
+ARG LIBOGG_VERSION=1.3.5
+RUN curl -fLsS "https://github.com/xiph/ogg/releases/download/v${LIBOGG_VERSION}/libogg-${LIBOGG_VERSION}.tar.xz" --output /tmp/libogg-${LIBOGG_VERSION}.tar.xz && \
+  tar --file=/tmp/libogg-${LIBOGG_VERSION}.tar.xz -xvJC /tmp && \
   cd /tmp/libogg-${LIBOGG_VERSION} && \
   ./configure --prefix=/opt && \
   make && \
   make install && \
   rm -r /tmp/libogg-${LIBOGG_VERSION} && \
-  rm /tmp/libogg-${LIBOGG_VERSION}.tar.gz 
+  rm /tmp/libogg-${LIBOGG_VERSION}.tar.xz
 
 # Build newer libvorbis
 ARG LIBVORBIS_VERSION=1.3.7

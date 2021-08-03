@@ -17,6 +17,7 @@
 #include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
+#include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
@@ -751,6 +752,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         rgb_map = &rgb_table;
     }
     our_eip = 211;
+    bool place_on_walkable = false;
     if (forchar!=nullptr) {
         // if it's not a Restore Game
 
@@ -770,10 +772,17 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
+        // Compatibility: old games had a *possibly unintentional* effect:
+        // if a character was moving when "change room" function is called,
+        // they ended up forced to a walkable area in the next room.
+        if (loaded_game_file_version < kGameVersion_300)
+        {
+            if (is_char_walking_ndirect(forchar))
+                place_on_walkable = true;
+        }
         // only stop moving if it's a new room, not a restore game
         for (cc=0;cc<game.numcharacters;cc++)
             StopMoving(cc);
-
     }
 
     update_polled_stuff_if_runtime();
@@ -795,6 +804,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
+        if (place_on_walkable)
+            Character_PlaceOnWalkableArea(forchar);
 
 		if (new_room_loop != SCR_NO_VALUE)
 			forchar->loop = new_room_loop;

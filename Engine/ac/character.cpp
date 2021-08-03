@@ -1902,6 +1902,12 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
     return 0;
 }
 
+bool is_char_walking_ndirect(CharacterInfo *chi)
+{
+    return ((chi->walking > 0) && (chi->walking < TURNING_AROUND)) &&
+        (mls[chi->walking].direct == 0);
+}
+
 int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 {
     int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;

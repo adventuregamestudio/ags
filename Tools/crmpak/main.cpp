@@ -21,6 +21,12 @@ public:
 };
 
 
+static void print_known_blockids()
+{
+    for (int i = kRoomFblk_FirstID; i < kRoomFblk_LastID; ++i)
+        printf("%d:%s\n", i, GetRoomBlockName((RoomFileBlock)i));
+}
+
 HError print_room_blockids(RoomDataSource &datasrc)
 {
     HError err = HError::None();
@@ -36,27 +42,31 @@ HError print_room_blockids(RoomDataSource &datasrc)
 }
 
 
+const char *BIN_STRING = "crmpak v0.1.0 - AGS compiled room's (re)packer\n"
+"Copyright (c) 2021 AGS Team and contributors";
+
 const char *HELP_STRING =
-"Usage: crmpak <in-room.crm> <COMMAND> [<OPTIONS>]\n"
+"Usage: crmpak [OPTIONS] [<in-room.crm> <COMMAND> [<CMD_OPTIONS>]]\n"
+"Options:\n"
+"  --tell-blockids        print a list of the known block ids\n"
 "Commands:\n"
 "  -d <blockid>           delete: remove a block from the compiled room\n"
 "  -e <blockid> <file>    export: write a block into this file\n"
 "  -i <blockid> <file>    import: add/replace a block with this file contents\n"
 "  -l                     list: print id of all blocks found in the room\n"
 "  -x <blockid> <file>    extract: remove a block and save it in this file\n"
-"Options:\n"
+"Command options:\n"
 "  -w <out-room.crm>      for all commands but '-e': write the resulting room\n"
 "                         into a new file; otherwise will modify the input file\n";
 
 int main(int argc, char *argv[])
 {
-    printf("crmpak v0.1.0 - AGS compiled room's (re)packer\n"\
-        "Copyright (c) 2021 AGS Team and contributors\n");
     for (int i = 1; i < argc; ++i)
     {
         const char *arg = argv[i];
-        if (ags_stricmp(arg, "--help") == 0 || ags_stricmp(arg, "/?") == 0 || ags_stricmp(arg, "-?") == 0)
+        if (strcmp(arg, "--help") == 0 || strcmp(arg, "/?") == 0 || strcmp(arg, "-?") == 0)
         {
+            printf("%s\n", BIN_STRING);
             printf("%s\n", HELP_STRING);
             return 0; // display help and bail out
         }
@@ -69,6 +79,12 @@ int main(int argc, char *argv[])
     const char *out_roomfile = nullptr;
     for (int i = 2; i < argc; ++i)
     {
+        if (strcmp(argv[i], "--tell-blockids") == 0)
+        {
+            print_known_blockids();
+            return 0;
+        }
+
         if (argv[i][0] != '-' || strlen(argv[i]) != 2)
             continue;
         char arg = argv[2][1];
@@ -94,6 +110,7 @@ int main(int argc, char *argv[])
     }
 
     // Test supported commands and number of args
+    printf("%s\n", BIN_STRING);
     if (command == 0)
     {
         printf("Error: command not specified\n");

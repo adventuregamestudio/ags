@@ -73,7 +73,9 @@ enum RoomFileBlock
     // Script names of the room objects
     kRoomFblk_ObjectScNames = 9,
     // End of room data tag
-    kRoomFile_EOF = 0xFF
+    kRoomFile_EOF = 0xFF,
+    kRoomFblk_FirstID = kRoomFblk_Main,
+    kRoomFblk_LastID = kRoomFblk_ObjectScNames
 };
 
 String GetRoomFileErrorText(RoomFileErrorType err);

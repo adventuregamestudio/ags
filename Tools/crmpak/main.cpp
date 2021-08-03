@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include "game/room_file.h"
 #include "util/data_ext.h"
@@ -20,12 +21,28 @@ public:
 };
 
 
+HError print_room_blockids(RoomDataSource &datasrc)
+{
+    HError err = HError::None();
+    RoomBlockParser parser(datasrc.InputStream.get(), datasrc.DataVersion);
+    printf("------ Block ID ------|------- Offset -------|--- Size --\n");
+    for (err = parser.OpenBlock(); err && !parser.AtEnd(); err = parser.OpenBlock())
+    {
+        printf(" %-16s (%d) | %-20" PRId64 " | %-10zu\n",
+            parser.GetBlockName().GetCStr(), parser.GetBlockID(), parser.GetBlockOffset(), (size_t)parser.GetBlockLength());
+        parser.SkipBlock();
+    }
+    return err;
+}
+
+
 const char *HELP_STRING =
 "Usage: crmpak <in-room.crm> <COMMAND> [<OPTIONS>]\n"
 "Commands:\n"
 "  -d <blockid>           delete: remove a block from the compiled room\n"
 "  -e <blockid> <file>    export: write a block into this file\n"
 "  -i <blockid> <file>    import: add/replace a block with this file contents\n"
+"  -l                     list: print id of all blocks found in the room\n"
 "  -x <blockid> <file>    extract: remove a block and save it in this file\n"
 "Options:\n"
 "  -w <out-room.crm>      for all commands but '-e': write the resulting room\n"
@@ -43,13 +60,6 @@ int main(int argc, char *argv[])
             printf("%s\n", HELP_STRING);
             return 0; // display help and bail out
         }
-    }
-    // Minimal required args is crmpak <room.crm> <COMMAND> <BLOCKID>
-    if (argc < 4)
-    {
-        printf("Error: not enough arguments\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
     }
 
     const char *in_roomfile = argv[1];
@@ -79,6 +89,7 @@ int main(int argc, char *argv[])
         case 'w':
             if (argc > i + 1) out_roomfile = argv[(i++) + 1];
             break;
+        case 'l': command = arg; break;
         }
     }
 
@@ -89,35 +100,40 @@ int main(int argc, char *argv[])
         printf("%s\n", HELP_STRING);
         return -1;
     }
-    else if (!arg_block || ((command != 'd') && !arg_blockfile))
+    else if ((command != 'l') &&
+        (!arg_block || ((command != 'd') && !arg_blockfile)))
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
-    // Parse room block ID
-    char *parse_end = nullptr;
-    errno = 0;
-    const int block_numid = strtol(arg_block, &parse_end, 0);
-    bool is_old_numid = ((errno == 0) && (parse_end == arg_block + strlen(arg_block)));
-    const String block_strid = is_old_numid ? GetRoomBlockName((RoomFileBlock)block_numid) : arg_block;
-
     // Print working info
+    int block_numid = 0;
+    String block_strid;
     printf("Room file: %s\n", in_roomfile);
-    printf("Block ID: %s (%d)\n", block_strid.GetCStr(), block_numid);
-    switch (command)
+    if (command != 'l')
     {
-    case 'e': case 'x': printf("Output file: %s\n", arg_blockfile); break;
-    case 'i': printf("Input file: %s\n", arg_blockfile); break;
-    case 'd': default: break;
+        // Parse room block ID
+        char *parse_end = nullptr;
+        errno = 0;
+        block_numid = strtol(arg_block, &parse_end, 0);
+        bool is_old_numid = ((errno == 0) && (parse_end == arg_block + strlen(arg_block)));
+        block_strid = is_old_numid ? GetRoomBlockName((RoomFileBlock)block_numid) : arg_block;
+
+        printf("Block ID: %s (%d)\n", block_strid.GetCStr(), block_numid);
+        switch (command)
+        {
+        case 'e': case 'x': printf("Output file: %s\n", arg_blockfile); break;
+        case 'i': printf("Input file: %s\n", arg_blockfile); break;
+        case 'd': default: break;
+        }
+        if (out_roomfile && (command != 'e'))
+            printf("Write modified room into: %s\n", out_roomfile);
     }
-    if (out_roomfile && (command != 'e'))
-        printf("Write modified room into: %s\n", out_roomfile);
 
     //-----------------------------------------------------------------------//
-    // Parse the input room, search for the requested block ID;
-    // save its location in the stream.
+    // Open the room, export list of block ids ('l' command).
     //-----------------------------------------------------------------------//
     RoomDataSource datasrc;
     HError err = OpenRoomFile(in_roomfile, datasrc);
@@ -128,6 +144,22 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    if (command == 'l')
+    {
+        HError err = print_room_blockids(datasrc);
+        if (!err)
+        {
+            printf("Error: failed to parse the input room:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
+        return 0;
+    }
+
+    //-----------------------------------------------------------------------//
+    // Parse the input room, search for the requested block ID;
+    // save its location in the stream.
+    //-----------------------------------------------------------------------//
     RoomBlockParser parser(datasrc.InputStream.get(), datasrc.DataVersion);
     soff_t block_head = -1;
     soff_t block_data_at = -1;

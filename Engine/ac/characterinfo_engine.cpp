@@ -77,7 +77,7 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, in
         (loop >= views[view].numLoops || frame >= views[view].loops[loop].numFrames))
     {
         for (loop = 0;
-            (loop < loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);
+            (loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);
             ++loop);
         if (loop == views[view].numLoops) // view has no frames?!
         { // amazingly enough there are old games that allow this to happen...

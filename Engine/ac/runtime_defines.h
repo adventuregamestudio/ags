@@ -11,9 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_RUNTIMEDEFINES_H
 #define __AC_RUNTIMEDEFINES_H
+
+#include "ac/common_defines.h"
 
 // xalleg.h pulls in an Allegro-internal definition of MAX_TIMERS which
 // conflicts with the definition in runtime_defines.h. Forget it.
@@ -150,6 +151,6 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define MAX_OPEN_SCRIPT_FILES 10
 
-#include "ac/common_defines.h"
+#define RETURN_CONTINUE 1
 
 #endif // __AC_RUNTIMEDEFINES_H

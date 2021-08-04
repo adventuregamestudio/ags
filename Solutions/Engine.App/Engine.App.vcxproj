@@ -693,8 +693,6 @@
     <ClInclude Include="..\..\Engine\main\game_start.h" />
     <ClInclude Include="..\..\Engine\main\graphics_mode.h" />
     <ClInclude Include="..\..\Engine\main\main.h" />
-    <ClInclude Include="..\..\Engine\main\maindefines_ex.h" />
-    <ClInclude Include="..\..\Engine\main\mainheader.h" />
     <ClInclude Include="..\..\Engine\main\quit.h" />
     <ClInclude Include="..\..\Engine\main\update.h" />
     <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />

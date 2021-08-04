@@ -23,7 +23,6 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
-#include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 

@@ -25,16 +25,17 @@
 #include "ac/mouse.h"
 #include "ac/room.h"
 #include "ac/screen.h"
+#include "ac/timer.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "gfx/ali3dexception.h"
-#include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/game_start.h"
-#include "script/script.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
+#include "script/script_runtime.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

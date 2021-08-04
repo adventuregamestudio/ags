@@ -24,7 +24,6 @@
 #endif
 #include <allegro.h> // allegro_install and _exit
 
-#include "main/mainheader.h"
 #include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -41,6 +40,7 @@
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
 #include "ac/path_helper.h"
+#include "ac/route_finder.h"
 #include "ac/sys_events.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
@@ -53,6 +53,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "gfx/graphicsdriver.h"
@@ -72,6 +73,7 @@
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -101,6 +103,10 @@ extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
+
+#if AGS_PLATFORM_OS_ANDROID
+extern "C" void selectLatestSavegame();
+#endif
 
 ResourcePaths ResPaths;
 

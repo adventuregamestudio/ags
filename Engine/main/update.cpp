@@ -29,7 +29,6 @@
 #include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "main/mainheader.h"
 #include "main/update.h"
 #include "ac/screenoverlay.h"
 #include "ac/viewframe.h"

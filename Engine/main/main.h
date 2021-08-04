@@ -51,8 +51,8 @@ extern const char *loadSaveGameOnStartup;
 
 extern int psp_video_framedrop;
 extern int psp_ignore_acsetup_cfg_file;
+extern bool psp_load_latest_savegame;
 extern int psp_clear_cache_on_room_change; // clear --sprite cache-- when room is unloaded
-
 extern char psp_game_file_name[];
 extern char psp_translation[];
 

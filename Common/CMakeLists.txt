@@ -175,6 +175,8 @@ target_sources(common
     util/bufferedstream.h
     util/string_compat.c
     util/string_compat.h
+
+	platform/windows/windows.h
 )
 
 target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)

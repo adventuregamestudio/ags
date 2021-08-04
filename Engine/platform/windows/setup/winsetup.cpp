@@ -14,10 +14,7 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#define NOMINMAX
-#define BITMAP WINDOWS_BITMAP
-#include <windows.h>
-#undef BITMAP
+#include "platform/windows/windows.h"
 #include <commctrl.h>
 #include <crtdbg.h>
 #include <shlobj.h>
@@ -27,8 +24,6 @@
 #include <set>
 #include <vector>
 #include "ac/gamestructdefines.h"
-#undef RGB
-#undef PALETTE
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"

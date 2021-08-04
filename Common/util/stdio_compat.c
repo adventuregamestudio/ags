@@ -20,8 +20,7 @@
 #include <sys/stat.h>
 
 #if AGS_PLATFORM_OS_WINDOWS
-#define NOMINMAX
-#include <windows.h>
+#include "platform/windows/windows.h"
 #include <shlwapi.h>
 #endif
 

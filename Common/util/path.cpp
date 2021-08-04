@@ -1,7 +1,6 @@
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
-#define NOMINMAX
-#include <windows.h>
+#include "platform/windows/windows.h"
 #endif
 #include "util/path.h"
 #include "util/stdio_compat.h"

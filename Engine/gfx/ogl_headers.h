@@ -24,10 +24,7 @@
 #include "glad/glad.h"
 #elif AGS_PLATFORM_OS_WINDOWS
 #include <SDL.h>
-#define NOMINMAX
-#define BITMAP WINDOWS_BITMAP
-#include <windows.h>
-#undef BITMAP
+#include "platform/windows/windows.h"
 #include "glad/glad.h"
 
 #elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD

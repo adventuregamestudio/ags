@@ -472,6 +472,7 @@
     <ClInclude Include="..\..\Common\gui\guiobject.h" />
     <ClInclude Include="..\..\Common\gui\guislider.h" />
     <ClInclude Include="..\..\Common\gui\guitextbox.h" />
+    <ClInclude Include="..\..\Common\platform\windows\windows.h" />
     <ClInclude Include="..\..\Common\script\cc_error.h" />
     <ClInclude Include="..\..\Common\script\cc_options.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />

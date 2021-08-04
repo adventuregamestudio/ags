@@ -3,12 +3,7 @@
 #include <string.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
-#include <windows.h>
-#undef CreateFile
-#undef DeleteFile
-#undef CreateDirectory
-#undef GetCurrentDirectory
-#undef SetCurrentDirectory
+#include "platform/windows/windows.h"
 #else
 #include <sys/stat.h>
 #include <sys/types.h>

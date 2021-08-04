@@ -18,10 +18,7 @@
 #define NOMINMAX
 #include <direct.h>
 #include <string.h>
-#define BITMAP WINDOWS_BITMAP
-#include <windows.h>
-#undef BITMAP
-#undef DeleteFile
+#include "platform/windows/windows.h"
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <gameux.h>

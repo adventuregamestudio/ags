@@ -954,7 +954,7 @@ namespace AGS.Editor
             UpdateScrollableWindowSize();
 
             // Update offset
-            Point newOffset = RoomEditorState.RecalcOffset(bufferedPanel1.ClientSize, oldOffset, oldScale, newScale, anchor);
+            Point newOffset = RoomEditorState.RecalcOffset(oldOffset, oldScale, newScale, anchor);
             newOffset.X = Math.Min(bufferedPanel1.AutoScrollMinSize.Width - 1, newOffset.X);
             newOffset.Y = Math.Min(bufferedPanel1.AutoScrollMinSize.Height - 1, newOffset.Y);
             newOffset.X = Math.Max(0, newOffset.X);
@@ -1093,13 +1093,12 @@ namespace AGS.Editor
         /// </summary>
         // TODO: move this elsewhere, this kind of logic should perhaps take place in a dedicated control.
         // FreePanControl?
-        /// <param name="windowSize">The size of the control containing the zoomable image.</param>
         /// <param name="curOffset"></param>
         /// <param name="oldScale"></param>
         /// <param name="newScale"></param>
         /// <param name="anchor">Anchor point in * window * coordinates.</param>
         /// <returns>Image offset in * window * coordinates</returns>
-        internal static Point RecalcOffset(Size windowSize, Point curOffset, float oldScale, float newScale, Point anchor)
+        internal static Point RecalcOffset(Point curOffset, float oldScale, float newScale, Point anchor)
         {
             // The idea here is that the anchor point defines the room location that must remain
             // * under same window location * after the rescaling.

@@ -20,6 +20,8 @@ namespace AGS
 namespace Common
 {
 
+using namespace Path;
+
 namespace Directory
 {
 
@@ -102,8 +104,8 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
 bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
     int attr_dir)
 {
-    char pattern[MAX_PATH];
-    snprintf(pattern, MAX_PATH, "%s/%s", dir_path.GetCStr(), "*");
+    char pattern[MAX_PATH_SZ];
+    snprintf(pattern, sizeof(pattern), "%s/%s", dir_path.GetCStr(), "*");
     WIN32_FIND_DATAA findData;
     HANDLE hFind = FindFirstFileA(pattern, &findData);
     if (hFind == INVALID_HANDLE_VALUE)
@@ -197,8 +199,8 @@ FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file
 {
     Internal ffi;
 #if AGS_PLATFORM_OS_WINDOWS
-    char pattern[MAX_PATH];
-    snprintf(pattern, MAX_PATH, "%s/%s", path.GetCStr(), wildcard.GetCStr());
+    char pattern[MAX_PATH_SZ];
+    snprintf(pattern, sizeof(pattern), "%s/%s", path.GetCStr(), wildcard.GetCStr());
     HANDLE hFind = FindFirstFileA(pattern, &ffi.fdata);
     if (hFind == INVALID_HANDLE_VALUE)
         return FindFile(); // return invalid object

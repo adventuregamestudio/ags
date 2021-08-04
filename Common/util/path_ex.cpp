@@ -1,10 +1,6 @@
 #include "util/path.h"
 #include "allegro/file.h"
-
-// TODO: implement proper portable path length
-#ifndef MAX_PATH
-#define MAX_PATH 512
-#endif
+#include "util/stdio_compat.h"
 
 namespace AGS
 {
@@ -40,15 +36,15 @@ int ComparePaths(const String &path1, const String &path2)
 
 bool IsSameOrSubDir(const String &parent, const String &path)
 {
-    char can_parent[MAX_PATH];
-    char can_path[MAX_PATH];
-    char relative[MAX_PATH];
+    char can_parent[MAX_PATH_SZ];
+    char can_path[MAX_PATH_SZ];
+    char relative[MAX_PATH_SZ];
     // canonicalize_filename treats "." as "./." (file in working dir)
     const char *use_parent = parent == "." ? "./" : parent.GetCStr();
     const char *use_path   = path   == "." ? "./" : path.GetCStr();
-    canonicalize_filename(can_parent, use_parent, MAX_PATH);
-    canonicalize_filename(can_path, use_path, MAX_PATH);
-    const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    canonicalize_filename(can_parent, use_parent, MAX_PATH_SZ);
+    canonicalize_filename(can_path, use_path, MAX_PATH_SZ);
+    const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH_SZ);
     if (!pstr)
         return false;
     for (pstr = strstr(pstr, ".."); pstr && *pstr; pstr = strstr(pstr, ".."))
@@ -82,8 +78,8 @@ String MakeAbsolutePath(const String &path)
     //    abs_path = long_path_buffer;
     //}
 #endif
-    char buf[MAX_PATH];
-    canonicalize_filename(buf, abs_path.GetCStr(), MAX_PATH);
+    char buf[MAX_PATH_SZ];
+    canonicalize_filename(buf, abs_path.GetCStr(), MAX_PATH_SZ);
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
@@ -91,15 +87,15 @@ String MakeAbsolutePath(const String &path)
 
 String MakeRelativePath(const String &base, const String &path)
 {
-    char can_parent[MAX_PATH];
-    char can_path[MAX_PATH];
-    char relative[MAX_PATH];
+    char can_parent[MAX_PATH_SZ];
+    char can_path[MAX_PATH_SZ];
+    char relative[MAX_PATH_SZ];
     // canonicalize_filename treats "." as "./." (file in working dir)
     const char *use_parent = base == "." ? "./" : base.GetCStr();
     const char *use_path = path == "." ? "./" : path.GetCStr(); // FIXME?
-    canonicalize_filename(can_parent, use_parent, MAX_PATH);
-    canonicalize_filename(can_path, use_path, MAX_PATH);
-    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    canonicalize_filename(can_parent, use_parent, MAX_PATH_SZ);
+    canonicalize_filename(can_path, use_path, MAX_PATH_SZ);
+    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH_SZ);
     FixupPath(rel_path);
     return rel_path;
 }

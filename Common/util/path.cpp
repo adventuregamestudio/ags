@@ -5,11 +5,6 @@
 #include "util/path.h"
 #include "util/stdio_compat.h"
 
-// TODO: implement proper portable path length
-#ifndef MAX_PATH
-#define MAX_PATH 512
-#endif
-
 namespace AGS
 {
 namespace Common
@@ -199,8 +194,8 @@ String FixupSharedFilename(const String &filename)
 String GetPathInASCII(const String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    char ascii_buffer[MAX_PATH];
-    if (GetShortPathNameA(path.GetCStr(), ascii_buffer, MAX_PATH) == 0)
+    char ascii_buffer[MAX_PATH_SZ];
+    if (GetShortPathNameA(path.GetCStr(), ascii_buffer, sizeof(ascii_buffer)) == 0)
         return "";
     return ascii_buffer;
 #else
@@ -212,12 +207,12 @@ String GetPathInASCII(const String &path)
 #if AGS_PLATFORM_OS_WINDOWS
 String WidePathNameToAnsi(LPCWSTR pathw)
 {
-    WCHAR short_path[MAX_PATH];
-    char ascii_buffer[MAX_PATH];
+    WCHAR short_path[MAX_PATH_SZ];
+    char ascii_buffer[MAX_PATH_SZ];
     LPCWSTR arg_path = pathw;
-    if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
+    if (GetShortPathNameW(arg_path, short_path, sizeof(short_path)) == 0)
         return "";
-    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
+    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, sizeof(ascii_buffer), NULL, NULL);
     return ascii_buffer;
 }
 #endif

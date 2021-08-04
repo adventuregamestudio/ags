@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_CN_UTIL__STDIOCOMPAT_H
 #define __AGS_CN_UTIL__STDIOCOMPAT_H
 
@@ -19,6 +18,9 @@
 #include <stdint.h>
 
 typedef int64_t file_off_t;
+
+// Size of the buffer enough to accomodate a UTF-8 path
+const size_t MAX_PATH_SZ = 1024;
 
 #ifdef __cplusplus
 extern "C" {

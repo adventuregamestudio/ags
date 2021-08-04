@@ -67,17 +67,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-#if AGS_PLATFORM_OS_ANDROID
-#include <sys/stat.h>
-#include <android/log.h>
-
-extern "C" void android_render();
-#endif
-
-#if AGS_PLATFORM_OS_IOS
-extern "C" void ios_render();
-#endif
-
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;

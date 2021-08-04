@@ -752,7 +752,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         rgb_map = &rgb_table;
     }
     our_eip = 211;
-    bool place_on_walkable = false;
     if (forchar!=nullptr) {
         // if it's not a Restore Game
 
@@ -772,14 +771,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
-        // Compatibility: old games had a *possibly unintentional* effect:
-        // if a character was moving when "change room" function is called,
-        // they ended up forced to a walkable area in the next room.
-        if (loaded_game_file_version < kGameVersion_300)
-        {
-            if (is_char_walking_ndirect(forchar))
-                place_on_walkable = true;
-        }
         // only stop moving if it's a new room, not a restore game
         for (cc=0;cc<game.numcharacters;cc++)
             StopMoving(cc);
@@ -804,14 +795,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
-        if (place_on_walkable)
+        if (new_room_placeonwalkable)
             Character_PlaceOnWalkableArea(forchar);
 
 		if (new_room_loop != SCR_NO_VALUE)
 			forchar->loop = new_room_loop;
     }
-    new_room_x = SCR_NO_VALUE;
-	new_room_loop = SCR_NO_VALUE;
+    // reset new_room instructions
+    new_room_x = new_room_y = SCR_NO_VALUE;
+    new_room_loop = SCR_NO_VALUE;
+    new_room_placeonwalkable = false;
 
     if ((new_room_pos>0) & (forchar!=nullptr)) {
         if (new_room_pos>=4000) {

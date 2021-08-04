@@ -33,6 +33,7 @@ public:
     };
 
     static std::string const kNewSectionLitPrefix;
+    static size_t const kNewSectionLitPrefixSize;
 
 private:
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching

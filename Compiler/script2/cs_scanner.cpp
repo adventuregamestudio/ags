@@ -9,7 +9,9 @@
 
 #include "cs_scanner.h"
 
+//                                                      123456789a1234567
 std::string const AGS::Scanner::kNewSectionLitPrefix = "__NEWSCRIPTSTART_";
+size_t const AGS::Scanner::kNewSectionLitPrefixSize = 17u;
 
 AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler)
     : _ocMatcher(*this)
@@ -533,7 +535,48 @@ AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string
         }
 
         if (ch == '"')
-            return kERR_None; // End of string
+        {
+            // Except for string literals that are new section markers really,
+            // if whitespace and another string literal follows, the literals must be concatenated.
+            // However, if not, then the whitespace must not be consumed at this point.
+            // Implement this by undoing the SkipWhitespace() in that case.
+            // Save what may need to be undone.
+            std::streampos pos_before_skip = _inputStream.tellg();
+            size_t lineno_before_skip = _lineno;
+
+            ErrorType retval = SkipWhitespace();
+            if (retval < 0) return retval;
+
+
+            if ('"' != Peek() ||
+                kNewSectionLitPrefix == valstring.substr(0, kNewSectionLitPrefix.length()))
+            {
+                _inputStream.seekg(pos_before_skip);
+                _lineno = lineno_before_skip;
+                return kERR_None;
+            }
+
+            // Another string literal follows
+            // Tentatively read ahead to check whether it's a new section marker
+            pos_before_skip = _inputStream.tellg();
+            lineno_before_skip = _lineno;
+            Get(); // Eat leading '"'
+            char tbuffer[kNewSectionLitPrefixSize + 1];
+            _inputStream.get(tbuffer, kNewSectionLitPrefixSize + 1, 0);
+            _eofReached |= _inputStream.eof();
+            _failed |= _inputStream.fail();
+            // Undo the reading
+            _inputStream.seekg(pos_before_skip);
+            _lineno = lineno_before_skip;
+
+            if (kNewSectionLitPrefix == tbuffer)
+                return kERR_None; // do not concatenate this new section marker
+
+            // Concatenate
+            symstring.pop_back(); // Delete quote
+            Get(); // Eat quote
+            continue;
+        }           
 
         valstring.push_back(ch);
     }

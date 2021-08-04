@@ -742,3 +742,44 @@ TEST_F(Scan, MatchBraceParen5)
     EXPECT_NE(std::string::npos, errmsg.find("not been closed"));
     EXPECT_NE(std::string::npos, errmsg.find("ine 6"));
 }
+
+TEST_F(Scan, ConsecutiveStringLiterals1)
+{
+    // Consecutive string literals should be concatenated
+
+    std::string Input = "\"Supercalifragilistic\"\n   \n   \n  \"expialidocious\"; ";
+    AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_STREQ("\"Supercalifragilisticexpialidocious\"", symstring.c_str());
+    EXPECT_STREQ("Supercalifragilisticexpialidocious", string_collector.strings + value);
+    EXPECT_EQ(4, scanner.GetLineno());
+
+    scanner.GetNextSymstring(symstring, sct, value);
+
+    EXPECT_EQ(4, scanner.GetLineno());
+}
+
+TEST_F(Scan, ConsecutiveStringLiterals2)
+{
+    // Literals that start with __NEWSCRIPTSTART_ are section start markers
+    // and must NOT be concatenated.
+
+    char *input = " \
+        \"__NEWSCRIPTSTART_File1\" \
+        \"xyzzy\" \
+        \"__NEWSCRIPTSTART_File2\" \
+        ";
+    AGS::Scanner scanner(input, token_list, string_collector, sym, mh);
+
+    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(Scanner::kSct_SectionChange, sct);
+    EXPECT_STREQ("File1", symstring.c_str());
+    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_STREQ("\"xyzzy\"", symstring.c_str());
+    EXPECT_EQ(Scanner::kSct_StringLiteral, sct);
+    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_STREQ("File2", symstring.c_str());
+    EXPECT_EQ(Scanner::kSct_SectionChange, sct);
+}
+

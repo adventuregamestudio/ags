@@ -11,14 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-
-#include "platform/windows/debug/namedpipesagsdebugger.h"
-
 #include <stdio.h> // sprintf
+#include "platform/windows/debug/namedpipesagsdebugger.h"
+#include "util/stdio_compat.h"
 
 void NamedPipesAGSDebugger::SendAcknowledgement()
 {
@@ -37,12 +35,15 @@ NamedPipesAGSDebugger::NamedPipesAGSDebugger(const char *instanceToken)
 bool NamedPipesAGSDebugger::Initialize()
 {
     // can't use a single duplex pipe as it was deadlocking
-    char pipeNameBuffer[MAX_PATH];
-    sprintf(pipeNameBuffer, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
-    _hPipeSending = CreateFile(pipeNameBuffer, GENERIC_WRITE, 0, NULL, OPEN_EXISTING,0, NULL);
+    char pipeNameBuffer[MAX_PATH_SZ];
+    WCHAR wpipeNameBuf[MAX_PATH_SZ];
+    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
+    MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
+    _hPipeSending = CreateFileW(wpipeNameBuf, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-    sprintf(pipeNameBuffer, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
-    _hPipeReading = CreateFile(pipeNameBuffer, GENERIC_READ, 0, NULL, OPEN_EXISTING,0, NULL);
+    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
+    MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
+    _hPipeReading = CreateFileW(wpipeNameBuf, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 
     if ((_hPipeReading == INVALID_HANDLE_VALUE) ||
         (_hPipeSending == INVALID_HANDLE_VALUE))

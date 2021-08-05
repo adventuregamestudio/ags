@@ -191,53 +191,18 @@ String FixupSharedFilename(const String &filename)
     return fixed_name;
 }
 
-String GetPathInASCII(const String &path)
-{
 #if AGS_PLATFORM_OS_WINDOWS
-    char ascii_buffer[MAX_PATH_SZ];
-    if (GetShortPathNameA(path.GetCStr(), ascii_buffer, sizeof(ascii_buffer)) == 0)
-        return "";
-    return ascii_buffer;
-#else
-    // TODO: implement conversion for other platforms!
-    return path;
-#endif
-}
-
-#if AGS_PLATFORM_OS_WINDOWS
-String WidePathNameToAnsi(LPCWSTR pathw)
+String WidePathToUTF8(const wchar_t *ws)
 {
-    WCHAR short_path[MAX_PATH_SZ];
-    char ascii_buffer[MAX_PATH_SZ];
-    LPCWSTR arg_path = pathw;
-    if (GetShortPathNameW(arg_path, short_path, sizeof(short_path)) == 0)
-        return "";
-    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, sizeof(ascii_buffer), NULL, NULL);
-    return ascii_buffer;
+    char buf[MAX_PATH_SZ];
+    int need_size = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    char *pbuf = (need_size <= MAX_PATH_SZ) ? buf : new char[need_size];
+    WideCharToMultiByte(CP_UTF8, 0, ws, -1, pbuf, need_size, NULL, NULL);
+    String s = pbuf;
+    if (pbuf != buf) delete pbuf;
+    return s;
 }
 #endif
-
-String GetCmdLinePathInASCII(const char *arg, int arg_index)
-{
-#if AGS_PLATFORM_OS_WINDOWS
-    // Hack for Windows in case there are unicode chars in the path.
-    // The normal argv[] array has ????? instead of the unicode chars
-    // and fails, so instead we manually get the short file name, which
-    // is always using ASCII chars.
-    int wargc = 0;
-    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
-    if (wargv == nullptr)
-        return "";
-    String path;
-    if (arg_index <= wargc)
-        path = WidePathNameToAnsi(wargv[arg_index]);
-    LocalFree(wargv);
-    return path;
-#else
-    // TODO: implement conversion for other platforms!
-    return arg;
-#endif
-}
 
 } // namespace Path
 

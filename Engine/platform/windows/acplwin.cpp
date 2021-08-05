@@ -98,6 +98,9 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
 
+  // Returns command line argument in a UTF-8 format
+  String GetCommandArg(size_t arg_index) override;
+
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
   void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -816,6 +819,21 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
     x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
+}
+
+String AGSWin32::GetCommandArg(size_t arg_index)
+{
+    // On MS Windows the regular cmdargs are represented in ASCII,
+    // therefore we must retrieve widechar variants using WinAPI
+    int wargc;
+    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+    if (!wargv)
+        return nullptr;
+    String arg;
+    if (arg_index <= (size_t)wargc)
+        arg = Path::WidePathToUTF8(wargv[arg_index]);
+    LocalFree(wargv);
+    return arg;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

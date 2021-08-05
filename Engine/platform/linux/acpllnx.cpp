@@ -46,10 +46,9 @@ void AGSLinux::ShutdownCDPlayer() {
   cd_exit();
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == nullptr)
-    instance = new AGSLinux();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSLinux();
 }
 
 #endif

@@ -624,10 +624,9 @@ const char *AGSIOS::GetAppOutputDirectory()
   return ios_document_directory;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSIOS();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSIOS();
 }
 
 #endif

@@ -852,11 +852,9 @@ const char *AGSAndroid::GetAppOutputDirectory()
   return android_base_directory;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSAndroid();
-
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSAndroid();
 }
 
 #endif

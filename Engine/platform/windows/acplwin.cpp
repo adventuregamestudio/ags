@@ -818,10 +818,9 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSWin32();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSWin32();
 }
 
 

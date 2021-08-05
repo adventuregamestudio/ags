@@ -37,7 +37,7 @@ using namespace AGS::Engine;
 // 16 milliseconds is rough period for 60fps
 const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
 
-AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
+std::unique_ptr<AGSPlatformDriver> AGSPlatformDriver::_instance;
 AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
@@ -124,6 +124,18 @@ void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
         else
             WriteStdOut("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
     }
+}
+
+AGSPlatformDriver* AGSPlatformDriver::GetDriver()
+{
+    if (!_instance)
+        _instance.reset(CreateDriver());
+    return _instance.get();
+}
+
+void AGSPlatformDriver::Shutdown()
+{
+    _instance.reset();
 }
 
 // ********** CD Player Functions common to Win and Linux ********

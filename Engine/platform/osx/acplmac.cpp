@@ -123,10 +123,9 @@ const char *AGSMac::GetIllegalFileChars()
   return "\\/:?\"<>|*"; // keep same as Windows so we can sync.
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSMac();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSMac();
 }
 
 #endif

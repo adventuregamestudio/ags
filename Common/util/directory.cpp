@@ -27,11 +27,13 @@ namespace Directory
 
 bool CreateDirectory(const String &path)
 {
-    return mkdir(path.GetCStr()
-#if ! AGS_PLATFORM_OS_WINDOWS
-        , 0755
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wstr, MAX_PATH_SZ);
+    return (CreateDirectoryW(wstr, NULL) != FALSE) || (GetLastError() == ERROR_ALREADY_EXISTS);
+#else
+    return (mkdir(path.GetCStr(), 0755) == 0) || (errno == EEXIST);
 #endif
-        ) == 0 || errno == EEXIST;
 }
 
 bool CreateAllDirectories(const String &parent, const String &sub_dirs)
@@ -66,15 +68,28 @@ bool CreateAllDirectories(const String &parent, const String &sub_dirs)
 
 String SetCurrentDirectory(const String &path)
 {
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wstr, MAX_PATH_SZ);
+    SetCurrentDirectoryW(wstr);
+#else
     chdir(path.GetCStr());
+#endif
     return GetCurrentDirectory();
 }
 
 String GetCurrentDirectory()
 {
-    char buf[512];
-    getcwd(buf, 512);
-    String str(buf);
+    String str;
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH_SZ];
+    GetCurrentDirectoryW(MAX_PATH_SZ, wstr);
+    str = Path::WidePathToUTF8(wstr);
+#else
+    char buf[MAX_PATH_SZ];
+    getcwd(buf, sizeof(buf));
+    str = buf;
+#endif
     Path::FixupPath(str);
     return str;
 }

@@ -63,15 +63,6 @@ String MakeAbsolutePath(const String &path)
     }
     // canonicalize_filename treats "." as "./." (file in working dir)
     String abs_path = path == "." ? "./" : path;
-#if AGS_PLATFORM_OS_WINDOWS
-    // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
-    //
-    //char long_path_buffer[MAX_PATH];
-    //if (GetLongPathNameA(path, long_path_buffer, MAX_PATH) > 0)
-    //{
-    //    abs_path = long_path_buffer;
-    //}
-#endif
     char buf[MAX_PATH_SZ];
     canonicalize_filename(buf, abs_path.GetCStr(), MAX_PATH_SZ);
     abs_path = buf;

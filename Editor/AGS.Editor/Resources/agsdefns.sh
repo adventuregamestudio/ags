@@ -1268,6 +1268,12 @@ builtin managed struct Overlay {
   import attribute int X;
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
+#ifdef SCRIPT_API_v360
+  /// Gets the width of this overlay.
+  import readonly attribute int Width;
+  /// Gets the height of this overlay.
+  import readonly attribute int Height;
+#endif
 };
 
 builtin managed struct DynamicSprite {

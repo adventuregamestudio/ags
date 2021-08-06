@@ -11,14 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "media/audio/audio_system.h"
 #include "ac/asset_helper.h"
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
+#include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
-#include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audiochannel.h"
-#include "media/audio/audio_system.h"
+#include "script/runtimescriptvalue.h"
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -73,6 +73,8 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 
 ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
 {
+    if (chan < 1 || chan >= MAX_SOUND_CHANNELS)
+        quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, 1, MAX_SOUND_CHANNELS - 1);
     if (priority == SCR_NO_VALUE)
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)

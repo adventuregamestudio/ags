@@ -2093,6 +2093,10 @@ builtin managed struct AudioClip {
   import AudioChannel* PlayFrom(int position, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, or queues it if all channels are busy.
   import AudioChannel* PlayQueued(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+#ifdef SCRIPT_API_v360
+  /// Plays this audio clip, explicitly putting it on the particular channel.
+  import AudioChannel* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+#endif
   /// Stops all currently playing instances of this audio clip.
   import void Stop();
   /// Gets the file type of the sound.

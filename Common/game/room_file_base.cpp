@@ -80,6 +80,16 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src)
     return HRoomFileError::None();
 }
 
+void WriteRoomHeader(Stream *out, RoomFileVersion data_ver)
+{
+    out->WriteInt16(data_ver);
+}
+
+void WriteRoomEnding(Stream *out, RoomFileVersion data_ver)
+{
+    out->WriteByte(kRoomFile_EOF);
+}
+
 String GetRoomBlockName(RoomFileBlock id)
 {
     switch (id)

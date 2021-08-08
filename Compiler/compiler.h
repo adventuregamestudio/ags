@@ -34,7 +34,6 @@ class CompilerOptions{
         bool DebugRun = false;                // write instructions as they are processed to log file
         bool NoImportOverride = false;        // do not allow an import to be re-declared
         bool EnforceObjectBasedScript = true;
-        bool LeftToRightPrecedence = true;    // left-to-right operator precedence
         bool EnforceNewStrings = true;        // do not allow old-style strings
         bool EnforceNewAudio = true;
         bool UseOldCustomDialogOptionsAPI = false;

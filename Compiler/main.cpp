@@ -24,7 +24,6 @@ const char *HELP_STRING = R"EOS(Usage: agscc [options] <INPUT.asc>
 -fdebugrun[=0]               Log instructions as they are processed
 -fnoimportoverride[=0]       Do not allow import to be re-declared
 -fforceobjectbasedscript[=0] Enforce Object based scripting         (default:1)
--flefttoright[=0]            Left-to-right operator precedence      (default:1)
 -fforcenewstrings[=0]        Enforce new strings                    (default:1)
 -fforcenewaudio[=0]          Enforce new audio system               (default:1)
 -foldcustomdialogopt[=0]     Use old custom dialog API
@@ -208,7 +207,7 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
                 continue;
             }
             if(flag_name == "lefttoright") {
-                compilerOptions.Flags.LeftToRightPrecedence = flag_value;
+                printf("Warning: lefttoright flag is deprecated\n");
                 continue;
             }
             if(flag_name == "forcenewstrings") {

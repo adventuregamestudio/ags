@@ -14,7 +14,7 @@
 #include "core/assetmanager.h"
 #include <algorithm>
 #include <regex>
-#include <allegro.h> // find files
+#include "util/directory.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
 #include "util/string_utils.h" // cbuf_to_string_and_free
@@ -187,16 +187,9 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
         bool found = false;
         if (IsAssetLibDir(lib))
         {
-            // TODO: write util function for getting list of files in dir using standard C/C++
-            String path = Path::ConcatPaths(lib->BaseDir, "*");
-            al_ffblk dfb;
-            int	dun = al_findfirst(path.GetCStr(), &dfb, -1);
-            while (!dun) {
-                if (std::regex_match(dfb.name, mr, regex))
-                    assets.push_back(dfb.name);
-                dun = al_findnext(&dfb);
-            }
-            al_findclose(&dfb);
+            for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
+                 !ff.AtEnd(); ff.Next())
+                assets.push_back(ff.Current());
         }
         else
         {

@@ -43,6 +43,7 @@ extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
 extern MoveList *mls;
 extern int gs_to_newroom;
+extern bool new_room_placeonwalkable;
 extern RoomStruct thisroom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
@@ -114,6 +115,15 @@ void NewRoom(int nrnum) {
         return;
     }
     else if ((inside_script==0) & (in_graph_script==0)) {
+        // Compatibility: old games had a *possibly unintentional* effect:
+        // if a character was walking, and a "change room" is called
+        // *NOT* from a script, but by some other trigger,
+        // they ended up forced to a walkable area in the next room.
+        if (loaded_game_file_version < kGameVersion_300)
+        {
+            new_room_placeonwalkable = is_char_walking_ndirect(playerchar);
+        }
+
         new_room(nrnum,playerchar);
         return;
     }
@@ -121,7 +131,7 @@ void NewRoom(int nrnum) {
         curscript->queue_action(ePSANewRoom, nrnum, "NewRoom");
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
-        if ((playerchar->walking > 0) && (playerchar->walking < TURNING_AROUND)) {
+        if (is_char_walking_ndirect(playerchar)) {
             // nasty hack - make sure it doesn't move the character
             // to a walkable area
             mls[playerchar->walking].direct = 1;

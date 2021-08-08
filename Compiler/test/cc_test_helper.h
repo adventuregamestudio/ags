@@ -12,12 +12,19 @@
 //
 //=============================================================================
 //
-//
+// helper library for compiler testing
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__MAINDEFINES_H
-#define __AGS_EE_MAIN__MAINDEFINES_H
 
-#define RETURN_CONTINUE      1
+#ifndef __CC_TEST_HELPER_H
+#define __CC_TEST_HELPER_H
 
-#endif // __AGS_EE_MAIN__MAINDEFINES_H
+#include "util/string.h"
+#include "script/cc_error.h"
+
+extern void clear_error(void);
+extern const char *last_seen_cc_error(void);
+extern std::pair<AGS::Common::String, AGS::Common::String> cc_error_at_line(const char* error_msg);
+extern AGS::Common::String cc_error_without_line(const char* error_msg);
+
+#endif // __CC_TEST_HELPER_H

@@ -23,7 +23,6 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
-#include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 
@@ -78,10 +77,14 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, in
         (loop >= views[view].numLoops || frame >= views[view].loops[loop].numFrames))
     {
         for (loop = 0;
-            (loop < loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);
+            (loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);
             ++loop);
-        if (loop == views[view].numLoops)
-            quitprintf("!Character %s is assigned view %d that has no frames!", name, view);
+        if (loop == views[view].numLoops) // view has no frames?!
+        { // amazingly enough there are old games that allow this to happen...
+            if (loaded_game_file_version >= kGameVersion_300)
+                quitprintf("!Character %s is assigned view %d that has no frames!", name, view);
+            loop = 0;
+        }
     }
 
     int doing_nothing = 1;

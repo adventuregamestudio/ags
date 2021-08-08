@@ -388,8 +388,6 @@ target_sources(engine
     main/graphics_mode.h
     main/main.cpp
     main/main.h
-    main/maindefines_ex.h
-    main/mainheader.h
     main/quit.cpp
     main/quit.h
     main/update.cpp

@@ -22,6 +22,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/roomstatus.h"
+#include "ac/route_finder.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
@@ -31,7 +32,6 @@
 #include "main/config.h"
 #include "main/engine.h"
 #include "main/main.h"
-#include "main/mainheader.h"
 #include "main/quit.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
@@ -290,6 +290,7 @@ void quit(const char *quitmsg)
     Debug::Printf(kDbgMsg_Alert, "***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug();
+    AGSPlatformDriver::Shutdown();
 
     our_eip = 9904;
     exit(EXIT_NORMAL);

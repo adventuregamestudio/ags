@@ -190,6 +190,7 @@ void game_sprite_deleted(int sprnum);
 extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
+extern bool new_room_placeonwalkable;
 extern int displayed_room;
 extern int frames_per_second; // fixed game fps, set by script
 extern unsigned int loopcounter;

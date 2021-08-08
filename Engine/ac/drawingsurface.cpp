@@ -116,10 +116,11 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     int src_x, int src_y, int src_width, int src_height, int sprite_id, bool src_has_alpha)
 {
     Bitmap *ds = sds->GetBitmapSurface();
-    if (src == ds)
-        quit("!DrawingSurface.DrawImage: cannot draw onto itself");
+    if (src == ds) {} // ignore for now; bitmap lib supports, and may be used for effects
+        /* debug_script_warn("DrawingSurface.DrawImage: drawing onto itself"); */
     if ((trans < 0) || (trans > 100))
-        quit("!DrawingSurface.DrawImage: invalid transparency setting");
+        debug_script_warn("DrawingSurface.DrawImage: invalid transparency %d, range is %d - %d", trans, 0, 100);
+    trans = Math::Clamp(trans, 0, 100);
 
     if (trans == 100)
         return; // fully transparent

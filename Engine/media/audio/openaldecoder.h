@@ -14,6 +14,10 @@
 //
 // OpenAL Decoder.
 //
+// TODO: support sound data streaming! research what means are available to use
+// along with SDL_Sound and Sound_Sample API;
+// maybe utilizing SDL RWops?
+//
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__OPENALDECODER_H
 #define __AGS_EE_MEDIA__OPENALDECODER_H
@@ -37,9 +41,12 @@ using SoundSampleUniquePtr = std::unique_ptr<Sound_Sample, SoundSampleDeleterFun
 class OpenALDecoder
 {
 public:
-    OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat);
+    OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
+                  AGS::Common::String sampleExt, bool repeat);
     OpenALDecoder(OpenALDecoder&& dec);
     ~OpenALDecoder();
+    // Try initializing the sound sample
+    bool Init();
     void Poll();
     void Play();
     void Pause();
@@ -47,6 +54,7 @@ public:
     void Seek(float pos_ms);
     AudioCorePlayState GetPlayState();
     float GetPositionMs();
+    float GetDurationMs();
 
 private:
     ALuint source_;
@@ -55,11 +63,11 @@ private:
 
     AudioCorePlayState playState_ = PlayStateInitial;
 
-    std::future<std::vector<char>> sampleBufFuture_{};
     std::vector<char> sampleData_{};
     AGS::Common::String sampleExt_ = "";
     ALenum sampleOpenAlFormat_ = 0;
     SoundSampleUniquePtr sample_ = nullptr;
+    float duration_ = 0.f;
 
     AudioCorePlayState onLoadPlayState_ = PlayStatePaused;
     float onLoadPositionMs = 0.0f;

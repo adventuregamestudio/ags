@@ -874,9 +874,9 @@ HRESULT D3DGraphicsDriver::ResetD3DDevice()
   return direct3ddevice->Reset(&d3dpp);
 }
 
-bool D3DGraphicsDriver::SetNativeSize(const Size &src_size)
+bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
-  OnSetNativeSize(src_size);
+  OnSetNativeRes(native_res);
   // Also make sure viewport is updated using new native & destination rectangles
   SetupViewport();
   CreateVirtualScreen();

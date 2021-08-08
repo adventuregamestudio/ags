@@ -137,16 +137,22 @@ void OpenALDecoder::PollBuffers()
 
         auto sz = Sound_Decode(sample_.get());
 
-        if (sz <= 0) {
+        // If read less than the buffer size - that means
+        // either we reached end of sound stream OR decoding error occured
+        if (sz < sample_->buffer_size) {
             EOS_ = true;
+            if ((sample_->flags & SOUND_SAMPLEFLAG_ERROR) != 0) {
+                playState_ = PlayStateError;
+            }
             // if repeat, then seek to start.
-            if (repeat_) {
+            else if (repeat_) {
                 auto res = Sound_Rewind(sample_.get());
                 auto success = (res != 0);
                 EOS_ = !success;
             }
-            continue;
         }
+        // Nothing was decoded last time - skip
+        if (sz == 0) { continue; }
 
         alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
         dump_al_errors();
@@ -159,8 +165,12 @@ void OpenALDecoder::PollBuffers()
 }
 
 
-OpenALDecoder::OpenALDecoder(ALuint source, std::future<std::vector<char>> sampleBufFuture, AGS::Common::String sampleExt, bool repeat)
-    : source_(source), sampleBufFuture_(std::move(sampleBufFuture)), sampleExt_(sampleExt), repeat_(repeat) {
+OpenALDecoder::OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
+                             AGS::Common::String sampleExt, bool repeat)
+    : source_(source)
+    , sampleData_(std::move(sampleBuf))
+    , sampleExt_(sampleExt)
+    , repeat_(repeat) {
 
 }
 
@@ -168,7 +178,7 @@ OpenALDecoder::OpenALDecoder(OpenALDecoder&& dec)
 {
     source_ = dec.source_;
     dec.source_ = 0;
-    sampleBufFuture_ = (std::move(dec.sampleBufFuture_));
+    sampleData_ = (std::move(dec.sampleData_));
     sampleExt_ = std::move(dec.sampleExt_);
     repeat_ = dec.repeat_;
     dec.repeat_ = false;
@@ -184,47 +194,60 @@ OpenALDecoder::~OpenALDecoder()
     }
 }
 
+bool OpenALDecoder::Init()
+{
+    if (playState_ != AudioCorePlayState::PlayStateInitial)
+        return true; // already inited, nothing to do
+
+    auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
+        (uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), nullptr, SampleDefaultBufferSize));
+    if (!sample) {
+        playState_ = AudioCorePlayState::PlayStateError;
+        return false;
+    }
+
+    auto bufferFormat = openalFormatFromSample(sample);
+
+    if (bufferFormat <= 0) {
+#ifdef AUDIO_CORE_DEBUG
+        agsdbg::Printf(ags::kDbgMsg_Debug, "audio_core_sample_load: RESAMPLING");
+#endif
+        auto desired = Sound_AudioInfo{ AUDIO_S16SYS, sample->actual.channels, sample->actual.rate };
+
+        Sound_FreeSample(sample.get());
+        sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), &desired, SampleDefaultBufferSize));
+
+        if (!sample) {
+            playState_ = AudioCorePlayState::PlayStateError;
+            return false;
+        }
+
+        bufferFormat = openalFormatFromSample(sample);
+    }
+
+    if (bufferFormat <= 0) {
+        playState_ = AudioCorePlayState::PlayStateError;
+        return false;
+    }
+
+    sample_ = std::move(sample);
+    sampleOpenAlFormat_ = bufferFormat;
+    duration_ = Sound_GetDuration(sample_.get());
+
+    playState_ = onLoadPlayState_;
+    if (onLoadPositionMs >= 0.0f) {
+        Seek(onLoadPositionMs);
+    }
+    return true;
+}
+
 void OpenALDecoder::Poll()
 {
     if (playState_ == AudioCorePlayState::PlayStateError) { return; }
 
     if (playState_ == AudioCorePlayState::PlayStateInitial) {
-
-        if (sampleBufFuture_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) { return; }
-
-        sampleData_ = std::move(sampleBufFuture_.get());
-
-        auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), nullptr, SampleDefaultBufferSize));
-        if (!sample) { playState_ = AudioCorePlayState::PlayStateError; return; }
-
-        auto bufferFormat = openalFormatFromSample(sample);
-
-        if (bufferFormat <= 0) {
-#ifdef AUDIO_CORE_DEBUG
-            agsdbg::Printf(ags::kDbgMsg_Debug, "audio_core_sample_load: RESAMPLING");
-#endif
-            auto desired = Sound_AudioInfo{ AUDIO_S16SYS, sample->actual.channels, sample->actual.rate };
-
-            Sound_FreeSample(sample.get());
-            sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), &desired, SampleDefaultBufferSize));
-
-            if (!sample) { playState_ = AudioCorePlayState::PlayStateError; return; }
-
-            bufferFormat = openalFormatFromSample(sample);
-        }
-
-        if (bufferFormat <= 0) { playState_ = AudioCorePlayState::PlayStateError; return; }
-
-        sample_ = std::move(sample);
-        sampleOpenAlFormat_ = bufferFormat;
-
-        playState_ = onLoadPlayState_;
-        if (onLoadPositionMs >= 0.0f) {
-            Seek(onLoadPositionMs);
-        }
-
+        Init();
     }
-
 
     if (playState_ != PlayStatePlaying) { return; }
 
@@ -345,4 +368,9 @@ float OpenALDecoder::GetPositionMs()
     printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
 #endif
     return positionMs_;
+}
+
+float OpenALDecoder::GetDurationMs()
+{
+    return duration_;
 }

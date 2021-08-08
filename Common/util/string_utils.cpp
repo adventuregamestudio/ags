@@ -13,6 +13,7 @@
 //=============================================================================
 #include "util/string_utils.h"
 #include <errno.h>
+#include <regex>
 #include <string.h>
 #include <regex>
 #include "core/platform.h"
@@ -104,7 +105,7 @@ String StrUtil::Unescape(const String &s)
     }
     *pb = 0;
     String dst(buf);
-    delete buf;
+    delete [] buf;
     return dst;
 }
 

@@ -18,10 +18,7 @@
 #define NOMINMAX
 #include <direct.h>
 #include <string.h>
-#define BITMAP WINDOWS_BITMAP
-#include <windows.h>
-#undef BITMAP
-#undef DeleteFile
+#include "platform/windows/windows.h"
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <gameux.h>
@@ -797,10 +794,9 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSWin32();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSWin32();
 }
 
 

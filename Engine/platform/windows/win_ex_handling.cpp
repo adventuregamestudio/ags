@@ -15,14 +15,14 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <new.h>
-#include <windows.h>
-#include "ac/common.h"
+#include "ac/common.h" // quit
 #include "ac/common_defines.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "util/ini_util.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
-#include "util/ini_util.h"
+#include "platform/windows/windows.h"
 
 #if !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER

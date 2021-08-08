@@ -35,7 +35,6 @@
 #include "debug/out.h"
 #include "main/config.h"
 #include "main/engine.h"
-#include "main/mainheader.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"

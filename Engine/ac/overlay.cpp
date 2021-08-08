@@ -100,6 +100,20 @@ void Overlay_SetY(ScriptOverlay *scover, int newy) {
     screenover[ovri].y = newy;
 }
 
+int Overlay_GetWidth(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    return screenover[ovri].pic->GetWidth();
+}
+
+int Overlay_GetHeight(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    return screenover[ovri].pic->GetHeight();
+}
+
 int Overlay_GetValid(ScriptOverlay *scover) {
     if (scover->overlayId == -1)
         return 0;
@@ -498,6 +512,16 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
+RuntimeScriptValue Sc_Overlay_GetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetWidth);
+}
+
+RuntimeScriptValue Sc_Overlay_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetHeight);
+}
+
 RuntimeScriptValue Sc_Overlay_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetBlendMode);
@@ -571,6 +595,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
     ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
+    ccAddExternalObjectFunction("Overlay::get_Width",           Sc_Overlay_GetWidth);
+    ccAddExternalObjectFunction("Overlay::get_Height",          Sc_Overlay_GetHeight);
     ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
     ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
     ccAddExternalObjectFunction("Overlay::get_Rotation",        Sc_Overlay_GetRotation);

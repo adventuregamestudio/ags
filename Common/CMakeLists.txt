@@ -114,6 +114,8 @@ target_sources(common
     util/alignedstream.cpp
     util/alignedstream.h
     util/bbop.h
+    util/cmdlineopts.cpp
+    util/cmdlineopts.h
     util/compress.cpp
     util/compress.h
     util/data_ext.cpp
@@ -141,10 +143,8 @@ target_sources(common
     util/memory_compat.h
     util/memorystream.cpp
     util/memorystream.h
-    util/misc.cpp
-    util/misc.h
     util/multifilelib.h
-    util/mutifilelib.cpp
+    util/multifilelib.cpp
     util/path.cpp
     util/path_ex.cpp
     util/path.h
@@ -174,9 +174,11 @@ target_sources(common
     util/bufferedstream.h
     util/string_compat.c
     util/string_compat.h
+
+	platform/windows/windows.h
 )
 
-target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
+target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)
@@ -209,6 +211,7 @@ add_library(AGS::Common ALIAS common)
 if(AGS_TESTS)
     add_executable(
         common_test
+        test/cmdlineopts_test.cpp
         test/gfxdef_test.cpp
         test/inifile_test.cpp
         test/math_test.cpp

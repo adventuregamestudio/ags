@@ -80,35 +80,20 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
 HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
     bool do_subdirs, const String &lib_basefile)
 {
-    std::vector<String> dirs;
-    std::vector<String> files;
-    if (do_subdirs)
-        Directory::GetDirs(asset_dir, dirs);
-
     String dpath;
     String fpath;
     String base = asset_dir;
     String parent = asset_dir;
 
-    do
+    for (FindFileRecursive ff = FindFileRecursive::Open(parent, "*", do_subdirs ? -1 : 0);
+        !ff.AtEnd(); ff.Next())
     {
-        Directory::GetFiles(parent, files);
-        for (const auto &file : files)
-        {
-            if (file == "." || file == "..") continue;
-            AssetInfo asset;
-            Path::ConcatPaths(fpath, dpath, file);
-            asset.FileName = fpath;
-            Path::ConcatPaths(fpath, parent, file);
-            asset.Size = File::GetFileSize(fpath);
-            assets.push_back(asset);
-        }
-        if (dirs.size() == 0) break;
-        dpath = dirs.back();
-        Path::ConcatPaths(parent, base, dpath);
-        dirs.pop_back();
-        files.clear();
-    } while (true);
+        AssetInfo asset;
+        asset.FileName = ff.Current();
+        Path::ConcatPaths(fpath, parent, asset.FileName);
+        asset.Size = File::GetFileSize(fpath);
+        assets.push_back(asset);
+    }
     return HError::None();
 }
 

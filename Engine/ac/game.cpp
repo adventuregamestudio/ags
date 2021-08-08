@@ -112,6 +112,7 @@ int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
+bool new_room_placeonwalkable = false;
 
 // initially size 1, this will be increased by the initFile function
 SpriteCache spriteset(game.SpriteInfos);

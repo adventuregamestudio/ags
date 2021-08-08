@@ -42,10 +42,8 @@ eScriptSystemOSID AGSFreeBSD::GetSystemOSID() {
   return eOS_FreeBSD;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-    if (instance == nullptr)
-        instance = new AGSFreeBSD();
-    return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver() {
+    return new AGSFreeBSD();
 }
 
 #endif // AGS_PLATFORM_OS_FREEBSD

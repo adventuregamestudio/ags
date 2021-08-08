@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
+    <ClCompile Include="..\..\Common\test\cmdlineopts_test.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
     <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
     <ClCompile Include="..\..\Common\test\math_test.cpp" />
@@ -31,6 +32,7 @@
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
     <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
@@ -58,6 +60,7 @@
     <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />

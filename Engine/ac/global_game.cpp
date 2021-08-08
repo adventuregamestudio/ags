@@ -80,10 +80,6 @@ extern int getloctype_index;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
 
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-extern int psp_gfx_renderer;
-#endif
-
 void GiveScore(int amnt) 
 {
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);

@@ -17,6 +17,7 @@
 #include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
+#include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
@@ -658,7 +659,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // only stop moving if it's a new room, not a restore game
         for (cc=0;cc<game.numcharacters;cc++)
             StopMoving(cc);
-
     }
 
     update_polled_stuff_if_runtime();
@@ -680,12 +680,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
+        if (new_room_placeonwalkable)
+            Character_PlaceOnWalkableArea(forchar);
 
 		if (new_room_loop != SCR_NO_VALUE)
 			forchar->loop = new_room_loop;
     }
-    new_room_x = SCR_NO_VALUE;
-	new_room_loop = SCR_NO_VALUE;
+    // reset new_room instructions
+    new_room_x = new_room_y = SCR_NO_VALUE;
+    new_room_loop = SCR_NO_VALUE;
+    new_room_placeonwalkable = false;
 
     if ((new_room_pos>0) & (forchar!=nullptr)) {
         if (new_room_pos>=4000) {

@@ -1385,12 +1385,6 @@
     <ClInclude Include="..\..\Engine\main\main.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\main\maindefines_ex.h">
-      <Filter>Header Files\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\main\mainheader.h">
-      <Filter>Header Files\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\main\quit.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>

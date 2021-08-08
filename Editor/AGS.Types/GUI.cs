@@ -12,8 +12,6 @@ namespace AGS.Types
     [DefaultProperty("BackgroundImage")]
     public abstract class GUI : IToXml, IComparable<GUI>
     {
-        public const int LEGACY_MAX_CONTROLS_PER_GUI = 30;
-
         public GUI()
         {
             _name = string.Empty;

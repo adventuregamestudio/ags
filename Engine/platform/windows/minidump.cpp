@@ -16,7 +16,7 @@
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
 #define UNICODE
 #include <stdio.h> // sprintf
-#include "windows.h"
+#include <windows.h>
 #include <crtdbg.h>
 #include "main/main.h"
 

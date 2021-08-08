@@ -76,7 +76,12 @@ const char *ScriptDrawingSurface::GetType() {
 
 int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsize) {
     StartSerialize(buffer);
-    SerializeInt(roomBackgroundNumber & 0xFFFF | (roomMaskType << 16));
+    // pack mask type in the last byte of a negative integer
+    // note: (-1) is reserved for "unused", for backward compatibility
+    if (roomMaskType > 0)
+        SerializeInt(0xFFFFFF00 | roomMaskType);
+    else
+        SerializeInt(roomBackgroundNumber);
     SerializeInt(dynamicSpriteNumber);
     SerializeInt(dynamicSurfaceNumber);
     SerializeInt(currentColour);
@@ -90,8 +95,11 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
 void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, int dataSize) {
     StartUnserialize(serializedData, dataSize);
     int room_ds = UnserializeInt();
-    roomBackgroundNumber = static_cast<short>(room_ds & 0xFFFF);
-    roomMaskType = (RoomAreaMask)(room_ds >> 16);
+    if (room_ds >= 0)
+        roomBackgroundNumber = room_ds;
+    // negative value may contain a mask type
+    else if ((room_ds & 0xFF) != 0xFF)
+        roomMaskType = (RoomAreaMask)(room_ds & 0xFF);
     dynamicSpriteNumber = UnserializeInt();
     dynamicSurfaceNumber = UnserializeInt();
     currentColour = UnserializeInt();

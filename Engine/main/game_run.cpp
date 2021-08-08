@@ -19,6 +19,7 @@
 #include <limits>
 #include <chrono>
 #include <SDL.h>
+#include "ac/button.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -38,27 +39,27 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "device/mousew32.h"
+#include "gui/animatingguibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
-#include "main/mainheader.h"
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/update.h"
+#include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
-#include "ac/spritecache.h"
-#include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
-#include "ac/keycode.h"
+#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 

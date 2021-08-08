@@ -207,7 +207,7 @@
 		526F23DF1D3B5C4900EF4E1F /* misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22871D3B5C4900EF4E1F /* misc.cpp */; };
 		526F23E01D3B5C4900EF4E1F /* misc.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22881D3B5C4900EF4E1F /* misc.h */; };
 		526F23E11D3B5C4900EF4E1F /* multifilelib.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22891D3B5C4900EF4E1F /* multifilelib.h */; };
-		526F23E21D3B5C4900EF4E1F /* mutifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228A1D3B5C4900EF4E1F /* mutifilelib.cpp */; };
+		526F23E21D3B5C4900EF4E1F /* multifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */; };
 		526F23E31D3B5C4900EF4E1F /* path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228B1D3B5C4900EF4E1F /* path.cpp */; };
 		526F23E41D3B5C4900EF4E1F /* path.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F228C1D3B5C4900EF4E1F /* path.h */; };
 		526F23E51D3B5C4900EF4E1F /* proxystream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228D1D3B5C4900EF4E1F /* proxystream.cpp */; };
@@ -956,7 +956,7 @@
 		526F22871D3B5C4900EF4E1F /* misc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = misc.cpp; sourceTree = "<group>"; };
 		526F22881D3B5C4900EF4E1F /* misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = "<group>"; };
 		526F22891D3B5C4900EF4E1F /* multifilelib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = multifilelib.h; sourceTree = "<group>"; };
-		526F228A1D3B5C4900EF4E1F /* mutifilelib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mutifilelib.cpp; sourceTree = "<group>"; };
+		526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = multifilelib.cpp; sourceTree = "<group>"; };
 		526F228B1D3B5C4900EF4E1F /* path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = path.cpp; sourceTree = "<group>"; };
 		526F228C1D3B5C4900EF4E1F /* path.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = path.h; sourceTree = "<group>"; };
 		526F228D1D3B5C4900EF4E1F /* proxystream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = proxystream.cpp; sourceTree = "<group>"; };
@@ -2003,7 +2003,7 @@
 				526F22871D3B5C4900EF4E1F /* misc.cpp */,
 				526F22881D3B5C4900EF4E1F /* misc.h */,
 				526F22891D3B5C4900EF4E1F /* multifilelib.h */,
-				526F228A1D3B5C4900EF4E1F /* mutifilelib.cpp */,
+				526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */,
 				526F228B1D3B5C4900EF4E1F /* path.cpp */,
 				526F228C1D3B5C4900EF4E1F /* path.h */,
 				526F228D1D3B5C4900EF4E1F /* proxystream.cpp */,
@@ -3305,7 +3305,7 @@
 				52F5D8611DA1219D006F8F4B /* inventoryiteminfo.cpp in Sources */,
 				521C54D21D1E572B00BD619E /* AGSBlend.cpp in Sources */,
 				526F287F1D3B5CC300EF4E1F /* clip_mymidi.cpp in Sources */,
-				526F23E21D3B5C4900EF4E1F /* mutifilelib.cpp in Sources */,
+				526F23E21D3B5C4900EF4E1F /* multifilelib.cpp in Sources */,
 				526F26D11D3B5CC300EF4E1F /* cc_region.cpp in Sources */,
 				526F28051D3B5CC300EF4E1F /* adisplay.c in Sources */,
 				526F27C11D3B5CC300EF4E1F /* gfxfilter_aad3d.cpp in Sources */,

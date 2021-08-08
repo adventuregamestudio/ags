@@ -12,35 +12,29 @@
 //
 //=============================================================================
 //
-//
+// Includes <windows.h> and deals with the potential macro conflicts.
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__MAINHEADER_H
-#define __AGS_EE_MAIN__MAINHEADER_H
-
+#ifndef __AGS_CN_PLATFORM__WINDOWS_H
+#define __AGS_CN_PLATFORM__WINDOWS_H
 #include "core/platform.h"
 
-#include "main/maindefines_ex.h"
+#if AGS_PLATFORM_OS_WINDOWS
+#ifndef _WINDOWS_ // do not include if windows.h was included before
 
-#include "ac/math.h"
-#include "script/script_runtime.h"
-#include "gui/animatingguibutton.h"
-#include "gui/guibutton.h"
-#include "gfx/gfxfilter.h"
-#include "util/string_utils.h"
-#include "device/mousew32.h"
-#include "ac/route_finder.h"
-#include "script/cc_error.h"
+#define NOMINMAX
+#define BITMAP WINDOWS_BITMAP
 
-// include last since we affect windows includes
-#include "ac/file.h"
+#include <windows.h>
 
-#if AGS_PLATFORM_OS_ANDROID
-#include <sys/stat.h>
-#include <android/log.h>
+#undef BITMAP
+#undef CreateFile
+#undef CreateDirectory
+#undef DeleteFile
+#undef GetCurrentDirectory
+#undef SetCurrentDirectory
 
-extern "C" void selectLatestSavegame();
-extern bool psp_load_latest_savegame;
-#endif
+#endif // _WINDOWS_
+#endif // AGS_PLATFORM_OS_WINDOWS
 
-#endif // __AGS_EE_MAIN__MAINHEADER_H
+#endif // __AGS_CN_PLATFORM__WINDOWS_H

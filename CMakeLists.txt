@@ -11,7 +11,8 @@ project(AGS
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_TESTS "Build tests" OFF)
-option(AGS_BUILD_COMPILER "Build compiler library" OFF)
+option(AGS_BUILD_TOOLS "Build Tools" OFF)
+option(AGS_BUILD_COMPILER "Build compiler" ${AGS_BUILD_TOOLS})
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_NO_VIDEO_PLAYER "Disable Video" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" ON)
@@ -20,6 +21,7 @@ set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
 message("------ AGS selected CMake options ------")
 message(" AGS_TESTS: ${AGS_TESTS}")
+message(" AGS_BUILD_TOOLS: ${AGS_BUILD_TOOLS}")
 message(" AGS_BUILD_COMPILER: ${AGS_BUILD_COMPILER}")
 message(" AGS_NO_MP3_PLAYER: ${AGS_NO_MP3_PLAYER}")
 message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
@@ -184,6 +186,7 @@ include(FetchVorbis)
 include(FetchTheora)
 
 add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
+add_subdirectory(libsrc/tinyxml2                EXCLUDE_FROM_ALL)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
@@ -200,6 +203,10 @@ endif()
 add_subdirectory(Engine)
 if(AGS_BUILD_COMPILER)
     add_subdirectory(Compiler)
+endif()
+
+if(AGS_BUILD_TOOLS)
+    add_subdirectory(Tools)
 endif()
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ags)

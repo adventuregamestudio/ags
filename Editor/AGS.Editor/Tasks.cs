@@ -504,16 +504,6 @@ namespace AGS.Editor
         public Script RegenerateScriptHeader(Game game, Room currentRoom)
         {
             StringBuilder sb = new StringBuilder(10000);
-            //            sb.AppendLine("#define AGS_MAX_CHARACTERS " + Game.MAX_CHARACTERS);
-            sb.AppendLine("#define AGS_MAX_INV_ITEMS " + Game.MAX_INV_ITEMS);
-            //            sb.AppendLine("#define AGS_MAX_GUIS " + Game.MAX_GUIS);
-            sb.AppendLine("#define AGS_MAX_CONTROLS_PER_GUI " + GUI.LEGACY_MAX_CONTROLS_PER_GUI);
-            //            sb.AppendLine("#define AGS_MAX_VIEWS " + Game.MAX_VIEWS);
-            //            sb.AppendLine("#define AGS_MAX_LOOPS_PER_VIEW " + AGS.Types.View.MAX_LOOPS_PER_VIEW);
-            //            sb.AppendLine("#define AGS_MAX_FRAMES_PER_LOOP " + ViewLoop.MAX_FRAMES_PER_LOOP);
-            sb.AppendLine("#define AGS_MAX_OBJECTS " + Room.MAX_OBJECTS);
-            sb.AppendLine("#define AGS_MAX_HOTSPOTS " + Room.MAX_HOTSPOTS);
-            sb.AppendLine("#define AGS_MAX_REGIONS " + Room.MAX_REGIONS);
 
             AppendCursorsToHeader(sb, game.Cursors);
 
@@ -524,9 +514,6 @@ namespace AGS.Editor
             AppendAudioClipTypesToHeader(sb, game.AudioClipTypes);
 
             AppendAudioClipsToHeader(sb, game.RootAudioClipFolder);
-
-            sb.AppendLine("import Hotspot hotspot[" + Room.MAX_HOTSPOTS + "];");
-            sb.AppendLine("import Region region[" + Room.MAX_REGIONS + "];");
 
             AppendInventoryToHeader(sb, game.InventoryItems);
 

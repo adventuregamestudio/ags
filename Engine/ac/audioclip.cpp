@@ -11,14 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "media/audio/audio_system.h"
 #include "ac/asset_helper.h"
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
+#include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
-#include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audiochannel.h"
-#include "media/audio/audio_system.h"
+#include "script/runtimescriptvalue.h"
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -58,20 +58,28 @@ void AudioClip_Stop(ScriptAudioClip *clip)
 
 ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
 {
-    ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, 0, false);
-    return sc_ch;
+    return play_audio_clip(clip, priority, repeat, 0, false);
 }
 
 ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
 {
-    ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, position, false);
-    return sc_ch;
+    return play_audio_clip(clip, priority, repeat, position, false);
 }
 
 ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
 {
-    ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, 0, true);
-    return sc_ch;
+    return play_audio_clip(clip, priority, repeat, 0, true);
+}
+
+ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
+{
+    if (chan < 1 || chan >= MAX_SOUND_CHANNELS)
+        quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, 1, MAX_SOUND_CHANNELS - 1);
+    if (priority == SCR_NO_VALUE)
+        priority = clip->defaultPriority;
+    if (repeat == SCR_NO_VALUE)
+        repeat = clip->defaultRepeat;
+    return play_audio_clip_on_channel(chan, clip, priority, repeat, 0);
 }
 
 //=============================================================================
@@ -131,11 +139,17 @@ RuntimeScriptValue Sc_AudioClip_PlayQueued(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayQueued);
 }
 
+RuntimeScriptValue Sc_AudioClip_PlayOnChannel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayOnChannel);
+}
+
 void RegisterAudioClipAPI()
 {
     ccAddExternalObjectFunction("AudioClip::Play^2",            Sc_AudioClip_Play);
     ccAddExternalObjectFunction("AudioClip::PlayFrom^3",        Sc_AudioClip_PlayFrom);
     ccAddExternalObjectFunction("AudioClip::PlayQueued^2",      Sc_AudioClip_PlayQueued);
+    ccAddExternalObjectFunction("AudioClip::PlayOnChannel^3",   Sc_AudioClip_PlayOnChannel);
     ccAddExternalObjectFunction("AudioClip::Stop^0",            Sc_AudioClip_Stop);
     ccAddExternalObjectFunction("AudioClip::get_ID",            Sc_AudioClip_GetID);
     ccAddExternalObjectFunction("AudioClip::get_FileType",      Sc_AudioClip_GetFileType);

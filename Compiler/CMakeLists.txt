@@ -31,16 +31,26 @@ target_sources(compiler
         script/cs_parser.h
         script/cs_parser_common.cpp
         script/cs_parser_common.h
-        script/cs_prepro.cpp
-        script/cs_prepro.h
+        preproc/preprocessor.cpp
+        preproc/preprocessor.h
         )
 
 target_link_libraries(compiler PUBLIC AGS::Common)
 
-get_target_property(COMMON_SOURCES compiler SOURCES)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMMON_SOURCES})
+get_target_property(COMPILER_SOURCES compiler SOURCES)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMPILER_SOURCES})
 
 add_library(AGS::Compiler ALIAS compiler)
+
+add_executable(agscc main.cpp compiler.cpp compiler.h)
+set_target_properties(agscc PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        C_STANDARD 11
+        C_EXTENSIONS NO
+        )
+
+target_link_libraries(agscc PUBLIC AGS::Compiler)
 
 if(AGS_TESTS)
     add_executable(
@@ -49,6 +59,9 @@ if(AGS_TESTS)
             test/cc_symboltable_test.cpp
             test/cc_treemap_test.cpp
             test/cs_parser_test.cpp
+            test/preprocessor_test.cpp
+            test/cc_test_helper.cpp
+            test/cc_test_helper.h
     )
     set_target_properties(compiler_test PROPERTIES
             CXX_STANDARD 11

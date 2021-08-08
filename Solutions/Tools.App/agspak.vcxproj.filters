@@ -18,7 +18,7 @@
     <ClCompile Include="..\..\Tools\agspak\main.cpp">
       <Filter>agspak</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\mutifilelib.cpp">
+    <ClCompile Include="..\..\Common\util\multifilelib.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">

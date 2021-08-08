@@ -93,6 +93,12 @@
     <Filter Include="Library Sources\allegro\c">
       <UniqueIdentifier>{15c601a4-df1d-48e4-ad00-8a22d9761e2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform">
+      <UniqueIdentifier>{ed0da32a-4d9f-4d2f-9152-cdcc304ff9ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\platform\windows">
+      <UniqueIdentifier>{2d32d9cb-7c8c-4b22-92af-3afdb3d24d12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
@@ -197,10 +203,7 @@
     <ClCompile Include="..\..\Common\util\lzw.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\misc.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\mutifilelib.cpp">
+    <ClCompile Include="..\..\Common\util\multifilelib.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">
@@ -655,9 +658,6 @@
     <ClInclude Include="..\..\Common\util\memory.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\misc.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\multifilelib.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -825,6 +825,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\data_ext.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\platform\windows\windows.h">
+      <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

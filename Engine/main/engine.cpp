@@ -24,7 +24,6 @@
 #endif
 #include <allegro.h> // allegro_install and _exit
 
-#include "main/mainheader.h"
 #include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -41,6 +40,7 @@
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
 #include "ac/path_helper.h"
+#include "ac/route_finder.h"
 #include "ac/sys_events.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
@@ -53,6 +53,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "gfx/graphicsdriver.h"
@@ -72,6 +73,7 @@
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -102,6 +104,10 @@ extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern std::vector<std::unique_ptr<Bitmap>> guihelpbg;
+
+#if AGS_PLATFORM_OS_ANDROID
+extern "C" void selectLatestSavegame();
+#endif
 
 ResourcePaths ResPaths;
 
@@ -1371,7 +1377,8 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
     engine_shutdown_gfxmode();
 
     const Size init_desktop = get_desktop_size();
-    if (!graphics_mode_init_any(game.GetGameRes(), setup, ColorDepthOption(game.GetColorDepth())))
+    if (!graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8),
+            setup, ColorDepthOption(game.GetColorDepth())))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);

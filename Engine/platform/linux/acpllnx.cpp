@@ -29,10 +29,9 @@ eScriptSystemOSID AGSLinux::GetSystemOSID() {
   return eOS_Linux;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == nullptr)
-    instance = new AGSLinux();
-  return instance;
+AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+{
+    return new AGSLinux();
 }
 
 #endif

@@ -15,11 +15,11 @@
 // AGS Cross-Platform Header
 //
 //=============================================================================
-
 #ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
 #include <errno.h>
+#include <memory>
 #include <vector>
 #include "ac/datetime.h"
 #include "debug/outputhandler.h"
@@ -52,10 +52,13 @@ enum SetupReturnValue
     kSetup_RunGame
 };
 
-struct AGSPlatformDriver
+class AGSPlatformDriver
     // be used as a output target for logging system
     : public AGS::Common::IOutputHandler
 {
+public:
+    virtual ~AGSPlatformDriver() = default;
+
     virtual void AboutToQuitGame();
     virtual void Delay(int millis);
     virtual void DisplayAlert(const char*, ...) = 0;
@@ -102,7 +105,10 @@ struct AGSPlatformDriver
      // Allows adjusting parameters and other fixes before engine is initialized
     virtual void MainInitAdjustments() { };
 
+    // Gets the only platform driver instance, creates one if necessary
     static AGSPlatformDriver *GetDriver();
+    // Shuts down and deletes the platform driver
+    static void Shutdown();
 
     // Set whether PrintMessage should output to stdout or stderr
     void SetOutputToErr(bool on) { _logToStdErr = on; }
@@ -128,7 +134,9 @@ protected:
     bool _guiMode = false;
 
 private:
-    static AGSPlatformDriver *instance;
+    static AGSPlatformDriver *CreateDriver();
+
+    static std::unique_ptr<AGSPlatformDriver> _instance;
 };
 
 // [IKM] What is a need to have this global var if you can get AGSPlatformDriver

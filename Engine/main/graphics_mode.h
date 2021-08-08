@@ -23,6 +23,7 @@
 #include "util/string.h"
 
 using AGS::Common::String;
+using AGS::Engine::GraphicResolution;
 using AGS::Engine::DisplayMode;
 
 Size get_desktop_size();
@@ -132,7 +133,7 @@ struct ActiveDisplaySetting
 
 // Initializes any possible gfx mode, using user config as a recommendation;
 // may try all available renderers and modes before succeeding (or failing)
-bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth);
+bool graphics_mode_init_any(const GraphicResolution &game_res, const ScreenSetup &setup, const ColorDepthOption &color_depth);
 // Return last saved display mode of the given kind
 ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed);
 // Creates graphics driver of given id
@@ -143,7 +144,7 @@ bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size
-bool graphics_mode_set_native_size(const Size &native_size);
+bool graphics_mode_set_native_res(const GraphicResolution &native_res);
 // Get current render frame setup
 GameFrameSetup graphics_mode_get_render_frame();
 // Set the render frame position inside the window

@@ -133,17 +133,16 @@ static int avail_slot_id()
 
 int audio_core_slot_init(const std::vector<char> &data, const ags::String &extension_hint, bool repeat)
 {
-    auto handle = avail_slot_id();
-
+    // TODO: move source gen to OpenALDecoder?
     ALuint source_;
     alGenSources(1, &source_);
     dump_al_errors();
 
-    auto promise = std::promise<std::vector<char>>();
-    promise.set_value(std::move(data));
+    auto decoder = OpenALDecoder(source_, data, extension_hint, repeat);
+    if (!decoder.Init())
+        return -1;
 
-    auto decoder = OpenALDecoder(source_, promise.get_future(), extension_hint, repeat);
-
+    auto handle = avail_slot_id();
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[handle] = std::make_unique<AudioCoreSlot>(handle, source_, std::move(decoder));
     g_acore.mixer_cv.notify_all();
@@ -235,6 +234,15 @@ float audio_core_slot_get_pos_ms(int slot_handle)
     g_acore.mixer_cv.notify_all();
     return pos;
 }
+
+float audio_core_slot_get_duration(int slot_handle)
+{
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
+    auto dur = g_acore.slots_[slot_handle]->decoder_.GetDurationMs();
+    g_acore.mixer_cv.notify_all();
+    return dur;
+}
+
 AudioCorePlayState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
@@ -269,19 +277,4 @@ static void audio_core_entry()
 
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));
     }
-}
-
-
-// -------------------------------------------------------------------------------------------------
-// UTILITY
-// -------------------------------------------------------------------------------------------------
-// TODO: originally written by [sonneveld] for OpenAL sound impl,
-// investigate if it's possible to avoid using full sound data here,
-// maybe by letting decoder read a header from stream and find out format.
-float audio_core_get_sound_length_ms(const std::vector<char> &data, const char *extension_hint)
-{
-    auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((Uint8 *)data.data(), data.size(), extension_hint, nullptr, 32 * 1024));
-    if (sample == nullptr) { return -1; }
-
-    return Sound_GetDuration(sample.get());
 }

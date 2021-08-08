@@ -83,6 +83,12 @@ namespace File
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }
+    // Opens stdin stream for reading
+    Stream      *OpenStdin();
+    // Opens stdout stream for writing
+    Stream      *OpenStdout();
+    // Opens stderr stream for writing
+    Stream      *OpenStderr();
 
     // Case insensitive find file
     String FindFileCI(const String &dir_name, const String &file_name);

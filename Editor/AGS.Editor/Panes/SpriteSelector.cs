@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Linq;
 using AGS.Types;
 using AGS.Editor.Utils;
 
@@ -50,6 +51,13 @@ namespace AGS.Editor
         private const string MENU_ITEM_ASSIGN_TO_VIEW = "AssignToView";
         private const string MENU_ITEM_CHANGE_SPRITE_NUMBER = "ChangeSpriteNumber";
 
+        private const string MENU_ITEM_PREVIEW_SIZE_1X = "PreviewSizeSmall";
+        private const string MENU_ITEM_PREVIEW_SIZE_2X = "PreviewSizeMedium";
+        private const string MENU_ITEM_PREVIEW_SIZE_3X = "PreviewSizeLarge";
+        private const string MENU_ITEM_PREVIEW_SIZE_4X = "PreviewSizeExtraLarge";
+        
+        private const int SPRITE_BASE_SIZE = 32;
+
         private static ImageList _spManagerIcons;
         private Dictionary<string, SpriteFolder> _folders;
         private Dictionary<SpriteFolder, TreeNode> _folderNodeMapping;
@@ -63,6 +71,7 @@ namespace AGS.Editor
         private string[] _lastImportedFilenames = null;
         private Timer _timer;
         private TreeNode _dropHighlight;
+        private int _spriteSizeMultiplier = 1;
 
         public SpriteSelector()
         {
@@ -81,6 +90,7 @@ namespace AGS.Editor
                 _spManagerIcons.Images.Add("OpenFolder", Resources.ResourceManager.GetIcon("openfldr.ico"));
             }
             folderList.ImageList = _spManagerIcons;
+            SetSpritePreviewMultiplier(2); // default value for sprite multiplier
         }
 
         /// <summary>
@@ -196,6 +206,8 @@ namespace AGS.Editor
 
         private void DisplaySpritesForFolder(SpriteFolder folder)
         {
+            if (folder == null) return;
+
             if (OnSelectionChanged != null)
             {
                 // this means the previously selected sprite is un-selected
@@ -214,7 +226,7 @@ namespace AGS.Editor
             spriteList.Clear();
             _spriteImages.Images.Clear();
             _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
-            _spriteImages.ImageSize = new Size(64, 64);
+            _spriteImages.ImageSize = new Size(SPRITE_BASE_SIZE * _spriteSizeMultiplier, SPRITE_BASE_SIZE * _spriteSizeMultiplier);
             _spriteImages.TransparentColor = Color.Pink;
             List<ListViewItem> itemsToAdd = new List<ListViewItem>();
 
@@ -225,7 +237,10 @@ namespace AGS.Editor
             {
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, 64, 64, false, true, Color.Pink);
+
+                int newSize = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), SPRITE_BASE_SIZE), SPRITE_BASE_SIZE * _spriteSizeMultiplier);
+
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, false, true, Color.Pink);
 
                 // we are already indexing from 0 and this ImageList was cleared,
                 // so just adding the image doesn't need a modified index
@@ -569,6 +584,16 @@ namespace AGS.Editor
             return 16;
         }
 
+        private void SetSpritePreviewMultiplier(int multiplier)
+        {
+            if (_spriteSizeMultiplier != multiplier)
+            {
+                sliderPreviewSize.Value = multiplier;
+                _spriteSizeMultiplier = multiplier;
+                RefreshSpriteDisplay();
+            }
+        }
+
         private void SpriteContextMenuEventHandler(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
@@ -757,6 +782,22 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_REPLACE_FROM_SOURCE)
             {
                 ReplaceSpritesFromSource();
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_1X)
+            {
+                SetSpritePreviewMultiplier(2);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_2X)
+            {
+                SetSpritePreviewMultiplier(4);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_3X)
+            {
+                SetSpritePreviewMultiplier(6);
+            }
+            else if (item.Name == MENU_ITEM_PREVIEW_SIZE_4X)
+            {
+                SetSpritePreviewMultiplier(8);
             }
         }
 
@@ -1223,6 +1264,16 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));
 
+            ToolStripMenuItem viewMenu = new ToolStripMenuItem();
+            viewMenu.Text = "View";
+
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Small icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_1X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Medium icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_2X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Large icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_3X));
+            viewMenu.DropDownItems.Add(new ToolStripMenuItem("Extra large icons", null, onClick, MENU_ITEM_PREVIEW_SIZE_4X));
+
+            menu.Items.Add(viewMenu);
+
             menu.Show(spriteList, menuPosition);
         }
 
@@ -1314,26 +1365,37 @@ namespace AGS.Editor
 
         private void spriteList_DragDrop(object sender, DragEventArgs e)
         {
-            SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
-            Point locationInControl = spriteList.PointToClient(new Point(e.X, e.Y));
-            bool putSpritesBeforeSelection = true;
-            ListViewItem nearestItem = spriteList.HitTest(locationInControl).Item;
-            if (nearestItem == null)
+            if(e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
             {
-                putSpritesBeforeSelection = false;
-                nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Left, locationInControl);
-
+                // Moving a sprite already imported
+                SpriteManagerDragDropData dragged = (SpriteManagerDragDropData)e.Data.GetData(typeof(SpriteManagerDragDropData));
+                Point locationInControl = spriteList.PointToClient(new Point(e.X, e.Y));
+                bool putSpritesBeforeSelection = true;
+                ListViewItem nearestItem = spriteList.HitTest(locationInControl).Item;
                 if (nearestItem == null)
                 {
-                    putSpritesBeforeSelection = true;
-                    nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Right, locationInControl);
+                    putSpritesBeforeSelection = false;
+                    nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Left, locationInControl);
+
+                    if (nearestItem == null)
+                    {
+                        putSpritesBeforeSelection = true;
+                        nearestItem = spriteList.FindNearestItem(SearchDirectionHint.Right, locationInControl);
+                    }
+                }
+                if (nearestItem != null)
+                {
+                    int nearestSprite = GetSpriteID(nearestItem);
+                    _currentFolder.Sprites = MoveSpritesIntoNewPositionInFolder(nearestSprite, putSpritesBeforeSelection, dragged);
+                    RefreshSpriteDisplay();
                 }
             }
-            if (nearestItem != null)
+            else if(e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                int nearestSprite = GetSpriteID(nearestItem);
-                _currentFolder.Sprites = MoveSpritesIntoNewPositionInFolder(nearestSprite, putSpritesBeforeSelection, dragged);
-                RefreshSpriteDisplay();
+                string[] filePaths = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+                // don't block the UI thread, see asyncFileDropWorker_DoWork
+                asyncFileDropWorker.RunWorkerAsync(filePaths);
             }
         }
 
@@ -1482,6 +1544,94 @@ namespace AGS.Editor
             folderList.BackColor = t.GetColor("sprite-selector/tree/background");
             folderList.ForeColor = t.GetColor("sprite-selector/tree/foreground");
             folderList.LineColor = t.GetColor("sprite-selector/tree/line");
+        }
+
+        private void sliderPreviewSize_ValueChanged(object sender, EventArgs e)
+        {
+            SetSpritePreviewMultiplier(sliderPreviewSize.Value);
+        }
+
+        private void button_importNew_Click(object sender, EventArgs e)
+        {
+            string[] filenames = Factory.GUIController.ShowOpenFileDialogMultipleFiles("Import new sprites...", Constants.IMAGE_FILE_FILTER);
+
+            if (filenames.Length > 0)
+            {
+                ImportNewSprite(_currentFolder, filenames);
+            }
+        }
+
+        private void spriteList_DragEnter(object sender, DragEventArgs e)
+        {
+            if(e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            else if(e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void spriteList_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (ModifierKeys.HasFlag(Keys.Control))
+            {
+                int movement = e.Delta;
+                if (movement > 0)
+                {
+                    if (sliderPreviewSize.Value < sliderPreviewSize.Maximum)
+                    {
+                        sliderPreviewSize.Value++;
+                    }
+                }
+                else
+                {
+                    if (sliderPreviewSize.Value > sliderPreviewSize.Minimum)
+                    {
+                        sliderPreviewSize.Value--;
+                    }
+                }
+                SetSpritePreviewMultiplier(sliderPreviewSize.Value);
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.D0))
+            {
+                SetSpritePreviewMultiplier(2);
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void asyncFileDropWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            string[] filePaths = (string[])e.Argument; // from RunWorkerAsync
+
+            string[] possiblyValidFiles = filePaths.Where(a =>
+               a.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+               a.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            e.Result = possiblyValidFiles;
+        }
+
+        private void asyncFileDropWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            string[] possiblyValidFiles = (string[])e.Result;
+
+            if (possiblyValidFiles.Length > 0)
+            {
+                ImportNewSprite(_currentFolder, possiblyValidFiles);
+            }            
         }
     }
 

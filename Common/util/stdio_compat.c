@@ -88,9 +88,17 @@ int ags_path_exists(const char *path)
 
 file_off_t ags_file_size(const char *path)
 {
+#if AGS_PLATFORM_OS_WINDOWS
+    struct _stat64 path_stat;
+    if (_stati64(path, &path_stat) != 0) {
+        return -1;
+    }
+    return path_stat.st_size;
+#else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
         return -1;
     }
     return path_stat.st_size;
+#endif
 }

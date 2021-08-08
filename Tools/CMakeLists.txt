@@ -106,6 +106,14 @@ set_target_properties(crm2ash PROPERTIES
         )
 target_link_libraries(crm2ash PUBLIC libtools)
 
+#----- crmpak -------------------------------------------------
+add_executable(crmpak crmpak/main.cpp)
+set_target_properties(crmpak PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(crmpak PUBLIC libtools)
+
 #----- trac ---------------------------------------------------
 add_executable(trac trac/main.cpp)
 set_target_properties(trac PROPERTIES
@@ -116,4 +124,4 @@ target_link_libraries(trac PUBLIC libtools)
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)
-add_dependencies(Tools agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2ash trac)
+add_dependencies(Tools agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2ash crmpak trac)

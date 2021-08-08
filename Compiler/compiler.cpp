@@ -91,7 +91,6 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.DebugRun) printf("DebugRun; ");
     if (Flags.NoImportOverride) printf("NoImportOverride; ");
     if (Flags.EnforceObjectBasedScript) printf("EnforceObjectBasedScript; ");
-    if (Flags.LeftToRightPrecedence) printf("LeftToRightPrecedence; ");
     if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
     if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
@@ -125,10 +124,6 @@ int Compile(const CompilerOptions& comp_opts)
     if (comp_opts.Flags.EnforceObjectBasedScript)
     {
         pp.DefineMacro("STRICT", "1");
-    }
-    if (comp_opts.Flags.LeftToRightPrecedence)
-    {
-        pp.DefineMacro("LRPRECEDENCE", "1");
     }
     if (comp_opts.Flags.EnforceNewStrings)
     {
@@ -177,7 +172,6 @@ int Compile(const CompilerOptions& comp_opts)
     // now deprecated, was used to prevent override imports in the room script
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, comp_opts.Flags.NoImportOverride);
 
-    ccSetOption(SCOPT_LEFTTORIGHT, comp_opts.Flags.LeftToRightPrecedence);
     ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
 
     ccRemoveDefaultHeaders();

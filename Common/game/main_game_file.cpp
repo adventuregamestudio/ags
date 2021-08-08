@@ -564,29 +564,29 @@ HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
         // adjustable font outlines
         for (size_t i = 0; i < (size_t)_ents.Game.numfonts; ++i)
         {
-            _ents.Game.fonts[i].AutoOutlineThickness = in->ReadInt32();
+            _ents.Game.fonts[i].AutoOutlineThickness = _in->ReadInt32();
             _ents.Game.fonts[i].AutoOutlineStyle =
-                static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+                static_cast<enum FontInfo::AutoOutlineStyle>(_in->ReadInt32());
         }
 
         // new character properties
         for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
         {
-            _ents.CharEx[i].BlendMode = (BlendMode)in->ReadInt32();
+            _ents.CharEx[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
-            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see brief list in savegame format)
-            in->Seek(sizeof(int32_t) * 11);
+            _in->Seek(sizeof(int32_t) * 11);
         }
 
         // new gui properties
         for (size_t i = 0; i < guis.size(); ++i)
         {
-            guis[i].BlendMode = (BlendMode)in->ReadInt32();
+            guis[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
-            in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
+            _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see list in savegame format)
-            in->Seek(sizeof(int32_t) * 11);
+            _in->Seek(sizeof(int32_t) * 11);
         }
 
         return HError::None();

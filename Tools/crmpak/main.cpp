@@ -24,7 +24,7 @@ public:
 static void print_known_blockids()
 {
     for (int i = kRoomFblk_FirstID; i < kRoomFblk_LastID; ++i)
-        printf("%d:%s\n", i, GetRoomBlockName((RoomFileBlock)i));
+        printf("%d:%s\n", i, GetRoomBlockName((RoomFileBlock)i).GetCStr());
 }
 
 HError print_room_blockids(RoomDataSource &datasrc)
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     // Open the room, export list of block ids ('l' command).
     //-----------------------------------------------------------------------//
     RoomDataSource datasrc;
-    HError err = OpenRoomFile(in_roomfile, datasrc);
+    HError err = static_cast<PError>(OpenRoomFile(in_roomfile, datasrc));
     if (!err)
     {
         printf("Error: failed to open room file for reading:\n");

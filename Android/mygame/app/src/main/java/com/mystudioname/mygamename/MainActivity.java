@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import uk.co.adventuregamestudio.runtime.AGSRuntimeActivity;
 
@@ -52,15 +54,26 @@ public class MainActivity extends Activity {
         finish(); // TODO: do something other than just exit the app when the game exits?
     }
 
-    private void copyAssetsToCache()
-    {
-        String [] list = new String[0];
-        try {
-           list = getAssets().list("");
-        } catch (IOException e) {
-           //;
-        }
+    private boolean FileExists(String fname) {
+        File file = new File(fname);
+        return file.exists();
+    }
 
+    private String[] RemoveFileFromListIfExistInCache(String[] list)
+    {
+        List<String> reslist = new ArrayList<String>();
+        for (String filename : list) {
+            if(!FileExists(getCacheDir()+"/"+filename))
+            {
+                reslist.add(filename);
+            }
+        }
+        String[] resArray = new String[ reslist.size() ];
+        reslist.toArray(resArray);
+        return resArray;
+    }
+
+    private void copyAssetListToCache(String[] list) {
         final int BUFFER_SIZE = 102400; // update as needed, your mileage may vary
         InputStream is = null;
         OutputStream os = null;
@@ -76,7 +89,7 @@ public class MainActivity extends Activity {
             }
 
             try {
-                os = new FileOutputStream(getCacheDir()+filename);
+                os = new FileOutputStream(getCacheDir()+"/"+filename);
             } catch (IOException e) {
                 continue;
             }
@@ -91,14 +104,42 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void copyAssetListToCacheIfDontExist(String[] list)
+    {
+        String[] rlist = RemoveFileFromListIfExistInCache(list);
+        if(rlist.length > 0)
+        {
+            copyAssetListToCache(rlist);
+        }
+    }
+
+    private void copyAssetsToCache()
+    {
+        String [] list = new String[0];
+        try {
+           list = getAssets().list("");
+        } catch (IOException e) {
+           //;
+        }
+
+        copyAssetListToCache(list);
+    }
+
+    private void copyConfigToCache()
+    {
+        copyAssetListToCacheIfDontExist(new String[]{"android.cfg", "acsetup.cfg"});
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
         if(GAME_EMBEDDED)
         {
-            copyAssetsToCache();
-            startGame(getCacheDir() + GAME_FILE_NAME);
+            //copyAssetsToCache();
+            //startGame(getCacheDir() + GAME_FILE_NAME);
+            copyConfigToCache();
+            startGame(GAME_FILE_NAME);
         }
 
     }

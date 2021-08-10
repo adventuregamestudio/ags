@@ -105,6 +105,8 @@ public:
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
     int32_t GetControlID(int index) const;
+    // Gets an array of child control indexes in the z-order, from bottom to top
+    const std::vector<int> &GetControlsDrawOrder() const;
 
     // Child control management
     // Note that currently GUIMain does not own controls (should not delete them)

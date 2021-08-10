@@ -2266,7 +2266,7 @@ void draw_gui_and_overlays()
                 our_eip = 370;
                 guibg[aa]->ClearTransparent();
                 our_eip = 372;
-                guis[aa].DrawAt(guibg[aa], 0,0);
+                guis[aa].DrawWithControls(guibg[aa]);
                 our_eip = 373;
 
                 bool isAlpha = false;

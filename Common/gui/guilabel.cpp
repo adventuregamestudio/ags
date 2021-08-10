@@ -47,7 +47,7 @@ GUILabelMacro GUILabel::GetTextMacros() const
     return _textMacro;
 }
 
-void GUILabel::Draw(Common::Bitmap *ds)
+void GUILabel::Draw(Bitmap *ds, int x, int y)
 {
     // TODO: need to find a way to cache text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
@@ -62,12 +62,12 @@ void GUILabel::Draw(Common::Bitmap *ds)
         get_font_linespacing(Font);
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-    int at_y = Y;
+    int at_y = y;
     for (size_t i = 0;
-        i < Lines.Count() && (!limit_by_label_frame || at_y <= Y + Height);
+        i < Lines.Count() && (!limit_by_label_frame || at_y <= y + Height);
         ++i, at_y += linespacing)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, X, X + Width - 1, at_y,
+        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, x, x + Width - 1, at_y,
             (FrameAlignment)TextAlignment);
     }
 }

@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include "util/string_compat.h"
 #include "SDL.h"
+#include "util/path.h"
 
 #include <jni.h>
 #include <android/log.h>
@@ -468,78 +469,6 @@ JNIEXPORT void JNICALL
 }
 
 
-JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jstring appDirectory, jboolean loadLastSave)
-{
-  // Get JNI interfaces.
-  java_object = env->NewGlobalRef(object);
-  java_environment = env;
-  java_class = (jclass)java_environment->NewGlobalRef(java_environment->GetObjectClass(object));
-  java_messageCallback = java_environment->GetMethodID(java_class, "showMessage", "(Ljava/lang/String;)V");
-  java_blockExecution = java_environment->GetMethodID(java_class, "blockExecution", "()V");
-  java_setRotation = java_environment->GetMethodID(java_class, "setRotation", "(I)V");
-  java_enableLongclick = java_environment->GetMethodID(java_class, "enableLongclick", "()V");
-
-  // Initialize JNI for Allegro.
-  //android_allegro_initialize_jni(java_environment, java_class, java_object);
-
-  // Get the file to run from Java.
-  const char* cpath = java_environment->GetStringUTFChars(filename, NULL);
-  strcpy(psp_game_file_name, cpath);
-  java_environment->ReleaseStringUTFChars(filename, cpath);
-
-  // Get the base directory (usually "/sdcard/ags").
-  const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
-  chdir(cdirectory);
-  strcpy(android_base_directory, cdirectory);
-  java_environment->ReleaseStringUTFChars(directory, cdirectory);
-
-  // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")
-  const char* cappDirectory = java_environment->GetStringUTFChars(appDirectory, NULL);
-  strcpy(android_app_directory, cappDirectory);
-  java_environment->ReleaseStringUTFChars(appDirectory, cappDirectory);
-
-  // Reset configuration.
-  ResetConfiguration();
-
-  // Read general configuration.
-  ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
-
-  // Get the games path.
-  char path[256];
-  strcpy(path, psp_game_file_name);
-  int lastindex = strlen(path) - 1;
-  while (path[lastindex] != '/')
-  {
-    path[lastindex] = 0;
-    lastindex--;
-  }
-  chdir(path);
-  
-  setenv("ULTRADIR", "..", 1);
-
-  // Read game specific configuration.
-  ReadConfiguration(ANDROID_CONFIG_FILENAME, false);
-
-  // Set the screen rotation.
-  if (psp_rotation > 0)
-    java_environment->CallVoidMethod(java_object, java_setRotation, psp_rotation);
-
-  if (config_mouse_longclick > 0)
-    java_environment->CallVoidMethod(java_object, java_enableLongclick);
-
-  psp_load_latest_savegame = loadLastSave;
-
-  // Start the engine main function.
- // main(1, &psp_game_file_name_pointer);
-  
-  // Explicitly quit here, otherwise the app will hang forever.
-  exit(0);
-  
-  return true;
-}
-
-
 void selectLatestSavegame()
 {
   DIR* dir;
@@ -729,17 +658,14 @@ void AGSAndroid::MainInitAdjustments()
     ReadConfiguration((char*) ANDROID_CONFIG_FILENAME, true);
 
     // Get the games path.
-    char path[256];
-    strcpy(path, psp_game_file_name);
-    int lastindex = strlen(path) - 1;
-    while (path[lastindex] != '/')
-    {
-        path[lastindex] = 0;
-        lastindex--;
+    String path = psp_game_file_name;
+    path = Path::GetDirectoryPath(path);
+    if(path != "./" && path.GetLength() > 1) {
+      chdir(path.GetCStr());
+      setenv("ULTRADIR", "..", 1);
+    } else {
+      chdir(_android_base_directory);
     }
-    chdir(path);
-
-    setenv("ULTRADIR", "..", 1);
 
     // Read game specific configuration.
     ReadConfiguration((char*) ANDROID_CONFIG_FILENAME, false);

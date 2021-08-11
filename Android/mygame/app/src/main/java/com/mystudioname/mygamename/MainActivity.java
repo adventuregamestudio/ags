@@ -42,12 +42,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    // once the expansion file is mounted, this starts the activity that launches the game
-    private void startGame(String fileName) {
+    private void startGame(String fileName, String writeDir) {
         Intent intent = new Intent(this, AGSRuntimeActivity.class);
         Bundle b = new Bundle();
         b.putString("filename", fileName); // full path to game data
-        b.putString("directory", getApplicationInfo().dataDir); // writable location (saves, etc.)
+        b.putString("directory", writeDir); // writable location (saves, etc.)
         b.putBoolean("loadLastSave", false); // TODO: auto-load last save?
         intent.putExtras(b);
         startActivity(intent);
@@ -73,7 +72,7 @@ public class MainActivity extends Activity {
         return resArray;
     }
 
-    private void copyAssetListToCache(String[] list) {
+    private void copyAssetListToDir(String[] list, String dst_dir) {
         final int BUFFER_SIZE = 102400; // update as needed, your mileage may vary
         InputStream is = null;
         OutputStream os = null;
@@ -89,7 +88,7 @@ public class MainActivity extends Activity {
             }
 
             try {
-                os = new FileOutputStream(getCacheDir()+"/"+filename);
+                os = new FileOutputStream(dst_dir+"/"+filename);
             } catch (IOException e) {
                 continue;
             }
@@ -104,16 +103,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void copyAssetListToCacheIfDontExist(String[] list)
+    private void copyAssetListIfDontExist(String[] list, String dst_dir)
     {
         String[] rlist = RemoveFileFromListIfExistInCache(list);
         if(rlist.length > 0)
         {
-            copyAssetListToCache(rlist);
+            copyAssetListToDir(rlist, dst_dir);
         }
     }
 
-    private void copyAssetsToCache()
+    private void copyAssets(String dst_dir)
     {
         String [] list = new String[0];
         try {
@@ -122,12 +121,12 @@ public class MainActivity extends Activity {
            //;
         }
 
-        copyAssetListToCache(list);
+        copyAssetListToDir(list, dst_dir);
     }
 
-    private void copyConfigToCache()
+    private void copyConfigToDestination(String dst_dir)
     {
-        copyAssetListToCacheIfDontExist(new String[]{"android.cfg", "acsetup.cfg"});
+        copyAssetListIfDontExist(new String[]{"android.cfg", "acsetup.cfg"}, dst_dir);
     }
 
     @Override
@@ -136,10 +135,9 @@ public class MainActivity extends Activity {
         //setContentView(R.layout.activity_main);
         if(GAME_EMBEDDED)
         {
-            //copyAssetsToCache();
-            //startGame(getCacheDir() + GAME_FILE_NAME);
-            copyConfigToCache();
-            startGame(GAME_FILE_NAME);
+            String writeDir = getApplicationContext().getFilesDir().toString(); //getCacheDir().toString(); // getApplicationInfo().dataDir;
+            copyConfigToDestination(writeDir);
+            startGame(GAME_FILE_NAME, writeDir);
         }
 
     }

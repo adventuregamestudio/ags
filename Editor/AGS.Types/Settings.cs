@@ -150,6 +150,8 @@ namespace AGS.Types
 
         private static string GetCustomDirsString(string input)
         {
+            if (String.IsNullOrEmpty(input))
+                return input;
             var dirs = input.Split(StringListUIEditor.Separators, StringSplitOptions.RemoveEmptyEntries).
                 Select(d => d.Trim());
             return string.Join(",", dirs);

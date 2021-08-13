@@ -114,8 +114,9 @@ void GUIListBox::Draw(Common::Bitmap *ds)
 
     int right_hand_edge = (X + width) - pixel_size - 1;
 
-    // use SetFont to update the RowHeight and VisibleItemCount
-    SetFont(Font);
+    // update the RowHeight and VisibleItemCount
+    // FIXME: find a way to update this whenever relevant things change in the engine
+    UpdateMetrics();
 
     // draw the scroll bar in if necessary
     if (ItemCount > VisibleItemCount && IsBorderShown() && AreArrowsShown())
@@ -141,6 +142,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         right_hand_edge -= get_fixed_pixel_size(7);
     }
 
+    // FIXME: cut this out, and let editor add real items for display
     DrawItemsFix();
 
     for (int item = 0; item < VisibleItemCount; ++item)
@@ -236,8 +238,7 @@ void GUIListBox::SetSvgIndex(bool on)
 void GUIListBox::SetFont(int font)
 {
     Font = font;
-    RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
-    VisibleItemCount = Height / RowHeight;
+    UpdateMetrics();
     NotifyParentChanged();
 }
 
@@ -277,12 +278,14 @@ void GUIListBox::OnMouseMove(int x_, int y_)
 
 void GUIListBox::OnResized() 
 {
-    if (RowHeight == 0)
-    {
-        SetFont(Font);
-    }
-    if (RowHeight > 0)
-        VisibleItemCount = Height / RowHeight;
+    UpdateMetrics();
+    NotifyParentChanged();
+}
+
+void GUIListBox::UpdateMetrics()
+{
+    RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
+    VisibleItemCount = Height / RowHeight;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

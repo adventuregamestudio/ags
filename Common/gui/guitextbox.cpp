@@ -65,18 +65,18 @@ void GUITextBox::OnKeyPress(int keycode)
     // other key, continue
     if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
         return;
+    // return/enter
+    if (keycode == 13)
+    {
+        IsActivated = true;
+        return;
+    }
 
     NotifyParentChanged();
     // backspace, remove character
     if (keycode == 8)
     {
         Text.ClipRight(1);
-        return;
-    }
-    // return/enter
-    if (keycode == 13)
-    {
-        IsActivated = true;
         return;
     }
 

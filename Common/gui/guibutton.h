@@ -59,6 +59,7 @@ public:
     GUIButton();
 
     const String &GetText() const;
+    bool IsImageButton() const;
     bool IsClippingImage() const;
 
     // Operations

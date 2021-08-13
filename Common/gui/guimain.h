@@ -206,6 +206,8 @@ namespace GUI
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate();
+    // Mark all GUI which use the given font for redraw
+    void MarkForFontUpdate(int font);
     // Mark labels that acts as special text placeholders for redraw
     void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character

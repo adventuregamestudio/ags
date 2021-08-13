@@ -91,7 +91,6 @@ void GUIButton::Draw(Bitmap *ds)
 {
     bool draw_disabled = !IsGUIEnabled(this);
 
-    check_font(&Font);
     // if it's "Unchanged when disabled" or "GUI Off", don't grey out
     if (gui_disabled_style == GUIDIS_UNCHANGED ||
         gui_disabled_style == GUIDIS_GUIOFF)

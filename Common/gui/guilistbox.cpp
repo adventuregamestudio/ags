@@ -103,7 +103,6 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     const int height = Height - 1;
     const int pixel_size = get_fixed_pixel_size(1);
 
-    check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
     if (IsBorderShown())
@@ -280,7 +279,6 @@ void GUIListBox::OnResized()
 {
     if (RowHeight == 0)
     {
-        check_font(&Font);
         SetFont(Font);
     }
     if (RowHeight > 0)

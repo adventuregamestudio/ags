@@ -82,7 +82,7 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
 ARG SDL2_VERSION=2.0.12
 RUN curl -fLsS "https://www.libsdl.org/release/SDL2-$SDL2_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/SDL2-$SDL2_VERSION && \
-  ./configure --enable-shared --enable-loadso --enable-sdl-dlopen --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-wayland-shared --enable-directfb-shared && \
+  ./configure --enable-shared --enable-loadso --enable-sdl-dlopen --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \
   make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL2-$SDL2_VERSION/debian/copyright /usr/local/share/doc/libSDL2-2.0/copyright && \
   rm -r /tmp/SDL2-$SDL2_VERSION

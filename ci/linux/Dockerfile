@@ -106,7 +106,7 @@ RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSI
   rm -r /tmp/cmake-$CMAKE_VERSION
 
 # Build and install SDL_sound
-ARG SDL2_SOUND_VERSION=574e3174e311d21cc879f2a5bf26735c52bf1cf2
+ARG SDL2_SOUND_VERSION=b63aba4d605cf588aa8102b7febe21976bf459ba
 RUN cd /tmp && \
   curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz && \
   tar -xvzf SDL_sound.tar.gz && \

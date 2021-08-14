@@ -633,7 +633,7 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     bgoffsx += game.SpriteInfos[iep->BgImage].Width;
                 }
                 // return to normal clipping rectangle
-                ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+                ds->ResetClip();
             }
         }
         int uu;

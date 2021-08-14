@@ -350,7 +350,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
             spriteset[CurrentImage]->GetWidth(),
             spriteset[CurrentImage]->GetHeight()));
     }
-    ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+    ds->ResetClip();
 
     // Don't print Text of (INV) (INVSHR) (INVNS)
     if (_placeholder == kButtonPlace_None && !_unnamed)

@@ -68,9 +68,16 @@ void set_font_outline(size_t font_number, int outline_type,
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
 void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
+// Gets full information about the font
+FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
 bool wloadfont_size(size_t fontNumber, const FontInfo &font_info);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
+// Allocates two outline stencil buffers, or returns previously creates ones;
+// these buffers are owned by the font, they should not be deleted by the caller.
+void alloc_font_outline_buffers(size_t font_number,
+    Common::Bitmap **text_stencil, Common::Bitmap **outline_stencil,
+    int text_width, int text_height, int color_depth);
 // Free particular font's data
 void wfreefont(size_t fontNumber);
 // Free all fonts data

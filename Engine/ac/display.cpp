@@ -467,8 +467,9 @@ bool ShouldAntiAliasText() {
 // Draw outline that is calculated from the text font, not derived from an outline font
 void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
 {
-    int const thickness = game.fonts.at(font).AutoOutlineThickness;
-    auto const style = game.fonts.at(font).AutoOutlineStyle;
+    const FontInfo &finfo = get_fontinfo(font);
+    int const thickness = finfo.AutoOutlineThickness;
+    auto const style = finfo.AutoOutlineStyle;
     if (thickness <= 0)
         return;
 
@@ -485,13 +486,14 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     size_t const t_height = wgettextheight(texx, font);
     if (t_width == 0 || t_height == 0)
         return;
-    Bitmap texx_stencil, outline_stencil;
-    texx_stencil.CreateTransparent(t_width, t_height, stencil_cd);
-    outline_stencil.CreateTransparent(t_width, t_height + 2 * thickness, stencil_cd);
-    if (outline_stencil.IsNull() || texx_stencil.IsNull())
-        return;
-    wouttextxy(&texx_stencil, 0, 0, font, color, texx);
-
+    // Prepare stencils
+    Bitmap *texx_stencil, *outline_stencil;
+    alloc_font_outline_buffers(font, &texx_stencil, &outline_stencil,
+        t_width, t_height, stencil_cd);
+    texx_stencil->ClearTransparent();
+    outline_stencil->ClearTransparent();
+    // Ready text stencil
+    wouttextxy(texx_stencil, 0, 0, font, color, texx);
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
     void(Bitmap::*pfn_drawstencil)(Bitmap *src, int dst_x, int dst_y);
@@ -504,7 +506,7 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     {
         pfn_drawstencil = &Bitmap::MaskedBlit;
     }
-    
+
     // move start of text so that the outline doesn't drop off the bitmap
     xxp += thickness;
     int const outline_y = yyp;
@@ -526,16 +528,16 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
             y_diff <= thickness && y_diff * y_diff  <= y_term_limit; 
             y_diff++)
         {
-            (outline_stencil.*pfn_drawstencil)(&texx_stencil, 0, thickness - y_diff);
+            (outline_stencil->*pfn_drawstencil)(texx_stencil, 0, thickness - y_diff);
             if (y_diff > 0)
-                (outline_stencil.*pfn_drawstencil)(&texx_stencil, 0, thickness + y_diff);
+                (outline_stencil->*pfn_drawstencil)(texx_stencil, 0, thickness + y_diff);
             largest_y_diff_reached_so_far = y_diff;
         }
 
         // stamp the outline stencil to the left and right of the text
-        (ds->*pfn_drawstencil)(&outline_stencil, xxp - x_diff, outline_y);
+        (ds->*pfn_drawstencil)(outline_stencil, xxp - x_diff, outline_y);
         if (x_diff > 0)
-            (ds->*pfn_drawstencil)(&outline_stencil, xxp + x_diff, outline_y);
+            (ds->*pfn_drawstencil)(outline_stencil, xxp + x_diff, outline_y);
     }
 }
 

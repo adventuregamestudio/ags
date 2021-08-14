@@ -17,7 +17,6 @@
 #include "ac/dynamicsprite.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
-#include "ac/runtime_defines.h" //MAX_PATH
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 

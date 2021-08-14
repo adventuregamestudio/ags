@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_CN_UTIL__STDIOCOMPAT_H
 #define __AGS_CN_UTIL__STDIOCOMPAT_H
 
@@ -20,10 +19,18 @@
 
 typedef int64_t file_off_t;
 
+// Size of the buffer enough to accomodate a UTF-8 path
+#ifdef __cplusplus
+const size_t MAX_PATH_SZ = 1024u;
+#else
+#define MAX_PATH_SZ (1024u)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+FILE *ags_fopen(const char *path, const char *mode);
 int	 ags_fseek(FILE * stream, file_off_t offset, int whence);
 file_off_t	 ags_ftell(FILE * stream);
 
@@ -31,6 +38,9 @@ int ags_file_exists(const char *path);
 int ags_directory_exists(const char *path);
 int ags_path_exists(const char *path);
 file_off_t ags_file_size(const char *path);
+
+int ags_remove(const char *path);
+int ags_rename(const char *src, const char *dst);
 
 #ifdef __cplusplus
 }

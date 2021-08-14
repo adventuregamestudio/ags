@@ -208,9 +208,8 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             // problem on Win9x, so let's restart the process.
             sys_main_shutdown();
             allegro_exit();
-            char quotedpath[MAX_PATH];
-            snprintf(quotedpath, MAX_PATH, "\"%s\"", appPath.GetCStr());
-            _spawnl(_P_OVERLAY, appPath.GetCStr(), quotedpath, NULL);
+            String args = String::FromFormat("\"%s\"", appPath.GetCStr());
+            _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
     }
 #endif
     return true;

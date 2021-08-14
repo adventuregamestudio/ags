@@ -95,10 +95,11 @@ namespace Path
     // could be copied across systems without problems.
     String  FixupSharedFilename(const String &filename);
 
-    // Converts filepath into ASCII variant; returns empty string on failure
-    String  GetPathInASCII(const String &path);
-    // Converts filepath from command line's argument into ASCII variant
-    String  GetCmdLinePathInASCII(const char *arg, int arg_index);
+    // NOTE: these are only required for internal util implementations
+#if AGS_PLATFORM_OS_WINDOWS
+    // Converts system wide-char path into a UTF-8 string
+    String  WidePathToUTF8(const wchar_t *ws);
+#endif
 } // namespace Path
 
 } // namespace Common

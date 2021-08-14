@@ -37,7 +37,7 @@ soff_t File::GetFileSize(const String &filename)
 
 bool File::TestReadFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "rb");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "rb");
     if (test_file)
     {
         fclose(test_file);
@@ -48,7 +48,7 @@ bool File::TestReadFile(const String &filename)
 
 bool File::TestWriteFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "r+");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "r+");
     if (test_file)
     {
         fclose(test_file);
@@ -59,11 +59,11 @@ bool File::TestWriteFile(const String &filename)
 
 bool File::TestCreateFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "wb");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "wb");
     if (test_file)
     {
         fclose(test_file);
-        ::remove(filename.GetCStr());
+        ags_remove(filename.GetCStr());
         return true;
     }
     return false;
@@ -71,7 +71,7 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (::remove(filename.GetCStr()) != 0)
+    if (ags_remove(filename.GetCStr()) != 0)
     {
         int err;
 #if AGS_PLATFORM_OS_WINDOWS
@@ -89,7 +89,7 @@ bool File::DeleteFile(const String &filename)
 
 bool File::RenameFile(const String &old_name, const String &new_name)
 {
-    return ::rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+    return ags_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
 }
 
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)

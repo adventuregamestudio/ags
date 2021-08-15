@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Extract files
     //-----------------------------------------------------------------------//
-    String lib_basefile = src;
+    String lib_basefile = Path::GetFilename(src);
     String lib_dir = Path::GetParent(src);
     HError err = UnpackLibrary(lib, lib_dir, lib_basefile, dst);
     if (!err)

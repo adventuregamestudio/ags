@@ -38,6 +38,8 @@ struct Font
     IAGSFontRenderer   *Renderer;
     IAGSFontRenderer2  *Renderer2;
     FontInfo            Info;
+    // Values received from the renderer and saved for the reference
+    LoadedFontInfo      LoadedInfo;
 
     Font();
 };
@@ -94,6 +96,23 @@ bool is_font_loaded(size_t fontNumber)
     return fontNumber < fonts.size() && fonts[fontNumber].Renderer != nullptr;;
 }
 
+// Finish font's initialization
+static void post_init_font(size_t fontNumber)
+{
+    Font &font = fonts[fontNumber];
+    if (font.LoadedInfo.Height == 0)
+    {
+        // There is no explicit method for getting maximal possible height of any
+        // random font renderer at the moment; the implementations of GetTextHeight
+        // are allowed to return varied results depending on the text parameter.
+        // We use special line of text to get more or less reliable font height.
+        const char *height_test_string = "ZHwypgfjqhkilIK";
+        int height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
+        font.LoadedInfo.Height = height;
+        font.LoadedInfo.RealHeight = height;
+    }
+}
+
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
 {
   if (fontNumber >= fonts.size())
@@ -101,6 +120,7 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
   fonts[fontNumber].Renderer2 = nullptr;
+  post_init_font(fontNumber);
   return oldRender;
 }
 
@@ -164,12 +184,7 @@ int getfontheight(size_t fontNumber)
 {
   if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
-  // There is no explicit method for getting maximal possible height of any
-  // random font renderer at the moment; the implementations of GetTextHeight
-  // are allowed to return varied results depending on the text parameter.
-  // We use special line of text to get more or less reliable font height.
-  const char *height_test_string = "ZHwypgfjqhkilIK";
-  return fonts[fontNumber].Renderer->GetTextHeight(height_test_string, fontNumber);
+  return fonts[fontNumber].LoadedInfo.Height;
 }
 
 int getfontlinespacing(size_t fontNumber)
@@ -347,24 +362,26 @@ bool wloadfont_size(size_t fontNumber, const FontInfo &font_info)
     wfreefont(fontNumber);
   FontRenderParams params;
   params.SizeMultiplier = font_info.SizeMultiplier;
+  LoadedFontInfo load_info;
 
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params))
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &load_info))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
     fonts[fontNumber].Renderer2 = &ttfRenderer;
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &load_info))
   {
     fonts[fontNumber].Renderer  = &wfnRenderer;
     fonts[fontNumber].Renderer2 = &wfnRenderer;
   }
 
-  if (fonts[fontNumber].Renderer)
-  {
-      fonts[fontNumber].Info = font_info;
-      return true;
-  }
-  return false;
+  if (!fonts[fontNumber].Renderer)
+      return false;
+
+  fonts[fontNumber].Info = font_info;
+  fonts[fontNumber].LoadedInfo = load_info;
+  post_init_font(fontNumber);
+  return true;
 }
 
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...)

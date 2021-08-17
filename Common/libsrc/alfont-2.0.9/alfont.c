@@ -468,7 +468,7 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
   if (!error) {
     _alfont_uncache_glyphs(f);
     f->face_h = h;
-    f->real_face_h = test_h;
+    f->real_face_h = real_height;
     f->face_ascender = f->face->size->metrics.ascender >> 6;
 
     // AGS COMPAT HACK: 
@@ -477,6 +477,7 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
     // to the bottom of the rectangle defined by the "font height".
     if (real_height < h) {
        f->face_ascender = h;
+       f->real_face_h = h + abs(f->face->size->metrics.descender >> 6);
     }
 
     return ALFONT_OK;
@@ -492,6 +493,10 @@ int alfont_get_font_height(ALFONT_FONT *f) {
   return f->face_h;
 }
 
+/* Return font height based on ascender + descender summation */
+int alfont_get_font_real_height(ALFONT_FONT *f) {
+    return f->real_face_h;
+}
 
 void alfont_exit(void) {
   if (alfont_inited) {

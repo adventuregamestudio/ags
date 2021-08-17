@@ -74,7 +74,11 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     String lib_basefile = Path::GetFilename(src);
     String lib_dir = Path::GetParent(src);
-    HError err = UnpackLibrary(lib, lib_dir, lib_basefile, dst);
+    // Replace the file name of the first library part to an actual source
+    // file we just opened, because it may be different from the name
+    // saved in lib; e.g. if the lib was attached to *.exe.
+    lib.LibFileNames[0] = lib_basefile;
+    HError err = UnpackLibrary(lib, lib_dir, dst);
     if (!err)
     {
         printf("Failed unpacking the library\n%s", err->FullMessage().GetCStr());

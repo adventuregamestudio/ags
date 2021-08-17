@@ -28,20 +28,13 @@ namespace DataUtil
 // TODO: might replace "printf" with the logging functions,
 // but then we'd also need to make sure they are initialized in tools
 
-HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
-    const String &lib_basefile, const String &dst_dir)
+HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir)
 {
     for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
     {
         String lib_f = lib.LibFileNames[i];
         String path = Path::ConcatPaths(lib_dir, lib_f);
         std::unique_ptr<Stream> lib_in(File::OpenFileRead(path));
-        if (!lib_in && i == 0)
-        {
-            lib_f = lib_basefile;
-            path = Path::ConcatPaths(lib_dir, lib_f);
-            lib_in.reset(File::OpenFileRead(path));
-        }
         if (!lib_in)
         {
             return new Error(String::FromFormat("Failed to open a library file for reading: %s",

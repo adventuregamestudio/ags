@@ -406,6 +406,7 @@ static void _alfont_new_cache_glyph(ALFONT_FONT *f) {
 
 int alfont_set_font_size(ALFONT_FONT *f, int h) {
   int error, test_h, direction;
+  int real_height;
   /* check the font doesn't already use that w and h */
   if (h == f->face_h)
     return ALFONT_OK;
@@ -417,7 +418,6 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
   test_h = h;
   direction = 0;
   while (1) {
-    int real_height;
     error = FT_Set_Pixel_Sizes(f->face, 0, test_h);
     if (error)
       break;
@@ -425,7 +425,7 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
     /* compare real height with asked height */
     real_height = abs(f->face->size->metrics.ascender >> 6) + abs(f->face->size->metrics.descender >> 6);
 
-    // The first test is always right
+    // AGS COMPAT HACK: always choose the first result
     break;
 
     if (real_height == h) {
@@ -468,11 +468,16 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
   if (!error) {
     _alfont_uncache_glyphs(f);
     f->face_h = h;
+    f->real_face_h = test_h;
+    f->face_ascender = f->face->size->metrics.ascender >> 6;
 
-    // The ascender is somehow wrong. Use the font height to produce the same visual
-    // result as on the Windows version.
-    f->real_face_h = h; //test_h;
-    f->face_ascender = h; //f->face->size->metrics.ascender >> 6;
+    // AGS COMPAT HACK: 
+    // If the first chosen font is less of height than was requested,
+    // we have to adjust the ascender, basically shifting letters down
+    // to the bottom of the rectangle defined by the "font height".
+    if (real_height < h) {
+       f->face_ascender = h;
+    }
 
     return ALFONT_OK;
   }

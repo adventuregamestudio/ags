@@ -120,16 +120,23 @@ namespace AGS.Types
             set { _outlineStyle = value; }
         }
 
-        [Description("Thickness of the automatic outline (0 = default)")]
+        [Description("Thickness of the automatic outline. WARNING: automatic outlines are generated at runtime and large sizes may negatively affect your game performance.")]
         [Category("Appearance")]
+        [DefaultValue(1)]
         public int AutoOutlineThickness
         {
             get { return _autoOutlineThickness; }
-            set { _autoOutlineThickness = value; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentException("AutoOutlineThickness must be 1 or greater.");
+                _autoOutlineThickness = value;
+            }
         }
 
         [Description("Style of the automatic outline")]
         [Category("Appearance")]
+        [DefaultValue(FontAutoOutlineStyle.Squared)]
         public FontAutoOutlineStyle AutoOutlineStyle
         {
             get { return _autoOutlineStyle; }

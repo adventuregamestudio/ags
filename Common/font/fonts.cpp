@@ -112,13 +112,22 @@ static void post_init_font(size_t fontNumber)
         font.LoadedInfo.Height = height;
         font.LoadedInfo.RealHeight = height;
     }
+    // FIXME: move this out of the font module, as compatibility fixes
+    // depend on the other game data, such as format version, etc.
     // Backward compatibility: if the real height != formal height
     // and there's no custom linespacing, then set linespacing = formal height.
     if ((font.LoadedInfo.RealHeight != font.LoadedInfo.Height) &&
         (font.Info.LineSpacing == 0))
     {
-        font.Info.LineSpacing = font.LoadedInfo.Height +
-            2 * get_font_outline_thickness(fontNumber);
+        font.Info.LineSpacing = font.LoadedInfo.Height;
+        if (get_font_outline(fontNumber) == FONT_OUTLINE_AUTO)
+        {
+            // scaled up bitmap fonts have extra outline offset
+            if (is_bitmap_font(fontNumber) && get_font_scaling_mul(fontNumber) > 1)
+                font.Info.LineSpacing += get_fixed_pixel_size(2);  // FIXME: should be 2 + get_fixed_pixel_size(2)?
+            else
+                font.Info.LineSpacing += 2;
+        }
     }
 }
 
@@ -186,15 +195,7 @@ int get_font_outline_thickness(size_t font_number)
 {
     if (font_number >= fonts.size())
         return 0;
-    if (fonts[font_number].Info.Outline == FONT_OUTLINE_AUTO)
-    {
-        // scaled up bitmap font, push outline further out
-        if (is_bitmap_font(font_number) && get_font_scaling_mul(font_number) > 1)
-            return get_fixed_pixel_size(1);
-        else
-            return 1;
-    }
-    return 0;
+    return (fonts[font_number].Info.Outline == FONT_OUTLINE_AUTO) ? 1 : 0;
 }
 
 void set_font_outline(size_t font_number, int outline_type)

@@ -24,7 +24,8 @@
 #include "gui/guidefines.h" // MAXLINE
 #include "util/string_utils.h"
 
-#define STD_BUFFER_SIZE 3000
+
+extern int get_fixed_pixel_size(int pixels);
 
 using namespace AGS::Common;
 
@@ -111,6 +112,14 @@ static void post_init_font(size_t fontNumber)
         font.LoadedInfo.Height = height;
         font.LoadedInfo.RealHeight = height;
     }
+    // Backward compatibility: if the real height != formal height
+    // and there's no custom linespacing, then set linespacing = formal height.
+    if ((font.LoadedInfo.RealHeight != font.LoadedInfo.Height) &&
+        (font.Info.LineSpacing == 0))
+    {
+        font.Info.LineSpacing = font.LoadedInfo.Height +
+            2 * get_font_outline_thickness(fontNumber);
+    }
 }
 
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
@@ -173,6 +182,21 @@ int get_font_outline(size_t font_number)
     return fonts[font_number].Info.Outline;
 }
 
+int get_font_outline_thickness(size_t font_number)
+{
+    if (font_number >= fonts.size())
+        return 0;
+    if (fonts[font_number].Info.Outline == FONT_OUTLINE_AUTO)
+    {
+        // scaled up bitmap font, push outline further out
+        if (is_bitmap_font(font_number) && get_font_scaling_mul(font_number) > 1)
+            return get_fixed_pixel_size(1);
+        else
+            return 1;
+    }
+    return 0;
+}
+
 void set_font_outline(size_t font_number, int outline_type)
 {
     if (font_number >= fonts.size())
@@ -184,7 +208,7 @@ int getfontheight(size_t fontNumber)
 {
   if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
-  return fonts[fontNumber].LoadedInfo.Height;
+  return fonts[fontNumber].LoadedInfo.RealHeight;
 }
 
 int getfontlinespacing(size_t fontNumber)

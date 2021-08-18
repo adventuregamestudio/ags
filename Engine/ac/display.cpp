@@ -505,23 +505,9 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
 }
 
-int get_outline_adjustment(int font)
-{
-    // automatic outline fonts are 2 pixels taller
-    if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
-        // scaled up bitmap font, push outline further out
-        if (is_bitmap_font(font) && get_font_scaling_mul(font) > 1)
-            return get_fixed_pixel_size(2);
-        // otherwise, just push outline by 1 pixel
-        else
-            return 2;
-    }
-    return 0;
-}
-
 int getfontheight_outlined(int font)
 {
-    return getfontheight(font) + get_outline_adjustment(font);
+    return getfontheight(font) + 2 * get_font_outline_thickness(font);
 }
 
 int getfontspacing_outlined(int font)
@@ -541,19 +527,9 @@ int getheightoflines(int font, int numlines)
     return getfontspacing_outlined(font) * (numlines - 1) + getfontheight_outlined(font);
 }
 
-int wgettextwidth_compensate(const char *tex, int font) {
-    int wdof = wgettextwidth(tex, font);
-
-    if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
-        // scaled up SCI font, push outline further out
-        if (is_bitmap_font(font) && get_font_scaling_mul(font) > 1)
-            wdof += get_fixed_pixel_size(2);
-        // otherwise, just push outline by 1 pixel
-        else
-            wdof += get_fixed_pixel_size(1);
-    }
-
-    return wdof;
+int wgettextwidth_compensate(const char *tex, int font)
+{
+    return wgettextwidth(tex, font) + 2 * get_font_outline_thickness(font);
 }
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {

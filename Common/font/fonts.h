@@ -11,12 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_FONT_H
 #define __AC_FONT_H
 
 #include <vector>
-#include "core/types.h"
+#include "ac/gamestructdefines.h"
 #include "util/string.h"
 
 // TODO: we need to make some kind of TextManager class of this module
@@ -63,7 +62,8 @@ int  get_font_outline(size_t font_number);
 // Get font's automatic outline thickness (if set)
 int  get_font_outline_thickness(size_t font_number);
 // Set font's outline type
-void set_font_outline(size_t font_number, int outline_type);
+void set_font_outline(size_t font_number, int outline_type,
+    enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font

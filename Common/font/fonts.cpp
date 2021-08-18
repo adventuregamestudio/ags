@@ -65,6 +65,8 @@ FontInfo::FontInfo()
     , Outline(FONT_OUTLINE_NONE)
     , YOffset(0)
     , LineSpacing(0)
+    , AutoOutlineStyle(kSquared)
+    , AutoOutlineThickness(0)
 {}
 
 
@@ -111,6 +113,10 @@ static void post_init_font(size_t fontNumber)
         int height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
         font.Metrics.Height = height;
         font.Metrics.RealHeight = height;
+    }
+    if (font.Info.Outline != FONT_OUTLINE_AUTO)
+    {
+        font.Info.AutoOutlineThickness = 0;
     }
 }
 
@@ -178,14 +184,17 @@ int get_font_outline_thickness(size_t font_number)
 {
     if (font_number >= fonts.size())
         return 0;
-    return (fonts[font_number].Info.Outline == FONT_OUTLINE_AUTO) ? 1 : 0;
+    return fonts[font_number].Info.AutoOutlineThickness;
 }
 
-void set_font_outline(size_t font_number, int outline_type)
+void set_font_outline(size_t font_number, int outline_type,
+    enum FontInfo::AutoOutlineStyle style, int thickness)
 {
     if (font_number >= fonts.size())
         return;
     fonts[font_number].Info.Outline = outline_type;
+    fonts[font_number].Info.AutoOutlineStyle = style;
+    fonts[font_number].Info.AutoOutlineThickness = thickness;
 }
 
 int getfontheight(size_t fontNumber)

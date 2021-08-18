@@ -30,6 +30,7 @@
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
+#include "font/fonts.h"
 
 namespace AGS
 {
@@ -532,6 +533,18 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             else
             {
                 finfo.SizeMultiplier = 1;
+            }
+        }
+    }
+    if (data_ver < kGameVersion_360)
+    {
+        for (int i = 0; i < game.numfonts; ++i)
+        {
+            FontInfo &finfo = game.fonts[i];
+            if (finfo.Outline == FONT_OUTLINE_AUTO)
+            {
+                finfo.AutoOutlineStyle = FontInfo::kSquared;
+                finfo.AutoOutlineThickness = 1;
             }
         }
     }

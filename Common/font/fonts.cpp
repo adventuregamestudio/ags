@@ -40,7 +40,7 @@ struct Font
     IAGSFontRenderer2  *Renderer2;
     FontInfo            Info;
     // Values received from the renderer and saved for the reference
-    LoadedFontInfo      LoadedInfo;
+    FontMetrics         Metrics;
 
     Font();
 };
@@ -101,7 +101,7 @@ bool is_font_loaded(size_t fontNumber)
 static void post_init_font(size_t fontNumber)
 {
     Font &font = fonts[fontNumber];
-    if (font.LoadedInfo.Height == 0)
+    if (font.Metrics.Height == 0)
     {
         // There is no explicit method for getting maximal possible height of any
         // random font renderer at the moment; the implementations of GetTextHeight
@@ -109,25 +109,8 @@ static void post_init_font(size_t fontNumber)
         // We use special line of text to get more or less reliable font height.
         const char *height_test_string = "ZHwypgfjqhkilIK";
         int height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
-        font.LoadedInfo.Height = height;
-        font.LoadedInfo.RealHeight = height;
-    }
-    // FIXME: move this out of the font module, as compatibility fixes
-    // depend on the other game data, such as format version, etc.
-    // Backward compatibility: if the real height != formal height
-    // and there's no custom linespacing, then set linespacing = formal height.
-    if ((font.LoadedInfo.RealHeight != font.LoadedInfo.Height) &&
-        (font.Info.LineSpacing == 0))
-    {
-        font.Info.LineSpacing = font.LoadedInfo.Height;
-        if (get_font_outline(fontNumber) == FONT_OUTLINE_AUTO)
-        {
-            // scaled up bitmap fonts have extra outline offset
-            if (is_bitmap_font(fontNumber) && get_font_scaling_mul(fontNumber) > 1)
-                font.Info.LineSpacing += get_fixed_pixel_size(2);  // FIXME: should be 2 + get_fixed_pixel_size(2)?
-            else
-                font.Info.LineSpacing += 2;
-        }
+        font.Metrics.Height = height;
+        font.Metrics.RealHeight = height;
     }
 }
 
@@ -209,7 +192,7 @@ int getfontheight(size_t fontNumber)
 {
   if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
-  return fonts[fontNumber].LoadedInfo.RealHeight;
+  return fonts[fontNumber].Metrics.RealHeight;
 }
 
 int getfontlinespacing(size_t fontNumber)
@@ -220,6 +203,12 @@ int getfontlinespacing(size_t fontNumber)
   // If the spacing parameter is not provided, then return default
   // spacing, that is font's height.
   return spacing > 0 ? spacing : getfontheight(fontNumber);
+}
+
+void set_font_linespacing(size_t fontNumber, int spacing)
+{
+    if (fontNumber < fonts.size())
+        fonts[fontNumber].Info.LineSpacing = spacing;
 }
 
 bool use_default_linespacing(size_t fontNumber)
@@ -387,14 +376,14 @@ bool wloadfont_size(size_t fontNumber, const FontInfo &font_info)
     wfreefont(fontNumber);
   FontRenderParams params;
   params.SizeMultiplier = font_info.SizeMultiplier;
-  LoadedFontInfo load_info;
+  FontMetrics metrics;
 
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &load_info))
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &metrics))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
     fonts[fontNumber].Renderer2 = &ttfRenderer;
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &load_info))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params, &metrics))
   {
     fonts[fontNumber].Renderer  = &wfnRenderer;
     fonts[fontNumber].Renderer2 = &wfnRenderer;
@@ -404,7 +393,7 @@ bool wloadfont_size(size_t fontNumber, const FontInfo &font_info)
       return false;
 
   fonts[fontNumber].Info = font_info;
-  fonts[fontNumber].LoadedInfo = load_info;
+  fonts[fontNumber].Metrics = metrics;
   post_init_font(fontNumber);
   return true;
 }

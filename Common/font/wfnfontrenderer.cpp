@@ -137,7 +137,7 @@ bool WFNFontRenderer::IsBitmapFont()
 }
 
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
-    const FontRenderParams *params, LoadedFontInfo *load_info)
+    const FontRenderParams *params, FontMetrics *metrics)
 {
   String file_name;
   Stream *ffi = nullptr;

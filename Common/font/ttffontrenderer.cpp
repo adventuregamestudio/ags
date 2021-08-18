@@ -81,7 +81,7 @@ bool TTFFontRenderer::IsBitmapFont()
 }
 
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
-    const FontRenderParams *params, LoadedFontInfo *load_info)
+    const FontRenderParams *params, FontMetrics *metrics)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
   soff_t lenof = 0;
@@ -126,10 +126,10 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
   _fontData[fontNumber].AlFont = alfptr;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
 
-  if (load_info)
+  if (metrics)
   {
-      load_info->Height = alfont_get_font_height(alfptr);
-      load_info->RealHeight = alfont_get_font_real_height(alfptr);
+      metrics->Height = alfont_get_font_height(alfptr);
+      metrics->RealHeight = alfont_get_font_real_height(alfptr);
   }
   return true;
 }

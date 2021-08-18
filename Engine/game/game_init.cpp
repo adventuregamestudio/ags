@@ -14,6 +14,7 @@
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialog.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/file.h"
 #include "ac/game.h"
@@ -335,6 +336,18 @@ void LoadFonts(GameDataVersion data_ver)
     {
         if (!wloadfont_size(i, game.fonts[i]))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
+
+        // Backward compatibility: if the real font's height != formal height
+        // and there's no custom linespacing, then set linespacing = formal height.
+        if (!is_bitmap_font(i))
+        {
+            int req_height = game.fonts[i].SizePt * game.fonts[i].SizeMultiplier;
+            int height = getfontheight(i);
+            if ((height != req_height) && (game.fonts[i].LineSpacing == 0))
+            {
+                set_font_linespacing(i, req_height + get_font_outline_padding(i));
+            }
+        }
     }
 }
 

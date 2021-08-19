@@ -99,9 +99,20 @@ bool GUIObject::IsClickable() const
     return (Flags & kGUICtrl_Clickable) != 0;
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkChanged()
 {
-    guis[ParentId].MarkChanged();
+    _hasChanged = true;
+    guis[ParentId].MarkControlsChanged();
+}
+
+bool GUIObject::HasChanged() const
+{
+    return _hasChanged;
+}
+
+void GUIObject::ClearChanged()
+{
+    _hasChanged = false;
 }
 
 void GUILabel::PrepareTextToDraw()

@@ -41,7 +41,7 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
     guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
     guibuts[abtn.buttonid].PushedImage = 0;
     guibuts[abtn.buttonid].MouseOverImage = 0;
-    guibuts[abtn.buttonid].NotifyParentChanged();
+    guibuts[abtn.buttonid].MarkChanged();
 }
 
 void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe) {
@@ -130,7 +130,7 @@ void Button_SetFont(GUIButton *butt, int newFont) {
 
     if (butt->Font != newFont) {
         butt->Font = newFont;
-        butt->NotifyParentChanged();
+        butt->MarkChanged();
     }
 }
 
@@ -167,7 +167,7 @@ void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->MouseOverImage = slotn;
 
-    guil->NotifyParentChanged();
+    guil->MarkChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -193,7 +193,7 @@ void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
         guil->Height = game.SpriteInfos[slotn].Height;
     }
 
-    guil->NotifyParentChanged();
+    guil->MarkChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -208,7 +208,7 @@ void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->PushedImage = slotn;
 
-    guil->NotifyParentChanged();
+    guil->MarkChanged();
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
@@ -219,7 +219,7 @@ int Button_GetTextColor(GUIButton *butt) {
 void Button_SetTextColor(GUIButton *butt, int newcol) {
     if (butt->TextColor != newcol) {
         butt->TextColor = newcol;
-        butt->NotifyParentChanged();
+        butt->MarkChanged();
     }
 }
 
@@ -328,7 +328,7 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
 {
     if (butt->TextAlignment != align) {
         butt->TextAlignment = (FrameAlignment)align;
-        butt->NotifyParentChanged();
+        butt->MarkChanged();
     }
 }
 

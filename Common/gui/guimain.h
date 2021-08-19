@@ -88,8 +88,10 @@ public:
 
     // Tells if GUI has graphically changed recently
     bool        HasChanged() const;
+    bool        HasControlsChanged() const;
     // Manually marks GUI as graphically changed
     void        MarkChanged();
+    void        MarkControlsChanged();
     // Clears changed flag
     void        ClearChanged();
 
@@ -184,6 +186,7 @@ public:
 private:
     int32_t _flags;         // style and behavior flags
     bool    _hasChanged;    // flag tells whether GUI has graphically changed recently
+    bool    _hasControlsChanged;
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array

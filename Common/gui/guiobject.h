@@ -92,7 +92,10 @@ public:
 // TODO: these members are currently public; hide them later
 public:
     // Notifies parent GUI that this control has changed
-    void     NotifyParentChanged();
+    void     MarkChanged();
+
+    bool     HasChanged() const;
+    void     ClearChanged();
 
     int32_t  Id;         // GUI object's identifier
     int32_t  ParentId;   // id of parent GUI
@@ -109,6 +112,7 @@ public:
   
 protected:
     uint32_t Flags;      // generic style and behavior flags
+    bool     _hasChanged;
 
     // TODO: explicit event names & handlers for every event
     int32_t  _scEventCount;                    // number of supported script events

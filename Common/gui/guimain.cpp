@@ -58,6 +58,8 @@ void GUIMain::InitDefaults()
     ID            = 0;
     Name.Empty();
     _flags        = kGUIMain_DefFlags;
+    _hasChanged   = true;
+    _hasControlsChanged = true;
 
     X             = 0;
     Y             = 0;
@@ -200,14 +202,25 @@ bool GUIMain::HasChanged() const
     return _hasChanged;
 }
 
+bool GUIMain::HasControlsChanged() const
+{
+    return _hasControlsChanged;
+}
+
 void GUIMain::MarkChanged()
 {
     _hasChanged = true;
 }
 
+void GUIMain::MarkControlsChanged()
+{
+    _hasControlsChanged = true;
+}
+
 void GUIMain::ClearChanged()
 {
     _hasChanged = false;
+    _hasControlsChanged = false;
 }
 
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
@@ -354,7 +367,6 @@ void GUIMain::Poll(int mx, int my)
                     _controls[MouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
-            //MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
             _controls[MouseOverCtrl]->OnMouseMove(mx, my);
@@ -515,7 +527,6 @@ void GUIMain::OnMouseButtonDown(int mx, int my)
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
     _controls[MouseDownCtrl]->OnMouseMove(mx - X, my - Y);
-    //MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::OnMouseButtonUp()
@@ -533,7 +544,6 @@ void GUIMain::OnMouseButtonUp()
 
     _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
-    //MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -734,6 +744,8 @@ void MarkAllGUIForUpdate()
     for (auto &gui : guis)
     {
         gui.MarkChanged();
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+            gui.GetControl(i)->MarkChanged();
     }
 }
 
@@ -742,22 +754,22 @@ void MarkForFontUpdate(int font)
     for (auto &btn : guibuts)
     {
         if (btn.Font == font)
-            btn.NotifyParentChanged();
+            btn.MarkChanged();
     }
     for (auto &lbl : guilabels)
     {
         if (lbl.Font == font)
-            lbl.NotifyParentChanged();
+            lbl.MarkChanged();
     }
     for (auto &list : guilist)
     {
         if (list.Font == font)
-            list.NotifyParentChanged();
+            list.MarkChanged();
     }
     for (auto &tb : guitext)
     {
         if (tb.Font == font)
-            tb.NotifyParentChanged();
+            tb.MarkChanged();
     }
 }
 
@@ -767,7 +779,7 @@ void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
     {
         if ((lbl.GetTextMacros() & macro) != 0)
         {
-            lbl.NotifyParentChanged();
+            lbl.MarkChanged();
         }
     }
 }
@@ -778,7 +790,7 @@ void MarkInventoryForUpdate(int char_id, bool is_player)
     {
         if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
         {
-            inv.NotifyParentChanged();
+            inv.MarkChanged();
         }
     }
 }

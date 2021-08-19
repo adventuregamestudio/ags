@@ -34,7 +34,7 @@ void TextBox_GetText(GUITextBox *texbox, char *buffer) {
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
     if (texbox->Text != newtex) {
         texbox->Text = newtex;
-        texbox->NotifyParentChanged();
+        texbox->MarkChanged();
     }
 }
 
@@ -47,7 +47,7 @@ void TextBox_SetTextColor(GUITextBox *guit, int colr)
     if (guit->TextColor != colr) 
     {
         guit->TextColor = colr;
-        guit->NotifyParentChanged();
+        guit->MarkChanged();
     }
 }
 
@@ -61,7 +61,7 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
 
     if (guit->Font != fontnum) {
         guit->Font = fontnum;
-        guit->NotifyParentChanged();
+        guit->MarkChanged();
     }
 }
 
@@ -74,7 +74,7 @@ void TextBox_SetShowBorder(GUITextBox *guit, bool on)
     if (guit->IsBorderShown() != on)
     {
         guit->SetShowBorder(on);
-        guit->NotifyParentChanged();
+        guit->MarkChanged();
     }
 }
 

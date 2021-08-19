@@ -83,7 +83,7 @@ int GUIListBox::AddItem(const String &text)
     Items.push_back(text);
     SavedGameIndex.push_back(-1);
     ItemCount++;
-    NotifyParentChanged();
+    MarkChanged();
     return ItemCount - 1;
 }
 
@@ -94,7 +94,7 @@ void GUIListBox::Clear()
     ItemCount = 0;
     SelectedItem = 0;
     TopItem = 0;
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::Draw(Bitmap *ds, int x, int y)
@@ -189,7 +189,7 @@ int GUIListBox::InsertItem(int index, const String &text)
         SelectedItem++;
 
     ItemCount++;
-    NotifyParentChanged();
+    MarkChanged();
     return ItemCount - 1;
 }
 
@@ -206,7 +206,7 @@ void GUIListBox::RemoveItem(int index)
         SelectedItem--;
     if (SelectedItem >= ItemCount)
         SelectedItem = -1;
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::SetShowArrows(bool on)
@@ -215,7 +215,7 @@ void GUIListBox::SetShowArrows(bool on)
         ListBoxFlags |= kListBox_ShowArrows;
     else
         ListBoxFlags &= ~kListBox_ShowArrows;
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::SetShowBorder(bool on)
@@ -224,7 +224,7 @@ void GUIListBox::SetShowBorder(bool on)
         ListBoxFlags |= kListBox_ShowBorder;
     else
         ListBoxFlags &= ~kListBox_ShowBorder;
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::SetSvgIndex(bool on)
@@ -239,7 +239,7 @@ void GUIListBox::SetFont(int font)
 {
     Font = font;
     UpdateMetrics();
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::SetItemText(int index, const String &text)
@@ -247,7 +247,7 @@ void GUIListBox::SetItemText(int index, const String &text)
     if (index >= 0 && index < ItemCount)
     {
         Items[index] = text;
-        NotifyParentChanged();
+        MarkChanged();
     }
 }
 
@@ -263,7 +263,7 @@ bool GUIListBox::OnMouseDown()
         if (TopItem != top_item)
         {
             TopItem = top_item;
-            NotifyParentChanged();
+            MarkChanged();
         }
         return false;
     }
@@ -274,7 +274,7 @@ bool GUIListBox::OnMouseDown()
     if (sel != SelectedItem)
     {
         SelectedItem = sel;
-        NotifyParentChanged();
+        MarkChanged();
     }
     IsActivated = true;
     return false;
@@ -289,7 +289,7 @@ void GUIListBox::OnMouseMove(int x_, int y_)
 void GUIListBox::OnResized() 
 {
     UpdateMetrics();
-    NotifyParentChanged();
+    MarkChanged();
 }
 
 void GUIListBox::UpdateMetrics()

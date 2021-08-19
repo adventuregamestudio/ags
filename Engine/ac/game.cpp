@@ -1481,7 +1481,7 @@ void game_sprite_updated(int sprnum)
     {
         if (guibuts[i].CurrentImage == sprnum)
         {
-            guibuts[i].NotifyParentChanged();
+            guibuts[i].MarkChanged();
         }
     }
 }
@@ -1529,7 +1529,7 @@ void game_sprite_deleted(int sprnum)
         if (guibuts[i].CurrentImage == sprnum)
         {
             guibuts[i].CurrentImage = 0;
-            guibuts[i].NotifyParentChanged();
+            guibuts[i].MarkChanged();
         }
     }
     // views

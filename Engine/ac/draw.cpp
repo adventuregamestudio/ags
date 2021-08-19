@@ -114,13 +114,15 @@ IDriverDependantBitmap *debugConsole = nullptr;
 
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
-int actSpsCount = 0;
-Bitmap **actsps;
-IDriverDependantBitmap* *actspsbmp;
+std::vector<Bitmap*> actsps;
+std::vector<IDriverDependantBitmap*> actspsbmp;
 // temporary cache of walk-behind for this actsps image
-Bitmap **actspswb;
-IDriverDependantBitmap* *actspswbbmp;
-CachedActSpsData* actspswbcache;
+std::vector<Bitmap*> actspswb;
+std::vector<IDriverDependantBitmap*>actspswbbmp;
+std::vector<CachedActSpsData> actspswbcache;
+// GUI surfaces
+std::vector<Bitmap*> guibg;
+std::vector<IDriverDependantBitmap*> guibgbmp;
 
 bool current_background_is_dirty = false;
 
@@ -143,9 +145,6 @@ std::vector<RoomCameraDrawData> CameraDrawData;
 
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
-
-Bitmap **guibg = nullptr;
-IDriverDependantBitmap **guibgbmp = nullptr;
 
 
 Bitmap *debugConsoleBuffer = nullptr;
@@ -517,10 +516,74 @@ void dispose_draw_method()
     destroy_blank_image();
 }
 
+void init_game_drawdata()
+{
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+        objcache[i].image = nullptr;
+
+    size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
+    actsps.resize(actsps_num);
+    actspsbmp.resize(actsps_num);
+    actspswb.resize(actsps_num);
+    actspswbbmp.resize(actsps_num);
+    actspswbcache.resize(actsps_num);
+    guibg.resize(game.numgui);
+    guibgbmp.resize(game.numgui);
+}
+
+void dispose_game_drawdata()
+{
+    clear_drawobj_cache();
+
+    actsps.clear();
+    actspsbmp.clear();
+    actspswb.clear();
+    actspswbbmp.clear();
+    actspswbcache.clear();
+    guibg.clear();
+}
+
 void dispose_room_drawdata()
 {
     CameraDrawData.clear();
     dispose_invalid_regions(true);
+}
+
+void clear_drawobj_cache()
+{
+    // clear the object cache
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    {
+        delete objcache[i].image;
+        objcache[i].image = nullptr;
+    }
+
+    // cleanup Character + Room object textures
+    for (int i = 0; i < MAX_ROOM_OBJECTS + game.numcharacters; ++i)
+    {
+        delete actsps[i];
+        actsps[i] = nullptr;
+        if (actspsbmp[i] != nullptr)
+            gfxDriver->DestroyDDB(actspsbmp[i]);
+        actspsbmp[i] = nullptr;
+
+        delete actspswb[i];
+        actspswb[i] = nullptr;
+        if (actspswbbmp[i] != nullptr)
+            gfxDriver->DestroyDDB(actspswbbmp[i]);
+        actspswbbmp[i] = nullptr;
+        actspswbcache[i].valid = 0;
+    }
+
+    // cleanup GUI backgrounds
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        delete guibg[i];
+        guibg[i] = nullptr;
+        if (guibgbmp[i])
+            gfxDriver->DestroyDDB(guibgbmp[i]);
+        guibgbmp[i] = nullptr;
+    }
 }
 
 void on_mainviewport_changed()
@@ -863,7 +926,7 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap 
 
 void invalidate_cached_walkbehinds() 
 {
-    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actSpsCount);
+    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actspswbcache.size());
 }
 
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
@@ -1171,6 +1234,20 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
     return bimp;
 }
 
+// Allocates texture for the GUI
+void recreate_guibg_image(GUIMain *tehgui)
+{
+    int ifn = tehgui->ID;
+    delete guibg[ifn];
+    guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
+    guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
+
+    if (guibgbmp[ifn] != nullptr)
+    {
+        gfxDriver->DestroyDDB(guibgbmp[ifn]);
+        guibgbmp[ifn] = nullptr;
+    }
+}
 
 // Get the local tint at the specified X & Y co-ordinates, based on
 // room regions and SetAmbientTint
@@ -1984,6 +2061,16 @@ void prepare_characters_for_drawing() {
     }
 }
 
+Bitmap *get_cached_character_image(int charid)
+{
+    return actsps[charid + MAX_ROOM_OBJECTS];
+}
+
+Bitmap *get_cached_object_image(int objid)
+{
+    return actsps[objid];
+}
+
 
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
@@ -2164,7 +2251,8 @@ void draw_gui_and_overlays()
                 if (guis[aa].Transparency == 255) continue;
 
                 guis[aa].ClearChanged();
-                if (guibg[aa] == nullptr)
+                if (guibg[aa] == nullptr ||
+                    guibg[aa]->GetSize() != Size(guis[aa].Width, guis[aa].Height))
                     recreate_guibg_image(&guis[aa]);
 
                 eip_guinum = aa;

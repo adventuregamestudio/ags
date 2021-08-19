@@ -78,16 +78,6 @@ extern DialogTopic *dialog;
 
 extern int obj_lowest_yp, char_lowest_yp;
 
-// These are referenced only for deletion in unload_game_file()
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
-extern Bitmap **guibg;
-extern IDriverDependantBitmap **guibgbmp;
-
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 
@@ -513,11 +503,8 @@ void unload_game_file()
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);
-    free(actsps);
-    free(actspsbmp);
-    free(actspswb);
-    free(actspswbbmp);
-    free(actspswbcache);
+
+    dispose_game_drawdata();
 
     if ((gameinst != nullptr) && (gameinst->pc != 0))
     {
@@ -594,13 +581,7 @@ void unload_game_file()
     delete[] scrDialog;
     scrDialog = nullptr;
 
-    for (int i = 0; i < game.numgui; ++i) {
-        free(guibg[i]);
-        guibg[i] = nullptr;
-    }
-
     guiScriptObjNames.clear();
-    free(guibg);
     guis.clear();
     free(scrGui);
 

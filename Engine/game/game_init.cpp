@@ -50,12 +50,6 @@ using namespace Common;
 using namespace Engine;
 
 extern GameSetupStruct game;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 extern CharacterCache *charcache;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -441,12 +435,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_ROOM_OBJECTS + 2;
-    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
+    init_game_drawdata();
     play.charProps.resize(game.numcharacters);
     old_dialog_scripts = ents.OldDialogScripts;
     old_speech_lines = ents.OldSpeechLines;

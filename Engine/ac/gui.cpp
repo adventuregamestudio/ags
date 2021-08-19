@@ -59,8 +59,6 @@ extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
-extern Bitmap **guibg;
-extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;
@@ -137,8 +135,6 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   
   tehgui->Width = widd;
   tehgui->Height = hitt;
-  
-  recreate_guibg_image(tehgui);
 
   tehgui->MarkChanged();
 }
@@ -579,22 +575,6 @@ int adjust_y_for_guis ( int yy) {
             yy = guis[aa].Y + guis[aa].Height + 2;        
     }
     return yy;
-}
-
-void recreate_guibg_image(GUIMain *tehgui)
-{
-  int ifn = tehgui->ID;
-  delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
-  if (guibg[ifn] == nullptr)
-    quit("SetGUISize: internal error: unable to reallocate gui cache");
-  guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
-
-  if (guibgbmp[ifn] != nullptr)
-  {
-    gfxDriver->DestroyDDB(guibgbmp[ifn]);
-    guibgbmp[ifn] = nullptr;
-  }
 }
 
 int gui_get_interactable(int x,int y)

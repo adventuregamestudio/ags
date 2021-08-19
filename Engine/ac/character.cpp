@@ -73,7 +73,6 @@ extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap **actsps;
 extern int said_speech_line;
 extern int said_text;
 extern int our_eip;
@@ -2172,12 +2171,13 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        if (actsps[charid + MAX_ROOM_OBJECTS] != nullptr) 
+        Bitmap *actsp = get_cached_character_image(charid);
+        if (actsp)
         {
-            // the actsps image is pre-flipped, so no longer register the image as such
+            // the cached image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
-            return actsps[charid + MAX_ROOM_OBJECTS];
+            return actsp;
         }
     }
     CharacterInfo*chin=&game.chars[charid];

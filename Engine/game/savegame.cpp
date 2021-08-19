@@ -62,8 +62,6 @@ using namespace Engine;
 HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
 
 extern GameSetupStruct game;
-extern Bitmap **guibg;
-extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
@@ -374,16 +372,8 @@ void DoBeforeRestore(PreservedParams &pp)
         }
     }
 
-    // cleanup GUI backgrounds
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        delete guibg[i];
-        guibg[i] = nullptr;
-
-        if (guibgbmp[i])
-            gfxDriver->DestroyDDB(guibgbmp[i]);
-        guibgbmp[i] = nullptr;
-    }
+    // Cleanup drawn caches
+    clear_drawobj_cache();
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
@@ -660,12 +650,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
     update_directional_sound_vol();
-
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, game.GetColorDepth());
-        guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
-    }
 
     recreate_overlay_ddbs();
 

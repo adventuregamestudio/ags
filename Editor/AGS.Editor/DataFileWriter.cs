@@ -1731,6 +1731,8 @@ namespace AGS.Editor
             // Use WriteExtension to write them according to format and provide your method
             // of type WriteExtensionProc that does the actual writing job.
 
+            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
+
             // End of extensions list
             writer.Write((byte)0xff);
 
@@ -1739,9 +1741,25 @@ namespace AGS.Editor
             return true;
         }
 
-        private delegate void WriteExtensionProc(BinaryWriter writer);
+        // 3.6.0: font outline properties
+        private static void WriteExt_360Fonts(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            // adjustable font outlines
+            for (int i = 0; i < game.Fonts.Count; ++i)
+            {
+                writer.Write(game.Fonts[i].AutoOutlineThickness);
+                writer.Write((int)game.Fonts[i].AutoOutlineStyle);
+                // reserved ints
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+        }
 
-        private static void WriteExtension(string ext_id, BinaryWriter writer, WriteExtensionProc proc)
+        private delegate void WriteExtensionProc(BinaryWriter writer, Game game, CompileMessages errors);
+
+        private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, Game game, CompileMessages errors)
         {
             // The block meta format:
             //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
@@ -1754,7 +1772,7 @@ namespace AGS.Editor
             var data_len_pos = writer.BaseStream.Position;
             writer.Write((long)0);
             var start_pos = writer.BaseStream.Position;
-            proc(writer);
+            proc(writer, game, errors);
             var end_pos = writer.BaseStream.Position;
             var data_len = end_pos - start_pos;
             writer.Seek((int)data_len_pos, SeekOrigin.Begin);

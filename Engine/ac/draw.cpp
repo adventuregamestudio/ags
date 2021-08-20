@@ -240,6 +240,12 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int sys_col_depth = System_GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
+    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(game_col_depth);
+
+    const bool must_switch_palette = bitmap->GetColorDepth() == 8 && game_col_depth > 8;
+    if (must_switch_palette)
+        select_palette(palette);
+
     Bitmap *new_bitmap = bitmap;
 
     //
@@ -270,7 +276,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
     {
-        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
+        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // In non-32-bit game truecolor bitmaps must be downgraded
     else if (game_col_depth <= 16 && bmp_col_depth > 16)
@@ -278,51 +284,46 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
             new_bitmap = remove_alpha_channel(bitmap);
         else // else simply convert bitmap
-            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
+            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // Special case when we must convert 16-bit RGB to BGR
     else if (convert_16bit_bgr == 1 && bmp_col_depth == 16)
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }
+    
+    // Finally, if we did not create a new copy already, - convert to driver compatible format
+    if ((new_bitmap == bitmap) && (bmp_col_depth != compat_col_depth))
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, compat_col_depth);
+
+    if (must_switch_palette)
+        unselect_palette();
+
     return new_bitmap;
+}
+
+Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
+{
+    return new Bitmap(width, height,
+        gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
 {
-    Bitmap *new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
-    if (new_bitmap != bitmap)
-        delete bitmap;
-    return new_bitmap;
+    return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 }
 
 Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 {
-    bool must_switch_palette = bitmap->GetColorDepth() == 8 && game.GetColorDepth() > 8;
-    if (must_switch_palette)
-        select_palette(palette);
-
     Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
     if (new_bitmap != bitmap)
         delete bitmap;
-    new_bitmap = ReplaceBitmapWithSupportedFormat(new_bitmap);
-
-    if (must_switch_palette)
-        unselect_palette();
     return new_bitmap;
 }
 
 PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
 {
-    bool must_switch_palette = bitmap->GetColorDepth() == 8 && System_GetColorDepth() > 8;
-    if (must_switch_palette)
-        select_palette(palette);
-
     Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), has_alpha);
-    new_bitmap = ReplaceBitmapWithSupportedFormat(new_bitmap);
-
-    if (must_switch_palette)
-        unselect_palette();
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
@@ -461,8 +462,7 @@ void create_blank_image(int coldepth)
     // so it's the most likey place for a crash
     try
     {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
-        blank = ReplaceBitmapWithSupportedFormat(blank);
+        Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
         blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
@@ -1239,8 +1239,7 @@ void recreate_guibg_image(GUIMain *tehgui)
 {
     int ifn = tehgui->ID;
     delete guibg[ifn];
-    guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
-    guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
+    guibg[ifn] = CreateCompatBitmap(tehgui->Width, tehgui->Height);
 
     if (guibgbmp[ifn] != nullptr)
     {
@@ -2175,8 +2174,7 @@ void draw_fps(const Rect &viewport)
     const int font = FONT_NORMAL;
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + get_fixed_pixel_size(5)), game.GetColorDepth());
-        fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
+        fpsDisplay = CreateCompatBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + get_fixed_pixel_size(5)));
     }
     fpsDisplay->ClearTransparent();
     
@@ -2567,8 +2565,7 @@ void construct_engine_overlay()
 
         if (debugConsoleBuffer == nullptr)
         {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight, game.GetColorDepth());
-            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
+            debugConsoleBuffer = CreateCompatBitmap(viewport.GetWidth(), barheight);
         }
 
         color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);

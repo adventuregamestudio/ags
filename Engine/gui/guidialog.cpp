@@ -79,8 +79,7 @@ Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque)
     }
     else
     {
-        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, game.GetColorDepth());
-        windowBuffer = ReplaceBitmapWithSupportedFormat(windowBuffer);
+        windowBuffer = CreateCompatBitmap(windowPosWidth, windowPosHeight);
     }
     dialogDDB = recycle_ddb_bitmap(dialogDDB, windowBuffer, false, opaque);
     return windowBuffer;

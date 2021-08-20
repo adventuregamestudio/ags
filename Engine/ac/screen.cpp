@@ -89,7 +89,6 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
     if (saved_viewport_bitmap == nullptr)
         quit("Crossfade: buffer is null attempting transition");
 
-    saved_viewport_bitmap = ReplaceBitmapWithSupportedFormat(saved_viewport_bitmap);
     const Rect &viewport = play.GetMainViewport();
     if (saved_viewport_bitmap->GetHeight() < viewport.GetHeight())
     {

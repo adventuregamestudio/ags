@@ -17,7 +17,7 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__OVERLAY_H
 #define __AGS_EE_AC__OVERLAY_H
-#include "ac/runtime_defines.h"
+#include <vector>
 #include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
 
@@ -38,14 +38,13 @@ int  find_overlay_of_type(int type);
 void remove_screen_overlay(int type);
 // Calculates overlay position in screen coordinates
 void get_overlay_position(const ScreenOverlay &over, int *x, int *y);
-int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
-int  add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel = false);
-void remove_screen_overlay_index(int over_idx);
+size_t add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
+size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel = false);
+void remove_screen_overlay_index(size_t over_idx);
 // Creates and registers a managed script object for existing overlay object
 ScriptOverlay* create_scriptobj_for_overlay(ScreenOverlay &over);
 void recreate_overlay_ddbs();
 
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern int numscreenover;
+extern std::vector<ScreenOverlay> screenover;
 #endif // __AGS_EE_AC__OVERLAY_H

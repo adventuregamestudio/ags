@@ -2212,20 +2212,18 @@ void draw_fps(const Rect &viewport)
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
-    int gg;
-
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
         add_thing_to_draw(nullptr, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // draw overlays, except text boxes and portraits
-    for (gg=0;gg<numscreenover;gg++) {
+    for (const auto &over : screenover) {
         // complete overlay draw in non-transparent mode
-        if (screenover[gg].type == OVER_COMPLETE)
-            add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);
-        else if (screenover[gg].type != OVER_TEXTMSG && screenover[gg].type != OVER_PICTURE) {
+        if (over.type == OVER_COMPLETE)
+            add_thing_to_draw(over.bmp, over.x, over.y, TRANS_OPAQUE, false);
+        else if (over.type != OVER_TEXTMSG && over.type != OVER_PICTURE) {
             int tdxp, tdyp;
-            get_overlay_position(screenover[gg], &tdxp, &tdyp);
-            add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, screenover[gg].hasAlphaChannel);
+            get_overlay_position(over, &tdxp, &tdyp);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, over.hasAlphaChannel);
         }
     }
 
@@ -2285,7 +2283,7 @@ void draw_gui_and_overlays()
         }
         our_eip = 38;
         // Draw the GUIs
-        for (gg = 0; gg < game.numgui; gg++) {
+        for (int gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
             if (!guis[aa].IsDisplayed()) continue;
             if (guis[aa].Transparency == 255) continue;
@@ -2306,13 +2304,13 @@ void draw_gui_and_overlays()
     }
 
     // draw speech and portraits (so that they appear over GUIs)
-    for (gg=0;gg<numscreenover;gg++) 
+    for (const auto &over : screenover) 
     {
-        if (screenover[gg].type == OVER_TEXTMSG || screenover[gg].type == OVER_PICTURE)
+        if (over.type == OVER_TEXTMSG || over.type == OVER_PICTURE)
         {
             int tdxp, tdyp;
-            get_overlay_position(screenover[gg], &tdxp, &tdyp);
-            add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, false);
+            get_overlay_position(over, &tdxp, &tdyp);
+            add_thing_to_draw(over.bmp, tdxp, tdyp, 0, false);
         }
     }
 

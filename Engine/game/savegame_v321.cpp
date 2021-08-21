@@ -306,10 +306,10 @@ static void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
     }
 }
 
-static void ReadOverlays_Aligned(Stream *in)
+static void ReadOverlays_Aligned(Stream *in, size_t num_overs)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < numscreenover; ++i)
+    for (int i = 0; i < num_overs; ++i)
     {
         screenover[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
@@ -318,11 +318,12 @@ static void ReadOverlays_Aligned(Stream *in)
 
 static void restore_game_overlays(Stream *in)
 {
-    numscreenover = in->ReadInt32();
-    ReadOverlays_Aligned(in);
-    for (int bb=0;bb<numscreenover;bb++) {
-        if (screenover[bb].hasSerializedBitmap)
-            screenover[bb].pic = read_serialized_bitmap(in);
+    size_t num_overs = in->ReadInt32();
+    screenover.resize(num_overs);
+    ReadOverlays_Aligned(in, num_overs);
+    for (size_t i = 0; i < num_overs; ++i) {
+        if (screenover[i].hasSerializedBitmap)
+            screenover[i].pic = read_serialized_bitmap(in);
     }
 }
 

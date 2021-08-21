@@ -82,7 +82,7 @@ public class AGSRuntimeActivity extends SDLActivity {
         // Get filename from "Open with" of another application
         // Get the game filename from the launcher activity
         Bundle extras = getIntent().getExtras();
-        _game_file_name= extras.getString("filename");
+        _game_file_name = extras.getString("filename");
         _android_base_directory = extras.getString("directory");
         _loadLastSave = extras.getBoolean("loadLastSave");
 
@@ -99,8 +99,14 @@ public class AGSRuntimeActivity extends SDLActivity {
             // rotation and if necessary, we pre rotate accordingly before passing along for SDL2
             // this prevents a problem I had in one of my old devices where SDL had the device screen
             // before rotation as it's screen size.
-            File game_file = new File(_game_file_name);
-            String game_dir = game_file.getParent();
+            String game_dir;
+            if(_game_file_name.length() != 0) {
+                File game_file = new File(_game_file_name);
+                game_dir = game_file.getParent();
+            } else {
+                game_dir = _android_base_directory;
+            }
+
             ReadOnlyINI android_cfg = new ReadOnlyINI(game_dir);
             if (android_cfg.load()) {
                 String isConfigEnabled = android_cfg.get("config_enabled");

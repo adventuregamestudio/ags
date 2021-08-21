@@ -95,6 +95,8 @@ namespace AGS
             AAsset                *_aAsset = nullptr;
         };
 
+        AAssetManager* GetAssetManagerFromEnv();
+
     } // namespace Common
 } // namespace AGS
 

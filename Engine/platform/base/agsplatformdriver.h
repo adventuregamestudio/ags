@@ -64,6 +64,8 @@ public:
     virtual void DisplayAlert(const char*, ...) = 0;
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
+    // platform specific data file
+    virtual const char * GetGameDataFile() {return nullptr; }
     // Get root directory for storing per-game shared data
     virtual const char *GetAllUsersDataDirectory() { return "."; }
     // Get root directory for storing per-game saved games

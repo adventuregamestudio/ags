@@ -30,7 +30,7 @@ namespace AGS
     namespace Common
     {
 
-        AAssetManager* getAssetManagerFromEnv()
+        AAssetManager* GetAssetManagerFromEnv()
         {
             JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
 
@@ -190,7 +190,7 @@ namespace AGS
 
         void AAssetStream::Open(const String &asset_name, int asset_mode)
         {
-            AAssetManager* aAssetManager = getAssetManagerFromEnv();
+            AAssetManager* aAssetManager = GetAssetManagerFromEnv();
             _ownHandle = true;
 
             if(!asset_name.IsNullOrSpace() && asset_name[0] == '/') {

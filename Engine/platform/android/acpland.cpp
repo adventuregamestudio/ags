@@ -33,6 +33,8 @@
 
 #include <jni.h>
 #include <android/log.h>
+#include <android/asset_manager_jni.h>
+#include "util/aasset_stream.h"
 
 using namespace AGS::Common;
 
@@ -43,6 +45,7 @@ void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver {
 
+  virtual const char *GetGameDataFile();
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
@@ -691,6 +694,33 @@ void AGSAndroid::MainInitAdjustments()
     // clean up the local references.
     env->DeleteLocalRef(activity);
     env->DeleteLocalRef(clazz);
+}
+
+bool IsValidAgsGame(const String& filename)
+{
+  return (((filename.CompareRightNoCase(".ags") == 0 ||
+            filename.CompareNoCase("ac2game.dat") == 0 ||
+            filename.CompareRightNoCase(".exe") == 0)) &&
+          IsMainGameLibrary(filename));
+}
+
+const char * AGSAndroid::GetGameDataFile()
+{
+  AAssetManager* assetManager = GetAssetManagerFromEnv();
+  AAssetDir* aAssetDir = AAssetManager_openDir(assetManager,"");
+
+  psp_game_file_name[0] = '\0';
+
+  for(String f = AAssetDir_getNextFileName(aAssetDir); !f.IsNullOrSpace(); f = AAssetDir_getNextFileName(aAssetDir))
+  {
+    if(IsValidAgsGame(f))
+    {
+      strcpy(psp_game_file_name, f.GetCStr());
+      break;
+    }
+  }
+  AAssetDir_close(aAssetDir);
+  return psp_game_file_name;
 }
 
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {

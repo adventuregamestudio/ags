@@ -58,7 +58,7 @@ for building your game.
   (application ID is your package name).
 
 - Update `app/src/main/res/project.xml`. This file contains resources for your project. 
-  The values there are described in that file.
+  Update the `app_name` there from `MY_FULL_GAME_NAME` to match your game name!
 
 - Update `local.static.properties`. This file contains local data that should **NOT** be added
   to version control (.gitignore will ignore your changes to this file). You need to add your

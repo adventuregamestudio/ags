@@ -26,26 +26,11 @@ import android.os.Environment;
 
 public class MainActivity extends Activity {
     private static final String PACKAGE_NAME = App.getContext().getPackageName();
-    private static final String GAME_FILE_NAME = App.getContext().getResources()
-            .getString(R.string.game_file_name);
 
-    private static final boolean GAME_EMBEDDED = getEmbedded();
-
-    private static boolean getEmbedded() {
-        try {
-            return Arrays.asList(App.getContext().getResources().getAssets().list(""))
-                    .contains(GAME_FILE_NAME);
-        }
-        catch (IOException e) {
-            Log.d("INIT", "IOException occurred during initialization: " + e.getMessage());
-            return false;
-        }
-    }
-
-    private void startGame(String fileName, String writeDir) {
+    private void startGame(String writeDir) {
         Intent intent = new Intent(this, AGSRuntimeActivity.class);
         Bundle b = new Bundle();
-        b.putString("filename", fileName); // full path to game data
+        b.putString("filename", ""); // full path to game data
         b.putString("directory", writeDir); // writable location (saves, etc.)
         b.putBoolean("loadLastSave", false); // TODO: auto-load last save?
         intent.putExtras(b);
@@ -133,12 +118,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
-        if(GAME_EMBEDDED)
-        {
-            String writeDir = getApplicationContext().getFilesDir().toString(); //getCacheDir().toString(); // getApplicationInfo().dataDir;
-            copyConfigToDestination(writeDir);
-            startGame(GAME_FILE_NAME, writeDir);
-        }
+
+        String writeDir = getApplicationContext().getFilesDir().toString(); //getCacheDir().toString(); // getApplicationInfo().dataDir;
+        copyConfigToDestination(writeDir);
+        startGame(writeDir);
 
     }
 

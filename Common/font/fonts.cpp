@@ -144,6 +144,14 @@ bool font_supports_extended_characters(size_t fontNumber)
   return fonts[fontNumber].Renderer->SupportsExtendedCharacters(fontNumber);
 }
 
+const char *get_font_name(size_t fontNumber)
+{
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
+    return "";
+  const char *name = fonts[fontNumber].Renderer2->GetName(fontNumber);
+  return name ? name : "";
+}
+
 void ensure_text_valid_for_font(char *text, size_t fontnum)
 {
   if (fontnum >= fonts.size() || !fonts[fontnum].Renderer)

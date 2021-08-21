@@ -44,6 +44,7 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 using namespace Common;
@@ -353,6 +354,24 @@ void LoadFonts(GameDataVersion data_ver)
             {
                 set_font_linespacing(i, req_height + 2 * get_font_outline_thickness(i));
             }
+        }
+    }
+
+    // Additional fixups - after all the fonts are registered
+    for (int i = 0; i < game.numfonts; ++i)
+    {
+        if (!is_bitmap_font(i))
+        {
+            // Check for the LucasFan font since it comes with an outline font that
+            // is drawn incorrectly with Freetype versions > 2.1.3.
+            // A simple workaround is to disable outline fonts for it and use
+            // automatic outline drawing.
+            const int outline_font = get_font_outline(i);
+            if (outline_font < 0) continue;
+            const char *name = get_font_name(i);
+            const char *outline_name = get_font_name(outline_font);
+            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                set_font_outline(i, FONT_OUTLINE_AUTO);
         }
     }
 }

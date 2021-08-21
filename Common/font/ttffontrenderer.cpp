@@ -15,16 +15,9 @@
 #include <alfont.h>
 #include "core/platform.h"
 
-#define AGS_OUTLINE_FONT_FIX (!AGS_PLATFORM_OS_WINDOWS)
-
 #include "core/assetmanager.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
-
-#if AGS_OUTLINE_FONT_FIX // TODO: factor out the hack in LoadFromDiskEx
-#include "ac/gamestructdefines.h"
-#include "font/fonts.h"
-#endif
 
 using namespace AGS::Common;
 
@@ -101,21 +94,6 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
   if (alfptr == nullptr)
     return false;
 
-  // TODO: move this somewhere, should not be right here
-#if AGS_OUTLINE_FONT_FIX
-  // FIXME: (!!!) this fix should be done differently:
-  // 1. Find out which OUTLINE font was causing troubles;
-  // 2. Replace outline method ONLY if that troublesome font is used as outline.
-  // 3. Move this fix somewhere else!! (right after game load routine?)
-  //
-  // Check for the LucasFan font since it comes with an outline font that
-  // is drawn incorrectly with Freetype versions > 2.1.3.
-  // A simple workaround is to disable outline fonts for it and use
-  // automatic outline drawing.
-  if (get_font_outline(fontNumber) >=0 &&
-      strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
-      set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
-#endif
   if (fontSize == 0)
       fontSize = 8; // compatibility fix
   if (params && params->SizeMultiplier > 1)
@@ -132,6 +110,11 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
       metrics->RealHeight = alfont_get_font_real_height(alfptr);
   }
   return true;
+}
+
+const char *TTFFontRenderer::GetName(int fontNumber)
+{
+  return alfont_get_name(_fontData[fontNumber].AlFont);
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)

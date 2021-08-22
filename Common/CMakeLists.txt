@@ -113,6 +113,8 @@ target_sources(common
     script/cc_script.cpp
     script/cc_script.h
     script/script_common.h
+    util/aasset_stream.cpp
+    util/aasset_stream.h
     util/alignedstream.cpp
     util/alignedstream.h
     util/bbop.h
@@ -179,7 +181,7 @@ target_sources(common
 	platform/windows/windows.h
 )
 
-target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)
+target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

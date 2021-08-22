@@ -991,7 +991,11 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());
     return HError::None();
 #else
-    // No direct filepath provided, bail out.
+    data_path = platform->GetGameDataFile();
+    if (!data_path.IsEmpty())
+    {
+        return HError::None();
+    }
     return new Error("The game location was not defined by startup settings.");
 #endif
 }

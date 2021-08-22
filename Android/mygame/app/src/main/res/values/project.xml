@@ -3,12 +3,4 @@
     <!-- TODO: Update these values for your project -->
     <!-- app name -->
     <string name="app_name">MY_FULL_GAME_NAME</string>
-    <!-- game EXE or data file name -->
-    <string name="game_file_name">MYGAME.exe</string>
-    <!-- expansion file version -->
-    <integer name="obbFileVersion">1</integer>
-    <!-- expansion file size in bytes (long) -->
-    <string name="obbFileSize">28323899</string>
-    <!-- expansion file key, @null for none -->
-    <string name="obbKey">@null</string>
 </resources>

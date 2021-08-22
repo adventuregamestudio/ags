@@ -8,9 +8,26 @@ set_target_properties(compiler PROPERTIES
         )
 
 target_include_directories(compiler PUBLIC .)
+target_include_directories(compiler PUBLIC ../Common)
+set(COMPILER_COMMON_SOURCES
+        ../Common/script/cc_error.cpp
+        ../Common/script/cc_options.cpp
+        ../Common/script/cc_script.cpp
+        ../Common/util/bufferedstream.cpp
+        ../Common/util/cmdlineopts.cpp
+        ../Common/util/datastream.cpp
+        ../Common/util/file.cpp
+        ../Common/util/path.cpp
+        ../Common/util/filestream.cpp
+        ../Common/util/stdio_compat.c
+        ../Common/util/stream.cpp
+        ../Common/util/string.cpp
+        ../Common/util/string_compat.c
+        ../Common/util/string_utils.cpp
+        ../Common/util/textstreamreader.cpp
+        ../Common/util/version.cpp)
 
-target_sources(compiler
-        PRIVATE
+set(COMPILER_SOURCES
         fmem.cpp
         fmem.h
         script/cc_compiledscript.cpp
@@ -32,12 +49,16 @@ target_sources(compiler
         script/cs_parser_common.cpp
         script/cs_parser_common.h
         preproc/preprocessor.cpp
-        preproc/preprocessor.h
-        )
+        preproc/preprocessor.h)
 
-target_link_libraries(compiler PUBLIC AGS::Common)
+target_sources(compiler PRIVATE
+        ${COMPILER_SOURCES}
+        ${COMPILER_COMMON_SOURCES})
 
-get_target_property(COMPILER_SOURCES compiler SOURCES)
+if (WIN32)
+    target_link_libraries(compiler PUBLIC shlwapi)
+endif()
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMPILER_SOURCES})
 
 add_library(AGS::Compiler ALIAS compiler)

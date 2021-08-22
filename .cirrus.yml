@@ -230,7 +230,7 @@ linux_packaging_task:
   binaries_artifacts:
     path: ags_*.tar.gz
 
-editor_packaging_task:
+windows_packaging_task:
   depends_on:
     - build_editor
     - build_windows
@@ -282,6 +282,20 @@ editor_packaging_task:
     tar -f %%~nf.zip -acv --strip-components 4 Windows\Installer\Source\Editor
   archive_artifacts:
     path: AGS-*.zip
+  make_windevdependencies_script: >
+    pushd "C:\Lib\SDL_sound\build\Release"  &&
+    move SDL_sound.lib ..\..  &&
+    popd  &&
+    pushd "C:\Lib\SDL_sound" &&
+    del /Q /S build\*  &&
+    rd /Q /S build  &&
+    mkdir build  &&
+    mkdir build\Release  &&
+    move SDL_sound.lib build\Release &&
+    popd  &&
+    tar -f WinDevDependenciesVS.zip -acv --strip-components 2 C:\Lib  
+  windevdependenciesvs_artifacts:
+    path: WinDevDependenciesVS.zip
 
 pdb_packaging_task:
   depends_on:
@@ -330,7 +344,7 @@ make_release_task:
     - ags_windows_tests
     - build_android
     - build_linux_debian
-    - editor_packaging
+    - windows_packaging
     - linux_packaging
     - pdb_packaging
   container:
@@ -355,10 +369,11 @@ make_release_task:
     baseurl="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID"
     mkdir -p /tmp/github_release && \
     cd /tmp/github_release && \
-    curl -fLSs "$baseurl/editor_packaging/installer.zip" -o /tmp/github_release/installer.zip && \
+    curl -fLSs "$baseurl/windows_packaging/installer.zip" -o /tmp/github_release/installer.zip && \
     bsdtar -f /tmp/github_release/installer.zip -xv --strip-components 3 && \
     rm /tmp/github_release/installer.zip  && \
-    for download in "editor_packaging/archive/$(basename AGS-*.exe .exe).zip" \
+    for download in "windows_packaging/archive/$(basename AGS-*.exe .exe).zip" \
+      "windows_packaging/windevdependenciesvs/WinDevDependenciesVS.zip" \
       "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \
       "build_linux_debian/debian_packages/ags_${version}_i386.deb" \

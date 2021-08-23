@@ -2138,6 +2138,7 @@ void prepare_room_sprites()
     our_eip = 36;
 
     // Debug room overlay
+    update_room_debug();
     if ((debugRoomMask != kRoomAreaNone) && debugRoomMaskDDB)
         add_thing_to_draw(debugRoomMaskDDB, 0, 0);
 }
@@ -2623,6 +2624,16 @@ void debug_draw_room_mask(RoomAreaMask mask)
 
     debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
     debugRoomMaskDDB->SetTransparency(150);
+}
+
+void update_room_debug()
+{
+    if (debugRoomMask == kRoomAreaWalkable)
+    {
+        Bitmap *mask_bmp = prepare_walkable_areas(-1);
+        debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
+        debugRoomMaskDDB->SetTransparency(150);
+    }
 }
 
 // Draw everything 

@@ -103,6 +103,7 @@ void construct_engine_overlay();
 void clear_letterbox_borders();
 
 void debug_draw_room_mask(RoomAreaMask mask);
+void update_room_debug();
 
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,

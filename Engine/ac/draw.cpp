@@ -32,6 +32,7 @@
 #include "ac/global_region.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
+#include "ac/movelist.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/sys_events.h"
@@ -100,6 +101,7 @@ extern int lastmx,lastmy;
 extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
+extern MoveList *mls;
 
 RGB palette[256];
 
@@ -124,6 +126,9 @@ std::vector<IDriverDependantBitmap*> guibgbmp;
 // For debugging room masks
 RoomAreaMask debugRoomMask = kRoomAreaNone;
 IDriverDependantBitmap *debugRoomMaskDDB = nullptr;
+int debugMoveListChar = -1;
+Bitmap* debugMoveListBmp = nullptr;
+IDriverDependantBitmap *debugMoveListDDB = nullptr;
 
 bool current_background_is_dirty = false;
 
@@ -558,6 +563,11 @@ static void dispose_debug_room_drawdata()
     if (debugRoomMaskDDB != nullptr)
         gfxDriver->DestroyDDB(debugRoomMaskDDB);
     debugRoomMaskDDB = nullptr;
+    delete debugMoveListBmp;
+    debugMoveListBmp = nullptr;
+    if (debugMoveListDDB != nullptr)
+        gfxDriver->DestroyDDB(debugMoveListDDB);
+    debugMoveListDDB = nullptr;
 }
 
 void dispose_room_drawdata()
@@ -671,6 +681,7 @@ void init_room_drawdata()
 {
     // Update debug overlays, if any were on
     debug_draw_room_mask(debugRoomMask);
+    debug_draw_movelist(debugMoveListChar);
 
     // Following data is only updated for software renderer
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -2141,6 +2152,8 @@ void prepare_room_sprites()
     update_room_debug();
     if ((debugRoomMask != kRoomAreaNone) && debugRoomMaskDDB)
         add_thing_to_draw(debugRoomMaskDDB, 0, 0);
+    if ((debugMoveListChar >= 0) && debugMoveListDDB)
+        add_thing_to_draw(debugMoveListDDB, 0, 0);
 }
 
 // Draws the black surface behind (or rather between) the room viewports
@@ -2626,6 +2639,11 @@ void debug_draw_room_mask(RoomAreaMask mask)
     debugRoomMaskDDB->SetTransparency(150);
 }
 
+void debug_draw_movelist(int charnum)
+{
+    debugMoveListChar = charnum;
+}
+
 void update_room_debug()
 {
     if (debugRoomMask == kRoomAreaWalkable)
@@ -2633,6 +2651,27 @@ void update_room_debug()
         Bitmap *mask_bmp = prepare_walkable_areas(-1);
         debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
         debugRoomMaskDDB->SetTransparency(150);
+    }
+    if (debugMoveListChar >= 0)
+    {
+        debugMoveListBmp = recycle_bitmap(debugMoveListBmp, game.GetColorDepth(),
+            thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
+        if (game.chars[debugMoveListChar].walking > 0)
+        {
+            int mlsnum = game.chars[debugMoveListChar].walking;
+            if (game.chars[debugMoveListChar].walking >= TURNING_AROUND)
+                mlsnum %= TURNING_AROUND;
+            const MoveList &cmls = mls[mlsnum];
+            for (int i = 0; i < cmls.numstage - 1; i++) {
+                short srcx = short((cmls.pos[i] >> 16) & 0x00ffff);
+                short srcy = short(cmls.pos[i] & 0x00ffff);
+                short targetx = short((cmls.pos[i + 1] >> 16) & 0x00ffff);
+                short targety = short(cmls.pos[i + 1] & 0x00ffff);
+                debugMoveListBmp->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i + 1));
+            }
+        }
+        debugMoveListDDB = recycle_ddb_bitmap(debugMoveListDDB, debugMoveListBmp, false, false);
+        debugMoveListDDB->SetTransparency(150);
     }
 }
 

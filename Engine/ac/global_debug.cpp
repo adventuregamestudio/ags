@@ -23,7 +23,6 @@
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
-#include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/sys_events.h"
 #include "ac/translation.h"
@@ -52,9 +51,9 @@ extern int convert_16bit_bgr;
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
 extern int displayed_room, starting_room;
-extern MoveList *mls;
 
 RoomAreaMask debugLastRoomMask = kRoomAreaNone;
+int debugLastMoveChar = -1;
 
 String GetRuntimeInfo()
 {
@@ -133,40 +132,9 @@ void script_debug(int cmdd,int dataa) {
             display_fps = (FPSDisplayMode)dataa;
     }
     else if (cmdd == 5) {
-        if (dataa == 0) dataa = game.playercharacter;
-        if (game.chars[dataa].walking < 1) {
-            Display("Not currently moving.");
-            return;
-        }
-        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-        int mlsnum = game.chars[dataa].walking;
-        if (game.chars[dataa].walking >= TURNING_AROUND)
-            mlsnum %= TURNING_AROUND;
-        MoveList*cmls = &mls[mlsnum];
-        for (int i = 0; i < cmls->numstage-1; i++) {
-            short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
-            short srcy=short(cmls->pos[i] & 0x00ffff);
-            short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
-            short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i+1));
-        }
-
-        // TODO: support multiple viewports?!
-        const int viewport_index = 0;
-        const int camera_index = 0;
-        const Rect &viewport = play.GetRoomViewport(viewport_index)->GetRect();
-        const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
-        Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
-        view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
-
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
-        render_graphics(ddb, viewport.Left, viewport.Top);
-
-        delete tempw;
-        delete view_bmp;
-        gfxDriver->DestroyDDB(ddb);
-        ags_wait_until_keypress();
+        // show the given character's pathfinding; act like a on/off toggle
+        debugLastMoveChar = dataa == debugLastMoveChar ? -1 : dataa;
+        debug_draw_movelist(dataa);
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

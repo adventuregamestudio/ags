@@ -187,6 +187,11 @@ if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)
 endif()
 
+if(ANDROID)
+    find_library(ANDROID_LIB android)
+    target_link_libraries(common PUBLIC ${ANDROID_LIB})
+endif()
+
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)
     target_compile_definitions(common PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)

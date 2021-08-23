@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <algorithm>
 #include <cmath>
 #include "aastr.h"
@@ -106,7 +105,7 @@ RGB palette[256];
 
 COLOR_MAP maincoltable;
 
-IGraphicsDriver *gfxDriver;
+IGraphicsDriver *gfxDriver = nullptr;
 IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
 IDriverDependantBitmap *debugConsole = nullptr;
@@ -122,6 +121,9 @@ std::vector<CachedActSpsData> actspswbcache;
 // GUI surfaces
 std::vector<Bitmap*> guibg;
 std::vector<IDriverDependantBitmap*> guibgbmp;
+// For debugging room masks
+RoomAreaMask debugRoomMask = kRoomAreaNone;
+IDriverDependantBitmap *debugRoomMaskDDB = nullptr;
 
 bool current_background_is_dirty = false;
 
@@ -551,6 +553,13 @@ void dispose_game_drawdata()
     guibgbmp.clear();
 }
 
+static void dispose_debug_room_drawdata()
+{
+    if (debugRoomMaskDDB != nullptr)
+        gfxDriver->DestroyDDB(debugRoomMaskDDB);
+    debugRoomMaskDDB = nullptr;
+}
+
 void dispose_room_drawdata()
 {
     CameraDrawData.clear();
@@ -592,6 +601,8 @@ void clear_drawobj_cache()
             gfxDriver->DestroyDDB(guibgbmp[i]);
         guibgbmp[i] = nullptr;
     }
+
+    dispose_debug_room_drawdata();
 }
 
 void on_mainviewport_changed()
@@ -658,6 +669,10 @@ void sync_roomview(Viewport *view)
 
 void init_room_drawdata()
 {
+    // Update debug overlays, if any were on
+    debug_draw_room_mask(debugRoomMask);
+
+    // Following data is only updated for software renderer
     if (gfxDriver->RequiresFullRedrawEachFrame())
         return;
     // Make sure all frame buffers are created for software drawing
@@ -872,8 +887,6 @@ void draw_game_screen_callback()
     construct_game_screen_overlay(false);
 }
 
-
-
 void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
     if ((ds->GetColorDepth() == 32) && (col != 0)) {
         // ensure the alpha channel is preserved if it has one
@@ -882,9 +895,6 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
     }
     ds->FillRect(Rect(xx, yy, xx + get_fixed_pixel_size(1) - 1, yy + get_fixed_pixel_size(1) - 1), col);
 }
-
-
-
 
 void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha,
                                BlendMode blend_mode, int alpha)
@@ -2126,6 +2136,10 @@ void prepare_room_sprites()
         }
     }
     our_eip = 36;
+
+    // Debug room overlay
+    if ((debugRoomMask != kRoomAreaNone) && debugRoomMaskDDB)
+        add_thing_to_draw(debugRoomMaskDDB, 0, 0);
 }
 
 // Draws the black surface behind (or rather between) the room viewports
@@ -2589,6 +2603,26 @@ static void update_shakescreen()
         if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
+}
+
+void debug_draw_room_mask(RoomAreaMask mask)
+{
+    debugRoomMask = mask;
+    if (mask == kRoomAreaNone)
+        return;
+    
+    Bitmap *mask_bmp;
+    switch (mask)
+    {
+    case kRoomAreaHotspot: mask_bmp = thisroom.HotspotMask.get(); break;
+    case kRoomAreaWalkBehind: mask_bmp = thisroom.WalkBehindMask.get(); break;
+    case kRoomAreaWalkable: mask_bmp = prepare_walkable_areas(-1); break;
+    case kRoomAreaRegion: mask_bmp = thisroom.RegionMask.get(); break;
+    default: return;
+    }
+
+    debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
+    debugRoomMaskDDB->SetTransparency(150);
 }
 
 // Draw everything 

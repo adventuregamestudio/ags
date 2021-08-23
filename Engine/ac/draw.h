@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
@@ -22,6 +18,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "gfx/gfx_def.h"
+#include "game/roomstruct.h"
 
 namespace AGS
 {
@@ -104,6 +101,8 @@ void construct_game_screen_overlay(bool draw_mouse = true);
 void construct_engine_overlay();
 // Clears black game borders in legacy letterbox mode
 void clear_letterbox_borders();
+
+void debug_draw_room_mask(RoomAreaMask mask);
 
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,

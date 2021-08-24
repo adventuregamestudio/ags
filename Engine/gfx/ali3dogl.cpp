@@ -1088,9 +1088,11 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
       widthToScale = -widthToScale;
+      // and now shift it over to make it 0..w again
+      thisX += width;
     }
     // Apply sprite origin
-    thisX -= widthToScale * bmpToDraw->_originX;
+    thisX -= abs(widthToScale) * bmpToDraw->_originX;
     thisY += heightToScale * bmpToDraw->_originY; // inverse axis
     // Setup rotation and pivot
     float rotZ = bmpToDraw->_rotation;

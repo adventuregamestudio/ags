@@ -1231,6 +1231,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
           Size src_sz = Size(src_sprite->GetWidth(), src_sprite->GetHeight());
           Size rot_sz = RotateSize(src_sz, rotation);
           temp_rot = BitmapHelper::CreateTransparentBitmap(rot_sz.Width, rot_sz.Height, coldept);
+          if (isMirrored) rotation = -rotation;
           // (+ width%2 fixes one pixel offset problem)
           temp_rot->RotateBlt(src_sprite, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
               src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
@@ -1255,8 +1256,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
 
       if (isMirrored) {
           // TODO: "flip self" function may allow to optimize this
-          Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
-          tempspr->Fill (actsps[useindx]->GetMaskColor());
+          Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(newwidth, newheight, coldept);
           if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
               tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
@@ -1268,28 +1268,6 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
           active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
-
-      /*  AASTR2 version of code (doesn't work properly, gives black borders)
-      if (IS_ANTIALIAS_SPRITES) {
-      int aa_mode = AA_MASKED; 
-      if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
-      aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
-      if (isMirrored)
-      aa_mode |= AA_HFLIP;
-
-      aa_set_mode(aa_mode);
-      ->AAStretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-      }
-      else if (isMirrored) {
-      Bitmap *tempspr = BitmapHelper::CreateBitmap_ (coldept, newwidth, newheight);
-      ->Clear (tempspr, ->GetMaskColor(actsps[useindx]));
-      ->StretchBlt (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
-      ->FlipBlt(Common::kBitmap_HFlip, (actsps[useindx], tempspr, 0, 0);
-      wfreeblock (tempspr);
-      }
-      else
-      ->StretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-      */
       if (in_new_room)
           unselect_palette();
 
@@ -1300,7 +1278,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       our_eip = 339;
 
       if (isMirrored)
-          active_spr->FlipBlt(spriteset[sppic], 0, 0, Common::kBitmap_HFlip);
+          active_spr->FlipBlt(src_sprite, 0, 0, Common::kBitmap_HFlip);
       else if (rotation != 0.f)
           // (+ width%2 fixes one pixel offset problem)
           active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,

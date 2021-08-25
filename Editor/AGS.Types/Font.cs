@@ -19,8 +19,8 @@ namespace AGS.Types
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
-        private int _autoOutlineThickness = 0;
-        private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Rounded;
+        private int _autoOutlineThickness = 1;
+        private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Squared;
 
         public Font()
         {

@@ -1220,39 +1220,38 @@ TEST_F(Bytecode1, Attributes07) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Attributes07", scrip);
-    const size_t codesize = 26;
+    size_t const codesize = 28;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       38,    0,    6,    3,            0,    6,    2,   22,    // 7
-      29,    6,   34,    3,           45,    2,   39,    1,    // 15
-       6,    3,   21,   33,            3,   35,    1,   30,    // 23
-       6,    5,  -999
+      64,    3,   29,    6,           34,    3,   45,    2,    // 15
+      39,    1,    6,    3,           21,   33,    3,   35,    // 23
+       1,   30,    6,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 3;
+    size_t const numfixups = 3;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       4,    7,   18,  -999
+       4,    7,   20,  -999
     };
     char fixuptypes[] = {
       3,   4,   4,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 2;
+    int const numimports = 2;
     std::string imports[] = {
     "Label::set_Text^1",          "lbl",          "[[SENTINEL]]"
     };
-
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 1;
+    size_t const stringssize = 1;
     EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {

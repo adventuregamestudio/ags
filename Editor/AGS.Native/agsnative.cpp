@@ -2124,7 +2124,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (IO::File::Exists(sprfilename))
             IO::File::Move(sprfilename, backupname);
     }
-    catch (Exception ^e)
+    catch (Exception^)
     {// TODO: ignore for now, but proper warning output system in needed here
     }
 
@@ -2149,7 +2149,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (!temp_indexfile.IsEmpty())
             IO::File::Move(ToStr(temp_indexfile), sprindexfilename);
     }
-    catch (Exception ^e)
+    catch (Exception^)
     {// TODO: ignore for now, but proper warning output system in needed here
     }
 }
@@ -2949,7 +2949,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 {
 	Dictionary<int, Sprite^>^ sprites = gcnew Dictionary<int, Sprite^>();
 
-	for (int i = 0; i < spriteset.GetSpriteSlotCount(); i++)
+	for (size_t i = 0; i < spriteset.GetSpriteSlotCount(); i++)
 	{
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)

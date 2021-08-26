@@ -273,6 +273,7 @@
     <ClCompile Include="..\..\Common\ac\keycode.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
     <ClCompile Include="..\..\Common\ac\spritecache.cpp" />
+    <ClCompile Include="..\..\Common\ac\spritefile.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\core\asset.cpp" />
@@ -435,6 +436,7 @@
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
     <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
     <ClInclude Include="..\..\Common\ac\spritecache.h" />
+    <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\ac\view.h" />
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
     <ClInclude Include="..\..\Common\api\stream_api.h" />

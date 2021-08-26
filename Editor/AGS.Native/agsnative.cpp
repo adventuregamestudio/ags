@@ -88,7 +88,7 @@ bool enable_greyed_out_masks = true;
 bool outlineGuiObjects = false;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
-SpriteCache spriteset(thisgame.SpriteInfos);
+AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
@@ -2101,12 +2101,12 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
 
     AGSString n_temp_spritefile = ConvertStringToNativeString(temp_spritefile);
     AGSString n_temp_indexfile = ConvertStringToNativeString(temp_indexfile);
-    SpriteFileIndex index;
+    AGS::Common::SpriteFileIndex index;
     if (spriteset.SaveToFile(n_temp_spritefile, compressSprites, index) != 0)
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    if (AGS::Common::SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
         saved_indexfile = n_temp_indexfile;
 }
 

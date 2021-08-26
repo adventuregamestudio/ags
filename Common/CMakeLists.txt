@@ -43,6 +43,8 @@ target_sources(common
     ac/oldgamesetupstruct.h
     ac/spritecache.cpp
     ac/spritecache.h
+    ac/spritefile.cpp
+    ac/spritefile.h
     ac/view.cpp
     ac/view.h
     ac/wordsdictionary.cpp

@@ -31,7 +31,7 @@
 // Engine-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void SpriteCache::InitNullSpriteParams(sprkey_t index)
+void AGS::Common::SpriteCache::InitNullSpriteParams(sprkey_t index)
 {
     // make it a blue cup, to avoid crashes
     _sprInfos[index].Width = _sprInfos[0].Width;

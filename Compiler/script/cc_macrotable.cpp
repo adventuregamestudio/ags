@@ -10,7 +10,7 @@ void MacroTable::merge(MacroTable &others) {
     _macro_table.insert(others._macro_table.begin(), others._macro_table.end());
 }
 bool MacroTable::contains(const String &name) {
-    return _macro_table.count(name);
+    return _macro_table.count(name) > 0;
 }
 String MacroTable::get_macro(const String &name) {
     if(_macro_table.count(name)) {

@@ -38,6 +38,13 @@ void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
         _offsetX = in->ReadInt32();
         _offsetY = in->ReadInt32();
     }
+    if (cmp_ver >= 2)
+    {
+        zorder = in->ReadInt32();
+        transparency = in->ReadInt32();
+        in->ReadInt32(); // reserve 2 ints
+        in->ReadInt32();
+    }
 }
 
 void ScreenOverlay::WriteToFile(Stream *out) const
@@ -56,4 +63,9 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     // since cmp_ver = 1
     out->WriteInt32(_offsetX);
     out->WriteInt32(_offsetY);
+    // since cmp_ver = 2
+    out->WriteInt32(zorder);
+    out->WriteInt32(transparency);
+    out->WriteInt32(0); // reserve 2 ints
+    out->WriteInt32(0);
 }

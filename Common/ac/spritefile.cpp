@@ -18,6 +18,7 @@
 #include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
+#include "util/memorystream.h"
 
 namespace AGS
 {
@@ -113,7 +114,7 @@ HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filen
     return RebuildSpriteIndex(_stream.get(), topmost, vers, metrics);
 }
 
-void SpriteFile::Reset()
+void SpriteFile::Close()
 {
     _stream.reset();
     _curPos = -2;
@@ -353,15 +354,6 @@ HError SpriteFile::LoadSpriteData(sprkey_t index, Size &metric, int &bpp,
     return HError::None();
 }
 
-sprkey_t SpriteFile::FindTopmostSprite(const std::vector<Bitmap*> &sprites)
-{
-    sprkey_t topmost = -1;
-    for (sprkey_t i = 0; i < static_cast<sprkey_t>(sprites.size()); ++i)
-        if (sprites[i])
-            topmost = i;
-    return topmost;
-}
-
 void SpriteFile::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it
@@ -372,7 +364,18 @@ void SpriteFile::SeekToSprite(sprkey_t index)
     }
 }
 
-int SpriteFile::SaveToFile(const String &save_to_file,
+
+// Finds the topmost occupied slot index. Warning: may be slow.
+static sprkey_t FindTopmostSprite(const std::vector<Bitmap*> &sprites)
+{
+    sprkey_t topmost = -1;
+    for (sprkey_t i = 0; i < static_cast<sprkey_t>(sprites.size()); ++i)
+        if (sprites[i])
+            topmost = i;
+    return topmost;
+}
+
+int SaveSpriteFile(const String &save_to_file,
     const std::vector<Bitmap*> &sprites,
     SpriteFile *read_from_file,
     bool compressOutput, SpriteFileIndex &index)
@@ -381,27 +384,12 @@ int SpriteFile::SaveToFile(const String &save_to_file,
     if (output == nullptr)
         return -1;
 
-    int spriteFileIDCheck = (int)time(nullptr);
-
-    // sprite file version
-    output->WriteInt16(kSprfVersion_Current);
-
-    output->WriteArray(spriteFileSig, strlen(spriteFileSig), 1);
-
-    output->WriteInt8(compressOutput ? 1 : 0);
-    output->WriteInt32(spriteFileIDCheck);
-
     sprkey_t lastslot = read_from_file ? read_from_file->GetTopmostSprite() : 0;
     lastslot = std::max(lastslot, FindTopmostSprite(sprites));
-    output->WriteInt32(lastslot);
 
-    // allocate buffers to store the indexing info
-    sprkey_t numsprits = lastslot + 1;
-    std::vector<int16_t> spritewidths, spriteheights;
-    std::vector<soff_t> spriteoffs;
-    spritewidths.resize(numsprits);
-    spriteheights.resize(numsprits);
-    spriteoffs.resize(numsprits);
+    SpriteFileWriter writer(std::move(output));
+    writer.Begin(compressOutput, lastslot);
+
     std::unique_ptr<Bitmap> temp_bmp; // for disposing temp sprites
     std::vector<char> membuf; // for loading raw sprite data
 
@@ -410,8 +398,6 @@ int SpriteFile::SaveToFile(const String &save_to_file,
 
     for (sprkey_t i = 0; i <= lastslot; ++i)
     {
-        soff_t sproff = output->GetPosition();
-
         Bitmap *image = (size_t)i < sprites.size() ? sprites[i] : nullptr;
 
         // if compression setting is different, load the sprite into memory
@@ -425,39 +411,13 @@ int SpriteFile::SaveToFile(const String &save_to_file,
         // if managed to load an image - save it according the new compression settings
         if (image != nullptr)
         {
-            // image in memory -- write it out
-            int bpp = image->GetColorDepth() / 8;
-            spriteoffs[i] = sproff;
-            spritewidths[i] = image->GetWidth();
-            spriteheights[i] = image->GetHeight();
-            output->WriteInt16(bpp);
-            output->WriteInt16(spritewidths[i]);
-            output->WriteInt16(spriteheights[i]);
-
-            if (compressOutput)
-            {
-                soff_t lenloc = output->GetPosition();
-                // write some space for the length data
-                output->WriteInt32(0);
-
-                rle_compress(image, output.get());
-
-                soff_t fileSizeSoFar = output->GetPosition();
-                // write the length of the compressed data
-                output->Seek(lenloc, kSeekBegin);
-                output->WriteInt32((fileSizeSoFar - lenloc) - 4);
-                output->Seek(0, kSeekEnd);
-            }
-            else
-            {
-                output->WriteArray(image->GetDataForWriting(), spritewidths[i] * bpp, spriteheights[i]);
-            }
+            writer.WriteBitmap(image);
             continue;
         }
         else if (diff_compress)
         {
             // sprite doesn't exist
-            output->WriteInt16(0); // colour depth
+            writer.WriteEmptySlot();
             continue;
         }
 
@@ -466,33 +426,20 @@ int SpriteFile::SaveToFile(const String &save_to_file,
         Size metric;
         int bpp;
         read_from_file->LoadSpriteData(i, metric, bpp, membuf);
-
-        output->WriteInt16(bpp);
         if (bpp == 0)
+        {
+            writer.WriteEmptySlot();
             continue; // empty slot
-
-        spriteoffs[i] = sproff;
-        spritewidths[i] = metric.Width;
-        spriteheights[i] = metric.Height;
-        output->WriteInt16(metric.Width);
-        output->WriteInt16(metric.Height);
-        if (compressOutput)
-            output->WriteInt32(membuf.size());
-        if (membuf.size() == 0)
-            continue; // bad data?
-        output->Write(&membuf[0], membuf.size());
+        }
+        writer.WriteSpriteData(membuf, metric.Width, metric.Height, bpp);
     }
+    writer.Finalize();
 
-    index.SpriteFileIDCheck = spriteFileIDCheck;
-    index.LastSlot = lastslot;
-    index.SpriteCount = numsprits;
-    index.Widths = spritewidths;
-    index.Heights = spriteheights;
-    index.Offsets = spriteoffs;
+    index = writer.GetIndex();
     return 0;
 }
 
-int SpriteFile::SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
+int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
     Stream *out = File::CreateFile(filename);
@@ -505,9 +452,9 @@ int SpriteFile::SaveSpriteIndex(const String &filename, const SpriteFileIndex &i
     out->WriteInt32(index.SpriteFileIDCheck);
     // write last sprite number and num sprites, to verify that
     // it matches the spr file
-    out->WriteInt32(index.LastSlot);
-    out->WriteInt32(index.SpriteCount);
-    if (index.SpriteCount > 0)
+    out->WriteInt32(index.GetLastSlot());
+    out->WriteInt32(index.GetCount());
+    if (index.GetCount() > 0)
     {
         out->WriteArrayOfInt16(&index.Widths.front(), index.Widths.size());
         out->WriteArrayOfInt16(&index.Heights.front(), index.Heights.size());
@@ -515,6 +462,90 @@ int SpriteFile::SaveSpriteIndex(const String &filename, const SpriteFileIndex &i
     }
     delete out;
     return 0;
+}
+
+
+void SpriteFileWriter::Begin(bool compressed, sprkey_t last_slot)
+{
+    if (!_out) return;
+    _index.SpriteFileIDCheck = (int)time(nullptr);
+    _compress = compressed;
+
+    // sprite file version
+    _out->WriteInt16(kSprfVersion_Current);
+    _out->WriteArray(spriteFileSig, strlen(spriteFileSig), 1);
+    _out->WriteInt8(_compress ? 1 : 0);
+    _out->WriteInt32(_index.SpriteFileIDCheck);
+
+    // Remember and write provided "last slot" index,
+    // but if it's not set (< 0) then we will have to return back later
+    // and write correct one; this is done in Finalize().
+    _lastSlotPos = _out->GetPosition();
+    _out->WriteInt32(last_slot);
+
+    if (last_slot >= 0)
+    { // allocate buffers to store the indexing info
+        sprkey_t numsprits = last_slot + 1;
+        _index.Offsets.reserve(numsprits);
+        _index.Widths.reserve(numsprits);
+        _index.Heights.reserve(numsprits);
+    }
+}
+
+void SpriteFileWriter::WriteBitmap(Bitmap *image)
+{
+    if (!_out) return;
+    int bpp = image->GetColorDepth() / 8;
+    int w = image->GetWidth();
+    int h = image->GetHeight();
+    if (_compress)
+    {
+        MemoryStream mems(_membuf, kStream_Write);
+        rle_compress(image, &mems);
+        WriteSpriteData(_membuf, w, h, bpp);
+        _membuf.clear();
+    }
+    else
+    {
+        WriteSpriteData((const char*)image->GetData(), w * h * bpp, w, h, bpp);
+    }
+}
+
+void SpriteFileWriter::WriteEmptySlot()
+{
+    if (!_out) return;
+    soff_t sproff = _out->GetPosition();
+    _out->WriteInt16(0); // write invalid color depth to mark empty slot
+    _index.Offsets.push_back(sproff);
+    _index.Widths.push_back(0);
+    _index.Heights.push_back(0);
+}
+
+void SpriteFileWriter::WriteSpriteData(const char *pbuf, size_t len,
+    int w, int h, int bpp)
+{
+    if (!_out) return;
+    soff_t sproff = _out->GetPosition();
+    _index.Offsets.push_back(sproff);
+    _index.Widths.push_back(w);
+    _index.Heights.push_back(h);
+    _out->WriteInt16(bpp);
+    _out->WriteInt16(w);
+    _out->WriteInt16(h);
+    // if not compressed, then the data size could be calculated from the
+    // image metrics, therefore no need to write one
+    if (_compress)
+        _out->WriteInt32(len);
+    if (len == 0) return; // bad data?
+    _out->Write(pbuf, len); // write data itself
+}
+
+void SpriteFileWriter::Finalize()
+{
+    if (!_out || _lastSlotPos < 0) return;
+    _out->Seek(_lastSlotPos, kSeekBegin);
+    _out->WriteInt32(_index.GetLastSlot());
+    _out.reset();
 }
 
 } // namespace Common

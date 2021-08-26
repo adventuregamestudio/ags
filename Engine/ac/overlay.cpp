@@ -287,7 +287,7 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, int pic_offx, i
 {
     if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
-        for (int id = OVER_CUSTOM + 1; id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
+        for (int id = OVER_CUSTOM + 1; (size_t)id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
             if (find_overlay_of_type(id) == -1) { type=id; break; }
         }
     }

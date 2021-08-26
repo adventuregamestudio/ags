@@ -309,7 +309,7 @@ static void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 static void ReadOverlays_Aligned(Stream *in, size_t num_overs)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < num_overs; ++i)
+    for (size_t i = 0; i < num_overs; ++i)
     {
         screenover[i].ReadFromFile(&align_s, 0);
         align_s.Reset();

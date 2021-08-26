@@ -466,13 +466,19 @@ AGS::ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, st
 
     switch (first_char_after_backslash)
     {
-    default: break;
-    case '\'': converted = '\''; return kERR_None;
-    case '\"': converted = '\"'; return kERR_None;
-    case '?': converted = '\?'; return kERR_None;
+    default:
+        break;
+
+    case '\'': 
+    case '"': 
+    case '?': 
+    case '\\':
+        converted = first_char_after_backslash;
+        return kERR_None;
+
     case 'a': converted = '\a'; return kERR_None;
     case 'b': converted = '\b'; return kERR_None;
-    case 'e': converted = 27; return kERR_None; // escape char
+    case 'e': converted = 27;   return kERR_None; // escape char
     case 'f': converted = '\f'; return kERR_None;
     case 'n': converted = '\n'; return kERR_None;
     case 'r': converted = '\r'; return kERR_None;

@@ -88,7 +88,6 @@ extern bool does_undo_buffer_exist();
 extern void clear_undo_buffer() ;
 extern void restore_from_undo_buffer(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
-extern void transform_string(char *text);
 extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
@@ -99,6 +98,15 @@ System::String^ ToStr(const AGS::Common::String &str)
     return gcnew String(str.GetCStr());
 }
 
+System::String^ ToStrUTF8(const AGS::Common::String &str)
+{
+    size_t len = strlen(str.GetCStr()); // we need number of bytes, not chars
+    array<Byte>^ buf = gcnew array<Byte>(len);
+    Marshal::Copy((IntPtr)(void*)str.GetCStr(), buf, 0, (int)len);
+    return System::Text::Encoding::UTF8->GetString(buf);
+}
+
+// Converts C# string to the native ANSI string
 AGSString ConvertStringToNativeString(System::String^ clrString)
 {
     if (clrString == nullptr)
@@ -109,6 +117,7 @@ AGSString ConvertStringToNativeString(System::String^ clrString)
     return str;
 }
 
+// Converts C# string to the native ANSI string
 AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
 {
     if (clrString == nullptr)
@@ -119,13 +128,18 @@ AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
     return str.Left(buf_len - 1);
 }
 
-AGSString ConvertFileNameToNativeString(System::String^ clrString)
+// Converts C# string containing path to the native UTF-8 string
+AGSString ConvertPathToNativeString(System::String^ clrString)
 {
     if (clrString == nullptr)
         return AGSString();
-    AGSString str = ConvertStringToNativeString(clrString);
-    if (str.FindChar('?') != -1)
-        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
+    int len = System::Text::Encoding::UTF8->GetByteCount(clrString);
+    cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
+    System::Text::Encoding::UTF8->GetBytes(clrString, 0, clrString->Length, buf, 0);
+    IntPtr utf8ptr = Marshal::AllocHGlobal(buf->Length);
+    Marshal::Copy(buf, 0, utf8ptr, buf->Length);
+    AGSString str = (const char*)utf8ptr.ToPointer();
+    Marshal::FreeHGlobal(utf8ptr);
     return str;
 }
 
@@ -186,7 +200,7 @@ namespace AGS
 			HAGSError err = reset_sprite_file();
 			if (!err)
 			{
-				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + ToStr(err->FullMessage()));
+				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + ToStrUTF8(err->FullMessage()));
 			}
 		}
 
@@ -241,11 +255,11 @@ namespace AGS
 
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
-			AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
+			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
 			AGSString errorMsg = import_sci_font(fileNameAnsi, fontSlot);
 			if (errorMsg != NULL) 
 			{
-				throw gcnew AGSEditorException(ToStr(errorMsg));
+				throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
 			}
 		}
 
@@ -430,7 +444,7 @@ namespace AGS
 
 		AGS::Types::Game^ NativeMethods::ImportOldGameFile(String^ fileName)
 		{
-			AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
+			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
 			Game ^game = import_compiled_game_dta(fileNameAnsi);
 			return game;
 		}
@@ -562,7 +576,7 @@ namespace AGS
 
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
-      AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
+      AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
       char *iconDataBuffer = NULL;
       long iconDataSize = 0;
 
@@ -610,21 +624,21 @@ namespace AGS
 
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
-			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
+			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
             HAGSError err = extract_template_files(fileNameAnsi);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStr(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
 			}
 		}
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
-			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
+			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
             HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStr(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
 			}
 		}
 

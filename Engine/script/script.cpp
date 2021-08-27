@@ -184,32 +184,56 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 }
 
 int create_global_script() {
+    constexpr int kscript_create_error = -3;
+
     ccSetOption(SCOPT_AUTOIMPORT, 1);
-    for (int kk = 0; kk < numScriptModules; kk++) {
+
+    std::vector<ccInstance *> instances_for_resolving;
+    for (int kk = 0; kk < numScriptModules; kk++)
+    {
         moduleInst[kk] = ccInstance::CreateFromScript(scriptModules[kk]);
         if (moduleInst[kk] == nullptr)
-            return -3;
-        // create a forked instance for rep_exec_always
-        moduleInstFork[kk] = moduleInst[kk]->Fork();
-        if (moduleInstFork[kk] == nullptr)
-            return -3;
-
-        moduleRepExecAddr[kk] = moduleInst[kk]->GetSymbolAddress(REP_EXEC_NAME);
+            return kscript_create_error;
+        instances_for_resolving.push_back(moduleInst[kk]);
     }
+
     gameinst = ccInstance::CreateFromScript(gamescript);
     if (gameinst == nullptr)
-        return -3;
-    // create a forked instance for rep_exec_always
-    gameinstFork = gameinst->Fork();
-    if (gameinstFork == nullptr)
-        return -3;
+        return kscript_create_error;
+    instances_for_resolving.push_back(gameinst);
 
     if (dialogScriptsScript != nullptr)
     {
         dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
         if (dialogScriptsInst == nullptr)
-            return -3;
+            return kscript_create_error;
+        instances_for_resolving.push_back(dialogScriptsInst);
     }
+
+    // Resolve the script imports after all the scripts have been loaded 
+    for (size_t instance_idx = 0; instance_idx < instances_for_resolving.size(); instance_idx++)
+    {
+        auto inst = instances_for_resolving[instance_idx];
+        if (!inst->ResolveScriptImports(inst->instanceof))
+            return kscript_create_error;
+        if (!inst->ResolveImportFixups(inst->instanceof))
+            return kscript_create_error;
+    }
+
+    // Create the forks for 'repeatedly_execute_always' after resolving
+    // because they copy their respective originals including the resolve information
+    for (size_t module_idx = 0; module_idx < numScriptModules; module_idx++)
+    {
+        moduleInstFork[module_idx] = moduleInst[module_idx]->Fork();
+        if (moduleInstFork[module_idx] == nullptr)
+            return kscript_create_error;
+
+        moduleRepExecAddr[module_idx] = moduleInst[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
+    }
+
+    gameinstFork = gameinst->Fork();
+    if (gameinstFork == nullptr)
+        return kscript_create_error;
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
     return 0;

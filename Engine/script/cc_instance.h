@@ -180,12 +180,19 @@ public:
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
 
-protected:
+    // For each import, find the instance that corresponds to it and save it
+    // in resolved_imports[]. Return whether the function is successful
+    bool    ResolveScriptImports(PScript scri);
+
+    // Using resolved_imports[], resolve the IMPORT fixups
+    // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
+    bool    ResolveImportFixups(PScript scri);
+
+protected:    
     bool    _Create(PScript scri, ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
 
-    bool    ResolveScriptImports(PScript scri);
     bool    CreateGlobalVars(PScript scri);
     bool    AddGlobalVar(const ScriptVariable &glvar);
     ScriptVariable *FindGlobalVar(int32_t var_addr);

@@ -592,6 +592,24 @@ TEST_F(Scan, BackslashCSym) {
     EXPECT_STREQ(" Is 'Java' \x1bqual to \"Ja\va\" ? ", &(string_collector.strings[value]));
 }
 
+TEST_F(Scan, BackslashBackslash) {
+    
+    // Backslash Backslash in strings or char literals converts to backslash.
+
+    char *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+
+    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, value);
+    EXPECT_STREQ("'\\\\'", symstring.c_str());
+    EXPECT_EQ('\\', value);
+  
+    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, value);
+    EXPECT_STREQ("\"\\\\a\\\\b\\\\\"", symstring.c_str());
+    EXPECT_STREQ("\\a\\b\\", &(string_collector.strings[value]));
+}
+
 TEST_F(Scan, String1)
 {
     // Should scan advanced escape sequences within string.

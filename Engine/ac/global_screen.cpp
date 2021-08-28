@@ -84,7 +84,6 @@ void ShakeScreen(int severe) {
             render_to_screen();
             update_polled_stuff_if_runtime();
         }
-        clear_letterbox_borders();
         render_to_screen();
     }
 
@@ -97,13 +96,6 @@ void ShakeScreen(int severe) {
 void ShakeScreenBackground (int delay, int amount, int length) {
     if (delay < 2) 
         quit("!ShakeScreenBackground: invalid delay parameter");
-
-    if (amount < play.shakesc_amount)
-    {
-        // from a bigger to smaller shake, clear up the borders
-        clear_letterbox_borders();
-    }
-
     play.shakesc_amount = amount;
     play.shakesc_delay = delay;
     play.shakesc_length = length;

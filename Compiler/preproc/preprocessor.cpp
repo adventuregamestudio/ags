@@ -152,7 +152,7 @@ namespace Preprocessor {
     }
 
     String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
-        int i = 0;
+        size_t i = 0;
         while ((i < text.GetLength()) &&
                (is_alphanum(text[i]) ||
                 (includeDots && (text[i] == '.')))
@@ -181,7 +181,7 @@ namespace Preprocessor {
         }
 
         StringBuilder output = StringBuilder(text.GetLength());
-        for (int i = 0; i < text.GetLength(); i++)
+        for (size_t i = 0; i < text.GetLength(); i++)
         {
             if (!_inMultiLineComment)
             {

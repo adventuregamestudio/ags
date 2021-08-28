@@ -17,7 +17,7 @@
 // AGS.Native-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void SpriteCache::InitNullSpriteParams(sprkey_t index)
+void AGS::Common::SpriteCache::InitNullSpriteParams(sprkey_t index)
 {
     // no sprite ... blank it out
     _sprInfos[index] = SpriteInfo();

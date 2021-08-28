@@ -1,6 +1,6 @@
 /*
 
-This is not the AGS SnowRain plugin by Scorpiorus (http://www.bigbluecup.com/yabb/index.php?topic=25665.0),
+This is not the AGS SnowRain plugin by Scorpiorus (https://www.adventuregamestudio.co.uk/forums/index.php?topic=25665.0),
 but a workalike plugin created by JJS for the AGS engine PSP port.
 
 */

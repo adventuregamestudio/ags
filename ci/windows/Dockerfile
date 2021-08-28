@@ -24,15 +24,15 @@ RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
 RUN pushd %TEMP% && \
   mkdir Lib\Xiph && \
   pushd Lib\Xiph && \
-  nuget install ericoporto.xiph-for-ags -Version 2020.12.12.1 && \
+  nuget install ericoporto.xiph-for-ags -Version 2021.8.3 && \
   popd && \
   popd && \
   mkdir Lib\Xiph && \
   pushd Lib\Xiph && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libogg_static.lib libogg_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libtheora_static.lib libtheora_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libvorbis_static.lib libvorbis_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2020.12.12.1\native\lib\libvorbisfile_static.lib libvorbisfile_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libogg_static.lib libogg_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libtheora_static.lib libtheora_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbis_static.lib libvorbis_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbisfile_static.lib libvorbisfile_static.lib && \
   popd && \
   rd /s /q %TEMP%\Lib
 
@@ -60,7 +60,7 @@ RUN mkdir Lib\SDL2 && \
   echo endif ^(^)  >> "Lib\SDL2\sdl2-config.cmake" && \
   echo string^(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES^) >> "Lib\SDL2\sdl2-config.cmake" 
  
-ARG SDL_SOUND_VERSION=574e3174e311d21cc879f2a5bf26735c52bf1cf2
+ARG SDL_SOUND_VERSION=b63aba4d605cf588aa8102b7febe21976bf459ba
 RUN mkdir Lib\SDL_sound && \
   echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild.bat && \
   mkdir Lib\SDL_sound\build  && \	

@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/filestream.h"
-
 #include <stdexcept>
+#include "platform/windows/windows.h"
+#include "util/path.h"
 #include "util/stdio_compat.h"
 #include "util/string.h"
 
@@ -181,7 +181,7 @@ void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkM
     String mode = File::GetCMode(open_mode, work_mode);
     if (mode.IsEmpty())
         throw std::runtime_error("Error determining open mode");
-    _file = fopen(file_name.GetCStr(), mode.GetCStr());
+    _file = ags_fopen(file_name.GetCStr(), mode.GetCStr());
     if (_file == nullptr)
         throw std::runtime_error("Error opening file.");
     _ownHandle = true;

@@ -64,6 +64,8 @@ public:
     virtual void DisplayAlert(const char*, ...) = 0;
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
+    // platform specific data file
+    virtual const char * GetGameDataFile() {return nullptr; }
     // Get root directory for storing per-game shared data
     virtual const char *GetAllUsersDataDirectory() { return "."; }
     // Get root directory for storing per-game saved games
@@ -102,6 +104,11 @@ public:
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const {}
 
+    // Store command line arguments for the future use; preprocess them if necessary
+    virtual void InitCommandArgs(const char *const argv[], size_t argc);
+    // Returns command line argument in a UTF-8 format
+    virtual Common::String GetCommandArg(size_t arg_index);
+
      // Allows adjusting parameters and other fixes before engine is initialized
     virtual void MainInitAdjustments() { };
 
@@ -132,6 +139,9 @@ protected:
     // Defines whether engine is allowed to display important warnings
     // and errors by showing a message box kind of GUI.
     bool _guiMode = false;
+
+    const char * const *_cmdArgs = nullptr;
+    size_t _cmdArgCount = 0u;
 
 private:
     static AGSPlatformDriver *CreateDriver();

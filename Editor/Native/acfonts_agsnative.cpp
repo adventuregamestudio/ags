@@ -17,13 +17,6 @@
 extern GameSetupStruct thisgame;
 extern int antiAliasFonts;
 
-void check_font(int *fontnum)
-{
-  // Stop roomedit crashing if they specify an invalid font number
-  if (fontnum[0] >= thisgame.numfonts)
-    fontnum[0] = 0;
-}
-
 void set_our_eip(int eip)
 {
   // do nothing

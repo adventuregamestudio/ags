@@ -33,6 +33,8 @@
 #include "platform/base/sys_main.h"
 #include "resource/resource.h"
 #include "util/file.h"
+#include "util/path.h"
+#include "util/stdio_compat.h"
 #include "util/string_utils.h"
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
@@ -54,7 +56,7 @@ namespace Engine
 
 using namespace AGS::Common;
 
-inline LPCTSTR STR(const String &str) { return str.GetCStr(); }
+inline LPCSTR STR(const String &str) { return str.GetCStr(); }
 
 //=============================================================================
 //
@@ -217,20 +219,34 @@ void WinConfig::Save(ConfigTree &cfg)
 //
 //=============================================================================
 
-int AddString(HWND hwnd, LPCTSTR text, DWORD_PTR data = 0L)
+int AddString(HWND hwnd, LPCWSTR text, DWORD_PTR data = 0L)
 {
-    int index = SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)text);
+    int index = SendMessageW(hwnd, CB_ADDSTRING, 0, (LPARAM)text);
     if (index >= 0)
-        SendMessage(hwnd, CB_SETITEMDATA, index, data);
+        SendMessageW(hwnd, CB_SETITEMDATA, index, data);
     return index;
 }
 
-int InsertString(HWND hwnd, LPCTSTR text, int at_index, DWORD_PTR data = 0L)
+int AddString(HWND hwnd, LPCSTR text, DWORD_PTR data = 0L)
 {
-    int index = SendMessage(hwnd, CB_INSERTSTRING, at_index, (LPARAM)text);
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, text, -1, wstr, MAX_PATH_SZ);
+    return AddString(hwnd, wstr, data);
+}
+
+int InsertString(HWND hwnd, LPCWSTR text, int at_index, DWORD_PTR data = 0L)
+{
+    int index = SendMessageW(hwnd, CB_INSERTSTRING, at_index, (LPARAM)text);
     if (index >= 0)
-        SendMessage(hwnd, CB_SETITEMDATA, index, data);
+        SendMessageW(hwnd, CB_SETITEMDATA, index, data);
     return index;
+}
+
+int InsertString(HWND hwnd, LPCSTR text, int at_index, DWORD_PTR data = 0L)
+{
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, text, -1, wstr, MAX_PATH_SZ);
+    return InsertString(hwnd, wstr, at_index, data);
 }
 
 int GetItemCount(HWND hwnd)
@@ -262,9 +278,9 @@ typedef bool (*PfnCompareCBItemData)(DWORD_PTR data1, DWORD_PTR data2);
 
 bool CmpICBItemDataAsStr(DWORD_PTR data1, DWORD_PTR data2)
 {
-    LPCTSTR text_ptr1 = (LPCTSTR)data1;
-    LPCTSTR text_ptr2 = (LPCTSTR)data2;
-    return text_ptr1 && text_ptr2 && StrCmpI(text_ptr1, text_ptr2) == 0 || !text_ptr1 && !text_ptr2;
+    LPCSTR text_ptr1 = (LPCSTR)data1;
+    LPCSTR text_ptr2 = (LPCSTR)data2;
+    return text_ptr1 && text_ptr2 && StrCmpA(text_ptr1, text_ptr2) == 0 || !text_ptr1 && !text_ptr2;
 }
 
 int SetCurSelToItemData(HWND hwnd, DWORD_PTR data, PfnCompareCBItemData pfn_cmp = NULL, int def_sel = -1)
@@ -284,7 +300,7 @@ int SetCurSelToItemData(HWND hwnd, DWORD_PTR data, PfnCompareCBItemData pfn_cmp 
     return SendMessage(hwnd, CB_SETCURSEL, def_sel, 0);
 }
 
-int SetCurSelToItemDataStr(HWND hwnd, LPCTSTR text, int def_sel = -1)
+int SetCurSelToItemDataStr(HWND hwnd, LPCSTR text, int def_sel = -1)
 {
     return SetCurSelToItemData(hwnd, (DWORD_PTR)text, CmpICBItemDataAsStr, def_sel);
 }
@@ -299,23 +315,30 @@ DWORD_PTR GetCurItemData(HWND hwnd, DWORD_PTR def_value = 0)
 
 String GetText(HWND hwnd)
 {
-    TCHAR short_buf[MAX_PATH + 1];
-    int len = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
+    WCHAR buf[MAX_PATH_SZ];
+    int len = SendMessageW(hwnd, WM_GETTEXTLENGTH, 0, 0);
     if (len > 0)
     {
-        TCHAR *buf = len >= sizeof(short_buf) ? new TCHAR[len + 1] : short_buf;
-        SendMessage(hwnd, WM_GETTEXT, len + 1, (LPARAM)buf);
-        String s = buf;
-        if (buf != short_buf)
-            delete [] buf;
+        WCHAR *pbuf = len >= MAX_PATH_SZ ? new WCHAR[len + 1] : buf;
+        SendMessageW(hwnd, WM_GETTEXT, len + 1, (LPARAM)buf);
+        String s = Path::WidePathToUTF8(pbuf);
+        if (pbuf != buf)
+            delete [] pbuf;
         return s;
     }
     return "";
 }
 
-void SetText(HWND hwnd, LPCTSTR text)
+void SetText(HWND hwnd, LPCSTR text)
 {
-    SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)text);
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, text, -1, wstr, MAX_PATH_SZ);
+    SendMessageW(hwnd, WM_SETTEXT, 0, (LPARAM)wstr);
+}
+
+void SetText(HWND hwnd, LPCWSTR wtext)
+{
+    SendMessageW(hwnd, WM_SETTEXT, 0, (LPARAM)wtext);
 }
 
 void ResetContent(HWND hwnd)
@@ -338,10 +361,12 @@ void SetSliderPos(HWND hwnd, int pos)
     SendMessage(hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)pos);
 }
 
-void MakeFullLongPath(const char *path, char *out_buf, int buf_len)
+void MakeFullLongPath(const char *path, WCHAR *out_buf, int buf_len)
 {
-    GetFullPathName(path, buf_len, out_buf, NULL);
-    GetLongPathName(out_buf, out_buf, buf_len);
+    WCHAR wbuf[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, out_buf, buf_len);
+    GetFullPathNameW(out_buf, MAX_PATH_SZ, wbuf, NULL);
+    GetLongPathNameW(wbuf, out_buf, buf_len);
 }
 
 
@@ -374,10 +399,10 @@ bool BrowseForFolder(String &dir_buf)
     LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
     if (pidl)
     {
-        char path[MAX_PATH];
-        if (SHGetPathFromIDList(pidl, path) != FALSE)
+        WCHAR path[MAX_PATH_SZ];
+        if (SHGetPathFromIDListW(pidl, path) != FALSE)
         {
-            dir_buf = path;
+            dir_buf = Path::WidePathToUTF8(path);
             res = true;
         }
         CoTaskMemFree(pidl);
@@ -533,7 +558,7 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree 
                                            const String &data_dir, const String &version_str)
 {
     _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
-    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, (HWND)sys_win_get_window(),
+    INT_PTR dlg_res = DialogBoxParamW(GetModuleHandleW(NULL), (LPCWSTR)IDD_SETUP, (HWND)sys_win_get_window(),
         (DLGPROC)WinSetupDialog::DialogProc, 0L);
     delete _dlg;
     _dlg = NULL;
@@ -591,8 +616,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!has_save_dir)
         custom_save_dir = _winCfg.DataDirectory;
     SetCheck(_hCustomSaveDirCheck, has_save_dir);
-    char full_save_dir[MAX_PATH] = {0};
-    MakeFullLongPath(custom_save_dir.GetCStr(), full_save_dir, MAX_PATH);
+    WCHAR full_save_dir[MAX_PATH_SZ] = {0};
+    MakeFullLongPath(STR(custom_save_dir), full_save_dir, MAX_PATH_SZ);
     SetText(_hCustomSaveDir, full_save_dir);
     EnableWindow(_hCustomSaveDir, has_save_dir ? TRUE : FALSE);
     EnableWindow(_hCustomSaveDirBtn, has_save_dir ? TRUE : FALSE);
@@ -736,7 +761,7 @@ void WinSetupDialog::OnCustomSaveDirCheck()
 
 void WinSetupDialog::OnGfxDriverUpdate()
 {
-    _winCfg.GfxDriverId = (LPCTSTR)GetCurItemData(_hGfxDriverList);
+    _winCfg.GfxDriverId = (LPCSTR)GetCurItemData(_hGfxDriverList);
 
     DriverDescMap::const_iterator it = _drvDescMap.find(_winCfg.GfxDriverId);
     if (it != _drvDescMap.end())
@@ -750,7 +775,7 @@ void WinSetupDialog::OnGfxDriverUpdate()
 
 void WinSetupDialog::OnGfxFilterUpdate()
 {
-    _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
+    _winCfg.GfxFilterId = (LPCSTR)GetCurItemData(_hGfxFilterList);
 
     _gfxFilterInfo = GfxFilterInfo();
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
@@ -1090,15 +1115,15 @@ void WinSetupDialog::SaveSetup()
         // directory if user moves game elsewhere.
         String save_dir;
         save_dir = GetText(_hCustomSaveDir);
-        char full_data_dir[MAX_PATH] = {0};
-        char full_save_dir[MAX_PATH] = {0};
-        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH);
-        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH);
-        char rel_save_dir[MAX_PATH] = {0};
-        if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
-            strstr(rel_save_dir, "..") == NULL)
+        WCHAR full_data_dir[MAX_PATH_SZ] = {0};
+        WCHAR full_save_dir[MAX_PATH_SZ] = {0};
+        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH_SZ);
+        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH_SZ);
+        WCHAR rel_save_dir[MAX_PATH_SZ] = {0};
+        if (PathRelativePathToW(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
+            wcsstr(rel_save_dir, L"..") == NULL)
         {
-            _winCfg.UserSaveDir = rel_save_dir;
+            _winCfg.UserSaveDir = Path::WidePathToUTF8(rel_save_dir);
         }
         else
         {
@@ -1120,7 +1145,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
     _winCfg.RefreshRate = GetCheck(_hRefresh85Hz) ? 85 : 0;
-    _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
+    _winCfg.GfxFilterId = (LPCSTR)GetCurItemData(_hGfxFilterList);
 
     _winCfg.MouseAutoLock = GetCheck(_hMouseLock);
     int slider_pos = GetSliderPos(_hMouseSpeed);

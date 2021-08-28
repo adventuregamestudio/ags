@@ -102,8 +102,11 @@ Font custom line spacing.
 Sprites have "real" resolution. Expanded FontInfo data format.
 Option to allow legacy relative asset resolutions.
 
-60 :
+3.6.0 :
+Format value is defined as AGS version represented as NN,NN,NN,NN.
 Fonts have adjustable outline
+
+3.9.9 :
 BlendModes
 
 */
@@ -139,7 +142,8 @@ enum GameDataVersion
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
-    kGameVersion_399            = 60,
+    kGameVersion_360            = 3060000,
+    kGameVersion_399            = 3999999,
     kGameVersion_Current        = kGameVersion_399
 };
 

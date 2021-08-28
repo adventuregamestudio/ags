@@ -101,6 +101,17 @@ SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTre
     return kSetup_Cancel;
 }
 
+void AGSPlatformDriver::InitCommandArgs(const char *const argv[], size_t argc)
+{
+    _cmdArgs = argv;
+    _cmdArgCount = argc;
+}
+
+String AGSPlatformDriver::GetCommandArg(size_t arg_index)
+{
+    return arg_index < _cmdArgCount ? _cmdArgs[arg_index] : nullptr;
+}
+
 //-----------------------------------------------
 // IOutputHandler implementation
 //-----------------------------------------------

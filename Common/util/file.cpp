@@ -24,6 +24,9 @@
 #include "util/filestream.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
+#if AGS_PLATFORM_OS_ANDROID
+#include "util/aasset_stream.h"
+#endif
 
 namespace AGS
 {
@@ -37,7 +40,7 @@ soff_t File::GetFileSize(const String &filename)
 
 bool File::TestReadFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "rb");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "rb");
     if (test_file)
     {
         fclose(test_file);
@@ -48,7 +51,7 @@ bool File::TestReadFile(const String &filename)
 
 bool File::TestWriteFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "r+");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "r+");
     if (test_file)
     {
         fclose(test_file);
@@ -59,11 +62,11 @@ bool File::TestWriteFile(const String &filename)
 
 bool File::TestCreateFile(const String &filename)
 {
-    FILE *test_file = fopen(filename.GetCStr(), "wb");
+    FILE *test_file = ags_fopen(filename.GetCStr(), "wb");
     if (test_file)
     {
         fclose(test_file);
-        ::remove(filename.GetCStr());
+        ags_remove(filename.GetCStr());
         return true;
     }
     return false;
@@ -71,7 +74,7 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (::remove(filename.GetCStr()) != 0)
+    if (ags_remove(filename.GetCStr()) != 0)
     {
         int err;
 #if AGS_PLATFORM_OS_WINDOWS
@@ -89,7 +92,7 @@ bool File::DeleteFile(const String &filename)
 
 bool File::RenameFile(const String &old_name, const String &new_name)
 {
-    return ::rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+    return ags_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
 }
 
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)
@@ -166,7 +169,7 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
 
 Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    FileStream *fs = nullptr;
+    Stream *fs = nullptr;
     try {
         if (work_mode == kFile_Read) // NOTE: BufferedStream does not work correctly in the write mode
             fs = new BufferedStream(filename, open_mode, work_mode);
@@ -178,6 +181,18 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
         }
     } catch(std::runtime_error) {
         fs = nullptr;
+#if AGS_PLATFORM_OS_ANDROID
+        try {
+            if (work_mode == kFile_Read) // look into Android Assets too
+                fs = new AAssetStream(filename, AASSET_MODE_RANDOM);
+            if (fs != nullptr && !fs->IsValid()) {
+                delete fs;
+                fs = nullptr;
+            }
+        } catch(std::runtime_error) {
+            fs = nullptr;
+        }
+#endif
     }
     return fs;
 }
@@ -310,7 +325,19 @@ Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
         return fs;
     }
     catch (std::runtime_error) {
-        return nullptr;
+        Stream* fs = nullptr;
+#if AGS_PLATFORM_OS_ANDROID
+        try {
+            fs = new AAssetStream(filename, AASSET_MODE_RANDOM, start_off, end_off);
+            if (fs != nullptr && !fs->IsValid()) {
+                delete fs;
+                fs = nullptr;
+            }
+        } catch(std::runtime_error) {
+            fs = nullptr;
+        }
+#endif
+        return fs;
     }
 }
 

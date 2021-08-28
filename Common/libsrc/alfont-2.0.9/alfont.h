@@ -57,6 +57,8 @@ ALFONT_DLL_DECLSPEC void alfont_destroy_font(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_set_font_size(ALFONT_FONT *f, int h);
 ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
+/* Returns the real font graphical height */
+ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
 

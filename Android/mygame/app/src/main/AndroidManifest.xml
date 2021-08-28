@@ -53,16 +53,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.mystudioname.mygamename.ExpansionDownloaderActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
-
-        <service android:name="com.mystudioname.mygamename.ExpansionDownloaderService" />
-
-        <receiver android:name="com.mystudioname.mygamename.ExpansionAlarmReceiver" />
-
     </application>
 
 </manifest>

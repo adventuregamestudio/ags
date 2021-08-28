@@ -28,7 +28,6 @@ using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern SpriteCache spriteset;
 extern CCAudioClip ccDynamicAudioClip;
 
 

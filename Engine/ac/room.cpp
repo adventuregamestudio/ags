@@ -84,7 +84,6 @@ extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;
 extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern CharacterExtras *charextra;
 extern int done_es_error;
 extern int our_eip;
@@ -100,17 +99,8 @@ extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 extern RGB palette[256];
 extern int mouse_z_was;
-
-extern Bitmap **guibg;
-extern IDriverDependantBitmap **guibgbmp;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
@@ -314,31 +304,10 @@ void unload_old_room() {
 
     croom_ptr_clear();
 
-    // clear the object cache
-    for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
-        delete objcache[ff].image;
-        objcache[ff].image = nullptr;
-    }
     // clear the actsps buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
-    for (ff = 0; ff < MAX_ROOM_OBJECTS + game.numcharacters; ff++) {
-        delete actsps[ff];
-        actsps[ff] = nullptr;
-
-        if (actspsbmp[ff] != nullptr)
-            gfxDriver->DestroyDDB(actspsbmp[ff]);
-        actspsbmp[ff] = nullptr;
-
-        delete actspswb[ff];
-        actspswb[ff] = nullptr;
-
-        if (actspswbbmp[ff] != nullptr)
-            gfxDriver->DestroyDDB(actspswbbmp[ff]);
-        actspswbbmp[ff] = nullptr;
-
-        actspswbcache[ff].valid = 0;
-    }
+    clear_drawobj_cache();
 
     // if Hide Player Character was ticked, restore it to visible
     if (play.temporarily_turned_off_character >= 0) {
@@ -880,17 +849,6 @@ void new_room(int newnum,CharacterInfo*forchar) {
     {
         // Delete all cached sprites
         spriteset.DisposeAll();
-
-        // Delete all gui background images
-        for (int i = 0; i < game.numgui; i++)
-        {
-            delete guibg[i];
-            guibg[i] = nullptr;
-
-            if (guibgbmp[i])
-                gfxDriver->DestroyDDB(guibgbmp[i]);
-            guibgbmp[i] = nullptr;
-        }
         GUI::MarkAllGUIForUpdate();
     }
 

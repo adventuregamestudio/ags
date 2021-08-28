@@ -341,12 +341,17 @@ namespace AGS.Editor
                 }
             }
 
-            if (xmlVersionIndex < 30)
+            if (xmlVersionIndex < 3060000)
             {
                 foreach (Font font in game.Fonts)
                 {
-                    font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
-                    font.AutoOutlineThickness = 1;
+                    // For scaled-up bitmap fonts outline is xN
+                    // NOTE: unfortunately as of now there's no direct way to determine if
+                    // this is a bitmap font or TTF
+                    if (!File.Exists(font.TTFFileName))
+                    {
+                        font.AutoOutlineThickness = font.SizeMultiplier;
+                    }
                 }
             }
 

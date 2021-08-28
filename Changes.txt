@@ -1,5 +1,27 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 3, August 2021
+
+Editor:
+ - Fixed sprite file over 2 GB could not be loaded (regression since the last patch).
+
+Engine:
+ - Further improvement to GUI perfomance: don't redraw GUI when the mouse cursor is
+   hovering over or interacting with controls not leading to an actual visual change.
+ - Fixed ListBox items could become unaccessible if its font or height is changed leading
+   to a disabled scrollbar.
+
+
+VERSION 3.5.1 - Patch 2, July 2021
+
+Engine:
+ - Fixed speech lipsync getting disabled after loading another game with RunAGSGame().
+ - Fixed MOD/XM clips fail to play (regression).
+ - Fixed certain OGV videos fail to play (regression).
+ - Fixed software renderer was not updating game screen correctly when running a game with
+   legacy "letterboxed" feature  (regression).
+
+
 VERSION 3.5.1 - Patch 1, June 2021
 
 Editor:

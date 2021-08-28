@@ -17,7 +17,6 @@
 #include "ac/dynamicsprite.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
-#include "ac/runtime_defines.h" //MAX_PATH
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
@@ -56,7 +55,7 @@ int LoadImageFile(const char *filename)
     if (gotSlot <= 0)
         return 0;
 
-    add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(loadedFile));
+    add_dynamic_sprite(gotSlot, PrepareSpriteForUse(loadedFile, false));
 
     return gotSlot;
 }

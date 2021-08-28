@@ -436,14 +436,16 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
 
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_399)
+    if (data_ver < kGameVersion_360)
     {
-        for (size_t font = 0; font < game.numfonts; font++)
+        for (int i = 0; i < game.numfonts; ++i)
         {
-            FontInfo &finfo = game.fonts[font];
-            // Thickness that corresponds to 1 game pixel
-            finfo.AutoOutlineThickness = 1;
-            finfo.AutoOutlineStyle = FontInfo::kSquared;
+            FontInfo &finfo = game.fonts[i];
+            if (finfo.Outline == FONT_OUTLINE_AUTO)
+            {
+                finfo.AutoOutlineStyle = FontInfo::kSquared;
+                finfo.AutoOutlineThickness = 1;
+            }
         }
     }
 }
@@ -558,17 +560,25 @@ HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
     // {
     //     // read new gui properties
     // }
-    // Early development version of "ags4"
-    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    if (ext_id.CompareNoCase("v360_fonts") == 0)
     {
-        // adjustable font outlines
-        for (size_t i = 0; i < (size_t)_ents.Game.numfonts; ++i)
+        for (int i = 0; i < _ents.Game.numfonts; ++i)
         {
+            // adjustable font outlines
             _ents.Game.fonts[i].AutoOutlineThickness = _in->ReadInt32();
             _ents.Game.fonts[i].AutoOutlineStyle =
                 static_cast<enum FontInfo::AutoOutlineStyle>(_in->ReadInt32());
+            // reserved
+            _in->ReadInt32();
+            _in->ReadInt32();
+            _in->ReadInt32();
+            _in->ReadInt32();
         }
-
+        return HError::None();
+    }
+    // Early development version of "ags4"
+    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    {
         // new character properties
         for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
         {

@@ -59,10 +59,6 @@ String appPath; // engine exe path
 String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
-char **global_argv = nullptr;
-int    global_argc = 0;
-
-
 extern GameSetup usetup;
 extern GameState play;
 extern int our_eip;
@@ -150,10 +146,8 @@ void main_init(int argc, char*argv[])
     AssetMgr.reset(new AssetManager());
     main_pre_init();
     main_create_platform_driver();
+    platform->InitCommandArgs(argv, argc);
     platform->MainInitAdjustments();
-
-    global_argv = argv;
-    global_argc = argc;
 }
 
 String get_engine_string()
@@ -384,7 +378,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
     if (datafile_argv > 0)
     {
-        cmdGameDataPath = GetPathFromCmdArg(datafile_argv);
+        cmdGameDataPath = platform->GetCommandArg(datafile_argv);
     }
     else
     {
@@ -398,36 +392,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     return 0;
 }
 
-void main_set_gamedir(int argc, char*argv[])
+void main_set_gamedir()
 {
-    appPath = GetPathFromCmdArg(0);
+    appPath = Path::MakeAbsolutePath(platform->GetCommandArg(0));
     appDirectory = Path::GetDirectoryPath(appPath);
-
-    // TODO: remove following when supporting unicode paths
-    {
-        // It looks like Allegro library does not like ANSI (ACP) paths.
-        // When *not* working in U_UNICODE filepath mode, whenever it gets
-        // current directory for its own operations, it "fixes" it by
-        // substituting non-ASCII symbols with '^'.
-        // Here we explicitly set current directory to ASCII path.
-        String cur_dir = Directory::GetCurrentDirectory();
-        String path = Path::GetPathInASCII(cur_dir);
-        if (!path.IsEmpty())
-            Directory::SetCurrentDirectory(Path::MakeAbsolutePath(path));
-        else
-            Debug::Printf(kDbgMsg_Error, "Unable to determine current directory: GetPathInASCII failed.\nArg: %s", cur_dir.GetCStr());
-    }
-}
-
-String GetPathFromCmdArg(int arg_index)
-{
-    if (arg_index < 0 || arg_index >= global_argc)
-        return "";
-    String path = Path::GetCmdLinePathInASCII(global_argv[arg_index], arg_index);
-    if (!path.IsEmpty())
-        return Path::MakeAbsolutePath(path);
-    Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetCmdLinePathInASCII failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-    return global_argv[arg_index];
 }
 
 int ags_entry_point(int argc, char *argv[]) { 
@@ -464,7 +432,7 @@ int ags_entry_point(int argc, char *argv[]) {
     init_debug(startup_opts, justTellInfo);
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
 
-    main_set_gamedir(argc, argv);    
+    main_set_gamedir();
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)

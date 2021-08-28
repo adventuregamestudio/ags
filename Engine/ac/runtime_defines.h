@@ -130,10 +130,6 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define MAX_PLUGIN_OBJECT_READERS 50
 
-#ifndef MAX_PATH
-#define MAX_PATH 260
-#endif
-
 #define LOCTYPE_HOTSPOT 1
 #define LOCTYPE_CHAR 2
 #define LOCTYPE_OBJ  3

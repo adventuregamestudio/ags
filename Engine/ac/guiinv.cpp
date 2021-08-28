@@ -26,7 +26,6 @@ extern GameSetupStruct game;
 extern int gui_disabled_style;
 extern GameState play;
 extern CharacterExtras *charextra;
-extern SpriteCache spriteset;
 
 
 namespace AGS

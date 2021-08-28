@@ -22,10 +22,11 @@
 typedef AGS::Common::String AGSString;
 
 System::String^ ToStr(const AGS::Common::String &str);
+System::String^ ToStrUTF8(const AGS::Common::String &str);
 
 AGSString ConvertStringToNativeString(System::String^ clrString);
 AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len);
-AGSString ConvertFileNameToNativeString(System::String^ clrString);
+AGSString ConvertPathToNativeString(System::String^ clrString);
 void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len);
 void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len);
 

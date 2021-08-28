@@ -50,9 +50,6 @@ extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
 extern IGraphicsDriver *gfxDriver;
 
 // Used for deciding whether a char or obj was closer
@@ -298,17 +295,16 @@ void MergeObject(int obn) {
     int theHeight;
 
     construct_object_gfx(obn, nullptr, &theHeight, true);
+    Bitmap *actsp = get_cached_object_image(obn);
 
-    //Bitmap *oldabuf = graphics->bmp;
-    //abuf = thisroom.BgFrames.Graphic[play.bg_frame];
     PBitmap bg_frame = thisroom.BgFrames[play.bg_frame].Graphic;
-    if (bg_frame->GetColorDepth() != actsps[obn]->GetColorDepth())
+    if (bg_frame->GetColorDepth() != actsp->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = objs[obn].x;
     int ypos = (objs[obn].y - theHeight);
 
-    draw_sprite_support_alpha(bg_frame.get(), false, xpos, ypos, actsps[obn], (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
+    draw_sprite_support_alpha(bg_frame.get(), false, xpos, ypos, actsp, (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
     invalidate_screen();
     mark_current_background_dirty();
 
@@ -544,12 +540,12 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        if (actsps[obj] != nullptr) {
-            // the actsps image is pre-flipped, so no longer register the image as such
+        Bitmap *actsp = get_cached_object_image(obj);
+        if (actsp) {
+            // the cached image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
-
-            return actsps[obj];
+            return actsp;
         }
     }
     return spriteset[objs[obj].num];

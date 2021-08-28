@@ -14,7 +14,6 @@
 //
 // Sprite caching system.
 //
-// SpriteFile handles sprite serialization and streaming.
 // SpriteCache provides bitmaps by demand; it uses SpriteFile to load sprites
 // and does MRU (most-recent-use) caching.
 //
@@ -29,20 +28,11 @@
 // principle.
 //
 //=============================================================================
-#ifndef __SPRCACHE_H
-#define __SPRCACHE_H
+#ifndef __AGS_CN_AC__SPRCACHE_H
+#define __AGS_CN_AC__SPRCACHE_H
 
-#include <memory>
-#include <vector>
 #include "core/platform.h"
-#include "util/error.h"
-#include "util/geometry.h"
-
-namespace AGS { namespace Common { class String; class Stream; class Bitmap; } }
-using namespace AGS; // FIXME later
-typedef AGS::Common::HError HAGSError;
-
-struct SpriteInfo;
+#include "ac/spritefile.h"
 
 // Tells that the sprite is found in the game resources.
 #define SPRCACHEFLAG_ISASSET        0x01
@@ -58,98 +48,13 @@ struct SpriteInfo;
 #define DEFAULTCACHESIZE_KB (128 * 1024)
 #endif
 
-// TODO: research old version differences
-enum SpriteFileVersion
+
+struct SpriteInfo;
+
+namespace AGS
 {
-    kSprfVersion_Uncompressed = 4,
-    kSprfVersion_Compressed = 5,
-    kSprfVersion_Last32bit = 6,
-    kSprfVersion_64bit = 10,
-    kSprfVersion_HighSpriteLimit = 11,
-    kSprfVersion_Current = kSprfVersion_HighSpriteLimit
-};
-
-enum SpriteIndexFileVersion
+namespace Common
 {
-    kSpridxfVersion_Initial = 1,
-    kSpridxfVersion_Last32bit = 2,
-    kSpridxfVersion_64bit = 10,
-    kSpridxfVersion_HighSpriteLimit = 11,
-    kSpridxfVersion_Current = kSpridxfVersion_HighSpriteLimit
-};
-
-
-typedef int32_t sprkey_t;
-
-// SpriteFileIndex contains sprite file's table of contents
-struct SpriteFileIndex
-{
-    int SpriteFileIDCheck = 0; // tag matching sprite file and index file
-    sprkey_t LastSlot = -1;
-    size_t SpriteCount = 0u;
-    std::vector<int16_t> Widths;
-    std::vector<int16_t> Heights;
-    std::vector<soff_t>  Offsets;
-};
-
-
-class SpriteFile
-{
-public:
-    // Standart sprite file and sprite index names
-    static const Common::String DefaultSpriteFileName;
-    static const Common::String DefaultSpriteIndexName;
-
-    SpriteFile();
-    // Loads sprite reference information and inits sprite stream
-    HAGSError   OpenFile(const Common::String &filename, const Common::String &sprindex_filename,
-        std::vector<Size> &metrics);
-    void        Reset();
-
-    // Tells if bitmaps in the file are compressed
-    bool        IsFileCompressed() const;
-    // Tells the highest known sprite index
-    sprkey_t    GetTopmostSprite() const;
-
-    // Loads sprite index file
-    bool        LoadSpriteIndexFile(const Common::String &filename, int expectedFileID,
-        soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics);
-    // Rebuilds sprite index from the main sprite file
-    HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers,
-        std::vector<Size> &metrics);
-
-    HAGSError LoadSprite(sprkey_t index, Common::Bitmap *&sprite);
-    HAGSError LoadSpriteData(sprkey_t index, Size &metric, int &bpp, std::vector<char> &data);
-
-    // Saves all sprites to file; fills in index data for external use
-    // TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
-    static int  SaveToFile(const Common::String &save_to_file,
-        const std::vector<Common::Bitmap*> &sprites, // available sprites (may contain nullptrs)
-        SpriteFile *read_from_file, // optional file to read missing sprites from
-        bool compressOutput, SpriteFileIndex &index);
-    // Saves sprite index table in a separate file
-    static int  SaveSpriteIndex(const Common::String &filename, const SpriteFileIndex &index);
-
-private:
-    // Finds the topmost occupied slot index. Warning: may be slow.
-    static sprkey_t FindTopmostSprite(const std::vector<Common::Bitmap*> &sprites);
-    // Seek stream to sprite
-    void        SeekToSprite(sprkey_t index);
-
-    // Internal sprite reference
-    struct SpriteRef
-    {
-        soff_t Offset = 0; // data offset
-        size_t Size = 0;   // cache size of element, in bytes
-    };
-
-    // Array of sprite references
-    std::vector<SpriteRef> _spriteData;
-    std::unique_ptr<Common::Stream> _stream; // the sprite stream
-    bool _compressed; // are sprites compressed
-    sprkey_t _curPos; // current stream position (sprite slot)
-};
-
 
 class SpriteCache
 {
@@ -162,7 +67,7 @@ public:
     ~SpriteCache();
 
     // Loads sprite reference information and inits sprite stream
-    HAGSError   InitFile(const Common::String &filename, const Common::String &sprindex_filename);
+    HError      InitFile(const Common::String &filename, const Common::String &sprindex_filename);
     // Saves current cache contents to the file
     int         SaveToFile(const Common::String &filename, bool compressOutput, SpriteFileIndex &index);
     // Closes an active sprite file stream
@@ -266,7 +171,10 @@ private:
     void        InitNullSpriteParams(sprkey_t index);
 };
 
-// Main global spritecache object
-extern SpriteCache spriteset;
+} // namespace Common
+} // namespace AGS
 
-#endif // __SPRCACHE_H
+// Main global spritecache object
+extern AGS::Common::SpriteCache spriteset;
+
+#endif // __AGS_CN_AC__SPRCACHE_H

@@ -31,14 +31,11 @@ namespace DataUtil
     namespace MFLUtil = AGS::Common::MFLUtil;
 
     // Unpacks the library by reading its parts and writing assets into files.
-    // lib_dir - tells the directory where the library parts are located,
-    // lib_basefile - tells the actual file name of the first library part,
-    //     because it may sometimes be different from the name saved in lib.
+    // lib_dir - tells the directory where the library parts are located;
     // The output files will be written into dst_dir directory;
     // if the asset name contains directories, they will be created as sub-
     // directories inside dst_dir.
-    HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir,
-        const String &lib_basefile, const String &dst_dir);
+    HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
     // Gather a list of files from a given directory
     HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
         bool do_subdirs, const String &lib_basefile);

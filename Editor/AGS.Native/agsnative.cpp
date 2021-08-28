@@ -82,7 +82,7 @@ int antiAliasFonts = 0;
 bool outlineGuiObjects = false;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
-SpriteCache spriteset(thisgame.SpriteInfos);
+AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
@@ -1705,14 +1705,14 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
         throw gcnew AGSEditorException("Unable to create a temporary file to save sprites to.", e);
     }
 
-    AGSString n_temp_spritefile = ConvertStringToNativeString(temp_spritefile);
-    AGSString n_temp_indexfile = ConvertStringToNativeString(temp_indexfile);
-    SpriteFileIndex index;
+    AGSString n_temp_spritefile = ConvertPathToNativeString(temp_spritefile);
+    AGSString n_temp_indexfile = ConvertPathToNativeString(temp_indexfile);
+    AGS::Common::SpriteFileIndex index;
     if (spriteset.SaveToFile(n_temp_spritefile, compressSprites, index) != 0)
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    if (AGS::Common::SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
         saved_indexfile = n_temp_indexfile;
 }
 
@@ -1730,7 +1730,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (IO::File::Exists(sprfilename))
             IO::File::Move(sprfilename, backupname);
     }
-    catch (Exception ^e)
+    catch (Exception^)
     {// TODO: ignore for now, but proper warning output system in needed here
     }
 
@@ -1740,7 +1740,8 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     {
         if (IO::File::Exists(sprfilename))
             IO::File::Delete(sprfilename);
-        IO::File::Move(ToStr(temp_spritefile), sprfilename);
+        String^ path = ToStrUTF8(temp_spritefile);
+        IO::File::Move(path, sprfilename);
     }
     catch (Exception ^e)
     {
@@ -1753,9 +1754,9 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (IO::File::Exists(sprindexfilename))
             IO::File::Delete(sprindexfilename);
         if (!temp_indexfile.IsEmpty())
-            IO::File::Move(ToStr(temp_indexfile), sprindexfilename);
+            IO::File::Move(ToStrUTF8(temp_indexfile), sprindexfilename);
     }
-    catch (Exception ^e)
+    catch (Exception^)
     {// TODO: ignore for now, but proper warning output system in needed here
     }
 }
@@ -1795,7 +1796,7 @@ void SaveNativeSprites(bool compressSprites)
         {
             throw gcnew AGSEditorException(
                 String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
-                    Environment::NewLine, ToStr(saved_spritefile)), main_exception);
+                    Environment::NewLine, ToStrUTF8(saved_spritefile)), main_exception);
         }
     }
     spritesModified = false;
@@ -1815,7 +1816,7 @@ void SetGameResolution(Game ^game)
 void GameDirChanged(String ^workingDir)
 {
     AssetMgr->RemoveAllLibraries();
-    AssetMgr->AddLibrary(ConvertStringToNativeString(workingDir));
+    AssetMgr->AddLibrary(ConvertPathToNativeString(workingDir));
 }
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
@@ -2544,7 +2545,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 {
 	Dictionary<int, Sprite^>^ sprites = gcnew Dictionary<int, Sprite^>();
 
-	for (int i = 0; i < spriteset.GetSpriteSlotCount(); i++)
+	for (size_t i = 0; i < spriteset.GetSpriteSlotCount(); i++)
 	{
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
@@ -2621,7 +2622,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     loaded_game_file_version = kGameVersion_Current;
 	if (!err)
 	{
-		throw gcnew AGS::Types::AGSEditorException(ToStr(err->FullMessage()));
+		throw gcnew AGS::Types::AGSEditorException(ToStrUTF8(err->FullMessage()));
 	}
 
 	Game^ game = gcnew Game();
@@ -3060,7 +3061,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 System::String ^load_room_script(System::String ^fileName)
 {
-    AGSString roomFileName = ConvertFileNameToNativeString(fileName);
+    AGSString roomFileName = ConvertPathToNativeString(fileName);
 
     AGSString scriptText;
     AGS::Common::RoomDataSource src;
@@ -3084,12 +3085,12 @@ int GetCurrentlyLoadedRoomNumber()
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 {
-    AGSString roomFileName = ConvertFileNameToNativeString(roomToLoad->FileName);
+    AGSString roomFileName = ConvertPathToNativeString(roomToLoad->FileName);
 
 	AGSString errorMsg = load_room_file(roomFileName);
 	if (!errorMsg.IsEmpty()) 
 	{
-		throw gcnew AGSEditorException(ToStr(errorMsg));
+		throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
 	}
 
     RoomTools->loaded_room_number = roomToLoad->Number;
@@ -3337,7 +3338,7 @@ void save_crm_file(Room ^room)
 
 	thisroom.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
 
-	AGSString roomFileName = ConvertFileNameToNativeString(room->FileName);
+	AGSString roomFileName = ConvertPathToNativeString(room->FileName);
 
 	TempDataStorage::RoomBeingSaved = room;
 

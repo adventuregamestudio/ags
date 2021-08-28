@@ -1718,6 +1718,7 @@ namespace AGS.Editor
             // Use WriteExtension to write them according to format and provide your method
             // of type WriteExtensionProc that does the actual writing job.
 
+            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, game, errors);
 
             // End of extensions list
@@ -1727,17 +1728,26 @@ namespace AGS.Editor
             GC.Collect();
             return true;
         }
+        
+        // 3.6.0: font outline properties
+        private static void WriteExt_360Fonts(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            // adjustable font outlines
+            for (int i = 0; i < game.Fonts.Count; ++i)
+            {
+                writer.Write(game.Fonts[i].AutoOutlineThickness);
+                writer.Write((int)game.Fonts[i].AutoOutlineStyle);
+                // reserved ints
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+        }
 
         // Early development version of "ags4"
         private static void WriteExt_Ags399(BinaryWriter writer, Game game, CompileMessages errors)
         {
-            // adjustable font outlines
-            foreach (var font in game.Fonts)
-            {
-                writer.Write(font.AutoOutlineThickness);
-                writer.Write((int)font.AutoOutlineStyle);
-            }
-
             // new character properties
             foreach (var ch in game.Characters)
             {

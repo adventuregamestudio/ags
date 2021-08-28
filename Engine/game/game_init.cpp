@@ -14,6 +14,7 @@
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialog.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/file.h"
 #include "ac/game.h"
@@ -43,18 +44,13 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 using namespace Common;
 using namespace Engine;
 
 extern GameSetupStruct game;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 extern CharacterCache *charcache;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -351,11 +347,50 @@ void LoadFonts(GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        if (!wloadfont_size(i, game.fonts[i]))
-        // CLNUP decide what to do about arbitrary font scaling, might become an option
-        /*
-        */
+        FontInfo &finfo = game.fonts[i];
+        if (!wloadfont_size(i, finfo))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
+
+        const bool is_wfn = is_bitmap_font(i);
+        // Outline thickness corresponds to 1 game pixel by default;
+        // but if it's a scaled up bitmap font, then it equals to scale   
+        if (data_ver < kGameVersion_360)
+        {
+            if (is_wfn && (finfo.Outline == FONT_OUTLINE_AUTO))
+            {
+                set_font_outline(i, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(i));
+            }
+        }
+
+        // Backward compatibility: if the real font's height != formal height
+        // and there's no custom linespacing, then set linespacing = formal height.
+        if (!is_wfn)
+        {
+            int req_height = finfo.SizePt * finfo.SizeMultiplier;
+            int height = getfontheight(i);
+            if ((height != req_height) && (finfo.LineSpacing == 0))
+            {
+                set_font_linespacing(i, req_height + 2 * get_font_outline_thickness(i));
+            }
+        }
+    }
+
+    // Additional fixups - after all the fonts are registered
+    for (int i = 0; i < game.numfonts; ++i)
+    {
+        if (!is_bitmap_font(i))
+        {
+            // Check for the LucasFan font since it comes with an outline font that
+            // is drawn incorrectly with Freetype versions > 2.1.3.
+            // A simple workaround is to disable outline fonts for it and use
+            // automatic outline drawing.
+            const int outline_font = get_font_outline(i);
+            if (outline_font < 0) continue;
+            const char *name = get_font_name(i);
+            const char *outline_name = get_font_name(outline_font);
+            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                set_font_outline(i, FONT_OUTLINE_AUTO);
+        }
     }
 }
 
@@ -438,12 +473,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_ROOM_OBJECTS + 2;
-    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
+    init_game_drawdata();
     play.charProps.resize(game.numcharacters);
     HError err = InitAndRegisterGameEntities(ents);
     if (!err)

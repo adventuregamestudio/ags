@@ -582,6 +582,11 @@ if (WIN32)
     target_link_libraries(engine PUBLIC shlwapi)
 endif()
 
+if(ANDROID)
+    find_library(ANDROID_LOG_LIB log)
+    target_link_libraries(engine PUBLIC ${ANDROID_LOG_LIB})
+endif()
+
 get_target_property(ENGINE_SOURCES engine SOURCES)
 # Set ROOT to parent directory to include Plugins/
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})

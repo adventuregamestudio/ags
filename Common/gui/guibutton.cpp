@@ -82,6 +82,11 @@ const String &GUIButton::GetText() const
     return _text;
 }
 
+bool GUIButton::IsImageButton() const
+{
+    return Image != 0;
+}
+
 bool GUIButton::IsClippingImage() const
 {
     return (Flags & kGUICtrl_Clip) != 0;
@@ -102,7 +107,6 @@ void GUIButton::Draw(Bitmap *ds)
         gui_disabled_style != GUIDIS_UNCHANGED &&
         gui_disabled_style != GUIDIS_GUIOFF;
 
-    check_font(&Font);
 
     // TODO: should only change properties in reaction to particular events
     if (CurrentImage <= 0 || draw_disabled)
@@ -149,37 +153,55 @@ void GUIButton::SetText(const String &text)
 
 bool GUIButton::OnMouseDown()
 {
-    if (PushedImage > 0)
-        CurrentImage = PushedImage;
+    int new_image = (PushedImage > 0) ? PushedImage : CurrentImage;
+    if (CurrentImage != new_image || !IsImageButton())
+        NotifyParentChanged();
+    CurrentImage = new_image;
     IsPushed = true;
     return false;
 }
 
 void GUIButton::OnMouseEnter()
 {
-    CurrentImage = IsPushed ? PushedImage : MouseOverImage;
+    int new_image = (IsPushed && PushedImage > 0) ? PushedImage :
+        (MouseOverImage > 0) ? MouseOverImage : Image;
+    if ((CurrentImage != new_image) || (IsPushed && !IsImageButton()))
+    {
+        CurrentImage = new_image;
+        NotifyParentChanged();
+    }
     IsMouseOver = true;
 }
 
 void GUIButton::OnMouseLeave()
 {
-    CurrentImage = Image;
+    if ((CurrentImage != Image) || (IsPushed && !IsImageButton()))
+    {
+        CurrentImage = Image;
+        NotifyParentChanged();
+    }
     IsMouseOver = false;
 }
 
 void GUIButton::OnMouseUp()
 {
+    int new_image;
     if (IsMouseOver)
     {
-        CurrentImage = MouseOverImage;
+        new_image = MouseOverImage;
         if (IsGUIEnabled(this) && IsClickable())
             IsActivated = true;
     }
     else
     {
-        CurrentImage = Image;
+        new_image = Image;
     }
 
+    if ((CurrentImage != new_image) || (IsPushed && !IsImageButton()))
+    {
+        CurrentImage = new_image;
+        NotifyParentChanged();
+    }
     IsPushed = false;
 }
 
@@ -333,7 +355,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
             spriteset[CurrentImage]->GetWidth(),
             spriteset[CurrentImage]->GetHeight()));
     }
-    ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+    ds->ResetClip();
 
     // Don't print Text of (INV) (INVSHR) (INVNS)
     if (_placeholder == kButtonPlace_None && !_unnamed)

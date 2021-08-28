@@ -60,8 +60,6 @@ extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
-extern Bitmap **guibg;
-extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;
@@ -582,25 +580,6 @@ int adjust_y_for_guis ( int yy) {
             yy = guis[aa].Y + guis[aa].Height + 2;        
     }
     return yy;
-}
-
-void recreate_guibg_image(GUIMain *tehgui)
-{
-  // Calculate all supported GUI transforms
-  const int ifn = tehgui->ID;
-  Size final_sz = gfxDriver->HasAcceleratedTransform() ?
-      Size(tehgui->Width, tehgui->Height) :
-      RotateSize(Size(tehgui->Width, tehgui->Height), tehgui->Rotation);
-  if (guibg[ifn] && guibg[ifn]->GetSize() == final_sz)
-    return; // all is fine
-      
-  delete guibg[ifn];
-  guibg[ifn] = new Bitmap(final_sz.Width, final_sz.Height, gfxDriver->GetCompatibleBitmapFormat(game.GetColorDepth()));
-  if (guibgbmp[ifn] != nullptr)
-  {
-    gfxDriver->DestroyDDB(guibgbmp[ifn]);
-    guibgbmp[ifn] = nullptr;
-  }
 }
 
 int gui_get_interactable(int x,int y)

@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public enum FontAutoOutlineStyle
-	{
-		Rounded = 0,
-		Squared = 1,
-	}
+    public enum FontAutoOutlineStyle
+    {
+        Squared = 0,
+        Rounded = 1,
+    }
 }

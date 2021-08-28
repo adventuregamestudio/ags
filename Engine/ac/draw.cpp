@@ -113,13 +113,17 @@ IDriverDependantBitmap *debugConsole = nullptr;
 
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
-int actSpsCount = 0;
-Bitmap **actsps;
-IDriverDependantBitmap* *actspsbmp;
+std::vector<Bitmap*> actsps;
+std::vector<IDriverDependantBitmap*> actspsbmp;
 // temporary cache of walk-behind for this actsps image
-Bitmap **actspswb;
-IDriverDependantBitmap* *actspswbbmp;
-CachedActSpsData* actspswbcache;
+std::vector<Bitmap*> actspswb;
+std::vector<IDriverDependantBitmap*>actspswbbmp;
+std::vector<CachedActSpsData> actspswbcache;
+// GUI surfaces
+std::vector<Bitmap*> guibg;
+std::vector<IDriverDependantBitmap*> guibgbmp;
+// Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
+std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 
 bool current_background_is_dirty = false;
 
@@ -160,12 +164,6 @@ struct SpriteListEntry
 std::vector<SpriteListEntry> thingsToDrawList;
 // sprlist - will be sorted using baseline and appended to main list
 std::vector<SpriteListEntry> sprlist;
-
-// Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
-std::vector<std::unique_ptr<Bitmap>> guihelpbg;
-// Final GUI surfaces
-Bitmap **guibg = nullptr;
-IDriverDependantBitmap **guibgbmp = nullptr;
 
 
 Bitmap *debugConsoleBuffer = nullptr;
@@ -252,6 +250,12 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int sys_col_depth = System_GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
+    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(game_col_depth);
+
+    const bool must_switch_palette = bitmap->GetColorDepth() == 8 && game_col_depth > 8;
+    if (must_switch_palette)
+        select_palette(palette);
+
     Bitmap *new_bitmap = bitmap;
 
     //
@@ -282,7 +286,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
     {
-        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
+        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // In non-32-bit game truecolor bitmaps must be downgraded
     else if (game_col_depth <= 16 && bmp_col_depth > 16)
@@ -290,51 +294,46 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
             new_bitmap = remove_alpha_channel(bitmap);
         else // else simply convert bitmap
-            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
+            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // Special case when we must convert 16-bit RGB to BGR
     else if (convert_16bit_bgr == 1 && bmp_col_depth == 16)
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }
+    
+    // Finally, if we did not create a new copy already, - convert to driver compatible format
+    if ((new_bitmap == bitmap) && (bmp_col_depth != compat_col_depth))
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, compat_col_depth);
+
+    if (must_switch_palette)
+        unselect_palette();
+
     return new_bitmap;
+}
+
+Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
+{
+    return new Bitmap(width, height,
+        gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
 {
-    Bitmap *new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
-    if (new_bitmap != bitmap)
-        delete bitmap;
-    return new_bitmap;
+    return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 }
 
 Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 {
-    bool must_switch_palette = bitmap->GetColorDepth() == 8 && game.GetColorDepth() > 8;
-    if (must_switch_palette)
-        select_palette(palette);
-
     Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
     if (new_bitmap != bitmap)
         delete bitmap;
-    new_bitmap = ReplaceBitmapWithSupportedFormat(new_bitmap);
-
-    if (must_switch_palette)
-        unselect_palette();
     return new_bitmap;
 }
 
 PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
 {
-    bool must_switch_palette = bitmap->GetColorDepth() == 8 && System_GetColorDepth() > 8;
-    if (must_switch_palette)
-        select_palette(palette);
-
     Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), has_alpha);
-    new_bitmap = ReplaceBitmapWithSupportedFormat(new_bitmap);
-
-    if (must_switch_palette)
-        unselect_palette();
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
@@ -371,8 +370,7 @@ void create_blank_image(int coldepth)
     // so it's the most likey place for a crash
     try
     {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
-        blank = ReplaceBitmapWithSupportedFormat(blank);
+        Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
         blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
@@ -426,10 +424,74 @@ void dispose_draw_method()
     destroy_blank_image();
 }
 
+void init_game_drawdata()
+{
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+        objcache[i].image = nullptr;
+
+    size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
+    actsps.resize(actsps_num);
+    actspsbmp.resize(actsps_num);
+    actspswb.resize(actsps_num);
+    actspswbbmp.resize(actsps_num);
+    actspswbcache.resize(actsps_num);
+    guibg.resize(game.numgui);
+    guibgbmp.resize(game.numgui);
+}
+
+void dispose_game_drawdata()
+{
+    clear_drawobj_cache();
+
+    actsps.clear();
+    actspsbmp.clear();
+    actspswb.clear();
+    actspswbbmp.clear();
+    actspswbcache.clear();
+    guibg.clear();
+}
+
 void dispose_room_drawdata()
 {
     CameraDrawData.clear();
     dispose_invalid_regions(true);
+}
+
+void clear_drawobj_cache()
+{
+    // clear the object cache
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    {
+        delete objcache[i].image;
+        objcache[i].image = nullptr;
+    }
+
+    // cleanup Character + Room object textures
+    for (int i = 0; i < MAX_ROOM_OBJECTS + game.numcharacters; ++i)
+    {
+        delete actsps[i];
+        actsps[i] = nullptr;
+        if (actspsbmp[i] != nullptr)
+            gfxDriver->DestroyDDB(actspsbmp[i]);
+        actspsbmp[i] = nullptr;
+
+        delete actspswb[i];
+        actspswb[i] = nullptr;
+        if (actspswbbmp[i] != nullptr)
+            gfxDriver->DestroyDDB(actspswbbmp[i]);
+        actspswbbmp[i] = nullptr;
+        actspswbcache[i].valid = 0;
+    }
+
+    // cleanup GUI backgrounds
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        delete guibg[i];
+        guibg[i] = nullptr;
+        if (guibgbmp[i])
+            gfxDriver->DestroyDDB(guibgbmp[i]);
+        guibgbmp[i] = nullptr;
+    }
 }
 
 void on_mainviewport_changed()
@@ -837,7 +899,7 @@ static void draw_sprite_list()
 
 void invalidate_cached_walkbehinds() 
 {
-    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actSpsCount);
+    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actspswbcache.size());
 }
 
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
@@ -1045,6 +1107,25 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
     return bimp;
 }
 
+// Allocates texture for the GUI
+void recreate_guibg_image(GUIMain *tehgui)
+{
+    // Calculate all supported GUI transforms
+    const int ifn = tehgui->ID;
+    Size final_sz = gfxDriver->HasAcceleratedTransform() ?
+        Size(tehgui->Width, tehgui->Height) :
+        RotateSize(Size(tehgui->Width, tehgui->Height), tehgui->Rotation);
+    if (guibg[ifn] && guibg[ifn]->GetSize() == final_sz)
+        return; // all is fine
+
+    delete guibg[ifn];
+    guibg[ifn] = CreateCompatBitmap(final_sz.Width, final_sz.Height);
+    if (guibgbmp[ifn] != nullptr)
+    {
+        gfxDriver->DestroyDDB(guibgbmp[ifn]);
+        guibgbmp[ifn] = nullptr;
+    }
+}
 
 // Get the local tint at the specified X & Y co-ordinates, based on
 // room regions and SetAmbientTint
@@ -1889,6 +1970,16 @@ void prepare_characters_for_drawing() {
     }
 }
 
+Bitmap *get_cached_character_image(int charid)
+{
+    return actsps[charid + MAX_ROOM_OBJECTS];
+}
+
+Bitmap *get_cached_object_image(int objid)
+{
+    return actsps[objid];
+}
+
 
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
@@ -2009,8 +2100,7 @@ void draw_fps(const Rect &viewport)
     const int font = FONT_NORMAL;
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + 5), game.GetColorDepth());
-        fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
+        fpsDisplay = CreateCompatBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + 5));
     }
     fpsDisplay->ClearTransparent();
     
@@ -2072,27 +2162,14 @@ void draw_gui_and_overlays()
     for (auto &over : screenover)
     {
         if (over.transparency == 255) continue; // skip fully transparent
-
         over.bmp->SetTransparency(over.transparency);
         over.bmp->SetBlendMode(over.blendMode);
         over.bmp->SetRotation(over.rotation);
         const Point overpos = update_overlay_graphicspace(over);
-
-        // complete overlay draw in non-transparent mode
-        if (over.type == OVER_COMPLETE)
-        {
-            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), INT_MIN, false);
-        }
-        else
-        {
-            // draw speech and portraits over GUI and the rest under GUI
-            int zorder = (over.type == OVER_TEXTMSG || over.type == OVER_TEXTSPEECH || over.type == OVER_PICTURE) ? INT_MAX : over.zorder;
-            add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), zorder, false);
-        }
+        add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), over.zorder, false);
     }
 
-    // Draw GUIs - they should always be on top of overlays like
-    // speech background text
+    // Add GUIs
     our_eip=35;
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
         int aa;
@@ -2112,8 +2189,7 @@ void draw_gui_and_overlays()
                 if (gui.Transparency == 255) continue;
 
                 gui.ClearChanged();
-                
-                recreate_guibg_image(&gui);
+                recreate_guibg_image(&guis[aa]);
 
                 eip_guinum = index;
                 Bitmap *guibg_final = guibg[index];
@@ -2432,8 +2508,7 @@ void construct_engine_overlay()
 
         if (debugConsoleBuffer == nullptr)
         {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight, game.GetColorDepth());
-            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
+            debugConsoleBuffer = CreateCompatBitmap(viewport.GetWidth(), barheight);
         }
 
         color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);

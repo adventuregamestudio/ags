@@ -220,6 +220,8 @@ namespace GUI
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate();
+    // Mark all GUI which use the given font for redraw
+    void MarkForFontUpdate(int font);
     // Mark labels that acts as special text placeholders for redraw
     void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character
@@ -254,7 +256,6 @@ extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 extern int wgettextwidth_compensate(Common::Bitmap *ds, const char *tex, int font) ;
-extern void check_font(int *fontnum);
 
 extern void set_our_eip(int eip);
 #define SET_EIP(x) set_our_eip(x);

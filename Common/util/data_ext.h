@@ -98,6 +98,15 @@ public:
     inline Stream *GetStream() { return _in; }
     // Tells if the end of the block list was reached
     inline bool AtEnd() const { return _blockID < 0; }
+    // Gets parser flags
+    inline int GetFlags() const { return _flags; }
+    // Gets current block ID
+    inline int GetBlockID() const { return _blockID; }
+    inline String GetBlockName() const
+    { return _blockID < 0 ? "" : (_blockID > 0 ? GetOldBlockName(_blockID) : _extID); }
+    inline soff_t GetBlockOffset() const { return _blockStart; }
+    // Gets current block length
+    inline soff_t GetBlockLength() const { return _blockLen; }
     // Tries to opens a next standard block from the stream,
     // fills in identifier and length on success
     HError OpenBlock();

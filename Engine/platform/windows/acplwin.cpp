@@ -15,7 +15,6 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#define NOMINMAX
 #include <direct.h>
 #include <string.h>
 #include "platform/windows/windows.h"
@@ -34,15 +33,17 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
+#include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
+#include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
+#include "util/stdio_compat.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
-#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -59,8 +60,8 @@ extern RGB palette[256];
 #define CSIDL_COMMON_APPDATA       0x0023
 #endif
 
-char win32SavedGamesDirectory[MAX_PATH] = "\0";
-char win32AppDataDirectory[MAX_PATH] = "\0";
+String win32SavedGamesDirectory;
+String win32AppDataDirectory;
 String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
@@ -93,6 +94,9 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer() override;
   virtual void UnRegisterGameWithGameExplorer() override;
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const override;
+
+  // Returns command line argument in a UTF-8 format
+  String GetCommandArg(size_t arg_index) override;
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -482,36 +486,26 @@ bool IsWindowsVistaOrGreater() {
 
 void determine_app_data_folder()
 {
-  if (win32AppDataDirectory[0] != 0) 
+  if (!win32AppDataDirectory.IsEmpty()) 
   {
     // already discovered
     return;
   }
 
-  WCHAR unicodePath[MAX_PATH];
-  WCHAR unicodeShortPath[MAX_PATH];
+  WCHAR unicodePath[MAX_PATH_SZ];
   SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
-  if (GetShortPathNameW(unicodePath, unicodeShortPath, MAX_PATH) == 0)
-  {
-    platform->DisplayAlert("Unable to get App Data dir: GetShortPathNameW failed");
-    return;
-  }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH, NULL, NULL);
-
-  strcat(win32AppDataDirectory, "\\Adventure Game Studio");
-  mkdir(win32AppDataDirectory);
+  win32AppDataDirectory = Path::WidePathToUTF8(unicodePath);
+  win32AppDataDirectory = Path::ConcatPaths(win32AppDataDirectory, "Adventure Game Studio");
+  Directory::CreateDirectory(win32AppDataDirectory);
 }
 
 void determine_saved_games_folder()
 {
-  if (win32SavedGamesDirectory[0] != 0)
+  if (!win32SavedGamesDirectory.IsEmpty())
   {
     // already discovered
     return;
   }
-
-  WCHAR unicodeSaveGameDir[MAX_PATH] = L"";
-  WCHAR unicodeShortSaveGameDir[MAX_PATH] = L"";
 
   if (IsWindowsVistaOrGreater())
   {
@@ -523,9 +517,7 @@ void determine_saved_games_folder()
       PWSTR path = NULL;
       if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
       {
-        if (GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH) > 0) {
-          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
-        }
+        win32SavedGamesDirectory = Path::WidePathToUTF8(path);
         CoTaskMemFree(path);
       }
     }
@@ -534,25 +526,21 @@ void determine_saved_games_folder()
   }
   else
   {
+    WCHAR unicodeSaveGameDir[MAX_PATH_SZ] = L"";
     // Windows XP didn't have a "My Saved Games" folder, so create one under "My Documents"
     SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
-    // workaround for case where My Documents path has unicode chars (eg.
-    // with Russian Windows) -- so use Short File Name instead
-    if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) > 0)
-    {
-      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
-      strcat(win32SavedGamesDirectory, "\\My Saved Games");
-      mkdir(win32SavedGamesDirectory);
-    }
+    win32SavedGamesDirectory = Path::WidePathToUTF8(unicodeSaveGameDir);
+    win32SavedGamesDirectory = Path::ConcatPaths(win32SavedGamesDirectory, "My Saved Games");
+    Directory::CreateDirectory(win32SavedGamesDirectory);
   }
 
   // Fallback to a subdirectory of the app data directory
-  if (win32SavedGamesDirectory[0] == '\0')
+  if (win32SavedGamesDirectory.IsEmpty())
   {
     determine_app_data_folder();
-    strcpy(win32SavedGamesDirectory, win32AppDataDirectory);
-    strcat(win32SavedGamesDirectory, "\\Saved Games");
-    mkdir(win32SavedGamesDirectory);
+    win32SavedGamesDirectory = win32AppDataDirectory;
+    win32SavedGamesDirectory = Path::ConcatPaths(win32SavedGamesDirectory, "Saved Games");
+    Directory::CreateDirectory(win32SavedGamesDirectory);
   }
 }
 
@@ -565,37 +553,37 @@ void DetermineAppOutputDirectory()
 
   determine_saved_games_folder();
   bool log_to_saves_dir = false;
-  if (win32SavedGamesDirectory[0])
+  if (!win32SavedGamesDirectory.IsEmpty())
   {
     win32OutputDirectory = Path::ConcatPaths(win32SavedGamesDirectory, "Adventure Game Studio");
-    log_to_saves_dir = mkdir(win32OutputDirectory.GetCStr()) == 0 || errno == EEXIST;
+    log_to_saves_dir = Directory::CreateDirectory(win32OutputDirectory.GetCStr());
   }
 
   if (!log_to_saves_dir)
   {
-    char theexename[MAX_PATH + 1] = {0};
-    GetModuleFileName(NULL, theexename, MAX_PATH);
-    PathRemoveFileSpec(theexename);
-    win32OutputDirectory = theexename;
+    WCHAR theexename[MAX_PATH_SZ];
+    GetModuleFileNameW(NULL, theexename, MAX_PATH_SZ);
+    PathRemoveFileSpecW(theexename);
+    win32OutputDirectory = Path::WidePathToUTF8(theexename);
   }
 }
 
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
   determine_app_data_folder();
-  return &win32AppDataDirectory[0];
+  return win32AppDataDirectory.GetCStr();
 }
 
 const char *AGSWin32::GetUserSavedgamesDirectory()
 {
   determine_saved_games_folder();
-  return win32SavedGamesDirectory;
+  return win32SavedGamesDirectory.GetCStr();
 }
 
 const char *AGSWin32::GetUserConfigDirectory()
 {
   determine_saved_games_folder();
-  return win32SavedGamesDirectory;
+  return win32SavedGamesDirectory.GetCStr();
 }
 
 const char *AGSWin32::GetUserGlobalConfigDirectory()
@@ -792,6 +780,21 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
     x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
+}
+
+String AGSWin32::GetCommandArg(size_t arg_index)
+{
+    // On MS Windows the regular cmdargs are represented in ASCII,
+    // therefore we must retrieve widechar variants using WinAPI
+    int wargc;
+    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+    if (!wargv)
+        return nullptr;
+    String arg;
+    if (arg_index <= (size_t)wargc)
+        arg = Path::WidePathToUTF8(wargv[arg_index]);
+    LocalFree(wargv);
+    return arg;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

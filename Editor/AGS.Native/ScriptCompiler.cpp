@@ -176,9 +176,9 @@ namespace AGS
 			std::vector<AGSString> fileNames;
 			for (int i = 0; i < fileList->Length; i++)
 			{
-				fileNames.push_back(ConvertFileNameToNativeString(fileList[i]));
+				fileNames.push_back(ConvertPathToNativeString(fileList[i]));
 			}
-			AGSString baseFileNameChars = ConvertFileNameToNativeString(fileName);
+			AGSString baseFileNameChars = ConvertPathToNativeString(fileName);
             make_single_lib_data_file(baseFileNameChars, fileNames);
 		}
 

@@ -809,7 +809,6 @@
 		526F1E281D3B513300EF4E1F /* sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sprite.cpp; sourceTree = "<group>"; };
 		526F1E291D3B513300EF4E1F /* sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sprite.h; sourceTree = "<group>"; };
 		526F1E2A1D3B513300EF4E1F /* spritecache_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = spritecache_engine.cpp; sourceTree = "<group>"; };
-		526F1E2B1D3B513300EF4E1F /* spritelistentry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spritelistentry.h; sourceTree = "<group>"; };
 		526F1E2D1D3B513300EF4E1F /* agsstaticobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsstaticobject.cpp; sourceTree = "<group>"; };
 		526F1E2E1D3B513300EF4E1F /* agsstaticobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsstaticobject.h; sourceTree = "<group>"; };
 		526F1E2F1D3B513300EF4E1F /* staticarray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = staticarray.cpp; sourceTree = "<group>"; };
@@ -1732,7 +1731,6 @@
 				526F1E281D3B513300EF4E1F /* sprite.cpp */,
 				526F1E291D3B513300EF4E1F /* sprite.h */,
 				526F1E2A1D3B513300EF4E1F /* spritecache_engine.cpp */,
-				526F1E2B1D3B513300EF4E1F /* spritelistentry.h */,
 				526F1E2C1D3B513300EF4E1F /* statobj */,
 				526F1E321D3B513300EF4E1F /* string.cpp */,
 				526F1E331D3B513300EF4E1F /* string.h */,

@@ -87,7 +87,6 @@ extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern SpriteCache spriteset;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ViewStruct*views;
 extern int displayed_room;
@@ -97,12 +96,9 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap **actsps;
 extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern Bitmap **guibg;
-extern IDriverDependantBitmap **guibgbmp;
 extern std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 
 #if AGS_PLATFORM_OS_ANDROID
@@ -209,9 +205,8 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             // problem on Win9x, so let's restart the process.
             sys_main_shutdown();
             allegro_exit();
-            char quotedpath[MAX_PATH];
-            snprintf(quotedpath, MAX_PATH, "\"%s\"", appPath.GetCStr());
-            _spawnl(_P_OVERLAY, appPath.GetCStr(), quotedpath, NULL);
+            String args = String::FromFormat("\"%s\"", appPath.GetCStr());
+            _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
     }
 #endif
     return true;
@@ -679,9 +674,6 @@ void engine_init_game_settings()
 
     int ee;
 
-    for (ee = 0; ee < MAX_ROOM_OBJECTS + game.numcharacters; ee++)
-        actsps[ee] = nullptr;
-
     for (ee=0;ee<256;ee++) {
         if (game.paluses[ee]!=PAL_BACKGROUND)
             palette[ee]=game.defpal[ee];
@@ -704,9 +696,6 @@ void engine_init_game_settings()
     // may as well preload the character gfx
     if (playerchar->view >= 0)
         precache_view (playerchar->view);
-
-    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++)
-        objcache[ee].image = nullptr;
 
     /*  dummygui.guiId = -1;
     dummyguicontrol.guin = -1;
@@ -745,13 +734,6 @@ void engine_init_game_settings()
         charextra[ee].invorder_count = 0;
         charextra[ee].slow_move_counter = 0;
         charextra[ee].animwait = 0;
-    }
-    // multiply up gui positions
-    guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.numgui);
-    guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
-    for (ee=0;ee<game.numgui;ee++) {
-        guibg[ee] = nullptr;
-        guibgbmp[ee] = nullptr;
     }
     guihelpbg.resize(game.numgui);
 
@@ -1009,7 +991,11 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());
     return HError::None();
 #else
-    // No direct filepath provided, bail out.
+    data_path = platform->GetGameDataFile();
+    if (!data_path.IsEmpty())
+    {
+        return HError::None();
+    }
     return new Error("The game location was not defined by startup settings.");
 #endif
 }

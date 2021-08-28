@@ -521,6 +521,9 @@
     <ClCompile Include="..\..\Common\util\path_ex.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\ac\spritefile.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -828,6 +831,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\platform\windows\windows.h">
       <Filter>Header Files\platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\spritefile.h">
+      <Filter>Header Files\ac</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

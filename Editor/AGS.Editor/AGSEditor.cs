@@ -94,10 +94,10 @@ namespace AGS.Editor
          * e.g. 3.6.0     is 03,06,00,00 (3060000),
          *      4.12.3.25 is 04,12,03,25 (4120325), and so on
          * --------------------------------------------------------------------
-         * 3.6.0          - Settings.
-         * 
-         * 3.99.99        - Font outline thickness;
-         *                  BlendMode for various objects, Character.Transparency.
+         * 3.6.0          - Settings.CustomDataDir;
+         *                - Font.AutoOutlineStyle, AutoOutlineThickness;
+         * 3.99.99        - BlendMode for various objects, Character.Transparency.
+         *
         */
         public const int    LATEST_XML_VERSION_INDEX = 3999900;
         /*

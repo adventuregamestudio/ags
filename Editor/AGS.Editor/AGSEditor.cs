@@ -94,6 +94,7 @@ namespace AGS.Editor
          * --------------------------------------------------------------------
          * 3.6.0          - Settings.CustomDataDir;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
+         *                - Character.IdleDelay
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060000;
         /*

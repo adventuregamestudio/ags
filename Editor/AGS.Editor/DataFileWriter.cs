@@ -1543,7 +1543,7 @@ namespace AGS.Editor
                 writer.Write((short)0);                                // following
                 writer.Write((short)0);                                // followinfo
                 writer.Write(character.IdleView - 1);                  // idleview
-                writer.Write((short)0);                                // idletime
+                writer.Write((short)character.IdleDelay);              // idletime
                 writer.Write((short)0);                                // idleleft
                 writer.Write((short)0);                                // transparency
                 writer.Write((short)0);                                // baseline

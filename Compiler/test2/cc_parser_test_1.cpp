@@ -1932,3 +1932,24 @@ TEST_F(Compile1, StaticThisExtender)
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'static'"));
 }
+
+TEST_F(Compile1, AttributeAssignTypeCheck)
+{
+    // This attribute is type 'float' and assigned an int. This should fail.
+
+    char *inpl = "\
+        builtin managed struct Character            \n\
+        {                                           \n\
+            import attribute float GraphicRotation; \n\
+        };                                          \n\
+        import readonly Character *player;          \n\
+        int foo(void) {                             \n\
+            player.GraphicRotation = 10;            \n\
+        }                                           \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'int'"));
+    EXPECT_NE(std::string::npos, msg.find("'float'"));
+}

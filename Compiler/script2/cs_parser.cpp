@@ -4172,6 +4172,16 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
 
     if (ValueLocation::kAttribute == vloc.location)
     {
+        ConvertAXStringToStringObject(lhsvartype, rhsvartype);
+        if (IsVartypeMismatch_Oneway(rhsvartype, _sym.VartypeWithout(VTT::kDynarray, lhsvartype)))
+        {
+            Error(
+                "Cannot assign a type '%s' value to a type '%s' attribute",
+                _sym.GetName(rhsvartype).c_str(),
+                _sym.GetName(lhsvartype).c_str());
+            return kERR_UserError;
+        }
+
         // We need to call the attribute setter
         Symbol attribute = vloc.symbol;
 

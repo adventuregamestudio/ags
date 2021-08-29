@@ -99,7 +99,6 @@ extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 
 #if AGS_PLATFORM_OS_ANDROID
 extern "C" void selectLatestSavegame();
@@ -735,7 +734,6 @@ void engine_init_game_settings()
         charextra[ee].slow_move_counter = 0;
         charextra[ee].animwait = 0;
     }
-    guihelpbg.resize(game.numgui);
 
     our_eip=-5;
     for (ee=0;ee<game.numinvitems;ee++) {

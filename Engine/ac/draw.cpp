@@ -437,6 +437,7 @@ void init_game_drawdata()
     actspswbcache.resize(actsps_num);
     guibg.resize(game.numgui);
     guibgbmp.resize(game.numgui);
+    guihelpbg.resize(game.numgui);
 }
 
 void dispose_game_drawdata()
@@ -449,6 +450,8 @@ void dispose_game_drawdata()
     actspswbbmp.clear();
     actspswbcache.clear();
     guibg.clear();
+    guibgbmp.clear();
+    guihelpbg.clear();
 }
 
 void dispose_room_drawdata()
@@ -491,6 +494,7 @@ void clear_drawobj_cache()
         if (guibgbmp[i])
             gfxDriver->DestroyDDB(guibgbmp[i]);
         guibgbmp[i] = nullptr;
+        guihelpbg[i].reset();
     }
 }
 

@@ -358,15 +358,13 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060000)
             {
-                bool is_legacy_hires = game.IsHighResolution;
                 foreach (Font font in game.Fonts)
                 {
                     font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
-                    // For scaled-up bitmap fonts in hi-res game outline is xN
-                    if (is_legacy_hires &&
-                        // NOTE: unfortunately as of now there's no direct way to determine if
-                        // this is a bitmap font or TTF
-                        !File.Exists(font.TTFFileName))
+                    // For scaled-up bitmap fonts outline is xN
+                    // NOTE: unfortunately as of now there's no direct way to determine if
+                    // this is a bitmap font or TTF
+                    if (!File.Exists(font.TTFFileName))
                     {
                         font.AutoOutlineThickness = font.SizeMultiplier;
                     }

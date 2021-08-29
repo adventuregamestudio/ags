@@ -548,6 +548,7 @@ void dispose_game_drawdata()
     actspswbbmp.clear();
     actspswbcache.clear();
     guibg.clear();
+    guibgbmp.clear();
 }
 
 void dispose_room_drawdata()

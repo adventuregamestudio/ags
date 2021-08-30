@@ -291,12 +291,12 @@ static void restore_game_thisroom(Stream *in, RestoredData &r_data)
 
 static void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 {
-    for (int i = 0; i < MAX_GAME_CHANNELS; ++i)
+    for (int i = 0; i < MAX_GAME_CHANNELS_v320; ++i)
     {
         ambient[i].ReadFromFile(in);
     }
 
-    for (int bb = NUM_SPEECH_CHANS; bb < MAX_GAME_CHANNELS; bb++) {
+    for (int bb = NUM_SPEECH_CHANS; bb < MAX_GAME_CHANNELS_v320; bb++) {
         if (ambient[bb].channel == 0)
             r_data.DoAmbient[bb] = 0;
         else {
@@ -416,7 +416,7 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
 
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS_v320; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
         chan_info.Pos = 0;

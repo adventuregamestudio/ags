@@ -292,7 +292,7 @@ static void audio_update_polled_stuff()
         int newVolume = ch ? ch->get_volume() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
-            AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
+            ch->set_volume_percent(newVolume);
         }
         else
         {
@@ -313,7 +313,7 @@ static void audio_update_polled_stuff()
             newVolume = play.crossfade_final_volume_in;
         }
 
-        AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_in_channel], newVolume);
+        ch->set_volume_percent(newVolume);
 
         if (newVolume >= play.crossfade_final_volume_in)
         {

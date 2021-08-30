@@ -41,7 +41,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern CCAudioChannel ccDynamicAudio;
@@ -169,12 +169,12 @@ void System_SetGamma(int newValue) {
 
 int System_GetAudioChannelCount()
 {
-    return MAX_SOUND_CHANNELS;
+    return MAX_GAME_CHANNELS;
 }
 
 ScriptAudioChannel* System_GetAudioChannels(int index)
 {
-    if ((index < 0) || (index >= MAX_SOUND_CHANNELS))
+    if ((index < 0) || (index >= MAX_GAME_CHANNELS))
         quit("!System.AudioChannels: invalid sound channel index");
 
     return &scrAudioChannel[index];

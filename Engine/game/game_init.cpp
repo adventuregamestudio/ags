@@ -69,7 +69,7 @@ extern ScriptGUI    *scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
@@ -137,7 +137,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 // Initializes audio channels and clips and registers them in the script system
 void InitAndRegisterAudioObjects()
 {
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i) 
+    for (int i = 0; i < MAX_GAME_CHANNELS; ++i) 
     {
         scrAudioChannel[i].id = i;
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);

@@ -384,7 +384,7 @@ HSaveError WriteAudio(Stream *out)
     }
 
     // Audio clips and crossfade
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
         auto* ch = lock.GetChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->sourceClip != nullptr))
@@ -416,7 +416,7 @@ HSaveError WriteAudio(Stream *out)
     out->WriteInt32(current_music_type);
 
     // Ambient sound
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < MAX_GAME_CHANNELS; ++i)
         ambient[i].WriteToFile(out);
     return HSaveError::None();
 }
@@ -440,7 +440,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Res
     }
 
     // Audio clips and crossfade
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
         chan_info.Pos = 0;
@@ -474,9 +474,9 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Res
     current_music_type = in->ReadInt32();
     
     // Ambient sound
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < MAX_GAME_CHANNELS; ++i)
         ambient[i].ReadFromFile(in);
-    for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = NUM_SPEECH_CHANS; i < MAX_GAME_CHANNELS; ++i)
     {
         if (ambient[i].channel == 0)
         {

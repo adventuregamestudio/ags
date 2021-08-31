@@ -513,9 +513,17 @@ int engine_check_register_game()
     return 0;
 }
 
+// Replace special tokens inside a user path option
+static void resolve_configured_path(String &option)
+{
+    option.Replace("$GAMENAME$", game.gamename);
+}
+
 // Setup paths and directories that may be affected by user configuration
 void engine_init_user_directories()
 {
+    resolve_configured_path(usetup.user_data_dir);
+    resolve_configured_path(usetup.shared_data_dir);
     if (!usetup.user_conf_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "User config directory: %s", usetup.user_conf_dir.GetCStr());
     if (!usetup.user_data_dir.IsEmpty())
@@ -1099,9 +1107,11 @@ void engine_read_config(ConfigTree &cfg)
     // fallback to default behavior.
     if (!usetup.user_conf_dir.IsEmpty())
     {
+        resolve_configured_path(usetup.user_conf_dir);
         if (Path::IsRelativePath(usetup.user_conf_dir))
             usetup.user_conf_dir = Path::ConcatPaths(usetup.startup_dir, usetup.user_conf_dir);
-        if (!File::TestWriteFile(Path::ConcatPaths(usetup.user_conf_dir, DefaultConfigFileName)))
+        if (!Directory::CreateDirectory(usetup.user_conf_dir) ||
+            !File::TestWriteFile(Path::ConcatPaths(usetup.user_conf_dir, DefaultConfigFileName)))
         {
             Debug::Printf(kDbgMsg_Warn, "Write test failed at user config dir '%s', using default path.",
                 usetup.user_conf_dir.GetCStr());

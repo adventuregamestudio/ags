@@ -208,6 +208,8 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
         blend_mode = kBlend_Normal;
     }
 
+    spr_width = last_width;
+    spr_height = last_height;
     UpdateGraphicSpace();
 }
 

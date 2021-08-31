@@ -164,9 +164,7 @@ void Game_StopAudio(int audioType)
 {
     if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
-    int aa;
-
-    for (aa = 0; aa < MAX_GAME_CHANNELS; aa++)
+    for (int aa = 0; aa < game.numGameChannels; aa++)
     {
         if (audioType == SCR_NO_VALUE)
         {
@@ -191,7 +189,7 @@ int Game_IsAudioPlaying(int audioType)
     if (play.fast_forward)
         return 0;
 
-    for (int aa = 0; aa < MAX_GAME_CHANNELS; aa++)
+    for (int aa = 0; aa < game.numGameChannels; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
         if (clip != nullptr)
@@ -227,7 +225,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         (changeType == VOL_BOTH))
     {
         AudioChannelsLock lock;
-        for (int aa = 0; aa < MAX_GAME_CHANNELS; aa++)
+        for (int aa = 0; aa < game.numGameChannels; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != nullptr) && (clip->type == audioType))

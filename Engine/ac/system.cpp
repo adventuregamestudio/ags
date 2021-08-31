@@ -169,13 +169,13 @@ void System_SetGamma(int newValue) {
 
 int System_GetAudioChannelCount()
 {
-    return MAX_GAME_CHANNELS;
+    return game.numGameChannels;
 }
 
 ScriptAudioChannel* System_GetAudioChannels(int index)
 {
-    if ((index < 0) || (index >= MAX_GAME_CHANNELS))
-        quit("!System.AudioChannels: invalid sound channel index");
+    if ((index < 0) || (index >= game.numGameChannels))
+        quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", 0, game.numGameChannels);
 
     return &scrAudioChannel[index];
 }

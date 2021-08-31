@@ -274,7 +274,7 @@ void unload_old_room() {
         objs[ff].moving = 0;
 
     if (!play.ambient_sounds_persist) {
-        for (ff = NUM_SPEECH_CHANS; ff < MAX_GAME_CHANNELS; ff++)
+        for (ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
             StopAmbientSound(ff);
     }
 

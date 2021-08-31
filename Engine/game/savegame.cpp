@@ -640,7 +640,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
     } // -- AudioChannelsLock
 
-    for (int i = NUM_SPEECH_CHANS; i < MAX_GAME_CHANNELS; ++i)
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
     {
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);

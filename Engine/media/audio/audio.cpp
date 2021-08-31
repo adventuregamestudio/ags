@@ -188,7 +188,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         priority--;
 
     int startAtChannel = reserved_channel_count;
-    int endBeforeChannel = MAX_GAME_CHANNELS;
+    int endBeforeChannel = game.numGameChannels;
 
     if (game.audioClipTypes[clip->type].reservedChannels > 0)
     {
@@ -529,7 +529,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 
     // destroyed an ambient sound channel
-    if (chid < MAX_GAME_CHANNELS)
+    if (chid < game.numGameChannels)
     {
         if (ambient[chid].channel > 0)
             ambient[chid].channel = 0;
@@ -610,7 +610,7 @@ void update_directional_sound_vol()
 {
     AudioChannelsLock lock;
 
-    for (int chnum = NUM_SPEECH_CHANS; chnum < MAX_GAME_CHANNELS; chnum++)
+    for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
     {
         auto* ch = lock.GetChannelIfPlaying(chnum);
         if ((ch != nullptr) && (ch->xSource >= 0)) 
@@ -629,7 +629,7 @@ void update_ambient_sound_vol ()
 {
     AudioChannelsLock lock;
 
-    for (int chan = NUM_SPEECH_CHANS; chan < MAX_GAME_CHANNELS; chan++) {
+    for (int chan = NUM_SPEECH_CHANS; chan < game.numGameChannels; chan++) {
 
         AmbientSound *thisSound = &ambient[chan];
 
@@ -709,7 +709,7 @@ static int play_sound_priority (int val1, int priority) {
     AudioChannelsLock lock;
 
     // find a free channel to play it on
-    for (int i = SCHAN_NORMAL; i < MAX_GAME_CHANNELS; i++) {
+    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (val1 < 0) {
             // Playing sound -1 means iterate through and stop all sound
@@ -864,7 +864,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     AudioChannelsLock lock;
 
-    for (int i = NUM_SPEECH_CHANS; i < MAX_GAME_CHANNELS; i++)
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (ch && ch->sourceClip != nullptr)

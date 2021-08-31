@@ -2176,8 +2176,6 @@ void draw_gui_and_overlays()
     // Add GUIs
     our_eip=35;
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
-        int aa;
-
         if (playerchar->activeinv >= MAX_INV) {
             quit("!The player.activeinv variable has been corrupted, probably as a result\n"
                 "of an incorrect assignment in the game script.");
@@ -2193,7 +2191,7 @@ void draw_gui_and_overlays()
                 if (gui.Transparency == 255) continue;
 
                 gui.ClearChanged();
-                recreate_guibg_image(&guis[aa]);
+                recreate_guibg_image(&guis[index]);
 
                 eip_guinum = index;
                 Bitmap *guibg_final = guibg[index];
@@ -2247,7 +2245,7 @@ void draw_gui_and_overlays()
         our_eip = 38;
         // Draw the GUIs
         for (int gg = 0; gg < game.numgui; gg++) {
-            aa = play.gui_draw_order[gg];
+            int aa = play.gui_draw_order[gg];
             if (!guis[aa].IsDisplayed()) continue;
             if (guis[aa].Transparency == 255) continue;
 

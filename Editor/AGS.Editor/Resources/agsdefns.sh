@@ -962,10 +962,6 @@ builtin managed struct Overlay {
   import attribute BlendMode BlendMode;
   /// Gets/sets the overlay's image rotation in degrees.
   import attribute float Rotation;
-  /// Gets/sets the transparency of this overlay.
-  import attribute int Transparency;
-  /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
-  import attribute int ZOrder;
 #endif
 };
 

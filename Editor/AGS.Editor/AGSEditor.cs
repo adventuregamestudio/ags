@@ -808,9 +808,9 @@ namespace AGS.Editor
         {
             _game = newGame;
 
-            Factory.Events.OnRefreshAllComponentsFromGame();
             Factory.GUIController.GameNameUpdated();
             Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame, errors);
+            Factory.Events.OnRefreshAllComponentsFromGame();
 
             RegenerateScriptHeader(null);
             

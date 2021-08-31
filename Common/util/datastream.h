@@ -37,6 +37,7 @@ public:
     int16_t ReadInt16() override;
     int32_t ReadInt32() override;
     int64_t ReadInt64() override;
+    float   ReadFloat32() override;
 
     //
     // Read- and WriteArray methods return number of full elements (NOT bytes)
@@ -71,6 +72,7 @@ public:
     size_t  WriteInt16(int16_t val) override;
     size_t  WriteInt32(int32_t val) override;
     size_t  WriteInt64(int64_t val) override;
+    size_t  WriteFloat32(float val) override;
     
     inline size_t WriteArray(const void *buffer, size_t elem_size, size_t count) override
     {
@@ -123,6 +125,10 @@ protected:
     inline void ConvertInt64(int64_t &val)
     {
         if (MustSwapBytes()) val = BBOp::SwapBytesInt64(val);
+    }
+    inline void ConvertFloat32(float &val)
+    {
+        if (MustSwapBytes()) val = BBOp::SwapBytesFloat(val);
     }
 };
 

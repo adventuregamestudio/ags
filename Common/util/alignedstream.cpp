@@ -133,6 +133,18 @@ int64_t AlignedStream::ReadInt64()
     return val;
 }
 
+float AlignedStream::ReadFloat32()
+{
+    float val = 0.f;
+    if (_stream)
+    {
+        ReadPadding(sizeof(float));
+        val = _stream->ReadFloat32();
+        _block += sizeof(float);
+    }
+    return val;
+}
+
 size_t AlignedStream::ReadArray(void *buffer, size_t elem_size, size_t count)
 {
     if (_stream)
@@ -236,6 +248,18 @@ size_t AlignedStream::WriteInt64(int64_t val)
         WritePadding(sizeof(int64_t));
         size_t size = _stream->WriteInt64(val);
         _block += sizeof(int64_t);
+        return size;
+    }
+    return 0;
+}
+
+size_t AlignedStream::WriteFloat32(float val)
+{
+    if (_stream)
+    {
+        WritePadding(sizeof(float));
+        size_t size = _stream->WriteFloat32(val);
+        _block += sizeof(float);
         return size;
     }
     return 0;

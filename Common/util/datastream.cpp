@@ -50,6 +50,14 @@ int64_t DataStream::ReadInt64()
     return val;
 }
 
+float DataStream::ReadFloat32()
+{
+    float val = 0.f;
+    Read(&val, sizeof(float));
+    ConvertFloat32(val);
+    return val;
+}
+
 size_t DataStream::WriteInt16(int16_t val)
 {
     ConvertInt16(val);
@@ -66,6 +74,12 @@ size_t DataStream::WriteInt64(int64_t val)
 {
     ConvertInt64(val);
     return Write(&val, sizeof(int64_t));
+}
+
+size_t DataStream::WriteFloat32(float val)
+{
+    ConvertFloat32(val);
+    return Write(&val, sizeof(float));
 }
 
 size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)

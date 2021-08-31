@@ -63,6 +63,7 @@ public:
     virtual int16_t     ReadInt16() = 0;
     virtual int32_t     ReadInt32() = 0;
     virtual int64_t     ReadInt64() = 0;
+    virtual float       ReadFloat32() = 0;
     virtual bool        ReadBool() = 0;
     virtual size_t      ReadArray(void *buffer, size_t elem_size, size_t count) = 0;
     virtual size_t      ReadArrayOfInt8(int8_t *buffer, size_t count) = 0;
@@ -74,6 +75,7 @@ public:
     virtual size_t      WriteInt16(int16_t val) = 0;
     virtual size_t      WriteInt32(int32_t val) = 0;
     virtual size_t      WriteInt64(int64_t val) = 0;
+    virtual size_t      WriteFloat32(float val) = 0;
     virtual size_t      WriteBool(bool val) = 0;
     virtual size_t      WriteArray(const void *buffer, size_t elem_size, size_t count) = 0;
     virtual size_t      WriteArrayOfInt8(const int8_t *buffer, size_t count) = 0;

@@ -69,6 +69,7 @@ public:
     int16_t ReadInt16() override;
     int32_t ReadInt32() override;
     int64_t ReadInt64() override;
+    float   ReadFloat32() override;
     size_t  ReadArray(void *buffer, size_t elem_size, size_t count) override;
     size_t  ReadArrayOfInt16(int16_t *buffer, size_t count) override;
     size_t  ReadArrayOfInt32(int32_t *buffer, size_t count) override;
@@ -79,6 +80,7 @@ public:
     size_t  WriteInt16(int16_t val) override;
     size_t  WriteInt32(int32_t val) override;
     size_t  WriteInt64(int64_t val) override;
+    size_t  WriteFloat32(float val) override;
     size_t  WriteArray(const void *buffer, size_t elem_size, size_t count) override;
     size_t  WriteArrayOfInt16(const int16_t *buffer, size_t count) override;
     size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count) override;

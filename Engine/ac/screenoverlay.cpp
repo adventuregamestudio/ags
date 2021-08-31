@@ -58,7 +58,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
         in->ReadInt32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
-        in->ReadInt32(); // transform rotate
+        rotation = in->ReadFloat32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
@@ -99,7 +99,7 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     out->WriteInt32(0); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
-    out->WriteInt32(0); // transform rotate
+    out->WriteFloat32(rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x

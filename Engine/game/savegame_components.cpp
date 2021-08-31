@@ -1146,8 +1146,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Managed Pool",
-        400, // ags4 starts with 400
-        400,
+        0,
+        0,
         WriteManagedPool,
         ReadManagedPool
     },

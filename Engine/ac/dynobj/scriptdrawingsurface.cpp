@@ -86,6 +86,7 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
     SerializeInt(dynamicSurfaceNumber);
     SerializeInt(currentColour);
     SerializeInt(currentColourScript);
+    SerializeInt(0); // unused
     SerializeInt(modified);
     SerializeInt(hasAlphaChannel);
     SerializeInt(isLinkedBitmapOnly ? 1 : 0);
@@ -104,6 +105,7 @@ void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, in
     dynamicSurfaceNumber = UnserializeInt();
     currentColour = UnserializeInt();
     currentColourScript = UnserializeInt();
+    UnserializeInt(); // unused
     modified = UnserializeInt();
     hasAlphaChannel = UnserializeInt();
     isLinkedBitmapOnly = (UnserializeInt() != 0);

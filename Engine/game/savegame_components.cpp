@@ -1139,7 +1139,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        1,
+        10, // should correspond to "Room States"
         0,
         WriteThisRoom,
         ReadThisRoom

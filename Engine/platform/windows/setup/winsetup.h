@@ -28,7 +28,6 @@ namespace Engine
 
 using namespace Common;
 
-void SetWinIcon();
 SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
                           const String &game_data_dir, const String &version_str);
 

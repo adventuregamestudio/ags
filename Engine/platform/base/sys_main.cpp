@@ -14,6 +14,7 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -149,10 +150,10 @@ void sys_window_set_title(const char *title) {
 
 void sys_window_set_icon() {
     if (window) {
-        // TODO: actually support getting icon from resources and converting into SDL_Surface.
-        //  - on Linux we had platform/linux/icon.xpm
-        //  - on Windows we had standard embedded resource under ID = 101
-        SDL_SetWindowIcon(window, nullptr);
+        SDL_Surface *icon = platform->CreateWindowIcon();
+        if (!icon) return; // no icon
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon);
     }
 }
 

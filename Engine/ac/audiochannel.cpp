@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "ac/audiochannel.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/dynobj/cc_audioclip.h"
@@ -23,6 +24,7 @@
 
 using namespace AGS::Common;
 
+extern GameSetupStruct game;
 extern GameState play;
 extern RoomStruct thisroom;
 extern CCAudioClip ccDynamicAudioClip;
@@ -78,9 +80,9 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 {
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
 
-    if (ch)
+    if (ch && ch->sourceClipID >= 0)
     {
-        return (ScriptAudioClip*)ch->sourceClip;
+        return &game.audioClips[ch->sourceClipID];
     }
     return nullptr;
 }

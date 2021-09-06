@@ -48,7 +48,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if ((ch != nullptr) && (ch->sourceClip == clip))
+        if ((ch != nullptr) && (ch->sourceClipID == clip->id))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
         }

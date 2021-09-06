@@ -22,7 +22,7 @@ SOUNDCLIP::SOUNDCLIP() {
     panningAsPercentage = 0;
     speed = 1000;
     sourceClipType = 0;
-    sourceClip = nullptr;
+    sourceClipID = -1;
     vol = 0;
     volAsPercentage = 0;
     volModifier = 0;

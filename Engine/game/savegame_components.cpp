@@ -387,9 +387,9 @@ HSaveError WriteAudio(Stream *out)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if ((ch != nullptr) && (ch->sourceClip != nullptr))
+        if ((ch != nullptr) && (ch->sourceClipID >= 0))
         {
-            out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);
+            out->WriteInt32(ch->sourceClipID);
             out->WriteInt32(ch->get_pos());
             out->WriteInt32(ch->priority);
             out->WriteInt32(ch->repeat ? 1 : 0);

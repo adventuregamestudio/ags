@@ -44,7 +44,7 @@ struct SOUNDCLIP
     int maximumPossibleDistanceAway;
     int directionalVolModifier;
     bool repeat;
-    void *sourceClip;
+    int sourceClipID;
 
     virtual void poll() = 0;
     virtual void destroy() = 0;

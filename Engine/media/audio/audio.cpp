@@ -245,7 +245,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     if (soundClip != nullptr)
     {
         soundClip->set_volume_percent(audioClip->defaultVolume);
-        soundClip->sourceClip = audioClip;
+        soundClip->sourceClipID = audioClip->id;
         soundClip->sourceClipType = audioClip->type;
     }
     return soundClip;
@@ -831,7 +831,7 @@ void apply_volume_drop_modifier(bool applyModifier)
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch && ch->sourceClip != nullptr)
+        if (ch && ch->sourceClipID >= 0)
         {
             if (applyModifier)
                 apply_volume_drop_to_clip(ch);

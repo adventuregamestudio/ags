@@ -68,6 +68,6 @@ private:
 
 
 // Factory methods
-SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hint, int voll, bool loop);
+SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hint, bool loop);
 
 #endif // __AGS_EE_MEDIA__CLIP_OPENAL_H__

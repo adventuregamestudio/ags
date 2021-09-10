@@ -375,41 +375,33 @@ void PlayMP3File (const char *filename) {
     bool doLoop = (play.music_repeat > 0);
 
     SOUNDCLIP *clip = nullptr;
+    int sound_type = 0;
     
     if (!clip) {
-        clip = my_load_static_ogg(asset_name, 150, doLoop);
-        if (clip) {
-            if (clip->play()) {
-                AudioChans::SetChannel(useChan, clip);
-                current_music_type = MUS_OGG;
-                play.cur_music_number = 1000;
-                // save the filename (if it's not what we were supplied with)
-                if (filename != &play.playmp3file_name[0])
-                    strcpy (play.playmp3file_name, filename);
-            } else {
-                clip->destroy();
-                delete clip;
-                clip = nullptr;
-            }
-        }
+        clip = my_load_ogg(asset_name, doLoop);
+        sound_type = MUS_OGG;
     }
 
     if (!clip)
     {
-        clip = my_load_static_mp3(asset_name, 150, doLoop);
-        if (clip) {
-            if (clip->play()) {
-                AudioChans::SetChannel(useChan, clip);
-                current_music_type = MUS_MP3;
-                play.cur_music_number = 1000;
-                // save the filename (if it's not what we were supplied with)
-                if (filename != &play.playmp3file_name[0])
-                    strcpy(play.playmp3file_name, filename);
-            } else {
-                clip->destroy();
-                delete clip;
-                clip = nullptr;
-            }
+        clip = my_load_mp3(asset_name, doLoop);
+        sound_type = MUS_MP3;
+    }
+
+    if (clip) {
+        clip->set_volume(150);
+        if (clip->play()) {
+            AudioChans::SetChannel(useChan, clip);
+            current_music_type = sound_type;
+            play.cur_music_number = 1000;
+            // save the filename (if it's not what we were supplied with)
+            if (filename != &play.playmp3file_name[0])
+                snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), filename);
+        }
+        else {
+            clip->destroy();
+            delete clip;
+            clip = nullptr;
         }
     }
 
@@ -525,19 +517,20 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 
     String asset_name = voice_name;
     asset_name.Append(".wav");
-    SOUNDCLIP *speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
+    SOUNDCLIP *speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), false);
 
     if (speechmp3 == nullptr) {
         asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
-        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), play.speech_volume);
+        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), false);
     }
 
     if (speechmp3 == nullptr) {
         asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
-        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), play.speech_volume);
+        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), false);
     }
 
     if (speechmp3 != nullptr) {
+        speechmp3->set_volume(play.speech_volume);
         if (!speechmp3->play()) {
             // not assigned to a channel, so clean up manually.
             speechmp3->destroy();

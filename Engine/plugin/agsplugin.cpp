@@ -571,29 +571,31 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     // TODO: find out how engine was supposed to decide on where to load the sound from
     AssetPath asset_name(filename, "audio");
 
-    if (soundType == PSND_WAVE)
-        newcha = my_load_wave (asset_name, volume, (loop != 0));
-    else if (soundType == PSND_MP3STREAM)
-        newcha = my_load_mp3 (asset_name, volume);
-    else if (soundType == PSND_OGGSTREAM)
-        newcha = my_load_ogg (asset_name, volume);
-    else if (soundType == PSND_MP3STATIC)
-        newcha = my_load_static_mp3 (asset_name, volume, (loop != 0));
-    else if (soundType == PSND_OGGSTATIC)
-        newcha = my_load_static_ogg (asset_name, volume, (loop != 0));
-    else if (soundType == PSND_MIDI) {
+    switch (soundType)
+    {
+    case PSND_WAVE:
+        newcha = my_load_wave(asset_name, (loop != 0)); break;
+    case PSND_MP3STREAM:
+    case PSND_MP3STATIC:
+        newcha = my_load_mp3(asset_name, (loop != 0)); break;
+    case PSND_OGGSTREAM:
+    case PSND_OGGSTATIC:
+        newcha = my_load_ogg(asset_name, (loop != 0)); break;
+    case PSND_MIDI:
         if (play.silent_midi != 0 || current_music_type == MUS_MIDI)
-            quit("!IAGSEngine::PlaySoundChannel: MIDI already in use");
-        newcha = my_load_midi (asset_name, (loop != 0));
-        newcha->set_volume (volume);
+        {
+            debug_script_warn("IAGSEngine::PlaySoundChannel: MIDI already in use");
+            return;
+        }
+        newcha = my_load_midi(asset_name, (loop != 0)); break;
+    case PSND_MOD:
+        newcha = my_load_mod(asset_name, (loop != 0)); break;
+    default:
+        debug_script_warn("IAGSEngine::PlaySoundChannel: unknown sound type %d", soundType);
+        return;
     }
-    else if (soundType == PSND_MOD) {
-        newcha = my_load_mod (asset_name, (loop != 0));
-        newcha->set_volume (volume);
-    }
-    else
-        quit("!IAGSEngine::PlaySoundChannel: unknown sound type");
 
+    newcha->set_volume(volume);
     AudioChans::SetChannel(channel, newcha);
 }
 // Engine interface 12 and above are below

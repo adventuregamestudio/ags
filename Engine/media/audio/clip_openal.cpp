@@ -186,7 +186,7 @@ int GuessSoundTypeFromExt(const String &extension)
     return 0;
 }
 
-SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hint, int voll, bool loop)
+SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hint, bool loop)
 {
     size_t asset_size;
     auto *s = LocateAsset(asset_name, asset_size);
@@ -208,7 +208,6 @@ SOUNDCLIP *my_load_openal(const AssetPath &asset_name, const char *extension_hin
 
     auto clip = new OPENAL_SOUNDCLIP();
     clip->slot_ = slot;
-    clip->vol = voll;
     clip->repeat = loop;
     clip->soundType = sound_type;
     clip->lengthMs = lengthMs;

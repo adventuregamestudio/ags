@@ -14,38 +14,28 @@
 #include "media/audio/sound.h"
 #include "media/audio/clip_openal.h"
 
-SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, bool loop)
+SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "WAV", voll, loop);
+    return my_load_openal(asset_name, "WAV", loop);
 }
 
-SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
+SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MP3", voll, false);
+    return my_load_openal(asset_name, "MP3", loop);
 }
 
-SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
+SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MP3", voll, loop);
-}
-
-SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
-{
-    return my_load_openal(asset_name, "OGG", voll, loop);
-}
-
-SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
-{
-    return my_load_openal(asset_name, "OGG", voll, false);
+    return my_load_openal(asset_name, "OGG", loop);
 }
 
 SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MIDI", 0, loop);
+    return my_load_openal(asset_name, "MIDI", loop);
 }
 
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MOD", 0, loop);
+    return my_load_openal(asset_name, "MOD", loop);
 }
 

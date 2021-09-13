@@ -328,7 +328,9 @@ HSaveError WriteAudio(Stream *out)
 
     // Game content assertion
     out->WriteInt32(game.audioClipTypes.size());
-    out->WriteInt32(game.audioClips.size()); // [ivan-mogilko] not necessary, kept only to avoid changing save format
+    out->WriteInt8(TOTAL_AUDIO_CHANNELS);
+    out->WriteInt8(game.numGameChannels);
+    out->WriteInt16(0); // reserved 2 bytes (remains of int32)
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
@@ -337,7 +339,7 @@ HSaveError WriteAudio(Stream *out)
     }
 
     // Audio clips and crossfade
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
         auto* ch = lock.GetChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->sourceClip != nullptr))
@@ -369,7 +371,7 @@ HSaveError WriteAudio(Stream *out)
     out->WriteInt32(current_music_type);
 
     // Ambient sound
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < game.numGameChannels; ++i)
         ambient[i].WriteToFile(out);
     return HSaveError::None();
 }
@@ -380,10 +382,22 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Res
     // Game content assertion
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
         return err;
-    in->ReadInt32(); // audio clip count
-    /* [ivan-mogilko] looks like it's not necessary to assert, as there's no data serialized for clips
-    if (!AssertGameContent(err, in->ReadInt32(), game.audioClips.size(), "Audio Clips"))
-        return err;*/
+    int total_channels, max_game_channels;
+    if (cmp_ver >= 2)
+    {
+        total_channels = in->ReadInt8();
+        max_game_channels = in->ReadInt8();
+        in->ReadInt16(); // reserved 2 bytes
+        if (!AssertCompatLimit(err, total_channels, TOTAL_AUDIO_CHANNELS, "System Audio Channels") ||
+            !AssertCompatLimit(err, max_game_channels, MAX_GAME_CHANNELS, "Game Audio Channels"))
+            return err;
+    }
+    else
+    {
+        total_channels = TOTAL_AUDIO_CHANNELS_v320;
+        max_game_channels = MAX_GAME_CHANNELS_v320;
+        in->ReadInt32(); // unused in prev format ver
+    }
 
     // Audio types
     for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
@@ -393,7 +407,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Res
     }
 
     // Audio clips and crossfade
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < total_channels; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
         chan_info.Pos = 0;
@@ -427,9 +441,9 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Res
     current_music_type = in->ReadInt32();
     
     // Ambient sound
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < max_game_channels; ++i)
         ambient[i].ReadFromFile(in);
-    for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
+    for (int i = NUM_SPEECH_CHANS; i < max_game_channels; ++i)
     {
         if (ambient[i].channel == 0)
         {
@@ -1055,7 +1069,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        1,
+        2,
         0,
         WriteAudio,
         ReadAudio

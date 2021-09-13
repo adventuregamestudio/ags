@@ -16,7 +16,7 @@
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/audio_system.h"
 
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 const char *CCAudioChannel::GetType() {
     return "AudioChannel";

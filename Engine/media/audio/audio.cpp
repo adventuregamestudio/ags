@@ -44,7 +44,7 @@ using namespace AGS::Engine;
 //-----------------------
 //sound channel management; all access goes through here, which can't be done without a lock
 
-static std::array<SOUNDCLIP *,MAX_SOUND_CHANNELS+1> _channels;
+static std::array<SOUNDCLIP *, TOTAL_AUDIO_CHANNELS> _channels;
 AGS::Engine::Mutex AudioChannelsLock::s_mutex;
 
 SOUNDCLIP *AudioChannelsLock::GetChannel(int index)
@@ -108,7 +108,7 @@ extern CharacterInfo*playerchar;
 
 extern volatile int switching_away_from_game;
 
-ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
@@ -162,6 +162,7 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
     }
 }
 
+// NOTE: this function assumes one of the user channels
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
     ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
@@ -187,7 +188,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         priority--;
 
     int startAtChannel = reserved_channel_count;
-    int endBeforeChannel = MAX_SOUND_CHANNELS;
+    int endBeforeChannel = game.numGameChannels;
 
     if (game.audioClipTypes[clip->type].reservedChannels > 0)
     {
@@ -292,7 +293,7 @@ static void audio_update_polled_stuff()
         int newVolume = ch ? ch->get_volume() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
-            AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
+            ch->set_volume_percent(newVolume);
         }
         else
         {
@@ -313,7 +314,7 @@ static void audio_update_polled_stuff()
             newVolume = play.crossfade_final_volume_in;
         }
 
-        AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_in_channel], newVolume);
+        ch->set_volume_percent(newVolume);
 
         if (newVolume >= play.crossfade_final_volume_in)
         {
@@ -508,7 +509,7 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
 {
-    if ((chid < 0) || (chid > MAX_SOUND_CHANNELS))
+    if ((chid < 0) || (chid >= TOTAL_AUDIO_CHANNELS))
         quit("!StopChannel: invalid channel ID");
 
     AudioChannelsLock lock;
@@ -528,8 +529,11 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 
     // destroyed an ambient sound channel
-    if (ambient[chid].channel > 0)
-        ambient[chid].channel = 0;
+    if (chid < game.numGameChannels)
+    {
+        if (ambient[chid].channel > 0)
+            ambient[chid].channel = 0;
+    }
 
     if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
     {
@@ -577,8 +581,7 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 
 //=============================================================================
 
-// TODO: double check that ambient sounds array actually needs +1
-std::array<AmbientSound,MAX_SOUND_CHANNELS+1> ambient;
+std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
@@ -605,7 +608,7 @@ void update_directional_sound_vol()
 {
     AudioChannelsLock lock;
 
-    for (int chnum = 1; chnum < MAX_SOUND_CHANNELS; chnum++) 
+    for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
     {
         auto* ch = lock.GetChannelIfPlaying(chnum);
         if ((ch != nullptr) && (ch->xSource >= 0)) 
@@ -624,7 +627,7 @@ void update_ambient_sound_vol ()
 {
     AudioChannelsLock lock;
 
-    for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) {
+    for (int chan = NUM_SPEECH_CHANS; chan < game.numGameChannels; chan++) {
 
         AmbientSound *thisSound = &ambient[chan];
 
@@ -686,7 +689,7 @@ void stop_all_sound_and_music()
     // make sure it doesn't start crossfading when it comes back
     crossFading = 0;
     // any ambient sound will be aborted
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
 }
 
@@ -704,7 +707,7 @@ static int play_sound_priority (int val1, int priority) {
     AudioChannelsLock lock;
 
     // find a free channel to play it on
-    for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
+    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (val1 < 0) {
             // Playing sound -1 means iterate through and stop all sound
@@ -859,7 +862,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     AudioChannelsLock lock;
 
-    for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
+    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (ch && ch->sourceClip != nullptr)

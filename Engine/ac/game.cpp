@@ -71,7 +71,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
@@ -165,9 +165,7 @@ void Game_StopAudio(int audioType)
 {
     if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
-    int aa;
-
-    for (aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
+    for (int aa = 0; aa < game.numGameChannels; aa++)
     {
         if (audioType == SCR_NO_VALUE)
         {
@@ -192,7 +190,7 @@ int Game_IsAudioPlaying(int audioType)
     if (play.fast_forward)
         return 0;
 
-    for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
+    for (int aa = 0; aa < game.numGameChannels; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
         if (clip != nullptr)
@@ -228,7 +226,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         (changeType == VOL_BOTH))
     {
         AudioChannelsLock lock;
-        for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
+        for (int aa = 0; aa < game.numGameChannels; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != nullptr) && (clip->type == audioType))
@@ -1284,7 +1282,7 @@ void stop_fast_forwarding() {
     AudioChannelsLock lock;
 
     // Restore actual volume of sounds
-    for (int aa = 0; aa <= MAX_SOUND_CHANNELS; aa++)
+    for (int aa = 0; aa < TOTAL_AUDIO_CHANNELS; aa++)
     {
         auto* ch = lock.GetChannelIfPlaying(aa);
         if (ch)
@@ -1397,7 +1395,7 @@ void display_switch_out_suspend()
     {
     // stop the sound stuttering
     AudioChannelsLock lock;
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (ch) {
             ch->pause();
@@ -1428,7 +1426,7 @@ void display_switch_in_resume()
 
     {
     AudioChannelsLock lock;
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
         auto* ch = lock.GetChannelIfPlaying(i);
         if (ch) {
             ch->resume();

@@ -300,7 +300,11 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--localuserconf") == 0)
         {
-            usetup.local_user_conf = true;
+            usetup.user_conf_dir = ".";
+        }
+        else if ((ags_stricmp(arg, "--user-conf-dir") == 0) && (argc > ee + 1))
+        {
+            usetup.user_conf_dir = argv[++ee];
         }
         else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 4))
         {

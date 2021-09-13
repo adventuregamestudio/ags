@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_game.h" // GetGameSpeed
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
@@ -481,7 +481,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
     else if ((doing_nothing == 0) || ((flags & CHF_FIXVIEW) != 0))
       idleleft = idletime;
     // count idle time
-    else if ((loopcounter%40==0) || (chex->process_idle_this_time == 1)) {
+    else if ((loopcounter % GetGameSpeed()==0) || (chex->process_idle_this_time == 1)) {
       idleleft--;
       if (idleleft == -1) {
         int useloop=loop;

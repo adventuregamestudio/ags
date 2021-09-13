@@ -39,8 +39,9 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {
-    if ((channel < 0) || (channel >= MAX_SOUND_CHANNELS))
-        quit("!StopAmbientSound: invalid channel");
+    if ((channel < NUM_SPEECH_CHANS) || (channel >= game.numGameChannels))
+        quitprintf("!StopAmbientSound: invalid channel %d, supported %d - %d",
+            channel, NUM_SPEECH_CHANS, MAX_GAME_CHANNELS - 1);
 
     if (ambient[channel].channel == 0)
         return;
@@ -51,7 +52,7 @@ void StopAmbientSound (int channel) {
 
 void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     // the channel parameter is to allow multiple ambient sounds in future
-    if ((channel < 1) || (channel == SCHAN_SPEECH) || (channel >= MAX_SOUND_CHANNELS))
+    if ((channel < 1) || (channel == SCHAN_SPEECH) || (channel >= game.numGameChannels))
         quit("!PlayAmbientSound: invalid channel number");
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
@@ -94,7 +95,7 @@ int IsChannelPlaying(int chan) {
     if (play.fast_forward)
         return 0;
 
-    if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
+    if ((chan < 0) || (chan >= game.numGameChannels))
         quit("!IsChannelPlaying: invalid sound channel");
 
     if (channel_is_playing(chan))
@@ -109,7 +110,7 @@ int IsSoundPlaying() {
 
     // find if there's a sound playing
     AudioChannelsLock lock;
-    for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
+    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
         if (lock.GetChannelIfPlaying(i))
             return 1;
     }
@@ -127,8 +128,8 @@ int PlaySoundEx(int val1, int channel) {
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return -1; // if sound is off, ignore it
 
-    if ((channel < SCHAN_NORMAL) || (channel >= MAX_SOUND_CHANNELS))
-        quit("!PlaySoundEx: invalid channel specified, must be 3-7");
+    if ((channel < SCHAN_NORMAL) || (channel >= game.numGameChannels))
+        quitprintf("!PlaySoundEx: invalid channel specified, must be %d-%d", SCHAN_NORMAL, game.numGameChannels - 1);
 
     // if an ambient sound is playing on this channel, abort it
     StopAmbientSound(channel);
@@ -337,7 +338,7 @@ void SetSoundVolume(int newvol) {
 void SetChannelVolume(int chan, int newvol) {
     if ((newvol<0) || (newvol>255))
         quit("!SetChannelVolume: invalid volume - must be from 0-255");
-    if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
+    if ((chan < 0) || (chan >= game.numGameChannels))
         quit("!SetChannelVolume: invalid channel id");
 
     AudioChannelsLock lock;
@@ -497,7 +498,7 @@ int IsMusicVoxAvailable () {
     return play.separate_music_lib;
 }
 
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
 {

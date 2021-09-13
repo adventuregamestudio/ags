@@ -69,7 +69,7 @@ extern ScriptGUI    *scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
@@ -133,7 +133,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 // Initializes audio channels and clips and registers them in the script system
 void InitAndRegisterAudioObjects()
 {
-    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i) 
+    for (int i = 0; i < game.numGameChannels; ++i)
     {
         scrAudioChannel[i].id = i;
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
@@ -476,6 +476,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     init_game_drawdata();
     play.charProps.resize(game.numcharacters);
     HError err = InitAndRegisterGameEntities(ents);
+    // Set number of game channels corresponding to the loaded game version
+    if (loaded_game_file_version < kGameVersion_360)
+        game.numGameChannels = MAX_GAME_CHANNELS_v320;
+    else
+        game.numGameChannels = MAX_GAME_CHANNELS;
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(data_ver);

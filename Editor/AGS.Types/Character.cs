@@ -23,6 +23,7 @@ namespace AGS.Types
         private int _view = 1;
         private int _speechView;
         private int _idleView;
+        private int _idleDelay = 20;
         private int _thinkingView;
         private int _blinkingView;
         private int _startingRoom = 0;
@@ -110,6 +111,15 @@ namespace AGS.Types
         {
             get { return _idleView; }
             set { _idleView = value; }
+        }
+
+        [Description("Delay before the idle view activates, in seconds")]
+        [Category("Appearance")]
+        [DefaultValue(20)]
+        public int IdleDelay
+        {
+            get { return _idleDelay; }
+            set { _idleDelay = value; }
         }
 
         [Description("The thinking view for the character")]

@@ -477,9 +477,6 @@ void post_config()
         usetup.Screen.FsGameFrame = GameFrameSetup(kFrame_MaxProportional);
     if (!usetup.Screen.WinGameFrame.IsValid())
         usetup.Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
-    
-    usetup.user_data_dir = Path::MakePathNoSlash(usetup.user_data_dir);
-    usetup.shared_data_dir = Path::MakePathNoSlash(usetup.shared_data_dir);
 }
 
 void save_config_file()

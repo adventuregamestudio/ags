@@ -55,7 +55,7 @@ void OPENAL_SOUNDCLIP::resume()
     audio_core_slot_play(slot_);
 }
 
-bool OPENAL_SOUNDCLIP::is_playing() const
+bool OPENAL_SOUNDCLIP::is_playing()
 {
     if (slot_ < 0) { return false; }
     auto status = audio_core_slot_get_play_state(slot_);
@@ -66,6 +66,13 @@ bool OPENAL_SOUNDCLIP::is_playing() const
         return true;
     }
     return false;
+}
+
+bool OPENAL_SOUNDCLIP::is_paused()
+{
+    if (slot_ < 0) { return false; }
+    auto status = audio_core_slot_get_play_state(slot_);
+    return status == PlayStatePaused;
 }
 
 void OPENAL_SOUNDCLIP::seek(int pos_ms)

@@ -96,6 +96,7 @@ namespace AGS.Editor
          * --------------------------------------------------------------------
          * 3.6.0          - Settings.CustomDataDir;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
+         *                - Character.IdleDelay
          * 3.99.99        - BlendMode for various objects, Character.Transparency.
          *
         */
@@ -811,9 +812,9 @@ namespace AGS.Editor
         {
             _game = newGame;
 
-            Factory.Events.OnRefreshAllComponentsFromGame();
             Factory.GUIController.GameNameUpdated();
             Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame, errors);
+            Factory.Events.OnRefreshAllComponentsFromGame();
 
             RegenerateScriptHeader(null);
             

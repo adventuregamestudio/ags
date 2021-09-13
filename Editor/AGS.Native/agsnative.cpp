@@ -1712,7 +1712,7 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (AGS::Common::SpriteFile::SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    if (AGS::Common::SaveSpriteIndex(n_temp_indexfile, index) == 0)
         saved_indexfile = n_temp_indexfile;
 }
 

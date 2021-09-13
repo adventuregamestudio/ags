@@ -13,8 +13,12 @@ namespace AGS.Types
 		string ScriptFileName { get; }
 		Script Script { get; }
         string Directory { get; }
+        string DataFileName { get; }
         string UserFileName { get; }
         void LoadScript();
         void UnloadScript();
-	}
+        string GetBackgroundFileName(int background);
+        string GetMaskFileName(RoomAreaMaskType mask);
+
+    }
 }

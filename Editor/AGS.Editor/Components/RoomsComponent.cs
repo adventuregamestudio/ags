@@ -228,11 +228,6 @@ namespace AGS.Editor.Components
             {
                 filesToDelete.Add(roomToDelete.FileName);
             }
-            else
-            {
-                _guiController.ShowMessage("The room file was not found and could not be deleted.", MessageBoxIcon.Warning);
-            }
-
             if (File.Exists(roomToDelete.ScriptFileName))
             {
                 filesToDelete.Add(roomToDelete.ScriptFileName);
@@ -241,6 +236,22 @@ namespace AGS.Editor.Components
             {
                 filesToDelete.Add(roomToDelete.UserFileName);
             }
+            if (File.Exists(roomToDelete.DataFileName))
+            {
+                filesToDelete.Add(roomToDelete.DataFileName);
+            }
+
+            var backgroundFiles = Enumerable.Range(0, Room.MAX_BACKGROUNDS)
+                .Select(i => roomToDelete.GetBackgroundFileName(i))
+                .Where(f => File.Exists(f));
+            filesToDelete.AddRange(backgroundFiles);
+
+            var maskFiles = Enum.GetValues(typeof(RoomAreaMaskType))
+                .Cast<RoomAreaMaskType>()
+                .Where(m => m != RoomAreaMaskType.None)
+                .Select(m => roomToDelete.GetMaskFileName(m))
+                .Where(f => File.Exists(f));
+            filesToDelete.AddRange(maskFiles);
 
             try
             {

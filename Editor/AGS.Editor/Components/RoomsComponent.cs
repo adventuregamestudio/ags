@@ -1880,7 +1880,12 @@ namespace AGS.Editor.Components
                     $"default image will be used instead.",
                     MessageBoxIcon.Warning);
             }
-
+            else if (_loadedRoom.BackgroundCount != _backgroundCache.Count)
+            {
+                _loadedRoom.BackgroundCount = _backgroundCache.Count;
+                imageNotFound = true;
+            }
+            
             _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))

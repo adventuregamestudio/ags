@@ -65,7 +65,8 @@ struct SOUNDCLIP
     virtual void pause() = 0;
     virtual void resume() = 0;
 
-    virtual bool is_playing() const = 0; // true if playing or paused. false if never played or stopped.
+    virtual bool is_playing() = 0; // true if playing or paused. false if never played or stopped.
+    virtual bool is_paused() = 0; // true if paused
 
     inline int get_speed() const
     {

@@ -39,7 +39,8 @@ public:
     virtual int play_from(int position) override;
     void pause() override;
     void resume() override;
-    bool is_playing() const override;
+    bool is_playing() override;
+    bool is_paused() override;
 
     void seek(int pos) override;
 

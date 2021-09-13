@@ -2088,6 +2088,14 @@ builtin managed struct AudioChannel {
   /// The speed of playing, in clip milliseconds per second (1000 is default).
   import attribute int Speed;
 #endif
+#ifdef SCRIPT_API_v360
+  /// Pauses the playback on this channel.
+  import void Pause();
+  /// Resumes the paused playback on this channel.
+  import void Resume();
+  /// Whether this channel is currently paused.
+  readonly import attribute bool IsPaused;
+#endif
 };
 
 builtin managed struct AudioClip {

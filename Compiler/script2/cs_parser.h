@@ -505,8 +505,8 @@ private:
     // Check for a type mismatch in one direction only
     bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const;
 
-    // Check whether there is a type mismatch; if so, give an error
-    ErrorType IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters);
+    // Check whether there is a type mismatch; if so, give an error. 'msg' for specializing the error message
+    ErrorType CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg);
 
     // Whether this operator's vartype is always bool
     static bool IsBooleanOpcode(CodeCell opcode);

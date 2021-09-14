@@ -475,12 +475,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
     init_game_drawdata();
     play.charProps.resize(game.numcharacters);
-    HError err = InitAndRegisterGameEntities(ents);
     // Set number of game channels corresponding to the loaded game version
     if (loaded_game_file_version < kGameVersion_360)
         game.numGameChannels = MAX_GAME_CHANNELS_v320;
     else
         game.numGameChannels = MAX_GAME_CHANNELS;
+    HError err = InitAndRegisterGameEntities(ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(data_ver);

@@ -2992,7 +2992,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &paramete
                 kKW_String == _sym.VartypeWithout(VTT::kConst, param_vartype))
                 WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 
-            std::string msg = "Parameter #<num> of function <func>";
+            std::string msg = "Parameter #<num> of call to function <func>";
             msg.replace(msg.find("<num>"), 5, std::to_string(param_num));
             msg.replace(msg.find("<func>"), 6, _sym.GetName(funcSymbol));
             retval = CheckVartypeMismatch(vartype, param_vartype, true, msg);

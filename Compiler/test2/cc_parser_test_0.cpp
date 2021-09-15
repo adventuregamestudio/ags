@@ -99,7 +99,7 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
+    EXPECT_STREQ("Type mismatch: Can't convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
 TEST_F(Compile0, StructMemberQualifierOrder) {    
@@ -2118,7 +2118,7 @@ TEST_F(Compile0, StringOldstyle02) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string lerr = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, lerr.find("ype mismatch"));
+    EXPECT_NE(std::string::npos, lerr.find("convert"));
 }
 
 TEST_F(Compile0, StringOldstyle03) {

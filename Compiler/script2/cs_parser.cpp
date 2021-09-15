@@ -1934,12 +1934,15 @@ AGS::ErrorType AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Var
     // Integer types
     opcode = _sym[op_sym].OperatorD->IntOpcode;
 
-    ErrorType retval = IsVartypeMismatch(vartype1, kKW_Int, true);
+    std::string msg = "Left-hand side of '<op>' term";
+    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    ErrorType retval = CheckVartypeMismatch(vartype1, kKW_Int, true, msg);
     if (retval < 0) return retval;
-    return IsVartypeMismatch(vartype2, kKW_Int, true);
+    msg = "Right-hand side of '<op>' term";
+    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    return CheckVartypeMismatch(vartype2, kKW_Int, true, msg);
 }
 
-// Check for a type mismatch in one direction only
 bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const
 {
     // cannot convert 'void' to anything
@@ -2046,19 +2049,41 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
     return false;
 }
 
-// Check whether there is a type mismatch; if so, give an error
-AGS::ErrorType AGS::Parser::IsVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters)
+AGS::ErrorType AGS::Parser::CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg)
 {
     if (!IsVartypeMismatch_Oneway(vartype_is, vartype_wants_to_be))
         return kERR_None;
     if (!orderMatters && !IsVartypeMismatch_Oneway(vartype_wants_to_be, vartype_is))
         return kERR_None;
 
+    std::string is_vartype_string = "'" + _sym.GetName(vartype_is) + "'";
+    std::string wtb_vartype_string = "'" + _sym.GetName(vartype_wants_to_be) + "'";
+    if (_sym.IsAnyArrayVartype(vartype_is) != _sym.IsAnyArrayVartype(vartype_wants_to_be))
+    {
+        if (_sym.IsAnyArrayVartype(vartype_is))
+            is_vartype_string = "an array";
+        if (_sym.IsAnyArrayVartype(vartype_wants_to_be))
+            wtb_vartype_string = "an array";
+    }
+    if (_sym.IsAnyStringVartype(vartype_is) != _sym.IsAnyStringVartype(vartype_wants_to_be))
+    {
+        if (_sym.IsAnyStringVartype(vartype_is))
+            is_vartype_string = "a kind of string";
+        if (_sym.IsAnyStringVartype(vartype_wants_to_be))
+            wtb_vartype_string = "a kind of string";
+    }
+    if (_sym.IsDynpointerVartype(vartype_is) != _sym.IsDynpointerVartype(vartype_wants_to_be))
+    {
+        if (_sym.IsDynpointerVartype(vartype_is))
+            is_vartype_string = "a pointer";
+        if (_sym.IsDynpointerVartype(vartype_wants_to_be))
+            wtb_vartype_string = "a pointer";
+    }
 
     Error(
-        "Type mismatch: cannot convert '%s' to '%s'",
-        _sym.GetName(vartype_is).c_str(),
-        _sym.GetName(vartype_wants_to_be).c_str());
+        ((msg.empty()? "Type mismatch" : msg) + ": Can't convert %s to %s").c_str(),
+        is_vartype_string.c_str(),
+        wtb_vartype_string.c_str());
     return kERR_UserError;
 }
 
@@ -2321,14 +2346,10 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList 
 {
     bool const bitwise_negation = kKW_BitNeg == op_sym;
 
-    if (!_sym.IsAnyIntegerVartype(vartype))
-    {
-        Error(
-            "Expected an integer expression after '%s' but found type %s",
-            _sym.GetName(op_sym).c_str(),
-            _sym.GetName(vartype).c_str());
-        return kERR_UserError;
-    }
+    std::string msg = "Argument of '<op>'";
+    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    ErrorType retval = CheckVartypeMismatch(vartype, kKW_Int, true, msg);
+    if (retval < 0) return retval;
 
     if (vloc.IsCompileTimeLiteral())
     {
@@ -2370,7 +2391,9 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixModifier(Symbol op_sym, AGS::S
     ErrorType retval = ParseAssignment_ReadLHSForModification(expression, scope_type, vloc, vartype);
     if (retval < 0) return retval;
 
-    retval = IsVartypeMismatch(vartype, kKW_Int, true);
+    std::string msg = "Argument of '<op>'";
+    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym).c_str());
+    retval = CheckVartypeMismatch(vartype, kKW_Int, true, msg); 
     if (retval < 0) return retval;
 
     WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
@@ -2464,7 +2487,9 @@ ErrorType AGS::Parser::ParseExpression_PostfixModifier(Symbol const op_sym, SrcL
     ErrorType retval = ParseAssignment_ReadLHSForModification(expression, scope_type, vloc, vartype);
     if (retval < 0) return retval;
 
-    retval = IsVartypeMismatch(vartype, kKW_Int, true);
+    std::string msg = "Argument of '<op>'";
+    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym).c_str());
+    retval = CheckVartypeMismatch(vartype, kKW_Int, true, msg);
     if (retval < 0) return retval;
 
     // Really do the assignment the long way so that all the checks and safeguards will run.
@@ -2967,8 +2992,11 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &paramete
                 kKW_String == _sym.VartypeWithout(VTT::kConst, param_vartype))
                 WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 
-            if (IsVartypeMismatch(vartype, param_vartype, true))
-                return kERR_UserError;
+            std::string msg = "Parameter #<num> of call to function <func>";
+            msg.replace(msg.find("<num>"), 5, std::to_string(param_num));
+            msg.replace(msg.find("<func>"), 6, _sym.GetName(funcSymbol));
+            retval = CheckVartypeMismatch(vartype, param_vartype, true, msg);
+            if (retval < 0) return retval;
         }
 
         // Note: We push the parameters, which is tantamount to writing them
@@ -4398,20 +4426,7 @@ AGS::ErrorType AGS::Parser::ParseIntegerExpression(SrcList &src, ValueLocation &
     ErrorType retval = ParseExpression(src, vloc, scope_type_dummy, vartype);
     if (retval < 0) return retval;
 
-    if (_sym.IsAnyArrayVartype(vartype))
-    {
-        Error((msg + "Expected an integer expression, found an array instead").c_str());
-        return kERR_UserError;
-    }
-
-    if (!_sym.IsAnyIntegerVartype(vartype))
-    {
-        Error(
-            (msg + "Expected an integer expression, found type '%d' instead").c_str(),
-            _sym.GetName(vartype).c_str());
-        return kERR_UserError;
-    }
-    return kERR_None;
+    return CheckVartypeMismatch(vartype, kKW_Int, true, "Expected an integer expression");
 }
 
 AGS::ErrorType AGS::Parser::ParseDelimitedExpression(SrcList &src, Symbol const opener, ScopeType &scope_type, Vartype &vartype)
@@ -4707,7 +4722,7 @@ ErrorType AGS::Parser::ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, 
     Symbol lit;
     retval = ParseConstantExpression(_src, lit);
     if (retval < 0) return retval;
-    retval = IsVartypeMismatch(_sym[lit].LiteralD->Vartype, vartype, true);
+    retval = CheckVartypeMismatch(_sym[lit].LiteralD->Vartype, vartype, true, "");
     if (retval < 0) return retval;
 
     _sym.MakeEntryConstant(vname);
@@ -6533,7 +6548,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
         ConvertAXStringToStringObject(functionReturnType, vartype);
 
         // check return type is correct
-        retval = IsVartypeMismatch(vartype, functionReturnType, true);
+        retval = CheckVartypeMismatch(vartype, functionReturnType, true, "");
         if (retval < 0) return retval;
 
         if (_sym.IsOldstring(vartype) &&
@@ -6935,7 +6950,7 @@ AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         if (retval < 0) return retval;
 
         // Vartypes of the "case" expression and the "switch" expression must match
-        retval = IsVartypeMismatch(vartype, _nest.SwitchExprVartype(), false);
+        retval = CheckVartypeMismatch(vartype, _nest.SwitchExprVartype(), false, "");
         if (retval < 0) return retval;
 
         PopReg(SREG_BX);

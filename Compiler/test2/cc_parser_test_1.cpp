@@ -152,7 +152,7 @@ TEST_F(Compile1, FloatInt2) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("after '!'"));
+    EXPECT_NE(std::string::npos, msg.find("convert"));
 }
 
 TEST_F(Compile1, StringInt1) {    
@@ -187,7 +187,7 @@ TEST_F(Compile1, ExpressionVoid) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+    EXPECT_NE(std::string::npos, msg.find("convert"));
 }
 
 TEST_F(Compile1, ExpressionLoneUnary1) { 
@@ -341,7 +341,7 @@ TEST_F(Compile1, ExpressionArray1) {
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("ype mismatch"));
+    EXPECT_NE(std::string::npos, msg.find("convert"));
 }
 
 TEST_F(Compile1, FuncTypeClash1) {

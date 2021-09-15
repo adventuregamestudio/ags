@@ -109,8 +109,7 @@ ScriptModule* scModules = NULL;
 DialogTopic *dialog = NULL;
 std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
-ViewStruct *newViews = NULL;
-int numNewViews = 0;
+std::vector<ViewStruct> newViews;
 
 // A reference color depth, for correct color selection;
 // originally was defined by 'abuf' bitmap.
@@ -1369,7 +1368,7 @@ int numThisgamePlugins = 0;
 HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     dlgscript = ents.OldDialogSources;
-    numNewViews = thisgame.numviews;
+    newViews = std::move(ents.Views);
     numScriptModules = (int)ents.ScriptModules.size();
     scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
     for (int i = 0; i < numScriptModules; i++)
@@ -1417,7 +1416,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
 HAGSError load_dta_file_into_thisgame(const AGSString &filename)
 {
     AGS::Common::MainGameSource src;
-    AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
+    AGS::Common::LoadedGameEntities ents(thisgame, dialog);
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
@@ -1455,15 +1454,7 @@ void free_old_game_data()
 	  if (dialog[bb].optionscripts != NULL)
 		  free(dialog[bb].optionscripts);
   }
-  for (bb = 0; bb < numNewViews; bb++)
-  {
-    for (int cc = 0; cc < newViews[bb].numLoops; cc++)
-    {
-      newViews[bb].loops[cc].Dispose();
-    }
-    newViews[bb].Dispose();
-  }
-  free(newViews);
+  newViews.clear();
   guis.clear();
   free(dialog);
   free_script_modules();

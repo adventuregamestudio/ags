@@ -161,16 +161,15 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     viw--;
     if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
     if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used (%d, range is 0 - %d)", lop, views[viw].numLoops - 1);
-    // AGS < 3.6.0 let user to pass literally any positive invalid frame value by silently reassigning it to zero...
-    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
+    // historically AGS let user to pass literally any positive invalid frame value by silently reassigning it to zero...
+    if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
     {
-        if (fra >= views[viw].loops[lop].numFrames)
-        {
+        if (views[viw].loops[lop].numFrames == 0) // NOTE: we have a dummy frame allocated for this case
+            debug_script_warn("SetObjectFrame: specified loop %d has no frames, will fallback to dummy frame", lop);
+        else
             debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d), set to 0", fra, views[viw].loops[lop].numFrames - 1);
-            fra = 0;
-        }
+        fra = 0;
     }
-    if (fra < 0 || fra >= views[viw].loops[lop].numFrames) quitprintf("!SetObjectFrame: invalid frame number used (%d, range is 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
     if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
     {
         debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
@@ -184,13 +183,6 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
         objs[obn].loop = (uint16_t)lop;
     if (fra >= 0)
         objs[obn].frame = (uint16_t)fra;
-    // AGS >= 3.2.0 do not let assign an empty loop
-    // NOTE: pre-3.2.0 games are converting views from ViewStruct272 struct, always has at least 1 frame
-    if (loaded_game_file_version >= kGameVersion_320)
-    {
-        if (views[viw].loops[lop].numFrames == 0)
-            quit("!SetObjectFrame: specified loop has no frames");
-    }
     objs[obn].view = viw;
     objs[obn].loop = lop;
     objs[obn].frame = fra;

@@ -93,7 +93,7 @@ extern RoomStruct thisroom;
 extern GameSetupStruct game;
 extern RoomStatus*croom;
 extern SpriteCache spriteset;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern int game_paused;
 extern GameSetup usetup;
 extern int inside_script;

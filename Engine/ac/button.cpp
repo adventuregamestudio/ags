@@ -27,7 +27,7 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 
 // *** BUTTON FUNCTIONS
 

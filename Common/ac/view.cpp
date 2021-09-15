@@ -59,7 +59,6 @@ void ViewFrame::WriteToFile(Stream *out)
 ViewLoopNew::ViewLoopNew()
     : numFrames(0)
     , flags(0)
-    , frames(nullptr)
 {
 }
 
@@ -72,17 +71,14 @@ void ViewLoopNew::Initialize(int frameCount)
 {
     numFrames = frameCount;
     flags = 0;
-    frames = (ViewFrame*)calloc(numFrames + 1, sizeof(ViewFrame));
+    // an extra frame is allocated o prevent crashes with empty loops
+    frames.resize(numFrames > 0 ? numFrames : 1);
 }
 
 void ViewLoopNew::Dispose()
 {
-    if (frames != nullptr)
-    {
-        free(frames);
-        frames = nullptr;
-        numFrames = 0;
-    }
+    frames.clear();
+    numFrames = 0;
 }
 
 void ViewLoopNew::WriteToFile_v321(Stream *out)
@@ -107,10 +103,6 @@ void ViewLoopNew::ReadFromFile_v321(Stream *in)
     Initialize(in->ReadInt16());
     flags = in->ReadInt32();
     ReadFrames_Aligned(in);
-
-    // an extra frame is allocated in memory to prevent
-    // crashes with empty loops -- set its picture to teh BLUE CUP!!
-    frames[numFrames].pic = 0;
 }
 
 void ViewLoopNew::ReadFrames_Aligned(Stream *in)
@@ -125,26 +117,19 @@ void ViewLoopNew::ReadFrames_Aligned(Stream *in)
 
 ViewStruct::ViewStruct()
     : numLoops(0)
-    , loops(nullptr)
 {
 }
 
 void ViewStruct::Initialize(int loopCount)
 {
     numLoops = loopCount;
-    if (numLoops > 0)
-    {
-        loops = (ViewLoopNew*)calloc(numLoops, sizeof(ViewLoopNew));
-    }
+    loops.resize(numLoops);
 }
 
 void ViewStruct::Dispose()
 {
-    if (numLoops > 0)
-    {
-        free(loops);
-        numLoops = 0;
-    }
+    loops.clear();
+    numLoops = 0;
 }
 
 void ViewStruct::WriteToFile(Stream *out)
@@ -190,7 +175,7 @@ void ViewStruct272::ReadFromFile(Stream *in)
     }
 }
 
-void Convert272ViewsToNew (const std::vector<ViewStruct272> &oldv, ViewStruct *newv)
+void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, std::vector<ViewStruct> &newv)
 {
   for (size_t a = 0; a < oldv.size(); a++) {
     newv[a].Initialize(oldv[a].numloops);

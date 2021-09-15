@@ -41,7 +41,7 @@ using namespace AGS::Common;
 
 
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
 extern RoomStruct thisroom;
 extern GameState play;

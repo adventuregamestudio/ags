@@ -72,7 +72,7 @@ extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern RoomStruct thisroom;

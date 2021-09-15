@@ -20,7 +20,7 @@
 #include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {

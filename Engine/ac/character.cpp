@@ -67,7 +67,7 @@ extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern RoomStruct thisroom;
 extern MoveList *mls;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;

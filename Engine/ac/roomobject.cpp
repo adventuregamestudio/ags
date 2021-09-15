@@ -25,7 +25,7 @@
 
 using namespace AGS::Common;
 
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern GameState play;
 extern GameSetupStruct game;
 

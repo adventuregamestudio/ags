@@ -88,7 +88,7 @@ extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern SpriteCache spriteset;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;

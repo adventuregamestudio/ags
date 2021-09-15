@@ -49,7 +49,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern int our_eip;
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;

@@ -24,6 +24,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
+#include "ac/view.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/statobj/agsstaticobject.h"
@@ -52,6 +53,7 @@ using namespace Engine;
 
 extern GameSetupStruct game;
 extern CharacterCache *charcache;
+extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -455,6 +457,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
     init_game_drawdata();
+    views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     old_dialog_scripts = ents.OldDialogScripts;
     old_speech_lines = ents.OldSpeechLines;

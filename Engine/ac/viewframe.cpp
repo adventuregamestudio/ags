@@ -27,7 +27,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;
 
 

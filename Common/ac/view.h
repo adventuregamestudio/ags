@@ -42,7 +42,10 @@ struct ViewLoopNew
 {
     short numFrames;
     int   flags;
-    ViewFrame *frames;
+    std::vector<ViewFrame> frames;
+    // NOTE: we still need numFrames for backward compatibility:
+    // some older versions could allocate extra frame(s) for safety,
+    // but have to report "logical" number of frames for the engine API.
 
     ViewLoopNew();
     void Initialize(int frameCount);
@@ -57,7 +60,7 @@ struct ViewLoopNew
 struct ViewStruct
 {
     short numLoops;
-    ViewLoopNew *loops;
+    std::vector<ViewLoopNew> loops;
 
     ViewStruct();
     void Initialize(int loopCount);
@@ -76,6 +79,6 @@ struct ViewStruct272 {
     void ReadFromFile(Common::Stream *in);
 };
 
-void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, ViewStruct *newv);
+void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, std::vector<ViewStruct> &newv);
 
 #endif // __AC_VIEW_H

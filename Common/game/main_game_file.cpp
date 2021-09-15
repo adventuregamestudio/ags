@@ -92,10 +92,9 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     return "Unknown error.";
 }
 
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views)
+LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs)
     : Game(game)
     , Dialogs(dialogs)
-    , Views(views)
     , SpriteCount(0)
 {
 }
@@ -272,10 +271,9 @@ void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, Stream *in, siz
     }
 }
 
-void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVersion data_ver)
+void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
 {
-    int count = game.numviews;
-    views = (ViewStruct*)calloc(sizeof(ViewStruct) * count, 1);
+    views.resize(game.numviews);
     if (data_ver > kGameVersion_272) // 3.x views
     {
         for (int i = 0; i < game.numviews; ++i)
@@ -286,7 +284,7 @@ void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVe
     else // 2.x views
     {
         std::vector<ViewStruct272> oldv;
-        ReadViewStruct272_Aligned(oldv, in, count);
+        ReadViewStruct272_Aligned(oldv, in, game.numviews);
         Convert272ViewsToNew(oldv, views);
     }
 }
@@ -682,7 +680,7 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Adjusts score clip id, depending on game data version
-void RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver)
+void RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320)
         return;

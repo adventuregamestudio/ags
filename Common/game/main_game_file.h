@@ -105,7 +105,7 @@ struct LoadedGameEntities
 {
     GameSetupStruct        &Game;
     DialogTopic           *&Dialogs;
-    ViewStruct            *&Views;
+    std::vector<ViewStruct> Views;
     PScript                 GlobalScript;
     PScript                 DialogScript;
     std::vector<PScript>    ScriptModules;
@@ -124,7 +124,7 @@ struct LoadedGameEntities
     // speech texts displayed during dialog
     std::vector<String>     OldSpeechLines;
 
-    LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views);
+    LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs);
     ~LoadedGameEntities();
 };
 
@@ -149,7 +149,7 @@ HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data
 // Ensures that the game saves directory path is valid
 void               FixupSaveDirectory(GameSetupStruct &game);
 // Maps legacy sound numbers to real audio clips
-void               RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver);
+void               RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

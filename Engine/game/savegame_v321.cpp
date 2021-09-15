@@ -50,7 +50,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameState play;
-extern ViewStruct *views;
+extern std::vector<ViewStruct> views;
 extern CharacterExtras *charextra;
 extern MoveList *mls;
 extern RGB palette[256];

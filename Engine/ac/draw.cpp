@@ -88,7 +88,7 @@ extern RoomStatus*croom;
 extern int our_eip;
 extern int in_new_room;
 extern RoomObject*objs;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern int displayed_room;

@@ -59,7 +59,7 @@ extern RGB palette[256];
 extern DialogTopic *dialog;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
-extern ViewStruct *views;
+extern std::vector<ViewStruct> views;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;

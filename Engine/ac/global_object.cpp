@@ -43,7 +43,7 @@ using namespace AGS::Common;
 
 extern RoomStatus*croom;
 extern RoomObject*objs;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern RoomStruct thisroom;

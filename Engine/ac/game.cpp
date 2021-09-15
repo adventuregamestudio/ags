@@ -132,7 +132,7 @@ ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
-ViewStruct*views=nullptr;
+std::vector<ViewStruct> views;
 
 CharacterCache *charcache = nullptr;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
@@ -549,8 +549,7 @@ void unload_game_file()
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
-    free(views);
-    views = nullptr;
+    views.clear();
 
     free(charcache);
     charcache = nullptr;

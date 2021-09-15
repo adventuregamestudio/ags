@@ -67,7 +67,7 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 extern RoomStatus *croom;
-extern ViewStruct *views;
+extern std::vector<ViewStruct> views;
 
 
 namespace AGS

@@ -40,7 +40,7 @@ namespace AGS.CScript.Compiler
 		public string Preprocess(string script, string scriptName)
 		{
 			StringBuilder output = new StringBuilder(script.Length);
-			output.AppendLine(Constants.NEW_SCRIPT_MARKER + scriptName + "\"");
+			output.AppendLine(Constants.NEW_SCRIPT_MARKER + scriptName.Replace(@"\", @"\\") + "\"");
 			StringReader reader = new StringReader(script);
 			string thisLine;
 			_scriptName = scriptName;

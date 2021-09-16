@@ -399,7 +399,6 @@ void PlayMP3File (const char *filename) {
                 snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), filename);
         }
         else {
-            clip->destroy();
             delete clip;
             clip = nullptr;
         }
@@ -434,7 +433,6 @@ void PlaySilentMIDI (int mnum) {
     }
     AudioChans::SetChannel(play.silent_midi_channel, clip);
     if (!clip->play()) {
-        clip->destroy();
         delete clip;
         clip = nullptr;
         quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
@@ -533,7 +531,6 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         speechmp3->set_volume(play.speech_volume);
         if (!speechmp3->play()) {
             // not assigned to a channel, so clean up manually.
-            speechmp3->destroy();
             delete speechmp3;
             speechmp3 = nullptr;
         }

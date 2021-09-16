@@ -46,8 +46,6 @@ struct SOUNDCLIP
     bool repeat;
     int sourceClipID;
 
-    virtual void poll() = 0;
-    virtual void destroy() = 0;
     // apply volume directly to playback; volume is given in units of 255
     // NOTE: this completely ignores volAsPercentage and muted property
     virtual void set_volume(int) = 0;
@@ -57,7 +55,12 @@ struct SOUNDCLIP
     virtual int get_length_ms() = 0; // return total track length in ms (or 0)
     virtual int get_sound_type() = 0;
     virtual int play() = 0;
-    virtual int play_from(int position) = 0;
+    
+    inline int play_from(int position)
+    {
+        seek(position);
+        return play();
+    }
 
     virtual void set_panning(int newPanning) = 0;
     virtual void set_speed(int new_speed) = 0;
@@ -137,7 +140,6 @@ struct SOUNDCLIP
 
     SOUNDCLIP();
     virtual ~SOUNDCLIP();
-
 
 protected:
     // mute mode overrides the volume; if set, any volume assigned is stored

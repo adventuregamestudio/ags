@@ -20,26 +20,17 @@
 
 
 OPENAL_SOUNDCLIP::OPENAL_SOUNDCLIP() : SOUNDCLIP(), slot_(-1) {}
-OPENAL_SOUNDCLIP::~OPENAL_SOUNDCLIP() { destroy(); }
 
-void OPENAL_SOUNDCLIP::destroy()
+OPENAL_SOUNDCLIP::~OPENAL_SOUNDCLIP()
 {
-    if (slot_ < 0) { return; }
-    audio_core_slot_stop(slot_);
-    slot_ = -1;
+    if (slot_ >= 0)
+        audio_core_slot_stop(slot_);
 }
 
 int OPENAL_SOUNDCLIP::play()
 {
-    return play_from(0);
-}
-
-int OPENAL_SOUNDCLIP::play_from(int position)
-{
     if (slot_ < 0) { return 0; }
-
     configure_slot(); // volume, speed, panning, repeat
-    audio_core_slot_seek_ms(slot_, (float)position);
     audio_core_slot_play(slot_);
     return 1;
 }
@@ -80,9 +71,6 @@ void OPENAL_SOUNDCLIP::seek(int pos_ms)
     if (slot_ < 0) { return; }
     audio_core_slot_seek_ms(slot_, (float)pos_ms);
 }
-
-void OPENAL_SOUNDCLIP::poll() { }
-
 
 void OPENAL_SOUNDCLIP::configure_slot()
 {

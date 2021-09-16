@@ -31,20 +31,16 @@ struct OPENAL_SOUNDCLIP final : public SOUNDCLIP
 public:
     OPENAL_SOUNDCLIP();
     ~OPENAL_SOUNDCLIP();
-    void destroy() override;
 
     virtual int get_sound_type() override { return soundType; }
 
     int play() override;
-    virtual int play_from(int position) override;
     void pause() override;
     void resume() override;
     bool is_playing() override;
     bool is_paused() override;
 
     void seek(int pos) override;
-
-    void poll() override;
 
     void set_volume(int newvol) override;
     void set_speed(int new_speed) override;

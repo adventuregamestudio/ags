@@ -21,7 +21,7 @@
 #include "media/audio/ambientsound.h"
 #include "ac/timer.h"
 
-struct SOUNDCLIP;
+class SOUNDCLIP;
 
 class AudioChans
 {

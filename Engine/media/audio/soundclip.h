@@ -23,9 +23,11 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
+#include "media/audio/audiodefines.h"
 
-struct SOUNDCLIP final
+class SOUNDCLIP final
 {
+public:
     SOUNDCLIP(int slot);
     ~SOUNDCLIP();
 
@@ -43,6 +45,11 @@ struct SOUNDCLIP final
     void pause();
     void resume();
     void seek(int);
+    // Synchronize this SOUNDCLIP with the audio subsystem:
+    // - start scheduled playback;
+    // - apply all accumulated sound parameters;
+    // - read and save current position;
+    void update();
 
     inline int play_from(int position)
     {
@@ -50,8 +57,16 @@ struct SOUNDCLIP final
         return play();
     }
 
-    bool is_playing(); // true if playing or paused. false if never played or stopped.
-    bool is_paused();  // true if paused
+    // Gets if the clip is valid (playing or ready to play)
+    inline bool is_ready() const
+    {
+        return state == PlayStateInitial || state == PlayStatePlaying || state == PlayStatePaused;
+    }
+    // Gets if the clip is currently paused
+    inline bool is_paused() const
+    {
+        return state == PlayStatePaused;
+    }
 
     // Get legacy sound format type (MUS_*)
     inline int get_sound_type() const { return soundType; }
@@ -67,23 +82,26 @@ struct SOUNDCLIP final
     // Gets if clip is muted (without changing the volume setting)
     inline bool is_muted() const { return muted; }
 
-    int get_pos();        // return 0 to indicate seek not supported
-    int get_pos_ms();     // this must always return valid value if poss
-    int get_length_ms();  // return total track length in ms (or 0)
+    // Gets current position in clip's type meaning
+    int get_pos() { return pos; }
+    // Gets current position in ms
+    int get_pos_ms() { return posMs; }
+    // Gets total clip length in ms (or 0)
+    int get_length_ms() { return lengthMs; }
 
     // Sets the current volume property, as percentage (0 - 100).
     inline void set_volume100(int volume)
     {
         vol100 = volume;
         vol255 = (volume * 255) / 100;
-        adjust_volume();
+        paramsChanged = true;
     }
     // Sets the current volume property in units of 255
     inline void set_volume255(int volume)
     {
         vol255 = volume;
         vol100 = (vol255 * 100) / 255;
-        adjust_volume();
+        paramsChanged = true;
     }
     // Explicitly defines both percentage and 255-based volume values,
     // without calculating it from given percentage.
@@ -91,7 +109,7 @@ struct SOUNDCLIP final
     {
         vol255 = vol255;
         vol100 = vol_percent;
-        adjust_volume();
+        paramsChanged = true;
     }
     // Mutes sound clip, while preserving current volume property
     // for the future reference; when unmuted, that property is
@@ -99,7 +117,7 @@ struct SOUNDCLIP final
     inline void set_mute(bool enable)
     {
         muted = enable;
-        adjust_volume();
+        paramsChanged = true;
     }
     // Apply arbitrary permanent volume modifier, in absolute units (0 - 255);
     // this is distinct value that is used in conjunction with current volume
@@ -107,7 +125,7 @@ struct SOUNDCLIP final
     inline void apply_volume_modifier(int mod)
     {
         volModifier = mod;
-        adjust_volume();
+        paramsChanged = true;
     }
     // Apply permanent directional volume modifier, in absolute units (0 - 255)
     // this is distinct value that is used in conjunction with current volume
@@ -115,11 +133,20 @@ struct SOUNDCLIP final
     inline void apply_directional_modifier(int mod)
     {
         directionalVolModifier = mod;
-        adjust_volume();
+        paramsChanged = true;
     }
 
-    void set_panning(int newPanning);
-    void set_speed(int new_speed);
+    inline void set_panning(int newPanning)
+    {
+        panning = newPanning;
+        paramsChanged = true;
+    }
+
+    inline void set_speed(int new_speed)
+    {
+        speed = new_speed;
+        paramsChanged = true;
+    }
 
 private:
     // helper function for calculating volume with applied modifiers
@@ -130,11 +157,14 @@ private:
         return final_vol >= 0 ? final_vol : 0;
     }
 
-    void adjust_volume();
-    void configure_slot();
-
     // audio core slot handle
     const int slot_;
+    // current playback state
+    PlaybackState state;
+    // last synced position
+    int pos, posMs;
+    // whether playback parameters changed and have to be reapplied
+    bool paramsChanged;
     // current volume, in legacy units of 255
     int vol255;
     // current volume, in percents

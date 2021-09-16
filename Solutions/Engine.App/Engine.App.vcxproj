@@ -697,7 +697,6 @@
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />
-    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
     <ClInclude Include="..\..\Engine\media\audio\openal.h" />
     <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h" />

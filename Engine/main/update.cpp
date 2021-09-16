@@ -250,7 +250,7 @@ void update_speech_and_messages()
   if (play.speech_has_voice)
   {
       auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
-      is_voice_playing = ch && ch->is_playing();
+      is_voice_playing = ch && ch->is_ready();
   }
   // determine if speech text should be removed
   if (play.messagetime>=0) {

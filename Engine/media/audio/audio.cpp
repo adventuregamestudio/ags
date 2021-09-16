@@ -22,6 +22,7 @@
 #include "script/script_runtime.h"
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/path_helper.h"
 #include "ac/view.h"
@@ -54,7 +55,7 @@ SOUNDCLIP *AudioChans::GetChannel(int index)
 SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
 {
     auto *ch = _channels[index];
-    return (ch != nullptr && ch->is_playing()) ? ch : nullptr;
+    return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
 }
 
 SOUNDCLIP *AudioChans::SetChannel(int index, SOUNDCLIP* ch)
@@ -679,7 +680,7 @@ static int play_sound_priority (int val1, int priority) {
             if (ch)
                 stop_and_destroy_channel (i);
         }
-        else if (ch == nullptr || !ch->is_playing()) {
+        else if (ch == nullptr || !ch->is_ready()) {
             // PlaySoundEx will destroy the previous channel value.
             const int usechan = PlaySoundEx(val1, i);
             if (usechan >= 0)
@@ -888,6 +889,18 @@ void update_audio_system_on_game_loop ()
 
     _audio_doing_crossfade = false;
 
+    if (loopcounter % 5 == 0)
+    {
+        update_ambient_sound_vol();
+        update_directional_sound_vol();
+    }
+
+    // Update and sync logical game channels with the audio backend
+    for (int i = 0; i < game.numGameChannels; ++i)
+    {
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        if (ch) ch->update();
+    }
 }
 
 void stopmusic()

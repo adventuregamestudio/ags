@@ -1673,9 +1673,6 @@
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\openal.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>

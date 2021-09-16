@@ -196,13 +196,13 @@ OpenALDecoder::~OpenALDecoder()
 
 bool OpenALDecoder::Init()
 {
-    if (playState_ != AudioCorePlayState::PlayStateInitial)
+    if (playState_ != PlaybackState::PlayStateInitial)
         return true; // already inited, nothing to do
 
     auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
         (uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), nullptr, SampleDefaultBufferSize));
     if (!sample) {
-        playState_ = AudioCorePlayState::PlayStateError;
+        playState_ = PlaybackState::PlayStateError;
         return false;
     }
 
@@ -218,7 +218,7 @@ bool OpenALDecoder::Init()
         sample = SoundSampleUniquePtr(Sound_NewSampleFromMem((uint8_t *)sampleData_.data(), sampleData_.size(), sampleExt_.GetCStr(), &desired, SampleDefaultBufferSize));
 
         if (!sample) {
-            playState_ = AudioCorePlayState::PlayStateError;
+            playState_ = PlaybackState::PlayStateError;
             return false;
         }
 
@@ -226,7 +226,7 @@ bool OpenALDecoder::Init()
     }
 
     if (bufferFormat <= 0) {
-        playState_ = AudioCorePlayState::PlayStateError;
+        playState_ = PlaybackState::PlayStateError;
         return false;
     }
 
@@ -243,9 +243,9 @@ bool OpenALDecoder::Init()
 
 void OpenALDecoder::Poll()
 {
-    if (playState_ == AudioCorePlayState::PlayStateError) { return; }
+    if (playState_ == PlaybackState::PlayStateError) { return; }
 
-    if (playState_ == AudioCorePlayState::PlayStateInitial) {
+    if (playState_ == PlaybackState::PlayStateInitial) {
         Init();
     }
 
@@ -285,7 +285,7 @@ void OpenALDecoder::Play()
     case PlayStateStopped:
         Seek(0.0f);
     case PlayStatePaused:
-        playState_ = AudioCorePlayState::PlayStatePlaying;
+        playState_ = PlaybackState::PlayStatePlaying;
         // we poll some data before alSourcePlay because mojoAL
         // can drop a clip out of its slot if it is not initialized with something
         // see mojoal.c mix_source
@@ -307,7 +307,7 @@ void OpenALDecoder::Pause()
         onLoadPlayState_ = PlayStatePaused;
         break;
     case PlayStatePlaying:
-        playState_ = AudioCorePlayState::PlayStatePaused;
+        playState_ = PlaybackState::PlayStatePaused;
         alSourcePause(source_);
         dump_al_errors();
         break;
@@ -325,7 +325,7 @@ void OpenALDecoder::Stop()
         onLoadPlayState_ = PlayStateStopped;
         break;
     case PlayStatePlaying:
-        playState_ = AudioCorePlayState::PlayStateStopped;
+        playState_ = PlaybackState::PlayStateStopped;
         alSourceStop(source_);
         DecoderUnqueueProcessedBuffers();
         dump_al_errors();
@@ -353,7 +353,7 @@ void OpenALDecoder::Seek(float pos_ms)
     }
 }
 
-AudioCorePlayState OpenALDecoder::GetPlayState()
+PlaybackState OpenALDecoder::GetPlayState()
 {
     return playState_;
 }

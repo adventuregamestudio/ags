@@ -154,18 +154,22 @@ int audio_core_slot_init(const std::vector<char> &data, const ags::String &exten
 // SLOT CONTROL
 // -------------------------------------------------------------------------------------------------
 
-void audio_core_slot_play(int slot_handle)
+PlaybackState audio_core_slot_play(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->decoder_.Play();
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
     g_acore.mixer_cv.notify_all();
+    return state;
 }
 
-void audio_core_slot_pause(int slot_handle)
+PlaybackState audio_core_slot_pause(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->decoder_.Pause();
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
     g_acore.mixer_cv.notify_all();
+    return state;
 }
 
 void audio_core_slot_stop(int slot_handle)
@@ -243,10 +247,20 @@ float audio_core_slot_get_duration(int slot_handle)
     return dur;
 }
 
-AudioCorePlayState audio_core_slot_get_play_state(int slot_handle)
+PlaybackState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
+    g_acore.mixer_cv.notify_all();
+    return state;
+}
+
+PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float &pos_ms)
+{
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
+    pos_ms = g_acore.slots_[slot_handle]->decoder_.GetPositionMs();
+    pos = pos_ms; // TODO: separate pos definition per sound type
     g_acore.mixer_cv.notify_all();
     return state;
 }

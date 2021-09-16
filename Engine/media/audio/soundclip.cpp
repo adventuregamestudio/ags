@@ -32,6 +32,11 @@ SOUNDCLIP::SOUNDCLIP(int slot)
     muted = false;
     panning = 0;
     speed = 1000;
+
+    lengthMs = 0;
+    state = PlaybackState::PlayStateInitial;
+    pos = posMs = -1;
+    paramsChanged = true;
 }
 
 SOUNDCLIP::~SOUNDCLIP()
@@ -42,105 +47,73 @@ SOUNDCLIP::~SOUNDCLIP()
 
 int SOUNDCLIP::play()
 {
-    if (slot_ < 0) { return 0; }
-    configure_slot(); // volume, speed, panning, repeat
-    audio_core_slot_play(slot_);
-    return 1;
+    if (!is_ready())
+        return false;
+    state = PlaybackState::PlayStatePlaying;
+    return true;
 }
 
 void SOUNDCLIP::pause()
 {
-    if (slot_ < 0) { return; }
-    audio_core_slot_pause(slot_);
+    if (!is_ready())
+        return;
+    state = audio_core_slot_pause(slot_);
 }
 
 void SOUNDCLIP::resume()
 {
-    if (slot_ < 0) { return; }
-    audio_core_slot_play(slot_);
-}
-
-bool SOUNDCLIP::is_playing()
-{
-    if (slot_ < 0) { return false; }
-    auto status = audio_core_slot_get_play_state(slot_);
-    switch (status) {
-    case PlayStateInitial:
-    case PlayStatePlaying:
-    case PlayStatePaused:
-        return true;
-    }
-    return false;
-}
-
-bool SOUNDCLIP::is_paused()
-{
-    if (slot_ < 0) { return false; }
-    auto status = audio_core_slot_get_play_state(slot_);
-    return status == PlayStatePaused;
+    if (!is_ready())
+        return;
+    state = PlaybackState::PlayStatePlaying;
 }
 
 void SOUNDCLIP::seek(int pos_ms)
 {
     if (slot_ < 0) { return; }
+    audio_core_slot_pause(slot_);
     audio_core_slot_seek_ms(slot_, (float)pos_ms);
+    float pos_f, posms_f;
+    audio_core_slot_get_play_state(slot_, pos_f, posms_f);
+    pos = static_cast<int>(pos_f);
+    posMs = static_cast<int>(posms_f);
 }
 
-void SOUNDCLIP::configure_slot()
+void SOUNDCLIP::update()
 {
-    if (slot_ < 0) { return; }
+    if (!is_ready()) return;
 
-    auto vol_f = static_cast<float>(get_final_volume()) / 255.0f;
-    if (vol_f < 0.0f) { vol_f = 0.0f; }
-    if (vol_f > 1.0f) { vol_f = 1.0f; }
+    if (paramsChanged)
+    {
+        auto vol_f = static_cast<float>(get_final_volume()) / 255.0f;
+        if (vol_f < 0.0f) { vol_f = 0.0f; }
+        if (vol_f > 1.0f) { vol_f = 1.0f; }
 
-    auto speed_f = static_cast<float>(speed) / 1000.0f;
-    if (speed_f <= 0.0) { speed_f = 1.0f; }
+        auto speed_f = static_cast<float>(speed) / 1000.0f;
+        if (speed_f <= 0.0) { speed_f = 1.0f; }
 
-    // Sets the pan position, ranging from -100 (left) to +100 (right)
-    auto panning_f = (static_cast<float>(panning) / 100.0f);
-    if (panning_f < -1.0f) { panning_f = -1.0f; }
-    if (panning_f > 1.0f) { panning_f = 1.0f; }
+        // Sets the pan position, ranging from -100 (left) to +100 (right)
+        auto panning_f = (static_cast<float>(panning) / 100.0f);
+        if (panning_f < -1.0f) { panning_f = -1.0f; }
+        if (panning_f > 1.0f) { panning_f = 1.0f; }
 
-    audio_core_slot_configure(slot_, vol_f, speed_f, panning_f);
-}
-
-void SOUNDCLIP::set_speed(int new_speed)
-{
-    speed = new_speed;
-    configure_slot();
-}
-
-void SOUNDCLIP::set_panning(int newPanning)
-{
-    panning = newPanning;
-    configure_slot();
-}
-
-void SOUNDCLIP::adjust_volume()
-{
-    configure_slot();
-}
-
-int SOUNDCLIP::get_pos()
-{
-    // until we can figure out other details, pos will always be in milliseconds
-    return get_pos_ms();
-}
-
-int SOUNDCLIP::get_pos_ms()
-{
-    if (slot_ < 0) { return -1; }
-    // given how unaccurate mp3 length is, maybe we should do differently here
-    // on the other hand, if on repeat, maybe better to just return an infinitely increasing position?
-    // but on the other other hand, then we can't always seek to that position.
-    if (lengthMs <= 0.0f) {
-        return (int)std::round(audio_core_slot_get_pos_ms(slot_));
+        audio_core_slot_configure(slot_, vol_f, speed_f, panning_f);
+        paramsChanged = false;
     }
-    return (int)std::round(fmod(audio_core_slot_get_pos_ms(slot_), lengthMs));
-}
 
-int SOUNDCLIP::get_length_ms()
-{
-    return lengthMs;
+    float pos_f, posms_f;
+    PlaybackState core_state = audio_core_slot_get_play_state(slot_, pos_f, posms_f);
+    pos = static_cast<int>(pos_f);
+    posMs = static_cast<int>(posms_f);
+    if (state == core_state || core_state == PlayStateError || core_state == PlayStateFinished)
+    {
+        state = core_state;
+        return;
+    }
+
+    switch (state)
+    {
+    case PlaybackState::PlayStatePlaying:
+        state = audio_core_slot_play(slot_);
+        break;
+    }
 }

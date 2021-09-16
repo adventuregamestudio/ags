@@ -210,7 +210,7 @@ int IsMusicPlaying() {
         return 0;
     }
 
-    bool result = (ch->is_playing()) || (crossFading > 0 && (AudioChans::GetChannelIfPlaying(crossFading) != nullptr));
+    bool result = (ch->is_ready()) || (crossFading > 0 && (AudioChans::GetChannelIfPlaying(crossFading) != nullptr));
     return result ? 1 : 0;
 }
 

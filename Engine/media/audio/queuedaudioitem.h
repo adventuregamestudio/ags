@@ -15,7 +15,7 @@
 #ifndef __AC_QUEUEDAUDIOITEM_H
 #define __AC_QUEUEDAUDIOITEM_H
 
-struct SOUNDCLIP;
+class SOUNDCLIP;
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

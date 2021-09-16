@@ -984,7 +984,6 @@
 		526F1F371D3B513400EF4E1F /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		526F1F381D3B513400EF4E1F /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		526F1F391D3B513400EF4E1F /* audiodefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiodefines.h; sourceTree = "<group>"; };
-		526F1F3A1D3B513400EF4E1F /* audiointernaldefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiointernaldefs.h; sourceTree = "<group>"; };
 		526F1F3B1D3B513400EF4E1F /* clip_mydumbmod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clip_mydumbmod.cpp; sourceTree = "<group>"; };
 		526F1F3C1D3B513400EF4E1F /* clip_mydumbmod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = clip_mydumbmod.h; sourceTree = "<group>"; };
 		526F1F3D1D3B513400EF4E1F /* clip_myjgmod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clip_myjgmod.cpp; sourceTree = "<group>"; };
@@ -2109,7 +2108,6 @@
 				526F1F371D3B513400EF4E1F /* audio.cpp */,
 				526F1F381D3B513400EF4E1F /* audio.h */,
 				526F1F391D3B513400EF4E1F /* audiodefines.h */,
-				526F1F3A1D3B513400EF4E1F /* audiointernaldefs.h */,
 				526F1F3B1D3B513400EF4E1F /* clip_mydumbmod.cpp */,
 				526F1F3C1D3B513400EF4E1F /* clip_mydumbmod.h */,
 				526F1F3D1D3B513400EF4E1F /* clip_myjgmod.cpp */,

@@ -1322,9 +1322,6 @@
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>

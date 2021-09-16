@@ -696,7 +696,6 @@
     <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
-    <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />

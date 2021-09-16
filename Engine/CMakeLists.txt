@@ -400,7 +400,6 @@ target_sources(engine
     media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
-    media/audio/audiointernaldefs.h
     media/audio/openaldecoder.cpp
     media/audio/openaldecoder.h
     media/audio/openal.h

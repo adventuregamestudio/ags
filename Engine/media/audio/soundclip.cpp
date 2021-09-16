@@ -14,23 +14,24 @@
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
-SOUNDCLIP::SOUNDCLIP()
+SOUNDCLIP::SOUNDCLIP(int slot)
+    : slot_(slot)
 {
-    priority = 50;
-    panning = 128;
-    panningAsPercentage = 0;
-    speed = 1000;
-    sourceClipType = 0;
     sourceClipID = -1;
-    vol = 0;
-    volAsPercentage = 0;
-    volModifier = 0;
-    muted = false;
+    sourceClipType = 0;
+    soundType = 0;
     repeat = false;
+    priority = 50;
+    vol255 = 0;
+    vol100 = 0;
+    volModifier = 0;
     xSource = -1;
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
+    muted = false;
+    panning = 0;
+    speed = 1000;
 }
 
 SOUNDCLIP::~SOUNDCLIP()
@@ -96,18 +97,12 @@ void SOUNDCLIP::configure_slot()
     auto speed_f = static_cast<float>(speed) / 1000.0f;
     if (speed_f <= 0.0) { speed_f = 1.0f; }
 
-    /* Sets the pan position, ranging from 0 (left) to 255 (right). 128 is considered centre */
-    auto panning_f = (static_cast<float>(panning - 128) / 255.0f) * 2.0f;
+    // Sets the pan position, ranging from -100 (left) to +100 (right)
+    auto panning_f = (static_cast<float>(panning) / 100.0f);
     if (panning_f < -1.0f) { panning_f = -1.0f; }
     if (panning_f > 1.0f) { panning_f = 1.0f; }
 
     audio_core_slot_configure(slot_, vol_f, speed_f, panning_f);
-}
-
-void SOUNDCLIP::set_volume(int newvol)
-{
-    vol = newvol;
-    adjust_volume();
 }
 
 void SOUNDCLIP::set_speed(int new_speed)

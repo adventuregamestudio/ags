@@ -614,7 +614,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
             ch->set_speed(chan_info.Speed);
             ch->set_panning(chan_info.Pan);
-            ch->panningAsPercentage = chan_info.PanAsPercent;
             ch->xSource = chan_info.XSource;
             ch->ySource = chan_info.YSource;
             ch->maximumPossibleDistanceAway = chan_info.MaxDist;

@@ -57,7 +57,7 @@ int AudioChannel_GetPanning(ScriptAudioChannel *channel)
 
     if (ch)
     {
-        return ch->panningAsPercentage;
+        return ch->get_panning();
     }
     return 0;
 }
@@ -71,8 +71,7 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
 
     if (ch)
     {
-        ch->set_panning(((newPanning + 100) * 255) / 200);
-        ch->panningAsPercentage = newPanning;
+        ch->set_panning(newPanning);
     }
 }
 
@@ -132,7 +131,7 @@ int AudioChannel_GetVolume(ScriptAudioChannel *channel)
 
     if (ch)
     {
-        return ch->get_volume();
+        return ch->get_volume100();
     }
     return 0;
 }
@@ -146,7 +145,7 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
 
     if (ch)
     {
-        ch->set_volume_percent(newVolume);
+        ch->set_volume100(newVolume);
     }
     return 0;
 }

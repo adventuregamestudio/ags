@@ -71,8 +71,7 @@ static SOUNDCLIP *my_load_clip(const AssetPath &asset_name, const char *extensio
     const auto sound_type = GuessSoundTypeFromExt(ext_hint);
     const auto lengthMs = (int)std::round(audio_core_slot_get_duration(slot));
 
-    auto clip = new SOUNDCLIP();
-    clip->slot_ = slot;
+    auto clip = new SOUNDCLIP(slot);
     clip->repeat = loop;
     clip->soundType = sound_type;
     clip->lengthMs = lengthMs;

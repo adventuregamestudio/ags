@@ -149,7 +149,7 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     {
         auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
-            ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
+            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
     }
     
 }

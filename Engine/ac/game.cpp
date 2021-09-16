@@ -231,7 +231,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             {
                 auto* ch = AudioChans::GetChannel(aa);
                 if (ch)
-                    ch->set_volume_percent(volume);
+                    ch->set_volume100(volume);
             }
         }
     }

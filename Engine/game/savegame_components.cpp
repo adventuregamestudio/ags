@@ -371,8 +371,6 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, const PreservedParams &pp,
 
 HSaveError WriteAudio(Stream *out)
 {
-    AudioChannelsLock lock;
-
     // Game content assertion
     out->WriteInt32(game.audioClipTypes.size());
     out->WriteInt8(TOTAL_AUDIO_CHANNELS);
@@ -388,7 +386,7 @@ HSaveError WriteAudio(Stream *out)
     // Audio clips and crossfade
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
-        auto* ch = lock.GetChannelIfPlaying(i);
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->sourceClip != nullptr))
         {
             out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);

@@ -62,7 +62,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
         return;
 
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (!channel_is_playing(ambient[channel].channel)) ||
+    if ((ambient[channel].channel < 1) || (!AudioChans::ChannelIsPlaying(ambient[channel].channel)) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);
@@ -79,7 +79,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
             asound->priority = 15;  // ambient sound higher priority than normal sfx
-            set_clip_to_channel(channel, asound);
+            AudioChans::SetChannel(channel, asound);
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -98,7 +98,7 @@ int IsChannelPlaying(int chan) {
     if ((chan < 0) || (chan >= game.numGameChannels))
         quit("!IsChannelPlaying: invalid sound channel");
 
-    if (channel_is_playing(chan))
+    if (AudioChans::ChannelIsPlaying(chan))
         return 1;
 
     return 0;
@@ -109,9 +109,8 @@ int IsSoundPlaying() {
         return 0;
 
     // find if there's a sound playing
-    AudioChannelsLock lock;
     for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
-        if (lock.GetChannelIfPlaying(i))
+        if (AudioChans::GetChannelIfPlaying(i))
             return 1;
     }
 
@@ -155,7 +154,7 @@ int PlaySoundEx(int val1, int channel) {
 
     soundfx->priority = 10;
     soundfx->set_volume (play.sound_volume);
-    set_clip_to_channel(channel,soundfx);
+    AudioChans::SetChannel(channel,soundfx);
     return channel;
 }
 
@@ -176,8 +175,7 @@ void SeekMIDIPosition (int position) {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return;
 
-    AudioChannelsLock lock;
-    auto *ch = lock.GetChannel(SCHAN_MUSIC);
+    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
     ch->seek(position);
     debug_script_log("Seek MIDI position to %d", position);
 }
@@ -188,8 +186,7 @@ int GetMIDIPosition () {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return -1; // returns -1 on failure according to old manuals
     
-    AudioChannelsLock lock;
-    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
     if (ch) {
         return ch->get_pos();
     }
@@ -206,15 +203,14 @@ int IsMusicPlaying() {
     if (current_music_type == 0)
         return 0;
 
-    AudioChannelsLock lock;
-    auto *ch = lock.GetChannel(SCHAN_MUSIC);
+    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
     if (ch == nullptr)
     { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
         current_music_type = 0;
         return 0;
     }
 
-    bool result = (ch->is_playing()) || (crossFading > 0 && (lock.GetChannelIfPlaying(crossFading) != nullptr));
+    bool result = (ch->is_playing()) || (crossFading > 0 && (AudioChans::GetChannelIfPlaying(crossFading) != nullptr));
     return result ? 1 : 0;
 }
 
@@ -270,8 +266,7 @@ void SeekMODPattern(int patnum) {
     if (current_music_type != MUS_MOD)
         return;
 
-    AudioChannelsLock lock;
-    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
     if (ch) {
         ch->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
@@ -282,9 +277,8 @@ void SeekMP3PosMillis (int posn) {
     if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return;
 
-    AudioChannelsLock lock;
-    auto *mus_ch = lock.GetChannel(SCHAN_MUSIC);
-    auto *cf_ch = (crossFading > 0) ? lock.GetChannel(crossFading) : nullptr;
+    auto *mus_ch = AudioChans::GetChannel(SCHAN_MUSIC);
+    auto *cf_ch = (crossFading > 0) ? AudioChans::GetChannel(crossFading) : nullptr;
     if (cf_ch)
         cf_ch->seek(posn);
     else if (mus_ch)
@@ -298,8 +292,7 @@ int GetMP3PosMillis () {
     if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return 0;  // returns 0 on failure according to old manuals
 
-    AudioChannelsLock lock;
-    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
     if (ch) {
         int result = ch->get_pos_ms();
         if (result >= 0)
@@ -342,8 +335,7 @@ void SetChannelVolume(int chan, int newvol) {
     if ((chan < 0) || (chan >= game.numGameChannels))
         quit("!SetChannelVolume: invalid channel id");
 
-    AudioChannelsLock lock;
-    auto* ch = lock.GetChannelIfPlaying(chan);
+    auto* ch = AudioChans::GetChannelIfPlaying(chan);
 
     if (ch) {
         if (chan == ambient[chan].channel) {
@@ -388,7 +380,7 @@ void PlayMP3File (const char *filename) {
         clip = my_load_static_ogg(asset_name, 150, doLoop);
         if (clip) {
             if (clip->play()) {
-                set_clip_to_channel(useChan, clip);
+                AudioChans::SetChannel(useChan, clip);
                 current_music_type = MUS_OGG;
                 play.cur_music_number = 1000;
                 // save the filename (if it's not what we were supplied with)
@@ -407,7 +399,7 @@ void PlayMP3File (const char *filename) {
         clip = my_load_static_mp3(asset_name, 150, doLoop);
         if (clip) {
             if (clip->play()) {
-                set_clip_to_channel(useChan, clip);
+                AudioChans::SetChannel(useChan, clip);
                 current_music_type = MUS_MP3;
                 play.cur_music_number = 1000;
                 // save the filename (if it's not what we were supplied with)
@@ -422,7 +414,7 @@ void PlayMP3File (const char *filename) {
     }
 
     if (!clip) {
-        set_clip_to_channel(useChan, nullptr);
+        AudioChans::SetChannel(useChan, nullptr);
         debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
     }
 
@@ -448,8 +440,7 @@ void PlaySilentMIDI (int mnum) {
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    AudioChannelsLock lock;
-    lock.SetChannel(play.silent_midi_channel, clip);
+    AudioChans::SetChannel(play.silent_midi_channel, clip);
     if (!clip->play()) {
         clip->destroy();
         delete clip;
@@ -463,8 +454,7 @@ void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    AudioChannelsLock lock;
-    auto* ch = lock.GetChannel(SCHAN_SPEECH);
+    auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
     if (ch)
         ch->set_volume (newvol);
     play.speech_volume = newvol;
@@ -561,7 +551,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
     }
 
-    set_clip_to_channel(SCHAN_SPEECH,speechmp3);
+    AudioChans::SetChannel(SCHAN_SPEECH,speechmp3);
     return true;
 }
 

@@ -249,8 +249,7 @@ void update_speech_and_messages()
   bool is_voice_playing = false;
   if (play.speech_has_voice)
   {
-      AudioChannelsLock lock;
-      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
       is_voice_playing = ch && ch->is_playing();
   }
   // determine if speech text should be removed
@@ -299,8 +298,7 @@ void update_sierra_speech()
   int voice_pos_ms = -1;
   if (play.speech_has_voice)
   {
-      AudioChannelsLock lock;
-      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
       voice_pos_ms = ch ? ch->get_pos_ms() : -1;
   }
   if ((face_talking >= 0) && (play.fast_forward == 0)) 

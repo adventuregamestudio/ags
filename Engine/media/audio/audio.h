@@ -11,59 +11,39 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_AUDIO_H
-#define __AC_AUDIO_H
+#ifndef __AGS_EE_MEDIA__AUDIO_H__
+#define __AGS_EE_MEDIA__AUDIO_H__
 
 #include <array>
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
-#include "util/mutex.h"
-#include "util/mutex_lock.h"
-#include "util/thread.h"
 #include "ac/timer.h"
 
 struct SOUNDCLIP;
 
-//controls access to the channels, since that's the main point of synchronization between the streaming thread and the user code
-//this is going to be dependent on the underlying mutexes being recursive
-//yes, we will have more recursive traffic on mutexes than we need
-//however this should mostly be happening only when playing sounds, and possibly when sounds numbering only several
-//the load should not be high
-class AudioChannelsLock : public AGS::Engine::MutexLock
+class AudioChans
 {
-private:
-    AudioChannelsLock(AudioChannelsLock const &); // non-copyable
-    AudioChannelsLock& operator=(AudioChannelsLock const &); // not copy-assignable
-
 public:
-    static AGS::Engine::Mutex s_mutex;
-    AudioChannelsLock()
-        : MutexLock(s_mutex)
-    {
-    }
-
     // Gets a clip from the channel
-    SOUNDCLIP *GetChannel(int index);
+    static SOUNDCLIP *GetChannel(int index);
     // Gets a clip from the channel but only if it's in playback state
-    SOUNDCLIP *GetChannelIfPlaying(int index);
+    static SOUNDCLIP *GetChannelIfPlaying(int index);
     // Assign new clip to the channel
-    SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
+    static SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
     // Move clip from one channel to another, clearing the first channel
-    SOUNDCLIP *MoveChannel(int to, int from);
-};
+    static SOUNDCLIP *MoveChannel(int to, int from);
 
-//
-// Channel helpers, autolock and perform a simple action on a channel.
-//
-// Tells if channel has got a clip; does not care about its state
-bool channel_has_clip(int chanid);
-// Tells if channel has got a clip and clip is in playback state
-bool channel_is_playing(int chanid);
-// Sets new clip to the channel
-void set_clip_to_channel(int chanid, SOUNDCLIP *clip);
+    // Tells if channel has got a clip; does not care about its state
+    static inline bool ChannelHasClip(int index) { return GetChannel(index) != nullptr; }
+    // Tells if channel has got a clip and clip is in playback state
+    static inline bool ChannelIsPlaying(int index) { return GetChannelIfPlaying(index) != nullptr; }
+
+private:
+    AudioChans() = delete;
+    ~AudioChans() = delete;
+};
 
 
 void        calculate_reserved_channel_count();
@@ -141,4 +121,4 @@ extern SOUNDCLIP *cachedQueuedMusic;
 
 extern std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
-#endif // __AC_AUDIO_H
+#endif // __AGS_EE_MEDIA__AUDIO_H__

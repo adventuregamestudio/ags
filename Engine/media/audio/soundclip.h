@@ -12,22 +12,19 @@
 //
 //=============================================================================
 //
-// ACSOUND - AGS sound system wrapper
+// SOUNDCLIP - an interface for an audio clip configuration and control.
 //
-//=============================================================================
-
-#ifndef __AC_SOUNDCLIP_H
-#define __AC_SOUNDCLIP_H
-
-#include "util/mutex.h"
-
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
 // each other, and does not shape a consistent interface.
 // Improving this situation is only possible with massive refactory of
 // sound clip use, taking backwards-compatible audio system in account.
+//
+//=============================================================================
+#ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
+#define __AGS_EE_MEDIA__SOUNDCLIP_H__
 
-struct SOUNDCLIP
+struct SOUNDCLIP final
 {
     int priority;
     int sourceClipType;
@@ -48,13 +45,13 @@ struct SOUNDCLIP
 
     // apply volume directly to playback; volume is given in units of 255
     // NOTE: this completely ignores volAsPercentage and muted property
-    virtual void set_volume(int) = 0;
-    virtual void seek(int) = 0;
-    virtual int get_pos() = 0;    // return 0 to indicate seek not supported
-    virtual int get_pos_ms() = 0; // this must always return valid value if poss
-    virtual int get_length_ms() = 0; // return total track length in ms (or 0)
-    virtual int get_sound_type() = 0;
-    virtual int play() = 0;
+    void set_volume(int);
+    void seek(int);
+    int get_pos();        // return 0 to indicate seek not supported
+    int get_pos_ms();     // this must always return valid value if poss
+    int get_length_ms();  // return total track length in ms (or 0)
+    int get_sound_type() { return soundType; }
+    int play();
     
     inline int play_from(int position)
     {
@@ -62,14 +59,14 @@ struct SOUNDCLIP
         return play();
     }
 
-    virtual void set_panning(int newPanning) = 0;
-    virtual void set_speed(int new_speed) = 0;
+    void set_panning(int newPanning);
+    void set_speed(int new_speed);
 
-    virtual void pause() = 0;
-    virtual void resume() = 0;
+    void pause();
+    void resume();
 
-    virtual bool is_playing() = 0; // true if playing or paused. false if never played or stopped.
-    virtual bool is_paused() = 0; // true if paused
+    bool is_playing(); // true if playing or paused. false if never played or stopped.
+    bool is_paused();  // true if paused
 
     inline int get_speed() const
     {
@@ -136,12 +133,17 @@ struct SOUNDCLIP
         adjust_volume();
     }
 
-    virtual void adjust_volume() = 0;
-
     SOUNDCLIP();
-    virtual ~SOUNDCLIP();
+    ~SOUNDCLIP();
 
-protected:
+    // TODO: make these private
+    int slot_ = -1; // audio core slot handle
+    int lengthMs = -1;
+    int soundType = 0; // legacy sound format type (MUS_*)
+
+private:
+    void adjust_volume();
+    void configure_slot();
     // mute mode overrides the volume; if set, any volume assigned is stored
     // in properties, but not applied to playback itself
     bool muted;
@@ -157,4 +159,4 @@ protected:
     }
 };
 
-#endif // __AC_SOUNDCLIP_H
+#endif // __AGS_EE_MEDIA__SOUNDCLIP_H__

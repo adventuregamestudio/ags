@@ -990,14 +990,14 @@ void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
 
   int newsizx=newwid,newsizy=newhit;
   int twid=get_sprite(sprnum)->GetWidth(),thit = get_sprite(sprnum)->GetHeight();
-  if ((twid < newwid/2) && (thit < newhit/2)) {
-    newsizx = twid * 2;
-    newsizy = thit * 2;
-  }
-  else {
-    if (twid >= thit) newsizy=(int)((float)thit/((float)twid/(float)newwid));
-    else if (twid < thit) newsizx=(int)((float)twid/((float)thit/(float)newhit));
-  }
+
+  double ratioX = ((double) newwid) / ((double) twid);
+  double ratioY = ((double) newhit )/ ((double) thit);
+  double ratio = MIN(ratioX, ratioY);
+
+  newsizx = (int)(twid * ratio);
+  newsizy = (int)(thit * ratio);
+
   newx[0] = newsizx;
   newy[0] = newsizy;
 }

@@ -23,6 +23,9 @@ namespace AGS.Editor
         private const string MENU_ITEM_PASTE_OVER_LOOP_FLIPPED = "PasteLoopFlipped";
         private const string MENU_ITEM_FLIP_ALL = "FlipAll";
         private const string MENU_ITEM_QUICK_IMPORT = "QuickImport";
+        private Icon _audioIcon = Resources.ResourceManager.GetIcon("audio_indicator.ico");
+        private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
+        private const int ICON_WIDTH = 16;
 
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
@@ -132,12 +135,32 @@ namespace AGS.Editor
             e.Graphics.ReleaseHdc();
 
 			for (int i = 0; i < _loop.Frames.Count; i++)
-			{
-				string delayString = "DLY:" + _loop.Frames[i].Delay;
-				int textWidth = (int)e.Graphics.MeasureString(delayString, this.Font).Width;
-				Point textPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (textWidth / 2), btnNewFrame.Bottom + 2);
-				e.Graphics.DrawString(delayString, this.Font, Brushes.Black, textPos);
-			}
+            {
+                bool has_delay_info = _loop.Frames[i].Delay != 0;
+                bool has_sound_info = _loop.Frames[i].Sound != 0;
+                bool has_any_info = has_delay_info || has_sound_info;
+                if (!has_any_info) continue;
+
+                string delayString = _loop.Frames[i].Delay.ToString();
+                int info_width = 0; 
+
+                if (has_delay_info) info_width += ICON_WIDTH + (int)e.Graphics.MeasureString(delayString, this.Font).Width;
+                if (has_sound_info) info_width += ICON_WIDTH;
+
+                Point infoPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (info_width / 2), btnNewFrame.Bottom + 2);
+
+                if (has_delay_info)
+                {
+                    e.Graphics.DrawString(delayString, this.Font, Brushes.Black, infoPos);
+                    infoPos.X += (int)e.Graphics.MeasureString(delayString, this.Font).Width - 1;
+                    e.Graphics.DrawIcon(_delayIcon, infoPos.X, infoPos.Y);
+                    infoPos.X += ICON_WIDTH + 3;
+                }
+                if (has_sound_info)
+                {
+                    e.Graphics.DrawIcon(_audioIcon, infoPos.X, infoPos.Y);
+                }
+            }
         }
 
 		private void InsertNewFrame(int afterIndex)

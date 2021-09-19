@@ -98,7 +98,7 @@ GameDataVersion loaded_game_file_version = kGameVersion_Current;
 
 // stuff for importing old games
 int numScriptModules = 0;
-ScriptModule* scModules = NULL;
+std::vector<ScriptModule> scModules;
 DialogTopic *dialog = NULL;
 std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
@@ -1410,7 +1410,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
     dlgscript = ents.OldDialogSources;
     numNewViews = thisgame.numviews;
     numScriptModules = (int)ents.ScriptModules.size();
-    scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
+    scModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; i++)
     {
         scModules[i].init();

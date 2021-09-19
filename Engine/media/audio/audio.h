@@ -34,6 +34,8 @@ public:
     static SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
     // Move clip from one channel to another, clearing the first channel
     static SOUNDCLIP *MoveChannel(int to, int from);
+    // Deletes any clip and frees the channel
+    static void       DeleteClipOnChannel(int index);
 
     // Tells if channel has got a clip; does not care about its state
     static inline bool ChannelHasClip(int index) { return GetChannel(index) != nullptr; }

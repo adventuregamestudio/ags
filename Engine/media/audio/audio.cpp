@@ -45,35 +45,42 @@ using namespace AGS::Engine;
 //-----------------------
 //sound channel management
 
-static std::array<SOUNDCLIP *, TOTAL_AUDIO_CHANNELS> _channels;
+static std::array<std::unique_ptr<SOUNDCLIP>, TOTAL_AUDIO_CHANNELS> _channels;
 
 SOUNDCLIP *AudioChans::GetChannel(int index)
 {
-    return _channels[index];
+    return _channels[index].get();
 }
 
 SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
 {
-    auto *ch = _channels[index];
+    auto *ch = _channels[index].get();
     return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
 }
 
 SOUNDCLIP *AudioChans::SetChannel(int index, SOUNDCLIP* ch)
 {
     // TODO: store clips in smart pointers
-    if (_channels[index] == ch)
+    if ((ch != nullptr) && (_channels[index].get() == ch))
+    {
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - same clip assigned", index);
-    else if (_channels[index] != nullptr && ch != nullptr)
+        return ch;
+    }
+    if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
-    _channels[index] = ch;
+    _channels[index].reset(ch);
     return ch;
 }
 
 SOUNDCLIP *AudioChans::MoveChannel(int to, int from)
 {
-    auto from_ch = _channels[from];
-    _channels[from] = nullptr;
+    auto from_ch = _channels[from].release();
     return SetChannel(to, from_ch);
+}
+
+void AudioChans::DeleteClipOnChannel(int index)
+{
+    _channels[index].reset();
 }
 
 volatile bool _audio_doing_crossfade;
@@ -399,9 +406,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (soundfx->play_from(fromOffset) == 0)
     {
-        // not assigned to a channel, so clean up manually.
         delete soundfx;
-        soundfx = nullptr;
         debug_script_log("AudioClip.Play: failed to play sound file");
         return nullptr;
     }
@@ -485,13 +490,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     if ((chid < 0) || (chid >= TOTAL_AUDIO_CHANNELS))
         quit("!StopChannel: invalid channel ID");
 
-    SOUNDCLIP* ch = AudioChans::GetChannel(chid);
-
-    if (ch != nullptr) {
-        delete ch;
-        AudioChans::SetChannel(chid, nullptr);
-        ch = nullptr;
-    }
+    AudioChans::DeleteClipOnChannel(chid);
 
     if (play.crossfading_in_channel == chid)
         play.crossfading_in_channel = 0;
@@ -642,7 +641,6 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
     if (!soundfx) { return nullptr; }
 
     if (soundfx->play() == 0) {
-        // not assigned to a channel, so clean up manually.
         delete soundfx;
         return nullptr;
     }
@@ -903,8 +901,7 @@ void update_audio_system_on_game_loop ()
         { // update the playing channel, and if it's finished then dispose it
             if (ch->is_ready() && !ch->update())
             {
-                delete ch;
-                AudioChans::SetChannel(i, nullptr);
+                AudioChans::DeleteClipOnChannel(i);
             }
         }
     }
@@ -1116,15 +1113,14 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
     else
         new_clip = load_music_from_disk(mnum, (play.music_repeat > 0));
 
-    auto* ch = AudioChans::SetChannel(useChannel, new_clip);
-    if (ch != nullptr) {
-        if (!ch->play()) {
-            // previous behavior was to set channel[] to null on error, so continue to do that here.
-            delete ch;
-            ch = nullptr;
-            AudioChans::SetChannel(useChannel, nullptr);
-        } else
-            current_music_type = ch->get_sound_type();
+    if (new_clip && new_clip->play())
+    {
+        AudioChans::SetChannel(useChannel, new_clip);
+        current_music_type = new_clip->get_sound_type();
+    }
+    else
+    { // previous behavior was to set channel[] to null on error, so continue to do that here.
+        AudioChans::DeleteClipOnChannel(useChannel);
     }
 
     post_new_music_check(useChannel);

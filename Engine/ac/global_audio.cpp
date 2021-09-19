@@ -389,8 +389,8 @@ void PlayMP3File (const char *filename) {
     }
 
     if (clip) {
-        clip->set_volume255(150);
         if (clip->play()) {
+            clip->set_volume255(150);
             AudioChans::SetChannel(useChan, clip);
             current_music_type = sound_type;
             play.cur_music_number = 1000;
@@ -431,13 +431,13 @@ void PlaySilentMIDI (int mnum) {
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    AudioChans::SetChannel(play.silent_midi_channel, clip);
-    if (!clip->play()) {
+    if (clip->play()) {
+        AudioChans::SetChannel(play.silent_midi_channel, clip);
+        clip->set_volume100(0);
+    } else {
         delete clip;
-        clip = nullptr;
         quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
     }
-    clip->set_volume100(0);
 }
 
 void SetSpeechVolume(int newvol) {

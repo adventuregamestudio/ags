@@ -49,7 +49,8 @@ public:
     // - start scheduled playback;
     // - apply all accumulated sound parameters;
     // - read and save current position;
-    void update();
+    // Returns if the clip is still playing, otherwise it's finished
+    bool update();
 
     inline int play_from(int position)
     {

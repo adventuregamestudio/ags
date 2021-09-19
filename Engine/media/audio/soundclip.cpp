@@ -78,9 +78,9 @@ void SOUNDCLIP::seek(int pos_ms)
     posMs = static_cast<int>(posms_f);
 }
 
-void SOUNDCLIP::update()
+bool SOUNDCLIP::update()
 {
-    if (!is_ready()) return;
+    if (!is_ready()) return false;
 
     if (paramsChanged)
     {
@@ -107,7 +107,7 @@ void SOUNDCLIP::update()
     if (state == core_state || core_state == PlayStateError || core_state == PlayStateFinished)
     {
         state = core_state;
-        return;
+        return is_ready();
     }
 
     switch (state)
@@ -116,4 +116,5 @@ void SOUNDCLIP::update()
         state = audio_core_slot_play(slot_);
         break;
     }
+    return is_ready();
 }

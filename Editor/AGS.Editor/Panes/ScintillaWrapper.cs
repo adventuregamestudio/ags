@@ -168,7 +168,6 @@ namespace AGS.Editor
             scintillaControl1.Markers[Marker.FolderTail].SetBackColor(t.GetColor("script-editor/text-editor/marknum-folder-tail"));
             scintillaControl1.SetSelectionBackColor(t.GetColor("script-editor/text-editor/selected/background") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/background"));
             scintillaControl1.SetSelectionForeColor(t.GetColor("script-editor/text-editor/selected/foreground") != Color.Transparent, t.GetColor("script-editor/text-editor/selected/foreground"));
-            scintillaControl1.CaretForeColor = t.GetColor("script-editor/text-editor/caret");
 
             scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetBackColor(t.GetColor("script-editor/text-editor/marker-breakpoint/background"));
             scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetForeColor(t.GetColor("script-editor/text-editor/marker-breakpoint/foreground"));
@@ -176,6 +175,13 @@ namespace AGS.Editor
             scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].SetForeColor(t.GetColor("script-editor/text-editor/marker-breakpoint2/foreground"));
             scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetBackColor(t.GetColor("script-editor/text-editor/current-statement/background"));
             scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetForeColor(t.GetColor("script-editor/text-editor/current-statement/foreground"));
+            scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetBackColor(t.GetColor("script-editor/text-editor/current-statement2/background"));
+            scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetForeColor(t.GetColor("script-editor/text-editor/current-statement2/foreground"));
+
+            scintillaControl1.CaretForeColor = t.GetColor("script-editor/text-editor/caret/caret-fore");
+            scintillaControl1.CaretLineVisible = true;
+            scintillaControl1.CaretLineBackColor = t.GetColor("script-editor/text-editor/caret/caret-line-back");
+            scintillaControl1.CaretLineBackColorAlpha = t.GetInt("script-editor/text-editor/caret/caret-line-back-alpha");
         }
 
         private void UpdateColors()

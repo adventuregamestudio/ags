@@ -396,7 +396,7 @@ void PlayMP3File (const char *filename) {
             play.cur_music_number = 1000;
             // save the filename (if it's not what we were supplied with)
             if (filename != &play.playmp3file_name[0])
-                snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), filename);
+                snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), "%s", filename);
         }
         else {
             delete clip;

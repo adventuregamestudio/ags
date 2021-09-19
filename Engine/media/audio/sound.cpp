@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/sound.h"
+#include <cmath>
 #include "ac/asset_helper.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"

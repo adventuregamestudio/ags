@@ -3395,11 +3395,10 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   }
 
 #define INC_NESTED_LEVEL \
-    if (nested_level >= MAX_NESTED_LEVEL) {\
-    cc_error("too many nested if/else statements");\
+    if (++nested_level >= MAX_NESTED_LEVEL) {\
+    cc_error("Too many nested if/else statements");\
     return -1;\
     }\
-    nested_level++
 
 // compile the code in the INPL parameter into code in the scrip structure,
 // but don't reset anything because more files could follow

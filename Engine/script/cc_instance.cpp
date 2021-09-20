@@ -1747,6 +1747,39 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
     return it != globalvars->end() ? &it->second : nullptr;
 }
 
+static int DetermineScriptLine(int32_t *code, size_t codesz, size_t at_pc)
+{
+    int line = -1;
+    for (size_t pc = 0; (pc <= at_pc) && (pc < codesz); ++pc)
+    {
+        int op = code[pc] & INSTANCE_ID_REMOVEMASK;
+        if (op < 0 || op >= CC_NUM_SCCMDS) return -1;
+        if (pc + sccmd_info[op].ArgCount >= codesz) return -1;
+        if (op == SCMD_LINENUM)
+            line = code[pc + 1];
+        pc += sccmd_info[op].ArgCount;
+    }
+    return line;
+}
+
+static void cc_error_fixups(ccScript *scri, size_t pc, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    String displbuf = String::FromFormatV(fmt, ap);
+    va_end(ap);
+    const char *scname = scri->numSections > 0 ? scri->sectionNames[0] : "?";
+    if (pc == -1)
+    {
+        cc_error("in script %s: %s", scname, displbuf.GetCStr());
+    }
+    else
+    {
+        int line = DetermineScriptLine(scri->code, scri->codesize, pc);
+        cc_error("in script %s around line %d: %s", scname, line, displbuf.GetCStr());
+    }
+}
+
 bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
 {
     code_fixups = new char[scri->codesize];
@@ -1768,7 +1801,7 @@ bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
                 ScriptVariable *gl_var = FindGlobalVar((int32_t)code[fixup]);
                 if (!gl_var)
                 {
-                    cc_error("cannot resolve global variable, key = %d", (int32_t)code[fixup]);
+                    cc_error_fixups(scri.get(), fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, (int32_t)code[fixup]);
                     return false;
                 }
                 code[fixup] = (intptr_t)gl_var;
@@ -1787,7 +1820,7 @@ bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
                 const ScriptImport *import = simp.getByIndex(import_index);
                 if (!import)
                 {
-                    cc_error("cannot resolve import, key = %d", import_index);
+                    cc_error_fixups(scri.get(), fixup, "cannot resolve import (bytecode pos %d, key %d)", fixup, import_index);
                     return false;
                 }
                 code[fixup] = import_index;
@@ -1800,7 +1833,7 @@ bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
             }
             break;
         default:
-            cc_error("internal fixup index error: %d", scri->fixuptypes[i]);
+            cc_error_fixups(scri.get(), -1, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
             return false;
         }
     }

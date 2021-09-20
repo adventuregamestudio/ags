@@ -43,8 +43,8 @@ namespace AGS.Editor
             this.scintillaControl1.AutoCSeparator = (char)32;
             this.scintillaControl1.AutoCTypeSeparator = (char)63;
             this.scintillaControl1.CaretForeColor = System.Drawing.Color.Black;
-            this.scintillaControl1.CaretLineBackColor = System.Drawing.Color.White;
-            this.scintillaControl1.CaretLineBackColorAlpha = 256;
+            this.scintillaControl1.CaretLineBackColor = System.Drawing.Color.FromArgb(0x9391FF);
+            this.scintillaControl1.CaretLineBackColorAlpha = 25;
             this.scintillaControl1.CaretPeriod = 500;
             this.scintillaControl1.CaretWidth = 1;
             this.scintillaControl1.CurrentPosition = 0;
@@ -61,7 +61,7 @@ namespace AGS.Editor
             this.scintillaControl1.AutoCDropRestOfWord = false;
             this.scintillaControl1.AutoCIgnoreCase = false;
             this.scintillaControl1.BufferedDraw = true;
-            this.scintillaControl1.CaretLineVisible = false;
+            this.scintillaControl1.CaretLineVisible = true;
             this.scintillaControl1.EndAtLastLine = true;
             this.scintillaControl1.HScrollBar = true;
             this.scintillaControl1.IndentationGuides = ScintillaNET.IndentView.None;

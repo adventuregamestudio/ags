@@ -21,6 +21,8 @@ RUN apt-get install curl
 RUN apt-get install \
   build-essential \
   debhelper \
+  autoconf \
+  dh-autoreconf \
   git \
   libaldmb1-dev \
   libogg-dev \
@@ -31,30 +33,36 @@ RUN apt-get install \
 
 # Build newer libogg
 ARG LIBOGG_VERSION=1.3.4
-RUN curl -fLsS "https://downloads.xiph.org/releases/ogg/libogg-$LIBOGG_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
-  cd /tmp/libogg-$LIBOGG_VERSION && \
+RUN curl -fLsS "https://github.com/xiph/ogg/releases/download/v${LIBOGG_VERSION}/libogg-${LIBOGG_VERSION}.tar.xz" --output /tmp/libogg-${LIBOGG_VERSION}.tar.xz && \
+  tar --file=/tmp/libogg-${LIBOGG_VERSION}.tar.xz -xvJC /tmp && \
+  cd /tmp/libogg-${LIBOGG_VERSION} && \
   ./configure --prefix=/opt && \
   make && \
   make install && \
-  rm -r /tmp/libogg-$LIBOGG_VERSION
+  rm -r /tmp/libogg-${LIBOGG_VERSION} && \
+  rm /tmp/libogg-${LIBOGG_VERSION}.tar.xz
 
 # Build newer libvorbis
 ARG LIBVORBIS_VERSION=1.3.7
-RUN curl -fLsS "https://downloads.xiph.org/releases/vorbis/libvorbis-$LIBVORBIS_VERSION.tar.xz" | tar -f - -xvJC /tmp && \
-  cd /tmp/libvorbis-$LIBVORBIS_VERSION && \
+RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VERSION}/libvorbis-${LIBVORBIS_VERSION}.tar.gz" --output /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz && \
+  tar --file=/tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz -xvzC /tmp && \
+  cd /tmp/libvorbis-${LIBVORBIS_VERSION} && \
   ./configure --disable-examples --disable-oggtest --prefix=/opt && \
   make && \
   make install && \
-  rm -r /tmp/libvorbis-$LIBVORBIS_VERSION
+  rm -r /tmp/libvorbis-${LIBVORBIS_VERSION} && \
+  rm /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz 
 
-# Build newer libtheora - note that encoding support is disabled
+# Build newer libtheora - note that encoding support is disabled AND it's directory uses GH repo name instead
 ARG LIBTHEORA_VERSION=1.1.1
-RUN curl -fLsS "https://downloads.xiph.org/releases/theora/libtheora-$LIBTHEORA_VERSION.tar.bz2" | tar -f - -xvjC /tmp && \
-  cd /tmp/libtheora-$LIBTHEORA_VERSION && \
-  ./configure --disable-encode --disable-examples --disable-oggtest --prefix=/opt && \
+RUN curl -fLsS "https://github.com/xiph/theora/archive/refs/tags/v${LIBTHEORA_VERSION}.tar.gz" --output /tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz && \
+  tar --file=/tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz -xvzC /tmp && \
+  cd /tmp/theora-${LIBTHEORA_VERSION} && \
+  ./autogen.sh --disable-encode --disable-examples --disable-oggtest --prefix=/opt && \
   make && \
   make install && \
-  rm -r /tmp/libtheora-$LIBTHEORA_VERSION
+  rm -r /tmp/theora-${LIBTHEORA_VERSION} && \
+  rm /tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz 
 
 # Build and install CMake
 ARG CMAKE_VERSION=3.14.5

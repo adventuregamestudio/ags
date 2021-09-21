@@ -1,14 +1,8 @@
 # base will already have Chocolatey installed
-FROM cirrusci/windowsservercore:2019
+FROM ericoporto/min-ags-dev-env:1.0.0
 
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
-
-ARG VISUALCPP_BUILD_TOOLS_VERSION=14.0.25420.1
-RUN cinst visualcpp-build-tools --version %VISUALCPP_BUILD_TOOLS_VERSION% -y && \
-  mkdir empty && \
-  robocopy empty %TEMP% /MIR > nul & \
-  rd /s /q empty
 
 # Windows 8.0 SDK (but only install the .NET 4.5 SDK)
 RUN pushd %TEMP% && \
@@ -21,10 +15,8 @@ RUN pushd %TEMP% && \
 
 ARG NUGET_VERSION=5.7.0
 ARG INNO_SETUP_VERSION=6.0.5
-ARG CMAKE_VERSION=3.18.4
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
   cinst innosetup --version %INNO_SETUP_VERSION% -y && \
-  cinst cmake --version %CMAKE_VERSION% --installargs ADD_CMAKE_TO_PATH=System -y && \
   mkdir empty && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty
@@ -50,7 +42,7 @@ RUN curl -fLSs http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%
   move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\ && \
   rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION%
 
-RUN curl -fLSs https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0de-3e9096ed4b3a/dxsdk_aug2007.exe | tar -f - -xvzC %TEMP% && \
+RUN curl -fLSs https://archive.org/download/dxsdk_aug2007/dxsdk_aug2007.exe | tar -f - -xvzC %TEMP% && \
   tar -f %TEMP%\dxsdk_aug2007.exe -xvzC %TEMP% Lib/x86/*.lib && \
   mkdir Lib\DirectX && \
   move %TEMP%\Lib\x86\*.lib Lib\DirectX\ && \

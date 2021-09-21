@@ -68,13 +68,13 @@ RUN curl -fLOJ "https://dl.google.com/android/repository/tools_r${BUILD_TOOLS_AN
   rm tools_r${BUILD_TOOLS_ANT_VERSION}-linux.zip
 
 # Get Ant
-ARG ANT_VERSION=1.10.9
+ARG ANT_VERSION=1.10.11
 RUN curl -fLSs "https://www.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz" | \
   tar -f - -xvzC /opt
 
 # Build libraries
 ARG AGS_ORGANIZATION=adventuregamestudio
-ARG AGS_BRANCH=master
+ARG AGS_BRANCH=release-3.5.1
 RUN cd /tmp && \
   git clone -b "${AGS_BRANCH}" "https://github.com/${AGS_ORGANIZATION}/ags.git" && \
   cd ags/Android/buildlibs && \

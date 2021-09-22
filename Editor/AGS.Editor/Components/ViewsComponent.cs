@@ -62,7 +62,8 @@ namespace AGS.Editor.Components
             {
                 View viewClicked = _items[_rightClickedID];
                 int oldNumber = viewClicked.ID;
-                // Note that the views are not sequential, there may be gaps in IDs
+                // Note that the views are not sequential, there may be gaps in IDs;
+                // also view IDs are 1-based
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1,
                     Math.Max(1, _items.Max(i => i.Value.ID)));
                 if (newNumber < 0)
@@ -77,6 +78,7 @@ namespace AGS.Editor.Components
                 }
                 _agsEditor.CurrentGame.GetAndAllocateViewID(newNumber);
                 viewClicked.ID = newNumber;
+                GetFlatList().Swap(oldNumber - 1, newNumber - 1);
                 OnItemIDChanged(viewClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)

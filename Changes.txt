@@ -1,5 +1,20 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 4, September 2021
+
+Editor:
+ - Fixed swapping of inventory item's numeric ID could lead to errors.
+ - Fixed crash when importing pre-3.* games with multiple script modules.
+ - Renamed "Enforce object-based scripting" setting to "Enforce post-2.62 scripting".
+
+Compiler:
+ - Fixed potential memory corruption when user script reaches max nested if/else blocks.
+
+Engine:
+ - Also tell module name and approximate source line when reporting script import errors
+   for the variables and local functions.
+
+
 VERSION 3.5.1 - Patch 3, August 2021
 
 Editor:

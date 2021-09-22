@@ -668,7 +668,7 @@ namespace AGS.Types
             get { return _scriptCompatLevelReal; }
         }
 
-        [DisplayName("Enforce object-based scripting")]
+        [DisplayName("Enforce post-2.62 scripting")]
         [Description("Disable old-style AGS 2.62 script commands")]
         [DefaultValue(true)]
         [Category("Backwards Compatibility")]

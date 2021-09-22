@@ -140,6 +140,7 @@ int CharacterInfo::update_character_walking(CharacterExtras *chex)
           else break;
         }
         loop = turnlooporder[wantloop];
+        if (frame >= views[view].loops[loop].numFrames) frame = 0; // AVD: make sure the loop always has a valid frame
         walking -= TURNING_AROUND;
         // if still turning, wait for next frame
         if (walking % TURNING_BACKWARDS >= TURNING_AROUND)

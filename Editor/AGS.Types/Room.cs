@@ -25,6 +25,7 @@ namespace AGS.Types
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
         public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
+        public const string LATEST_XML_VERSION = "1";
 
         private static InteractionSchema _interactionSchema;
 
@@ -437,7 +438,9 @@ namespace AGS.Types
 
         public override void ToXml(XmlTextWriter writer)
         {
-            SerializeUtils.SerializeToXML(this, writer, false);
+            writer.WriteStartElement(GetType().Name);
+            writer.WriteAttributeString("Version", LATEST_XML_VERSION);
+            SerializeUtils.SerializePropertiesToXML(this, writer);
             Interactions.ToXml(writer);
             SerializeUtils.SerializeToXML(writer, "Messages", Messages);
             SerializeUtils.SerializeToXML(writer, "Objects", Objects);

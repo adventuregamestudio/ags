@@ -213,7 +213,7 @@ namespace AGS.Types
             int topEdgeY, int bottomEdgeY, int number, string description)
         {
             string xml = $@"
-            <Room>
+            <Room Version=""{Room.LATEST_XML_VERSION}"">
                 <MaskResolution>{maskResolution}</MaskResolution>
                 <BackgroundCount>{backgroundCount}</BackgroundCount>
                 <GameID>{gameId}</GameID>
@@ -255,6 +255,8 @@ namespace AGS.Types
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
             _room = new Room(doc.SelectSingleNode("Room"));
+
+            Assert.That(Room.LATEST_XML_VERSION, Is.EqualTo(doc.DocumentElement.Attributes["Version"].Value));
 
             Assert.That(_room.MaskResolution, Is.EqualTo(maskResolution));
             Assert.That(_room.BackgroundCount, Is.EqualTo(backgroundCount));
@@ -316,6 +318,7 @@ namespace AGS.Types
 
             XmlDocument doc = _room.ToXmlDocument();
 
+            Assert.That(doc.DocumentElement.Attributes["Version"].Value, Is.EqualTo(Room.LATEST_XML_VERSION));
             Assert.That(doc.SelectSingleNode("/Room/MaskResolution").InnerText, Is.EqualTo(maskResolution.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/BackgroundCount").InnerText, Is.EqualTo(backgroundCount.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/GameID").InnerText, Is.EqualTo(gameId.ToString()));

@@ -1,4 +1,4 @@
-﻿using AGS.Editor.Preferences;
+using AGS.Editor.Preferences;
 using AGS.Types.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -157,6 +157,8 @@ namespace AGS.Editor
                 else
                 {
                     _changed = true;
+                    // File changes are made in batches so disable file watcher to avoid spammed Changed events
+                    _fileWatcher.EnableRaisingEvents = false;
                 }
             }
         }
@@ -167,6 +169,8 @@ namespace AGS.Editor
             {
                 _loadFile();
             }
+
+            _fileWatcher.EnableRaisingEvents = true;
         }
 
         private bool ShouldLoad()

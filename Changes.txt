@@ -1,5 +1,108 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0, ???
+
+Editor:
+ - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
+   "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
+   original game's codepage.
+ - Added support for adding custom files into the game package. This is done by assigning
+   a list of directories to "Package custom data folder" property in General Settings.
+ - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
+   is activated. This is equivalent to the Character.SetIdleView script function.
+ - Fonts now have Auto Outline Style and Thickness properties.
+ - Added zoom controls for the Sprite manager.
+ - Sprites may now be imported by drag'n'drop into the Sprite manager.
+ - Added line numbers to the Dialog script editor.
+ - Cursor's position in script is now displayed on the status bar.
+
+Script API:
+ - Added Object.ManualScaling and Object.Scaling.
+ - Deprecated Object.IgnoreScaling (use Object.ManualScaling instead).
+ - Object.SetView default loop & frame values are now 0 (was -1 which retained loop and frame
+   indexes from the previous view, often unexpected to the user).
+ - Character.Scaling is no longer limited by a range of 5-200 (now supports 1-32767).
+ - DrawingSurface.DrawImage() and DrawSurface() now support optional source rect coordinates.
+ - Added functions for getting DrawingSurface of room masks: GetDrawingSurfaceForWalkableArea(),
+   GetDrawingSurfaceForWalkbehind(), Hotspot.GetDrawingSurface(), Region.GetDrawingSurface().
+ - Added Room.Exists().
+ - Added System.Log().
+ - Added SkipWait() that skips any active Wait() function.
+ - Added WaitMouse() to complement existing Wait functions.
+ - All Wait* functions now may have infinite timeout if you pass a negative timeout parameter.
+ - All Wait* functions now return the reason they were skipped: positive value means a key code,
+   negative value means an inverted mouse code, and 0 means skipped by a timer or script command.
+ - Added Overlay.Transparency and readonly Overlay.Width and Height properties.
+ - Added Overlay.ZOrder property that lets you sort Overlays on screen among themselves and GUI.
+ - Added Speech.TextOverlay and Speech.PortraitOverlay for accessing blocking speech overlay
+   and portrait overlay respectively.
+ - Added Game.BlockingWaitSkipped which tells the result of the last blocking wait skipping,
+   also including result of the blocking speech skipping.
+ - SkipSpeechStyle now supports eSkipNone mode; when used it will disable any kind of skipping,
+   such speech can be only skipped by a direct command from script.
+ - Added AudioClip.PlayOnChannel().
+ - Added AudioChannel.Pause() and Resume() functions, and IsPaused property.
+ - File paths in script now support $DATA$ token, which tells to read files from the game package.
+   This only works for read operations. Functions that support this token currently are:
+   File.Open(), DynamicSprite.CreateFromFile(), ListBox.FillDirList().
+ - Debug(2, 0) command that displayed walkable areas is superceded by Debug(2, n), where "n" is
+   a mask type: 0 - none, 1 - hotspots, 2 - walkbehinds, 3 - walkable areas, 4 - regions. This
+   command also works as a toggle switch, calling it with the same mask index will turn it off.
+ - Debug(5, n) command that displayed character's walk paths now also works as a toggle switch.
+
+Engine:
+ - New SDL2-based backend for graphics, audio and input.
+ - Hqx graphic filters discontinued (could be temporary).
+ - Windows-only DirectMedia video playback discontinued (could be temporary).
+   Only OGG/OGV videos are kept supported at this point.
+ - Support resizing game window on desktop systems.
+ - UTF-8 texts support: engine can now switch between ASCII and UTF-8 text mode. This is currently
+   controlled by the new translation settings: "Encoding" tells whether to interpret game texts
+   as UTF-8, and "GameEncoding" hints the original game's codepage to help with their conversion.
+ - Fixed some TTF fonts were not centered correctly and/or cut from below when text is displayed.
+ - Supports scripts using functions and variables from any other scripts, regardless of the
+   script module order in the project.
+ - Removed Overlay limit.
+ - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.
+ - Process character's idle view based on real game speed, not hardcoded 40 fps.
+ - Max number of AudioChannels is now 16 (was 8).
+ - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
+   game is updated, and not while the game script is running. This prevents situations when
+   the clip could begin playing before all properties are set in script, or when AudioChannel's
+   properties' values (such as Position) could change while running a game script.
+ - Debug displays, such as showing room mask and character walk paths, are now implemented as
+   non-blocking translucent overlays, allowing you to keep playing the game while they are on.
+ - Engine now supports loading compiled scripts as separate files packed along with the game,
+   along with those embedded into the main game data or inside room files.
+ - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
+   "--localuserconf"; the new option directly tells the location of user config file.
+ - Path related command-line and config options, - such as "shared_data_dir", "user_data_dir"
+   and "user_conf_dir", now support $GAMENAME$ token in path which is resolved to the game's title.
+ - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
+ - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Fixed crash when there are too many reserved audio type channels.
+ - Fixed character may have incorrect Frame values while turning.
+
+Android:
+ - Rewrote universal AGS game launcher/player using up-to-date Google guidelines.
+ - Implemented single game project template meant for building your own signed APK.
+
+OSX:
+ - OpenGL renderer is now supported on MacOS.
+
+Compatibility:
+ - Fallback to loop 0 if the speech view does not have frames in the current directional loop.
+ - Set the first loop with frames if current character's loop does not have any for some reason.
+ - Ignore character having view/loop with no frames while it's not in the current room.
+ - Legacy behavior of MoveCharacterBlocking's return value.
+ - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.
+ - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
+   unintentional effect created by the old engines.
+
+Tools:
+[TODO]
+
+
 VERSION 3.5.1 - Patch 4, September 2021
 
 Editor:
@@ -220,7 +323,7 @@ Linux:
 
 VERSION 3.5.0 - Patch 8, February 2021
 
-Common:
+Editor:
  - Fixed compressed sprite file was not built properly if exceeded 2 GB.
 
 

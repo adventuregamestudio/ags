@@ -985,7 +985,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     update_polled_stuff_if_runtime();
 
-    if (Path::IsFile(tempFileName))
+    if (File::IsFile(tempFileName))
     {
         fileSize = File::GetFileSize(tempFileName);
         char *buffer = (char*)malloc(fileSize);

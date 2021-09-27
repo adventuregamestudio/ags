@@ -33,13 +33,6 @@ namespace Common
 
 namespace Path
 {
-    // Tells if the given path is a directory
-    bool    IsDirectory(const String &directory);
-    // Tells if the given path is a file
-    bool    IsFile(const String &filename);
-    // Tells if the given path is file or directory;
-    // may be used to check if it's valid to use
-    bool    IsFileOrDir(const String &filename);
     // Returns parent directory of the given path;
     // returns "." (current dir) if the path does not contain a parent segment
     String  GetParent(const String &path);

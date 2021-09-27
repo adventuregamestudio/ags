@@ -584,7 +584,7 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
     for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
     {
         const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
-        if (Path::IsDirectory(game_lib->BasePath))
+        if (File::IsDirectory(game_lib->BasePath))
             continue; // might be a directory
 
         for (const AssetInfo &info : game_lib->AssetInfos)
@@ -601,7 +601,7 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
     for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
     {
         const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
-        if (!Path::IsDirectory(game_lib->BasePath))
+        if (!File::IsDirectory(game_lib->BasePath))
             continue; // might be a library
 
         al_ffblk ff;

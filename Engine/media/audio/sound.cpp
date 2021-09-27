@@ -13,12 +13,13 @@
 //=============================================================================
 #include "media/audio/sound.h"
 #include <cmath>
-#include "ac/asset_helper.h"
+#include "core/assetmanager.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
 #include "util/path.h"
 #include "util/stream.h"
 
+using namespace AGS::Common;
 
 static int GuessSoundTypeFromExt(const String &extension)
 {
@@ -54,11 +55,11 @@ static int GuessSoundTypeFromExt(const String &extension)
 
 static SOUNDCLIP *my_load_clip(const AssetPath &asset_name, const char *extension_hint, bool loop)
 {
-    size_t asset_size;
-    auto *s = LocateAsset(asset_name, asset_size);
+    auto *s = LocateAsset(asset_name);
     if (!s)
         return nullptr;
 
+    const size_t asset_size = s->GetLength();
     std::vector<char> data(asset_size);
     s->Read(data.data(), asset_size);
     delete s;

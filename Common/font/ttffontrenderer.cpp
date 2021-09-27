@@ -77,13 +77,13 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
     const FontRenderParams *params, FontMetrics *metrics)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
-  soff_t lenof = 0;
-  Stream *reader = AssetMgr->OpenAsset(file_name, &lenof);
+  Stream *reader = AssetMgr->OpenAsset(file_name);
   char *membuffer;
 
   if (reader == nullptr)
     return false;
 
+  const size_t lenof = reader->GetLength();
   membuffer = (char *)malloc(lenof);
   reader->ReadArray(membuffer, lenof, 1);
   delete reader;

@@ -398,8 +398,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    soff_t size = 0;
-    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
+    Stream *readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -414,6 +413,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
+    const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -449,8 +449,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    soff_t size = 0;
-    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
+    Stream *readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -464,6 +463,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
       delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
+    const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -479,8 +479,8 @@ void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char 
 {
   // make sure we get the icon from the file
   templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
-  soff_t sizey = 0;
-  Stream* inpu = templateMgr->OpenAsset (iconName, &sizey);
+  Stream* inpu = templateMgr->OpenAsset (iconName);
+  const size_t sizey = inpu->GetLength();
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);

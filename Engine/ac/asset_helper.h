@@ -19,9 +19,10 @@
 #define __AGS_EE_AC__ASSETHELPER_H
 #include <memory>
 #include <utility>
-#include "util/string.h"
+#include "core/assetmanager.h"
 
-namespace AGS { namespace Common {class Stream;}}
+namespace AGS { namespace Common {class Stream;} }
+using AGS::Common::AssetPath;
 using AGS::Common::Stream;
 using AGS::Common::String;
 
@@ -32,22 +33,11 @@ extern "C" {
     struct PACKFILE; // Allegro 4's own stream type
 }
 
-// AssetPath combines asset name and optional library filter, that serves to narrow down the search
-struct AssetPath
-{
-    String Name;
-    String Filter;
-
-    AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
-};
-
 // Returns the path to the audio asset, considering the given bundling type
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
 // Returns the path to the voice-over asset
 AssetPath get_voice_over_assetpath(const String &filename);
 
-// Locates asset among known locations, on success returns open stream and asset's size.
-Stream *LocateAsset(const AssetPath &path);
 // Custom AGS PACKFILE user object
 // TODO: it is preferrable to let our Stream define custom readable window instead,
 // keeping this as simple as possible for now (we may require a stream classes overhaul).
@@ -61,6 +51,5 @@ struct AGS_PACKFILE_OBJ
 // This function is supposed to be used only when you have to create Allegro
 // object, passing PACKFILE stream to constructor.
 PACKFILE *PackfileFromAsset(const AssetPath &path);
-bool DoesAssetExistInLib(const AssetPath &assetname);
 
 #endif // __AGS_EE_AC__ASSETHELPER_H

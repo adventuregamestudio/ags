@@ -55,6 +55,15 @@ enum AssetError
     kAssetErrNoManager      = -6, // asset manager not initialized
 };
 
+// AssetPath combines asset name and optional library filter, that serves to narrow down the search
+struct AssetPath
+{
+    String Name;
+    String Filter;
+
+    AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
+};
+
 // Explicit location of asset data
 struct AssetLocation
 {
@@ -95,6 +104,7 @@ public:
     const AssetLibInfo *GetLibraryInfo(size_t index) const;
     // Tells whether asset exists in any of the registered search locations
     bool         DoesAssetExist(const String &asset_name, const String &filter = "") const;
+    inline bool  DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
     // Searches in all the registered locations and collects a list of
     // assets using given wildcard pattern
     void         FindAssets(std::vector<String> &assets, const String &wildcard,
@@ -104,6 +114,7 @@ public:
     Stream      *OpenAsset(const String &asset_name) const;
     // Open asset stream, providing a single filter to search in matching libraries
     Stream      *OpenAsset(const String &asset_name, const String &filter) const;
+    inline Stream *OpenAsset(const AssetPath &apath) const { return OpenAsset(apath.Name, apath.Filter); }
 
 private:
     struct AssetLibEx : AssetLibInfo

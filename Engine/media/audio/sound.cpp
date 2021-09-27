@@ -53,9 +53,9 @@ static int GuessSoundTypeFromExt(const String &extension)
     return 0;
 }
 
-static SOUNDCLIP *my_load_clip(const AssetPath &asset_name, const char *extension_hint, bool loop)
+static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
-    auto *s = LocateAsset(asset_name);
+    auto *s = AssetMgr->OpenAsset(apath);
     if (!s)
         return nullptr;
 
@@ -64,7 +64,7 @@ static SOUNDCLIP *my_load_clip(const AssetPath &asset_name, const char *extensio
     s->Read(data.data(), asset_size);
     delete s;
 
-    const auto asset_ext = AGS::Common::Path::GetFileExtension(asset_name.Name);
+    const auto asset_ext = AGS::Common::Path::GetFileExtension(apath.Name);
     const auto ext_hint = asset_ext.IsEmpty() ? String(extension_hint) : asset_ext;
 
     auto slot = audio_core_slot_init(data, ext_hint, loop);

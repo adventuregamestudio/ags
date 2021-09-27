@@ -406,14 +406,6 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
     return true;
 }
 
-Stream *LocateAsset(const AssetPath &path)
-{
-    String assetname = path.Name;
-    String filter = path.Filter;
-    Stream *asset_stream = AssetMgr->OpenAsset(assetname, filter);
-    return asset_stream;
-}
-
 //
 // AGS custom PACKFILE callbacks, that use our own Stream object
 //
@@ -494,7 +486,7 @@ static PACKFILE_VTABLE ags_packfile_vtable = {
 
 PACKFILE *PackfileFromAsset(const AssetPath &path)
 {
-    Stream *asset_stream = LocateAsset(path);
+    Stream *asset_stream = AssetMgr->OpenAsset(path);
     const size_t asset_size = asset_stream->GetLength();
     if (asset_stream && asset_size > 0)
     {
@@ -505,13 +497,6 @@ PACKFILE *PackfileFromAsset(const AssetPath &path)
         return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
     return nullptr;
-}
-
-bool DoesAssetExistInLib(const AssetPath &path)
-{
-    String assetname = path.Name;
-    String filter = path.Filter;
-    return AssetMgr->DoesAssetExist(assetname, filter);
 }
 
 String find_assetlib(const String &filename)

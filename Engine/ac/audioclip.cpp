@@ -12,13 +12,15 @@
 //
 //=============================================================================
 #include "media/audio/audio_system.h"
-#include "ac/asset_helper.h"
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audiochannel.h"
+#include "core/assetmanager.h"
 #include "script/runtimescriptvalue.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
@@ -38,9 +40,10 @@ int AudioClip_GetType(ScriptAudioClip *clip)
 {
     return clip->type;
 }
+
 int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 {
-    return DoesAssetExistInLib(get_audio_clip_assetpath(clip->bundlingType, clip->fileName)) ? 1 : 0;
+    return AssetMgr->DoesAssetExist(get_audio_clip_assetpath(clip->bundlingType, clip->fileName)) ? 1 : 0;
 }
 
 void AudioClip_Stop(ScriptAudioClip *clip)

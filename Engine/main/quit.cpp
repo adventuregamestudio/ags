@@ -98,22 +98,6 @@ void quit_check_dynamic_sprites(QuitReason qreason)
     }
 }
 
-void quit_shutdown_platform(QuitReason qreason)
-{
-    // Be sure to unlock mouse on exit, or users will hate us
-    sys_window_lock_mouse(false);
-    platform->AboutToQuitGame();
-
-    our_eip = 9016;
-
-    pl_stop_plugins();
-
-    quit_check_dynamic_sprites(qreason);
-
-    if (use_cdplayer)
-        platform->ShutdownCDPlayer();
-}
-
 void quit_shutdown_audio()
 {
     our_eip = 9917;
@@ -258,7 +242,17 @@ void quit(const char *quitmsg)
 
     quit_shutdown_scripts();
 
-    quit_shutdown_platform(qreason);
+    // Be sure to unlock mouse on exit, or users will hate us
+    sys_window_lock_mouse(false);
+
+    our_eip = 9016;
+
+    pl_stop_plugins();
+
+    quit_check_dynamic_sprites(qreason);
+
+    if (use_cdplayer)
+        platform->ShutdownCDPlayer();
 
     our_eip = 9019;
 
@@ -284,6 +278,8 @@ void quit(const char *quitmsg)
     quit_message_on_exit(qmsg, alertis, qreason);
 
     quit_release_data();
+
+    platform->PreBackendExit();
 
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,

@@ -111,6 +111,7 @@ t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 bool engine_init_backend()
 {
     our_eip = -199;
+    platform->PreBackendInit();
     // Initialize SDL
     Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
     if (sys_main_init())

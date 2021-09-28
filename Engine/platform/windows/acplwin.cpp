@@ -71,7 +71,6 @@ struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
   ~AGSWin32();
 
-  virtual void AboutToQuitGame();
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void AttachToParentConsole();
   virtual void DisplayAlert(const char*, ...);
@@ -724,10 +723,6 @@ int AGSWin32::InitializeCDPlayer() {
 #else
   return -1;
 #endif
-}
-
-void AGSWin32::AboutToQuitGame() 
-{
 }
 
 void AGSWin32::PostBackendExit() {

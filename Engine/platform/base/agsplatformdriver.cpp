@@ -42,7 +42,6 @@ AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
-void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
@@ -105,7 +104,7 @@ SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTre
     return kSetup_Cancel;
 }
 
-void AGSPlatformDriver::InitCommandArgs(const char *const argv[], size_t argc)
+void AGSPlatformDriver::SetCommandArgs(const char *const argv[], size_t argc)
 {
     _cmdArgs = argv;
     _cmdArgCount = argc;

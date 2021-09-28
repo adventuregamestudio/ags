@@ -45,6 +45,9 @@ void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver {
 
+  virtual void MainInit();
+  virtual void PostBackendExit();
+
   virtual const char *GetGameDataFile();
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -53,11 +56,9 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PostBackendExit();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void WriteStdErr(const char *fmt, ...);
-  virtual void MainInitAdjustments();
 };
 
 
@@ -612,7 +613,7 @@ bool ReadConfiguration(const char* filename, bool read_everything)
   return false;
 }
 
-void AGSAndroid::MainInitAdjustments()
+void AGSAndroid::MainInit()
 {
     // retrieve the JNI environment.
     JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();

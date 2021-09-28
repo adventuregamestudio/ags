@@ -21,6 +21,8 @@
 
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
+#include "core/types.h"
+#include "util/string.h"
 
 struct AAssetManager;
 
@@ -32,6 +34,10 @@ namespace Common
 void           InitAndroidFile();
 void           ShutdownAndroidFile();
 AAssetManager *GetAAssetManager();
+// Tells if the Android Asset of the given name exists
+bool           GetAAssetExists(const String &filename);
+// Gets the Android Asset's size, returns -1 if such asset was not found
+soff_t         GetAAssetSize(const String &filename);
 
 } // namespace Common
 } // namespace AGS

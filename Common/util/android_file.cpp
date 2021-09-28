@@ -69,6 +69,27 @@ AAssetManager* GetAAssetManager()
     return gAAssetManager;
 }
 
+bool GetAAssetExists(const String &filename)
+{
+    AAssetManager* mgr = GetAAssetManager();
+    // TODO: find out if it's acceptable to open/close asset to only test its existance;
+    // the alternative is to use AAssetManager_openDir and read asset list using AAssetDir_getNextFileName
+    AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
+    if (!asset) return false;
+    AAsset_close(asset);
+    return true;
+}
+
+soff_t GetAAssetSize(const String &filename)
+{
+    AAssetManager* mgr = GetAAssetManager();
+    AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
+    if (!asset) return -1;
+    soff_t len = AAsset_getLength64(asset);
+    AAsset_close(asset);
+    return len;
+}
+
 } // namespace Common
 } // namespace AGS
 #endif // AGS_PLATFORM_OS_ANDROID

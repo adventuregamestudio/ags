@@ -117,6 +117,8 @@ target_sources(common
     script/script_common.h
     util/aasset_stream.cpp
     util/aasset_stream.h
+    util/android_file.cpp
+    util/android_file.h
     util/alignedstream.cpp
     util/alignedstream.h
     util/bbop.h

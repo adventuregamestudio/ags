@@ -176,7 +176,6 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
             == lib->Filters.end())
             continue; // filter does not match
 
-        bool found = false;
         if (IsAssetLibDir(lib))
         {
             for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);

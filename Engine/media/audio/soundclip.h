@@ -108,7 +108,7 @@ public:
     // without calculating it from given percentage.
     inline void set_volume_direct(int vol_percent, int vol_absolute)
     {
-        vol255 = vol255;
+        vol255 = vol_absolute;
         vol100 = vol_percent;
         paramsChanged = true;
     }

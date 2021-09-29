@@ -21,10 +21,13 @@
 
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
+#include <regex>
 #include "core/types.h"
 #include "util/string.h"
 
 struct AAssetManager;
+struct AAssetDir;
+struct AAsset;
 
 namespace AGS
 {
@@ -38,6 +41,25 @@ AAssetManager *GetAAssetManager();
 bool           GetAAssetExists(const String &filename);
 // Gets the Android Asset's size, returns -1 if such asset was not found
 soff_t         GetAAssetSize(const String &filename);
+
+// AndroidDir wraps Android Asset directory and ensures its disposal
+class AndroidADir
+{
+public:
+    AndroidADir(AndroidADir &&aadir);
+    AndroidADir(const String &dirname);
+    ~AndroidADir();
+
+    // Iterate to the next asset, returns asset's name or empty string
+    // if not more assets are found in this directory
+    String Next();
+    // Iterates through assets until matching the name pattern;
+    // returns asset's name or empty string if no matching asset found
+    String Next(const std::regex &pattern);
+
+private:
+    AAssetDir *_dir {nullptr};
+};
 
 } // namespace Common
 } // namespace AGS

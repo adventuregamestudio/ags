@@ -90,6 +90,44 @@ soff_t GetAAssetSize(const String &filename)
     return len;
 }
 
+
+AndroidADir::AndroidADir(AndroidADir &&aadir)
+{
+    _dir = aadir._dir;
+    aadir._dir = nullptr;
+}
+
+AndroidADir::AndroidADir(const String &dirname)
+{
+    AAssetManager* mgr = GetAAssetManager();
+    _dir = AAssetManager_openDir(mgr, dirname.GetCStr());
+}
+
+AndroidADir::~AndroidADir()
+{
+    if (_dir)
+        AAssetDir_close(_dir);
+}
+
+String AndroidADir::Next()
+{
+    if (_dir)
+        return AAssetDir_getNextFileName(_dir);
+}
+
+String AndroidADir::Next(const std::regex &pattern)
+{
+    if (!_dir) return "";
+    const char *filename = nullptr;
+    std::cmatch mr;
+    while ((filename = AAssetDir_getNextFileName(_dir)) != nullptr)
+    {
+        if (std::regex_match(filename, mr, pattern))
+            return filename;
+    }
+    return "";
+}
+
 } // namespace Common
 } // namespace AGS
 #endif // AGS_PLATFORM_OS_ANDROID

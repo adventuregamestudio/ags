@@ -64,16 +64,6 @@ struct AssetPath
     AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
 };
 
-// Explicit location of asset data
-struct AssetLocation
-{
-    String      FileName;   // file where asset is located
-    soff_t      Offset;     // asset's position in file (in bytes)
-    soff_t      Size;       // asset's size (in bytes)
-
-    AssetLocation();
-};
-
 
 class AssetManager
 {
@@ -120,15 +110,16 @@ private:
     struct AssetLibEx : AssetLibInfo
     {
         std::vector<String> Filters; // asset filters this library is matching to
+
+        bool TestFilter(const String &filter) const;
     };
 
     // Loads library and registers its contents into the cache
     AssetError  RegisterAssetLib(const String &path, AssetLibEx *&lib);
 
     // Tries to find asset in known locations, tests if it's possible to open, and fills in AssetLocation
-    bool        GetAsset(const String &asset_name, const String &filter, AssetLocation *loc) const;
-    bool        GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc) const;
-    bool        GetAssetFromDir(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc) const;
+    Stream     *OpenAssetFromLib(const AssetLibInfo *lib, const String &asset_name) const;
+    Stream     *OpenAssetFromDir(const AssetLibInfo *lib, const String &asset_name) const;
 
     std::vector<std::unique_ptr<AssetLibEx>> _libs;
     std::vector<AssetLibEx*> _activeLibs;

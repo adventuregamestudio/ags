@@ -19,6 +19,7 @@
 // safer slot look ups (with gen id)
 // generate/load mod/midi offsets
 
+#include <math.h>
 #include "media/audio/audio_core.h"
 #include <unordered_map>
 #include "debug/out.h"
@@ -210,16 +211,12 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 
     if (panning != 0.0f) {
         // https://github.com/kcat/openal-soft/issues/194
-        alSourcef(source_, AL_ROLLOFF_FACTOR, 0.0f);
-        dump_al_errors();
         alSourcei(source_, AL_SOURCE_RELATIVE, AL_TRUE);
         dump_al_errors();
-        alSource3f(source_, AL_POSITION, panning, 0.0f, 0.0f);
+        alSource3f(source_, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
         dump_al_errors();
     }
     else {
-        alSourcef(source_, AL_ROLLOFF_FACTOR, 1.0f);
-        dump_al_errors();
         alSourcei(source_, AL_SOURCE_RELATIVE, AL_FALSE);
         dump_al_errors();
         alSource3f(source_, AL_POSITION, 0.0f, 0.0f, 0.0f);

@@ -11,40 +11,21 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
-
 #if AGS_PLATFORM_OS_ANDROID
-
-#include <algorithm>
 #include "util/aasset_stream.h"
+#include <algorithm>
+#include <stdexcept>
 #include <jni.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
-#include <stdexcept>
+#include "util/android_file.h"
 #include "util/string.h"
-#include "SDL2/SDL.h"
 
 namespace AGS
 {
     namespace Common
     {
-
-        AAssetManager* GetAssetManagerFromEnv()
-        {
-            JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
-
-            jobject activity =  (jobject)SDL_AndroidGetActivity();
-
-            jclass activity_class = env->GetObjectClass(activity);
-
-            jmethodID activity_class_getAssets = env->GetMethodID(activity_class, "getAssets", "()Landroid/content/res/AssetManager;");
-            jobject asset_manager = env->CallObjectMethod(activity, activity_class_getAssets); // activity.getAssets();
-            jobject global_asset_manager = env->NewGlobalRef(asset_manager);
-
-            return AAssetManager_fromJava(env, global_asset_manager);
-        }
-
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode, DataEndianess stream_endianess)
                 : DataStream(stream_endianess)
                 , _aAsset(nullptr)
@@ -190,7 +171,7 @@ namespace AGS
 
         void AAssetStream::Open(const String &asset_name, int asset_mode)
         {
-            AAssetManager* aAssetManager = GetAssetManagerFromEnv();
+            AAssetManager* aAssetManager = GetAAssetManager();
             _ownHandle = true;
 
             if(!asset_name.IsNullOrSpace() && asset_name[0] == '/') {

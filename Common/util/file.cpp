@@ -26,6 +26,7 @@
 #include "util/stdio_compat.h"
 #if AGS_PLATFORM_OS_ANDROID
 #include "util/aasset_stream.h"
+#include "util/android_file.h"
 #endif
 
 namespace AGS
@@ -42,19 +43,34 @@ bool File::IsDirectory(const String &filename)
 
 bool File::IsFile(const String &filename)
 {
-    return ags_file_exists(filename.GetCStr()) != 0;
+    bool res = ags_file_exists(filename.GetCStr()) != 0;
+#if AGS_PLATFORM_OS_ANDROID
+    if (!res)
+        res = GetAAssetExists(filename);
+#endif // AGS_PLATFORM_OS_ANDROID
+    return res;
 }
 
 bool File::IsFileOrDir(const String &filename)
 {
     // stat() does not like trailing slashes, remove them
     String fixed_path = Path::MakePathNoSlash(filename);
-    return ags_path_exists(fixed_path.GetCStr()) != 0;
+    bool res = ags_path_exists(fixed_path.GetCStr()) != 0;
+#if AGS_PLATFORM_OS_ANDROID
+    if (!res)
+        res = GetAAssetExists(filename);
+#endif // AGS_PLATFORM_OS_ANDROID
+    return res;
 }
 
 soff_t File::GetFileSize(const String &filename)
 {
-    return ags_file_size(filename.GetCStr());
+    soff_t size = ags_file_size(filename.GetCStr());
+#if AGS_PLATFORM_OS_ANDROID
+    if (size < 0)
+        size = GetAAssetSize(filename);
+#endif
+    return size;
 }
 
 bool File::TestReadFile(const String &filename)

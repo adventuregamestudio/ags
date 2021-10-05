@@ -152,8 +152,8 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
-    ScreenSizeDefinition def = parse_screendef(INIreadstring(cfg, "graphics", "screen_def"), kScreenDef_MaxDisplay);
-    UseDesktopSize = (def == kScreenDef_MaxDisplay);
+    // FIXME
+    UseDesktopSize = false;// (def == kScreenDef_MaxDisplay);
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
 

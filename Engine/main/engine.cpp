@@ -219,12 +219,12 @@ void engine_force_window()
     if (force_window == 1)
     {
         usetup.Screen.DisplayMode.Windowed = true;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
+        usetup.Screen.DisplayMode.ScreenSize = ScreenSizeSetup();
     }
     else if (force_window == 2)
     {
         usetup.Screen.DisplayMode.Windowed = false;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.DisplayMode.ScreenSize = ScreenSizeSetup();
     }
 }
 

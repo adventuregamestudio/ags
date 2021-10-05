@@ -100,7 +100,18 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
     cfg[sectn][item] = value;
 }
 
-ScreenSizeDefinition parse_screendef(const String &option, ScreenSizeDefinition def_value)
+
+// Legacy screen size definition
+enum ScreenSizeDefinition
+{
+    kScreenDef_Undefined = -1,
+    kScreenDef_Explicit,        // define by width & height
+    kScreenDef_ByGameScaling,   // define by game scale factor
+    kScreenDef_MaxDisplay,      // set to maximal supported (desktop/device screen size)
+    kNumScreenDef
+};
+
+ScreenSizeDefinition parse_screendef(const String &option)
 {
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
     for (int i = 0; i < kNumScreenDef; ++i)
@@ -110,7 +121,7 @@ ScreenSizeDefinition parse_screendef(const String &option, ScreenSizeDefinition 
             return (ScreenSizeDefinition)i;
         }
     }
-    return def_value;
+    return kScreenDef_Undefined;
 }
 
 FrameScaleDef parse_scaling_option(const String &option)
@@ -194,17 +205,12 @@ void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, Fram
     scsz_setup.Size = Size();
     if (windowed)
     {
-        // For the windowed we define mode by the scaled game.
-        scsz_setup.SizeDef = kScreenDef_ByGameScaling;
-        scsz_setup.MatchDeviceRatio = false;
+        scsz_setup = ScreenSizeSetup();
         frame = usetup.Screen.WinGameFrame;
     }
     else
     {
-        // For the fullscreen we set current desktop resolution, which
-        // corresponds to most comfortable fullscreen mode for the driver.
-        scsz_setup.SizeDef = kScreenDef_MaxDisplay;
-        scsz_setup.MatchDeviceRatio = true;
+        scsz_setup = ScreenSizeSetup();
         frame = usetup.Screen.FsGameFrame;
     }
 }
@@ -254,8 +260,6 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
         if (!legacy_filter.IsEmpty())
         {
             // NOTE: legacy scaling config is applied only to windowed setting
-            if (usetup.Screen.DisplayMode.Windowed)
-                usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
             int scale_factor; // FIXME
             parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.WinGameFrame,
                 scale_factor);
@@ -263,20 +267,42 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences
             if (!usetup.Screen.DisplayMode.Windowed)
             {
+                /* FIXME --- set FsGameFrame?
                 usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio =
                     (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
                      INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
+                */
             }
         }
 
         // AGS 3.4.0 - 3.4.1-rc uniform scaling option
         String uniform_frame_scale = INIreadstring(cfg, "graphics", "game_scale");
+        int src_scale = 1;
         if (!uniform_frame_scale.IsEmpty())
         {
-            int scale;
-            FrameScaleDef frame = parse_legacy_scaling_option(uniform_frame_scale, scale);
+            FrameScaleDef frame = parse_legacy_scaling_option(uniform_frame_scale, src_scale);
             usetup.Screen.FsGameFrame = frame;
             usetup.Screen.WinGameFrame = frame;
+        }
+
+        // AGS 3.5.* gfx mode with screen definition
+        ScreenSizeDefinition scr_def = parse_screendef(INIreadstring(cfg, "graphics", "screen_def"));
+        switch (scr_def)
+        {
+        case kScreenDef_Explicit:
+            usetup.Screen.DisplayMode.ScreenSize.Size = Size(
+                INIreadint(cfg, "graphics", "screen_width"),
+                INIreadint(cfg, "graphics", "screen_height"));
+            break;
+        case kScreenDef_ByGameScaling:
+            INIreadint(cfg, "graphics", "windowed") ?
+                parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win"), src_scale) :
+                parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs"), src_scale);
+            usetup.Screen.DisplayMode.ScreenSize.Scale = src_scale;
+            break;
+        default:
+            // set nothing
+            break;
         }
     }
 
@@ -367,13 +393,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = usetup.Screen.DisplayMode.Windowed ? kScreenDef_ByGameScaling : kScreenDef_MaxDisplay;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = parse_screendef(INIreadstring(cfg, "graphics", "screen_def"),
-            usetup.Screen.DisplayMode.ScreenSize.SizeDef);
 
-        usetup.Screen.DisplayMode.ScreenSize.Size = Size(INIreadint(cfg, "graphics", "screen_width"),
-                                                        INIreadint(cfg, "graphics", "screen_height"));
-        usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
         // TODO: move to config overrides (replace values during config load)
 #if AGS_PLATFORM_OS_MACOS
         usetup.Screen.Filter.ID = "none";

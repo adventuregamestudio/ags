@@ -78,6 +78,7 @@ namespace AGS.Editor
         private readonly IAppSettings _settings;
 
         private bool _changed;
+        private bool _changedProcessing;
 
         public FileWatcher(string fileName, ISaveable saveable, Action loadFile)
         {
@@ -127,10 +128,11 @@ namespace AGS.Editor
         /// </remarks>
         private void OnMainWindowActivated(object sender, EventArgs e)
         {
-            if (_changed)
+            if (_changed && !_changedProcessing)
             {
+                _changedProcessing = true;
                 LoadFile();
-                _changed = false;
+                _changed = _changedProcessing = false;
             }
         }
 

@@ -79,8 +79,8 @@ struct WinConfig
     String GfxFilterId;
     bool   UseDesktopSize;
     Size   ScreenSize;
-    GameFrameSetup FsGameFrame;
-    GameFrameSetup WinGameFrame;
+    FrameScaleDef FsGameFrame;
+    FrameScaleDef WinGameFrame;
     int    RefreshRate;
     bool   Windowed;
     bool   VSync;
@@ -118,8 +118,8 @@ void WinConfig::SetDefaults()
     GfxDriverId = "D3D9";
     UseDesktopSize = true;
     ScreenSize = get_desktop_size();
-    FsGameFrame.ScaleDef = kFrame_MaxProportional;
-    WinGameFrame.ScaleDef = kFrame_MaxRound;
+    FsGameFrame = kFrame_Proportional;
+    WinGameFrame = kFrame_Round;
     RefreshRate = 0;
     Windowed = false;
     VSync = false;
@@ -157,8 +157,10 @@ void WinConfig::Load(const ConfigTree &cfg)
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
 
-    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame)), FsGameFrame);
-    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame)), WinGameFrame);
+    FsGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs",
+        make_scaling_option(FsGameFrame)));
+    WinGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win",
+        make_scaling_option(WinGameFrame)));
 
     RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
     Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
@@ -449,7 +451,7 @@ private:
     void OnGfxDriverUpdate();
     void OnGfxFilterUpdate();
     void OnGfxModeUpdate();
-    void OnScalingUpdate(HWND hlist, GameFrameSetup &frame_setup, bool windowed);
+    void OnScalingUpdate(HWND hlist, FrameScaleDef &frame, bool windowed);
     void OnWindowedUpdate();
     void ShowAdvancedOptions();
 
@@ -480,7 +482,7 @@ private:
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
-    void FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bool windowed);
+    void FillScalingList(HWND hlist, FrameScaleDef &frame, bool windowed);
     void InitGfxModes();
     void InitDriverDescFromFactory(const String &id);
     void SaveSetup();
@@ -809,19 +811,9 @@ void WinSetupDialog::OnGfxModeUpdate()
     }
 }
 
-void WinSetupDialog::OnScalingUpdate(HWND hlist, GameFrameSetup &frame_setup, bool windowed)
+void WinSetupDialog::OnScalingUpdate(HWND hlist, FrameScaleDef &frame, bool windowed)
 {
-    int scale = GetCurItemData(hlist);
-    if (scale >= 0 && scale < kNumFrameScaleDef)
-    {
-        frame_setup.ScaleDef = (FrameScaleDefinition)scale;
-        frame_setup.ScaleFactor = 0;
-    }
-    else
-    {
-        frame_setup.ScaleDef = kFrame_IntScale;
-        frame_setup.ScaleFactor = scale >= 0 ? scale - kNumFrameScaleDef : scale;
-    }
+    frame = (FrameScaleDef)GetCurItemData(hlist);
 
     if (windowed)
         SetGfxModeText();
@@ -1004,7 +996,7 @@ void WinSetupDialog::FillLanguageList()
     }
 }
 
-void WinSetupDialog::FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bool windowed)
+void WinSetupDialog::FillScalingList(HWND hlist, FrameScaleDef &frame, bool windowed)
 {
     ResetContent(hlist);
 
@@ -1018,9 +1010,9 @@ void WinSetupDialog::FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bo
     if (windowed)
         AddString(hlist, "None (original game size)", 1 + kNumFrameScaleDef);
 
-    AddString(hlist, "Max round multiplier", kFrame_MaxRound);
-    AddString(hlist, "Fill whole screen", kFrame_MaxStretch);
-    AddString(hlist, "Stretch, preserving aspect ratio", kFrame_MaxProportional);
+    AddString(hlist, "Max round multiplier", kFrame_Round);
+    AddString(hlist, "Fill whole screen", kFrame_Stretch);
+    AddString(hlist, "Stretch, preserving aspect ratio", kFrame_Proportional);
 
     if (windowed && !_winCfg.GameResolution.IsNull())
     {
@@ -1029,11 +1021,10 @@ void WinSetupDialog::FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bo
             AddScalingString(hlist, scale);
     }
 
-    SetCurSelToItemData(hlist,
-        frame_setup.ScaleDef == kFrame_IntScale ? frame_setup.ScaleFactor + kNumFrameScaleDef : frame_setup.ScaleDef, NULL, 0);
+    SetCurSelToItemData(hlist, frame, NULL, 0);
 
     EnableWindow(hlist, SendMessage(hlist, CB_GETCOUNT, 0, 0) > 1 ? TRUE : FALSE);
-    OnScalingUpdate(hlist, frame_setup, windowed);
+    OnScalingUpdate(hlist, frame, windowed);
 }
 
 void WinSetupDialog::InitGfxModes()
@@ -1190,20 +1181,18 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, bool use_deskt
 void WinSetupDialog::SetGfxModeText()
 {
     Size sz;
-    const GameFrameSetup &frame_setup = _winCfg.WinGameFrame;
-    if (frame_setup.ScaleDef == kFrame_MaxStretch)
+    const FrameScaleDef &frame = _winCfg.WinGameFrame;
+    switch (frame)
     {
-        sz = _maxWindowSize;
+    case kFrame_Stretch: sz = _maxWindowSize; break;
+    case kFrame_Proportional: sz = ProportionalStretch(_maxWindowSize, _winCfg.GameResolution); break;
+    default: ; break;
     }
-    else if (frame_setup.ScaleDef == kFrame_MaxProportional)
-    {
-        sz = ProportionalStretch(_maxWindowSize, _winCfg.GameResolution);
-    }
-    else
+    /* FIXME
     {
         int scale = 0;
-        if (frame_setup.ScaleDef == kFrame_MaxRound)
-            scale = _maxGameScale;
+        if (frame_setup.ScaleDef == maxround)
+            scale = _maxGameScale
         else
             scale = frame_setup.ScaleFactor;
 
@@ -1218,6 +1207,7 @@ void WinSetupDialog::SetGfxModeText()
             sz.Height = _winCfg.GameResolution.Height / (-scale);
         }
     }
+    */
     String text = String::FromFormat("%d x %d", sz.Width, sz.Height);
     SetText(_hGfxModeText, STR(text));
 }

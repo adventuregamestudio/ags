@@ -200,21 +200,6 @@ int convert_fp_to_scaling(uint32_t scaling)
     return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
 }
 
-void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, FrameScaleDef &frame)
-{
-    scsz_setup.Size = Size();
-    if (windowed)
-    {
-        scsz_setup = ScreenSizeSetup();
-        frame = usetup.Screen.WinGameFrame;
-    }
-    else
-    {
-        scsz_setup = ScreenSizeSetup();
-        frame = usetup.Screen.FsGameFrame;
-    }
-}
-
 String find_default_cfg_file()
 {
     return Path::ConcatPaths(usetup.startup_dir, DefaultConfigFileName);
@@ -252,7 +237,7 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
         usetup.override_upscale = true; // run low-res game in high-res mode
     }
 
-    usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
+    usetup.Screen.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
     usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
 
     {
@@ -265,7 +250,7 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
                 scale_factor);
 
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences
-            if (!usetup.Screen.DisplayMode.Windowed)
+            if (!usetup.Screen.Windowed)
             {
                 /* FIXME --- set FsGameFrame?
                 usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio =
@@ -290,15 +275,17 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
         switch (scr_def)
         {
         case kScreenDef_Explicit:
-            usetup.Screen.DisplayMode.ScreenSize.Size = Size(
-                INIreadint(cfg, "graphics", "screen_width"),
-                INIreadint(cfg, "graphics", "screen_height"));
+            usetup.Screen.FsSetup =
+                usetup.Screen.WinSetup = WindowSetup(Size(
+                    INIreadint(cfg, "graphics", "screen_width"),
+                    INIreadint(cfg, "graphics", "screen_height")));
             break;
         case kScreenDef_ByGameScaling:
             INIreadint(cfg, "graphics", "windowed") ?
                 parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win"), src_scale) :
                 parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs"), src_scale);
-            usetup.Screen.DisplayMode.ScreenSize.Scale = src_scale;
+            usetup.Screen.FsSetup =
+                usetup.Screen.WinSetup = WindowSetup(src_scale);
             break;
         default:
             // set nothing
@@ -306,7 +293,7 @@ void read_legacy_graphics_config(const ConfigTree &cfg)
         }
     }
 
-    usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
+    usetup.Screen.Params.RefreshRate = INIreadint(cfg, "misc", "refresh");
 }
 
 // Variables used for mobile port configs
@@ -392,7 +379,7 @@ void apply_config(const ConfigTree &cfg)
         // Graphics mode
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
 
-        usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
+        usetup.Screen.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
 
         // TODO: move to config overrides (replace values during config load)
 #if AGS_PLATFORM_OS_MACOS
@@ -405,8 +392,8 @@ void apply_config(const ConfigTree &cfg)
             parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "round"));
 #endif
 
-        usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");
-        usetup.Screen.DisplayMode.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
+        usetup.Screen.Params.RefreshRate = INIreadint(cfg, "graphics", "refresh");
+        usetup.Screen.Params.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
         usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
         usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
 
@@ -510,7 +497,7 @@ void save_config_file()
         // in each modes (by explicit width/height values or from game scaling).
         // This specifically *must* be done if there will be script API for modifying fullscreen
         // resolution, or size of the window could be changed any way at runtime.
-        if (is_windowed != usetup.Screen.DisplayMode.Windowed)
+        if (is_windowed != usetup.Screen.Windowed)
         {
             if (is_windowed)
                 cfg["graphics"]["screen_def"] = "scaling";

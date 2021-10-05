@@ -218,13 +218,11 @@ void engine_force_window()
     // TODO: actually overwrite config tree instead
     if (force_window == 1)
     {
-        usetup.Screen.DisplayMode.Windowed = true;
-        usetup.Screen.DisplayMode.ScreenSize = ScreenSizeSetup();
+        usetup.Screen.Windowed = true;
     }
     else if (force_window == 2)
     {
-        usetup.Screen.DisplayMode.Windowed = false;
-        usetup.Screen.DisplayMode.ScreenSize = ScreenSizeSetup();
+        usetup.Screen.Windowed = false;
     }
 }
 
@@ -1382,7 +1380,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     return EXIT_NORMAL;
 }
 
-bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
+bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
     engine_shutdown_gfxmode();
 
@@ -1408,10 +1406,10 @@ bool engine_try_switch_windowed_gfxmode()
     engine_pre_gfxmode_release();
 
     Size init_desktop = get_desktop_size();
-    bool switch_to_windowed = !old_dm.Windowed;
-    ActiveDisplaySetting setting = graphics_mode_get_last_setting(switch_to_windowed);
+    bool windowed = !old_dm.Windowed;
+    ActiveDisplaySetting setting = graphics_mode_get_last_setting(windowed);
     DisplayMode last_opposite_mode = setting.Dm;
-    FrameScaleDef use_frame_setup = setting.Frame;
+    FrameScaleDef frame = setting.Frame;
     
     // If there are saved parameters for given mode (fullscreen/windowed)
     // then use them, if there are not, get default setup for the new mode.
@@ -1422,17 +1420,16 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        // we need to clone from initial config, because not every parameter is set by graphics_mode_get_defaults()
-        DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
-        dm_setup.Windowed = !old_dm.Windowed;
-        graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
-        res = graphics_mode_set_dm_any(game.GetGameRes(), dm_setup, old_dm.ColorDepth, use_frame_setup);
+        WindowSetup ws = windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
+        frame = windowed ? usetup.Screen.WinGameFrame : usetup.Screen.FsGameFrame;
+        res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth, windowed,
+            frame, usetup.Screen.Params);
     }
 
     // Apply corresponding frame render method
     if (res)
-        res = graphics_mode_set_render_frame(use_frame_setup);
-    
+        res = graphics_mode_set_render_frame(frame);
+
     if (!res)
     {
         // If failed, try switching back to previous gfx mode

@@ -863,7 +863,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  sys_window_set_style(false);
+  sys_window_set_style(true);
 }
 
 void OGLGraphicsDriver::UnInit()

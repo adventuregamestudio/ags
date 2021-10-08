@@ -406,13 +406,6 @@ namespace Preprocessor {
                     thisLine = PreProcessDirective(thisLine);
                 }
             }
-            if (thisLine.GetLength() >= MAX_LINE_LENGTH)
-            {
-                // For compatibility with legacy CSPARSER, which assumes lines
-                // will not be longer than 500 chars. Remove once new compiler
-                // is implemented.
-                LogError(ErrorCode::LineTooLong);
-            }
             output.WriteLine(thisLine);
         }
 

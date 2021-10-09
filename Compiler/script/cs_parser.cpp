@@ -129,9 +129,12 @@ int is_part_of_symbol(char thischar, char startchar) {
     return 0;
 }
 
-char constructedMemberName[MAX_SYM_LEN];
-char thissymbol_mangled[MAX_SYM_LEN + 1];
-char constructedFunctionName[MAX_SYM_LEN];
+// NOTE: global buffers meant to store parsed lines and symbols;
+// most of these were local char arrays of fixed size, refactored into global std::string for convenience
+std::string constructedMemberName;
+std::string thissymbol;
+std::string thissymbol_mangled;
+std::string constructedFunctionName;
 
 const char *get_member_full_name(int structSym, int memberSym) {
 
@@ -141,20 +144,29 @@ const char *get_member_full_name(int structSym, int memberSym) {
     if (memberName[0] == '.')
         memberName = &memberName[1];
 
-    sprintf(constructedMemberName, "%s::%s", sym.get_name(structSym), memberName);
-
-    return constructedMemberName;
+    const char *struct_name = sym.get_name(structSym);
+    size_t len = static_cast<size_t>(snprintf(nullptr, 0, "%s::%s", struct_name, memberName));
+    constructedMemberName.resize(len + 1);
+    snprintf(&constructedMemberName.front(), len + 1, "%s::%s", struct_name, memberName);
+    return constructedMemberName.c_str();
 }
 
 const char *get_mangled_name(const char *sname) {
-    sprintf(thissymbol_mangled, ".%s", sname);
-    return thissymbol_mangled;
+    size_t len = snprintf(nullptr, 0, ".%s", sname);
+    thissymbol_mangled.resize(len + 1);
+    snprintf(&thissymbol_mangled.front(), len + 1, ".%s", sname);
+    return thissymbol_mangled.c_str();
 }
 
 const char *get_member_func_name(int structSym, int funcSym) {
-    sprintf(constructedFunctionName, "%s::%s", sym.get_name(structSym), sym.get_name(funcSym));
-    return constructedFunctionName;
+    const char *struct_name = sym.get_name(structSym);
+    const char *func_name = sym.get_name(funcSym);
+    size_t len = static_cast<size_t>(snprintf(nullptr, 0, "%s::%s", struct_name, func_name));
+    constructedFunctionName.resize(len + 1);
+    snprintf(&constructedFunctionName.front(), len + 1, "%s::%s", struct_name, func_name);
+    return constructedFunctionName.c_str();
 }
+
 
 int sym_find_or_add(symbolTable &sym, const char *sname) {
     int symdex = sym.find(sname);
@@ -192,20 +204,18 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             continue;
         }
         // it's some sort of symbol, so read it in
-        char thissymbol[MAX_SYM_LEN];
         int symlen=1;
-        thissymbol[0]=thischar;
+        thissymbol.resize(0);
+        thissymbol.push_back(thischar);
         int thisIsEscaped = 0;
         while (is_part_of_symbol(fmem_peekc(iii),thischar)) {
 
-            thissymbol[symlen] = fmem_getc(iii);
+            thissymbol.push_back(fmem_getc(iii));
             symlen++;
-            if (symlen >= MAX_SYM_LEN - 1) break;
         }
-        thissymbol[symlen]=0;
         if ((thissymbol[0] == '\'') && (thissymbol[2] == '\'')) {
             // convert the character to its ASCII equivalent
-            sprintf(thissymbol,"%d",thissymbol[1]);
+            thissymbol = std::to_string(thissymbol[1]);
         }
         else if (thissymbol[0] == '\'') {
             cc_error("incorrectly terminated character constant");
@@ -215,17 +225,16 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         if (sym.entries[last_time].stype == SYM_DOT) {
             // mangle member variable accesses so that you can have a
             // struct called Room but also a member property called Room
-            const char *mangled_name = get_mangled_name(thissymbol);
-            strcpy(thissymbol, thissymbol_mangled);
+            thissymbol = get_mangled_name(thissymbol.c_str());
         }
 
-        int towrite = sym_find_or_add(sym, thissymbol);
+        int towrite = sym_find_or_add(sym, thissymbol.c_str());
         if (towrite < 0) {
             cc_error("symbol table overflow - could not ensure new symbol.");
             return -1;
         }
         if ((thissymbol[0] >= '0') && (thissymbol[0] <= '9')) {
-            if (strchr(thissymbol, '.') != NULL)
+            if (strchr(thissymbol.c_str(), '.') != NULL)
                 sym.entries[towrite].stype = SYM_LITERALFLOAT;
             else
                 sym.entries[towrite].stype = SYM_LITERALVALUE;
@@ -283,7 +292,6 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (sym.entries[last_time].stype != SYM_OPENBRACKET) &&
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
-                        //      printf("changed '%s' to '%s'\n",sym.get_friendly_name(towrite).c_str(),new_name);
                         towrite = sym_find_or_add(sym, new_name);
                         if (towrite < 0) {
                             cc_error("symbol table error - could not ensure new struct symbol.");
@@ -294,14 +302,14 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
         if (thissymbol[0]=='\"') {
             // strip closing speech mark
-            thissymbol[strlen(thissymbol)-1] = 0;
+            thissymbol.pop_back();
             // save the string into the string table area
             sym.entries[towrite].stype = SYM_STRING;
             sym.entries[towrite].soffs = scrip->add_string(&thissymbol[1]);
             // set it to be recognised as a string
             sym.entries[towrite].vartype = sym.normalStringSym;
 
-            if (strncmp(thissymbol, NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
+            if (strncmp(thissymbol.c_str(), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
                 snprintf(scriptNameBuffer, sizeof(scriptNameBuffer), "%s", &thissymbol[18]);
                 ccCurScriptName = scriptNameBuffer;

@@ -17,8 +17,6 @@
 #define NEST_SWITCH     11 // Case block for a switch statement
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
-// This is the maximum length of a "static string" in the script
-#define MAX_SYM_LEN 500
 #define SYM_GLOBALVAR 1
 #define SYM_LOCALVAR  2
 #define SYM_OPERATOR  3

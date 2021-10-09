@@ -130,6 +130,9 @@ int is_part_of_symbol(char thischar, char startchar) {
 }
 
 char constructedMemberName[MAX_SYM_LEN];
+char thissymbol_mangled[MAX_SYM_LEN + 1];
+char constructedFunctionName[MAX_SYM_LEN];
+
 const char *get_member_full_name(int structSym, int memberSym) {
 
     const char* memberName = sym.get_name(memberSym);
@@ -141,6 +144,16 @@ const char *get_member_full_name(int structSym, int memberSym) {
     sprintf(constructedMemberName, "%s::%s", sym.get_name(structSym), memberName);
 
     return constructedMemberName;
+}
+
+const char *get_mangled_name(const char *sname) {
+    sprintf(thissymbol_mangled, ".%s", sname);
+    return thissymbol_mangled;
+}
+
+const char *get_member_func_name(int structSym, int funcSym) {
+    sprintf(constructedFunctionName, "%s::%s", sym.get_name(structSym), sym.get_name(funcSym));
+    return constructedFunctionName;
 }
 
 int sym_find_or_add(symbolTable &sym, const char *sname) {
@@ -202,8 +215,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         if (sym.entries[last_time].stype == SYM_DOT) {
             // mangle member variable accesses so that you can have a
             // struct called Room but also a member property called Room
-            char thissymbol_mangled[MAX_SYM_LEN + 1];
-            sprintf(thissymbol_mangled, ".%s", thissymbol);
+            const char *mangled_name = get_mangled_name(thissymbol);
             strcpy(thissymbol, thissymbol_mangled);
         }
 
@@ -677,8 +689,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   // skip the opening (
   targ.getnext();
 
-  char functionName[MAX_SYM_LEN];
-  strcpy(functionName, sym.get_name(funcsym));
+  const char *functionName = sym.get_name(funcsym);
 
   if (check_not_eof(targ))
     return -1;
@@ -710,7 +721,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	    return -1;
 	  }
 
-	  sprintf(functionName, "%s::%s", sym.get_name(targ.peeknext()), sym.get_name(funcsym));
+      functionName = get_member_func_name(targ.peeknext(), funcsym);
 	  if (isMemberFunctionPtr != NULL)
 	  {
 		  *isMemberFunctionPtr = targ.peeknext();
@@ -765,7 +776,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       // e.g. MyStruct::Object
       if(isMemberFunction)
       {
-          sprintf(functionName, "%s::%s", sym.get_name(isMemberFunction), sym.get_name(funcsym));
+          functionName = get_member_func_name(isMemberFunction, funcsym);
           funcsym = sym.find(functionName);
           if (funcsym < 0)
               funcsym = sym.add(functionName);

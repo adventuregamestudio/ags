@@ -1406,7 +1406,7 @@ bool engine_try_switch_windowed_gfxmode()
     engine_pre_gfxmode_release();
 
     Size init_desktop = get_desktop_size();
-    bool windowed = !old_dm.Windowed;
+    bool windowed = !old_dm.IsWindowed();
     ActiveDisplaySetting setting = graphics_mode_get_last_setting(windowed);
     DisplayMode last_opposite_mode = setting.Dm;
     FrameScaleDef frame = setting.Frame;
@@ -1422,7 +1422,7 @@ bool engine_try_switch_windowed_gfxmode()
     {
         WindowSetup ws = windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
         frame = windowed ? usetup.Screen.WinGameFrame : usetup.Screen.FsGameFrame;
-        res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth, windowed,
+        res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
             frame, usetup.Screen.Params);
     }
 
@@ -1441,7 +1441,7 @@ bool engine_try_switch_windowed_gfxmode()
     {
         // If succeeded (with any case), update engine objects that rely on
         // active display mode.
-        if (gfxDriver->GetDisplayMode().Windowed)
+        if (!gfxDriver->GetDisplayMode().IsRealFullscreen())
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
     }

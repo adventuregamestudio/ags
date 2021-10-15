@@ -187,6 +187,11 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 12)
+            {
+                game.Settings.UseOldCustomDialogOptionsAPI = true;
+            }
+
             if (xmlVersionIndex < 15)
             {
                 game.DefaultSetup.SetDefaults();

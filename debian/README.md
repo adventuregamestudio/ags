@@ -9,6 +9,8 @@ parentheses are known to work, but other versions will also
 probably work.
 
 -   Allegro 4 (>= 4.4.3, but 4.4.2 will also work with minimal differences)
+-   libaldmb (0.9.3)
+-   libdumb (0.9.3)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
@@ -19,11 +21,11 @@ There are two general ways to proceed: either use [CMake scripts](../CMAKE.md) o
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
+    yum -y install git allegro-devel dumb-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config liballegro4-dev libogg-dev libtheora-dev libvorbis-dev
+    sudo apt-get install git debhelper build-essential pkg-config liballegro4-dev libaldmb1-dev libogg-dev libtheora-dev libvorbis-dev
 
 Other Linux systems use their respective package managers.
 

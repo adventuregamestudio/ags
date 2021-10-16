@@ -157,10 +157,8 @@ void WinConfig::Load(const ConfigTree &cfg)
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
 
-    FsGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs",
-        make_scaling_option(FsGameFrame)));
-    WinGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win",
-        make_scaling_option(WinGameFrame)));
+    FsGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs"), FsGameFrame);
+    WinGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win"), WinGameFrame);
 
     RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
     Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;

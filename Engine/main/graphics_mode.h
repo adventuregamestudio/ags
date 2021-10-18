@@ -65,6 +65,8 @@ struct WindowSetup
     int                  Scale = 0; // explicit game scale factor
     WindowMode           Mode = AGS::Engine::kWnd_Windowed; // window mode
 
+    inline bool IsDefaultSize() const { return Size.IsNull() && Scale == 0; }
+
     WindowSetup() = default;
     WindowSetup(const ::Size &sz, WindowMode mode = AGS::Engine::kWnd_Windowed)
         : Size(sz), Scale(0), Mode(mode) {}

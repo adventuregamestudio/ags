@@ -101,7 +101,7 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
 }
 
 
-static WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value = WindowSetup())
+WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value)
 {
     // "full_window" option means pseudo fullscreen ("borderless fullscreen window")
     if (!as_windowed && (option.CompareNoCase("full_window") == 0))
@@ -199,6 +199,21 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
         }
     }
     return false;
+}
+
+String make_window_mode_option(const WindowSetup &ws, const Size &desktop_res, const Size &game_res)
+{
+    if (ws.Mode == kWnd_FullDesktop)
+        return "full_window";
+    else if (ws.IsDefaultSize())
+        return "default";
+    else if (ws.Size.IsNull())
+        return String::FromFormat("x%d", ws.Scale);
+    else if (ws.Size == desktop_res)
+        return "desktop";
+    else if (ws.Size == game_res)
+        return "native";
+    return String::FromFormat("%dx%d", ws.Size.Width, ws.Size.Height);
 }
 
 String make_scaling_option(FrameScaleDef scale_def)

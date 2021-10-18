@@ -100,7 +100,8 @@ void audio_core_init()
 void audio_core_shutdown()
 {
     g_acore.audio_core_thread_running = false;
-    g_acore.audio_core_thread.join();
+    if (g_acore.audio_core_thread.joinable())
+        g_acore.audio_core_thread.join();
 
     // dispose all the active slots
     g_acore.slots_.clear();

@@ -11,12 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/route_finder.h"
-
+#include <memory>
 #include "ac/route_finder_impl.h"
 #include "ac/route_finder_impl_legacy.h"
-
 #include "debug/out.h"
 
 using AGS::Common::Bitmap;
@@ -108,19 +106,19 @@ class AGSLegacyRouteFinder : public IRouteFinder
     }
 };
 
-static IRouteFinder *route_finder_impl = nullptr;
+std::unique_ptr<IRouteFinder> route_finder_impl;
 
 void init_pathfinder(GameDataVersion game_file_version)
 {
     if (game_file_version >= kGameVersion_350) 
     {
         AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize path finder library");
-        route_finder_impl = new AGSRouteFinder();
+        route_finder_impl.reset(new AGSRouteFinder());
     } 
     else 
     {
         AGS::Common::Debug::Printf(AGS::Common::MessageType::kDbgMsg_Info, "Initialize legacy path finder library");
-        route_finder_impl = new AGSLegacyRouteFinder();
+        route_finder_impl.reset(new AGSLegacyRouteFinder());
     }
 
     route_finder_impl->init_pathfinder();
@@ -128,7 +126,8 @@ void init_pathfinder(GameDataVersion game_file_version)
 
 void shutdown_pathfinder()
 {
-    route_finder_impl->shutdown_pathfinder();
+    if (route_finder_impl)
+        route_finder_impl->shutdown_pathfinder();
 }
 
 void set_wallscreen(Bitmap *wallscreen)

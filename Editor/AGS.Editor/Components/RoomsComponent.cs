@@ -1657,6 +1657,7 @@ namespace AGS.Editor.Components
                 newBmp.Palette = palette;
 
                 newBmp.SetGlobalPaletteFromPalette();
+                // TODO Implement remap_background from AGS.Native
             }
 
             if (background >= _backgroundCache.Count)

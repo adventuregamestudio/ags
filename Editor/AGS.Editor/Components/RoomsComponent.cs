@@ -1179,8 +1179,8 @@ namespace AGS.Editor.Components
                 }
 
 				oldRoom.Number = numberRequested;
-                XElement newRoomXml = XElement.Load(tempNewRoom.DataFileName);
-                newRoomXml.SetElementValue("Number", numberRequested);
+                XDocument newRoomXml = XDocument.Load(tempNewRoom.DataFileName);
+                newRoomXml.Element("Room").SetElementValue("Number", numberRequested);
                 newRoomXml.Save(tempNewRoom.DataFileName);
 
 				LoadDifferentRoom(oldRoom);

@@ -97,11 +97,21 @@ namespace AGS.Types
             }
         }
 
-        [DisplayName("Windowed mode")]
-        [Description("Run the game in window as opposed to fullscreen mode.")]
+        [DisplayName("Start in windowed mode")]
+        [Description("Run the game in windowed as opposed to fullscreen mode.")]
         [DefaultValue(false)]
         [Category("Graphics")]
         public bool Windowed
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Fullscreen as borderless window")]
+        [Description("In fullscreen mode create a borderless window covering whole desktop as opposed to exclusive (real) fullscreen.")]
+        [DefaultValue(true)]
+        [Category("Graphics")]
+        public bool FullscreenDesktop
         {
             get;
             set;

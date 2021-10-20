@@ -104,8 +104,6 @@ public:
 
         inline bool HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
 
-        inline bool IsForwardDecl(Symbol func) { return (0 == _funcCallpointMap.count(func)); }
-
         // Give an error message and return a value < 0 iff there are still callpoints
         // without a location
         ErrorType CheckForUnresolvedFuncs();

@@ -3604,7 +3604,7 @@ TEST_F(Bytecode0, Func17) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode0, FuncStart1) {
+TEST_F(Bytecode0, Func18) {
 
     // NON-managed dynpointers must be read/rewritten at function start, too.
 
@@ -3621,7 +3621,7 @@ TEST_F(Bytecode0, FuncStart1) {
     int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("FuncStart1", scrip);
+    // WriteOutput("Func18", scrip);
     const size_t codesize = 40;
     EXPECT_EQ(codesize, scrip.codesize);
 
@@ -3659,6 +3659,78 @@ TEST_F(Bytecode0, FuncStart1) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+TEST_F(Bytecode0, Func19) {
+
+    // Multiple forward calls should _all_ resolve to the correct function address
+
+    char inpl[] = "\
+        int main()                      \n\
+        {                               \n\
+            MKB(0, 7);                  \n\
+            MKB(1, 9);                  \n\
+            MKB(2, 7);                  \n\
+            MKB(3, 11);                 \n\
+            MKB(4, 9);                  \n\
+            MKB(5, 8);                  \n\
+        }                               \n\
+        int MKB(int cp, int lastbook)   \n\
+        {                               \n\
+            return cp + lastbook;       \n\
+        }                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Func19", scrip);
+    size_t const codesize = 140;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            7,   29,    3,    6,    // 7
+       3,    0,   29,    3,            6,    3,  114,   23,    // 15
+       3,    2,    1,    8,            6,    3,    9,   29,    // 23
+       3,    6,    3,    1,           29,    3,    6,    3,    // 31
+     114,   23,    3,    2,            1,    8,    6,    3,    // 39
+       7,   29,    3,    6,            3,    2,   29,    3,    // 47
+       6,    3,  114,   23,            3,    2,    1,    8,    // 55
+       6,    3,   11,   29,            3,    6,    3,    3,    // 63
+      29,    3,    6,    3,          114,   23,    3,    2,    // 71
+       1,    8,    6,    3,            9,   29,    3,    6,    // 79
+       3,    4,   29,    3,            6,    3,  114,   23,    // 87
+       3,    2,    1,    8,            6,    3,    8,   29,    // 95
+       3,    6,    3,    5,           29,    3,    6,    3,    // 103
+     114,   23,    3,    2,            1,    8,    6,    3,    // 111
+       0,    5,   38,  114,           51,    8,    7,    3,    // 119
+      29,    3,   51,   16,            7,    3,   30,    4,    // 127
+      11,    4,    3,    3,            4,    3,   31,    3,    // 135
+       6,    3,    0,    5,          -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 6;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      14,   32,   50,   68,         86,  104,  -999
+    };
+    char fixuptypes[] = {
+      2,   2,   2,   2,      2,   2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
 
 TEST_F(Bytecode0, Export) {
     

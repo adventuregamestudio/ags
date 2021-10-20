@@ -80,6 +80,7 @@
     <Compile Include="Types\RoomTests.cs" />
     <Compile Include="Types\RoomWalkableAreaTests.cs" />
     <Compile Include="Types\RoomWalkBehindTests.cs" />
+    <Compile Include="Types\SpriteTests.cs" />
     <Compile Include="Types\UnloadedRoomTests.cs" />
   </ItemGroup>
   <ItemGroup>

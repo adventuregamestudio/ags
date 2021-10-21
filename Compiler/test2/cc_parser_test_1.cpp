@@ -570,6 +570,8 @@ TEST_F(Compile1, FuncParamNumber1) {
 
 TEST_F(Compile1, FuncParamNumber2) {  
 
+    // Instantiation has number of parameters than is different from declaration
+
     char *inpl = "\
         struct Test                                         \n\
         {                                                   \n\
@@ -640,23 +642,26 @@ TEST_F(Compile1, FuncReturnStruct1) {
 
 TEST_F(Compile1, FuncReturnStruct2) { 
 
-    // Should work -- Compiler will imply the '*'
+    // Compiler will imply the '*'
+    // but should be slightly unhappy about the missing return statement
 
     char *inpl = "\
-        managed struct Struct {  };             \n\
-        Struct Func()                           \n\
-        {                                       \n\
-        }                                       \n\
+        managed struct Struct {  }; \n\
+        Struct Func()               \n\
+        {                           \n\
+        }                           \n\
         ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+
+    MessageHandler mh;
+    int compileResult = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    ASSERT_LE(1u, mh.GetMessages().size());
+    EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
 TEST_F(Compile1, FuncReturnStruct3) {
 
-    // Should work
+    // Compiler should be slightly unhappy about the missing return statement
 
     char *inpl = "\
         managed struct Struct {  };             \n\
@@ -665,9 +670,62 @@ TEST_F(Compile1, FuncReturnStruct3) {
         }                                       \n\
         ";
     
-    int compileResult = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    MessageHandler mh;
+    int compileResult = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    ASSERT_LE(1u, mh.GetMessages().size());
+    EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
+}
+
+TEST_F(Compile1, FuncReturn1) {
+
+    // Should detect that the 'I' define can't be reached
+    // Should not warn about a missing return at end of function body.
+
+    char *inpl = "\
+        import int Random(int); \n\
+        float Func()            \n\
+        {                       \n\
+            if (Random(2))      \n\
+                return 1.0;     \n\
+            else                \n\
+                return 2.0;     \n\
+            int I = 0;          \n\
+        }                       \n\
+        ";
+    
+    MessageHandler mh;
+    int compileResult = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    ASSERT_LE(1u, mh.GetMessages().size());
+    EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
+}
+
+TEST_F(Compile1, FuncReturn2) {
+
+    // Should detect that the 'I' assignment can't be reached
+    // Should warn about a missing return at end of function body.
+
+    char *inpl = "\
+        import int Random(int); \n\
+        float Func()            \n\
+        {                       \n\
+            int I = 9;          \n\
+            if (Random(2))      \n\
+            {                   \n\
+                return 1.0;     \n\
+                I = -9'999;     \n\
+            }                   \n\
+            else                \n\
+                I = 0;          \n\
+        }                       \n\
+        ";
+    
+    MessageHandler mh;
+    int compileResult = cc_compile(inpl, 0u, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    ASSERT_LE(1u, mh.GetMessages().size());
+    EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
 
 TEST_F(Compile1, FuncDouble) {
@@ -675,7 +733,7 @@ TEST_F(Compile1, FuncDouble) {
     // No two equally-named functions with body
 
     char *inpl = "\
-        void Func()                             \n\
+        int Func()                             \n\
         {                                       \n\
         }                                       \n\
         void Func()                             \n\
@@ -707,7 +765,7 @@ TEST_F(Compile1, FuncProtected) {
 
 TEST_F(Compile1, FuncNameClash1) {
 
-    // Can't give a parameter differing defaults
+    // Function name mustn't equal a variable name.
 
     char *inpl = "\
         int Func;                               \n\
@@ -1840,6 +1898,7 @@ TEST_F(Compile1, CompileTimeConstant3)
     char *inpl = "\
         struct Str                          \n\
         {                                   \n\
+            int stuff;                      \n\
             const int foo = 17;             \n\
             static const int foo_squared =  \n\
                 Str.foo * Str.foo;          \n\

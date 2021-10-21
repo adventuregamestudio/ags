@@ -27,6 +27,11 @@ int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
         false;
 
     int const error_code = cc_compile(inpl, options, scrip, mh);
+
+    // This variant of cc_compile() is only intended to be called for code that doesn't yield warnings.
+    if (!mh.GetMessages().empty()) 
+        EXPECT_NE(MessageHandler::kSV_Warning, mh.GetMessages().at(0u).Severity);
+
     if (error_code >= 0)
     {
         // Here if there weren't any errors.
@@ -505,6 +510,7 @@ TEST_F(Compile0, FuncDeclReturnVartype) {
     static DynamicSprite *[]                                        \n\
         RotatedView::CreateLoop(int view, int loop, int base_loop)  \n\
     {                                                               \n\
+        return null;                                                \n\
     }                                                               \n\
    ";
     
@@ -1022,7 +1028,7 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));  
     ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
 
-    ASSERT_EQ(1u, mh.GetMessages().size());
+    ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_EQ(7u, mh.GetMessages()[0].Lineno);
 }
 
@@ -2074,7 +2080,9 @@ TEST_F(Compile0, StructPtrFunc) {
             MS *Func();         \n\
         };                      \n\
         MS *MS::Func()          \n\
-        {}                      \n\
+        {                       \n\
+            return null;        \n\
+        }                       \n\
         ";
    
     int compileResult = cc_compile(inpl, scrip);
@@ -2099,7 +2107,7 @@ TEST_F(Compile0, StringOldstyle01) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string lerr = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, lerr.find("local string"));
+    EXPECT_NE(std::string::npos, lerr.find("local 'string'"));
 }
 
 TEST_F(Compile0, StringOldstyle02) {

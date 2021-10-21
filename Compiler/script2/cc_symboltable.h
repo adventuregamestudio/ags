@@ -177,6 +177,7 @@ enum Predefined : Symbol
     kKW_Enum,           // "enum"
     kKW_Export,         // "export"
     kKW_Extends,        // "extends"
+    kKW_FallThrough,    // "fallthrough"
     kKW_For,            // "for"
     kKW_If,             // "if"
     kKW_ImportStd,      // "import"

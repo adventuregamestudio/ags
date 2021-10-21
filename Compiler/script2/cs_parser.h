@@ -175,6 +175,8 @@ private:
             kSwitch,
             kWhile,
         };
+        static int const kNoDefault = INT_MAX;
+        static int const kNoJumpOut = INT_MAX;
 
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
@@ -195,9 +197,20 @@ private:
             NSType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
             BackwardJumpDest Start; // of the construct
             ForwardJump JumpOut; // First byte after the construct
+            // 'break', 'continue', and 'return' potentially jump out of several nestings.
+            // In these cases, 'JumpOutLevel' is set to the level they jump out to.
+            // If 'JumpOutLevel' < 'TopLevel' then we have passed a dead end and
+            // code execution can't reach the current commands.
+            size_t JumpOutLevel; 
+            bool DeadEndWarned; // Whether a warning about the dead end has already been issued
+            // 'if' and 'switch' have more than one branch. This is set to the _highest_ 
+            // jumpout level of the 'returns' etc. encountered in the branches.
+            // Only if 'JumpOutLevel' < 'TopLevel' for _all_ the branches, then we can
+            // guarantee that execution can't pass the end of this compound statement.
+            size_t BranchJumpOutLevel; 
             Vartype SwitchExprVartype; // when switch: the vartype of the switch expression
-            BackwardJumpDest SwitchDefault; // when switch: code location of the default: label
-            std::vector<BackwardJumpDest> SwitchCases; // when switch: code locations of the case labels
+            std::vector<BackwardJumpDest> SwitchCaseStart; // when switch: code locations of the case labels
+            size_t SwitchDefaultIdx; // when switch: code location of the default: label
             ForwardJump SwitchJumptable; // when switch: code location of the "jumptable"
             std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
@@ -234,14 +247,18 @@ private:
         inline ForwardJump &JumpOut(size_t level) { return _stack.at(level).JumpOut; }
 
         // If the innermost nesting is a SWITCH, the type of the switch expression
-        inline Vartype SwitchExprVartype() const { return _stack.back().SwitchExprVartype; };
+        inline Vartype SwitchExprVartype() const { return _stack.back().SwitchExprVartype; }
         inline void SetSwitchExprVartype(Vartype vt) { _stack.back().SwitchExprVartype = vt; }
 
         // If the innermost nesting is a SWITCH, the location of the "default:" code
-        inline BackwardJumpDest &SwitchDefault() { return _stack.back().SwitchDefault; }
+        inline size_t &SwitchDefaultIdx() { return _stack.back().SwitchDefaultIdx; }
+
+        inline size_t &JumpOutLevel() { return _stack.back().JumpOutLevel; }
+        inline bool &DeadEndWarned() { return _stack.back().DeadEndWarned; }
+        inline size_t &BranchJumpOutLevel() { return _stack.back().BranchJumpOutLevel; }
         
-        // If the innermost nesting is a SWITCH, the location of code of the cases
-        inline std::vector<BackwardJumpDest> &SwitchCases() { return _stack.back().SwitchCases; }
+        // If the innermost nesting is a SWITCH, the location of the code of the switch cases
+        inline std::vector<BackwardJumpDest> &SwitchCaseStart() { return _stack.back().SwitchCaseStart; }
 
         // If the innermost nesting is a SWITCH, the location of the jump table
         inline ForwardJump &SwitchJumptable() { return _stack.back().SwitchJumptable; }
@@ -899,6 +916,9 @@ private:
     // Parse, e.g., "switch (bar)"
     ErrorType ParseSwitch();
 
+    // Parse "fallthrough;"
+    ErrorType ParseSwitchFallThrough();
+
     // Parse "case foo:" or "default:"
     ErrorType ParseSwitchLabel(Symbol case_or_default);
 
@@ -921,7 +941,7 @@ private:
 
     ErrorType ParseContinue();
 
-    ErrorType ParseCloseBrace();
+    AGS::ErrorType ParseOpenBrace(Symbol struct_of_current_func, Symbol name_of_current_func);
 
     // Parse a command. The leading symbol has already been eaten
     ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func);

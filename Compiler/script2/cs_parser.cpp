@@ -324,13 +324,17 @@ AGS::ErrorType AGS::Parser::Expect(std::vector<Symbol> const &expected, Symbol a
 
 AGS::Parser::NestingStack::NestingInfo::NestingInfo(NSType stype, ccCompiledScript &scrip)
     : Type(stype)
-    , OldDefinitions({})
     , Start(BackwardJumpDest{ scrip })
     , JumpOut(ForwardJump{ scrip })
-    , SwitchExprVartype(0)
-    , SwitchDefault({ scrip })
-    , SwitchJumptable({ scrip })
-    , Chunks({})
+    , JumpOutLevel(kNoJumpOut)
+    , DeadEndWarned(false)
+    , BranchJumpOutLevel(0u)
+    , SwitchExprVartype(kKW_NoSymbol)
+    , SwitchCaseStart(std::vector<BackwardJumpDest>{})
+    , SwitchDefaultIdx(kNoDefault)
+    , SwitchJumptable(ForwardJump{ scrip })
+    , Chunks(std::vector<Chunk>{})
+    , OldDefinitions({})
 {
 }
 
@@ -928,7 +932,11 @@ AGS::ErrorType AGS::Parser::HandleEndOfDo()
     _nest.Start().WriteJump(SCMD_JNZ, _src.GetLineno());
     // Jumps out of the loop should go here
     _nest.JumpOut().Patch(_src.GetLineno());
+
+    size_t const jumpout_level = _nest.JumpOutLevel();
     _nest.Pop();
+    if (_nest.JumpOutLevel() > jumpout_level)
+        _nest.JumpOutLevel() = jumpout_level;
 
     return kERR_None;
 }
@@ -936,16 +944,24 @@ AGS::ErrorType AGS::Parser::HandleEndOfDo()
 AGS::ErrorType AGS::Parser::HandleEndOfElse()
 {
     _nest.JumpOut().Patch(_src.GetLineno());
+    size_t const jumpout_level =
+        std::max<size_t>(_nest.BranchJumpOutLevel(), _nest.JumpOutLevel());
     _nest.Pop();
+    if (_nest.JumpOutLevel() > jumpout_level)
+        _nest.JumpOutLevel() = jumpout_level;
     return kERR_None;
 }
 
 AGS::ErrorType AGS::Parser::HandleEndOfSwitch()
 {
-    // If there was no terminating break at the last switch-case, 
+    // A branch has just ended; set the jumpout level
+    _nest.BranchJumpOutLevel() =
+        std::max<size_t>(_nest.BranchJumpOutLevel(), _nest.JumpOutLevel());
+
+    // Unless code execution can't reach this point, 
     // write a jump to the jumpout point to prevent a fallthrough into the jumptable
-    CodeLoc const lastcmd_loc = _scrip.codesize - 2;
-    if (SCMD_JMP != _scrip.code[lastcmd_loc])
+    bool const dead_end = _nest.JumpOutLevel() > _nest.TopLevel();
+    if (dead_end)
     {
         WriteCmd(SCMD_JMP, kDestinationPlaceholder);
         _nest.JumpOut().AddParam();
@@ -959,24 +975,38 @@ AGS::ErrorType AGS::Parser::HandleEndOfSwitch()
         _sym.IsAnyStringVartype(_nest.SwitchExprVartype()) ? SCMD_STRINGSEQUAL : SCMD_ISEQUAL;
 
     const size_t number_of_cases = _nest.Chunks().size();
+    const size_t default_idx = _nest.SwitchDefaultIdx();
     for (size_t cases_idx = 0; cases_idx < number_of_cases; ++cases_idx)
     {
+        if (cases_idx == default_idx)
+            continue;
+
         int id;
         CodeLoc const codesize = _scrip.codesize;
         // Emit the code for the case expression of the current case. Result will be in AX
         _nest.WriteChunk(cases_idx, id);
         _fcm.UpdateCallListOnWriting(codesize, id);
         _fim.UpdateCallListOnWriting(codesize, id);
-        
+
+        // "If switch expression equals case expression, jump to case"
         WriteCmd(eq_opcode, SREG_AX, SREG_BX);
-        _nest.SwitchCases().at(cases_idx).WriteJump(SCMD_JNZ, _src.GetLineno());
+        _nest.SwitchCaseStart().at(cases_idx).WriteJump(SCMD_JNZ, _src.GetLineno());
     }
 
-    if (INT_MAX != _nest.SwitchDefault().Get())
-        _nest.SwitchDefault().WriteJump(SCMD_JMP, _src.GetLineno());
+    if (NestingStack::kNoDefault != _nest.SwitchDefaultIdx())
+        // "Jump to the default"
+        _nest.SwitchCaseStart()[_nest.SwitchDefaultIdx()].WriteJump(SCMD_JMP, _src.GetLineno());
 
     _nest.JumpOut().Patch(_src.GetLineno());
+
+     // If there isn't a 'default:' branch then control may perhaps continue
+     // after this switch (or at least we can't guarantee otherwise)
+     size_t const overall_jumpout_level = NestingStack::kNoDefault == _nest.SwitchDefaultIdx() ?
+         _nest.TopLevel() : _nest.BranchJumpOutLevel();
+
     _nest.Pop();
+    if (_nest.JumpOutLevel() > overall_jumpout_level)
+        _nest.JumpOutLevel() = overall_jumpout_level;
     return kERR_None;
 }
 
@@ -1008,7 +1038,8 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartyp
             return kERR_None;
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as the default for a dynamic object (prefer 'null')");
+            if (PP::kMain == _pp)
+                Warning("Found '0' as the default for a dynamic object (prefer 'null')");
             return kERR_None;
         }
         Error("Expected the parameter default 'null', found '%s' instead", _sym.GetName(default_symbol).c_str());
@@ -1020,7 +1051,8 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartyp
         default_value = default_symbol;
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as the default for a string (prefer '\"\"')");
+            if (PP::kMain == _pp)
+                Warning("Found '0' as the default for a string (prefer '\"\"')");
             return kERR_None;
         }
         if (!_sym.IsLiteral(default_value) || kKW_String != _sym[default_value].LiteralD->Vartype)
@@ -1049,7 +1081,8 @@ AGS::ErrorType AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartyp
     {
         if (_sym.Find("0") == default_symbol)
         {
-            Warning("Found '0' as the default for a float (prefer '0.0')");
+            if (PP::kMain == _pp)
+                Warning("Found '0' as the default for a float (prefer '0.0')");
         }
         else if (!_sym.IsLiteral(default_symbol) || kKW_Float != _sym[default_symbol].LiteralD->Vartype)
         {
@@ -4861,6 +4894,12 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype
 
 AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 {
+    if (!_nest.DeadEndWarned() && _nest.JumpOutLevel() < _nest.TopLevel())
+    {
+        Warning("Code execution can't reach this point");
+        _nest.DeadEndWarned() = true;
+    }
+
     size_t const var_size = _sym.GetSize(vartype);
     bool const is_dyn = _sym.IsDynVartype(vartype);
 
@@ -4899,7 +4938,6 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     // Vartypes must match. This is true even if the lhs is readonly.
     // As a special case, a string may be assigned a const string because the const string will be copied, not modified.
     Vartype const lhsvartype = vartype;
-    
 
     if (IsVartypeMismatch_Oneway(rhsvartype, lhsvartype) &&
         !(kKW_String == _sym.VartypeWithout(VTT::kConst, rhsvartype) &&
@@ -5104,33 +5142,44 @@ AGS::ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name
 
 AGS::ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
-    // Free all the dynpointers in parameters and locals. 
-    FreeDynpointersOfLocals(1u);
-    // Pop the local variables proper from the stack but leave the parameters.
-    // This is important because the return address is directly above the parameters;
-    // we need the return address to return. (The caller will pop the parameters later.)
-    RemoveLocalsFromStack(_sym.kFunctionScope);
+    bool const dead_end = _nest.JumpOutLevel() <= _sym.kParameterScope;
+
+    if (!dead_end)
+    {
+        // Free all the dynpointers in parameters and locals. 
+        FreeDynpointersOfLocals(1u);
+        // Pop the local variables proper from the stack but leave the parameters.
+        // This is important because the return address is directly above the parameters;
+        // we need the return address to return. (The caller will pop the parameters later.)
+        RemoveLocalsFromStack(_sym.kFunctionScope);
+    }
     // All the function variables, _including_ the parameters, become invalid.
     RestoreLocalsFromSymtable(_sym.kParameterScope);
 
-    // Function has ended. Set AX to 0 unless the function doesn't return any value.
-    if (kKW_Void != _sym[name_of_current_func].FunctionD->Parameters.at(0u).Vartype)
-        WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+    if (!dead_end)
+    {
+        // Function has ended. Set AX to 0 unless the function doesn't return any value.
+        Vartype const return_vartype = _sym[name_of_current_func].FunctionD->Parameters.at(0u).Vartype;
+        if (kKW_Void != return_vartype)
+            WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+
+        if (kKW_Void != return_vartype &&
+            !_sym.IsAnyIntegerVartype(return_vartype))
+            // This function needs to return a value, the default '0' isn't suitable
+            Warning("Code execution may reach this point and the default '0' return isn't suitable (did you forget a 'return' statement?)");
+        WriteCmd(SCMD_RET);
+    }
 
     // We've just finished the body of the current function.
     name_of_current_func = kKW_NoSymbol;
     struct_of_current_func = _sym[kKW_This].VariableD->Vartype = kKW_NoSymbol;
     
-
     _nest.Pop();    // End function variables nesting
-    _nest.JumpOut().Patch(_src.GetLineno());
     _nest.Pop();    // End function parameters nesting
-
-    WriteCmd(SCMD_RET);
+   
     // This has popped the return address from the stack, 
     // so adjust the offset to the start of the parameters.
     _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
-
     return kERR_None;
 }
 
@@ -6535,7 +6584,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     {
         if (functionReturnType == kKW_Void)
         {
-            Error("Cannot return value from void function");
+            Error("Cannot return a value from a 'void' function");
             return kERR_UserError;
         }
 
@@ -6547,14 +6596,14 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
 
         ConvertAXStringToStringObject(functionReturnType, vartype);
 
-        // check return type is correct
+        // check whether the return type is correct
         retval = CheckVartypeMismatch(vartype, functionReturnType, true, "");
         if (retval < 0) return retval;
 
         if (_sym.IsOldstring(vartype) &&
             (ScT::kLocal == scope_type))
         {
-            Error("Cannot return local string from function");
+            Error("Cannot return a local 'string' from a function");
             return kERR_UserError;
         }
     }
@@ -6571,6 +6620,9 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     ErrorType retval = Expect(kKW_Semicolon, _src.GetNext());
     if (retval < 0) return retval;
 
+    _nest.JumpOutLevel() =
+        std::min(_nest.JumpOutLevel(), _sym.kParameterScope);
+
     // If locals contain pointers, free them
     if (_sym.IsDynVartype(functionReturnType))
         FreeDynpointersOfAllLocals_DynResult(); // Special protection for result needed
@@ -6585,9 +6637,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     // we need the return address to return. (The caller will pop the parameters later.)
     RemoveLocalsFromStack(_sym.kFunctionScope);
   
-    // Jump to the exit point of the function
-    WriteCmd(SCMD_JMP, kDestinationPlaceholder);
-    _nest.JumpOut(_sym.kParameterScope).AddParam();
+    WriteCmd(SCMD_RET);
 
     // The locals only disappear if control flow actually follows the "return"
     // statement. Otherwise, below the statement, the locals remain on the stack.
@@ -6599,9 +6649,9 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
 // Evaluate the header of an "if" clause, e.g. "if (i < 0)".
 AGS::ErrorType AGS::Parser::ParseIf()
 {
-    ScopeType scope_type;
+    ScopeType scope_type_dummy;
     Vartype vartype;
-    ErrorType retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis, scope_type, vartype);
+    ErrorType retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis, scope_type_dummy, vartype);
     if (retval < 0) return retval;
 
     _nest.Push(NSType::kIf);
@@ -6620,12 +6670,15 @@ AGS::ErrorType AGS::Parser::HandleEndOfIf(bool &else_follows)
     {
         else_follows = false;
         _nest.JumpOut().Patch(_src.GetLineno());
-        _nest.Pop();
+        _nest.Pop(); 
         return kERR_None;
     }
 
     else_follows = true;
     _src.GetNext(); // Eat "else"
+    _nest.BranchJumpOutLevel() = _nest.JumpOutLevel();
+    _nest.JumpOutLevel() = _nest.kNoJumpOut;
+
     // Match the 'else' clause that is following to this 'if' stmt:
     // So we're at the end of the "then" branch. Jump out.
     _scrip.WriteCmd(SCMD_JMP, kDestinationPlaceholder);
@@ -6702,7 +6755,10 @@ AGS::ErrorType AGS::Parser::HandleEndOfBraceCommand()
     FreeDynpointersOfLocals(depth);
     RemoveLocalsFromStack(depth);
     RestoreLocalsFromSymtable(depth);
+    size_t const jumpout_level = _nest.JumpOutLevel();
     _nest.Pop();
+    if (_nest.JumpOutLevel() > jumpout_level)
+        _nest.JumpOutLevel() = jumpout_level;
     return kERR_None;
 }
 
@@ -6882,71 +6938,100 @@ AGS::ErrorType AGS::Parser::ParseFor()
 
 AGS::ErrorType AGS::Parser::ParseSwitch()
 {
+    RestorePoint rp{ _scrip };
+
     // Get the switch expression
-    ErrorType retval = Expect(kKW_OpenParenthesis, _src.GetNext());
+    ScopeType scope_type_dummy;
+    Vartype vartype;
+    ErrorType retval = ParseDelimitedExpression(_src, kKW_OpenParenthesis, scope_type_dummy, vartype);
     if (retval < 0) return retval;
-    ScopeType scope_type;
-    Vartype vartype; 
-    retval = ParseExpression(_src, scope_type, vartype);
-    if (retval < 0) return retval;
-    retval = Expect(kKW_CloseParenthesis, _src.GetNext());
-    if (retval < 0) return retval;
-
-    // Remember the type of this expression to enforce it later
-    Vartype const switch_expr_vartype = vartype;
-
-    // Copy the result to the BX register, ready for case statements
-    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
 
     retval = Expect(kKW_OpenBrace, _src.GetNext());
     if (retval < 0) return retval;
 
+    if (kKW_CloseBrace == _src.PeekNext())
+    {
+        // A switch without any clauses, tantamount to a NOP
+        rp.Restore();
+        _src.GetNext(); // Eat '}'
+        return kERR_None;
+    }
+
+    // Copy the result to the BX register, ready for case statements
+    WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
+
     _nest.Push(NSType::kSwitch);
-    _nest.SetSwitchExprVartype(switch_expr_vartype);
-    _nest.SwitchDefault().Set(INT_MAX); // no default case encountered yet
+    _nest.SetSwitchExprVartype(vartype);
 
     // Jump to the jump table
     _scrip.WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     _nest.SwitchJumptable().AddParam();
 
-    // Check that "default" or "case" follows
-    if (_src.ReachedEOF())
+    return Expect(SymbolList{ kKW_Case, kKW_Default, }, _src.PeekNext());
+}
+
+AGS::ErrorType AGS::Parser::ParseSwitchFallThrough()
+{
+    if (NSType::kSwitch != _nest.Type())
     {
-        Error("Unexpected end of input");
+        Error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(kKW_FallThrough).c_str());
         return kERR_UserError;
     }
-
-    return Expect(SymbolList{ kKW_Default, kKW_Case, kKW_CloseBrace }, _src.PeekNext());
+    ErrorType retval =  Expect(kKW_Semicolon, _src.GetNext());
+    if (retval < 0) return retval;
+    return Expect(SymbolList{ kKW_Case, kKW_Default }, _src.PeekNext());
 }
 
 AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 {
+    CodeLoc const start_of_code_loc = _scrip.codesize;
+    size_t const start_of_fixups = _scrip.numfixups;
+    size_t const start_of_code_lineno = _src.GetLineno();
+
     if (NSType::kSwitch != _nest.Type())
     {
         Error("'%s' is only allowed directly within a 'switch' block", _sym.GetName(case_or_default).c_str());
         return kERR_UserError;
     }
 
+    if (!_nest.SwitchCaseStart().empty())
+    {
+        if (_nest.SwitchCaseStart().back().Get() != start_of_code_loc &&
+            _nest.JumpOutLevel() > _nest.TopLevel())
+        {
+            // Don't warn if 'fallthrough;' immediately precedes the 'case' or 'default'
+            int const codeloc = _src.GetCursor();
+            if (kKW_Semicolon != _src[codeloc - 2] || kKW_FallThrough != _src[codeloc - 3])
+                Warning("Code execution may fall through to the next case (did you forget a 'break;'?)");
+            _src.SetCursor(codeloc);
+        }
+
+        _nest.BranchJumpOutLevel() =
+            std::max(_nest.BranchJumpOutLevel(), _nest.JumpOutLevel());
+    }
+    _nest.JumpOutLevel() = _nest.kNoJumpOut;
+
+    BackwardJumpDest case_code_start(_scrip);
+    case_code_start.Set();
+    _nest.SwitchCaseStart().push_back(case_code_start);
+    
     if (kKW_Default == case_or_default)
     {
-        if (INT_MAX != _nest.SwitchDefault().Get())
+        if (NestingStack::kNoDefault != _nest.SwitchDefaultIdx())
         {
-            Error("This switch block already has a 'default' label");
+            Error("This switch block already has a 'default:' label");
             return kERR_UserError;
         }
-        _nest.SwitchDefault().Set();
+        _nest.SwitchDefaultIdx() = _nest.SwitchCaseStart().size() - 1;
     }
     else // "case"
     {
-        CodeLoc const start_of_code_loc = _scrip.codesize;
-        size_t const start_of_fixups = _scrip.numfixups;
-        size_t const start_of_code_lineno = _src.GetLineno();
-
+        // Compile a comparison of the switch expression result to the current case
         PushReg(SREG_BX);   // Result of the switch expression
 
-        ScopeType scope_type;
+        ScopeType scope_type_dummy;
         Vartype vartype;
-        ErrorType retval = ParseExpression(_src, scope_type, vartype); // case n: label expression
+        ErrorType retval = ParseExpression(_src, scope_type_dummy, vartype); // case n: label expression
         if (retval < 0) return retval;
 
         // Vartypes of the "case" expression and the "switch" expression must match
@@ -6954,18 +7039,14 @@ AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
         if (retval < 0) return retval;
 
         PopReg(SREG_BX);
-
-        // rip out the already generated code for the case/switch and store it with the switch
-        int id;
-        size_t const yank_size = _scrip.codesize - start_of_code_loc;
-        _nest.YankChunk(start_of_code_lineno, start_of_code_loc, start_of_fixups, id);
-        _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
-        _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
-
-        BackwardJumpDest case_code_start(_scrip);
-        case_code_start.Set();
-        _nest.SwitchCases().push_back(case_code_start);
     }
+
+    // Rip out the already generated code for the case expression and store it with the switch
+    int id;
+    size_t const yank_size = _scrip.codesize - start_of_code_loc;
+    _nest.YankChunk(start_of_code_lineno, start_of_code_loc, start_of_fixups, id);
+    _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
+    _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
 
     return Expect(kKW_Colon, _src.GetNext());
 }
@@ -7038,6 +7119,8 @@ AGS::ErrorType AGS::Parser::ParseBreak()
         return kERR_UserError;
     }
 
+    _nest.JumpOutLevel() = std::min(_nest.JumpOutLevel(), nesting_level);
+
     size_t const save_offset = _scrip.OffsetToLocalVarBlock;
     FreeDynpointersOfLocals(nesting_level + 1);
     RemoveLocalsFromStack(nesting_level + 1);
@@ -7074,6 +7157,8 @@ AGS::ErrorType AGS::Parser::ParseContinue()
         return kERR_UserError;
     }
 
+    _nest.JumpOutLevel() = std::min(_nest.JumpOutLevel(), nesting_level);
+
     size_t const save_offset = _scrip.OffsetToLocalVarBlock;
     FreeDynpointersOfLocals(nesting_level + 1);
     RemoveLocalsFromStack(nesting_level + 1);
@@ -7098,16 +7183,26 @@ AGS::ErrorType AGS::Parser::ParseContinue()
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseCloseBrace()
+AGS::ErrorType AGS::Parser::ParseOpenBrace(Symbol struct_of_current_func, Symbol name_of_current_func)
 {
-    if (NSType::kSwitch == _nest.Type())
-        return HandleEndOfSwitch();
-    return HandleEndOfBraceCommand();
+    if (_sym.kParameterScope == _nest.TopLevel())
+        return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
+    _nest.Push(NSType::kBraces);
+    return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func,Symbol &name_of_current_func)
+AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     ErrorType retval;
+
+    if (kKW_CloseBrace != leading_sym)
+    {
+        if (!_nest.DeadEndWarned() && _nest.JumpOutLevel() < _nest.TopLevel())
+        {
+            Warning("Code execution can't reach this point");
+            _nest.DeadEndWarned() = true;
+        }
+    }
 
     // NOTE that some branches of this switch will leave
     // the whole function, others will continue after the switch.
@@ -7138,7 +7233,8 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
         if (_sym.kFunctionScope >= _nest.TopLevel())
             return HandleEndOfFuncBody(struct_of_current_func, name_of_current_func);
 
-        retval = ParseCloseBrace();
+        retval = (NSType::kSwitch == _nest.Type()) ?
+            HandleEndOfSwitch() : HandleEndOfBraceCommand();
         if (retval < 0) return retval;
         break;
 
@@ -7159,6 +7255,11 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
         Error("Cannot find any 'if' clause that matches this 'else'");
         return kERR_UserError;
 
+    case kKW_FallThrough:
+        retval = ParseSwitchFallThrough();
+        if (retval < 0) return retval;
+        break;
+
     case kKW_For:
         return ParseFor();
 
@@ -7168,13 +7269,10 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
     case kKW_OpenBrace:
         if (PP::kPreAnalyze == _pp)
         {
-            name_of_current_func = struct_of_current_func = kKW_NoSymbol;
+            struct_of_current_func = name_of_current_func = kKW_NoSymbol;
             return SkipToClose(kKW_CloseBrace);
         }
-        if (_sym.kParameterScope == _nest.TopLevel())
-             return ParseFuncBodyStart(struct_of_current_func, name_of_current_func);
-        _nest.Push(NSType::kBraces);
-        return kERR_None;
+        return ParseOpenBrace(struct_of_current_func, name_of_current_func);
 
     case kKW_Return:
         retval = ParseReturn(name_of_current_func);

@@ -299,6 +299,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_Enum, "enum");
     AddKeyword(kKW_Export, "export");
     AddKeyword(kKW_Extends, "extends");
+    AddKeyword(kKW_FallThrough, "fallthrough");
     AddKeyword(kKW_For, "for");
     AddKeyword(kKW_If, "if");
     AddKeyword(kKW_ImportStd, "import");

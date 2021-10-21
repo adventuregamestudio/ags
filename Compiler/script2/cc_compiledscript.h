@@ -183,6 +183,8 @@ public:
     // Set the destination to the location given; default to current location in code
     void Set(CodeLoc cl = -1);
     inline CodeLoc Get() const { return _dest; }
+    // Whether the destination has been set
+    inline bool IsSet() const { return _dest != -1; }
     // Write a jump to the code location that I represent
     void WriteJump(CodeCell jump_op, size_t cur_line);
 };

@@ -1679,7 +1679,7 @@ AGS::ErrorType AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualif
 // An extender func param, if any, has already been resolved
 AGS::ErrorType AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows)
 {
-    // __builtin_
+    // __Builtin_
     // 123456789a
     if (0 == _sym.GetName(name_of_func).substr(0u, 10u).compare("__Builtin_"))
     {
@@ -3102,7 +3102,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
         _scrip.FixupPrevious(kFx_Import);
         if (!_scrip.IsImport(_sym.GetName(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
-
+        
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
         // At runtime, we will arrive here when the function call has returned: Restore the stack
         if (num_args > 0)
@@ -3112,9 +3112,9 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
 
     // Func is non-import
     _scrip.FixupPrevious(kFx_Code);
-    if (_fcm.IsForwardDecl(name_of_func))
+    if (_sym[name_of_func].FunctionD->Offset < 0)
         _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
-
+    
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
 
     // At runtime, we will arrive here when the function call has returned: Restore the stack
@@ -7308,7 +7308,7 @@ AGS::ErrorType AGS::Parser::Parse_ReinitSymTable(size_t size_after_scanning)
         if (_sym.IsFunction(sym_idx))
         {
             s_entry.FunctionD->TypeQualifiers[TQ::kImport] = (kFT_Import == s_entry.FunctionD->Offset);
-            s_entry.FunctionD->Offset = 0;
+            s_entry.FunctionD->Offset = kDestinationPlaceholder;
             continue;
         }
 

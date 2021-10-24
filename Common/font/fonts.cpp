@@ -173,13 +173,6 @@ int get_text_width(const char *texx, size_t fontNumber)
   return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
 }
 
-int wgettextheight(const char *text, size_t fontNumber)
-{
-  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
-    return 0;
-  return fonts[fontNumber].Renderer->GetTextHeight(text, fontNumber);
-}
-
 int get_font_outline(size_t font_number)
 {
     if (font_number >= fonts.size())

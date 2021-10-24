@@ -545,7 +545,7 @@ void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int3
     }
 
     if (width != nullptr)
-        width[0] = wgettextwidth_compensate (text, font);
+        width[0] = get_text_width_outlined (text, font);
     if (height != nullptr)
         height[0] = wgettextheight ((char*)text, font);
 }

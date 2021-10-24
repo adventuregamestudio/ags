@@ -299,13 +299,13 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
             (get_uformat() == U_UTF8) ?
                 lines[rr].ReverseUTF8() :
                 lines[rr].Reverse();
-            line_length = wgettextwidth_compensate(lines[rr].GetCStr(), fonnt);
+            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
             if (line_length > longestline)
                 longestline = line_length;
         }
     else
         for (size_t rr = 0; rr < lines.Count(); rr++) {
-            line_length = wgettextwidth_compensate(lines[rr].GetCStr(), fonnt);
+            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
             if (line_length > longestline)
                 longestline = line_length;
         }

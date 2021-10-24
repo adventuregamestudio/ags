@@ -351,7 +351,7 @@ void LoadFonts(GameDataVersion data_ver)
         if (!is_wfn)
         {
             int req_height = finfo.SizePt * finfo.SizeMultiplier;
-            int height = getfontheight(i);
+            int height = get_font_height(i);
             if ((height != req_height) && (finfo.LineSpacing == 0))
             {
                 set_font_linespacing(i, req_height + 2 * get_font_outline_thickness(i));

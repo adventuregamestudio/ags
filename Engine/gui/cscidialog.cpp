@@ -215,7 +215,7 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
     int type = typeandflags & 0x00ff;     // 256 control types
     if (type == CNT_PUSHBUTTON) {
         if (wii == -1)
-            wii = wgettextwidth(title, cbuttfont) + 20;
+            wii = get_text_width(title, cbuttfont) + 20;
 
         vobjs[usec] = new MyPushButton(xx, yy, wii, hii, title);
 

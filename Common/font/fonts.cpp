@@ -166,7 +166,7 @@ int get_font_scaling_mul(size_t fontNumber)
     return fonts[fontNumber].Info.SizeMultiplier;
 }
 
-int wgettextwidth(const char *texx, size_t fontNumber)
+int get_text_width(const char *texx, size_t fontNumber)
 {
   if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
@@ -204,21 +204,21 @@ void set_font_outline(size_t font_number, int outline_type,
     fonts[font_number].Info.AutoOutlineThickness = thickness;
 }
 
-int getfontheight(size_t fontNumber)
+int get_font_height(size_t fontNumber)
 {
   if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
   return fonts[fontNumber].Metrics.RealHeight;
 }
 
-int getfontlinespacing(size_t fontNumber)
+int get_font_linespacing(size_t fontNumber)
 {
   if (fontNumber >= fonts.size())
     return 0;
   int spacing = fonts[fontNumber].Info.LineSpacing;
   // If the spacing parameter is not provided, then return default
   // spacing, that is font's height.
-  return spacing > 0 ? spacing : getfontheight(fontNumber);
+  return spacing > 0 ? spacing : get_font_height(fontNumber);
 }
 
 void set_font_linespacing(size_t fontNumber, int spacing)
@@ -235,7 +235,7 @@ bool use_default_linespacing(size_t fontNumber)
 }
 
 // Project-dependent implementation
-extern int wgettextwidth_compensate(const char *tex, int font);
+extern int get_text_width_outlined(const char *tex, int font);
 
 namespace AGS { namespace Common { SplitLines Lines; } }
 
@@ -316,7 +316,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             const int next_chwas = ugetc(next_ptr);
             *next_ptr = 0;
 
-            if (wgettextwidth_compensate(theline, fonnt) > wii) {
+            if (get_text_width_outlined(theline, fonnt) > wii) {
                 // line is too wide, order the split
                 if (last_whitespace)
                     // revert to the last whitespace

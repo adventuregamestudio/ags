@@ -327,12 +327,12 @@ HError InitAndRegisterGameEntities()
     return HError::None();
 }
 
-void LoadFonts(GameDataVersion data_ver)
+void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
         FontInfo &finfo = game.fonts[i];
-        if (!wloadfont_size(i, finfo))
+        if (!load_font_size(i, finfo, game.options[OPT_FONTLOADLOGIC]))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
 
         const bool is_wfn = is_bitmap_font(i);
@@ -375,6 +375,7 @@ void LoadFonts(GameDataVersion data_ver)
             set_font_linespacing(i, height + 2 * finfo.AutoOutlineThickness);
             // Backward compatibility: if the real font's height != formal height
             // and there's no custom linespacing, then set linespacing = formal height.
+            if ((game.options[OPT_FONTLOADLOGIC] & FONT_LOAD_REPORTREALHEIGHT) == 0)
             {
                 const int compat_height = finfo.SizePt * finfo.SizeMultiplier;
                 if (height != compat_height)
@@ -434,6 +435,7 @@ void AllocScriptModules()
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    GameSetupStruct &game = ents.Game;
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     if (data_ver >= kGameVersion_341)
@@ -477,7 +479,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     HError err = InitAndRegisterGameEntities();
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
-    LoadFonts(data_ver);
+    LoadFonts(game, data_ver);
     LoadLipsyncData();
 
     //

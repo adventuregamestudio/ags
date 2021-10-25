@@ -3316,6 +3316,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
     game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
     game->Settings->ScaleMovementSpeedWithMaskResolution = (thisgame.options[OPT_WALKSPEEDABSOLUTE] == 0);
+    game->Settings->UseRealFontHeight = (thisgame.options[OPT_FONTLOADLOGIC] & FONT_LOAD_REPORTREALHEIGHT) != 0;
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;

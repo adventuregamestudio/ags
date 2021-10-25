@@ -922,7 +922,7 @@ AGSString import_sci_font(const AGSString &filename, int fslot) {
   delete ooo;
   delete iii;
   FontInfo fi;
-  if (!wloadfont_size(fslot, fi))
+  if (!load_font_size(fslot, fi, thisgame.options[OPT_FONTLOADLOGIC]))
   {
     return "Unable to load converted WFN file";
   }
@@ -1117,7 +1117,7 @@ void NewInteractionCommand::remove ()
 
 void new_font () {
   FontInfo fi;
-  wloadfont_size(thisgame.numfonts, fi);
+  load_font_size(thisgame.numfonts, fi, thisgame.options[OPT_FONTLOADLOGIC]);
   thisgame.fonts.push_back(FontInfo());
   thisgame.numfonts++;
 }
@@ -1350,7 +1350,7 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  return wloadfont_size(curFont, thisgame.fonts[curFont]);
+  return load_font_size(curFont, thisgame.fonts[curFont], thisgame.options[OPT_FONTLOADLOGIC]);
 }
 
 HAGSError reset_sprite_file() {
@@ -2266,7 +2266,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         reload_font(fontNumber);
     }
 
-    font->Height = getfontheight(fontNumber);
+    font->Height = get_font_height(fontNumber);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)

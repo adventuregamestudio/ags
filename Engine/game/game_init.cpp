@@ -345,18 +345,6 @@ void LoadFonts(GameDataVersion data_ver)
                 set_font_outline(i, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(i));
             }
         }
-
-        // Backward compatibility: if the real font's height != formal height
-        // and there's no custom linespacing, then set linespacing = formal height.
-        if (!is_wfn)
-        {
-            int req_height = finfo.SizePt * finfo.SizeMultiplier;
-            int height = get_font_height(i);
-            if ((height != req_height) && (finfo.LineSpacing == 0))
-            {
-                set_font_linespacing(i, req_height + 2 * get_font_outline_thickness(i));
-            }
-        }
     }
 
     // Additional fixups - after all the fonts are registered
@@ -374,6 +362,26 @@ void LoadFonts(GameDataVersion data_ver)
             const char *outline_name = get_font_name(outline_font);
             if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
                 set_font_outline(i, FONT_OUTLINE_AUTO);
+        }
+    }
+
+    // Precalculate and cache any additional parameters; do this after all the fixups
+    for (int i = 0; i < game.numfonts; ++i)
+    {
+        FontInfo &finfo = game.fonts[i];
+        const int height = get_font_height(i);
+        if (finfo.LineSpacing == 0)
+        {
+            set_font_linespacing(i, height + 2 * finfo.AutoOutlineThickness);
+            // Backward compatibility: if the real font's height != formal height
+            // and there's no custom linespacing, then set linespacing = formal height.
+            {
+                const int compat_height = finfo.SizePt * finfo.SizeMultiplier;
+                if (height != compat_height)
+                {
+                    set_font_linespacing(i, compat_height + 2 * finfo.AutoOutlineThickness);
+                }
+            }
         }
     }
 }

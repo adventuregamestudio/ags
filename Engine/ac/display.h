@@ -46,12 +46,6 @@ int GetTextDisplayTime(const char *text, int canberel = 0);
 // Draw an outline if requested, then draw the text on top 
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 void wouttext_aligned (Common::Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align);
-// TODO: GUI classes located in Common library do not make use of outlining,
-// need to find a way to make all code use same functions.
-// Get the maximal height of the given font, with corresponding outlining
-int getfontheight_outlined(int font);
-// Get line spacing for the given font, with possible outlining in mind
-int getfontspacing_outlined(int font);
 // Gets the total maximal height of the given number of lines printed with the given font
 int getheightoflines(int font, int numlines);
 // Get the maximal width of the given font, with corresponding outlining

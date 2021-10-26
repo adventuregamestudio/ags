@@ -199,32 +199,30 @@ void set_font_outline(size_t font_number, int outline_type,
 
 int get_font_height(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
-    return 0;
-  return fonts[fontNumber].Metrics.RealHeight;
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+        return 0;
+    return fonts[fontNumber].Metrics.RealHeight;
+}
+
+int get_font_height_outlined(size_t fontNumber)
+{
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+        return 0;
+    return fonts[fontNumber].Metrics.RealHeight
+        + 2 * fonts[fontNumber].Info.AutoOutlineThickness;
 }
 
 int get_font_linespacing(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size())
-    return 0;
-  int spacing = fonts[fontNumber].Info.LineSpacing;
-  // If the spacing parameter is not provided, then return default
-  // spacing, that is font's height.
-  return spacing > 0 ? spacing : get_font_height(fontNumber);
+    if (fontNumber >= fonts.size())
+        return 0;
+    return fonts[fontNumber].Info.LineSpacing;
 }
 
 void set_font_linespacing(size_t fontNumber, int spacing)
 {
     if (fontNumber < fonts.size())
         fonts[fontNumber].Info.LineSpacing = spacing;
-}
-
-bool use_default_linespacing(size_t fontNumber)
-{
-    if (fontNumber >= fonts.size())
-        return false;
-    return fonts[fontNumber].Info.LineSpacing == 0;
 }
 
 // Project-dependent implementation

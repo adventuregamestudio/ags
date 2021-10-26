@@ -91,8 +91,8 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
 
     ensure_text_valid_for_font(todis, usingfont);
     break_up_text_into_lines(todis, Lines, wii-2*padding, usingfont);
-    disp.lineheight = getfontheight_outlined(usingfont);
-    disp.linespacing= getfontspacing_outlined(usingfont);
+    disp.lineheight = get_font_height_outlined(usingfont);
+    disp.linespacing= get_font_linespacing(usingfont);
     disp.fulltxtheight = getheightoflines(usingfont, Lines.Count());
 
     // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
@@ -569,21 +569,9 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
 }
 
-int getfontheight_outlined(int font)
-{
-    return get_font_height(font) + 2 * get_font_outline_thickness(font);
-}
-
-int getfontspacing_outlined(int font)
-{
-    return use_default_linespacing(font) ?
-        getfontheight_outlined(font) :
-        get_font_linespacing(font);
-}
-
 int getheightoflines(int font, int numlines)
 {
-    return getfontspacing_outlined(font) * (numlines - 1) + getfontheight_outlined(font);
+    return get_font_linespacing(font) * (numlines - 1) + get_font_height_outlined(font);
 }
 
 int get_text_width_outlined(const char *tex, int font)

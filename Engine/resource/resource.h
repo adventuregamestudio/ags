@@ -13,6 +13,7 @@
 #define IDC_SPRITECACHE                 1010
 #define IDC_RENDERATSCREENRES           1011
 #define IDC_ADVANCED                    1012
+#define IDC_FULLSCREENDESKTOP           1013
 #define IDC_VOICEPACK                   1016
 #define IDC_REFRESH_85HZ                1017
 #define IDC_THREADEDAUDIO               1018
@@ -22,7 +23,6 @@
 #define IDC_GFXDRIVER                   1024
 #define IDC_RESOLUTION                  1025
 #define IDC_GFXMODE                     1028
-#define IDC_GFXMODETEXT                 1029
 #define IDC_VSYNC                       1031
 #define IDC_FSSCALING                   1033
 #define IDC_WINDOWSCALING               1034

@@ -241,8 +241,8 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
   else
   {
-    sys_window_set_style(mode.Windowed);
-    if (mode.Windowed)
+    sys_window_set_style(mode.Mode);
+    if (mode.IsWindowed())
         sys_window_set_size(mode.Width, mode.Height, true);
   }
 
@@ -303,7 +303,7 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
 
-  SDL_Window *sdl_window = sys_window_create("", mode.Width, mode.Height, mode.Windowed, SDL_WINDOW_OPENGL);
+  SDL_Window *sdl_window = sys_window_create("", mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
   if (!sdl_window)
   {
     Debug::Printf(kDbgMsg_Error, "Error opening window for OpenGL: %s", SDL_GetError());
@@ -863,7 +863,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  sys_window_set_style(true);
+  sys_window_set_style(kWnd_Windowed);
 }
 
 void OGLGraphicsDriver::UnInit()

@@ -268,7 +268,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   DestroyFxPool();
   DestroyAllStageScreens();
 
-  sys_window_set_style(true);
+  sys_window_set_style(kWnd_Windowed);
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -458,7 +458,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     return false;
   }
 
-  if (mode.Windowed)
+  if (!mode.IsRealFullscreen())
   {
     return true;
   }
@@ -490,7 +490,7 @@ bool D3DGraphicsDriver::SupportsGammaControl()
   if ((direct3ddevicecaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) == 0)
     return false;
 
-  if (_mode.Windowed)
+  if (!_mode.IsRealFullscreen())
     return false;
 
   return true;
@@ -560,12 +560,12 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
   if (sys_get_window() == nullptr)
   {
-    sys_window_create("", mode.Width, mode.Height, mode.Windowed);
+    sys_window_create("", mode.Width, mode.Height, mode.Mode);
   }
   else
   {
-    sys_window_set_style(mode.Windowed);
-    if (mode.Windowed)
+    sys_window_set_style(mode.Mode);
+    if (mode.IsWindowed())
         sys_window_set_size(mode.Width, mode.Height, true);
   }
 

@@ -41,15 +41,12 @@ void post_config();
 
 void save_config_file();
 
-ScreenSizeDefinition parse_screendef(const String &option, ScreenSizeDefinition def_value);
-void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor);
-void parse_scaling_option(const String &scaling_option, GameFrameSetup &frame_setup);
-String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor = 0);
-String make_scaling_option(const GameFrameSetup &frame_setup);
+WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value = WindowSetup());
+FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value = kFrame_Undefined);
+String make_window_mode_option(const WindowSetup &ws, const Size &desktop_res, const Size &game_res);
+String make_scaling_option(FrameScaleDef scale_def);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);
-// Fill in setup structs with default settings for the given mode (windowed or fullscreen)
-void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup);
 
 
 bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);

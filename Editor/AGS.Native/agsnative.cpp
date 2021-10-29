@@ -2266,7 +2266,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         reload_font(fontNumber);
     }
 
-    font->Height = get_font_height(fontNumber);
+    font->Height = get_font_surface_height(fontNumber);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)

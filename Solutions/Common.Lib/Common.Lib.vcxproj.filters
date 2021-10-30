@@ -682,9 +682,6 @@
     <ClInclude Include="..\..\Common\util\string_utils.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\util\textfilestream.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\textreader.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>

@@ -512,7 +512,6 @@
     <ClInclude Include="..\..\Common\util\textwriter.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
     <ClInclude Include="..\..\Common\util\wgt2allg.h" />
-    <ClInclude Include="..\..\Engine\util\textfilestream.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cblit.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs15.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs16.h" />

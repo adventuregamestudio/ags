@@ -2257,13 +2257,16 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
-    set_fontinfo(fontNumber, font_info);
 
     if (forceUpdate ||
         font_info.SizePt != old_sizept ||
         font_info.SizeMultiplier != old_scaling)
     {
         reload_font(fontNumber);
+    }
+    else
+    {
+        set_fontinfo(fontNumber, font_info, thisgame.options[OPT_FONTLOADLOGIC]);
     }
 
     font->Height = get_font_surface_height(fontNumber);

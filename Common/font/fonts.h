@@ -79,7 +79,7 @@ void set_font_outline(size_t font_number, int outline_type,
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
-void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
+void set_fontinfo(size_t fontNumber, const FontInfo &finfo, int load_mode);
 // Gets full information about the font
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk

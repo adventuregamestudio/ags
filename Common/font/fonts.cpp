@@ -402,10 +402,13 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t
   }
 }
 
-void set_fontinfo(size_t fontNumber, const FontInfo &finfo)
+void set_fontinfo(size_t fontNumber, const FontInfo &finfo, int load_mode)
 {
     if (fontNumber < fonts.size() && fonts[fontNumber].Renderer)
+    {
         fonts[fontNumber].Info = finfo;
+        post_init_font(fontNumber, load_mode);
+    }
 }
 
 FontInfo get_fontinfo(size_t font_number)

@@ -8,6 +8,9 @@ Editor:
    original game's codepage.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" property in General Settings.
+ - Added "Use graphical font height in game logic" property to the General Settings, that makes
+   your game use real font's pixel height when arranging text and text-based UI elements,
+   as opposed to the nominal font's size.
  - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
    is activated. This is equivalent to the Character.SetIdleView script function.
  - Fonts now have Auto Outline Style and Thickness properties.
@@ -15,6 +18,11 @@ Editor:
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - Added line numbers to the Dialog script editor.
  - Cursor's position in script is now displayed on the status bar.
+ - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
+ - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
+
+Compiler:
+ - Removed 500-characters line limit.
 
 Script API:
  - Added Object.ManualScaling and Object.Scaling.
@@ -56,10 +64,12 @@ Engine:
  - Windows-only DirectMedia video playback discontinued (could be temporary).
    Only OGG/OGV videos are kept supported at this point.
  - Support resizing game window on desktop systems.
+ - Support "borderless full-screen window" mode in addition to the real (exclusive) fullscreen.
  - UTF-8 texts support: engine can now switch between ASCII and UTF-8 text mode. This is currently
    controlled by the new translation settings: "Encoding" tells whether to interpret game texts
    as UTF-8, and "GameEncoding" hints the original game's codepage to help with their conversion.
- - Fixed some TTF fonts were not centered correctly and/or cut from below when text is displayed.
+ - Engine now supports using real pixel height of the TTF fonts when arranging text and UI elements
+   on screen; using nominal import size of the font is used as a compatible mode for the old games.
  - Supports scripts using functions and variables from any other scripts, regardless of the
    script module order in the project.
  - Removed Overlay limit.
@@ -70,16 +80,21 @@ Engine:
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's
    properties' values (such as Position) could change while running a game script.
+ - File.ReadRawLineBack() now always reads full line, and not limited to 200 characters anymore.
  - Debug displays, such as showing room mask and character walk paths, are now implemented as
    non-blocking translucent overlays, allowing you to keep playing the game while they are on.
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
+ - Engine config now has graphic modes defined as a simplier string options:
+   "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
+   Fullscreen option can explicitly define a "borderless full-screen window" mode.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
    "--localuserconf"; the new option directly tells the location of user config file.
  - Path related command-line and config options, - such as "shared_data_dir", "user_data_dir"
    and "user_conf_dir", now support $GAMENAME$ token in path which is resolved to the game's title.
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Fixed some TTF fonts were not centered correctly and/or cut from below when text is displayed.
  - Fixed crash when there are too many reserved audio type channels.
  - Fixed character may have incorrect Frame values while turning.
 
@@ -98,6 +113,9 @@ Compatibility:
  - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
+
+WinSetup:
+ - Added "Fullscreen as borderless window" checkbox.
 
 Tools:
 [TODO]

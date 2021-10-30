@@ -312,7 +312,7 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
     return lines.Count();
 }
 
-int MAXSTRLEN = MAX_MAXSTRLEN;
+size_t MAXSTRLEN = MAX_MAXSTRLEN;
 void check_strlen(char*ptt) {
     MAXSTRLEN = MAX_MAXSTRLEN;
     long charstart = (long)&game.chars[0];

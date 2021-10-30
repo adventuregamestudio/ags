@@ -20,7 +20,7 @@
 #include "ac/string.h"
 #include "util/string_compat.h"
 
-extern int MAXSTRLEN;
+extern size_t MAXSTRLEN;
 
 int StrGetCharAt (const char *strin, int posn) {
     if ((posn < 0) || (posn >= (int)strlen(strin)))

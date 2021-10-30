@@ -128,6 +128,7 @@ static void post_init_font(size_t fontNumber, int load_mode)
     font.LineSpacingCalc = font.Info.LineSpacing;
     if (font.Info.LineSpacing == 0)
     {
+        font.Info.Flags |= FFLG_DEFLINESPACING;
         const int height = font.Metrics.Height;
         font.LineSpacingCalc = height + 2 * font.Info.AutoOutlineThickness;
         // Backward compatibility: if the real font's height != formal height
@@ -174,6 +175,13 @@ const char *get_font_name(size_t fontNumber)
     return "";
   const char *name = fonts[fontNumber].Renderer2->GetName(fontNumber);
   return name ? name : "";
+}
+
+int get_font_flags(size_t fontNumber)
+{
+    if (fontNumber >= fonts.size())
+        return 0;
+    return fonts[fontNumber].Info.Flags;
 }
 
 void ensure_text_valid_for_font(char *text, size_t fontnum)
@@ -254,6 +262,7 @@ void set_font_linespacing(size_t fontNumber, int spacing)
 {
     if (fontNumber < fonts.size())
     {
+        fonts[fontNumber].Info.Flags &= ~FFLG_DEFLINESPACING;
         fonts[fontNumber].Info.LineSpacing = spacing;
         fonts[fontNumber].LineSpacingCalc = spacing;
     }

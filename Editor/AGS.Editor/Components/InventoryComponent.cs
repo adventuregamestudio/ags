@@ -63,6 +63,7 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_CHANGE_ID)
             {
                 int oldNumber = _itemRightClicked.ID;
+                // NOTE: inventory item IDs are 1-based
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Inventory", oldNumber, 1, _items.Count);
                 if (newNumber < 0)
                     return;
@@ -75,7 +76,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber, newNumber);
+                GetFlatList().Swap(oldNumber - 1, newNumber - 1);
                 OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)

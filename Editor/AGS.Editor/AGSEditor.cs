@@ -94,9 +94,10 @@ namespace AGS.Editor
          * e.g. 3.6.0     is 03,06,00,00 (3060000),
          *      4.12.3.25 is 04,12,03,25 (4120325), and so on
          * --------------------------------------------------------------------
-         * 3.6.0          - Settings.CustomDataDir;
+         * 3.6.0          - Settings.CustomDataDir, Settings.UseRealFontHeight;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
          *                - Character.IdleDelay
+         *                - RuntimeSetup.FullscreenDesktop
          * 3.99.99        - BlendMode for various objects, Character.Transparency.
          *
         */
@@ -1571,7 +1572,9 @@ namespace AGS.Editor
 
             NativeProxy.WritePrivateProfileString("graphics", "driver", GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
-            NativeProxy.WritePrivateProfileString("graphics", "screen_def", _game.DefaultSetup.Windowed ? "scaling" : "max", configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "fullscreen",
+                _game.DefaultSetup.FullscreenDesktop ? "full_window" : "desktop", configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "window", "desktop", configFilePath);
 
             NativeProxy.WritePrivateProfileString("graphics", "game_scale_fs", MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling, 0), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "game_scale_win", MakeGameScalingConfig(_game.DefaultSetup.GameScaling, _game.DefaultSetup.GameScalingMultiplier), configFilePath);

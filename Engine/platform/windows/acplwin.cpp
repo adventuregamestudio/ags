@@ -70,7 +70,6 @@ struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
   ~AGSWin32();
 
-  virtual void AboutToQuitGame() override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual void AttachToParentConsole();
   virtual int  GetLastSystemError() override;
@@ -704,10 +703,6 @@ const char* AGSWin32::GetBackendFailUserHint()
 
 eScriptSystemOSID AGSWin32::GetSystemOSID() {
   return eOS_Win;
-}
-
-void AGSWin32::AboutToQuitGame() 
-{
 }
 
 void AGSWin32::PostBackendExit() {

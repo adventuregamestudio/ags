@@ -27,7 +27,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;
 
 
@@ -126,10 +126,9 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
 
     if (sound_volume != SCR_NO_VALUE && channel != nullptr)
     {
-        AudioChannelsLock lock;
-        auto* ch = lock.GetChannel(channel->id);
+        auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
-            ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
+            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
     }
     
 }

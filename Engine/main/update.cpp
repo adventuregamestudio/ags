@@ -49,7 +49,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern int our_eip;
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
@@ -249,9 +249,8 @@ void update_speech_and_messages()
   bool is_voice_playing = false;
   if (play.speech_has_voice)
   {
-      AudioChannelsLock lock;
-      auto *ch = lock.GetChannel(SCHAN_SPEECH);
-      is_voice_playing = ch && ch->is_playing();
+      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+      is_voice_playing = ch && ch->is_ready();
   }
   // determine if speech text should be removed
   if (play.messagetime>=0) {
@@ -299,8 +298,7 @@ void update_sierra_speech()
   int voice_pos_ms = -1;
   if (play.speech_has_voice)
   {
-      AudioChannelsLock lock;
-      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
       voice_pos_ms = ch ? ch->get_pos_ms() : -1;
   }
   if ((face_talking >= 0) && (play.fast_forward == 0)) 

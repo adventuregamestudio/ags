@@ -133,7 +133,7 @@ ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
-ViewStruct*views=nullptr;
+std::vector<ViewStruct> views;
 
 CharacterCache *charcache = nullptr;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
@@ -225,15 +225,14 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {
-        AudioChannelsLock lock;
         for (int aa = 0; aa < game.numGameChannels; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != nullptr) && (clip->type == audioType))
             {
-                auto* ch = lock.GetChannel(aa);
+                auto* ch = AudioChans::GetChannel(aa);
                 if (ch)
-                    ch->set_volume_percent(volume);
+                    ch->set_volume100(volume);
             }
         }
     }
@@ -252,8 +251,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 int Game_GetMODPattern() {
     if (current_music_type != MUS_MOD)
         return -1;
-    AudioChannelsLock lock;
-    auto* music_ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* music_ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
     return music_ch ? music_ch->get_pos() : -1;
 }
 
@@ -550,8 +548,7 @@ void unload_game_file()
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
-    free(views);
-    views = nullptr;
+    views.clear();
 
     free(charcache);
     charcache = nullptr;
@@ -985,7 +982,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     update_polled_stuff_if_runtime();
 
-    if (Path::IsFile(tempFileName))
+    if (File::IsFile(tempFileName))
     {
         fileSize = File::GetFileSize(tempFileName);
         char *buffer = (char*)malloc(fileSize);
@@ -1278,19 +1275,15 @@ void stop_fast_forwarding() {
     if (play.end_cutscene_music >= 0)
         newmusic(play.end_cutscene_music);
 
-    {
-    AudioChannelsLock lock;
-
     // Restore actual volume of sounds
     for (int aa = 0; aa < TOTAL_AUDIO_CHANNELS; aa++)
     {
-        auto* ch = lock.GetChannelIfPlaying(aa);
+        auto* ch = AudioChans::GetChannelIfPlaying(aa);
         if (ch)
         {
             ch->set_mute(false);
         }
     }
-    } // -- AudioChannelsLock
 
     update_music_volume();
 }
@@ -1392,16 +1385,13 @@ void display_switch_out_suspend()
 
     // TODO: find out if anything has to be done here for SDL backend
 
-    {
     // stop the sound stuttering
-    AudioChannelsLock lock;
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
-        auto* ch = lock.GetChannelIfPlaying(i);
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (ch) {
             ch->pause();
         }
     }
-    } // -- AudioChannelsLock
 
     // restore the callbacks
     SetMultitasking(0);
@@ -1424,15 +1414,12 @@ void display_switch_in_resume()
 {
     display_switch_in();
 
-    {
-    AudioChannelsLock lock;
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
-        auto* ch = lock.GetChannelIfPlaying(i);
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (ch) {
             ch->resume();
         }
     }
-    } // -- AudioChannelsLock
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())

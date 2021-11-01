@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
@@ -22,6 +18,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "gfx/gfx_def.h"
+#include "game/roomstruct.h"
 
 namespace AGS
 {
@@ -102,6 +99,10 @@ void construct_game_scene(bool full_redraw = false);
 void construct_game_screen_overlay(bool draw_mouse = true);
 // Construct engine overlay with debugging tools (fps, console)
 void construct_engine_overlay();
+
+void debug_draw_room_mask(RoomAreaMask mask);
+void debug_draw_movelist(int charnum);
+void update_room_debug();
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
                                Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);

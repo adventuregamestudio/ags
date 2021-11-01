@@ -135,8 +135,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
     if (IsGUIEnabled(this))
     {
         // draw a cursor
-        int draw_at_x = wgettextwidth(Text.GetCStr(), Font) + X + 3;
-        int draw_at_y = Y + 1 + getfontheight(Font);
+        int draw_at_x = get_text_width(Text.GetCStr(), Font) + X + 3;
+        int draw_at_y = Y + 1 + get_font_height(Font);
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + 5, draw_at_y), text_color);
     }
 }

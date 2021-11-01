@@ -125,7 +125,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 
   if (sys_get_window() == nullptr)
   {
-    SDL_Window *window = sys_window_create("", mode.Width, mode.Height, mode.Windowed);
+    SDL_Window *window = sys_window_create("", mode.Width, mode.Height, mode.Mode);
 
     _hasGamma = SDL_GetWindowGammaRamp(window, _defaultGammaRed, _defaultGammaGreen, _defaultGammaBlue) == 0;
 
@@ -146,8 +146,8 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   else
   {
-    sys_window_set_style(mode.Windowed);
-    if (mode.Windowed)
+    sys_window_set_style(mode.Mode);
+    if (mode.IsWindowed())
       sys_window_set_size(mode.Width, mode.Height, true);
   }
 

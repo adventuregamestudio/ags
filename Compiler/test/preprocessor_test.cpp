@@ -199,19 +199,6 @@ Display("this doesn't display");
 }
 
 
-TEST(Preprocess, LineTooLong) {
-    Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
-"this message has more than 500 characters. I will throw a poem here: He with body waged a fight, But body won; it walks upright. Then he struggled with the heart; Innocence and peace depart. Then he struggled with the mind; His proud heart he left behind. Now his wars on God begin; At stroke of midnight God shall win. The poem has now ended and we still have more characters to go... 1/2 cup butter, cubed; 6 medium unpeeled tart red apples, sliced; 3/4 cup sugar, divided; 3/4 teaspoon ground cinnamon; Vanilla ice cream, optional; throw all of these in the oven for at least 20 minutes. End of long text";
-)EOS";
-
-    clear_error();
-    String res = pp.Preprocess(inpl, "ScriptLineTooLong");
-
-    EXPECT_STREQ(last_seen_cc_error(), "Line too long (max line length = 500)");
-}
-
-
 TEST(Preprocess, RemoveEditorDirectives) {
     Preprocessor pp = Preprocessor();
     const char* inpl = R"EOS(

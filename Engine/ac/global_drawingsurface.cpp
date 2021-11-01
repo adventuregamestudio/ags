@@ -160,7 +160,7 @@ void RawPrint (int xx, int yy, const char *text) {
 // [DEPRECATED]
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     char displbuf[3000];
-    int linespacing = getfontspacing_outlined(font);
+    const int linespacing = get_font_linespacing(font);
 
     get_message_text (msgm, displbuf);
     // it's probably too late but check anyway

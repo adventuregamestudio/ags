@@ -79,6 +79,7 @@ namespace AGS.Types
         private int _textWindowGUI = 0;
         private bool _alwaysDisplayTextAsSpeech = false;
         private bool _antiAliasFonts = false;
+        private bool _useRealFontHeight = true;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -793,6 +794,16 @@ namespace AGS.Types
         {
             get { return _antiAliasFonts; }
             set { _antiAliasFonts = value; }
+        }
+
+        [DisplayName("Use graphical font height in game logic")]
+        [Description("Real font's pixel height will be used whenever text height is required by the script or game logic. Otherwise - the formal font height is used, equal to the Point Size property")]
+        [DefaultValue(true)]
+        [Category("Text output")]
+        public bool UseRealFontHeight
+        {
+            get { return _useRealFontHeight; }
+            set { _useRealFontHeight = value; }
         }
 
         [DisplayName("Custom thought bubble GUI")]

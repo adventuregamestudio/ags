@@ -55,14 +55,13 @@ enum AssetError
     kAssetErrNoManager      = -6, // asset manager not initialized
 };
 
-// Explicit location of asset data
-struct AssetLocation
+// AssetPath combines asset name and optional library filter, that serves to narrow down the search
+struct AssetPath
 {
-    String      FileName;   // file where asset is located
-    soff_t      Offset;     // asset's position in file (in bytes)
-    soff_t      Size;       // asset's size (in bytes)
+    String Name;
+    String Filter;
 
-    AssetLocation();
+    AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
 };
 
 
@@ -95,35 +94,34 @@ public:
     const AssetLibInfo *GetLibraryInfo(size_t index) const;
     // Tells whether asset exists in any of the registered search locations
     bool         DoesAssetExist(const String &asset_name, const String &filter = "") const;
-    // Finds asset only looking for bare files in directories; returns full path or empty string if failed
-    String       FindAssetFileOnly(const String &asset_name, const String &filter = "") const;
+    inline bool  DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
     // Searches in all the registered locations and collects a list of
     // assets using given wildcard pattern
     void         FindAssets(std::vector<String> &assets, const String &wildcard,
                                    const String &filter = "") const;
     // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened
     // This method only searches in libraries that do not have any defined filters
-    Stream      *OpenAsset(const String &asset_name, soff_t *asset_size = nullptr,
-                                   FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read) const;
+    Stream      *OpenAsset(const String &asset_name) const;
     // Open asset stream, providing a single filter to search in matching libraries
-    Stream      *OpenAsset(const String &asset_name, const String &filter, soff_t *asset_size = nullptr,
-                                   FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read) const;
+    Stream      *OpenAsset(const String &asset_name, const String &filter) const;
+    inline Stream *OpenAsset(const AssetPath &apath) const { return OpenAsset(apath.Name, apath.Filter); }
 
 private:
+    // AssetLibEx combines library info with extended internal data required for the manager
     struct AssetLibEx : AssetLibInfo
     {
         std::vector<String> Filters; // asset filters this library is matching to
+        std::vector<String> RealLibFiles; // fixed up library filenames
+
+        bool TestFilter(const String &filter) const;
     };
 
     // Loads library and registers its contents into the cache
     AssetError  RegisterAssetLib(const String &path, AssetLibEx *&lib);
 
     // Tries to find asset in known locations, tests if it's possible to open, and fills in AssetLocation
-    bool        GetAsset(const String &asset_name, const String &filter, bool dir_only, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
-    bool        GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
-    bool        GetAssetFromDir(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
+    Stream     *OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const;
+    Stream     *OpenAssetFromDir(const AssetLibEx *lib, const String &asset_name) const;
 
     std::vector<std::unique_ptr<AssetLibEx>> _libs;
     std::vector<AssetLibEx*> _activeLibs;

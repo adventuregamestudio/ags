@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <cstdio>
 #include <stdarg.h>
 #include "ac/common.h"
@@ -30,6 +29,7 @@
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "game/roomstruct.h"
 #include "main/game_run.h"
 
@@ -71,7 +71,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 
     topBar.wantIt = 1;
     topBar.font = FONT_NORMAL;
-    topBar.height = getfontheight_outlined(topBar.font);
+    topBar.height = get_font_height_outlined(topBar.font);
     topBar.height += play.top_bar_borderwidth * 2 + 1;
 
     // they want to customize the font

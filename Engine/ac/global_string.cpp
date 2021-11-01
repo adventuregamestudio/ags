@@ -21,7 +21,7 @@
 #include "ac/string.h"
 #include "util/string_compat.h"
 
-extern int MAXSTRLEN;
+extern size_t MAXSTRLEN;
 
 // CLNUP probably to remove
 /*int StrGetCharAt (const char *strin, int posn) {

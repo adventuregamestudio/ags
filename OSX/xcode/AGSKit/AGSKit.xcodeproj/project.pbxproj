@@ -635,7 +635,6 @@
 		526F28771D3B5CC300EF4E1F /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F260F1D3B5CC300EF4E1F /* audio.cpp */; };
 		526F28781D3B5CC300EF4E1F /* audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26101D3B5CC300EF4E1F /* audio.h */; };
 		526F28791D3B5CC300EF4E1F /* audiodefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26111D3B5CC300EF4E1F /* audiodefines.h */; };
-		526F287A1D3B5CC300EF4E1F /* audiointernaldefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26121D3B5CC300EF4E1F /* audiointernaldefs.h */; };
 		526F287B1D3B5CC300EF4E1F /* clip_mydumbmod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26131D3B5CC300EF4E1F /* clip_mydumbmod.cpp */; };
 		526F287C1D3B5CC300EF4E1F /* clip_mydumbmod.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26141D3B5CC300EF4E1F /* clip_mydumbmod.h */; };
 		526F287D1D3B5CC300EF4E1F /* clip_myjgmod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26151D3B5CC300EF4E1F /* clip_myjgmod.cpp */; };
@@ -1383,7 +1382,6 @@
 		526F260F1D3B5CC300EF4E1F /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		526F26101D3B5CC300EF4E1F /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		526F26111D3B5CC300EF4E1F /* audiodefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiodefines.h; sourceTree = "<group>"; };
-		526F26121D3B5CC300EF4E1F /* audiointernaldefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiointernaldefs.h; sourceTree = "<group>"; };
 		526F26131D3B5CC300EF4E1F /* clip_mydumbmod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clip_mydumbmod.cpp; sourceTree = "<group>"; };
 		526F26141D3B5CC300EF4E1F /* clip_mydumbmod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = clip_mydumbmod.h; sourceTree = "<group>"; };
 		526F26151D3B5CC300EF4E1F /* clip_myjgmod.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clip_myjgmod.cpp; sourceTree = "<group>"; };
@@ -2585,7 +2583,6 @@
 				526F260F1D3B5CC300EF4E1F /* audio.cpp */,
 				526F26101D3B5CC300EF4E1F /* audio.h */,
 				526F26111D3B5CC300EF4E1F /* audiodefines.h */,
-				526F26121D3B5CC300EF4E1F /* audiointernaldefs.h */,
 				526F26131D3B5CC300EF4E1F /* clip_mydumbmod.cpp */,
 				526F26141D3B5CC300EF4E1F /* clip_mydumbmod.h */,
 				526F26151D3B5CC300EF4E1F /* clip_myjgmod.cpp */,
@@ -2858,7 +2855,6 @@
 				526F27611D3B5CC300EF4E1F /* object.h in Headers */,
 				526F22E81D3B5C4900EF4E1F /* guimain.h in Headers */,
 				526F23191D3B5C4900EF4E1F /* aautil.h in Headers */,
-				526F287A1D3B5CC300EF4E1F /* audiointernaldefs.h in Headers */,
 				526F28D11D3B5CC300EF4E1F /* test_all.h in Headers */,
 				526F27061D3B5CC300EF4E1F /* global_debug.h in Headers */,
 				526F27221D3B5CC300EF4E1F /* global_object.h in Headers */,

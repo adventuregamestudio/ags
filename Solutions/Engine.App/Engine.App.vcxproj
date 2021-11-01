@@ -424,7 +424,6 @@
     <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp" />
-    <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\sound.cpp" />
@@ -696,11 +695,8 @@
     <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
-    <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />
-    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
-    <ClInclude Include="..\..\Engine\media\audio\clip_openal.h" />
     <ClInclude Include="..\..\Engine\media\audio\openal.h" />
     <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h" />
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h" />

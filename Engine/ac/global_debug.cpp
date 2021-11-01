@@ -23,7 +23,6 @@
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
-#include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/sys_events.h"
 #include "ac/translation.h"
@@ -52,7 +51,9 @@ extern int convert_16bit_bgr;
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
 extern int displayed_room, starting_room;
-extern MoveList *mls;
+
+RoomAreaMask debugLastRoomMask = kRoomAreaNone;
+int debugLastMoveChar = -1;
 
 String GetRuntimeInfo()
 {
@@ -66,7 +67,7 @@ String GetRuntimeInfo()
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
         EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
-        mode.Windowed ? " W" : "",
+        mode.IsWindowed() ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),
         spriteset.GetCacheSize() / 1024, spriteset.GetMaxCacheSize() / 1024, spriteset.GetLockedSize() / 1024);
@@ -89,36 +90,22 @@ void script_debug(int cmdd,int dataa) {
         for (rr=1;rr<game.numinvitems;rr++)
             playerchar->inv[rr]=1;
         update_invorder();
-        //    Display("invorder decided there are %d items[display %d",play.inv_numorder,play.inv_numdisp);
     }
     else if (cmdd==1) {
         String toDisplay = GetRuntimeInfo();
         Display(toDisplay.GetCStr());
-        //    Display("shftR: %d  shftG: %d  shftB: %d", _rgb_r_shift_16, _rgb_g_shift_16, _rgb_b_shift_16);
-        //    Display("Remaining memory: %d kb",_go32_dpmi_remaining_virtual_memory()/1024);
-        //Display("Play char bcd: %d",->GetColorDepth(spriteset[views[playerchar->view].frames[playerchar->loop][playerchar->frame].pic]));
     }
     else if (cmdd==2) 
-    {  // show walkable areas from here
-        // TODO: support multiple viewports?!
-        const int viewport_index = 0;
-        const int camera_index = 0;
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-        tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        const Rect &viewport = play.GetRoomViewport(viewport_index)->GetRect();
-        const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
-        Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
-        view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
+    {  // show room mask
+        if (loaded_game_file_version < kGameVersion_360) dataa = kRoomAreaWalkable;
 
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
-        render_graphics(ddb, viewport.Left, viewport.Top);
-
-        delete tempw;
-        delete view_bmp;
-        gfxDriver->DestroyDDB(ddb);
-        ags_wait_until_keypress();
-        invalidate_screen();
+        auto mask = static_cast<RoomAreaMask>(dataa);
+        if ((mask < kRoomAreaNone) || (mask > kRoomAreaRegion) ||
+            (debugLastRoomMask == mask)) // also act like toggling last mask off
+            debugLastRoomMask = kRoomAreaNone;
+        else
+            debugLastRoomMask = mask;
+        debug_draw_room_mask(debugLastRoomMask);
     }
     else if (cmdd==3) 
     {
@@ -145,40 +132,9 @@ void script_debug(int cmdd,int dataa) {
             display_fps = (FPSDisplayMode)dataa;
     }
     else if (cmdd == 5) {
-        if (dataa == 0) dataa = game.playercharacter;
-        if (game.chars[dataa].walking < 1) {
-            Display("Not currently moving.");
-            return;
-        }
-        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-        int mlsnum = game.chars[dataa].walking;
-        if (game.chars[dataa].walking >= TURNING_AROUND)
-            mlsnum %= TURNING_AROUND;
-        MoveList*cmls = &mls[mlsnum];
-        for (int i = 0; i < cmls->numstage-1; i++) {
-            short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
-            short srcy=short(cmls->pos[i] & 0x00ffff);
-            short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
-            short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i+1));
-        }
-
-        // TODO: support multiple viewports?!
-        const int viewport_index = 0;
-        const int camera_index = 0;
-        const Rect &viewport = play.GetRoomViewport(viewport_index)->GetRect();
-        const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
-        Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
-        view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
-
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
-        render_graphics(ddb, viewport.Left, viewport.Top);
-
-        delete tempw;
-        delete view_bmp;
-        gfxDriver->DestroyDDB(ddb);
-        ags_wait_until_keypress();
+        // show the given character's pathfinding; act like a on/off toggle
+        debugLastMoveChar = dataa == debugLastMoveChar ? -1 : dataa;
+        debug_draw_movelist(dataa);
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

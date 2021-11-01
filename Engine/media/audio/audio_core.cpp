@@ -19,6 +19,7 @@
 // safer slot look ups (with gen id)
 // generate/load mod/midi offsets
 
+#include <math.h>
 #include "media/audio/audio_core.h"
 #include <unordered_map>
 #include "debug/out.h"
@@ -99,7 +100,8 @@ void audio_core_init()
 void audio_core_shutdown()
 {
     g_acore.audio_core_thread_running = false;
-    g_acore.audio_core_thread.join();
+    if (g_acore.audio_core_thread.joinable())
+        g_acore.audio_core_thread.join();
 
     // dispose all the active slots
     g_acore.slots_.clear();
@@ -154,18 +156,22 @@ int audio_core_slot_init(const std::vector<char> &data, const ags::String &exten
 // SLOT CONTROL
 // -------------------------------------------------------------------------------------------------
 
-void audio_core_slot_play(int slot_handle)
+PlaybackState audio_core_slot_play(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->decoder_.Play();
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
     g_acore.mixer_cv.notify_all();
+    return state;
 }
 
-void audio_core_slot_pause(int slot_handle)
+PlaybackState audio_core_slot_pause(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[slot_handle]->decoder_.Pause();
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
     g_acore.mixer_cv.notify_all();
+    return state;
 }
 
 void audio_core_slot_stop(int slot_handle)
@@ -206,16 +212,12 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 
     if (panning != 0.0f) {
         // https://github.com/kcat/openal-soft/issues/194
-        alSourcef(source_, AL_ROLLOFF_FACTOR, 0.0f);
-        dump_al_errors();
         alSourcei(source_, AL_SOURCE_RELATIVE, AL_TRUE);
         dump_al_errors();
-        alSource3f(source_, AL_POSITION, panning, 0.0f, 0.0f);
+        alSource3f(source_, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
         dump_al_errors();
     }
     else {
-        alSourcef(source_, AL_ROLLOFF_FACTOR, 1.0f);
-        dump_al_errors();
         alSourcei(source_, AL_SOURCE_RELATIVE, AL_FALSE);
         dump_al_errors();
         alSource3f(source_, AL_POSITION, 0.0f, 0.0f, 0.0f);
@@ -243,10 +245,20 @@ float audio_core_slot_get_duration(int slot_handle)
     return dur;
 }
 
-AudioCorePlayState audio_core_slot_get_play_state(int slot_handle)
+PlaybackState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
+    g_acore.mixer_cv.notify_all();
+    return state;
+}
+
+PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float &pos_ms)
+{
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
+    auto state = g_acore.slots_[slot_handle]->decoder_.GetPlayState();
+    pos_ms = g_acore.slots_[slot_handle]->decoder_.GetPositionMs();
+    pos = pos_ms; // TODO: separate pos definition per sound type
     g_acore.mixer_cv.notify_all();
     return state;
 }

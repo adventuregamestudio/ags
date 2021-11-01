@@ -60,13 +60,6 @@ namespace AGS.CScript.Compiler
 						thisLine = PreProcessDirective(thisLine);
 					}
 				}
-				if (thisLine.Length >= MAX_LINE_LENGTH)
-				{
-					// For compatibility with legacy CSPARSER, which assumes lines
-					// will not be longer than 500 chars. Remove once new compiler
-					// is implemented.
-					RecordError(ErrorCode.LineTooLong, "Line too long (max line length = " + MAX_LINE_LENGTH + ")");
-				}
 				output.AppendLine(thisLine);
 			}
 			reader.Close();

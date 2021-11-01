@@ -21,6 +21,17 @@
 #define MUS_MOD  4
 #define MUS_OGG  5
 
+// Media playback status
+enum PlaybackState
+{
+    PlayStateInitial,   // initialized, but not started
+    PlayStatePlaying,   // playing
+    PlayStatePaused,    // paused
+    PlayStateStopped,   // stopped by command
+    PlayStateFinished,  // stopped by reaching the end
+    PlayStateError      // stopped due to the error
+};
+
 // Max channels that are distributed among game's audio types
 #define MAX_GAME_CHANNELS         16
 #define SPECIAL_CROSSFADE_CHANNEL (MAX_GAME_CHANNELS)

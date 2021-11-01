@@ -2,6 +2,7 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 #endif
+#include "util/file.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
 
@@ -12,25 +13,6 @@ namespace Common
 
 namespace Path
 {
-
-bool IsDirectory(const String &filename)
-{
-    // stat() does not like trailing slashes, remove them
-    String fixed_path = MakePathNoSlash(filename);
-    return ags_directory_exists(fixed_path.GetCStr()) != 0;
-}
-
-bool IsFile(const String &filename)
-{
-    return ags_file_exists(filename.GetCStr()) != 0;
-}
-
-bool IsFileOrDir(const String &filename)
-{
-    // stat() does not like trailing slashes, remove them
-    String fixed_path = MakePathNoSlash(filename);
-    return ags_path_exists(fixed_path.GetCStr()) != 0;
-}
 
 String GetParent(const String &path)
 {
@@ -82,7 +64,7 @@ String RemoveExtension(const String &filename)
 
 String GetDirectoryPath(const String &path)
 {
-    if (IsDirectory(path))
+    if (File::IsDirectory(path))
         return path;
 
     String dir = path;

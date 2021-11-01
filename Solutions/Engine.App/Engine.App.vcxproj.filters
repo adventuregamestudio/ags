@@ -795,9 +795,6 @@
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
       <Filter>Library Sources\MojoAL</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\main\main_sdl2.cpp">
       <Filter>Source Files\main</Filter>
     </ClCompile>
@@ -1319,9 +1316,6 @@
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
@@ -1640,9 +1634,6 @@
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h">
       <Filter>Library Sources\MojoAL\AL</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\clip_openal.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
@@ -1677,9 +1668,6 @@
       <Filter>Library Sources\apeg</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
-      <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\openal.h">

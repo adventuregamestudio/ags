@@ -24,6 +24,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
+#include "ac/view.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/statobj/agsstaticobject.h"
@@ -52,6 +53,7 @@ using namespace Engine;
 
 extern GameSetupStruct game;
 extern CharacterCache *charcache;
+extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -343,12 +345,12 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     return HError::None();
 }
 
-void LoadFonts(GameDataVersion data_ver)
+void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
         FontInfo &finfo = game.fonts[i];
-        if (!wloadfont_size(i, finfo))
+        if (!load_font_size(i, finfo, game.options[OPT_FONTLOADLOGIC]))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
 
         const bool is_wfn = is_bitmap_font(i);
@@ -359,18 +361,6 @@ void LoadFonts(GameDataVersion data_ver)
             if (is_wfn && (finfo.Outline == FONT_OUTLINE_AUTO))
             {
                 set_font_outline(i, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(i));
-            }
-        }
-
-        // Backward compatibility: if the real font's height != formal height
-        // and there's no custom linespacing, then set linespacing = formal height.
-        if (!is_wfn)
-        {
-            int req_height = finfo.SizePt * finfo.SizeMultiplier;
-            int height = getfontheight(i);
-            if ((height != req_height) && (finfo.LineSpacing == 0))
-            {
-                set_font_linespacing(i, req_height + 2 * get_font_outline_thickness(i));
             }
         }
     }
@@ -442,6 +432,7 @@ void AllocScriptModules()
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    GameSetupStruct &game = ents.Game;
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     if (data_ver >= kGameVersion_341)
@@ -474,6 +465,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
     init_game_drawdata();
+    views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     // Set number of game channels corresponding to the loaded game version
     if (loaded_game_file_version < kGameVersion_360)
@@ -483,7 +475,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     HError err = InitAndRegisterGameEntities(ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
-    LoadFonts(data_ver);
+    LoadFonts(game, data_ver);
     LoadLipsyncData();
 
     //

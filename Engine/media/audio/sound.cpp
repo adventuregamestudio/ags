@@ -12,40 +12,95 @@
 //
 //=============================================================================
 #include "media/audio/sound.h"
-#include "media/audio/clip_openal.h"
+#include <cmath>
+#include "core/assetmanager.h"
+#include "media/audio/audio_core.h"
+#include "media/audio/audiodefines.h"
+#include "util/path.h"
+#include "util/stream.h"
 
-SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, bool loop)
+using namespace AGS::Common;
+
+static int GuessSoundTypeFromExt(const String &extension)
 {
-    return my_load_openal(asset_name, "WAV", voll, loop);
+    if (extension.CompareNoCase("mp3") == 0) {
+        return MUS_MP3;
+    }
+    else if (extension.CompareNoCase("ogg") == 0) {
+        return MUS_OGG;
+    }
+    else if (extension.CompareNoCase("mid") == 0) {
+        return MUS_MIDI;
+    }
+    else if (extension.CompareNoCase("wav") == 0) {
+        return MUS_WAVE;
+    }
+    else if (extension.CompareNoCase("voc") == 0) {
+        return MUS_WAVE;
+    }
+    else if (extension.CompareNoCase("mod") == 0) {
+        return MUS_MOD;
+    }
+    else if (extension.CompareNoCase("s3m") == 0) {
+        return MUS_MOD;
+    }
+    else if (extension.CompareNoCase("it") == 0) {
+        return MUS_MOD;
+    }
+    else if (extension.CompareNoCase("xm") == 0) {
+        return MUS_MOD;
+    }
+    return 0;
 }
 
-SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
+static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
-    return my_load_openal(asset_name, "MP3", voll, false);
+    auto *s = AssetMgr->OpenAsset(apath);
+    if (!s)
+        return nullptr;
+
+    const size_t asset_size = s->GetLength();
+    std::vector<char> data(asset_size);
+    s->Read(data.data(), asset_size);
+    delete s;
+
+    const auto asset_ext = AGS::Common::Path::GetFileExtension(apath.Name);
+    const auto ext_hint = asset_ext.IsEmpty() ? String(extension_hint) : asset_ext;
+
+    auto slot = audio_core_slot_init(data, ext_hint, loop);
+    if (slot < 0) { return nullptr; }
+
+    const auto sound_type = GuessSoundTypeFromExt(ext_hint);
+    const auto lengthMs = (int)std::round(audio_core_slot_get_duration(slot));
+
+    auto clip = new SOUNDCLIP(slot);
+    clip->repeat = loop;
+    clip->soundType = sound_type;
+    clip->lengthMs = lengthMs;
+    return clip;
 }
 
-SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
+SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MP3", voll, loop);
+    return my_load_clip(asset_name, "WAV", loop);
 }
 
-SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
+SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "OGG", voll, loop);
+    return my_load_clip(asset_name, "MP3", loop);
 }
 
-SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
+SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "OGG", voll, false);
+    return my_load_clip(asset_name, "OGG", loop);
 }
 
 SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MIDI", 0, loop);
+    return my_load_clip(asset_name, "MIDI", loop);
 }
 
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop)
 {
-    return my_load_openal(asset_name, "MOD", 0, loop);
+    return my_load_clip(asset_name, "MOD", loop);
 }
-

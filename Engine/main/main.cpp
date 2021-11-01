@@ -97,19 +97,6 @@ int psp_gfx_super_sampling = 1;
 int psp_gfx_smooth_sprites = 0;
 #endif
 
-
-void main_pre_init()
-{
-    our_eip = -999;
-    AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
-    play.takeover_data = 0;
-}
-
-void main_create_platform_driver()
-{
-    platform = AGSPlatformDriver::GetDriver();
-}
-
 // CLNUP check this stuff
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
@@ -132,6 +119,8 @@ AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 void main_init(int argc, char*argv[])
 {
+    our_eip = -999;
+
     // Init libraries: set text encoding
     set_uformat(U_UTF8);
     set_filename_encoding(U_UNICODE);
@@ -143,11 +132,12 @@ void main_init(int argc, char*argv[])
     SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
     SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
 
+    platform = AGSPlatformDriver::GetDriver();
+    platform->SetCommandArgs(argv, argc);
+    platform->MainInit();
+
     AssetMgr.reset(new AssetManager());
-    main_pre_init();
-    main_create_platform_driver();
-    platform->InitCommandArgs(argv, argc);
-    platform->MainInitAdjustments();
+    AssetMgr->SetSearchPriority(Common::kAssetPriorityDir);
 }
 
 String get_engine_string()
@@ -409,6 +399,8 @@ int ags_entry_point(int argc, char *argv[]) {
     setup_malloc_handling();
 #endif
     debug_flags=0;
+    // FIXME: this should be in game data init, but currently also set by cmdline
+    play.takeover_data = 0;
 
     ConfigTree startup_opts;
     int res = main_process_cmdline(startup_opts, argc, argv);
@@ -447,10 +439,7 @@ int ags_entry_point(int argc, char *argv[]) {
 #endif
     {
         int result = initialize_engine(startup_opts);
-        // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
-        sys_main_shutdown();
-        allegro_exit();
-        platform->PostBackendExit();
+        quit("|bye!");
         return result;
     }
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER

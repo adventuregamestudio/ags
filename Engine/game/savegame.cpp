@@ -64,7 +64,7 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 extern RoomStatus *croom;
-extern ViewStruct *views;
+extern std::vector<ViewStruct> views;
 
 
 namespace AGS
@@ -526,8 +526,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
     
-    {
-    AudioChannelsLock lock;
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
         const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
@@ -541,35 +539,33 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
 
-        auto* ch = lock.GetChannel(i);
+        auto* ch = AudioChans::GetChannel(i);
         if (ch != nullptr)
         {
             ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
             ch->set_speed(chan_info.Speed);
             ch->set_panning(chan_info.Pan);
-            ch->panningAsPercentage = chan_info.PanAsPercent;
             ch->xSource = chan_info.XSource;
             ch->ySource = chan_info.YSource;
             ch->maximumPossibleDistanceAway = chan_info.MaxDist;
         }
     }
-    if ((cf_in_chan > 0) && (lock.GetChannel(cf_in_chan) != nullptr))
+    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (lock.GetChannel(cf_out_chan) != nullptr))
+    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        auto* ch = lock.GetChannelIfPlaying(i);
+        auto* ch = AudioChans::GetChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
         if ((pos > 0) && (ch != nullptr))
         {
             ch->seek(pos);
         }
     }
-    } // -- AudioChannelsLock
 
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
     {
@@ -606,10 +602,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // Test if the old-style audio had playing music and it was properly loaded
     if (current_music_type > 0)
     {
-        AudioChannelsLock lock;
-
-        if ((crossFading > 0 && !lock.GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !lock.GetChannelIfPlaying(SCHAN_MUSIC)))
+        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
+            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
         {
             current_music_type = 0; // playback failed, reset flag
         }

@@ -41,7 +41,7 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern AGSPlatformDriver *platform;
 
-extern int MAXSTRLEN;
+extern size_t MAXSTRLEN;
 
 // object-based File routines
 
@@ -103,30 +103,51 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
   FileWriteRawLine(fil->handle, towrite);
 }
 
-void File_ReadRawLine(sc_File *fil, char* buffer) {
-  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
-  check_strlen(buffer);
-  int i = 0;
-  while (i < MAXSTRLEN - 1) {
-    buffer[i] = in->ReadInt8();
-    if (buffer[i] == '\r') {
-      // CR -- skip LF and abort
-      in->ReadInt8();
-      break;
+// Reads line of chars until linebreak is met or buffer is filled;
+// returns whether reached the end of line (false in case not enough buffer);
+// guarantees null-terminator in the buffer.
+static bool File_ReadRawLineImpl(sc_File *fil, char* buffer, size_t buf_len) {
+    if (buf_len == 0) return false;
+    Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
+    for (size_t i = 0; i < buf_len - 1; ++i)
+    {
+        char c = in->ReadByte();
+        if (c < 0 || c == '\n') // EOF or LF
+        {
+            buffer[i] = 0;
+            return true;
+        }
+        if (c == '\r') // CR or CRLF
+        {
+            c = in->ReadByte();
+            // Look for '\n', but it may be missing, which is also a valid case
+            if (c >= 0 && c != '\n') in->Seek(-1, kSeekCurrent);
+            buffer[i] = 0;
+            return true;
+        }
+        buffer[i] = c;
     }
-    if (buffer[i] == '\n')  // LF only -- abort
-      break;
-    if (in->EOS())  // EOF -- abort
-      break;
-    i++;
-  }
-  buffer[i] = 0;
+    buffer[buf_len - 1] = 0;
+    return false; // not enough buffer
+}
+
+void File_ReadRawLine(sc_File *fil, char* buffer) {
+  check_strlen(buffer);
+  File_ReadRawLineImpl(fil, buffer, MAXSTRLEN);
 }
 
 const char* File_ReadRawLineBack(sc_File *fil) {
-  char readbuffer[MAX_MAXSTRLEN + 1];
-  File_ReadRawLine(fil, readbuffer);
-  return CreateNewScriptString(readbuffer);
+  char readbuffer[MAX_MAXSTRLEN];
+  if (File_ReadRawLineImpl(fil, readbuffer, MAX_MAXSTRLEN))
+    return CreateNewScriptString(readbuffer);
+  String sbuf = readbuffer;
+  bool done = false;
+  while (!done)
+  {
+    done = File_ReadRawLineImpl(fil, readbuffer, MAX_MAXSTRLEN);
+    sbuf.Append(readbuffer);
+  };
+  return CreateNewScriptString(sbuf.GetCStr());
 }
 
 void File_ReadString(sc_File *fil, char *toread) {
@@ -406,16 +427,6 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
     return true;
 }
 
-Stream *LocateAsset(const AssetPath &path, size_t &asset_size)
-{
-    String assetname = path.Name;
-    String filter = path.Filter;
-    soff_t asset_sz = 0;
-    Stream *asset_stream = AssetMgr->OpenAsset(assetname, filter, &asset_sz);
-    asset_size = asset_sz;
-    return asset_stream;
-}
-
 //
 // AGS custom PACKFILE callbacks, that use our own Stream object
 //
@@ -494,9 +505,10 @@ static PACKFILE_VTABLE ags_packfile_vtable = {
 };
 //
 
-PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
+PACKFILE *PackfileFromAsset(const AssetPath &path)
 {
-    Stream *asset_stream = LocateAsset(path, asset_size);
+    Stream *asset_stream = AssetMgr->OpenAsset(path);
+    const size_t asset_size = asset_stream->GetLength();
     if (asset_stream && asset_size > 0)
     {
         AGS_PACKFILE_OBJ* obj = new AGS_PACKFILE_OBJ;
@@ -506,13 +518,6 @@ PACKFILE *PackfileFromAsset(const AssetPath &path, size_t &asset_size)
         return pack_fopen_vtable(&ags_packfile_vtable, obj);
     }
     return nullptr;
-}
-
-bool DoesAssetExistInLib(const AssetPath &path)
-{
-    String assetname = path.Name;
-    String filter = path.Filter;
-    return AssetMgr->DoesAssetExist(assetname, filter);
 }
 
 String find_assetlib(const String &filename)

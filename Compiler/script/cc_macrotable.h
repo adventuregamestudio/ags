@@ -6,8 +6,6 @@
 
 typedef AGS::Common::String AGString;
 
-#define MAX_LINE_LENGTH 500
-
 struct MacroTable {
 private:
     std::map<AGString,AGString> _macro_table;

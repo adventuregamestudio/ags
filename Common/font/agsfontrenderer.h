@@ -49,6 +49,7 @@ struct FontMetrics
 {
     int Height = 0; // formal font height value
     int RealHeight = 0; // real graphical height of a font
+    int CompatHeight = 0; // either formal or real height, depending on compat settings
 };
 
 // NOTE: this extending interface is not yet exposed to plugins

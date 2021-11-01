@@ -83,7 +83,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
   Stream *s;
   if (rp.AssetMgr)
   {
-    s = AssetMgr->OpenAsset(rp.FullPath, "*", nullptr, open_mode, work_mode);
+    s = AssetMgr->OpenAsset(rp.FullPath, "*");
   }
   else
   {

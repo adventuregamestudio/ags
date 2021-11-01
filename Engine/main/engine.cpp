@@ -88,7 +88,7 @@ extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern SpriteCache spriteset;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;
@@ -111,6 +111,7 @@ t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 bool engine_init_backend()
 {
     our_eip = -199;
+    platform->PreBackendInit();
     // Initialize SDL
     Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
     if (sys_main_init())
@@ -217,13 +218,11 @@ void engine_force_window()
     // TODO: actually overwrite config tree instead
     if (force_window == 1)
     {
-        usetup.Screen.DisplayMode.Windowed = true;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
+        usetup.Screen.Windowed = true;
     }
     else if (force_window == 2)
     {
-        usetup.Screen.DisplayMode.Windowed = false;
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.Windowed = false;
     }
 }
 
@@ -259,9 +258,9 @@ String search_for_game_data_file(String &was_searching_in)
     // 1. From command line argument, which may be a directory or actual file
     if (!cmdGameDataPath.IsEmpty())
     {
-        if (Path::IsFile(cmdGameDataPath))
+        if (File::IsFile(cmdGameDataPath))
             return cmdGameDataPath; // this path is a file
-        if (!Path::IsDirectory(cmdGameDataPath))
+        if (!File::IsDirectory(cmdGameDataPath))
             return ""; // path is neither file nor directory
         was_searching_in = cmdGameDataPath;
         Debug::Printf("Searching in (cmd arg): %s", was_searching_in.GetCStr());
@@ -974,12 +973,12 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     if (!cmdGameDataPath.IsEmpty())
     {
         // If not a valid path - bail out
-        if (!Path::IsFileOrDir(cmdGameDataPath))
+        if (!File::IsFileOrDir(cmdGameDataPath))
             return new Error(String::FromFormat("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
                 Directory::GetCurrentDirectory().GetCStr(),
                 cmdGameDataPath.GetCStr()));
         // If it's a file, then keep it and proceed
-        if (Path::IsFile(cmdGameDataPath))
+        if (File::IsFile(cmdGameDataPath))
         {
             Debug::Printf("Using provided game data path: %s", cmdGameDataPath.GetCStr());
             startup_dir = Path::GetDirectoryPath(cmdGameDataPath);
@@ -1376,11 +1375,10 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
-    quit("|bye!");
     return EXIT_NORMAL;
 }
 
-bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
+bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
     engine_shutdown_gfxmode();
 
@@ -1400,16 +1398,16 @@ bool engine_try_switch_windowed_gfxmode()
 
     // Keep previous mode in case we need to revert back
     DisplayMode old_dm = gfxDriver->GetDisplayMode();
-    GameFrameSetup old_frame = graphics_mode_get_render_frame();
+    FrameScaleDef old_frame = graphics_mode_get_render_frame();
 
     // Release engine resources that depend on display mode
     engine_pre_gfxmode_release();
 
     Size init_desktop = get_desktop_size();
-    bool switch_to_windowed = !old_dm.Windowed;
-    ActiveDisplaySetting setting = graphics_mode_get_last_setting(switch_to_windowed);
+    bool windowed = !old_dm.IsWindowed();
+    ActiveDisplaySetting setting = graphics_mode_get_last_setting(windowed);
     DisplayMode last_opposite_mode = setting.Dm;
-    GameFrameSetup use_frame_setup = setting.FrameSetup;
+    FrameScaleDef frame = setting.Frame;
     
     // If there are saved parameters for given mode (fullscreen/windowed)
     // then use them, if there are not, get default setup for the new mode.
@@ -1420,17 +1418,16 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        // we need to clone from initial config, because not every parameter is set by graphics_mode_get_defaults()
-        DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
-        dm_setup.Windowed = !old_dm.Windowed;
-        graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
-        res = graphics_mode_set_dm_any(game.GetGameRes(), dm_setup, old_dm.ColorDepth, use_frame_setup);
+        WindowSetup ws = windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
+        frame = windowed ? usetup.Screen.WinGameFrame : usetup.Screen.FsGameFrame;
+        res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
+            frame, usetup.Screen.Params);
     }
 
     // Apply corresponding frame render method
     if (res)
-        res = graphics_mode_set_render_frame(use_frame_setup);
-    
+        res = graphics_mode_set_render_frame(frame);
+
     if (!res)
     {
         // If failed, try switching back to previous gfx mode
@@ -1442,7 +1439,7 @@ bool engine_try_switch_windowed_gfxmode()
     {
         // If succeeded (with any case), update engine objects that rely on
         // active display mode.
-        if (gfxDriver->GetDisplayMode().Windowed)
+        if (!gfxDriver->GetDisplayMode().IsRealFullscreen())
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
     }

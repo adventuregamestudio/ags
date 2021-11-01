@@ -92,10 +92,9 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     return "Unknown error.";
 }
 
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views)
+LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs)
     : Game(game)
     , Dialogs(dialogs)
-    , Views(views)
     , SpriteCount(0)
 {
 }
@@ -268,10 +267,9 @@ void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, Stream *in, siz
     }
 }
 
-void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVersion data_ver)
+void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
 {
-    int count = game.numviews;
-    views = (ViewStruct*)calloc(sizeof(ViewStruct) * count, 1);
+    views.resize(game.numviews);
         for (int i = 0; i < game.numviews; ++i)
         {
             views[i].ReadFromFile(in);
@@ -465,7 +463,7 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Adjusts score clip id, depending on game data version
-void RemapLegacySoundNums(GameSetupStruct &game, ViewStruct *&views, GameDataVersion data_ver)
+void RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver)
 {
 }
 

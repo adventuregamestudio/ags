@@ -22,9 +22,9 @@
 #ifndef __AGS_EE_MEDIA__OPENALDECODER_H
 #define __AGS_EE_MEDIA__OPENALDECODER_H
 #include <future>
-#include "media/audio/openal.h"
 #include <SDL_sound.h>
-#include "media/audio/audio_core_defs.h"
+#include "media/audio/audiodefines.h"
+#include "media/audio/openal.h"
 #include "util/string.h"
 
 struct SoundSampleDeleterFunctor {
@@ -52,7 +52,7 @@ public:
     void Pause();
     void Stop();
     void Seek(float pos_ms);
-    AudioCorePlayState GetPlayState();
+    PlaybackState GetPlayState();
     float GetPositionMs();
     float GetDurationMs();
 
@@ -61,7 +61,7 @@ private:
 
     bool repeat_;
 
-    AudioCorePlayState playState_ = PlayStateInitial;
+    PlaybackState playState_ = PlayStateInitial;
 
     std::vector<char> sampleData_{};
     AGS::Common::String sampleExt_ = "";
@@ -69,7 +69,7 @@ private:
     SoundSampleUniquePtr sample_ = nullptr;
     float duration_ = 0.f;
 
-    AudioCorePlayState onLoadPlayState_ = PlayStatePaused;
+    PlaybackState onLoadPlayState_ = PlayStatePaused;
     float onLoadPositionMs = 0.0f;
 
     float processedBuffersDurationMs_ = 0.0f;

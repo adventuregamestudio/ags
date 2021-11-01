@@ -134,14 +134,13 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
 Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
     walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0,0,0,0,thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-    // if the character who's moving doesn't Bitmap *, don't bother checking
+    // if the character who's moving doesn't block, don't bother checking
     if (sourceChar < 0) ;
     else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
         return walkable_areas_temp;
 
     int ww;
-    // for each character in the current room, make the area under
-    // them unwalkable
+    // for each character in the current room, make the area under them unwalkable
     for (ww = 0; ww < game.numcharacters; ww++) {
         if (game.chars[ww].on != 1) continue;
         if (game.chars[ww].room != displayed_room) continue;
@@ -162,8 +161,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         remove_walkable_areas_from_temp(fromx, cwidth, char1->get_blocking_top(), char1->get_blocking_bottom());
     }
 
-    // check for any blocking objects in the room, and deal with them
-    // as well
+    // check for any blocking objects in the room, and deal with them as well
     for (ww = 0; ww < croom->numobj; ww++) {
         if (objs[ww].on != 1) continue;
         if ((objs[ww].flags & OBJF_SOLID) == 0)

@@ -60,7 +60,7 @@ void engine_setup_system_gamesize()
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
-    usetup.textheight = getfontheight_outlined(0) + 1;
+    usetup.textheight = get_font_height_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
@@ -227,7 +227,7 @@ void engine_pre_gfxmode_mouse_cleanup()
 void engine_setup_scsystem_screen(const DisplayMode &dm)
 {
     scsystem.coldepth = dm.ColorDepth;
-    scsystem.windowed = dm.Windowed;
+    scsystem.windowed = dm.IsWindowed();
     scsystem.vsync = dm.Vsync;
 }
 

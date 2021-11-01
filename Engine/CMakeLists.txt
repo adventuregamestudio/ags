@@ -395,15 +395,11 @@ target_sources(engine
     media/audio/ambientsound.cpp
     media/audio/ambientsound.h
     media/audio/audio_core.cpp
-    media/audio/audio_core_defs.h
     media/audio/audio_core.h
     media/audio/audio.cpp
     media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
-    media/audio/audiointernaldefs.h
-    media/audio/clip_openal.cpp
-    media/audio/clip_openal.h
     media/audio/openaldecoder.cpp
     media/audio/openaldecoder.h
     media/audio/openal.h

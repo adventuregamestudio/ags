@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_MEDIA__AUDIOCORE_H
 #define __AGS_EE_MEDIA__AUDIOCORE_H
 #include <vector>
-#include "media/audio/audio_core_defs.h"
+#include "media/audio/audiodefines.h"
 #include "util/string.h"
 
 // Initializes audio core system;
@@ -36,9 +36,9 @@ void audio_core_shutdown();
 // should we add a streaming method later? is this of any priority for regular builds?
 int  audio_core_slot_init(const std::vector<char> &data, const AGS::Common::String &extension_hint, bool repeat);
 // Start playback on a slot
-void audio_core_slot_play(int slot_handle);
+PlaybackState audio_core_slot_play(int slot_handle);
 // Pause playback on a slot, resume with 'audio_core_slot_play'
-void audio_core_slot_pause(int slot_handle);
+PlaybackState audio_core_slot_pause(int slot_handle);
 // Stop playback on a slot, disposes sound data, frees a slot
 void audio_core_slot_stop(int slot_handle);
 // Seek on a slot, new position in milliseconds
@@ -50,7 +50,8 @@ void audio_core_set_master_volume(float newvol);
 // Sets up single playback parameters
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning);
 
-AudioCorePlayState audio_core_slot_get_play_state(int slot_handle);
+PlaybackState audio_core_slot_get_play_state(int slot_handle);
+PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float &pos_ms);
 float audio_core_slot_get_pos_ms(int slot_handle);
 // Returns sound duration in milliseconds
 float audio_core_slot_get_duration(int slot_handle);

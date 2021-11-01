@@ -294,7 +294,7 @@ void GUIListBox::OnResized()
 
 void GUIListBox::UpdateMetrics()
 {
-    RowHeight = getfontheight(Font) + 2;
+    RowHeight = get_font_height(Font) + 2;
     VisibleItemCount = Height / RowHeight;
     if (ItemCount <= VisibleItemCount)
         TopItem = 0; // reset scroll if all items are visible

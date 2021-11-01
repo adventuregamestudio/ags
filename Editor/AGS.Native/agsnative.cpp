@@ -100,8 +100,7 @@ GameDataVersion loaded_game_file_version = kGameVersion_Current;
 // stuff for importing old games
 DialogTopic *dialog = NULL;
 std::vector<GUIMain> guis;
-ViewStruct *newViews = NULL;
-int numNewViews = 0;
+std::vector<ViewStruct> newViews;
 
 // A reference color depth, for correct color selection;
 // originally was defined by 'abuf' bitmap.
@@ -371,8 +370,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    soff_t size = 0;
-    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
+    Stream *readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -387,6 +385,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
+    const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -422,8 +421,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    soff_t size = 0;
-    Stream *readin = templateMgr->OpenAsset(thisFile, &size);
+    Stream *readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -437,6 +435,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
       delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
+    const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
@@ -452,8 +451,8 @@ void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char 
 {
   // make sure we get the icon from the file
   templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
-  soff_t sizey = 0;
-  Stream* inpu = templateMgr->OpenAsset (iconName, &sizey);
+  Stream* inpu = templateMgr->OpenAsset (iconName);
+  const size_t sizey = inpu->GetLength();
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
@@ -649,7 +648,7 @@ AGSString import_sci_font(const AGSString &filename, int fslot) {
   delete ooo;
   delete iii;
   FontInfo fi;
-  if (!wloadfont_size(fslot, fi))
+  if (!load_font_size(fslot, fi, thisgame.options[OPT_FONTLOADLOGIC]))
   {
     return "Unable to load converted WFN file";
   }
@@ -831,7 +830,7 @@ void NewInteractionCommand::remove ()
 
 void new_font () {
   FontInfo fi;
-  wloadfont_size(thisgame.numfonts, fi);
+  load_font_size(thisgame.numfonts, fi, thisgame.options[OPT_FONTLOADLOGIC]);
   thisgame.fonts.push_back(FontInfo());
   thisgame.numfonts++;
 }
@@ -1059,7 +1058,7 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  return wloadfont_size(curFont, thisgame.fonts[curFont]);
+  return load_font_size(curFont, thisgame.fonts[curFont], thisgame.options[OPT_FONTLOADLOGIC]);
 }
 
 HAGSError reset_sprite_file() {
@@ -1076,7 +1075,7 @@ int numThisgamePlugins = 0;
 
 HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    numNewViews = thisgame.numviews;
+    newViews = std::move(ents.Views);
 
     numThisgamePlugins = (int)ents.PluginInfos.size();
     for (int i = 0; i < numThisgamePlugins; ++i)
@@ -1117,7 +1116,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
 HAGSError load_dta_file_into_thisgame(const AGSString &filename)
 {
     AGS::Common::MainGameSource src;
-    AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
+    AGS::Common::LoadedGameEntities ents(thisgame, dialog);
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
@@ -1138,15 +1137,7 @@ void free_old_game_data()
 	  if (dialog[bb].optionscripts != NULL)
 		  free(dialog[bb].optionscripts);
   }
-  for (bb = 0; bb < numNewViews; bb++)
-  {
-    for (int cc = 0; cc < newViews[bb].numLoops; cc++)
-    {
-      newViews[bb].loops[cc].Dispose();
-    }
-    newViews[bb].Dispose();
-  }
-  free(newViews);
+  newViews.clear();
   guis.clear();
   free(dialog);
 
@@ -1868,7 +1859,6 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
-    set_fontinfo(fontNumber, font_info);
 
     if (forceUpdate ||
         font_info.SizePt != old_sizept ||
@@ -1876,8 +1866,12 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     {
         reload_font(fontNumber);
     }
+    else
+    {
+        set_fontinfo(fontNumber, font_info, thisgame.options[OPT_FONTLOADLOGIC]);
+    }
 
-    font->Height = getfontheight(fontNumber);
+    font->Height = get_font_surface_height(fontNumber);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -2665,6 +2659,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->UniqueID = thisgame.uniqueid;
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
+    game->Settings->UseRealFontHeight = (thisgame.options[OPT_FONTLOADLOGIC] & FONT_LOAD_REPORTREALHEIGHT) != 0;
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;

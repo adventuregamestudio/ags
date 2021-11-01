@@ -44,7 +44,7 @@ using namespace AGS::Common;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern RoomStatus*croom;
 extern RoomObject*objs;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern RoomStruct thisroom;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;

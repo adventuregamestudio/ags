@@ -36,7 +36,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern int displayed_room;
 extern int face_talking;
-extern ViewStruct*views;
+extern std::vector<ViewStruct> views;
 extern CharacterExtras *charextra;
 extern IGraphicsDriver *gfxDriver;
 

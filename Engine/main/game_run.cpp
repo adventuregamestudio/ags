@@ -721,12 +721,6 @@ static void game_loop_update_loop_counter()
 
     if (play.wait_counter > 0) play.wait_counter--;
     if (play.shakesc_length > 0) play.shakesc_length--;
-
-    if (loopcounter % 5 == 0)
-    {
-        update_ambient_sound_vol();
-        update_directional_sound_vol();
-    }
 }
 
 static void game_loop_update_fps()

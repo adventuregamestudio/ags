@@ -62,9 +62,9 @@ int get_eip_guiobj()
   return 0;
 }
 
-int wgettextwidth_compensate(const char *tex, int font)
+int get_text_width_outlined(const char *tex, int font)
 {
-  return wgettextwidth(tex, font);
+  return get_text_width(tex, font);
 }
 
 namespace AGS

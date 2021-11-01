@@ -105,7 +105,7 @@ namespace AGS.Editor
                     {
                         graphics.FillRectangle(
                             new SolidBrush(_themes.Current.GetColor(_root + "/button-not-dropped-down/background")), rectButton);
-                        arrow = new SolidBrush(_themes.Current.GetColor(_root + "/button-not-dropped-down/background"));
+                        arrow = new SolidBrush(_themes.Current.GetColor(_root + "/button-not-dropped-down/foreground"));
                     }
 
                     GraphicsPath path = new GraphicsPath();

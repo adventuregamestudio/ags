@@ -80,6 +80,7 @@
 #define OPT_RENDERATSCREENRES 45 // scale sprites at the (final) screen resolution
 #define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
 #define OPT_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
+#define OPT_FONTLOADLOGIC   48 // fonts load/init logic, see FONT_LOAD_xxx flags
 #define OPT_HIGHESTOPTION   OPT_WALKSPEEDABSOLUTE
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
@@ -100,6 +101,7 @@
 #define MAX_LEGACY_FONT_SIZE 63
 // Contemporary font flags
 #define FFLG_SIZEMULTIPLIER  0x01  // size data means multiplier
+#define FFLG_DEFLINESPACING  0x02  // linespacing derived from the font height
 // Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
@@ -234,7 +236,7 @@ struct FontInfo
     char          Outline;
     // Custom vertical render offset, used mainly for fixing broken fonts
     int           YOffset;
-    // custom line spacing between two lines of text (0 = use font height)
+    // Custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;
     // When automatic outlining, thickness of the outline (0 = no auto outline)
     int           AutoOutlineThickness;

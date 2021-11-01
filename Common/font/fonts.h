@@ -23,6 +23,11 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS;
 
+// Font load flags, primarily for backward compatibility
+// REPORTREALHEIGHT: get_font_height should return real font's height,
+// otherwise returns formal height, equal to "font size" parameter
+#define FONT_LOAD_REPORTREALHEIGHT 0x01
+
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
 struct FontInfo;
@@ -31,13 +36,15 @@ struct FontRenderParams;
 void init_font_renderer();
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
-IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer);
+IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer, int load_mode);
 bool font_first_renderer_loaded();
 bool is_font_loaded(size_t fontNumber);
 bool is_bitmap_font(size_t fontNumber);
 bool font_supports_extended_characters(size_t fontNumber);
 // Get font's name, if it's available, otherwise returns empty string
 const char *get_font_name(size_t fontNumber);
+// Get a collection of FFLG_* flags corresponding to this font
+int get_font_flags(size_t fontNumber);
 // TODO: with changes to WFN font renderer that implemented safe rendering of
 // strings containing invalid chars (since 3.3.1) this function is not
 // important, except for (maybe) few particular cases.
@@ -48,17 +55,22 @@ void ensure_text_valid_for_font(char *text, size_t fontnum);
 // Get font's scaling multiplier
 int get_font_scaling_mul(size_t fontNumber);
 // Calculate actual width of a line of text
-int wgettextwidth(const char *texx, size_t fontNumber);
-// Calculates actual height of a line of text
-int wgettextheight(const char *text, size_t fontNumber);
-// Get font's height (maximal height of any line of text printed with this font)
-int getfontheight(size_t fontNumber);
+int get_text_width(const char *texx, size_t fontNumber);
+// Get font's height; this value is used for logical arrangement of UI elements;
+// note that this is a "formal" font height, that may have different value
+// depending on compatibility mode (used when running old games);
+int get_font_height(size_t fontNumber);
+// TODO: GUI classes located in Common library do not make use of outlining,
+// need to find a way to make all code use same functions.
+// Get the maximal height of the given font, with corresponding outlining
+int get_font_height_outlined(size_t fontNumber);
+// Get font's surface height: this always returns the height enough to accomodate
+// font letters on a bitmap or a texture; the distinction is needed for compatibility reasons
+int get_font_surface_height(size_t fontNumber);
 // Get font's line spacing
-int getfontlinespacing(size_t fontNumber);
+int get_font_linespacing(size_t fontNumber);
 // Set font's line spacing
 void set_font_linespacing(size_t fontNumber, int spacing);
-// Get is font is meant to use default line spacing
-bool use_default_linespacing(size_t fontNumber);
 // Get font's outline type
 int  get_font_outline(size_t font_number);
 // Get font's automatic outline thickness (if set)
@@ -69,11 +81,11 @@ void set_font_outline(size_t font_number, int outline_type,
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
-void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
+void set_fontinfo(size_t fontNumber, const FontInfo &finfo, int load_mode);
 // Gets full information about the font
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
-bool wloadfont_size(size_t fontNumber, const FontInfo &font_info);
+bool load_font_size(size_t fontNumber, const FontInfo &font_info, int load_mode);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.

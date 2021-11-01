@@ -15,26 +15,24 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_ANDROID
-
+#include <ctype.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <sys/stat.h> 
+#include <unistd.h>
+#include <SDL.h>
 #include <allegro.h>
+#include <jni.h>
+#include <android/log.h>
+#include <android/asset_manager_jni.h>
 #include "platform/base/agsplatformdriver.h"
 #include "ac/runtime_defines.h"
 #include "game/main_game_file.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
-#include <stdio.h>
-#include <dirent.h>
-#include <sys/stat.h> 
-#include <ctype.h>
-#include <unistd.h>
-#include "util/string_compat.h"
-#include "SDL.h"
+#include "util/android_file.h"
 #include "util/path.h"
-
-#include <jni.h>
-#include <android/log.h>
-#include <android/asset_manager_jni.h>
-#include "util/aasset_stream.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 
@@ -45,6 +43,9 @@ void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver
 {
+  virtual void MainInit();
+  virtual void PostBackendExit();
+
   virtual const char *GetGameDataFile();
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
@@ -53,7 +54,6 @@ struct AGSAndroid : AGSPlatformDriver
   eScriptSystemOSID GetSystemOSID() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
-  void PostBackendExit() override;
   void MainInitAdjustments() override;
 };
 
@@ -609,7 +609,7 @@ bool ReadConfiguration(const char* filename, bool read_everything)
   return false;
 }
 
-void AGSAndroid::MainInitAdjustments()
+void AGSAndroid::MainInit()
 {
     // retrieve the JNI environment.
     JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
@@ -702,7 +702,7 @@ bool IsValidAgsGame(const String& filename)
 
 const char * AGSAndroid::GetGameDataFile()
 {
-  AAssetManager* assetManager = GetAssetManagerFromEnv();
+  AAssetManager* assetManager = GetAAssetManager();
   AAssetDir* aAssetDir = AAssetManager_openDir(assetManager,"");
 
   psp_game_file_name[0] = '\0';
@@ -757,6 +757,7 @@ eScriptSystemOSID AGSAndroid::GetSystemOSID() {
 }
 
 void AGSAndroid::PostBackendExit() {
+  ShutdownAndroidFile();
   //java_environment->DeleteGlobalRef(java_class);
 }
 

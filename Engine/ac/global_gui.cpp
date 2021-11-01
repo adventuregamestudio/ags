@@ -167,7 +167,7 @@ int GetTextWidth(const char *text, int fontnum) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextWidth: invalid font number.");
 
-  return wgettextwidth_compensate(text, fontnum);
+  return get_text_width_outlined(text, fontnum);
 }
 
 int GetTextHeight(const char *text, int fontnum, int width) {
@@ -184,14 +184,14 @@ int GetFontHeight(int fontnum)
 {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetFontHeight: invalid font number.");
-  return getfontheight_outlined(fontnum);
+  return get_font_height_outlined(fontnum);
 }
 
 int GetFontLineSpacing(int fontnum)
 {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetFontLineSpacing: invalid font number.");
-  return getfontspacing_outlined(fontnum);
+  return get_font_linespacing(fontnum);
 }
 
 void SetGUIBackgroundPic (int guin, int slotn) {

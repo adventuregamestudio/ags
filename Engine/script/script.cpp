@@ -213,11 +213,26 @@ int create_global_script() {
     for (size_t instance_idx = 0; instance_idx < instances_for_resolving.size(); instance_idx++)
     {
         auto inst = instances_for_resolving[instance_idx];
-        if (!inst->ResolveScriptImports(inst->instanceof))
+        if (!inst->ResolveScriptImports(inst->instanceof.get()))
             return kscript_create_error;
-        if (!inst->ResolveImportFixups(inst->instanceof))
+        if (!inst->ResolveImportFixups(inst->instanceof.get()))
             return kscript_create_error;
     }
+
+    // Create the forks for 'repeatedly_execute_always' after resolving
+    // because they copy their respective originals including the resolve information
+    for (size_t module_idx = 0; module_idx < numScriptModules; module_idx++)
+    {
+        moduleInstFork[module_idx] = moduleInst[module_idx]->Fork();
+        if (moduleInstFork[module_idx] == nullptr)
+            return kscript_create_error;
+
+        moduleRepExecAddr[module_idx] = moduleInst[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
+    }
+
+    gameinstFork = gameinst->Fork();
+    if (gameinstFork == nullptr)
+        return kscript_create_error;
 
     // Create the forks for 'repeatedly_execute_always' after resolving
     // because they copy their respective originals including the resolve information

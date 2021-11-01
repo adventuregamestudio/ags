@@ -167,18 +167,6 @@ Display(""this doesn't display"");
         }
 
         [Test]
-        public void LineTooLong()
-        {
-            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
-            string script = $@"
-""this message has more than 500 characters. I will throw a poem here: He with body waged a fight, But body won; it walks upright. Then he struggled with the heart; Innocence and peace depart. Then he struggled with the mind; His proud heart he left behind. Now his wars on God begin; At stroke of midnight God shall win. The poem has now ended and we still have more characters to go... 1/2 cup butter, cubed; 6 medium unpeeled tart red apples, sliced; 3/4 cup sugar, divided; 3/4 teaspoon ground cinnamon; Vanilla ice cream, optional; throw all of these in the oven for at least 20 minutes. End of long text"";
-";
-            string res = preprocessor.Preprocess(script, "ScriptLineTooLong");
-            Assert.That(preprocessor.Results.Count, Is.EqualTo(1));
-            Assert.That(preprocessor.Results[0].Code, Is.EqualTo(ErrorCode.LineTooLong));
-        }
-
-        [Test]
         public void RemoveEditorDirectives()
         {
             IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);

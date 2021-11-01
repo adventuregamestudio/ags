@@ -43,10 +43,9 @@ void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver
 {
-  virtual void MainInit();
-  virtual void PostBackendExit();
-
-  virtual const char *GetGameDataFile();
+  void MainInit() override;
+  void PostBackendExit() override;
+  const char *GetGameDataFile() override;
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
   const char *GetAppOutputDirectory() override;
@@ -54,7 +53,6 @@ struct AGSAndroid : AGSPlatformDriver
   eScriptSystemOSID GetSystemOSID() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
-  void MainInitAdjustments() override;
 };
 
 

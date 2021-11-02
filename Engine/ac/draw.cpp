@@ -2215,7 +2215,7 @@ void draw_fps(const Rect &viewport)
     const int font = FONT_NORMAL;
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = CreateCompatBitmap(viewport.GetWidth(), (get_font_height_outlined(font) + get_fixed_pixel_size(5)));
+        fpsDisplay = CreateCompatBitmap(viewport.GetWidth(), (get_font_surface_height(font) + get_fixed_pixel_size(5)));
     }
     fpsDisplay->ClearTransparent();
     
@@ -2581,7 +2581,7 @@ void construct_engine_overlay()
         const int font = FONT_NORMAL;
         int ypp = 1;
         int txtspacing = get_font_linespacing(font);
-        int barheight = getheightoflines(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
+        int barheight = get_text_lines_surf_height(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
         if (debugConsoleBuffer == nullptr)
         {

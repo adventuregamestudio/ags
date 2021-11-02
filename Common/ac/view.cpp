@@ -71,7 +71,7 @@ void ViewLoopNew::Initialize(int frameCount)
 {
     numFrames = frameCount;
     flags = 0;
-    // an extra frame is allocated o prevent crashes with empty loops
+    // an extra frame is allocated to prevent crashes with empty loops
     frames.resize(numFrames > 0 ? numFrames : 1);
 }
 

@@ -920,7 +920,7 @@ namespace AGS.Types
             set { _antiAliasFonts = value; }
         }
 
-        [DisplayName("Use graphical font height in game logic")]
+        [DisplayName("Use font's real pixel height in game logic")]
         [Description("Real font's pixel height will be used whenever text height is required by the script or game logic. Otherwise - the formal font height is used, equal to the Point Size property")]
         [DefaultValue(true)]
         [Category("Text output")]

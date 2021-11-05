@@ -43,6 +43,7 @@
 #include "ac/system.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "main/game_start.h"
@@ -449,6 +450,8 @@ int SetGameOption (int opt, int setting) {
     } else if (opt == OPT_PORTRAITSIDE) {
         if (setting == 0)  // set back to Left
             play.swap_portrait_side = 0;
+    } else if (opt == OPT_ANTIALIASFONTS) {
+        adjust_fonts_for_render_mode(setting != 0);
     }
 
     return oldval;

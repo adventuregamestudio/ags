@@ -96,6 +96,8 @@ void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t 
 void alloc_font_outline_buffers(size_t font_number,
     Common::Bitmap **text_stencil, Common::Bitmap **outline_stencil,
     int text_width, int text_height, int color_depth);
+// Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
+void adjust_fonts_for_render_mode(bool aa_mode);
 // Free particular font's data
 void wfreefont(size_t fontNumber);
 // Free all fonts data

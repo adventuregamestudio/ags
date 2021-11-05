@@ -514,6 +514,15 @@ void alloc_font_outline_buffers(size_t font_number,
     *outline_stencil = &f.OutlineStencilSub;
 }
 
+void adjust_fonts_for_render_mode(bool aa_mode)
+{
+    for (size_t i = 0; i < fonts.size(); ++i)
+    {
+        if (fonts[i].Renderer2 != nullptr)
+            fonts[i].Renderer2->AdjustFontForAntiAlias(i, aa_mode);
+    }
+}
+
 void wfreefont(size_t fontNumber)
 {
   if (fontNumber >= fonts.size())

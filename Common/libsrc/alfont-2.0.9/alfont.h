@@ -39,8 +39,10 @@ extern "C" {
 
 /* font adjustment flags (AGS compatibility hacks) */
 
+// Force reupdate the font even if the face size matches the request
+#define ALFONT_FLG_FORCE_RESIZE       0x01
 // Make ascender equal to formal font height
-#define ALFONT_FLG_ASCENDER_EQ_HEIGHT 0x01
+#define ALFONT_FLG_ASCENDER_EQ_HEIGHT 0x02
 
 
 /* includes */

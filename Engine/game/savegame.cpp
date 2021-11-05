@@ -35,6 +35,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
+#include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
@@ -642,6 +643,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
     update_directional_sound_vol();
+
+    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS]);
 
     recreate_overlay_ddbs();
 

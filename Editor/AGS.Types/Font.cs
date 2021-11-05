@@ -11,6 +11,7 @@ namespace AGS.Types
     {
         private int _id;
         private string _name;
+        private string _familyName;
         private int _pointSize;
         private int _fontHeight;
         private int _outlineFont;
@@ -39,6 +40,16 @@ namespace AGS.Types
         {
             get { return _id; }
             set { _id = value; }
+        }
+
+        [AGSNoSerialize]
+        [Description("The name of a font's family, if available")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public string FamilyName
+        {
+            get { return _familyName; }
+            set { _familyName = value; }
         }
 
         [Browsable(false)]

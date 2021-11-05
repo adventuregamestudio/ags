@@ -2274,6 +2274,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         set_fontinfo(fontNumber, font_info, thisgame.options[OPT_FONTLOADLOGIC]);
     }
 
+    font->FamilyName = gcnew String(get_font_name(fontNumber));
     font->Height = get_font_surface_height(fontNumber);
 }
 

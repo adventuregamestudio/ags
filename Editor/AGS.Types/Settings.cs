@@ -90,6 +90,7 @@ namespace AGS.Types
         private bool _fontsAreHiRes = false;
         private bool _antiAliasFonts = false;
         private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
+        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -929,6 +930,17 @@ namespace AGS.Types
         {
             get { return _ttfHeightDefinedBy; }
             set { _ttfHeightDefinedBy = value; }
+        }
+
+        [DisplayName("TTF fonts adjustment")]
+        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility.")]
+        [DefaultValue(FontMetricsFixup.SetAscenderToHeight)]
+        [Category("Text output")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontMetricsFixup TTFMetricsFixup
+        {
+            get { return _ttfMetricsFixup; }
+            set { _ttfMetricsFixup = value; }
         }
 
         [DisplayName("Custom thought bubble GUI")]

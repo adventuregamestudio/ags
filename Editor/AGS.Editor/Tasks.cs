@@ -363,6 +363,7 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060000)
             {
+                game.Settings.TTFHeightDefinedBy = FontHeightDefinition.NominalHeight;
                 foreach (Font font in game.Fonts)
                 {
                     font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;

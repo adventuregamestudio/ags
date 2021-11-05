@@ -89,7 +89,7 @@ namespace AGS.Types
         private bool _alwaysDisplayTextAsSpeech = false;
         private bool _fontsAreHiRes = false;
         private bool _antiAliasFonts = false;
-        private bool _useRealFontHeight = true;
+        private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -920,14 +920,15 @@ namespace AGS.Types
             set { _antiAliasFonts = value; }
         }
 
-        [DisplayName("Use font's real pixel height in game logic")]
-        [Description("Real font's pixel height will be used whenever text height is required by the script or game logic. Otherwise - the formal font height is used, equal to the Point Size property")]
-        [DefaultValue(true)]
+        [DisplayName("TTF fonts height used in the game logic")]
+        [Description("How the true-type font height will be defined whenever it is required by the script or game logic.")]
+        [DefaultValue(FontHeightDefinition.NominalHeight)]
         [Category("Text output")]
-        public bool UseRealFontHeight
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontHeightDefinition TTFHeightDefinedBy
         {
-            get { return _useRealFontHeight; }
-            set { _useRealFontHeight = value; }
+            get { return _ttfHeightDefinedBy; }
+            set { _ttfHeightDefinedBy = value; }
         }
 
         [DisplayName("Custom thought bubble GUI")]

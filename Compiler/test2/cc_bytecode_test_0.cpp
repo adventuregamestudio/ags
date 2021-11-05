@@ -1404,6 +1404,7 @@ TEST_F(Bytecode0, FlowSwitch01) {
     int compileResult = cc_compile(inpl, options, scrip, mh);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
     // Line 6: Can't reach this point.
+    ASSERT_LE(2u, mh.GetMessages().size());
     EXPECT_EQ(6u, mh.GetMessages().at(0).Lineno);
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("reach this"));
     // Line 10: Cases 3 & 4 fall through to case 5; "break;" might be missing

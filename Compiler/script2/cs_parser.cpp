@@ -7195,7 +7195,9 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
 {
     ErrorType retval;
 
-    if (kKW_CloseBrace != leading_sym)
+    if (kKW_CloseBrace != leading_sym &&
+        kKW_Case != leading_sym &&
+        kKW_Default != leading_sym)
     {
         if (!_nest.DeadEndWarned() && _nest.JumpOutLevel() < _nest.TopLevel())
         {

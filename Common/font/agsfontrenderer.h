@@ -42,6 +42,7 @@ struct FontRenderParams
 {
     // Font's render multiplier
     int SizeMultiplier = 1;
+    int LoadMode = 0;
 };
 
 // Describes loaded font's properties

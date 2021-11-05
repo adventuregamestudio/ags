@@ -16,6 +16,7 @@
 #include "ac/game_version.h"
 #include "core/platform.h"
 #include "core/assetmanager.h"
+#include "font/fonts.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -71,13 +72,14 @@ bool TTFFontRenderer::IsBitmapFont()
     return false;
 }
 
-static int GetAlfontFlags()
+static int GetAlfontFlags(int load_mode)
 {
   int flags = ALFONT_FLG_FORCE_RESIZE;
   // Compatibility: font ascender is always adjusted to the formal font's height;
   // EXCEPTION: not if it's a game made before AGS 3.4.1 with TTF anti-aliasing
   // (the reason is uncertain, but this is to emulate old engine's behavior).
-  if (!(ShouldAntiAliasText() && (loaded_game_file_version < kGameVersion_341)))
+  if (((load_mode & FONT_LOAD_ASCENDERFIXUP) != 0) &&
+      !(ShouldAntiAliasText() && (loaded_game_file_version < kGameVersion_341)))
       flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
   return flags;
 }
@@ -108,7 +110,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
   if (params && params->SizeMultiplier > 1)
       fontSize *= params->SizeMultiplier;
   
-  alfont_set_font_size_ex(alfptr, fontSize, GetAlfontFlags());
+  alfont_set_font_size_ex(alfptr, fontSize, GetAlfontFlags(params->LoadMode));
 
   _fontData[fontNumber].AlFont = alfptr;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
@@ -131,8 +133,9 @@ void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool aa_mode)
   if (loaded_game_file_version < kGameVersion_341)
   {
     ALFONT_FONT *alfptr = _fontData[fontNumber].AlFont;
+    const FontRenderParams &params = _fontData[fontNumber].Params;
     int old_height = alfont_get_font_height(alfptr);
-    alfont_set_font_size_ex(alfptr, old_height, GetAlfontFlags());
+    alfont_set_font_size_ex(alfptr, old_height, GetAlfontFlags(params.LoadMode));
   }
 }
 

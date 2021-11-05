@@ -937,6 +937,11 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     {
         game.options[OPT_RELATIVEASSETRES] = 1;
     }
+    // Pre-3.6.0.11 TTF fonts are always loaded in backward-compat mode
+    if (data_ver < kGameVersion_360_11)
+    {
+        game.options[OPT_FONTLOADLOGIC] = FONT_LOAD_FULLBACKCOMPAT;
+    }
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

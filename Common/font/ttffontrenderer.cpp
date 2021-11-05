@@ -11,19 +11,17 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <alfont.h>
-#include "core/platform.h"
-
-#include "core/assetmanager.h"
 #include "font/ttffontrenderer.h"
+#include <alfont.h>
+#include "ac/game_version.h"
+#include "core/platform.h"
+#include "core/assetmanager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
-
 
 // ***** TTF RENDERER *****
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
@@ -94,12 +92,17 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
   if (alfptr == nullptr)
     return false;
 
-  if (fontSize == 0)
+  if (fontSize <= 0)
       fontSize = 8; // compatibility fix
   if (params && params->SizeMultiplier > 1)
       fontSize *= params->SizeMultiplier;
-  if (fontSize > 0)
-    alfont_set_font_size(alfptr, fontSize);
+  // Compatibility: font ascender is always adjusted to the formal font's height;
+  // EXCEPTION: not if it's a game made before AGS 3.4.1 with TTF anti-aliasing
+  // (the reason is uncertain, but this is to emulate old engine's behavior).
+  int alfont_flags = 0;
+  if (!(ShouldAntiAliasText() && (loaded_game_file_version < kGameVersion_341)))
+      alfont_flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
+  alfont_set_font_size_ex(alfptr, fontSize, alfont_flags);
 
   _fontData[fontNumber].AlFont = alfptr;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();

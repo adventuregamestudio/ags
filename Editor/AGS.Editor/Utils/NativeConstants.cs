@@ -4,8 +4,6 @@ using System.Text;
 
 namespace AGS.Editor
 {
-    // TODO: remove this as soon as all the data writing is done in C#
-    // and there won't be need to keep native code here.
     public class NativeConstants
     {
         // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
@@ -73,6 +71,9 @@ namespace AGS.Editor
         public static readonly int GOBJ_LISTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LISTBOX");
         public static readonly int TEXTWINDOW_PADDING_DEFAULT = (int)Factory.NativeProxy.GetNativeConstant("TEXTWINDOW_PADDING_DEFAULT");
         public static readonly int MAX_PLUGINS = (int)Factory.NativeProxy.GetNativeConstant("MAX_PLUGINS");
+
+        public static readonly int FONT_LOAD_REPORTNOMINALHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FONT_LOAD_REPORTNOMINALHEIGHT");
+        public static readonly int FONT_LOAD_ASCENDERFIXUP = (int)Factory.NativeProxy.GetNativeConstant("FONT_LOAD_ASCENDERFIXUP");
 
         public class GUIVersion
         {

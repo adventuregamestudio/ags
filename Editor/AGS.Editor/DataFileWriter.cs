@@ -545,8 +545,8 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = (game.Settings.AllowRelativeAssetResolutions ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = (game.Settings.ScaleMovementSpeedWithMaskResolution ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_FONTLOADLOGIC] = // this is set of flags
-                (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight ? 0x01 : 0) |
-                (game.Settings.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight ? 0x02 : 0);
+                (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight ? NativeConstants.FONT_LOAD_REPORTNOMINALHEIGHT : 0) |
+                (game.Settings.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight ? NativeConstants.FONT_LOAD_ASCENDERFIXUP : 0);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {

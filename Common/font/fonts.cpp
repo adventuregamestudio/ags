@@ -101,7 +101,7 @@ bool is_font_loaded(size_t fontNumber)
 }
 
 // Finish font's initialization
-static void post_init_font(size_t fontNumber, int load_mode)
+static void font_post_init(size_t fontNumber, int load_mode)
 {
     Font &font = fonts[fontNumber];
     if (font.Metrics.Height == 0)
@@ -145,7 +145,7 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
   fonts[fontNumber].Renderer2 = nullptr;
-  post_init_font(fontNumber, load_mode);
+  font_post_init(fontNumber, load_mode);
   return oldRender;
 }
 
@@ -428,7 +428,7 @@ void set_fontinfo(size_t fontNumber, const FontInfo &finfo, int load_mode)
     if (fontNumber < fonts.size() && fonts[fontNumber].Renderer)
     {
         fonts[fontNumber].Info = finfo;
-        post_init_font(fontNumber, load_mode);
+        font_post_init(fontNumber, load_mode);
     }
 }
 
@@ -467,7 +467,7 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info, int load_mode)
 
   fonts[fontNumber].Info = font_info;
   fonts[fontNumber].Metrics = metrics;
-  post_init_font(fontNumber, load_mode);
+  font_post_init(fontNumber, load_mode);
   return true;
 }
 

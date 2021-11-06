@@ -2216,12 +2216,16 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
+  int font_fupdate = forceUpdate;
+  const int font_old_loadmode = thisgame.options[OPT_FONTLOADLOGIC];
+
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+  thisgame.options[OPT_FONTLOADLOGIC] =
+      (game->Settings->TTFHeightDefinedBy == FontHeightDefinition::NominalHeight ? FONT_LOAD_REPORTNOMINALHEIGHT : 0) |
+      (game->Settings->TTFMetricsFixup == FontMetricsFixup::SetAscenderToHeight ? FONT_LOAD_ASCENDERFIXUP : 0);
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  //delete abuf;
-  //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
   BaseColorDepth = thisgame.color_depth * 8;
 
   // ensure that the sprite import knows about pal slots 
@@ -2237,11 +2241,12 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   }
 
   // Reload native fonts and update font information in the managed component
+  font_fupdate |= (font_old_loadmode != thisgame.options[OPT_FONTLOADLOGIC]);
   thisgame.numfonts = game->Fonts->Count;
   thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-      GameFontUpdated(game, i, forceUpdate);
+      GameFontUpdated(game, i, font_fupdate);
   }
 }
 

@@ -14,6 +14,7 @@ see the license.txt for details.
 #include "NativeMethods.h"
 #include "NativeUtils.h"
 #include "ac/game_version.h"
+#include "font/fonts.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
@@ -728,6 +729,8 @@ namespace AGS
             if (name->Equals("TEXTWINDOW_PADDING_DEFAULT")) return TEXTWINDOW_PADDING_DEFAULT;
             if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
             if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
+            if (name->Equals("FONT_LOAD_REPORTNOMINALHEIGHT")) return FONT_LOAD_REPORTNOMINALHEIGHT;
+            if (name->Equals("FONT_LOAD_ASCENDERFIXUP")) return FONT_LOAD_ASCENDERFIXUP;
             if (name->Equals("OPT_DEBUGMODE")) return OPT_DEBUGMODE;
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;

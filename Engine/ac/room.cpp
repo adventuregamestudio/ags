@@ -972,6 +972,17 @@ void new_room(int newnum,CharacterInfo*forchar) {
     load_new_room(newnum,forchar);
 }
 
+void set_room_placeholder()
+{
+    thisroom.InitDefaults();
+    std::shared_ptr<Bitmap> dummy_bg(new Bitmap(1, 1, 8));
+    thisroom.BgFrames[0].Graphic = dummy_bg;
+    thisroom.HotspotMask = dummy_bg;
+    thisroom.RegionMask = dummy_bg;
+    thisroom.WalkAreaMask = dummy_bg;
+    thisroom.WalkBehindMask = dummy_bg;
+}
+
 int find_highest_room_entered() {
     int qq,fndas=-1;
     for (qq=0;qq<MAX_ROOMS;qq++) {

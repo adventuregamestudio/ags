@@ -460,6 +460,13 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     return HError::None();
 }
 
+static void reset_temp_room()
+{
+    troom.FreeScriptData();
+    troom.FreeProperties();
+    troom = RoomStatus();
+}
+
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
@@ -572,11 +579,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // setup objects
     if (forchar != nullptr) {
         // if not restoring a game, always reset this room
-        troom.beenhere=0;  
-        troom.FreeScriptData();
-        troom.FreeProperties();
-        memset(&troom.hotspot_enabled[0],1,MAX_ROOM_HOTSPOTS);
-        memset(&troom.region_enabled[0], 1, MAX_ROOM_REGIONS);
+        reset_temp_room();
     }
     if ((newnum>=0) & (newnum<MAX_ROOMS))
         croom = getRoomStatus(newnum);
@@ -981,6 +984,9 @@ void set_room_placeholder()
     thisroom.RegionMask = dummy_bg;
     thisroom.WalkAreaMask = dummy_bg;
     thisroom.WalkBehindMask = dummy_bg;
+
+    reset_temp_room();
+    croom = &troom;
 }
 
 int find_highest_room_entered() {

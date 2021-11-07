@@ -8,12 +8,17 @@ Editor:
    original game's codepage.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" property in General Settings.
- - Added "Use graphical font height in game logic" property to the General Settings, that makes
+ - Added "TTF fonts height used in the game logic" property to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
+ - Added "TTF font adjustment" property to Fonts, as well as to General Settings where it serves
+   as a project default for the new fonts. This property lets you choose between "no changes" and
+   backward compatible TTF fixup meant to keep fonts made for AGS displayed as they were meant to.
+ - Fonts now have Auto Outline Style and Auto Outline Thickness properties.
+ - Fonts now have a readonly Family Name field, that lets user see the original name of a font
+   they've imported (if available).
  - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
    is activated. This is equivalent to the Character.SetIdleView script function.
- - Fonts now have Auto Outline Style and Thickness properties.
  - Added zoom controls for the Sprite manager.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - Added line numbers to the Dialog script editor.
@@ -70,6 +75,9 @@ Engine:
    as UTF-8, and "GameEncoding" hints the original game's codepage to help with their conversion.
  - Engine now supports using real pixel height of the TTF fonts when arranging text and UI elements
    on screen; using nominal import size of the font is used as a compatible mode for the old games.
+ - Also supports separate "normal" and backward compatible "fixup" modes when initializing TTF
+   fonts, letting to display both common TTFs and ones made specifically for AGS in the past
+   to display as they were meant to be.
  - Supports scripts using functions and variables from any other scripts, regardless of the
    script module order in the project.
  - Removed Overlay limit.
@@ -94,7 +102,10 @@ Engine:
    and "user_conf_dir", now support $GAMENAME$ token in path which is resolved to the game's title.
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
- - Fixed some TTF fonts were not centered correctly and/or cut from below when text is displayed.
+ - Fixed potential crashes if a room-related API function has been called in "game_start";
+   this is achieved by having a dummy room placeholder object. Still results of such calls are
+   undefined and should not be relied upon.
+ - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed crash when there are too many reserved audio type channels.
  - Fixed character may have incorrect Frame values while turning.
 
@@ -113,6 +124,7 @@ Compatibility:
  - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
+ - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.

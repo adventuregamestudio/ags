@@ -922,7 +922,7 @@ AGSString import_sci_font(const AGSString &filename, int fslot) {
   delete ooo;
   delete iii;
   FontInfo fi;
-  if (!load_font_size(fslot, fi, thisgame.options[OPT_FONTLOADLOGIC]))
+  if (!load_font_size(fslot, fi))
   {
     return "Unable to load converted WFN file";
   }
@@ -1117,7 +1117,7 @@ void NewInteractionCommand::remove ()
 
 void new_font () {
   FontInfo fi;
-  load_font_size(thisgame.numfonts, fi, thisgame.options[OPT_FONTLOADLOGIC]);
+  load_font_size(thisgame.numfonts, fi);
   thisgame.fonts.push_back(FontInfo());
   thisgame.numfonts++;
 }
@@ -1350,7 +1350,7 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  return load_font_size(curFont, thisgame.fonts[curFont], thisgame.options[OPT_FONTLOADLOGIC]);
+  return load_font_size(curFont, thisgame.fonts[curFont]);
 }
 
 HAGSError reset_sprite_file() {
@@ -2216,14 +2216,8 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
-  int font_fupdate = forceUpdate;
-  const int font_old_loadmode = thisgame.options[OPT_FONTLOADLOGIC];
-
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
-  thisgame.options[OPT_FONTLOADLOGIC] =
-      (game->Settings->TTFHeightDefinedBy == FontHeightDefinition::NominalHeight ? FONT_LOAD_REPORTNOMINALHEIGHT : 0) |
-      (game->Settings->TTFMetricsFixup == FontMetricsFixup::SetAscenderToHeight ? FONT_LOAD_ASCENDERFIXUP : 0);
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   BaseColorDepth = thisgame.color_depth * 8;
@@ -2241,12 +2235,11 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   }
 
   // Reload native fonts and update font information in the managed component
-  font_fupdate |= (font_old_loadmode != thisgame.options[OPT_FONTLOADLOGIC]);
   thisgame.numfonts = game->Fonts->Count;
   thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-      GameFontUpdated(game, i, font_fupdate);
+      GameFontUpdated(game, i, forceUpdate);
   }
 }
 
@@ -2257,21 +2250,31 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 
     int old_sizept = font_info.SizePt;
     int old_scaling = font_info.SizeMultiplier;
+    int old_flags = font_info.Flags;
 
     font_info.SizePt = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
+    if (game->Settings->TTFHeightDefinedBy == FontHeightDefinition::PixelHeight)
+        font_info.Flags &= ~FFLG_REPORTNOMINALHEIGHT;
+    else
+        font_info.Flags |= FFLG_REPORTNOMINALHEIGHT;
+    if (font->TTFMetricsFixup == FontMetricsFixup::None)
+        font_info.Flags &= ~FFLG_ASCENDERFIXUP;
+    else
+        font_info.Flags |= FFLG_ASCENDERFIXUP;
 
     if (forceUpdate ||
         font_info.SizePt != old_sizept ||
-        font_info.SizeMultiplier != old_scaling)
+        font_info.SizeMultiplier != old_scaling ||
+        font_info.Flags != old_flags)
     {
         reload_font(fontNumber);
     }
     else
     {
-        set_fontinfo(fontNumber, font_info, thisgame.options[OPT_FONTLOADLOGIC]);
+        set_fontinfo(fontNumber, font_info);
     }
 
     font->FamilyName = gcnew String(get_font_name(fontNumber));
@@ -3325,10 +3328,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
     game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
     game->Settings->ScaleMovementSpeedWithMaskResolution = (thisgame.options[OPT_WALKSPEEDABSOLUTE] == 0);
-    game->Settings->TTFHeightDefinedBy = (thisgame.options[OPT_FONTLOADLOGIC] & FONT_LOAD_REPORTNOMINALHEIGHT) != 0 ?
-        FontHeightDefinition::NominalHeight : FontHeightDefinition::PixelHeight;
-    game->Settings->TTFMetricsFixup = (thisgame.options[OPT_FONTLOADLOGIC] & FONT_LOAD_ASCENDERFIXUP) != 0 ?
-        FontMetricsFixup::SetAscenderToHeight : FontMetricsFixup::None;
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;

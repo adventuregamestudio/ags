@@ -22,6 +22,7 @@ namespace AGS.Types
         private int _lineSpacing;
         private int _autoOutlineThickness = 1;
         private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Squared;
+        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
 
         public Font()
         {
@@ -175,6 +176,17 @@ namespace AGS.Types
                     throw new ArgumentException("ScalingMultiplier must be 1 or greater.");
                 _sizeMultiplier = value;
             }
+        }
+
+        [DisplayName("TTF font adjustment")]
+        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility.")]
+        [DefaultValue(FontMetricsFixup.SetAscenderToHeight)]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontMetricsFixup TTFMetricsFixup
+        {
+            get { return _ttfMetricsFixup; }
+            set { _ttfMetricsFixup = value; }
         }
 
         [Description("Vertical offset to render font letters at, in pixels (can be negative)")]

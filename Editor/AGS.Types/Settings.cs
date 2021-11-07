@@ -22,7 +22,6 @@ namespace AGS.Types
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
-        public const string PROPERTY_FONT_METRICS_FIXUP = "TTF fonts adjustment";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
@@ -934,8 +933,9 @@ namespace AGS.Types
             set { _ttfHeightDefinedBy = value; }
         }
 
-        [DisplayName(PROPERTY_FONT_METRICS_FIXUP)]
-        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility.")]
+        [DisplayName("TTF fonts adjustment defaults")]
+        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
+            "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
         [DefaultValue(FontMetricsFixup.SetAscenderToHeight)]
         [Category("Text output")]
         [TypeConverter(typeof(EnumTypeConverter))]

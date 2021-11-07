@@ -375,6 +375,7 @@ namespace AGS.Editor
                     {
                         font.AutoOutlineThickness = font.SizeMultiplier;
                     }
+                    font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 }
             }
 

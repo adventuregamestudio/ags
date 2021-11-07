@@ -729,8 +729,8 @@ namespace AGS
             if (name->Equals("TEXTWINDOW_PADDING_DEFAULT")) return TEXTWINDOW_PADDING_DEFAULT;
             if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
             if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
-            if (name->Equals("FONT_LOAD_REPORTNOMINALHEIGHT")) return FONT_LOAD_REPORTNOMINALHEIGHT;
-            if (name->Equals("FONT_LOAD_ASCENDERFIXUP")) return FONT_LOAD_ASCENDERFIXUP;
+            if (name->Equals("FFLG_REPORTNOMINALHEIGHT")) return FFLG_REPORTNOMINALHEIGHT;
+            if (name->Equals("FFLG_ASCENDERFIXUP")) return FFLG_ASCENDERFIXUP;
             if (name->Equals("OPT_DEBUGMODE")) return OPT_DEBUGMODE;
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;
@@ -776,7 +776,6 @@ namespace AGS
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
             if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
             if (name->Equals("OPT_WALKSPEEDABSOLUTE")) return OPT_WALKSPEEDABSOLUTE;
-            if (name->Equals("OPT_FONTLOADLOGIC")) return OPT_FONTLOADLOGIC;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

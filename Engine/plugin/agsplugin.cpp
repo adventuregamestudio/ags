@@ -816,7 +816,7 @@ void IAGSEngine::BreakIntoDebugger()
 
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer)
 {
-    auto *old_render = font_replace_renderer(fontNumber, newRenderer, game.options[OPT_FONTLOADLOGIC]);
+    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
     GUI::MarkForFontUpdate(fontNumber);
     return old_render;
 }

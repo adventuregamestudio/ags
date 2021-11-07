@@ -546,6 +546,13 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             }
         }
     }
+    if (data_ver < kGameVersion_360_11)
+    { // use global defaults for the font load flags
+        for (int i = 0; i < game.numfonts; ++i)
+        {
+            game.fonts[i].Flags |= FFLG_TTF_BACKCOMPATMASK;
+        }
+    }
 }
 
 // Convert audio data to the current version
@@ -936,11 +943,6 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     if (data_ver < kGameVersion_350)
     {
         game.options[OPT_RELATIVEASSETRES] = 1;
-    }
-    // Pre-3.6.0.11 TTF fonts are always loaded in backward-compat mode
-    if (data_ver < kGameVersion_360_11)
-    {
-        game.options[OPT_FONTLOADLOGIC] = FONT_LOAD_FULLBACKCOMPAT;
     }
     FixupSaveDirectory(game);
     return HGameFileError::None();

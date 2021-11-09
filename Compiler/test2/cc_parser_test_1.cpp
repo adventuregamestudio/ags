@@ -2012,3 +2012,29 @@ TEST_F(Compile1, AttributeAssignTypeCheck)
     EXPECT_NE(std::string::npos, msg.find("'int'"));
     EXPECT_NE(std::string::npos, msg.find("'float'"));
 }
+
+TEST_F(Compile1, ReachabilityAndSwitch1)
+{
+    // Mustn't complain about unreachable code at the end of a switch case
+
+    char *inpl = "\n\
+        int main()          \n\
+        {                   \n\
+            int i;          \n\
+            switch (i)      \n\
+            {               \n\
+            case 7:         \n\
+                return -5;  \n\
+            case 77:        \n\
+                return -55; \n\
+            default:        \n\
+                return 555; \n\
+            }               \n\
+        }                   \n\
+        ";
+    AGS::MessageHandler mh;
+    int const compile_result = cc_compile(inpl, 0, scrip, mh);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    ASSERT_EQ(0, mh.GetMessages().size());
+}

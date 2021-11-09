@@ -376,9 +376,6 @@ private:
     // Augment the message with a "See ..." indication pointing to the declaration of sym
     std::string const ReferenceMsgSym(std::string const &msg, Symbol symb);
 
-    // Adds the symbol to the list if it isn't there yet.
-    void AddToSymbolList(Symbol symb, SymbolList &list);
-
     std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
 
     void SetDynpointerInManagedVartype(Vartype &vartype);
@@ -749,9 +746,6 @@ private:
 
     // We compile something like "var += expression"
     ErrorType ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs);
-
-    // "var++" or "var--"
-    ErrorType ParseAssignment_SAssign(Symbol ass_symbol, SrcList &lhs);
 
     ErrorType ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname);
 

@@ -211,15 +211,6 @@ char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris
 // than that it is easy to spot in listings. Don't build logic on that number
 int const kDestinationPlaceholder = -77;
 
-void AGS::Parser::AddToSymbolList(Symbol symb, SymbolList &list)
-{
-    size_t const ssize = list.size();
-    for (size_t idx = 0; idx < ssize; ++idx)
-        if (symb == list[ssize])
-            return;
-    list.push_back(symb);
-}
-
 std::string const AGS::Parser::TypeQualifierSet2String(TypeQualifierSet tqs) const
 {
     std::string ret;
@@ -1880,6 +1871,7 @@ AGS::ErrorType AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Var
     if (!_sym.IsOperator(op_sym))
     {
         Error("!'%s' isn't an operator", _sym.GetName(op_sym).c_str());
+        return kERR_InternalError;
     }
 
     if (kKW_Float == vartype1 || kKW_Float == vartype2)
@@ -4551,36 +4543,6 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     return kERR_None;
 }
 
-// "var++" or "var--"
-AGS::ErrorType AGS::Parser::ParseAssignment_SAssign(Symbol const ass_symbol, SrcList &lhs)
-{
-    ScopeType scope_type;
-    ValueLocation vloc;
-    Vartype lhsvartype;
-    ErrorType retval = ParseAssignment_ReadLHSForModification(lhs, scope_type, vloc, lhsvartype);
-    if (retval < 0) return retval;
-
-    // increment or decrement AX, using the correct opcode
-    CodeCell opcode;
-    retval = GetOpcode(ass_symbol, lhsvartype, lhsvartype, opcode);
-    if (retval < 0) return retval;
-    WriteCmd(opcode, SREG_AX, 1);
-
-    if (ValueLocation::kMAR_pointsto_value == vloc.location)
-    {
-        _src.GetNext(); // Eat ++ or --
-        // write AX back to memory
-        Symbol memwrite = GetWriteCommandForSize(_sym.GetSize(lhsvartype));
-        WriteCmd(memwrite, SREG_AX);
-        return kERR_None;
-    }
-
-    retval = AccessData_AssignTo(scope_type, lhsvartype, lhs); // moves cursor to end of LHS
-    if (retval < 0) return retval; 
-    _src.GetNext(); // Eat ++ or --
-    return kERR_None;
-}
-
 AGS::ErrorType AGS::Parser::ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol vname)
 {
 
@@ -4663,7 +4625,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&i
     if (lit_value.length() >= STRINGBUFFER_LENGTH)
     {
         Error(
-            "Initializer string is too long (max. chars allowed: %d",
+            "Initializer string is too long (max. chars allowed: %d)",
             STRINGBUFFER_LENGTH - 1);
         return kERR_UserError;
     }
@@ -5710,7 +5672,6 @@ AGS::ErrorType AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
     return kERR_None;
 }
 
-// We're inside a struct decl, processing a member variable or a member attribute
 AGS::ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
 {
     if (_sym.IsDynarrayVartype(vartype)) // e.g., int [] zonk;
@@ -6322,13 +6283,12 @@ AGS::ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function,Typ
     }
 
     // Note: 'protected' is valid for struct functions; those can be defined directly,
-    // as in int strct::function(){} or extender, as int function(this strct){}
-    // We can't know at this point whether the function is extender, so we can't
+    // as in 'int strct::function(){}' or extender, as int 'function(this strct *){}'// We can't know at this point whether the function is extender, so we can't
     // check  at this point whether 'protected' is allowed.
 
     if (tqs[TQ::kReadonly] && is_function)
     {
-        Error("Readonly cannot be applied to a function");
+        Error("'readonly' cannot be applied to a function");
         return kERR_UserError;
     }
 
@@ -6800,10 +6760,6 @@ AGS::ErrorType AGS::Parser::ParseAssignmentOrExpression(Symbol cursym)
     case kKW_AssignShiftLeft:
     case kKW_AssignShiftRight:
         return ParseAssignment_MAssign(assignment_symbol, expression);
-
-    case kKW_Decrement:
-    case kKW_Increment:
-        return ParseAssignment_SAssign(assignment_symbol, expression);
     }
 }
 

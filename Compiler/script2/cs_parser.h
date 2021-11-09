@@ -812,7 +812,7 @@ private:
     // Checks whether an old definition exists that may be stashed; stashes it if possible
     ErrorType ParseVardecl_CheckAndStashOldDefn(Symbol var_name);
 
-    ErrorType ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs);
+    ErrorType ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
     ErrorType ParseFuncBodyStart(Symbol struct_of_func, Symbol name_of_func);
 
@@ -844,9 +844,9 @@ private:
     ErrorType ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
     // We're in a struct declaration. Parse an attribute declaration.
-    ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname, Vartype vartype);
+    ErrorType ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Vartype vartype, Symbol vname, bool is_indexed, size_t declaration_start);
 
-    // We're inside a struct decl, processing a member variable
+    // We're inside a struct decl, processing a member variable or attribute
     ErrorType ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
 
     // We're inside a struct decl, processing a compile-time constant
@@ -896,7 +896,9 @@ private:
 
     ErrorType ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
-    ErrorType ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype);
+    ErrorType ParseVartype_Attribute(TypeQualifierSet tqs, Vartype vartype, Symbol attribute, ScopeType scope_type);
+
+    ErrorType ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
     // We accepted a variable type such as "int", so what follows is a variable, compile-time constant, or function declaration
     ErrorType ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);

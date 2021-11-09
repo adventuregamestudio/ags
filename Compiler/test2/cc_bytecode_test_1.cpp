@@ -1380,6 +1380,162 @@ TEST_F(Bytecode1, Attributes09) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+TEST_F(Bytecode1, Attributes09) {
+
+    // Accept extender attributes
+
+    std::string inpl = g_Input_Bool;
+    inpl += g_Input_String;
+
+    inpl += "\
+    builtin managed struct Character                    \n\
+    {                                                   \n\
+        int payload;                                    \n\
+    };                                                  \n\
+    import attribute float Weight(this Character *);    \n\
+    import attribute String Weapon[](this Character);   \n\
+    Character *player;                                  \n\
+                                                        \n\
+    int game_start()                                    \n\
+    {                                                   \n\
+        float weight = player.Weight;                   \n\
+        player.Weight = weight ?: 9.9;                  \n\
+        String weapon = player.Weapon[3];               \n\
+        player.Weapon[9] = \"Rotten tomato\";           \n\
+    }                                                   \n\
+    ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+
+    // WriteOutput("Attributes09", scrip);
+    size_t const codesize = 141;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    2,            0,   48,    2,   52,    // 7
+      29,    6,   45,    2,           39,    0,    6,    3,    // 15
+      20,   33,    3,   30,            6,   29,    3,   51,    // 23
+       4,    7,    3,   70,            3,    6,    3, 1092511334,    // 31
+       6,    2,    0,   48,            2,   52,   29,    6,    // 39
+      34,    3,   45,    2,           39,    1,    6,    3,    // 47
+      21,   33,    3,   35,            1,   30,    6,    6,    // 55
+       2,    0,   48,    2,           52,   29,    6,   29,    // 63
+       2,    6,    3,    3,           30,    2,   34,    3,    // 71
+      45,    2,   39,    1,            6,    3,   22,   33,    // 79
+       3,   35,    1,   30,            6,   51,    0,   47,    // 87
+       3,    1,    1,    4,            6,    3,    0,   29,    // 95
+       3,    6,    2,    0,           48,    2,   52,   30,    // 103
+       3,   29,    6,   34,            3,   29,    2,    6,    // 111
+       3,    9,   30,    2,           34,    3,   45,    2,    // 119
+      39,    2,    6,    3,           23,   33,    3,   35,    // 127
+       2,   30,    6,   51,            4,   49,    2,    1,    // 135
+       8,    6,    3,    0,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 9;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       4,   16,   34,   48,         57,   78,   94,   99,    // 7
+     124,  -999
+    };
+    char fixuptypes[] = {
+      1,   4,   1,   4,      1,   4,   3,   1,    // 7
+      4,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 4;
+    std::string imports[] = {
+    "Character::get_Weight^0",    "Character::set_Weight^1",    "Character::geti_Weapon^1",   // 22
+    "Character::seti_Weapon^2",    "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 14;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+
+    char strings[] = {
+    'R',  'o',  't',  't',          'e',  'n',  ' ',  't',     // 7
+    'o',  'm',  'a',  't',          'o',    0,  '\0'
+    };
+    CompareStrings(&scrip, stringssize, strings);
+}
+
+TEST_F(Bytecode1, Attributes10) {
+
+    // Accept static extender attributes
+
+    char inpl[] = "\
+    builtin managed struct Character                    \n\
+    {                                                   \n\
+        int payload;                                    \n\
+    };                                                  \n\
+    import attribute float Foo(static Character);       \n\
+    import attribute int Bar[](static Character);       \n\
+                                                        \n\
+    int game_start()                                    \n\
+    {                                                   \n\
+        float F = Character.Foo;                        \n\
+        Character.Foo = 77.7;                           \n\
+        int I = Character.Bar[3];                       \n\
+        Character.Bar[33] = I;                          \n\
+    }                                                   \n\
+    ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+
+    // WriteOutput("Attributes10", scrip);
+    size_t const codesize = 72;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,   39,    0,            6,    3,    0,   33,    // 7
+       3,   29,    3,    6,            3, 1117480550,   34,    3,    // 15
+      39,    1,    6,    3,            1,   33,    3,   35,    // 23
+       1,    6,    3,    3,           34,    3,   39,    1,    // 31
+       6,    3,    2,   33,            3,   35,    1,   29,    // 39
+       3,   51,    4,    7,            3,   29,    3,   30,    // 47
+       3,   34,    3,    6,            3,   33,   34,    3,    // 55
+      39,    2,    6,    3,            3,   33,    3,   35,    // 63
+       2,    2,    1,    8,            6,    3,    0,    5,    // 71
+     -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 4;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+       6,   20,   34,   60,        -999
+    };
+    char fixuptypes[] = {
+      4,   4,   4,   4,     '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 4;
+    std::string imports[] = {
+    "Character::get_Foo^0",       "Character::set_Foo^1",       "Character::geti_Bar^1",      // 2
+    "Character::seti_Bar^2",       "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+        
 TEST_F(Bytecode1, DynArrayOfPrimitives) {
     
     // Dynamic arrays of primitives are allowed.

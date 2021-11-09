@@ -2070,6 +2070,92 @@ TEST_F(Compile0, Attributes09) {
     EXPECT_NE(std::string::npos, msg.find("static"));
 }
 
+TEST_F(Compile0, Attributes10) {
+
+    // Call non-indexed attribute with index, is error
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+        } cam;                                  \n\
+        import readonly attribute int Att (this Cam);   \n\
+        int game_start()                        \n\
+        {                                       \n\
+            return cam.Att[9];                  \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("non-indexed"));
+}
+
+
+TEST_F(Compile0, Attributes11) {
+
+    // Call indexed attribute without index, is error
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+        } cam;                                  \n\
+        import readonly attribute int Att[] (this Cam); \n\
+        int game_start()                        \n\
+        {                                       \n\
+            return cam.Att;                     \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find(" indexed"));
+}
+
+TEST_F(Compile0, Attributes12) {
+
+    // No local attributes
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+        } cam;                                  \n\
+                                                \n\
+        int game_start()                        \n\
+        {                                       \n\
+            readonly attribute int Att[] (this Cam); \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("function body"));
+}
+
+TEST_F(Compile0, Attributes13) {
+
+    // No attributes defined as 'static'
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+        } cam;                                  \n\
+                                                \n\
+        static readonly attribute int Att[] (this Cam); \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("static attribute"));
+}
+
 TEST_F(Compile0, StructPtrFunc) {
 
     // Func is ptr to managed, but it is a function not a variable

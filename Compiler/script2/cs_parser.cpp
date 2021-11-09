@@ -5113,7 +5113,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseVardecl(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs)
+AGS::ErrorType AGS::Parser::ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type)
 {
     ErrorType retval = ParseVardecl_CheckIllegalCombis(vartype, scope_type);
     if (retval < 0) return retval;
@@ -5340,8 +5340,7 @@ AGS::ErrorType AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_bod
     else // !in_struct_decl
     {
         TypeQualifier error_tq;
-        if (tqs[(error_tq = TQ::kAttribute)] ||
-            tqs[(error_tq = TQ::kProtected)] ||
+        if (tqs[(error_tq = TQ::kProtected)] ||
             tqs[(error_tq = TQ::kWriteprotected)])
         {
             Error("'%s' is only legal in a struct declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
@@ -5614,25 +5613,12 @@ AGS::ErrorType AGS::Parser::ParseStruct_Attribute_DeclareFunc(TypeQualifierSet t
 }
 
 // We're in a struct declaration, parsing a struct attribute
-AGS::ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const stname, Symbol const vname, Vartype const vartype)
+AGS::ErrorType AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const stname, Vartype const vartype, Symbol const vname, bool const attrib_is_indexed, size_t const declaration_start)
 {
-    size_t const declaration_start = _src.GetCursor();
     // "readonly" means that there isn't a setter function. The individual vartypes are not readonly.
     bool const attrib_is_readonly = tqs[TQ::kReadonly];
     tqs[TQ::kAttribute] = false;
     tqs[TQ::kReadonly] = false;
-
-    bool attrib_is_indexed = false;
-    if (kKW_OpenBracket == _src.PeekNext())
-    {
-        attrib_is_indexed = true;
-        _src.GetNext();
-        if (kKW_CloseBracket != _src.GetNext())
-        {
-            Error("Cannot specify array sizes for an attribute");
-            return kERR_UserError;
-        }
-    }
 
     if (PP::kMain == _pp && attrib_is_indexed)
         _sym[vname].VariableD->Vartype = _sym.VartypeWith(VTT::kDynarray, vartype);
@@ -5794,8 +5780,17 @@ AGS::ErrorType AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet
     }
 
     if (tqs[TQ::kAttribute])
-        return ParseStruct_Attribute(tqs, name_of_struct, vname, vartype);
-
+    {
+        bool const is_indexed = (kKW_OpenBracket == _src.PeekNext());
+        if (is_indexed)
+        {
+            _src.GetNext(); // Eat '['
+            ErrorType retval = Expect(kKW_CloseBracket, _src.GetNext());
+            if (retval < 0) return retval;
+        }
+        return ParseStruct_Attribute(tqs, name_of_struct, vartype, vname, is_indexed, _src.GetCursor());
+    }
+        
     if (PP::kMain != _pp)
         return SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
 
@@ -6353,9 +6348,15 @@ AGS::ErrorType AGS::Parser::ParseVartype_CheckForIllegalContext()
 
 AGS::ErrorType AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function,TypeQualifierSet tqs)
 {
+    if (tqs[TQ::kStatic] && tqs[TQ::kAttribute])
+    {
+        Error("Can only declare 'static attribute' within a 'struct' declaration (use extender syntax 'attribute ... (static STRUCT)')");
+        return kERR_UserError;
+    }
+
     if (tqs[TQ::kStatic] && !is_function)
     {
-        Error("'static' can only be applied to functions that are members of a struct");
+        Error("Outside of a 'struct' declaration, 'static' can only be applied to functions");
         return kERR_UserError;
     }
 
@@ -6446,18 +6447,101 @@ AGS::ErrorType AGS::Parser::ParseVartype_VarDecl_PreAnalyze(Symbol var_name, Sco
     return kERR_None;
 }
 
-AGS::ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scope_type, TypeQualifierSet tqs, Vartype vartype)
+// Extender syntax for an attribute, i.e., defined outside of a struct definition
+ErrorType AGS::Parser::ParseVartype_Attribute(TypeQualifierSet tqs, Vartype vartype, Symbol attribute, ScopeType scope_type)
 {
-    if (PP::kPreAnalyze == _pp)
-        return ParseVartype_VarDecl_PreAnalyze(var_name, scope_type);
+    size_t const declaration_start = _src.GetCursor();
 
-    if (tqs[TQ::kStatic])
+    if (ScT::kGlobal != scope_type && ScT::kImport != scope_type)
     {
-        Error("'static' cannot be used in a variable declaration");
+        Error("Can't declare an attribute within a function body");
         return kERR_UserError;
     }
-    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > _sym.kParameterScope), _sym.IsComponent(var_name));
+
+    Symbol const bracket_or_paren = _src.GetNext();
+    ErrorType retval = Expect(SymbolList{ kKW_OpenBracket, kKW_OpenParenthesis }, bracket_or_paren);
     if (retval < 0) return retval;
+    bool const is_indexed = (bracket_or_paren == kKW_OpenBracket);
+    if (is_indexed)
+    {
+        retval = Expect(kKW_CloseBracket, _src.GetNext());
+        if (retval < 0) return retval;
+        retval = Expect(kKW_OpenParenthesis, _src.GetNext());
+        if (retval < 0) return retval;
+    }
+        
+    Symbol const static_or_this = _src.GetNext();
+    retval = Expect(SymbolList{ kKW_Static, kKW_This }, static_or_this);
+    if (retval < 0) return retval;
+    bool const is_static = static_or_this == kKW_Static;
+    if (is_static)
+        tqs[TQ::kStatic] = true;
+    Symbol const strct = _src.GetNext();
+    if (!_sym.IsStructVartype(strct))
+    {
+        Error("Expected a struct type instead of '%s'", _sym.GetName(strct).c_str());
+        return kERR_UserError;
+    }
+    if (!is_static)
+    {
+        if (!_sym.IsManagedVartype(strct))
+        {
+            Error(ReferenceMsgSym("Cannot use 'this' with the unmanaged struct '%s'", strct).c_str(),
+                _sym.GetName(strct).c_str());
+            return kERR_UserError;
+        }
+        if (kKW_Dynpointer == _src.PeekNext())
+            _src.GetNext(); // Eat optional '*'
+    }
+
+    // Mustn't be in struct already
+    Symbol const qualified_component = MangleStructAndComponent(strct, attribute);
+    if (_sym.IsInUse(qualified_component))
+    {
+        Error(ReferenceMsgSym("'%s' is already defined", qualified_component).c_str(),
+              _sym.GetName(qualified_component).c_str());
+        return kERR_UserError;
+    }
+
+    // Mustn't be in any ancester
+    Symbol const parent = FindStructOfComponent(strct, attribute);
+    if (kKW_NoSymbol != parent)
+    {
+        Error(
+            ReferenceMsgSym("The struct '%s' extends '%s', and '%s' is already defined", parent).c_str(),
+                _sym.GetName(strct).c_str(),
+                _sym.GetName(parent).c_str(),
+                _sym.GetName(attribute).c_str());
+        return kERR_UserError;
+    }
+
+    _sym.MakeEntryComponent(qualified_component);
+    _sym[qualified_component].ComponentD->Component = attribute;
+    _sym[qualified_component].ComponentD->Parent = strct;
+    _sym[qualified_component].ComponentD->IsFunction = false;
+    _sym[strct].VartypeD->Components[attribute] = qualified_component;
+    _sym.SetDeclared(qualified_component, declaration_start);
+
+    _sym.MakeEntryVariable(qualified_component);
+    SymbolTableEntry &entry = _sym[qualified_component];
+    entry.VariableD->Vartype = vartype;
+    entry.VariableD->TypeQualifiers = tqs;
+    retval = ParseStruct_Attribute(tqs, strct, vartype, qualified_component, is_indexed, declaration_start);
+    if (retval < 0) return retval;
+
+    return Expect(kKW_CloseParenthesis, _src.GetNext());
+}
+
+AGS::ErrorType AGS::Parser::ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname, ScopeType scope_type)
+{
+    if (PP::kPreAnalyze == _pp && !tqs[TQ::kAttribute])
+        return ParseVartype_VarDecl_PreAnalyze(vname, scope_type);
+
+    ErrorType retval = Parse_CheckTQ(tqs, (_nest.TopLevel() > _sym.kParameterScope), _sym.IsComponent(vname));
+    if (retval < 0) return retval;
+
+    if (tqs[TQ::kAttribute])
+        return ParseVartype_Attribute(tqs, vartype, vname, scope_type);
 
     // Note: Don't make a variable here yet; we haven't checked yet whether we may do so.
 
@@ -6466,7 +6550,8 @@ AGS::ErrorType AGS::Parser::ParseVartype_VarDecl(Symbol var_name, ScopeType scop
     variable_tqs[TQ::kAutoptr] = false;
     variable_tqs[TQ::kManaged] = false;
     variable_tqs[TQ::kBuiltin] = false;
-    return ParseVardecl(var_name, vartype, scope_type, variable_tqs);
+
+    return ParseVardecl(variable_tqs, vartype, vname, scope_type);
 }
 
 AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func,Symbol &name_of_current_func)
@@ -6528,7 +6613,7 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
         retval = ParseVarname(struct_name, var_or_func_name);
         if (retval < 0) return retval;
 
-        bool const is_function = (kKW_OpenParenthesis == _src.PeekNext());
+        bool const is_function = !tqs[TQ::kAttribute] && (kKW_OpenParenthesis == _src.PeekNext());
 
         // certain qualifiers, such as "static" only go with certain kinds of definitions.
         retval = ParseVartype_CheckIllegalCombis(is_function, tqs);
@@ -6557,7 +6642,7 @@ AGS::ErrorType AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, 
                 Error("Variable may not contain '::'");
                 return kERR_UserError;
             }
-            retval = ParseVartype_VarDecl(var_or_func_name, scope_type, tqs, vartype);
+            retval = ParseVartype_VariableOrAttributeDefn(tqs, vartype, var_or_func_name, scope_type);
             if (retval < 0) return retval;
         }
 
@@ -6857,7 +6942,7 @@ AGS::ErrorType AGS::Parser::ParseFor_InitClauseVardecl()
             Error("Function definition not allowed in for loop initialiser");
             return kERR_UserError;
         }
-        retval = ParseVardecl(varname, vartype, ScT::kLocal, TypeQualifierSet{});
+        retval = ParseVardecl(TypeQualifierSet{}, vartype, varname, ScT::kLocal);
         if (retval < 0) return retval;
 
         Symbol const punctuation = _src.PeekNext();

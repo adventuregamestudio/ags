@@ -38,7 +38,6 @@ extern AGS::Common::String appDirectory;
 extern AGS::Common::String cmdGameDataPath;
 
 // Startup flags, set from parameters to engine
-extern int force_window;
 extern int override_start_room;
 extern bool justRegisterGame;
 extern bool justUnRegisterGame;

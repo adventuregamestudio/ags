@@ -114,15 +114,18 @@ SDL_Window *sys_get_window() {
     return window;
 }
 
-void sys_window_set_style(WindowMode mode, int /*ex_flags*/) {
+void sys_window_set_style(WindowMode mode, int ex_flags) {
     if (!window) return;
     Uint32 flags = 0;
     switch (mode)
     {
-    case kWnd_Fullscreen: flags = SDL_WINDOW_FULLSCREEN; break;
-    case kWnd_FullDesktop: flags = SDL_WINDOW_FULLSCREEN_DESKTOP; break;
+    case kWnd_Windowed: flags |= SDL_WINDOW_RESIZABLE; break;
+    case kWnd_Fullscreen: flags |= SDL_WINDOW_FULLSCREEN; break;
+    case kWnd_FullDesktop: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
     }
+    flags |= ex_flags;
     SDL_SetWindowFullscreen(window, flags);
+    SDL_SetWindowResizable(window, (flags & SDL_WINDOW_RESIZABLE) ? SDL_TRUE : SDL_FALSE);
 }
 
 void sys_window_show_cursor(bool on) {

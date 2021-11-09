@@ -405,10 +405,14 @@ static void _alfont_new_cache_glyph(ALFONT_FONT *f) {
 /* API */
 
 int alfont_set_font_size(ALFONT_FONT *f, int h) {
+  return alfont_set_font_size_ex(f, h, 0);
+}
+
+int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags) {
   int error, test_h, direction;
   int real_height;
   /* check the font doesn't already use that w and h */
-  if (h == f->face_h)
+  if ((h == f->face_h) && (flags & ALFONT_FLG_FORCE_RESIZE) == 0)
     return ALFONT_OK;
   else if (h <= 0)
     return ALFONT_ERROR;
@@ -471,11 +475,8 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
     f->real_face_h = real_height;
     f->face_ascender = f->face->size->metrics.ascender >> 6;
 
-    // AGS COMPAT HACK: 
-    // If the first chosen font is less of height than was requested,
-    // we have to adjust the ascender, basically shifting letters down
-    // to the bottom of the rectangle defined by the "font height".
-    if (real_height < h) {
+    // AGS COMPAT HACK: set ascender to the formal font height
+    if ((flags & ALFONT_FLG_ASCENDER_EQ_HEIGHT) != 0) {
        f->face_ascender = h;
        f->real_face_h = h + abs(f->face->size->metrics.descender >> 6);
     }

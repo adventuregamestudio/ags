@@ -350,7 +350,7 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
     for (int i = 0; i < game.numfonts; ++i) 
     {
         FontInfo &finfo = game.fonts[i];
-        if (!load_font_size(i, finfo, game.options[OPT_FONTLOADLOGIC]))
+        if (!load_font_size(i, finfo))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
 
         const bool is_wfn = is_bitmap_font(i);

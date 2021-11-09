@@ -23,11 +23,6 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS;
 
-// Font load flags, primarily for backward compatibility
-// REPORTREALHEIGHT: get_font_height should return real font's height,
-// otherwise returns formal height, equal to "font size" parameter
-#define FONT_LOAD_REPORTREALHEIGHT 0x01
-
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
 struct FontInfo;
@@ -36,7 +31,7 @@ struct FontRenderParams;
 void init_font_renderer();
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
-IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer, int load_mode);
+IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer);
 bool font_first_renderer_loaded();
 bool is_font_loaded(size_t fontNumber);
 bool is_bitmap_font(size_t fontNumber);
@@ -60,8 +55,6 @@ int get_text_width(const char *texx, size_t fontNumber);
 // note that this is a "formal" font height, that may have different value
 // depending on compatibility mode (used when running old games);
 int get_font_height(size_t fontNumber);
-// TODO: GUI classes located in Common library do not make use of outlining,
-// need to find a way to make all code use same functions.
 // Get the maximal height of the given font, with corresponding outlining
 int get_font_height_outlined(size_t fontNumber);
 // Get font's surface height: this always returns the height enough to accomodate
@@ -75,23 +68,31 @@ void set_font_linespacing(size_t fontNumber, int spacing);
 int  get_font_outline(size_t font_number);
 // Get font's automatic outline thickness (if set)
 int  get_font_outline_thickness(size_t font_number);
+// Gets the total maximal height of the given number of lines printed with the given font;
+// note that this uses formal font height, for compatibility purposes
+int get_text_lines_height(size_t fontNumber, size_t numlines);
+// Gets the height of a graphic surface enough to accomodate this number of text lines;
+// note this accounts for the real pixel font height
+int get_text_lines_surf_height(size_t fontNumber, size_t numlines);
 // Set font's outline type
 void set_font_outline(size_t font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
-void set_fontinfo(size_t fontNumber, const FontInfo &finfo, int load_mode);
+void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
 // Gets full information about the font
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
-bool load_font_size(size_t fontNumber, const FontInfo &font_info, int load_mode);
+bool load_font_size(size_t fontNumber, const FontInfo &font_info);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.
 void alloc_font_outline_buffers(size_t font_number,
     Common::Bitmap **text_stencil, Common::Bitmap **outline_stencil,
     int text_width, int text_height, int color_depth);
+// Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
+void adjust_fonts_for_render_mode(bool aa_mode);
 // Free particular font's data
 void wfreefont(size_t fontNumber);
 // Free all fonts data

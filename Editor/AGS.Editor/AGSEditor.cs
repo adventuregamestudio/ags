@@ -94,7 +94,7 @@ namespace AGS.Editor
          * e.g. 3.6.0     is 03,06,00,00 (3060000),
          *      4.12.3.25 is 04,12,03,25 (4120325), and so on
          * --------------------------------------------------------------------
-         * 3.6.0          - Settings.CustomDataDir, Settings.UseRealFontHeight;
+         * 3.6.0          - Settings.CustomDataDir, TTFHeightDefinedBy, TTFMetricsFixup;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
          *                - Character.IdleDelay
          *                - RuntimeSetup.FullscreenDesktop

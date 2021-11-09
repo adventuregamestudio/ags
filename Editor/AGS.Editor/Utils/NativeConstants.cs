@@ -4,8 +4,6 @@ using System.Text;
 
 namespace AGS.Editor
 {
-    // TODO: remove this as soon as all the data writing is done in C#
-    // and there won't be need to keep native code here.
     public class NativeConstants
     {
         // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
@@ -74,6 +72,9 @@ namespace AGS.Editor
         public static readonly int TEXTWINDOW_PADDING_DEFAULT = (int)Factory.NativeProxy.GetNativeConstant("TEXTWINDOW_PADDING_DEFAULT");
         public static readonly int MAX_PLUGINS = (int)Factory.NativeProxy.GetNativeConstant("MAX_PLUGINS");
 
+        public static readonly int FFLG_REPORTNOMINALHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_REPORTNOMINALHEIGHT");
+        public static readonly int FFLG_ASCENDERFIXUP = (int)Factory.NativeProxy.GetNativeConstant("FFLG_ASCENDERFIXUP");
+
         public class GUIVersion
         {
             public static readonly int Current = (int)Factory.NativeProxy.GetNativeConstant("GUI_VERSION_CURRENT");
@@ -127,7 +128,6 @@ namespace AGS.Editor
             public static readonly int OPT_RENDERATSCREENRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RENDERATSCREENRES");
             public static readonly int OPT_RELATIVEASSETRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RELATIVEASSETRES");
             public static readonly int OPT_WALKSPEEDABSOLUTE = (int)Factory.NativeProxy.GetNativeConstant("OPT_WALKSPEEDABSOLUTE");
-            public static readonly int OPT_FONTLOADLOGIC = (int)Factory.NativeProxy.GetNativeConstant("OPT_FONTLOADLOGIC");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

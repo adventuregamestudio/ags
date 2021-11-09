@@ -121,6 +121,8 @@
     <Compile Include="Enums\CrossfadeSpeed.cs" />
     <Compile Include="Enums\CustomPropertyAppliesTo.cs" />
     <Compile Include="Enums\CustomPropertyType.cs" />
+    <Compile Include="Enums\FontHeightDefinition.cs" />
+    <Compile Include="Enums\FontMetricsFixup.cs" />
     <Compile Include="Enums\FontOutlineStyle.cs" />
     <Compile Include="Enums\FrameAlignment.cs" />
     <Compile Include="Enums\GameColorDepth.cs" />

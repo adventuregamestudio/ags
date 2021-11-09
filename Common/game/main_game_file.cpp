@@ -446,6 +446,13 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             }
         }
     }
+    if (data_ver < kGameVersion_360_11)
+    { // use global defaults for the font load flags
+        for (int i = 0; i < game.numfonts; ++i)
+        {
+            game.fonts[i].Flags |= FFLG_TTF_BACKCOMPATMASK;
+        }
+    }
 }
 
 // Convert audio data to the current version

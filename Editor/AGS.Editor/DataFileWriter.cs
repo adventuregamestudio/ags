@@ -540,7 +540,6 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
             options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = 0; // always disable
             options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = 0; // always disable
-            options[NativeConstants.GameOptions.OPT_FONTLOADLOGIC] = (game.Settings.UseRealFontHeight ? 0x01 : 0); // this is set of flags
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {
@@ -1388,9 +1387,11 @@ namespace AGS.Editor
             {
                 int flags = 0;
                 if (game.Fonts[i].PointSize == 0)
-                {
-                    flags = NativeConstants.FFLG_SIZEMULTIPLIER;
-                }
+                    flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
+                if (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight)
+                    flags |= NativeConstants.FFLG_REPORTNOMINALHEIGHT;
+                if (game.Fonts[i].TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
+                    flags |= NativeConstants.FFLG_ASCENDERFIXUP;
                 writer.Write(flags);
                 if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
                     writer.Write(game.Fonts[i].PointSize * game.Fonts[i].SizeMultiplier);

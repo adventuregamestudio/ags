@@ -267,7 +267,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
   needheight = 0;\
   for (int i = 0; i < numdisp; ++i) {\
     break_up_text_into_lines(get_translation(dtop->optionnames[disporder[i]]), Lines, areawid-(2*padding+2+bullet_wid), usingfont);\
-    needheight += getheightoflines(usingfont, Lines.Count()) + game.options[OPT_DIALOGGAP];\
+    needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + game.options[OPT_DIALOGGAP];\
   }\
   if (parserInput) needheight += parserInput->Height + game.options[OPT_DIALOGGAP];\
  }

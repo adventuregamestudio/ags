@@ -127,6 +127,7 @@ namespace AGS.Editor
                 HandleGameResolutionChange((Size)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.CustomResolution);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS) ||
+                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_FONT_HEIGHT_IN_LOGIC) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RENDERATSCREENRES))
             {
                 Factory.Events.OnGameSettingsChanged();

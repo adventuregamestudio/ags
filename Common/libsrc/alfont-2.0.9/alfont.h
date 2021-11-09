@@ -37,6 +37,13 @@ extern "C" {
 #define ALFONT_OK                   0
 #define ALFONT_ERROR                -1
 
+/* font adjustment flags (AGS compatibility hacks) */
+
+// Force reupdate the font even if the face size matches the request
+#define ALFONT_FLG_FORCE_RESIZE       0x01
+// Make ascender equal to formal font height
+#define ALFONT_FLG_ASCENDER_EQ_HEIGHT 0x02
+
 
 /* includes */
 
@@ -56,6 +63,7 @@ ALFONT_DLL_DECLSPEC ALFONT_FONT *alfont_load_font_from_mem(const char *data, int
 ALFONT_DLL_DECLSPEC void alfont_destroy_font(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_set_font_size(ALFONT_FONT *f, int h);
+ALFONT_DLL_DECLSPEC int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags);
 ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
 /* Returns the real font graphical height */
 ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);

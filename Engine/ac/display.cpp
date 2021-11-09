@@ -63,9 +63,8 @@ int display_message_aschar=0;
 TopBarSettings topBar;
 struct DisplayVars
 {
-    int lineheight;    // font's height of single line
-    int linespacing;   // font's line spacing
-    int fulltxtheight; // total height of all the text
+    int linespacing = 0;   // font's line spacing
+    int fulltxtheight = 0; // total height of all the text
 } disp;
 
 // Pass yy = -1 to find Y co-ord automatically
@@ -91,9 +90,8 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
 
     ensure_text_valid_for_font(todis, usingfont);
     break_up_text_into_lines(todis, Lines, wii-2*padding, usingfont);
-    disp.lineheight = get_font_height_outlined(usingfont);
     disp.linespacing= get_font_linespacing(usingfont);
-    disp.fulltxtheight = getheightoflines(usingfont, Lines.Count());
+    disp.fulltxtheight = get_text_lines_surf_height(usingfont, Lines.Count());
 
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
@@ -594,11 +592,6 @@ void wouttext_aligned(Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, 
         usexp = usexp + (oriwid - get_text_width_outlined(text, usingfont));
 
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
-}
-
-int getheightoflines(int font, int numlines)
-{
-    return get_font_linespacing(font) * (numlines - 1) + get_font_height_outlined(font);
 }
 
 int get_text_width_outlined(const char *tex, int font)

@@ -105,6 +105,8 @@ Option to allow legacy relative asset resolutions.
 3.6.0 :
 Format value is defined as AGS version represented as NN,NN,NN,NN.
 Fonts have adjustable outline
+3.6.0.11:
+New font load flags, control backward compatible font behavior
 
 3.9.9 :
 BlendModes
@@ -143,6 +145,7 @@ enum GameDataVersion
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
     kGameVersion_360            = 3060000,
+    kGameVersion_360_11         = 3060011,
     kGameVersion_399            = 3999999,
     kGameVersion_Current        = kGameVersion_399
 };

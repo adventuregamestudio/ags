@@ -177,7 +177,7 @@ int GetTextHeight(const char *text, int fontnum, int width) {
 
   if (break_up_text_into_lines(text, Lines, width, fontnum) == 0)
     return 0;
-  return getheightoflines(fontnum, Lines.Count());
+  return get_text_lines_height(fontnum, Lines.Count());
 }
 
 int GetFontHeight(int fontnum)

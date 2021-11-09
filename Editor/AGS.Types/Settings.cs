@@ -20,6 +20,7 @@ namespace AGS.Types
         public const string PROPERTY_RESOLUTION = "Resolution";
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
+        public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
         public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
@@ -79,7 +80,8 @@ namespace AGS.Types
         private int _textWindowGUI = 0;
         private bool _alwaysDisplayTextAsSpeech = false;
         private bool _antiAliasFonts = false;
-        private bool _useRealFontHeight = true;
+        private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
+        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -796,14 +798,27 @@ namespace AGS.Types
             set { _antiAliasFonts = value; }
         }
 
-        [DisplayName("Use graphical font height in game logic")]
-        [Description("Real font's pixel height will be used whenever text height is required by the script or game logic. Otherwise - the formal font height is used, equal to the Point Size property")]
-        [DefaultValue(true)]
+        [DisplayName(PROPERTY_FONT_HEIGHT_IN_LOGIC)]
+        [Description("How the true-type font height will be defined whenever it is required by the script or game logic.")]
+        [DefaultValue(FontHeightDefinition.NominalHeight)]
         [Category("Text output")]
-        public bool UseRealFontHeight
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontHeightDefinition TTFHeightDefinedBy
         {
-            get { return _useRealFontHeight; }
-            set { _useRealFontHeight = value; }
+            get { return _ttfHeightDefinedBy; }
+            set { _ttfHeightDefinedBy = value; }
+        }
+
+        [DisplayName("TTF fonts adjustment defaults")]
+        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
+            "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
+        [DefaultValue(FontMetricsFixup.SetAscenderToHeight)]
+        [Category("Text output")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontMetricsFixup TTFMetricsFixup
+        {
+            get { return _ttfMetricsFixup; }
+            set { _ttfMetricsFixup = value; }
         }
 
         [DisplayName("Custom thought bubble GUI")]

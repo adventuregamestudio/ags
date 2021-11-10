@@ -1510,17 +1510,17 @@ namespace AGS.Editor
             return "";
         }
 
-        private static string MakeGameScalingConfig(GameScaling scaling, int multiplier)
+        private static string MakeGameScalingConfig(GameScaling scaling)
         {
-            string s;
             switch (scaling)
             {
-                case GameScaling.MaxInteger: s = "max_round"; break;
-                case GameScaling.StretchToFit: s = "stretch"; break;
-                case GameScaling.ProportionalStretch: s = "proportional"; break;
-                default: s = multiplier.ToString(); break;
+                case GameScaling.MaxInteger:
+                case GameScaling.Integer:
+                    return "round";
+                case GameScaling.StretchToFit: return "stretch";
+                case GameScaling.ProportionalStretch: return "proportional";
             }
-            return s;
+            return "";
         }
 
         /// <summary>
@@ -1552,10 +1552,14 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "fullscreen",
                 _game.DefaultSetup.FullscreenDesktop ? "full_window" : "desktop", configFilePath);
-            NativeProxy.WritePrivateProfileString("graphics", "window", "desktop", configFilePath);
+            if (_game.DefaultSetup.GameScaling == GameScaling.Integer)
+                NativeProxy.WritePrivateProfileString("graphics", "window",
+                    String.Format("x{0}", _game.DefaultSetup.GameScalingMultiplier), configFilePath);
+            else
+                NativeProxy.WritePrivateProfileString("graphics", "window", "desktop", configFilePath);
 
-            NativeProxy.WritePrivateProfileString("graphics", "game_scale_fs", MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling, 0), configFilePath);
-            NativeProxy.WritePrivateProfileString("graphics", "game_scale_win", MakeGameScalingConfig(_game.DefaultSetup.GameScaling, _game.DefaultSetup.GameScalingMultiplier), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_fs", MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_win", MakeGameScalingConfig(_game.DefaultSetup.GameScaling), configFilePath);
 
             NativeProxy.WritePrivateProfileString("graphics", "filter", _game.DefaultSetup.GraphicsFilter, configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "vsync", _game.DefaultSetup.VSync ? "1" : "0", configFilePath);

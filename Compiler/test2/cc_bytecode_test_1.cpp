@@ -1315,6 +1315,36 @@ TEST_F(Bytecode1, Attributes08) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+TEST_F(Bytecode1, Attributes09) {
+
+    // Function call to 'set_Visible()' mustn't go awry
+    // After loading 'true' to AX´, must protect AX from being clobbered (push it)
+
+    char *inpl = "\
+        enum bool { false = 0, true };                  \n\
+        builtin managed struct GUIControl               \n\
+        {                                               \n\
+            import attribute bool Visible;              \n\
+        };                                              \n\
+        builtin managed struct Label extends GUIControl \n\
+        { };                                            \n\
+        struct TwoClickHandler                          \n\
+        {                                               \n\
+            import static attribute Label *ActionLabel; \n\
+        };                                              \n\
+                                                        \n\
+        int room_RepExec()                              \n\
+        {                                               \n\
+            TwoClickHandler.ActionLabel.Visible = true; \n\
+        }                                               \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    // WriteOutput("Attributes09", scrip);
+}
+
 TEST_F(Bytecode1, DynArrayOfPrimitives) {
     
     // Dynamic arrays of primitives are allowed.

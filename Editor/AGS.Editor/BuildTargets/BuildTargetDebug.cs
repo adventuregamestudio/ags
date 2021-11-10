@@ -104,6 +104,8 @@ namespace AGS.Editor
 
                 // Copy files from Compiled/Data to Compiled/Windows, because this is currently where game will be looking them up
                 targetWin.CopyAuxiliaryGameFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY), false);
+                // Update config file with current game parameters
+                Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
             }
             catch (Exception ex)
             {

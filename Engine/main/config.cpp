@@ -104,12 +104,15 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetu
 {
     // "full_window" option means pseudo fullscreen ("borderless fullscreen window")
     if (!as_windowed && (option.CompareNoCase("full_window") == 0))
-        return WindowSetup(as_windowed ? kWnd_Windowed : kWnd_FullDesktop);
+        return WindowSetup(kWnd_FullDesktop);
     // Check supported options for explicit resolution or scale factor,
     // in which case we'll use either a resizing window or a REAL fullscreen mode
     const WindowMode exp_wmode = as_windowed ? kWnd_Windowed : kWnd_Fullscreen;
+    // Note that for "desktop" we return "default" for windowed, this will result
+    // in refering to the  desktop size but resizing in accordance to the scaling style
     if (option.CompareNoCase("desktop") == 0)
-        return WindowSetup(get_desktop_size(), exp_wmode);
+        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(get_desktop_size(), exp_wmode);
+    // "Native" means using game resolution as a window size
     if (option.CompareNoCase("native") == 0)
         return WindowSetup(game.GetGameRes(), exp_wmode);
     // Try parse an explicit resolution type or game scale factor --

@@ -200,7 +200,7 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
     return false;
 }
 
-String make_window_mode_option(const WindowSetup &ws, const Size &desktop_res, const Size &game_res)
+String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
 {
     if (ws.Mode == kWnd_FullDesktop)
         return "full_window";

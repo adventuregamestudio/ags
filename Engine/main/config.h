@@ -43,7 +43,7 @@ void save_config_file();
 
 WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value = WindowSetup());
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value = kFrame_Undefined);
-String make_window_mode_option(const WindowSetup &ws, const Size &desktop_res, const Size &game_res);
+String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res);
 String make_scaling_option(FrameScaleDef scale_def);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);

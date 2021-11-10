@@ -641,6 +641,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     FillScalingList(_hFsScalingList, _winCfg.FsSetup, _winCfg.FsGameFrame, false);
     FillScalingList(_hWinScalingList, _winCfg.WinSetup, _winCfg.WinGameFrame, true);
+    OnFullScalingUpdate();
+    OnWinScalingUpdate();
 
     SetCheck(_hVSync, _winCfg.VSync);
 

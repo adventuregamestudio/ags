@@ -12,6 +12,9 @@ namespace AGS.Types
     public abstract class BaseListSelectTypeConverter<TKey, TValue> : TypeConverter
         where TValue : class
     {
+        // Dummy placeholder value list, returned by the child classes in case of error
+        protected static Dictionary<TKey, TValue> _invalidValueList = new Dictionary<TKey, TValue>();
+
         protected abstract Dictionary<TKey, TValue> GetValueList(ITypeDescriptorContext context);
 
         public BaseListSelectTypeConverter() : base()

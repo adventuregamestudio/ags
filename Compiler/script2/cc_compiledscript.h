@@ -137,6 +137,7 @@ public:
     void Restore();
 
     inline bool IsEmpty() const { return _scrip.codesize <= static_cast<int>(_rememberedCodeLocation); }
+    inline CodeLoc CodeLocation() const { return _rememberedCodeLocation; }
 };
 
 // A storage for parameters of forward jumps. When at some later time,

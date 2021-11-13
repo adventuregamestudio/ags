@@ -600,9 +600,40 @@ void AGS::Parser::MemoryLocation::Reset()
     _componentOffs = 0u;
 }
 
+AGS::Parser::SetRegisterTracking::SetRegisterTracking(ccCompiledScript & scrip)
+    : _scrip(scrip)
+{
+    _register_list = std::vector<size_t>{ SREG_AX, SREG_BX, SREG_CX, SREG_DX, SREG_MAR };
+    for (auto it = _register_list.begin(); it != _register_list.end(); it++)
+        _register[*it] = 0;
+}
+
+void AGS::Parser::SetRegisterTracking::SetAllRegisters(void)
+{
+    for (auto it = _register_list.begin(); it != _register_list.end(); it++)
+        SetRegister(*it);
+}
+
+size_t AGS::Parser::SetRegisterTracking::GetGeneralPurposeRegister() const
+{
+    size_t oldest_reg = INT_MAX;
+    CodeLoc oldest_loc = INT_MAX;
+    for (auto it = _register_list.begin(); it != _register_list.end(); ++it)
+    {
+        if (*it == SREG_MAR)
+            continue;
+        if (_register[*it] >= oldest_loc)
+            continue;
+        oldest_reg = *it;
+        oldest_loc = _register[*it];
+    }
+    return oldest_reg;
+}
+
 AGS::Parser::Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, SymbolTable &symt, MessageHandler &mh)
     : _nest(scrip)
     , _pp(PP::kPreAnalyze)
+    , _reg_track(scrip)
     , _sym(symt)
     , _src(src)
     , _options(options)
@@ -7253,6 +7284,53 @@ AGS::ErrorType AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_c
     // Pop the nesting levels of such statements and handle
     // the associated jumps.
     return HandleEndOfCompoundStmts();
+}
+
+ErrorType AGS::Parser::RegisterGuard(RegisterList const &guarded_registers, std::function<ErrorType(void)> block)
+{
+    RestorePoint rp(_scrip);
+    CodeLoc const codesize_at_start = rp.CodeLocation();
+    size_t const cursor_at_start = _src.GetCursor();
+
+    size_t register_set_point[CC_NUM_REGISTERS];
+    for (auto it = guarded_registers.begin(); it != guarded_registers.end(); ++it)
+        register_set_point[*it] = _reg_track.GetRegister(*it);
+
+    // Tentatively evaluate the block to find out what it clobbers
+    ErrorType retval = block();
+    if (retval < 0) return retval;
+
+    // Find out what guarded registers have been clobbered since start of block
+    std::vector<size_t> pushes;
+    for (auto it = guarded_registers.begin(); it != guarded_registers.end(); ++it)
+        if (!_reg_track.IsValid(*it, codesize_at_start))
+            pushes.push_back(*it);
+    if (pushes.empty())
+        return kERR_None;
+
+    // Need to redo this, some registers are clobbered that should not be
+    // Note, we can't simply rip out the code, insert the 'push'es
+    // and put the code in again: The 'push'es alter the stack size,
+    // and the ripped code may depend on the stack size.
+    rp.Restore();
+
+    for (auto it = pushes.begin(); it != pushes.end(); ++it)
+    {
+        PushReg(*it);
+        _reg_track.SetRegister(*it, register_set_point[*it]);
+    }
+    _src.SetCursor(cursor_at_start);
+    retval = block();
+    if (retval < 0) return retval;
+    for (auto it = pushes.rbegin(); it != pushes.rend(); ++it)
+    {
+        PopReg(*it);
+        // We know that we're popping the same register that we've pushed,
+        // so it is safe to reset the set point to the point that was
+        // valid at the time of that push.
+        _reg_track.SetRegister(*it, register_set_point[*it]);
+    }
+    return kERR_None;
 }
 
 ErrorType AGS::Parser::HandleSrcSectionChangeAt(size_t pos)

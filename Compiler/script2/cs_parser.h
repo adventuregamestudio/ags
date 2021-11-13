@@ -329,6 +329,44 @@ private:
         void Reset();
     };
 
+    // Track when register values are clobbered
+    class SetRegisterTracking
+    {
+
+    private:
+        ccCompiledScript &_scrip;
+        AGS::CodeLoc _register[CC_NUM_REGISTERS];
+        std::vector<size_t>_register_list;
+
+    public:
+        SetRegisterTracking(ccCompiledScript &scrip);
+
+        // Track that the previous content of register 'reg' is invalid (has been clobbered)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        inline void SetRegister(size_t reg, size_t codesize = INT_MAX)
+        {
+            _register[reg] = std::min<size_t>(codesize, _scrip.codesize);
+        }
+
+        // Track that the previous content of all registers is invalid (e.g., after a call)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        void SetAllRegisters(void);
+
+        inline size_t GetRegister(size_t reg) const { return _register[reg]; }
+
+        // true when the value of register 'reg' that was set at 'loc' is still valid
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        // Note, this will not work if code is ripped out and re-inserted at a
+        // completely different location, e.g., with switch statements.
+        bool IsValid(size_t reg, AGS::CodeLoc loc) const { return _register[reg] <= loc; }
+
+        // Find the general purpose register that was set the longest time ago
+        // Only return one of SREG_AX, SREG_BX, SREG_CX, SREG_DX
+        // Note, this will not work if code is ripped out and re-inserted at a
+        // completely different location, e.g., with switch statements.
+        size_t GetGeneralPurposeRegister() const;
+    } _reg_track;
+
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
@@ -939,6 +977,16 @@ private:
 
     // Parse a command. The leading symbol has already been eaten
     ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+
+    // Execute 'block' that will presumably emit Bytecode.
+    // If that Bytecode clobbers any register in 'guarded_registers',
+    // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    ErrorType RegisterGuard(RegisterList const &guarded_registers, std::function<ErrorType(void)> block);
+    // Execute 'block' that will presumably emit Bytecode.
+    // If that Bytecode clobbers the register 'guarded_register',
+    // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    ErrorType RegisterGuard(size_t guarded_register, std::function<ErrorType(void)> block)
+        { return RegisterGuard(RegisterList{ guarded_register }, block); }
 
     // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName

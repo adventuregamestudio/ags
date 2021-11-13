@@ -708,6 +708,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_
         for (size_t loop = 1; loop < num_of_elements; ++loop)
         {
             WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
+            _reg_track.SetRegister(SREG_MAR);
             WriteCmd(SCMD_MEMZEROPTR);
         }
         return kERR_None;
@@ -715,12 +716,15 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_
 
     clobbers_ax = true;
     WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
+    _reg_track.SetRegister(SREG_AX);
 
     BackwardJumpDest loop_start(_scrip);
     loop_start.Set();
     WriteCmd(SCMD_MEMZEROPTR);
     WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
+    _reg_track.SetRegister(SREG_MAR);
     WriteCmd(SCMD_SUB, SREG_AX, 1);
+    _reg_track.SetRegister(SREG_AX);
     loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
     return kERR_None;
 }
@@ -754,7 +758,10 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_a
         // Let MAR point to the component
         int const diff = offset - offset_so_far;
         if (diff != 0)
+        {
             WriteCmd(SCMD_ADD, SREG_MAR, diff);
+            _reg_track.SetRegister(SREG_MAR);
+        }
         offset_so_far = offset;
 
         if (_sym.IsDynVartype(vartype))
@@ -791,7 +798,9 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_
     PopReg(SREG_AX);
     PopReg(SREG_MAR);
     WriteCmd(SCMD_ADD, SREG_MAR, _sym.GetSize(element_vtype));
+    _reg_track.SetRegister(SREG_MAR);
     WriteCmd(SCMD_SUB, SREG_AX, 1);
+    _reg_track.SetRegister(SREG_AX);
     loop_start.WriteJump(SCMD_JNZ, _src.GetLineno());
     return;
 }
@@ -845,6 +854,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &cl
 
             // Set MAR to the start of the construct that contains releasable pointers
             WriteCmd(SCMD_LOADSPOFFS, _scrip.OffsetToLocalVarBlock - _sym[s].VariableD->Offset);
+            _reg_track.SetRegister(SREG_MAR);
             clobbers_mar = true;
             if (_sym.IsDynVartype(s_vartype))
                 WriteCmd(SCMD_MEMZEROPTR);
@@ -876,7 +886,9 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     // Allocate a local dynamic pointer to hold the return value.
     PushReg(SREG_AX);
     WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+    _reg_track.SetRegister(SREG_MAR);
     WriteCmd(SCMD_MEMINITPTR, SREG_AX);
+    _reg_track.SetRegister(SREG_AX);
 
     RestorePoint rp_before_freeing(_scrip);
     bool dummy_bool;
@@ -888,10 +900,15 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     // Now release the dynamic pointer with a special opcode that prevents 
     // memory de-allocation as long as AX still has this pointer, too
     if (mar_may_be_clobbered)
+    {
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
+        _reg_track.SetRegister(SREG_MAR);
+    }
     WriteCmd(SCMD_MEMREADPTR, SREG_AX);
+    _reg_track.SetRegister(SREG_AX);
     WriteCmd(SCMD_MEMZEROPTRND); // special opcode
     PopReg(SREG_BX); // do NOT pop AX here
+    _reg_track.SetRegister(SREG_BX);
     if (no_precautions_were_necessary)
         rp_before_precautions.Restore();
     return kERR_None;
@@ -2205,6 +2222,7 @@ AGS::ErrorType AGS::Parser::HandleStructOrArrayResult(Vartype &vartype,Parser::V
             // Interpret the memory address as the result
             vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
             WriteCmd(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+            _reg_track.SetRegister(SREG_AX);
             vloc.location = ValueLocation::kAX_is_value;
             return kERR_None;
         }
@@ -2221,6 +2239,7 @@ void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
     if (vloc.IsCompileTimeLiteral())
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[vloc.symbol].LiteralD->Value);
+        _reg_track.SetRegister(SREG_AX);
         if (kKW_String == _sym.VartypeWithout(VTT::kConst, vartype))
             _scrip.FixupPrevious(kFx_String);
         vloc.location = ValueLocation::kAX_is_value;        
@@ -2235,6 +2254,7 @@ void AGS::Parser::ResultToAX(Vartype vartype, ValueLocation &vloc)
         WriteCmd(
             _sym.IsDynVartype(vartype) ? SCMD_MEMREADPTR : GetReadCommandForSize(_sym.GetSize(vartype)),
             SREG_AX);
+    _reg_track.SetRegister(SREG_AX);
     vloc.location = ValueLocation::kAX_is_value;
     return;
 }
@@ -2343,6 +2363,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_New(SrcList &expression, ValueLocati
         WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
     else
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
+    _reg_track.SetRegister(SREG_AX);
 
     scope_type = ScT::kGlobal;
     vloc.location = ValueLocation::kAX_is_value;
@@ -2378,6 +2399,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixMinus(SrcList &expression, Val
     WriteCmd(SCMD_LITTOREG, SREG_BX, 0);
     WriteCmd(opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    _reg_track.SetRegister(SREG_BX);
+    _reg_track.SetRegister(SREG_AX);
     vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
 }
@@ -2426,10 +2449,14 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList 
         WriteCmd(SCMD_LITTOREG, SREG_BX, -1);
         WriteCmd(SCMD_SUBREG, SREG_BX, SREG_AX);
         WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+        _reg_track.SetRegister(SREG_BX);
+        _reg_track.SetRegister(SREG_AX);
     }
     else
     {
         WriteCmd(SCMD_NOTREG, SREG_AX);
+        _reg_track.SetRegister(SREG_AX);
+
     }
 
     vartype = kKW_Int;
@@ -2453,6 +2480,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixModifier(Symbol op_sym, AGS::S
     if (retval < 0) return retval;
 
     WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+    _reg_track.SetRegister(SREG_AX);
 
     // Really do the assignment the long way so that all the checks and safeguards will run.
     // If a shortcut is possible then undo this and generate the shortcut instead.
@@ -2565,6 +2593,7 @@ ErrorType AGS::Parser::ParseExpression_PostfixModifier(Symbol const op_sym, SrcL
         CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(vartype));
         WriteCmd(memwrite, SREG_AX);
         WriteCmd((!op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
+        _reg_track.SetRegister(SREG_AX);
     }
     vloc.location = ValueLocation::kAX_is_value;
     return kERR_None;
@@ -2847,6 +2876,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
     ResultToAX(vartype, vloc);
 
     PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
+    _reg_track.SetRegister(SREG_BX);
     // now the result of the left side is in BX, of the right side is in AX
 
     CodeCell opcode;
@@ -2855,6 +2885,8 @@ AGS::ErrorType AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expre
 
     WriteCmd(opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    _reg_track.SetRegister(SREG_BX);
+    _reg_track.SetRegister(SREG_AX);
     vloc.location = ValueLocation::kAX_is_value;
 
     to_exit.Patch(_src.GetLineno());
@@ -2950,6 +2982,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func
             SCMD_LITTOREG,
             SREG_AX,
             _sym[param_default].LiteralD->Value);
+        _reg_track.SetRegister(SREG_AX);
 
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
@@ -3152,6 +3185,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
 
     // Load function address into AX
     WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].FunctionD->Offset);
+    _reg_track.SetRegister(SREG_AX);
 
     if (func_is_import)
     {   
@@ -3286,6 +3320,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
         // MAR contains the address of "outer"; this is what will be used for "this" in the called function.
         ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
+        _reg_track.SetRegister(SREG_MAR);
 
         // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
         // So we can't emit SCMD_CALLOBJ here, before parameters have been processed.
@@ -3312,6 +3347,7 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
                 SCMD_LOADSPOFFS,
                 (1 + (func_uses_normal_stack ? num_args : 0)) * SIZE_OF_STACK_CELL);
             WriteCmd(SCMD_MEMREAD, SREG_MAR);
+            _reg_track.SetRegister(SREG_MAR);
         }
         WriteCmd(SCMD_CALLOBJ, SREG_MAR);
     }
@@ -3322,7 +3358,10 @@ AGS::ErrorType AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList
     rettype = _sym.FuncReturnVartype(name_of_func);
 
     if (mar_pushed)
+    {
         PopReg(SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
+    }
     if (op_pushed)
         PopReg(SREG_OP);
 
@@ -3632,6 +3671,7 @@ AGS::ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc,Parser::M
     if (ValueLocation::kAX_is_value == vloc.location)
     {
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
         vloc.location = ValueLocation::kMAR_pointsto_value;
         mloc.Reset();
@@ -3643,6 +3683,7 @@ AGS::ErrorType AGS::Parser::AccessData_Dereference(ValueLocation &vloc,Parser::M
         // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
         // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
         WriteCmd(SCMD_MEMREADPTR, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
     }
     return kERR_None;
@@ -3720,10 +3761,14 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
     if (!is_dynarray)
         WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
     if (factor != 1)
+    {
         WriteCmd(SCMD_MUL, SREG_AX, factor);
+        _reg_track.SetRegister(SREG_AX);
+    }
     if (is_dynarray)
         WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
     WriteCmd(SCMD_ADDREG, SREG_MAR, SREG_AX);
+    _reg_track.SetRegister(SREG_MAR);
     return kERR_None;
 }
 
@@ -3839,6 +3884,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
             }
             vloc.location = ValueLocation::kMAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+            _reg_track.SetRegister(SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
             if (kKW_Dot == expression.PeekNext())
@@ -3904,6 +3950,7 @@ AGS::ErrorType AGS::Parser::AccessData_FirstClause(VariableAccess access_type, S
         {
             vloc.location = ValueLocation::kMAR_pointsto_value;
             WriteCmd(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+            _reg_track.SetRegister(SREG_MAR);
             WriteCmd(SCMD_CHECKNULL);
             mloc.Reset();
 
@@ -3989,6 +4036,7 @@ AGS::ErrorType AGS::Parser::AccessData_SubsequentClause(VariableAccess access_ty
         // make MAR point to the struct of the attribute
         ErrorType retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
         if (retval < 0) return retval;
+        _reg_track.SetRegister(SREG_MAR);
         if (VAC::kWriting == access_type)
         {
             // We cannot process the attribute here so return to the assignment that
@@ -4148,6 +4196,7 @@ AGS::ErrorType AGS::Parser::AccessData(VariableAccess access_type, SrcList &expr
     if (ValueLocation::kAX_is_value == vloc.location || ValueLocation::kCompile_time_literal == vloc.location)
     return kERR_None;
 
+    _reg_track.SetRegister(SREG_MAR);
     return mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
 }
 
@@ -4212,6 +4261,7 @@ void AGS::Parser::AccessData_StrCpy()
     WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
     WriteCmd(SCMD_MEMWRITE, SREG_AX);
     out_of_loop.Patch(_src.GetLineno());
+    _reg_track.SetAllRegisters();
 }
 
 // We are typically in an assignment LHS = RHS; the RHS has already been
@@ -4247,6 +4297,7 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
             return kERR_UserError;
         }
         WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        _reg_track.SetRegister(SREG_MAR);
         WriteCmd(SCMD_CHECKNULL);
         vloc.location = ValueLocation::kMAR_pointsto_value;
     }
@@ -4302,6 +4353,7 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
         _sym.IsDynVartype(lhsvartype) ?
         SCMD_MEMWRITEPTR : GetWriteCommandForSize(_sym.GetSize(lhsvartype));
     WriteCmd(opcode, SREG_AX);
+    _reg_track.SetRegister(SREG_AX);
     _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
     return kERR_None;
 }
@@ -4558,6 +4610,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     if (retval < 0) return retval;
     PopReg(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
+    _reg_track.SetRegister(SREG_AX);
 
     RestorePoint before_write = RestorePoint(_scrip);
     retval = AccessData_AssignTo(sct, vartype, lhs);
@@ -4907,11 +4960,13 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
         if (4u == var_size && !is_dyn)
         {
             WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+            _reg_track.SetRegister(SREG_AX);
             PushReg(SREG_AX);
             return kERR_None;
         }
 
         WriteCmd(SCMD_LOADSPOFFS, 0);
+        _reg_track.SetRegister(SREG_MAR);
         if (is_dyn)
             WriteCmd(SCMD_MEMZEROPTR);
         else 
@@ -4953,6 +5008,7 @@ AGS::ErrorType AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
     ConvertAXStringToStringObject(vartype, rhsvartype);
     WriteCmd(SCMD_LOADSPOFFS, 0);
+    _reg_track.SetRegister(SREG_MAR);
     if (kKW_String == _sym.VartypeWithout(VTT::kConst, lhsvartype))
         AccessData_StrCpy();
     else
@@ -5113,7 +5169,9 @@ AGS::ErrorType AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name
 
         // The return address is on top of the stack, so the nth param is at (n+1)th position
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_STACK_CELL * (param_idx + 1));
+        _reg_track.SetRegister(SREG_MAR);
         WriteCmd(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
+        _reg_track.SetRegister(SREG_AX);
         // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
         WriteCmd(SCMD_MEMINITPTR, SREG_AX);
     }
@@ -5154,7 +5212,10 @@ AGS::ErrorType AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, 
         // Function has ended. Set AX to 0 unless the function doesn't return any value.
         Vartype const return_vartype = _sym[name_of_current_func].FunctionD->Parameters.at(0u).Vartype;
         if (kKW_Void != return_vartype)
+        {
             WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+            _reg_track.SetRegister(SREG_AX);
+        }
 
         if (kKW_Void != return_vartype &&
             !_sym.IsAnyIntegerVartype(return_vartype))
@@ -6601,6 +6662,7 @@ AGS::ErrorType AGS::Parser::ParseReturn(Symbol name_of_current_func)
     else if (_sym.IsAnyIntegerVartype(functionReturnType))
     {
         WriteCmd(SCMD_LITTOREG, SREG_AX, 0);
+        _reg_track.SetRegister(SREG_AX);
     }
     else if (kKW_Void != functionReturnType)
     {
@@ -6842,6 +6904,7 @@ AGS::ErrorType AGS::Parser::ParseFor_WhileClause()
         // Not having a while clause is tantamount to the while condition "true".
         // So let's write "true" to the AX register.
         WriteCmd(SCMD_LITTOREG, SREG_AX, 1);
+        _reg_track.SetRegister(SREG_AX);
         return kERR_None;
     }
 
@@ -6946,6 +7009,7 @@ AGS::ErrorType AGS::Parser::ParseSwitch()
 
     // Copy the result to the BX register, ready for case statements
     WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_BX);
+    _reg_track.SetRegister(SREG_BX);
 
     _nest.Push(NSType::kSwitch);
     _nest.SetSwitchExprVartype(vartype);

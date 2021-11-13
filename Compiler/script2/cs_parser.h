@@ -129,8 +129,6 @@ private:
     // - or AX, i.e., the value to modify is in m(AX) (kVL_AX_is_value)
     // - attributes must be modified by calling their setter function (kVL_Attribute)
     //      In this case the qualified attribute is in 'symbol'
-
-
     struct ValueLocation
     {
         enum
@@ -344,9 +342,7 @@ private:
         // Track that the previous content of register 'reg' is invalid (has been clobbered)
         // Only consider SREG_AX .. SREG_DX and SREG_MAR
         inline void SetRegister(size_t reg, size_t codesize = INT_MAX)
-        {
-            _register[reg] = std::min<size_t>(codesize, _scrip.codesize);
-        }
+            { _register[reg] = std::min<size_t>(codesize, _scrip.codesize); }
 
         // Track that the previous content of all registers is invalid (e.g., after a call)
         // Only consider SREG_AX .. SREG_DX and SREG_MAR

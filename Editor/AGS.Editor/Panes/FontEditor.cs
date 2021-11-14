@@ -72,27 +72,35 @@ namespace AGS.Editor
 
         private void ImportTTFFont(string fileName, string newTTFName, string newWFNName)
         {
-            int fontSize = NumberEntryDialog.Show("Font size", "Select the font size to import this TTF font at:", DEFAULT_IMPORTED_FONT_SIZE, 1);
-            if (fontSize > 0)
+            ImportTTFDialog.FontSizeMeaning sizeType;
+            int sizeValue;
+            if (!ImportTTFDialog.Show(out sizeType, out sizeValue, 
+                    _item.PointSize > 0 ? _item.PointSize : DEFAULT_IMPORTED_FONT_SIZE, Int32.MaxValue))
+                return;
+            File.Copy(fileName, newTTFName, true);
+            try
             {
-                File.Copy(fileName, newTTFName, true);
-                try
+                if (File.Exists(newWFNName))
                 {
-                    if (File.Exists(newWFNName))
-                    {
-                        Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newWFNName);
-                    }
-                    Factory.NativeProxy.ReloadFont(_item.ID);
-                    _item.PointSize = fontSize;
-                    _item.SizeMultiplier = 1;
-                    _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
+                    Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newWFNName);
                 }
-                catch (AGSEditorException ex)
+                Factory.NativeProxy.ReloadFont(_item.ID);
+                // If user asked to get a certain pixel height, then try to change the font's
+                // point size, until found the closest result
+                if (sizeType == ImportTTFDialog.FontSizeMeaning.RealPixelHeight)
                 {
-                    Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
-                    File.Delete(newTTFName);
+                    sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(newTTFName, sizeValue);
                 }
             }
+            catch (AGSEditorException ex)
+            {
+                Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                File.Delete(newTTFName);
+            }
+
+            _item.PointSize = sizeValue;
+            _item.SizeMultiplier = 1;
+            _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
         }
 
         private void ImportWFNFont(string fileName, string newTTFName, string newWFNName)

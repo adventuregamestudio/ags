@@ -143,6 +143,12 @@
     <Compile Include="GUI\CustomPropertySchemaItemEditor.Designer.cs">
       <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\ImportTTFDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ImportTTFDialog.Designer.cs">
+      <DependentUpon>ImportTTFDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\NumberEntryWithInfoDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -335,6 +341,9 @@
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
+      <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\NumberEntryWithInfoDialog.resx">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>

@@ -1380,7 +1380,7 @@ TEST_F(Bytecode1, Attributes09) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode1, Attributes09) {
+TEST_F(Bytecode1, Attributes10) {
 
     // Accept extender attributes
 
@@ -1409,8 +1409,8 @@ TEST_F(Bytecode1, Attributes09) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 
-    // WriteOutput("Attributes09", scrip);
-    size_t const codesize = 141;
+    // WriteOutput("Attributes10", scrip);
+    size_t const codesize = 137;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -1425,13 +1425,13 @@ TEST_F(Bytecode1, Attributes09) {
        2,    6,    3,    3,           30,    2,   34,    3,    // 71
       45,    2,   39,    1,            6,    3,   22,   33,    // 79
        3,   35,    1,   30,            6,   51,    0,   47,    // 87
-       3,    1,    1,    4,            6,    3,    0,   29,    // 95
-       3,    6,    2,    0,           48,    2,   52,   30,    // 103
-       3,   29,    6,   34,            3,   29,    2,    6,    // 111
-       3,    9,   30,    2,           34,    3,   45,    2,    // 119
-      39,    2,    6,    3,           23,   33,    3,   35,    // 127
-       2,   30,    6,   51,            4,   49,    2,    1,    // 135
-       8,    6,    3,    0,            5,  -999
+       3,    1,    1,    4,            6,    3,    0,    6,    // 95
+       2,    0,   48,    2,           52,   29,    6,   34,    // 103
+       3,   29,    2,    6,            3,    9,   30,    2,    // 111
+      34,    3,   45,    2,           39,    2,    6,    3,    // 119
+      23,   33,    3,   35,            2,   30,    6,   51,    // 127
+       4,   49,    2,    1,            8,    6,    3,    0,    // 135
+       5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -1439,8 +1439,8 @@ TEST_F(Bytecode1, Attributes09) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       4,   16,   34,   48,         57,   78,   94,   99,    // 7
-     124,  -999
+       4,   16,   34,   48,         57,   78,   94,   97,    // 7
+     120,  -999
     };
     char fixuptypes[] = {
       1,   4,   1,   4,      1,   4,   3,   1,    // 7
@@ -1468,7 +1468,7 @@ TEST_F(Bytecode1, Attributes09) {
     CompareStrings(&scrip, stringssize, strings);
 }
 
-TEST_F(Bytecode1, Attributes10) {
+TEST_F(Bytecode1, Attributes11) {
 
     // Accept static extender attributes
 
@@ -1493,8 +1493,8 @@ TEST_F(Bytecode1, Attributes10) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 
-    // WriteOutput("Attributes10", scrip);
-    size_t const codesize = 72;
+    // WriteOutput("Attributes11", scrip);
+    size_t const codesize = 68;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -1503,11 +1503,10 @@ TEST_F(Bytecode1, Attributes10) {
       39,    1,    6,    3,            1,   33,    3,   35,    // 23
        1,    6,    3,    3,           34,    3,   39,    1,    // 31
        6,    3,    2,   33,            3,   35,    1,   29,    // 39
-       3,   51,    4,    7,            3,   29,    3,   30,    // 47
-       3,   34,    3,    6,            3,   33,   34,    3,    // 55
-      39,    2,    6,    3,            3,   33,    3,   35,    // 63
-       2,    2,    1,    8,            6,    3,    0,    5,    // 71
-     -999
+       3,   51,    4,    7,            3,   34,    3,    6,    // 47
+       3,   33,   34,    3,           39,    2,    6,    3,    // 55
+       3,   33,    3,   35,            2,    2,    1,    8,    // 63
+       6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -1515,7 +1514,7 @@ TEST_F(Bytecode1, Attributes10) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       6,   20,   34,   60,        -999
+       6,   20,   34,   56,        -999
     };
     char fixuptypes[] = {
       4,   4,   4,   4,     '\0'

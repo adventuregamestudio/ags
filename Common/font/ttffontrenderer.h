@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_TTFFONTRENDERER_H
 #define __AC_TTFFONTRENDERER_H
 
 #include <map>
 #include "font/agsfontrenderer.h"
+#include "util/string.h"
 
 struct ALFONT_FONT;
 
@@ -38,6 +38,15 @@ public:
       FontMetrics *metrics) override;
   const char *GetName(int fontNumber) override;
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
+
+  //
+  // Utility functions
+  //
+  // Try load the TTF font using provided point size, and report its metrics
+  static bool MeasureFontOfPointSize(const AGS::Common::String &filename, int size_pt, FontMetrics *metrics);
+  // Try load the TTF font, find the point size which results in pixel height
+  // as close to the requested as possible; report its metrics
+  static bool MeasureFontOfPixelHeight(const AGS::Common::String &filename, int pixel_height, FontMetrics *metrics);
 
 private:
     struct FontData

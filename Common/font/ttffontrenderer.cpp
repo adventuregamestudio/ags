@@ -84,43 +84,48 @@ static int GetAlfontFlags(int load_mode)
   return flags;
 }
 
+// Loads a TTF font of a certain size, optionally fill the FontMetrics struct
+static ALFONT_FONT *LoadTTF(const String &filename, int fontSize,
+    int alfont_flags, FontMetrics *metrics)
+{
+    std::unique_ptr<Stream> reader(AssetMgr->OpenAsset(filename));
+    if (!reader)
+        return nullptr;
+
+    const size_t lenof = reader->GetLength();
+    std::vector<char> buf; buf.resize(lenof);
+    reader->Read(&buf.front(), lenof);
+    reader.reset();
+
+    ALFONT_FONT *alfptr = alfont_load_font_from_mem(&buf.front(), lenof);
+    if (!alfptr)
+        return nullptr;
+    alfont_set_font_size_ex(alfptr, fontSize, alfont_flags);
+    if (metrics)
+    {
+        metrics->Height = alfont_get_font_height(alfptr);
+        metrics->RealHeight = alfont_get_font_real_height(alfptr);
+    }
+    return alfptr;
+}
+
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
     const FontRenderParams *params, FontMetrics *metrics)
 {
-  String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
-  Stream *reader = AssetMgr->OpenAsset(file_name);
-  char *membuffer;
+    String filename = String::FromFormat("agsfnt%d.ttf", fontNumber);
+    if (fontSize <= 0)
+        fontSize = 8; // compatibility fix
+    if (params && params->SizeMultiplier > 1)
+        fontSize *= params->SizeMultiplier;
 
-  if (reader == nullptr)
-    return false;
+    ALFONT_FONT *alfptr = LoadTTF(filename, fontSize,
+        GetAlfontFlags(params->LoadMode), metrics);
+    if (!alfptr)
+        return false;
 
-  const size_t lenof = reader->GetLength();
-  membuffer = (char *)malloc(lenof);
-  reader->ReadArray(membuffer, lenof, 1);
-  delete reader;
-
-  ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
-  free(membuffer);
-
-  if (alfptr == nullptr)
-    return false;
-
-  if (fontSize <= 0)
-      fontSize = 8; // compatibility fix
-  if (params && params->SizeMultiplier > 1)
-      fontSize *= params->SizeMultiplier;
-  
-  alfont_set_font_size_ex(alfptr, fontSize, GetAlfontFlags(params->LoadMode));
-
-  _fontData[fontNumber].AlFont = alfptr;
-  _fontData[fontNumber].Params = params ? *params : FontRenderParams();
-
-  if (metrics)
-  {
-      metrics->Height = alfont_get_font_height(alfptr);
-      metrics->RealHeight = alfont_get_font_real_height(alfptr);
-  }
-  return true;
+    _fontData[fontNumber].AlFont = alfptr;
+    _fontData[fontNumber].Params = params ? *params : FontRenderParams();
+    return true;
 }
 
 const char *TTFFontRenderer::GetName(int fontNumber)
@@ -143,4 +148,22 @@ void TTFFontRenderer::FreeMemory(int fontNumber)
 {
   alfont_destroy_font(_fontData[fontNumber].AlFont);
   _fontData.erase(fontNumber);
+}
+
+bool TTFFontRenderer::MeasureFontOfPointSize(const String &filename, int size_pt, FontMetrics *metrics)
+{
+    ALFONT_FONT *alfptr = LoadTTF(filename, size_pt, ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ, metrics);
+    if (!alfptr)
+        return false;
+    alfont_destroy_font(alfptr);
+    return true;
+}
+
+bool TTFFontRenderer::MeasureFontOfPixelHeight(const String &filename, int pixel_height, FontMetrics *metrics)
+{
+    ALFONT_FONT *alfptr = LoadTTF(filename, pixel_height, ALFONT_FLG_FORCE_RESIZE, metrics);
+    if (!alfptr)
+        return false;
+    alfont_destroy_font(alfptr);
+    return true;
 }

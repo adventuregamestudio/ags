@@ -447,21 +447,19 @@ private:
 
     // We're at the end of a block and releasing a standard array of dynpointers.
     // MAR points to the array start. Release each array element (dynpointer).
-    ErrorType FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax);
+    ErrorType FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements);
 
     // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
-    void FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_ax);
+    void FreeDynpointersOfStruct(Vartype struct_vtype);
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements, bool &clobbers_ax);
+    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
-    void FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax);
-
-    ErrorType FreeDynpointersOfLocals0(size_t from_level, bool &clobbers_ax, bool &clobbers_mar);
+    void FreeDynpointersOfStdArray(Symbol the_array);
 
     // Free the pointers of any locals in level from_level or higher
     ErrorType FreeDynpointersOfLocals(size_t from_level);

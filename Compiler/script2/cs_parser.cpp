@@ -697,7 +697,7 @@ bool AGS::Parser::ContainsReleasableDynpointers(Vartype vartype)
 
 // We're at the end of a block and releasing a standard array of pointers.
 // MAR points to the array start. Release each array element (pointer).
-AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax)
+AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements)
 {
     if (num_of_elements == 0)
         return kERR_None;
@@ -714,7 +714,6 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_
         return kERR_None;
     }
 
-    clobbers_ax = true;
     WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
     _reg_track.SetRegister(SREG_AX);
 
@@ -731,7 +730,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_
 
 // We're at the end of a block and releasing all the pointers in a struct.
 // MAR already points to the start of the struct.
-void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_ax)
+void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype)
 {
     SymbolList compo_list;
     _sym.GetComponentsOfStruct(struct_vtype, compo_list);
@@ -773,9 +772,9 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_a
         if (compo_list.cend() != compo_it + 1)
             PushReg(SREG_MAR);
         if (_sym.IsArrayVartype(vartype))
-            FreeDynpointersOfStdArray(vartype, clobbers_ax);
+            FreeDynpointersOfStdArray(vartype);
         else if (_sym.IsStructVartype(vartype))
-            FreeDynpointersOfStruct(vartype, clobbers_ax);
+            FreeDynpointersOfStruct(vartype);
         if (compo_list.cend() != compo_it + 1)
             PopReg(SREG_MAR);
     }
@@ -783,20 +782,21 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_a
 
 // We're at the end of a block and we're releasing a standard array of struct.
 // MAR points to the start of the array. Release all the pointers in the array.
-void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements, bool &clobbers_ax)
+void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements)
 {
-    clobbers_ax = true;
 
     // AX will be the index of the current element
     WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
 
     BackwardJumpDest loop_start(_scrip);
     loop_start.Set();
-    PushReg(SREG_MAR);
-    PushReg(SREG_AX); // FreeDynpointersOfStruct might call funcs that clobber AX
-    FreeDynpointersOfStruct(element_vtype, clobbers_ax);
-    PopReg(SREG_AX);
-    PopReg(SREG_MAR);
+    RegisterGuard(RegisterList { SREG_AX, SREG_MAR, },
+        [&]
+        {
+            FreeDynpointersOfStruct(element_vtype);
+            return kERR_None;
+        });
+    
     WriteCmd(SCMD_ADD, SREG_MAR, _sym.GetSize(element_vtype));
     _reg_track.SetRegister(SREG_MAR);
     WriteCmd(SCMD_SUB, SREG_AX, 1);
@@ -807,7 +807,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_
 
 // We're at the end of a block and releasing a standard array. MAR points to the start.
 // Release the pointers that the array contains.
-void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
+void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
 {
     Vartype const array_vartype =
         _sym.IsVartype(the_array) ? the_array : _sym.GetVartype(the_array);
@@ -818,12 +818,12 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
         _sym[array_vartype].VartypeD->BaseVartype;
     if (_sym.IsDynpointerVartype(element_vartype))
     {
-        FreeDynpointersOfStdArrayOfDynpointer(num_of_elements, clobbers_ax);
+        FreeDynpointersOfStdArrayOfDynpointer(num_of_elements);
         return;
     }
 
     if (_sym.IsStructVartype(element_vartype))
-        FreeDynpointersOfStdArrayOfStruct(element_vartype, num_of_elements, clobbers_ax);
+        FreeDynpointersOfStdArrayOfStruct(element_vartype, num_of_elements);
 
     return;
 }
@@ -838,7 +838,7 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax)
 // both are unreachable so _could_ be released, but they still point to each
 // other and so have a reference count of 1; the reference count will never reach 0).
 
-AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &clobbers_ax, bool &clobbers_mar)
+AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
 {
     for (size_t level = from_level; level <= _nest.TopLevel(); level++)
     {
@@ -855,23 +855,15 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals0(size_t from_level, bool &cl
             // Set MAR to the start of the construct that contains releasable pointers
             WriteCmd(SCMD_LOADSPOFFS, _scrip.OffsetToLocalVarBlock - _sym[s].VariableD->Offset);
             _reg_track.SetRegister(SREG_MAR);
-            clobbers_mar = true;
             if (_sym.IsDynVartype(s_vartype))
                 WriteCmd(SCMD_MEMZEROPTR);
             else if (_sym.IsArrayVartype(s_vartype))
-                FreeDynpointersOfStdArray(s, clobbers_ax);
+                FreeDynpointersOfStdArray(s);
             else if (_sym.IsStructVartype(s_vartype))
-                FreeDynpointersOfStruct(s_vartype, clobbers_ax);
+                FreeDynpointersOfStruct(s_vartype);
         }
     }
     return kERR_None;
-}
-
-// Free the pointers of any locals that have a nesting depth higher than from_level
-AGS::ErrorType AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
-{
-    bool dummy_bool;
-    return FreeDynpointersOfLocals0(from_level, dummy_bool, dummy_bool);
 }
 
 AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
@@ -891,15 +883,14 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     _reg_track.SetRegister(SREG_AX);
 
     RestorePoint rp_before_freeing(_scrip);
-    bool dummy_bool;
-    bool mar_may_be_clobbered = false;
-    ErrorType retval = FreeDynpointersOfLocals0(0u, dummy_bool, mar_may_be_clobbered);
+    ErrorType retval = FreeDynpointersOfLocals(0u);
     if (retval < 0) return retval;
+    bool const mar_clobbered = !_reg_track.IsValid(SREG_MAR, rp_before_freeing.CodeLocation());
     bool const no_precautions_were_necessary = rp_before_freeing.IsEmpty();
 
     // Now release the dynamic pointer with a special opcode that prevents 
     // memory de-allocation as long as AX still has this pointer, too
-    if (mar_may_be_clobbered)
+    if (mar_clobbered)
     {
         WriteCmd(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
         _reg_track.SetRegister(SREG_MAR);
@@ -909,6 +900,7 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
     WriteCmd(SCMD_MEMZEROPTRND); // special opcode
     PopReg(SREG_BX); // do NOT pop AX here
     _reg_track.SetRegister(SREG_BX);
+
     if (no_precautions_were_necessary)
         rp_before_precautions.Restore();
     return kERR_None;
@@ -918,21 +910,12 @@ AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_DynResult(void)
 AGS::ErrorType AGS::Parser::FreeDynpointersOfAllLocals_KeepAX(void)
 {
     RestorePoint rp_before_free(_scrip);
-    bool clobbers_ax = false;
-    bool dummy_bool;
-    ErrorType retval = FreeDynpointersOfLocals0(0u, clobbers_ax, dummy_bool);
-    if (retval < 0) return retval;
-    if (!clobbers_ax)
-        return kERR_None;
-
-    // We should have saved AX, so redo this
-    rp_before_free.Restore();
-    PushReg(SREG_AX);
-    retval = FreeDynpointersOfLocals0(0u, clobbers_ax, dummy_bool);
-    if (retval < 0) return retval;
-    PopReg(SREG_AX);
-
-    return kERR_None;
+    ErrorType retval = RegisterGuard(SREG_AX,
+        [&]
+        {
+            return FreeDynpointersOfLocals(0u);
+        });
+    return retval;
 }
 
 AGS::ErrorType AGS::Parser::RestoreLocalsFromSymtable(size_t from_level)
@@ -2456,7 +2439,6 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList 
     {
         WriteCmd(SCMD_NOTREG, SREG_AX);
         _reg_track.SetRegister(SREG_AX);
-
     }
 
     vartype = kKW_Int;
@@ -2494,6 +2476,7 @@ AGS::ErrorType AGS::Parser::ParseExpression_PrefixModifier(Symbol op_sym, AGS::S
         before_long_way_modification.Restore();
         CodeCell memwrite = GetWriteCommandForSize(_sym.GetSize(vartype));
         WriteCmd(memwrite, SREG_AX);
+        _reg_track.SetRegister(SREG_AX);
     }
 
     return kERR_None;
@@ -3194,6 +3177,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
         
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
+        _reg_track.SetAllRegisters();
         // At runtime, we will arrive here when the function call has returned: Restore the stack
         if (num_args > 0)
             WriteCmd(SCMD_SUBREALSTACK, num_args);
@@ -3206,6 +3190,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
         _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
     
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
+    _reg_track.SetAllRegisters();
 
     // At runtime, we will arrive here when the function call has returned: Restore the stack
     if (num_args > 0)
@@ -3745,6 +3730,7 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
     start_of_index.Restore();
     retval = mloc.MakeMARCurrent(_src.GetLineno(), _scrip);
     if (retval < 0) return retval;
+    _reg_track.SetRegister(SREG_MAR);
     PushReg(SREG_MAR);
     current_index.StartRead();
     retval = ParseIntegerExpression(current_index, vloc, msg);
@@ -3755,7 +3741,7 @@ AGS::ErrorType AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t idx, size
     // Note: DYNAMICBOUNDS compares the offset into the memory block;
     // it mustn't be larger than the size of the allocated memory. 
     // On the other hand, CHECKBOUNDS checks the index; it mustn't be
-    //  larger than the maximum given. So dynamic bounds must be checked
+    // larger than the maximum given. So dynamic bounds must be checked
     // after the multiplication; static bounds before the multiplication.
     // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
     if (!is_dynarray)
@@ -4274,36 +4260,34 @@ AGS::ErrorType AGS::Parser::AccessData_AssignTo(ScopeType sct, Vartype vartype, 
     // so save it here and restore later on
     size_t const end_of_rhs_cursor = _src.GetCursor();
 
-    // AX contains the result of evaluating the RHS of the assignment
-    // Save on the stack so that it isn't clobbered
     Vartype rhsvartype = vartype;
     ScopeType rhs_scope_type = sct;
-    // Save AX unless we are sure that it won't be clobbered
-    bool const may_clobber = AccessData_MayAccessClobberAX(expression);
-    if (may_clobber)
-        PushReg(SREG_AX);
-
     ValueLocation vloc;
     Vartype lhsvartype;
     ScopeType lhs_scope_type;
-    ErrorType retval = AccessData(VAC::kWriting, expression, vloc, lhs_scope_type, lhsvartype);
-    if (retval < 0) return retval;
 
-    if (ValueLocation::kAX_is_value == vloc.location)
-    {
-        if (!_sym.IsManagedVartype(lhsvartype))
+    // AX contains the result of evaluating the RHS of the assignment, so mustn't be clobbered
+    ErrorType retval = RegisterGuard(SREG_AX,
+        [&]
         {
-            Error("Cannot modify this value");
-            return kERR_UserError;
-        }
-        WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        _reg_track.SetRegister(SREG_MAR);
-        WriteCmd(SCMD_CHECKNULL);
-        vloc.location = ValueLocation::kMAR_pointsto_value;
-    }
+            ErrorType retval = AccessData(VAC::kWriting, expression, vloc, lhs_scope_type, lhsvartype);
+            if (retval < 0) return retval;
 
-    if (may_clobber)
-        PopReg(SREG_AX);
+            if (ValueLocation::kAX_is_value == vloc.location)
+            {
+                if (!_sym.IsManagedVartype(lhsvartype))
+                {
+                    Error("Cannot modify this value");
+                    return kERR_UserError;
+                }
+                WriteCmd(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+                _reg_track.SetRegister(SREG_MAR);
+                WriteCmd(SCMD_CHECKNULL);
+                vloc.location = ValueLocation::kMAR_pointsto_value;
+            }
+            return kERR_None;
+        });
+    if (retval < 0) return retval;
 
     if (ValueLocation::kAttribute == vloc.location)
     {
@@ -4609,6 +4593,7 @@ AGS::ErrorType AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &
     retval = GetOpcode(ass_symbol, lhsvartype, rhsvartype, opcode);
     if (retval < 0) return retval;
     PopReg(SREG_BX);
+    _reg_track.SetRegister(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);
     _reg_track.SetRegister(SREG_AX);
 
@@ -7077,19 +7062,21 @@ AGS::ErrorType AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     }
     else // "case"
     {
-        // Compile a comparison of the switch expression result to the current case
-        PushReg(SREG_BX);   // Result of the switch expression
+        // Compile a comparison of the switch expression result (which is in SREG_BX)
+        // to the current case
 
-        ScopeType scope_type_dummy;
         Vartype vartype;
-        ErrorType retval = ParseExpression(_src, scope_type_dummy, vartype); // case n: label expression
+        ErrorType retval = RegisterGuard(SREG_BX,
+            [&]
+            {
+                ScopeType scope_type_dummy;
+                return  ParseExpression(_src, scope_type_dummy, vartype); 
+            });
         if (retval < 0) return retval;
-
+                
         // Vartypes of the "case" expression and the "switch" expression must match
         retval = CheckVartypeMismatch(vartype, _nest.SwitchExprVartype(), false, "");
         if (retval < 0) return retval;
-
-        PopReg(SREG_BX);
     }
 
     // Rip out the already generated code for the case expression and store it with the switch
@@ -7764,3 +7751,5 @@ int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScr
         error_code = cc_parse(src, options, scrip, symt, mh);
     return error_code;
 }
+
+

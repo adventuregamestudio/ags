@@ -1725,6 +1725,45 @@ TEST_F(Bytecode0, FlowSwitch07) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("FlowSwitch07", scrip);
+    size_t const codesize = 75;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            7,    3,    3,    4,    // 7
+      31,   10,    6,    3,            7,    5,    6,    3,    // 15
+      11,    5,   31,   51,           29,    4,    6,    2,    // 23
+       0,    7,    3,   29,            3,    6,    3,    3,    // 31
+      30,    4,   11,    4,            3,    3,    4,    3,    // 39
+      30,    4,   15,    3,            4,   70,  -37,   29,    // 47
+       4,    6,    3,    0,           23,    3,   30,    4,    // 55
+      15,    3,    4,   70,          -47,    6,    2,    0,    // 63
+       7,    3,   15,    3,            4,   70,  -53,    6,    // 71
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 3;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      24,   51,   63,  -999
+    };
+    char fixuptypes[] = {
+      1,   2,   1,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
 TEST_F(Bytecode0, FreeLocalPtr) {   

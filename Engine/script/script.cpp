@@ -234,21 +234,6 @@ int create_global_script() {
     if (gameinstFork == nullptr)
         return kscript_create_error;
 
-    // Create the forks for 'repeatedly_execute_always' after resolving
-    // because they copy their respective originals including the resolve information
-    for (size_t module_idx = 0; module_idx < numScriptModules; module_idx++)
-    {
-        moduleInstFork[module_idx] = moduleInst[module_idx]->Fork();
-        if (moduleInstFork[module_idx] == nullptr)
-            return kscript_create_error;
-
-        moduleRepExecAddr[module_idx] = moduleInst[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
-    }
-
-    gameinstFork = gameinst->Fork();
-    if (gameinstFork == nullptr)
-        return kscript_create_error;
-
     ccSetOption(SCOPT_AUTOIMPORT, 0);
     return 0;
 }

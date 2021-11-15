@@ -4,9 +4,9 @@ FROM ericoporto/min-ags-dev-env:1.0.0
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )
 
-# Windows 8.0 SDK (but only install the .NET 4.5 SDK)
+# Windows 10.0.10240 SDK (but only install the .NET 4.6 SDK)
 RUN pushd %TEMP% && \
-  curl -fLO http://download.microsoft.com/download/F/1/3/F1300C9C-A120-4341-90DF-8A52509B23AC/standalonesdk/sdksetup.exe && \
+  curl -fLO https://download.microsoft.com/download/E/1/F/E1F1E61E-F3C6-4420-A916-FB7C47FBC89E/standalonesdk/sdksetup.exe && \
   start /wait sdksetup /ceip off /features OptionID.NetFxSoftwareDevelopmentKit /quiet /norestart && \
   popd && \
   mkdir empty && \

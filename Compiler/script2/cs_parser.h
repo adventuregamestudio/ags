@@ -129,8 +129,6 @@ private:
     // - or AX, i.e., the value to modify is in m(AX) (kVL_AX_is_value)
     // - attributes must be modified by calling their setter function (kVL_Attribute)
     //      In this case the qualified attribute is in 'symbol'
-
-
     struct ValueLocation
     {
         enum
@@ -329,6 +327,42 @@ private:
         void Reset();
     };
 
+    // Track when register values are clobbered
+    class SetRegisterTracking
+    {
+
+    private:
+        ccCompiledScript &_scrip;
+        AGS::CodeLoc _register[CC_NUM_REGISTERS];
+        std::vector<size_t>_register_list;
+
+    public:
+        SetRegisterTracking(ccCompiledScript &scrip);
+
+        // Track that the previous content of register 'reg' is invalid (has been clobbered)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        inline void SetRegister(size_t reg, size_t codesize = INT_MAX)
+            { _register[reg] = std::min<size_t>(codesize, _scrip.codesize); }
+
+        // Track that the previous content of all registers is invalid (e.g., after a call)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        void SetAllRegisters(void);
+
+        inline size_t GetRegister(size_t reg) const { return _register[reg]; }
+
+        // true when the value of register 'reg' that was set at 'loc' is still valid
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        // Note, this will not work if code is ripped out and re-inserted at a
+        // completely different location, e.g., with switch statements.
+        bool IsValid(size_t reg, AGS::CodeLoc loc) const { return _register[reg] <= loc; }
+
+        // Find the general purpose register that was set the longest time ago
+        // Only return one of SREG_AX, SREG_BX, SREG_CX, SREG_DX
+        // Note, this will not work if code is ripped out and re-inserted at a
+        // completely different location, e.g., with switch statements.
+        size_t GetGeneralPurposeRegister() const;
+    } _reg_track;
+
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
@@ -413,21 +447,19 @@ private:
 
     // We're at the end of a block and releasing a standard array of dynpointers.
     // MAR points to the array start. Release each array element (dynpointer).
-    ErrorType FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements, bool &clobbers_ax);
+    ErrorType FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements);
 
     // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
-    void FreeDynpointersOfStruct(Vartype struct_vtype, bool &clobbers_ax);
+    void FreeDynpointersOfStruct(Vartype struct_vtype);
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements, bool &clobbers_ax);
+    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
-    void FreeDynpointersOfStdArray(Symbol the_array, bool &clobbers_ax);
-
-    ErrorType FreeDynpointersOfLocals0(size_t from_level, bool &clobbers_ax, bool &clobbers_mar);
+    void FreeDynpointersOfStdArray(Symbol the_array);
 
     // Free the pointers of any locals in level from_level or higher
     ErrorType FreeDynpointersOfLocals(size_t from_level);
@@ -939,6 +971,16 @@ private:
 
     // Parse a command. The leading symbol has already been eaten
     ErrorType ParseCommand(Symbol leading_sym, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+
+    // Execute 'block' that will presumably emit Bytecode.
+    // If that Bytecode clobbers any register in 'guarded_registers',
+    // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    ErrorType RegisterGuard(RegisterList const &guarded_registers, std::function<ErrorType(void)> block);
+    // Execute 'block' that will presumably emit Bytecode.
+    // If that Bytecode clobbers the register 'guarded_register',
+    // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
+    ErrorType RegisterGuard(size_t guarded_register, std::function<ErrorType(void)> block)
+        { return RegisterGuard(RegisterList{ guarded_register }, block); }
 
     // If a new section has begun at cursor position pos, tell _scrip to deal with that.
     // Refresh ccCurScriptName

@@ -11,6 +11,7 @@ namespace AGS
 {
 typedef int Symbol; // A symbol (result of scanner preprocessing)
 typedef std::vector<Symbol> SymbolList;
+typedef std::vector<size_t> RegisterList;
 typedef long FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode

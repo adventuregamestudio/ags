@@ -2156,6 +2156,54 @@ TEST_F(Compile0, Attributes13) {
     EXPECT_NE(std::string::npos, msg.find("static attribute"));
 }
 
+TEST_F(Compile0, Attributes14) {
+
+    // Setting a readonly attribute, is error
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+            readonly attribute int Focus;       \n\
+        } cam;                                  \n\
+                                                \n\
+        int game_start()                        \n\
+        {                                       \n\
+            cam.Focus = 9;                      \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("readonly"));
+}
+
+
+TEST_F(Compile0, Attributes15) {
+
+    // Setting a readonly attribute, is error
+
+    char *inpl = "\
+        managed struct Cam                      \n\
+        {                                       \n\
+            int payload;                        \n\
+        } cam;                                  \n\
+                                                \n\
+        readonly attribute int Focus (this Cam *);  \n\
+                                                \n\
+        int game_start()                        \n\
+        {                                       \n\
+            cam.Focus = 9;                      \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("readonly"));
+}
+
 TEST_F(Compile0, StructPtrFunc) {
 
     // Func is ptr to managed, but it is a function not a variable

@@ -3582,6 +3582,16 @@ AGS::ErrorType AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList
         return kERR_UserError;
     }
 
+    if (is_setter && _sym[name_of_attribute].VariableD->TypeQualifiers[TQ::kReadonly])
+    {
+        Error(
+            ReferenceMsgSym(
+                "Can't assign a value to readonly attribute '%s'",
+                name_of_attribute).c_str(),
+            _sym[name_of_attribute].Name.c_str());
+        return kERR_UserError;
+    }
+
     // Get the appropriate access function (as a symbol)
     Symbol unqualified_func_name = kKW_NoSymbol;
     ErrorType retval = ConstructAttributeFuncName(unqualified_component, is_setter, attrib_is_indexed, unqualified_func_name);

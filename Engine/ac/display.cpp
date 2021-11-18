@@ -395,7 +395,7 @@ bool try_auto_play_speech(const char *text, const char *&replace_text, int chari
     if (play_voice_speech(charid, sndid))
     {
         // if Voice Only, then blank out the text
-        if (play.want_speech == 2)
+        if (play.speech_mode == kSpeech_VoiceOnly)
             replace_text = "  ";
         return true;
     }

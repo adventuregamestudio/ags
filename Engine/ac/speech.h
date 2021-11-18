@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__SPEECH_H
 #define __AGS_EE_AC__SPEECH_H
 
@@ -31,6 +27,16 @@ enum SkipSpeechStyle
 
     kSkipSpeechFirst        = kSkipSpeechNone,
     kSkipSpeechLast         = kSkipSpeechMouse
+};
+
+enum SpeechMode
+{
+    kSpeech_TextOnly        = 0,
+    kSpeech_VoiceText       = 1,
+    kSpeech_VoiceOnly       = 2,
+
+    kSpeech_First           = kSpeech_TextOnly,
+    kSpeech_Last            = kSpeech_VoiceOnly
 };
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval);

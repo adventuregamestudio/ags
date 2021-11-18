@@ -14,6 +14,8 @@
 #ifndef __AGS_EE_AC__SPEECH_H
 #define __AGS_EE_AC__SPEECH_H
 
+#include "util/string.h"
+
 enum SkipSpeechStyle
 {
     kSkipSpeechNone         = -1,
@@ -41,5 +43,10 @@ enum SpeechMode
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval);
 SkipSpeechStyle internal_skip_speech_to_user(int internal_val);
+// Locates and initializes a voice pack of the given *name*, tells if successful;
+// pass empty string for default voice pack.
+bool init_voicepak(const AGS::Common::String &name = "");
+// Gets an asset's parent path for voice-over clips and data files
+AGS::Common::String get_voice_assetpath();
 
 #endif // __AGS_EE_AC__SPEECH_H

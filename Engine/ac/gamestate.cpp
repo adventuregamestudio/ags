@@ -442,7 +442,7 @@ bool GameState::IsNonBlockingVoiceSpeech() const
 bool GameState::ShouldPlayVoiceSpeech() const
 {
     return !play.fast_forward &&
-        (play.speech_mode != kSpeech_TextOnly) && (!ResPaths.SpeechPak.Name.IsEmpty());
+        (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)

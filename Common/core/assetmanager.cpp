@@ -134,7 +134,8 @@ void AssetManager::RemoveLibrary(const String &path)
     {
         if (Path::ComparePaths((*it)->BasePath, path) == 0)
         {
-            std::remove(_activeLibs.begin(), _activeLibs.end(), (*it).get());
+            auto it_end = std::remove(_activeLibs.begin(), _activeLibs.end(), (*it).get());
+            _activeLibs.erase(it_end, _activeLibs.end());
             _libs.erase(it);
             return;
         }

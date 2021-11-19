@@ -21,6 +21,9 @@
 
 #include "util/string.h"
 
+// Report that an error has happened.
+// User errors must begin with '!'; this '!' won't be displayed.
+// Internal errors must not begin with '!'
 extern void cc_error(const char *, ...);
 
 // error reporting

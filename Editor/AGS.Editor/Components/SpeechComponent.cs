@@ -13,14 +13,14 @@ namespace AGS.Editor.Components
 {
     class SpeechComponent : BaseComponent
     {
-        public static readonly string SPEECH_DIRECTORY = "Speech";
-        private static readonly string PAMELA_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
-        private static readonly string PAPAGAYO_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.dat";
-        private static readonly string OGG_VORBIS_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.ogg";
-        private static readonly string MP3_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.mp3";
-        private static readonly string WAVEFORM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.wav";
+        public const string SPEECH_DIRECTORY = "Speech";
+        private const string PAMELA_FILE_FILTER = "*.pam";
+        private const string PAPAGAYO_FILE_FILTER = "*.dat";
+        private const string OGG_VORBIS_FILE_FILTER = "*.ogg";
+        private const string MP3_FILE_FILTER = "*.mp3";
+        private const string WAVEFORM_FILE_FILTER = "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private static readonly string SPEECH_VOX_FILE_NAME = "speech.vox";
+        private const string SPEECH_VOX_FILE_NAME = "speech.vox";
 
         private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
 		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
@@ -47,28 +47,44 @@ namespace AGS.Editor.Components
 
         private void _agsEditor_ExtraCompilationStep(CompileMessages errors)
         {
-			string[] pamFileList = ConstructFileListForSyncData();
-
-			if (DoesTargetFileNeedRebuild(LIP_SYNC_DATA_OUTPUT, pamFileList, _pamFileStatus))
-			{
-				CompileLipSyncFiles(errors);
-
-				UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
-			}
+            MakeOneLipSyncDat(SPEECH_DIRECTORY, LIP_SYNC_DATA_OUTPUT, errors);
         }
 
         private void _agsEditor_ExtraOutputCreationStep(bool miniExeForDebug)
         {
             if (miniExeForDebug)
                 return;
-            string[] speechFileList = ConstructFileListForSpeechVOX();
-            RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, SPEECH_VOX_FILE_NAME)),
-                speechFileList, _speechVoxStatus);
+            MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
         }
 
         public override string ComponentID
         {
             get { return ComponentIDs.Speech; }
+        }
+
+        /// <summary>
+        /// Compiles one lipsync dat file from the collection of Pamela files (*.pam).
+        /// </summary>
+        private void MakeOneLipSyncDat(string sourceDir, string outputName, CompileMessages errors)
+        {
+            string[] pamFileList = ConstructFileListForSyncData(sourceDir);
+
+            if (DoesTargetFileNeedRebuild(outputName, pamFileList, _pamFileStatus))
+            {
+                CompileLipSyncFiles(sourceDir, outputName, errors);
+
+                UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
+            }
+        }
+
+        /// <summary>
+        /// Compiles one VOX file from the collection of voice-over clips and lipsync dat files.
+        /// </summary>
+        private void MakeOneVOX(string sourceDir, string outputName)
+        {
+            string[] speechFileList = ConstructFileListForSpeechVOX(sourceDir);
+            RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, outputName)),
+                speechFileList, _speechVoxStatus);
         }
 
         private int FindFrameNumberForPhoneme(string phonemeCode)
@@ -208,28 +224,28 @@ namespace AGS.Editor.Components
             return syncDataForThisFile;
         }
 
-        private void CompileLipSyncFiles(CompileMessages errors)
+        private void CompileLipSyncFiles(string sourceDir, string outputName, CompileMessages errors)
         {
             List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAMELA_FILE_FILTER))
+            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAMELA_FILE_FILTER))
             {
                 lipSyncDataLines.Add(CompilePamelaFile(fileName, errors));
             }
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAPAGAYO_FILE_FILTER))
+            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAPAGAYO_FILE_FILTER))
             {
                 lipSyncDataLines.Add(CompilePapagayoFile(fileName, errors));
             }
 
-            if (File.Exists(LIP_SYNC_DATA_OUTPUT))
+            if (File.Exists(outputName))
             {
-                File.Delete(LIP_SYNC_DATA_OUTPUT);
+                File.Delete(outputName);
             }
 
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
-                BinaryWriter bw = new BinaryWriter(new FileStream(LIP_SYNC_DATA_OUTPUT, FileMode.Create, FileAccess.Write));
+                BinaryWriter bw = new BinaryWriter(new FileStream(outputName, FileMode.Create, FileAccess.Write));
                 bw.Write((int)4);
                 bw.Write(lipSyncDataLines.Count);
 
@@ -268,21 +284,21 @@ namespace AGS.Editor.Components
             return rawdatas;
         }
 
-        private string[] ConstructFileListForSpeechVOX()
+        private string[] ConstructFileListForSpeechVOX(string sourceDir)
         {
             List<string> files = new List<string>();
-            Utilities.AddAllMatchingFiles(files, LIP_SYNC_DATA_OUTPUT);
-            Utilities.AddAllMatchingFiles(files, MP3_FILE_FILTER);
-            Utilities.AddAllMatchingFiles(files, OGG_VORBIS_FILE_FILTER);
-            Utilities.AddAllMatchingFiles(files, WAVEFORM_FILE_FILTER);
+            Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, MP3_FILE_FILTER, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, OGG_VORBIS_FILE_FILTER, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, WAVEFORM_FILE_FILTER, true);
             return files.ToArray();
         }
 
-		private string[] ConstructFileListForSyncData()
+		private string[] ConstructFileListForSyncData(string sourceDir)
 		{
 			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, PAMELA_FILE_FILTER);
-			Utilities.AddAllMatchingFiles(files, PAPAGAYO_FILE_FILTER);
+			Utilities.AddAllMatchingFiles(files, sourceDir, PAMELA_FILE_FILTER, true);
+			Utilities.AddAllMatchingFiles(files, sourceDir, PAPAGAYO_FILE_FILTER, true);
 			return files.ToArray();
 		}
 

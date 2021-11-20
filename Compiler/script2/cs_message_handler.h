@@ -15,12 +15,13 @@ public:
         kSV_None,
         kSV_Info,
         kSV_Warning,
-        kSV_Error,
+        kSV_UserError,
+        kSV_InternalError,
     };
 
     struct Entry
     {
-        Severity Severity = kSV_Error;
+        Severity Severity = kSV_UserError;
         std::string Section = "";
         size_t Lineno = 0u;
         std::string Message = "";
@@ -40,7 +41,7 @@ public:
         { _entries.emplace_back(sev, sec, line, msg); }
     inline MessagesType GetMessages() const { return _entries; }
     inline void Clear() { _entries.clear(); }
-    bool HasError() const { return !_entries.empty() && kSV_Error == _entries.back().Severity; }
+    bool HasError() const;
     Entry const &GetError() const { return HasError() ? _entries.back() : _noError; }
 };
 

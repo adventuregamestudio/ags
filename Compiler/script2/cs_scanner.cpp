@@ -843,7 +843,7 @@ void AGS::Scanner::Error(char const *msg, ...)
     va_end(vlist2);
     va_end(vlist1);
 
-    _messageHandler.AddMessage(MessageHandler::kSV_Error, _section, _lineno, message);
+    _messageHandler.AddMessage(MessageHandler::kSV_UserError, _section, _lineno, message);
 
     delete[] message;
 }

@@ -50,7 +50,7 @@ void AGS::CompileTimeFunc::Error(MessageHandler &mh, std::string const &section,
     va_end(vlist2);
     va_end(vlist1);
 
-    mh.AddMessage(MessageHandler::kSV_Error, section, line, message);
+    mh.AddMessage(MessageHandler::kSV_UserError, section, line, message);
     delete[] message;
 }
 

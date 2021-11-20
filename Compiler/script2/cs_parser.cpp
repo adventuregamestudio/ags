@@ -7667,7 +7667,7 @@ void AGS::Parser::Error(char const *descr, ...)
     va_end(vlist1);
 
     _msg_handler.AddMessage(
-        MessageHandler::kSV_Error,
+        MessageHandler::kSV_UserError,
         _src.SectionId2Section(_src.GetSectionId()),
         _src.GetLineno(),
         message);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -50,6 +51,12 @@ namespace AGS.Editor.Components
         private void _agsEditor_ExtraCompilationStep(CompileMessages errors)
         {
             MakeOneLipSyncDat(SPEECH_DIRECTORY, LIP_SYNC_DATA_OUTPUT, errors);
+            // Also try compile corresponding lipsync dat for each top-level subfolder
+            // inside the main Speech folder.
+            foreach (string dir in Directory.GetDirectories(SPEECH_DIRECTORY))
+            {
+                MakeOneLipSyncDat(dir, LIP_SYNC_DATA_OUTPUT, errors);
+            }
         }
 
         private void _agsEditor_ExtraOutputCreationStep(bool miniExeForDebug)
@@ -57,6 +64,14 @@ namespace AGS.Editor.Components
             if (miniExeForDebug)
                 return;
             MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
+            // For each top-level subfolder inside the main Speech folder,
+            // make a VOX called "sp_[name].vox", where [name] is the lowercase subfolder name.
+            var subdirs = Directory.GetDirectories(SPEECH_DIRECTORY);
+            foreach (string dir in subdirs)
+            {
+                string outFileName = string.Format("sp_{0}.vox", dir.Substring(SPEECH_DIRECTORY.Length + 1).ToLower());
+                MakeOneVOX(dir, outFileName);
+            }
         }
 
         public override string ComponentID
@@ -75,9 +90,10 @@ namespace AGS.Editor.Components
                 _pamFileStatus.Add(key, new Dictionary<string, DateTime>());
             Dictionary<string, DateTime> fileTimes = _pamFileStatus[key];
 
-            if (DoesTargetFileNeedRebuild(outputName, pamFileList, fileTimes))
+            string datFileName = Path.Combine(sourceDir, outputName);
+            if (DoesTargetFileNeedRebuild(datFileName, pamFileList, fileTimes))
             {
-                CompileLipSyncFiles(sourceDir, outputName, errors);
+                CompileLipSyncFiles(sourceDir, datFileName, errors);
                 UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, fileTimes);
             }
         }
@@ -362,7 +378,12 @@ namespace AGS.Editor.Components
             }
             if (filesOnDisk.Length > 0)
             {
-                Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
+                // Register speech assets under names = relative paths inside a Speech folder;
+                // e.g. Speech/cEgo1.ogg => cEgo1.ogg;
+                //      Speech/French/cEgo1.ogg => French/cEgo1.ogg;
+                var assets = filesOnDisk.Select(
+                    f => new Tuple<string, string>(f.Substring(SPEECH_DIRECTORY.Length + 1), f)).ToArray();
+                DataFileWriter.MakeDataFile(assets, 0, voxFileName, false);
             }
         }
 

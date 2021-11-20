@@ -3384,10 +3384,15 @@ ErrorType AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, ValueLoc
     possible = (nullptr != ctf);
     if (!possible)
         return kERR_None;
-    ErrorType retval = ctf->Evaluate(
-        _msg_handler, _src.SectionId2Section(_src.GetSectionId()), _src.GetLineno(),
-        vloc_lhs.symbol, vloc_rhs.symbol, vloc.symbol);
-    if (retval < 0) return retval;
+    try
+    {
+        ctf->Evaluate(vloc_lhs.symbol, vloc_rhs.symbol, vloc.symbol);
+    }
+    catch (CompileTimeFunc::CompileTimeError &e)
+    {
+        Error(e.what());
+        return kERR_UserError;
+    }
     vloc.location = ValueLocation::kCompile_time_literal;
     return kERR_None;
 }

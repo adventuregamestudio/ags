@@ -32,11 +32,11 @@ TEST_F(Scan, ShortInputBackslash1)
     AGS::Scanner scanner1(Input1, token_list, string_collector, sym, mh);
 
     // Test
-    EXPECT_EQ(0, scanner1.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(0, scanner1.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("Test"));
 
     // Backslash
-    EXPECT_GT(0, scanner1.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner1.GetNextSymstringT(symstring, sct, value));
 }
 
 TEST_F(Scan, ShortInputBackslash2)
@@ -49,10 +49,10 @@ TEST_F(Scan, ShortInputBackslash2)
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     for (size_t loop = 0; loop < 3; loop++)
     {
-        ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+        ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
         ASSERT_FALSE(scanner.EOFReached());
     }
-    ASSERT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     ASSERT_NE(std::string::npos, errmsg.find("nded instead"));
 }
@@ -65,10 +65,10 @@ TEST_F(Scan, ShortInputBackslash3)
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     for (size_t loop = 0; loop < 3; loop++)
     {
-        EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+        EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
         EXPECT_FALSE(scanner.EOFReached());
     }
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_TRUE(scanner.EOFReached());
 }
 
@@ -80,10 +80,10 @@ TEST_F(Scan, ShortInputSimple1)
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     for (size_t loop = 0; loop < 3; loop++)
     {
-        EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+        EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
         EXPECT_FALSE(scanner.EOFReached());
     }
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("nded instead"));
 }
@@ -95,10 +95,10 @@ TEST_F(Scan, ShortInputSimple2)
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     for (size_t loop = 0; loop < 3; loop++)
     {
-        EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+        EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
         EXPECT_FALSE(scanner.EOFReached());
     }
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_TRUE(scanner.EOFReached());
 }
 
@@ -109,7 +109,7 @@ TEST_F(Scan, ShortInputString1) {
     char *Input = "\"Supercalifragilisticexpialidocious";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
@@ -121,7 +121,7 @@ TEST_F(Scan, ShortInputString2) {
     char *Input = "\"Donaudampfschiffahrtskapitaen\\";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
@@ -133,7 +133,7 @@ TEST_F(Scan, ShortInputString3) {
     char *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("ine ended"));
 }
@@ -145,13 +145,13 @@ TEST_F(Scan, TwoByteSymbols1)
     std::string Input = "i++<=j";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("i"));
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("++"));
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("<="));
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("j"));
 }
 
@@ -162,9 +162,9 @@ TEST_F(Scan, TwoByteSymbols2)
     std::string Input = "i .. ";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(0, symstring.compare("i"));
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
 }
 
 TEST_F(Scan, IdentifiersElementary)
@@ -174,19 +174,19 @@ TEST_F(Scan, IdentifiersElementary)
     std::string Input = "\nIdentifier\r\nIden2tifier\r\r iden_ti_9f9_ier3";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     int lno = scanner.GetLineno();
     EXPECT_EQ(2, lno);
     EXPECT_STREQ("Identifier", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     lno = scanner.GetLineno();
     EXPECT_EQ(3, lno);
     EXPECT_STREQ("Iden2tifier", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     lno = scanner.GetLineno();
     EXPECT_EQ(3, lno);
     EXPECT_STREQ("iden_ti_9f9_ier3", symstring.c_str());
@@ -199,34 +199,34 @@ TEST_F(Scan, IdentifiersNumbers)
 
     std::string Input = "Ident 4ify5er; _4 6.5 6996";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
 
     int lno = scanner.GetLineno();
     EXPECT_EQ(1, lno);
     EXPECT_STREQ("Ident", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("4", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("ify5er", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ(";", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_NonAlphanum, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("_4", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("6.5", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_FloatLiteral, sct);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("6996", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 }
@@ -243,7 +243,7 @@ TEST_F(Scan, Strings)
     std::string errorstring;
 
     // Standard string, should be passed back normally.
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     lno = scanner.GetLineno();
     EXPECT_EQ(false, scanner.EOFReached());
     EXPECT_EQ(1u, lno);
@@ -251,7 +251,7 @@ TEST_F(Scan, Strings)
     EXPECT_EQ(AGS::Scanner::kSct_StringLiteral, sct);
 
     // Character literal, should not be a string, but an integer.
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     lno = scanner.GetLineno();
     EXPECT_EQ(false, scanner.EOFReached());
     EXPECT_EQ(2u, lno);
@@ -260,7 +260,7 @@ TEST_F(Scan, Strings)
     EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 
     // String containing a newline. This should be marked as erroneous.
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     lno = scanner.GetLineno();
     EXPECT_EQ(false, scanner.EOFReached());
     EXPECT_EQ(2u, lno);
@@ -275,7 +275,8 @@ TEST_F(Scan, StringCollect)
     std::string Input = "String s = \"Zwiebelkuchen\"; s = \"Holz\\7schuh\";";
 
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
-    EXPECT_LE(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
 
     std::string text_in_buffer;
     
@@ -301,7 +302,8 @@ TEST_F(Scan, LiteralInt1)
     char *inp = "15 3 05 ";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
-    EXPECT_LE(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
 
     AGS::Symbol const lit15 = token_list[0u];
     ASSERT_TRUE(sym.IsLiteral(lit15));
@@ -322,7 +324,8 @@ TEST_F(Scan, LiteralInt2)
     char *inp = "-2147483648";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
-    ASSERT_GT(0, scanner.Scan());
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
 }
 
 TEST_F(Scan, LiteralFloat)
@@ -331,7 +334,8 @@ TEST_F(Scan, LiteralFloat)
     char *inp = "3. 3.0 0.0 0.3 33E5 3e-15 3.E5 3.E-5 .3E5 .3E-5 3.14E+2";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
-    EXPECT_LE(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
 
     float f;
 
@@ -399,10 +403,10 @@ TEST_F(Scan, CharLit1)
     std::string Input = "foo \'";
     
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_TRUE(scanner.EOFReached());
     std::string estr = mh.GetError().Message;
     EXPECT_NE(std::string::npos, estr.find("input"));
@@ -415,10 +419,10 @@ TEST_F(Scan, CharLit2)
     std::string Input = "foo '\\";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string estr = mh.GetError().Message;
     EXPECT_NE(std::string::npos, estr.find("nded instead"));
 }
@@ -430,10 +434,10 @@ TEST_F(Scan, CharLit3)
     std::string Input = "foo \'A$";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string estr = mh.GetError().Message;
     EXPECT_NE(std::string::npos, estr.find("$"));
 }
@@ -445,10 +449,10 @@ TEST_F(Scan, CharLit4)
     std::string Input = "foo '\\A'";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
 
-    EXPECT_GT(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string estr = mh.GetError().Message;
     EXPECT_NE(std::string::npos, estr.find("nrecognized"));
 }
@@ -460,7 +464,7 @@ TEST_F(Scan, CharLit5)
     std::string Input = "'\\n'";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(10, value);
     EXPECT_STREQ("'\\n'", symstring.c_str());
 }
@@ -472,7 +476,8 @@ TEST_F(Scan, BackslashBracketInChar) {
     char *Input = "int i = '\\[';";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_GT(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_TRUE(mh.HasError());
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("'\\['"));
 }
@@ -485,13 +490,13 @@ TEST_F(Scan, BackslashOctal1) {
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("String", symstring.c_str());
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("s", symstring.c_str());
-    EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("=", symstring.c_str());
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("Boom\1" "9 Box", &(string_collector.strings[value]));
 }
@@ -506,9 +511,9 @@ TEST_F(Scan, BackslashOctal2) {
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     for (size_t symbol_idx = 4; symbol_idx --> 1 ;) // note! smiley ";)" needed
-        EXPECT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+        EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("Boom\7" "/Box" "\44" "4/Borg", &(string_collector.strings[value]));
     EXPECT_STREQ("\"Boom\\7/Box\\444/Borg\"", symstring.c_str());
@@ -522,10 +527,10 @@ TEST_F(Scan, BackslashOctal3) {
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("bBb", &(string_collector.strings[value]));
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(-100, value);
     EXPECT_STREQ("'\\234'", symstring.c_str());
 }
@@ -538,7 +543,8 @@ TEST_F(Scan, BackslashHex1) {
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    EXPECT_GT(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_TRUE(mh.HasError());
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("hex digit"));
 }
@@ -554,7 +560,7 @@ TEST_F(Scan, BackslashHex2) {
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"", symstring.c_str());
     EXPECT_STREQ("He\12/meter \14@fe Nicolas C\12GE \372CE ", &(string_collector.strings[value]));
@@ -570,10 +576,10 @@ TEST_F(Scan, BackslashOctHex) {
         "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     AGS::CodeCell value2;
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value2));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value2));
     ASSERT_LE(0, value2);
 
     EXPECT_STREQ(&(string_collector.strings[value]), &(string_collector.strings[value2]));
@@ -586,7 +592,7 @@ TEST_F(Scan, BackslashCSym) {
     char *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"", symstring.c_str());
     EXPECT_STREQ(" Is 'Java' \x1bqual to \"Ja\va\" ? ", &(string_collector.strings[value]));
@@ -599,12 +605,12 @@ TEST_F(Scan, BackslashBackslash) {
     char *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("'\\\\'", symstring.c_str());
     EXPECT_EQ('\\', value);
   
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("\"\\\\a\\\\b\\\\\"", symstring.c_str());
     EXPECT_STREQ("\\a\\b\\", &(string_collector.strings[value]));
@@ -617,7 +623,7 @@ TEST_F(Scan, String1)
     std::string Input = "\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    ASSERT_LE(0, scanner.GetNextSymstring(symstring, sct, value));
+    ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("Oh, \the \brow\n \fo^ jumps \\[ove\r] the @\azy dog.", &(string_collector.strings[value]));
     EXPECT_STREQ("\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"", symstring.c_str());
@@ -635,7 +641,8 @@ TEST_F(Scan, UnknownKeywordAfterReadonly) {
                     };";
 
     AGS::Scanner scanner = { inpl, token_list, string_collector, sym, mh };
-    ASSERT_LE(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
 }
 
 TEST_F(Scan, SectionChange)
@@ -649,7 +656,8 @@ TEST_F(Scan, SectionChange)
      ";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_LE(0, scanner.Scan());
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
     token_list.SetCursor(0u);
     
     // String
@@ -689,7 +697,8 @@ TEST_F(Scan, MatchBraceParen1)
         ";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_GT(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_TRUE(mh.HasError());
 
     std::string err = mh.GetError().Message;
     EXPECT_EQ(5u, scanner.GetLineno());
@@ -703,7 +712,8 @@ TEST_F(Scan, MatchBraceParen2)
 
     std::string Input = "f(a[bb.ccc * (d + e - ( f - g)))";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_GE(0, scanner.Scan());
+    scanner.Scan();
+    EXPECT_TRUE(mh.HasError());
     EXPECT_EQ(1u, scanner.GetLineno());
     EXPECT_NE(std::string::npos, mh.GetError().Message.find("this line"));
 }
@@ -720,7 +730,8 @@ TEST_F(Scan, MatchBraceParen3)
         };";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_GT(0, scanner.Scan());
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(5u, scanner.GetLineno());
     EXPECT_NE(std::string::npos, mh.GetError().Message.find("ine 2"));
 }
@@ -733,7 +744,8 @@ TEST_F(Scan, MatchBraceParen4)
     std::string Input = "struct B );";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_GT(0, scanner.Scan());
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(1u, scanner.GetLineno());
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("matches the closing"));
@@ -754,7 +766,8 @@ TEST_F(Scan, MatchBraceParen5)
                 S.          \n\
         ";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
-    ASSERT_GT(0, scanner.Scan());
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
     EXPECT_LE(7u, scanner.GetLineno());
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("not been closed"));
@@ -768,12 +781,12 @@ TEST_F(Scan, ConsecutiveStringLiterals1)
     std::string Input = "\"Supercalifragilistic\"\n   \n   \n  \"expialidocious\"; ";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
-    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("\"Supercalifragilisticexpialidocious\"", symstring.c_str());
     EXPECT_STREQ("Supercalifragilisticexpialidocious", string_collector.strings + value);
     EXPECT_EQ(4, scanner.GetLineno());
 
-    scanner.GetNextSymstring(symstring, sct, value);
+    scanner.GetNextSymstringT(symstring, sct, value);
 
     EXPECT_EQ(4, scanner.GetLineno());
 }
@@ -790,13 +803,13 @@ TEST_F(Scan, ConsecutiveStringLiterals2)
         ";
     AGS::Scanner scanner(input, token_list, string_collector, sym, mh);
 
-    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(Scanner::kSct_SectionChange, sct);
     EXPECT_STREQ("File1", symstring.c_str());
-    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("\"xyzzy\"", symstring.c_str());
     EXPECT_EQ(Scanner::kSct_StringLiteral, sct);
-    EXPECT_EQ(0, scanner.GetNextSymstring(symstring, sct, value));
+    EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("File2", symstring.c_str());
     EXPECT_EQ(Scanner::kSct_SectionChange, sct);
 }

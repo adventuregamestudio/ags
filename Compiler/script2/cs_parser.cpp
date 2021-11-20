@@ -7819,7 +7819,8 @@ AGS::ErrorType AGS::Parser::Parse()
 int cc_scan(std::string const &inpl, AGS::SrcList &src, AGS::ccCompiledScript &scrip, AGS::SymbolTable &symt, AGS::MessageHandler &mh)
 {
     AGS::Scanner scanner = { inpl, src, scrip, symt, mh };
-    return scanner.Scan();
+    scanner.Scan();
+    return -static_cast<int>(mh.HasError());
 }
 
 int cc_parse(AGS::SrcList &src, AGS::FlagSet options, AGS::ccCompiledScript &scrip, AGS::SymbolTable &symt, AGS::MessageHandler &mh)

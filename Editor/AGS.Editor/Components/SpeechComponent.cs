@@ -22,8 +22,10 @@ namespace AGS.Editor.Components
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
         private const string SPEECH_VOX_FILE_NAME = "speech.vox";
 
-        private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
-		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
+        // Source file timestamp records: keep timestamps of the source files used in speech.vox compilation;
+        // used to test whether recompilation is necessary or may be skipped.
+        private Dictionary<string, Dictionary<string, DateTime>> _speechVoxStatus = new Dictionary<string, Dictionary<string, DateTime>>();
+        private Dictionary<string, Dictionary<string, DateTime>> _pamFileStatus = new Dictionary<string, Dictionary<string, DateTime>>();
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
@@ -68,12 +70,15 @@ namespace AGS.Editor.Components
         private void MakeOneLipSyncDat(string sourceDir, string outputName, CompileMessages errors)
         {
             string[] pamFileList = ConstructFileListForSyncData(sourceDir);
+            string key = sourceDir.ToLower();
+            if (!_pamFileStatus.ContainsKey(key))
+                _pamFileStatus.Add(key, new Dictionary<string, DateTime>());
+            Dictionary<string, DateTime> fileTimes = _pamFileStatus[key];
 
-            if (DoesTargetFileNeedRebuild(outputName, pamFileList, _pamFileStatus))
+            if (DoesTargetFileNeedRebuild(outputName, pamFileList, fileTimes))
             {
                 CompileLipSyncFiles(sourceDir, outputName, errors);
-
-                UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
+                UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, fileTimes);
             }
         }
 
@@ -83,8 +88,17 @@ namespace AGS.Editor.Components
         private void MakeOneVOX(string sourceDir, string outputName)
         {
             string[] speechFileList = ConstructFileListForSpeechVOX(sourceDir);
-            RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, outputName)),
-                speechFileList, _speechVoxStatus);
+            string key = sourceDir.ToLower();
+            if (!_speechVoxStatus.ContainsKey(key))
+                _speechVoxStatus.Add(key, new Dictionary<string, DateTime>());
+            Dictionary<string, DateTime> fileTimes = _speechVoxStatus[key];
+
+            string voxFileName = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, outputName));
+            if (DoesTargetFileNeedRebuild(voxFileName, speechFileList, fileTimes))
+            {
+                RebuildVOXFile(voxFileName, speechFileList);
+                UpdateVOXFileStatusWithCurrentFileTimes(speechFileList, fileTimes);
+            }
         }
 
         private int FindFrameNumberForPhoneme(string phonemeCode)
@@ -340,22 +354,17 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void RebuildVOXFileIfRequired(string voxFileName, string[] filesOnDisk, Dictionary<string,DateTime> sourceFileTimes)
+		private void RebuildVOXFile(string voxFileName, string[] filesOnDisk)
 		{
-			if (DoesTargetFileNeedRebuild(voxFileName, filesOnDisk, sourceFileTimes))
-			{
-				if (File.Exists(voxFileName))
-				{
-					File.Delete(voxFileName);
-				}
-				if (filesOnDisk.Length > 0)
-				{
-					Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
-				}
-				UpdateVOXFileStatusWithCurrentFileTimes(filesOnDisk, sourceFileTimes);
-			}
-
-		}
+            if (File.Exists(voxFileName))
+            {
+                File.Delete(voxFileName);
+            }
+            if (filesOnDisk.Length > 0)
+            {
+                Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
+            }
+        }
 
         public override void FromXml(XmlNode node)
         {
@@ -372,25 +381,55 @@ namespace AGS.Editor.Components
 			WriteFileTimes(writer, "PamFiles", _pamFileStatus);
         }
 
-        private void ReadFileTimes(XmlNode node, string elementName, Dictionary<string, DateTime> fileStatuses)
+        /// <summary>
+        /// Read a collection of file time dictionaries.
+        /// </summary>
+        private void ReadFileTimes(XmlNode node, string elementName, Dictionary<string, Dictionary<string, DateTime>> fileStatuses)
         {
             fileStatuses.Clear();
-
             XmlNode mainNode = node.SelectSingleNode(elementName);
-            if (mainNode != null)
+            if (mainNode == null) return;
+            // The main node suppose to contain list of sub-nodes defining source file folders
+            foreach (XmlNode child in mainNode.ChildNodes)
             {
-                foreach (XmlNode child in mainNode.ChildNodes)
-                {
-					string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
-					DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-                    fileStatuses.Add(SerializeUtils.GetAttributeString(child, "Name"), fileTime);
-                }
+                if (child.Name != "Folder") continue;
+                string folderName = SerializeUtils.GetAttributeString(child, "Name");
+                var folderFileStatuses = new Dictionary<string, DateTime>();
+                ReadFileTimes(child, folderName, folderFileStatuses);
+                fileStatuses.Add(folderName, folderFileStatuses);
             }
+        }
+
+        /// <summary>
+        /// Read a single file time dictionary.
+        /// </summary>
+        private void ReadFileTimes(XmlNode mainNode, string elementName, Dictionary<string, DateTime> fileStatuses)
+        {
+            fileStatuses.Clear();
+            foreach (XmlNode child in mainNode.ChildNodes)
+            {
+                if (child.Name != "File") continue;
+                string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
+                DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                fileStatuses.Add(SerializeUtils.GetAttributeString(child, "Name"), fileTime);
+            }
+        }
+
+        private void WriteFileTimes(XmlTextWriter writer, string elementName, Dictionary<string, Dictionary<string, DateTime>> fileStatuses)
+        {
+            writer.WriteStartElement(elementName);
+            // Write as many "folder" sub-elements as there are dictionaries in the collection
+            foreach (string folderName in fileStatuses.Keys)
+            {
+                WriteFileTimes(writer, folderName, fileStatuses[folderName]);
+            }
+            writer.WriteEndElement();
         }
 
         private void WriteFileTimes(XmlTextWriter writer, string elementName, Dictionary<string, DateTime> fileStatuses)
         {
-            writer.WriteStartElement(elementName);
+            writer.WriteStartElement("Folder");
+            writer.WriteAttributeString("Name", elementName);
             foreach (string file in fileStatuses.Keys)
             {
                 writer.WriteStartElement("File");

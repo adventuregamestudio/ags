@@ -91,7 +91,7 @@ namespace AGS.Types
         private bool _fontsAreHiRes = false;
         private bool _antiAliasFonts = false;
         private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
-        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
+        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.None;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -936,7 +936,7 @@ namespace AGS.Types
         [DisplayName("TTF fonts adjustment defaults")]
         [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
             "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
-        [DefaultValue(FontMetricsFixup.SetAscenderToHeight)]
+        [DefaultValue(FontMetricsFixup.None)]
         [Category("Text output")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public FontMetricsFixup TTFMetricsFixup

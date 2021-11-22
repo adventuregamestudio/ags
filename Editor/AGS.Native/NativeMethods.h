@@ -55,6 +55,9 @@ namespace AGS
 			Game^ ImportOldGameFile(String^ fileName);
 			void ImportSCIFont(String ^fileName, int fontSlot);
             void ReloadFont(int fontSlot);
+            // Measures the TTF font from the given file, and tries to find a point size corresponding
+            // to the closest pixel height match, returns the found point size, or 0 in case of error.
+            int FindTTFSizeForHeight(String ^fileName, int size);
             void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();

@@ -337,6 +337,8 @@ enum eKeyCode
   eKeyShiftRight = 404, 
   eKeyCtrlLeft = 405, 
   eKeyCtrlRight = 406,
+  eKeyAltLeft = 407,
+  eKeyAltRight = 420,
 #endif
   eKeyF11 = 433,
   eKeyF12 = 434

@@ -25,6 +25,8 @@
 #include "debug/outputhandler.h"
 #include "util/ini_util.h"
 
+struct SDL_Surface;
+
 namespace AGS
 {
     namespace Common { class Stream; }
@@ -111,6 +113,9 @@ public:
     virtual void UnRegisterGameWithGameExplorer();
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const {}
+    // Either set window icon using system API directly, or create a SDL_Surface
+    // for the SDL backend to set an icon instead.
+    virtual SDL_Surface *CreateWindowIcon() { return nullptr; }
 
     // Returns command line argument in a UTF-8 format
     virtual Common::String GetCommandArg(size_t arg_index);

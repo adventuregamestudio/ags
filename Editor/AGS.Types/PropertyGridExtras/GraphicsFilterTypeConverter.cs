@@ -9,6 +9,7 @@ namespace AGS.Types
     {
         protected override Dictionary<string, string> GetValueList(ITypeDescriptorContext context)
         {
+            if (context == null) return _invalidValueList;
             RuntimeSetup setup = context.Instance as RuntimeSetup;
             return setup.GraphicsFilterOptions;
         }

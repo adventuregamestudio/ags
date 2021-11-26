@@ -191,10 +191,11 @@ const
   VCPP_REDIST_MAJOR_VERSION = 14.0;
   VCPP_REDIST_BUILD_VERSION = 24215;
 
-  // .NET Framework 4.5 or newer
-  // in theory this is only needed for OS versions older than Windows 8
-  DOT_NET_45_RELEASE_VERSION = 378389;
-  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 4.5 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
+  // .NET Framework 4.6 or newer
+  // in theory this is only needed for OS versions older than Windows 10
+  // https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#minimum-version
+  DOT_NET_46_RELEASE_VERSION = 393295;
+  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 4.6 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
   DOT_NET_INSTALL_URL = 'https://dotnet.microsoft.com/download/dotnet-framework';
 
 function VCRedistInstalled: Boolean;
@@ -208,7 +209,7 @@ begin
     bld)) AND (bld >= VCPP_REDIST_BUILD_VERSION);
 end;
 
-function DotNet45Installed: Boolean;
+function DotNet46Installed: Boolean;
 var
   version: Cardinal;
 begin
@@ -216,7 +217,7 @@ begin
     HKLM,
     'Software\Microsoft\NET Framework Setup\NDP\v4\Full',
     'Release',
-    version)) AND (version >= DOT_NET_45_RELEASE_VERSION);
+    version)) AND (version >= DOT_NET_46_RELEASE_VERSION);
 end;
 
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
@@ -242,7 +243,7 @@ begin
   begin
     MsgBox(PLATFORM_CHECK_ERROR_MESSAGE, mbCriticalError, MB_OK);
   end;
-  if NOT DotNet45Installed then
+  if NOT DotNet46Installed then
   begin
     if NOT WizardSilent then
     begin

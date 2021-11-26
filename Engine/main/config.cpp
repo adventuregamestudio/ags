@@ -43,7 +43,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern SpriteCache spriteset;
-extern int force_window;
 extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
@@ -105,12 +104,15 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetu
 {
     // "full_window" option means pseudo fullscreen ("borderless fullscreen window")
     if (!as_windowed && (option.CompareNoCase("full_window") == 0))
-        return WindowSetup(as_windowed ? kWnd_Windowed : kWnd_FullDesktop);
+        return WindowSetup(kWnd_FullDesktop);
     // Check supported options for explicit resolution or scale factor,
     // in which case we'll use either a resizing window or a REAL fullscreen mode
     const WindowMode exp_wmode = as_windowed ? kWnd_Windowed : kWnd_Fullscreen;
+    // Note that for "desktop" we return "default" for windowed, this will result
+    // in refering to the  desktop size but resizing in accordance to the scaling style
     if (option.CompareNoCase("desktop") == 0)
-        return WindowSetup(get_desktop_size(), exp_wmode);
+        return as_windowed ? WindowSetup(exp_wmode) : WindowSetup(get_desktop_size(), exp_wmode);
+    // "Native" means using game resolution as a window size
     if (option.CompareNoCase("native") == 0)
         return WindowSetup(game.GetGameRes(), exp_wmode);
     // Try parse an explicit resolution type or game scale factor --
@@ -201,7 +203,7 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
     return false;
 }
 
-String make_window_mode_option(const WindowSetup &ws, const Size &desktop_res, const Size &game_res)
+String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
 {
     if (ws.Mode == kWnd_FullDesktop)
         return "full_window";
@@ -542,31 +544,8 @@ void post_config()
 void save_config_file()
 {
     ConfigTree cfg;
-
     // Last display mode
-    // TODO: force_window check is a temporary workaround (see comment below)
-    if (force_window == 0)
-    {
-        bool is_windowed = System_GetWindowed() != 0;
-        cfg["graphics"]["windowed"] = String::FromFormat("%d", is_windowed ? 1 : 0);
-        // TODO: this is a hack, necessary because the original config system was designed when
-        // switching mode at runtime was not considered a possibility.
-        // Normally, two changes need to be done here:
-        // * the display setup needs to be reviewed and simplified a bit.
-        // * perhaps there should be two saved setups for fullscreen and windowed saved in memory
-        // (like ActiveDisplaySetting is saved currently), to know how the window size is defined
-        // in each modes (by explicit width/height values or from game scaling).
-        // This specifically *must* be done if there will be script API for modifying fullscreen
-        // resolution, or size of the window could be changed any way at runtime.
-        if (is_windowed != usetup.Screen.Windowed)
-        {
-            if (is_windowed)
-                cfg["graphics"]["screen_def"] = "scaling";
-            else
-                cfg["graphics"]["screen_def"] = "max";
-        }
-    }
-
+    cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed() != 0 ? 1 : 0);
     // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);

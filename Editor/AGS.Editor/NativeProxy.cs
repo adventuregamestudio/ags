@@ -204,6 +204,15 @@ namespace AGS.Editor
             _native.ReloadFont(fontSlot);
         }
 
+        /// <summary>
+        /// Measures the TTF font from the given file, and tries to find a point size corresponding
+        /// to the closest pixel height match, returns the found point size, or 0 in case of error.
+        /// </summary>
+        public int FindTTFSizeForHeight(string fileName, int size)
+        {
+            return _native.FindTTFSizeForHeight(fileName, size);
+        }
+
         public void OnFontUpdated(Game game, int fontSlot, bool forceUpdate)
         {
             _native.OnGameFontUpdated(game, fontSlot, forceUpdate);

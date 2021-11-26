@@ -69,7 +69,6 @@ extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
-int force_window = 0;
 int override_start_room = 0;
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
@@ -281,7 +280,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             strcpy(editor_debugger_instance_token, argv[ee + 1]);
             editor_debugging_enabled = 1;
-            force_window = 1;
+            cfg["graphics"]["windowed"] = "1";
             ee++;
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
@@ -326,9 +325,9 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if ((ags_stricmp(arg, "--shared-data-dir") == 0) && (argc > ee + 1))
             cfg["misc"]["shared_data_dir"] = argv[++ee];
         else if (ags_stricmp(arg, "--windowed") == 0)
-            force_window = 1;
+            cfg["graphics"]["windowed"] = "1";
         else if (ags_stricmp(arg, "--fullscreen") == 0)
-            force_window = 2;
+            cfg["graphics"]["windowed"] = "0";
         else if ((ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
         {
             INIwritestring(cfg, "graphics", "driver", argv[++ee]);

@@ -25,7 +25,7 @@
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -78,7 +78,8 @@
       <HintPath>..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\lib\net40\Magick.NET-Q8-x86.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\Solutions\packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\Solutions\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -144,6 +145,12 @@
     </Compile>
     <Compile Include="GUI\CustomPropertySchemaItemEditor.Designer.cs">
       <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ImportTTFDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ImportTTFDialog.Designer.cs">
+      <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\NumberEntryWithInfoDialog.cs">
       <SubType>Form</SubType>
@@ -341,6 +348,9 @@
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
+      <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\NumberEntryWithInfoDialog.resx">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>

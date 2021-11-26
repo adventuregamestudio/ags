@@ -1,6 +1,7 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace AGS.Editor
@@ -52,11 +53,13 @@ namespace AGS.Editor
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
                 character.RealName = processor.ProcessText(character.RealName, GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, character.Properties, errors);
             }
 
             foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
                 item.Description = processor.ProcessText(item.Description, GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, item.Properties, errors);
             }
 
 			for (int i = 0; i < game.GlobalMessages.Length; i++)
@@ -65,6 +68,19 @@ namespace AGS.Editor
 			}
 
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
+        }
+
+        public static void ProcessProperties(IGameTextProcessor processor, CustomPropertySchema schema,
+            CustomProperties props, CompileMessages errors)
+        {
+            foreach (var def in schema.PropertyDefinitions.Where(n => n.Type == CustomPropertyType.Text))
+            {
+                CustomProperty prop;
+                if (props.PropertyValues.TryGetValue(def.Name, out prop))
+                {
+                    prop.Value = processor.ProcessText(prop.Value, GameTextType.ItemDescription);
+                }
+            }
         }
     }
 }

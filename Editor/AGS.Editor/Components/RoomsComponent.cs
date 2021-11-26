@@ -1452,14 +1452,18 @@ namespace AGS.Editor.Components
                     message.Text = processor.ProcessText(message.Text, GameTextType.Message, charId);
                 }
 
+                TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, room.Properties, errors);
+
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
                     hotspot.Description = processor.ProcessText(hotspot.Description, GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
                     obj.Description = processor.ProcessText(obj.Description, GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, errors);
                 }
 
                 if (processor.MakesChanges)

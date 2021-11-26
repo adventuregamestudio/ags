@@ -14,6 +14,7 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -114,15 +115,18 @@ SDL_Window *sys_get_window() {
     return window;
 }
 
-void sys_window_set_style(WindowMode mode, int /*ex_flags*/) {
+void sys_window_set_style(WindowMode mode, int ex_flags) {
     if (!window) return;
     Uint32 flags = 0;
     switch (mode)
     {
-    case kWnd_Fullscreen: flags = SDL_WINDOW_FULLSCREEN; break;
-    case kWnd_FullDesktop: flags = SDL_WINDOW_FULLSCREEN_DESKTOP; break;
+    case kWnd_Windowed: flags |= SDL_WINDOW_RESIZABLE; break;
+    case kWnd_Fullscreen: flags |= SDL_WINDOW_FULLSCREEN; break;
+    case kWnd_FullDesktop: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
     }
+    flags |= ex_flags;
     SDL_SetWindowFullscreen(window, flags);
+    SDL_SetWindowResizable(window, (flags & SDL_WINDOW_RESIZABLE) ? SDL_TRUE : SDL_FALSE);
 }
 
 void sys_window_show_cursor(bool on) {
@@ -155,10 +159,10 @@ void sys_window_set_title(const char *title) {
 
 void sys_window_set_icon() {
     if (window) {
-        // TODO: actually support getting icon from resources and converting into SDL_Surface.
-        //  - on Linux we had platform/linux/icon.xpm
-        //  - on Windows we had standard embedded resource under ID = 101
-        SDL_SetWindowIcon(window, nullptr);
+        SDL_Surface *icon = platform->CreateWindowIcon();
+        if (!icon) return; // no icon
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon);
     }
 }
 

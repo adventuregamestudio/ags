@@ -44,6 +44,7 @@
 #include "util/stdio_compat.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
+#include "resource/resource.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -93,6 +94,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer() override;
   virtual void UnRegisterGameWithGameExplorer() override;
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const override;
+  virtual SDL_Surface *CreateWindowIcon();
 
   // Returns command line argument in a UTF-8 format
   String GetCommandArg(size_t arg_index) override;
@@ -775,6 +777,14 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     y = Math::Min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
     x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
+}
+
+SDL_Surface *AGSWin32::CreateWindowIcon()
+{
+    // Don't mess with SDL surface, and set an icon simply using WinAPI
+    SetClassLongW((HWND)sys_win_get_window(), GCLP_HICON,
+        (LONG)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
+    return nullptr;
 }
 
 String AGSWin32::GetCommandArg(size_t arg_index)

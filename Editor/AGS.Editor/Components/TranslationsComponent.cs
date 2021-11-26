@@ -116,15 +116,8 @@ namespace AGS.Editor.Components
         {
             translation.LoadData();
 
-            if (translation.TranslatedLines.Count < 1)
-            {
-                errors.Add(new CompileError("Translation " + translation.FileName + " appears to be empty. You must update the source before compiling.", translation.FileName, 1));
-                return;
-            }
-
             string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
-            bool foundTranslatedLine = false;
             Encoding textEncoding = translation.Encoding;
 
             using (BinaryWriter bw = new BinaryWriter(new FileStream(compiledFile, FileMode.Create, FileAccess.Write)))
@@ -138,12 +131,11 @@ namespace AGS.Editor.Components
                 bw.Write(gameName);
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
-                bw.Write((int)0);
+                bw.Write((int)0); // placeholder for block size, will be filled later
                 foreach (string line in translation.TranslatedLines.Keys)
                 {
                     if (translation.TranslatedLines[line].Length > 0)
                     {
-                        foundTranslatedLine = true;
                         WriteString(bw, Regex.Unescape(line), textEncoding);
                         WriteString(bw, Regex.Unescape(translation.TranslatedLines[line]), textEncoding);
                     }
@@ -177,12 +169,6 @@ namespace AGS.Editor.Components
                 bw.Seek((int)offsetOfBlockSize, SeekOrigin.Begin);
                 bw.Write((int)mainBlockSize);
                 bw.Close();
-            }
-
-            if (!foundTranslatedLine)
-            {
-                errors.Add(new CompileError("Translation " + translation.FileName + " did not appear to have any translated lines. Make sure you translate some text before compiling the translation.", translation.FileName, 1));
-                File.Delete(compiledFile);
             }
         }
 

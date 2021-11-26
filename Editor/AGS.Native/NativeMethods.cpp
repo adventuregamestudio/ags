@@ -9,12 +9,15 @@ see the license.txt for details.
 */
 #include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
+#define BITMAP WINDOWS_BITMAP
 #include <windows.h>
+#undef BITMAP;
 #include <stdlib.h>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
 #include "ac/game_version.h"
 #include "font/fonts.h"
+#include "font/ttffontrenderer.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
@@ -255,6 +258,17 @@ namespace AGS
       {
         throw gcnew AGSEditorException(String::Format("Unable to load font {0}. No supported font renderer was able to load the font.", fontSlot));
       }
+    }
+
+    int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)
+    {
+        AGSString filename = ConvertStringToNativeString(fileName);
+        FontMetrics metrics;
+        if (!TTFFontRenderer::MeasureFontOfPixelHeight(filename, pixelHeight, &metrics))
+        {
+            throw gcnew AGSEditorException(String::Format("Unable to load font {0}. Not a TTF font, or there an error occured while loading it.", fileName));
+        }
+        return metrics.Height;
     }
 
     void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)

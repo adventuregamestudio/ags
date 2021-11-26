@@ -1410,7 +1410,7 @@ TEST_F(Bytecode1, Attributes10) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 
     // WriteOutput("Attributes10", scrip);
-    size_t const codesize = 137;
+    size_t const codesize = 139;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -1426,12 +1426,12 @@ TEST_F(Bytecode1, Attributes10) {
       45,    2,   39,    1,            6,    3,   22,   33,    // 79
        3,   35,    1,   30,            6,   51,    0,   47,    // 87
        3,    1,    1,    4,            6,    3,    0,    6,    // 95
-       2,    0,   48,    2,           52,   29,    6,   34,    // 103
-       3,   29,    2,    6,            3,    9,   30,    2,    // 111
-      34,    3,   45,    2,           39,    2,    6,    3,    // 119
-      23,   33,    3,   35,            2,   30,    6,   51,    // 127
-       4,   49,    2,    1,            8,    6,    3,    0,    // 135
-       5,  -999
+       2,    0,   48,    2,           52,   64,    3,   29,    // 103
+       6,   34,    3,   29,            2,    6,    3,    9,    // 111
+      30,    2,   34,    3,           45,    2,   39,    2,    // 119
+       6,    3,   23,   33,            3,   35,    2,   30,    // 127
+       6,   51,    4,   49,            2,    1,    8,    6,    // 135
+       3,    0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -1440,7 +1440,7 @@ TEST_F(Bytecode1, Attributes10) {
 
     int32_t fixups[] = {
        4,   16,   34,   48,         57,   78,   94,   97,    // 7
-     120,  -999
+     122,  -999
     };
     char fixuptypes[] = {
       1,   4,   1,   4,      1,   4,   3,   1,    // 7

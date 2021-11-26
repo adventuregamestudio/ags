@@ -62,15 +62,15 @@ public:
 
 enum class TQ : size_t // Type qualifier
 {
-    kAttribute = 0,
-    kAutoptr,
+    kAutoptr = 0,
     kBuiltin,
     kImport,
+    kInternalstring,
     kManaged,
+
     kProtected,
     kReadonly,
     kStatic,
-    kStringstruct,
     kWriteprotected,
 };
 typedef TQ TypeQualifier;
@@ -98,6 +98,9 @@ public:
     inline auto end() const { return TQToSymbolMap().end(); }
 
     inline bool empty() { return _flags == std::bitset<16u>{}; }
+
+    TypeQualifierSet WithoutTypedefQualifiers();
+    TypeQualifierSet WithouttVarFuncDefQualifiers();
 };
 
 // Note: Don't convert to enum class: Only the _start_ of the symbol table vector
@@ -231,11 +234,15 @@ struct SymbolTableEntry : public SymbolTableConstant
     size_t Scope = 0u;   
     bool Accessed = false;  // will be set to 'true' on first access
 
-    // For const values; those must point to another symbol that is a literal
-    struct ConstantDesc
+    // For attributes
+    struct AttributeDesc
     {
-        Symbol ValueSym = kKW_NoSymbol;
-    } *ConstantD = nullptr;
+        Symbol Getter = kKW_NoSymbol;
+        Symbol Setter = kKW_NoSymbol;
+        bool IsIndexed = false;
+        bool IsStatic = false;
+        AGS::Vartype Vartype = kKW_NoSymbol;
+    } *AttributeD = nullptr;
 
     // For components, e.g. of struct
     // This is the record of the _qualified_ struct component.
@@ -246,8 +253,13 @@ struct SymbolTableEntry : public SymbolTableConstant
         Symbol Component = kKW_NoSymbol; // the naked symbol name (for a::b, it is b)
         Vartype Parent = kKW_NoSymbol; // The vartype of the component (for a::b, it is a)
         size_t Offset = 0u; // offset from the start of the struct of where the component is allocated
-        bool IsFunction = false;
     } *ComponentD = nullptr;
+
+    // For const values; those must point to another symbol that is a literal
+    struct ConstantDesc
+    {
+        Symbol ValueSym = kKW_NoSymbol;
+    } *ConstantD = nullptr;
 
     // For Delimeters
     struct DelimeterDesc
@@ -388,6 +400,8 @@ public:
     bool IsIdentifier(Symbol s) const;
 
     // A constant that stands for a literal value. Don't confuse with ConstVartype
+    inline bool IsAttribute(Symbol s) const { return nullptr != entries.at(s).AttributeD; }
+    inline void MakeEntryAttribute(Symbol s) { if (!entries.at(s).AttributeD) entries.at(s).AttributeD = new SymbolTableEntry::AttributeDesc; }
     inline bool IsConstant(Symbol s) const { return nullptr != entries.at(s).ConstantD; }
     inline void MakeEntryConstant(Symbol s) { if (!entries.at(s).ConstantD) entries.at(s).ConstantD = new SymbolTableEntry::ConstantDesc; }
     inline bool IsDelimeter(Symbol s) const { return nullptr != entries.at(s).DelimeterD; }
@@ -474,8 +488,6 @@ public:
     // The vartype of the variable, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol s) const
         { return IsVariable(s) ? entries.at(s).VariableD->Vartype : kKW_NoSymbol; }
-    inline bool IsAttribute(Symbol s) const
-        { return IsVariable(s) && entries.at(s).VariableD->TypeQualifiers[TQ::kAttribute]; }
     ScopeType GetScopeType(Symbol s) const;
 
     // Operators

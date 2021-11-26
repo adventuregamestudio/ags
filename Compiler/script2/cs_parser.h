@@ -712,9 +712,8 @@ private:
     // Get the symbol for the get or set function corresponding to the attribute given.
     void ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed, Symbol &func);
 
-    // Call the getter or setter of an attribute
-    // The next symbol read is the attribute (the part after the '.')
-    void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype &vartype);
+    // We call the getter or setter of an attribute
+    void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype vartype);
 
     // Memory location contains a pointer to another address. Get that address.
     void AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
@@ -845,8 +844,6 @@ private:
 
     void ParseQualifiers(TypeQualifierSet &tqs);
 
-    void ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
-
     void ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
@@ -857,18 +854,22 @@ private:
     // This corresponds to a getter func and a setter func, declare one of them
     void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
+    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet const tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
+
     // We're in a struct declaration. Parse an attribute declaration.
-    void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Vartype vartype, Symbol vname, bool is_indexed, size_t declaration_start);
+    void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
 
-    // We're inside a struct decl, processing a member variable or attribute
-    void ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
-
+    // We're inside a struct decl, processing a member variable
+    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
+    
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(Symbol name_of_struct);
 
     // We have accepted something like 'struct foo extends bar { const int'.
     // We're waiting for the name of the member.
     void ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
+
+    void ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
 
     // We've accepted, e.g., 'struct foo {'. Now we're parsing a variable declaration or a function declaration
     void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs);
@@ -917,9 +918,9 @@ private:
 
     void ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
-    void ParseVartype_Attribute(TypeQualifierSet tqs, Vartype vartype, Symbol attribute, ScopeType scope_type);
+    void ParseAttribute(TypeQualifierSet tqs, Symbol name_of_current_func);
 
-    void ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
+    void ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
     void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 

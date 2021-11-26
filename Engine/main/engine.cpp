@@ -897,7 +897,7 @@ void engine_init_game_settings()
         play.globalstrings[ee][0] = 0;
 
     if (!usetup.translation.IsEmpty())
-        init_translation (usetup.translation, "", true);
+        Game_ChangeTranslation(usetup.translation.GetCStr());
 
     update_invorder();
     displayed_room = -10;

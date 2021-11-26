@@ -67,8 +67,8 @@ void close_translation () {
     set_uformat(U_ASCII);
 }
 
-bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
-
+bool init_translation(const String &lang, const String &fallback_lang)
+{
     if (lang.IsEmpty())
         return false;
     trans_name = lang;
@@ -95,24 +95,16 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
     // Process errors
     if (!err)
     {
-        String err_msg = String::FromFormat("Failed to read translation file: %s:\n%s",
+        close_translation();
+        Debug::Printf(kDbgMsg_Error, "Failed to read translation file: %s:\n%s",
             trans_filename.GetCStr(),
             err->FullMessage().GetCStr());
-        close_translation();
-        if (quit_on_error)
+        if (!fallback_lang.IsEmpty())
         {
-            quitprintf("!%s", err_msg.GetCStr());
+            Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());
+            init_translation(fallback_lang, "");
         }
-        else
-        {
-            Debug::Printf(kDbgMsg_Error, err_msg);
-            if (!fallback_lang.IsEmpty())
-            {
-                Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());
-                init_translation(fallback_lang, "", false);
-            }
-            return false;
-        }
+        return false;
     }
 
     // Translation read successfully

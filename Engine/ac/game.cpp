@@ -830,19 +830,18 @@ const char* Game_GetTranslationFilename() {
 int Game_ChangeTranslation(const char *newFilename)
 {
     if ((newFilename == nullptr) || (newFilename[0] == 0))
-    {
+    { // switch back to default translation
         close_translation();
         usetup.translation = "";
         return 1;
     }
 
     String oldTransFileName = get_translation_name();
-    if (init_translation(newFilename, oldTransFileName, false))
-    {
-        usetup.translation = newFilename;
-        return 1;
-    }
-    return 0;
+    if (!init_translation(newFilename, oldTransFileName))
+        return 0; // failed, kept previous translation
+
+    usetup.translation = newFilename;
+    return 1;
 }
 
 ScriptAudioClip *Game_GetAudioClip(int index)

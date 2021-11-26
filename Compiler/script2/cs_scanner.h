@@ -36,6 +36,22 @@ public:
     static size_t const kNewSectionLitPrefixSize;
 
 private:
+    // Thrown whenever a scanning run is aborted
+    // Don't throw directly, call 'UserError()' or 'InternalError()' instead
+    class ScanningError : public std::exception
+    {
+        std::string _msg;
+        const char *what(void) const noexcept { return _msg.c_str(); }
+
+    public:
+        ScanningError()
+            : _msg("Compiling error")
+        {}
+        ScanningError(std::string const &msg)
+            : _msg(msg)
+        {}
+    };
+
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
     class OpenCloseMatcher
     {
@@ -56,10 +72,10 @@ private:
 
         // We've encountered a closing symbol; check whether this matches the corresponding opening symbol
         // If they don't match, generate error. Otherwise, pop from stack
-        ErrorType PopAndCheck(Symbol closer, size_t closer_pos);
+        void PopAndCheck(Symbol closer, size_t closer_pos);
 
         // At end of input, check whether any unclosed openers remain.
-        ErrorType EndOfInputCheck();
+        void EndOfInputCheck();
     } _ocMatcher;
     friend OpenCloseMatcher;
 
@@ -71,7 +87,7 @@ private:
     std::size_t _lineno;
     std::string _section;
     SrcList &_tokenList;
-    MessageHandler &_messageHandler;
+    MessageHandler &_msgHandler;
     SymbolTable &_sym;
     ccCompiledScript &_stringCollector;
 
@@ -83,7 +99,7 @@ private:
     inline int Peek() { int ret = _inputStream.peek(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
 
     // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
-    ErrorType SkipWhitespace();
+    void SkipWhitespace();
 
     // We encountered a new line; process it
     void NewLine(size_t lineno);
@@ -93,12 +109,10 @@ private:
 
     // Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
-    ErrorType ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value);
+    void ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value);
 
     // Translate a '\\' combination into a character, backslash is already read in
-    ErrorType EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted);
-
-    static std::string MakeStringPrintable(std::string const &inp);
+    void EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted);
 
     // Read oct combination \777; backslash is already read in
     int OctDigits2Char(int first_digit_char, std::string &symstring);
@@ -107,36 +121,46 @@ private:
     int HexDigits2Char(std::string &symstring);
 
     // Read in a character literal
-    ErrorType ReadInCharLit(std::string &symstring, CodeCell &value);
+    void ReadInCharLit(std::string &symstring, CodeCell &value);
 
     // Read in a string literal. valstring is the interpreted literal (no quotes, '\\' combinations resolved)
-    ErrorType ReadInStringLit(std::string &symstring, std::string &valstring);
+    void ReadInStringLit(std::string &symstring, std::string &valstring);
 
     // Read in an identifier or a keyword 
-    ErrorType ReadInIdentifier(std::string &symstring);
+    void ReadInIdentifier(std::string &symstring);
 
     // Read in a single-char symstring
-    ErrorType ReadIn1Char(std::string & symstring);
+    void ReadIn1Char(std::string & symstring);
 
     // Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
     // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
     // Otherwise, a one-char symstring is detected and the second char is left for the next call
-    ErrorType ReadIn1or2Char(std::string const &possible_second_chars, std::string &symstring);
+    void ReadIn1or2Char(std::string const &possible_second_chars, std::string &symstring);
 
     // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
-    ErrorType ReadInDotCombi(std::string &symstring, ScanType &scan_type);
+    void ReadInDotCombi(std::string &symstring, ScanType &scan_type);
 
     // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
-    ErrorType ReadInLTCombi(std::string &symstring);
+    void ReadInLTCombi(std::string &symstring);
 
     // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
-    ErrorType ReadInGTCombi(std::string &symstring);
+    void ReadInGTCombi(std::string &symstring);
 
-    ErrorType SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb);
+    // Get the next symstring from the input.
+    void GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value);
 
-    ErrorType CheckMatcherNesting(Symbol token);
+    void SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb);
 
-    void Error(char const *msg, ...);
+    void CheckMatcherNesting(Symbol token);
+
+    // Record error message, throw exception
+    void Error(bool is_internal, std::string const &message);
+
+    // Abort scanning with an error caused by wrong user input
+    void UserError(char const *desc ...);
+
+    // Abort scanning with an internal error
+    void InternalError(char const *desc  ...);
 
 protected:
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
@@ -151,7 +175,7 @@ public:
     Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
 
     // Scan the input into token_list; symbols into symt; strings into _string_collector
-    ErrorType Scan();
+    void Scan();
 
     // Returns whether we've encountered EOF.
     inline bool EOFReached() const { return _eofReached; };
@@ -162,11 +186,11 @@ public:
 
     inline std::string const GetSection() const { return _section; }
 
-    // Get the next symstring from the input. Only exposed for googletests
-    ErrorType GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value);
+    // Get the next symstring from the input. Only use for googletests
+    int GetNextSymstringT(std::string &symstring, ScanType &scan_type, CodeCell &value);
 
     // Get next token from the input. Only exposed for googletests
-    ErrorType GetNextSymbol(Symbol &symbol);
+    void GetNextSymbol(Symbol &symbol);
 };
 
 } // namespace AGS

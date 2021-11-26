@@ -65,7 +65,7 @@ namespace AGS
 
             auto compiler_messages = mh.GetMessages();
             for (auto msg = compiler_messages.begin(); msg != compiler_messages.end(); msg++)
-                if (msg->Severity >= mh.kSV_Error)
+                if (msg->Severity >= mh.kSV_UserError)
                     messages->Add(gcnew CompileError(
                         gcnew String (msg->Message.c_str()),
                         gcnew String (msg->Section.c_str()),

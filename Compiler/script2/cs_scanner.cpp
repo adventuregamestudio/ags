@@ -17,7 +17,7 @@ AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ccCompiledS
     : _ocMatcher(*this)
     , _lineno(1u)
     , _tokenList(token_list)
-    , _messageHandler(messageHandler)
+    , _msgHandler(messageHandler)
     , _sym(symt)
     , _stringCollector(string_collector)
 {
@@ -25,17 +25,33 @@ AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ccCompiledS
     _inputStream.str(input);
 }
 
-AGS::ErrorType AGS::Scanner::Scan()
+void AGS::Scanner::Scan()
 {
-    while (!EOFReached() && !Failed())
+    try
     {
-        Symbol symbol;
-        ErrorType retval = GetNextSymbol(symbol);
-        if (retval < 0) return retval;
-        if (kKW_NoSymbol != symbol)
-            _tokenList.Append(symbol);
+        while (!EOFReached() && !Failed())
+        {
+            Symbol symbol;
+            GetNextSymbol(symbol);
+            if (kKW_NoSymbol != symbol)
+                _tokenList.Append(symbol);
+        }
+        _ocMatcher.EndOfInputCheck();
     }
-    return _ocMatcher.EndOfInputCheck();
+    catch (ScanningError &)
+    {
+        // Message handler already has the error, can simply continue
+    }
+    catch (std::exception const &e)
+    {
+        std::string msg = "Exception encountered: ";
+        msg += e.what();
+        _msgHandler.AddMessage(
+            MessageHandler::kSV_InternalError,
+            _section,
+            _lineno,
+            msg);
+    }
 }
 
 void AGS::Scanner::NewLine(size_t lineno)
@@ -51,23 +67,19 @@ void AGS::Scanner::NewSection(std::string const &section)
     NewLine(0);
 }
 
-AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
+void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     symstring = "";
     scan_type = kSct_Unspecified;
     value = 0;
 
-    ErrorType retval = SkipWhitespace();
-    if (retval < 0) return kERR_UserError;
-    if (EOFReached()) return kERR_None;
+    SkipWhitespace();
+    if (EOFReached()) return;
 
     int const next_char = Peek();
-    if (EOFReached()) return kERR_None;
+    if (EOFReached()) return;
     if (Failed())
-    {
-        Error("Error reading a character (file corrupt?)");
-        return kERR_UserError;
-    }
+        UserError("Error reading a character (file corrupt?)");
 
     // Integer or float literal
     if (IsDigit(next_char))
@@ -106,8 +118,7 @@ AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &
     if ('"' == next_char)
     {
         std::string valstring;
-        retval = ReadInStringLit(symstring, valstring);
-        if (retval < 0) return retval;
+        ReadInStringLit(symstring, valstring);
         
         size_t const len = kNewSectionLitPrefix.length();
         if (kNewSectionLitPrefix == valstring.substr(0, len))
@@ -115,12 +126,12 @@ AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &
             symstring = valstring.substr(len);
             scan_type = kSct_SectionChange;
             value = 0;
-            return kERR_None;
+            return;
         }
 
         scan_type = kSct_StringLiteral;
         value = _stringCollector.AddString(valstring.c_str());
-        return kERR_None;
+        return;
     }
 
     // Non-char symstrings, such as "*="
@@ -158,11 +169,23 @@ AGS::ErrorType AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &
     }
 
     // Here when we don't know how to process the next char to be read
-    Error("The character '&c' is not legal in this context", next_char);
-    return kERR_UserError;
+    UserError("The character '%c' is not legal in this context", next_char);
 }
 
-AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
+int AGS::Scanner::GetNextSymstringT(std::string &symstring, ScanType &scan_type, CodeCell &value)
+{
+    try
+    {
+        GetNextSymstring(symstring, scan_type, value);
+    }
+    catch (...)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+void AGS::Scanner::GetNextSymbol(Symbol &symbol)
 {
     symbol = kKW_NoSymbol;
     std::string symstring;
@@ -171,8 +194,7 @@ AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
 
     while (true)
     {
-        ErrorType retval = GetNextSymstring(symstring, scan_type, value);
-        if (retval < 0) return retval;
+        GetNextSymstring(symstring, scan_type, value);
 
         if (symstring.empty())
         {
@@ -183,37 +205,31 @@ AGS::ErrorType AGS::Scanner::GetNextSymbol(Symbol &symbol)
         if (kSct_SectionChange != scan_type)
             break;
 
-        retval = _ocMatcher.EndOfInputCheck();
-        if (retval < 0) return retval;
+        _ocMatcher.EndOfInputCheck();
 
         NewSection(symstring);
     }
 
-    ErrorType retval = SymstringToSym(symstring, scan_type, value, symbol);
-    if (retval < 0) return retval;
-
-    return CheckMatcherNesting(symbol);
+    SymstringToSym(symstring, scan_type, value, symbol);
+    CheckMatcherNesting(symbol);
 }
 
-AGS::ErrorType AGS::Scanner::SkipWhitespace()
+void AGS::Scanner::SkipWhitespace()
 {
     if (_eofReached)
-        return kERR_None;
+        return;
     while (true)
     {
         int const ch = Get();
         if (EOFReached())
-            return kERR_None;
+            return;
         if (Failed())
-        {
-            Error("Error whilst skipping whitespace (file corrupt?)");
-            return kERR_UserError;
-        }
+            UserError("Error whilst skipping whitespace (file corrupt?)");
 
         if (!IsSpace(ch))
         {
             UnGet();
-            return kERR_None;
+            return;
         }
 
         // Gobble the CR of a CRLF combination
@@ -225,7 +241,7 @@ AGS::ErrorType AGS::Scanner::SkipWhitespace()
     }
 }
 
-AGS::ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
+void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     static std::string const exponent_leadin = "EePp";
     static std::string const exponent_follow = "0123456789-+";
@@ -243,10 +259,8 @@ AGS::ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &s
     {
         int const ch = Get();
         if (!EOFReached() && Failed())
-        {
-            Error("Error whilst reading a number literal (file corrupt?)");
-            return kERR_UserError;
-        }
+            UserError("Error whilst reading a number literal (file corrupt?)");
+
         symstring.push_back(ch);
         if ('\'' == ch)
         {
@@ -287,10 +301,7 @@ AGS::ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &s
 
     int const peek = Peek();
     if ('8' == peek || '9' == peek)
-    {
-        Error("Encountered the illegal digit '%c' in the octal number literal starting with '%s'", peek, symstring.c_str());
-        return kERR_UserError;
-    }
+        UserError("Encountered the illegal digit '%c' in the octal number literal starting with '%s'", peek, symstring.c_str());
 
     if ('f' == peek || 'F' == peek)
         symstring.push_back(Get());
@@ -301,42 +312,35 @@ AGS::ErrorType AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &s
     if (can_be_long && peek != 'f' && peek != 'F')
     {
         if (ERANGE == errno)
-        {
-            Error(
+            UserError(
                 "Literal integer '%s' is out of bounds (maximum is '%s')",
                 valstring.c_str(),
                 std::to_string(std::numeric_limits<CodeCell>::max()).c_str());
-            return kERR_UserError;
-        }
+
         scan_type = kSct_IntLiteral;
         value = long_value;
-        return kERR_None;
+        return;
     }
 
     errno = 0;
     double double_value = std::strtod(valstring.c_str(), &endptr);
     bool can_be_double = (valstring.length() == endptr - valstring.c_str());
     if (!can_be_double)
-    {
-        Error("Expected a number literal, found '%s' instead", symstring.c_str());
-        return kERR_UserError;
-    }
+        UserError("Expected a number literal, found '%s' instead", symstring.c_str());
 
     if (std::numeric_limits<float>::max() < double_value || ERANGE == errno)
-    {
-        Error(
+        UserError(
             "Literal float '%s' is out of bounds (maximum is '%.3G')",
             valstring.c_str(),
             static_cast<double>(std::numeric_limits<float>::max()));
-        return kERR_UserError;
-    }
+
     scan_type = kSct_FloatLiteral;
     float float_value = static_cast<float>(double_value);
     value = *reinterpret_cast<CodeCell *>(&float_value);
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
+void AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
 {
     symstring = "";
 
@@ -349,10 +353,7 @@ AGS::ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &val
         int lit_char = Get();
         symstring.push_back(lit_char);
         if (EOFReached())
-        {
-            Error("Expected a character after the quote mark but input ended instead");
-            return kERR_UserError;
-        }
+            UserError("Expected a character after the quote mark but input ended instead");
         if (Failed())
             break; // to error processing
 
@@ -362,48 +363,33 @@ AGS::ErrorType AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &val
             lit_char = Get();
             symstring.push_back(lit_char);
             if (EOFReached())
-            {
-                Error("Expected a character after the backslash but input ended instead");
-                return kERR_UserError;
-            }
+                UserError("Expected a character after the backslash but input ended instead");
             if (Failed())
                 break; // to error processing
 
             if ('[' == lit_char)
-            {
                 // "\\[" is equivalent to two characters, so can't be used as a single character
-                Error("'\\[' is not allowed in single quotes, use '[' instead");
-                return kERR_UserError;
-            }
+                UserError("'\\[' is not allowed in single quotes, use '[' instead");
 
-            ErrorType retval = EscapedChar2Char(lit_char, symstring, lit_char);
-            if (retval < 0) return retval;
+            EscapedChar2Char(lit_char, symstring, lit_char);
         }
 
         // Closing '\''
         int const closer = Get();
         symstring.push_back(closer);
         if (EOFReached())
-        {
-            Error("Expected a quote mark but input ended instead");
-            return kERR_UserError;
-        }
+            UserError("Expected a quote mark but input ended instead");
         if (Failed())
             break; // to error processing
 
         if ('\'' != closer)
-        {
-            Error("Expected a quote mark but found '%c' instead", closer);
-            return kERR_UserError;
-        }
+            UserError("Expected a quote mark but found '%c' instead", closer);
         value = lit_char;
-        return kERR_None;
+        return;
     }
     while (false);
 
-    // Here when we got a read error
-    Error("Read error while scanning a char literal (file corrupt?)");
-    return kERR_UserError;
+    UserError("Read error while scanning a char literal (file corrupt?)");
 }
 
 int AGS::Scanner::OctDigits2Char(int first_digit_char, std::string &symstring)
@@ -443,12 +429,12 @@ int AGS::Scanner::HexDigits2Char(std::string &symstring)
     return ret - 256 * (ret > 127); // convert unsigned to signed
 }
 
-AGS::ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted)
+void AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted)
 {
     if ('0' <= first_char_after_backslash && first_char_after_backslash < '8')
     {
         converted = OctDigits2Char(first_char_after_backslash, symstring);
-        return kERR_None;
+        return;
     }
     if ('x' == first_char_after_backslash)
     {
@@ -456,12 +442,10 @@ AGS::ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, st
         if (!(('0' <= hexdigit && hexdigit <= '9') ||
             ('A' <= hexdigit && hexdigit <= 'F') ||
             ('a' <= hexdigit && hexdigit <= 'f')))
-        {
-            Error("Expected a hex digit to follow '\\x' in a string or char literal, found '%c' instead", hexdigit);
-            return kERR_UserError;
-        }
+            UserError("Expected a hex digit to follow '\\x' in a string or char literal, found '%c' instead", hexdigit);
+
         converted = HexDigits2Char(symstring);
-        return kERR_None;
+        return;
     }
 
     switch (first_char_after_backslash)
@@ -474,39 +458,21 @@ AGS::ErrorType AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, st
     case '?': 
     case '\\':
         converted = first_char_after_backslash;
-        return kERR_None;
+        return;
 
-    case 'a': converted = '\a'; return kERR_None;
-    case 'b': converted = '\b'; return kERR_None;
-    case 'e': converted = 27;   return kERR_None; // escape char
-    case 'f': converted = '\f'; return kERR_None;
-    case 'n': converted = '\n'; return kERR_None;
-    case 'r': converted = '\r'; return kERR_None;
-    case 't': converted = '\t'; return kERR_None;
-    case 'v': converted = '\v'; return kERR_None;
+    case 'a': converted = '\a'; return;
+    case 'b': converted = '\b'; return;
+    case 'e': converted = 27;   return; // escape char
+    case 'f': converted = '\f'; return;
+    case 'n': converted = '\n'; return;
+    case 'r': converted = '\r'; return;
+    case 't': converted = '\t'; return;
+    case 'v': converted = '\v'; return;
     }
-    Error("Unrecognized '\\%c' in character or string literal", first_char_after_backslash);
-    return kERR_UserError;
+    UserError("Unrecognized '\\%c' in character or string literal", first_char_after_backslash);
 }
 
-std::string AGS::Scanner::MakeStringPrintable(std::string const &inp)
-{
-    std::ostringstream out;
-    out.put('"');
-
-    for (auto it = inp.begin(); it != inp.end(); ++it)
-    {
-        if (*it >= 32 && *it <= 127)
-            out.put(*it);
-        else // force re-interpretation of *it as an UNSIGNED char, then treat it as int       
-            out << "\\x" << std::hex << std::setw(2) << std::setfill('0') << +*reinterpret_cast<const unsigned char *>(&*it);
-    }
-
-    out.put('"');
-    return out.str();
-}
-
-AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)
+void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)
 {
     symstring = "\"";
     valstring = "";
@@ -533,8 +499,7 @@ AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string
             else
             {
                 int converted;
-                ErrorType retval = EscapedChar2Char(ch, symstring, converted);
-                if (retval < 0) return retval;
+                EscapedChar2Char(ch, symstring, converted);
                 valstring.push_back(converted);
             }
             continue;
@@ -550,16 +515,14 @@ AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string
             std::streampos pos_before_skip = _inputStream.tellg();
             size_t lineno_before_skip = _lineno;
 
-            ErrorType retval = SkipWhitespace();
-            if (retval < 0) return retval;
-
+            SkipWhitespace();
 
             if ('"' != Peek() ||
                 kNewSectionLitPrefix == valstring.substr(0, kNewSectionLitPrefix.length()))
             {
                 _inputStream.seekg(pos_before_skip);
                 _lineno = lineno_before_skip;
-                return kERR_None;
+                return;
             }
 
             // Another string literal follows
@@ -576,7 +539,7 @@ AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string
             _lineno = lineno_before_skip;
 
             if (kNewSectionLitPrefix == tbuffer)
-                return kERR_None; // do not concatenate this new section marker
+                return; // do not concatenate this new section marker
 
             // Concatenate
             symstring.pop_back(); // Delete quote
@@ -589,27 +552,23 @@ AGS::ErrorType AGS::Scanner::ReadInStringLit(std::string &symstring, std::string
 
     // Here when an error or eof occurs.
     if (EOFReached())
-        Error("Input ended within a string literal (did you forget a '\"\'?)");
+        UserError("Input ended within a string literal (did you forget a '\"\'?)");
     else if (Failed())
-        Error("Read error while scanning a string literal (file corrupt?)");
+        UserError("Read error while scanning a string literal (file corrupt?)");
     else  
-        Error("Line ended within a string literal, this isn't allowed (use '[' for newline)");
-    return kERR_UserError;
+        UserError("Line ended within a string literal, this isn't allowed (use '[' for newline)");
 }
 
-AGS::ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
+void AGS::Scanner::ReadInIdentifier(std::string &symstring)
 {
     symstring.assign(1, Get());
 
     while (true)
     {
         int ch = Get();
-        if (EOFReached()) return kERR_None;
+        if (EOFReached()) return;
         if (Failed())
-        {
-            Error("Read error while scanning an identifier (file corrupt?)");
-            return kERR_UserError;
-        }
+            UserError("Read error while scanning an identifier (file corrupt?)");
 
         if (IsAlpha(ch) || IsDigit(ch) || '_' == ch)
         {
@@ -618,119 +577,101 @@ AGS::ErrorType AGS::Scanner::ReadInIdentifier(std::string &symstring)
         }
         // That last char doesn't belong to the literal, so put it back.
         UnGet();
-        return kERR_None;
+        return;
     }
 }
 
-AGS::ErrorType AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring)
+void AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string &symstring)
 {
     symstring.assign(1, Get());
     int const second_char = Peek();
-    if (EOFReached()) return kERR_None;
+    if (EOFReached()) return;
     if (Failed())
-    {
-        Error("Read error (file corrupt?)");
-        return kERR_UserError;
-    }
+        UserError("Read error (file corrupt?)");
 
     if (std::string::npos != possible_second_chars.find(second_char))
     {
         Get(); // Gobble the character that was peek()ed
         symstring.push_back(second_char);
     }
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::ReadIn1Char(std::string &symstring)
+void AGS::Scanner::ReadIn1Char(std::string &symstring)
 {
     symstring.assign(1, Get());
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type)
+void AGS::Scanner::ReadInDotCombi(std::string &symstring, ScanType &scan_type)
 {
     symstring.assign(1, Get());
     int const second_char = Peek();
-    if (EOFReached()) return kERR_None;
+    if (EOFReached()) return;
     if (Failed())
-    {
-        Error("Read error (file corrupt?)");
-        return kERR_UserError;
-    }
+        UserError("Read error (file corrupt?)");
     if ('.' != second_char)
-        return kERR_None;
+        return;
 
     symstring.push_back(Get());
 
     if ('.' != Get())
-    {
-        Error("Must either use '.' or '...'");
-        return kERR_UserError;
-    }
+        UserError("Must either use '.' or '...'");
 
     symstring.push_back('.');
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::ReadInLTCombi(std::string &symstring)
+void AGS::Scanner::ReadInLTCombi(std::string &symstring)
 {
-    ErrorType retval = ReadIn1or2Char("<=", symstring);
-    if (retval < 0) return retval;
-    if (EOFReached()) return kERR_None;
+    ReadIn1or2Char("<=", symstring);
+    if (EOFReached()) return;
 
     if (("<<" == symstring) && ('=' == Peek()))
         symstring.push_back(Get());
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::ReadInGTCombi(std::string &symstring)
+void AGS::Scanner::ReadInGTCombi(std::string &symstring)
 {
-    ErrorType retval = ReadIn1or2Char(">=", symstring);
-    if (retval < 0) return retval;
-    if (EOFReached()) return kERR_None;
+    ReadIn1or2Char(">=", symstring);
+    if (EOFReached()) return;
 
     if ((symstring == ">>") && (Peek() == '='))
         symstring.push_back(Get());
-    return kERR_None;
+    return;
 }
 
-AGS::ErrorType AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
+void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
 {
     static Symbol const const_string_vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
 
     symb = _sym.FindOrAdd(symstring);
     if (symb < 0)
-    {
-        Error("!Could not add new symbol to symbol table");
-        return kERR_InternalError;
-    }
+        InternalError("Could not add new symbol to symbol table");
 
     switch (scan_type)
     {
     default:
-        return kERR_None;
+        return;
 
     case Scanner::kSct_StringLiteral:
         _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
         _sym[symb].LiteralD->Vartype = const_string_vartype;
         _sym[symb].LiteralD->Value = value;
-        return kERR_None;
+        return;
 
     case Scanner::kSct_IntLiteral:
-    {
         _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
         _sym[symb].LiteralD->Vartype = kKW_Int;
         _sym[symb].LiteralD->Value = value;
-        return kERR_None;
-    }
+        return;
 
     case Scanner::kSct_FloatLiteral:
-    {
         _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
         _sym[symb].LiteralD->Vartype = kKW_Float;
         _sym[symb].LiteralD->Value = value;
-        return kERR_None;
-    }
+        return;
     }
     // Can't reach.
 }
@@ -745,18 +686,15 @@ void AGS::Scanner::OpenCloseMatcher::Push(Symbol opener, size_t opener_pos)
     _openInfoStack.push_back(OpenInfo{ opener, opener_pos });
 }
 
-AGS::ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t closer_pos)
+void AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t closer_pos)
 {
     if (_openInfoStack.empty())
-    {
-        _scanner.Error("There isn't any opening symbol that matches the closing '%s'", _scanner._sym.GetName(closer).c_str());
-        return kERR_UserError;
-    }
+        _scanner.UserError("There isn't any opening symbol that matches the closing '%s'", _scanner._sym.GetName(closer).c_str());
 
     struct OpenInfo const oi = _openInfoStack.back();
     _openInfoStack.pop_back();
     if (closer == _scanner._sym[oi.Opener].DelimeterD->Partner)
-        return kERR_None;
+        return;
 
     size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
     std::string const &opener_section = _scanner._tokenList.SectionId2Section(opener_section_id);
@@ -778,14 +716,13 @@ AGS::ErrorType AGS::Scanner::OpenCloseMatcher::PopAndCheck(Symbol closer, size_t
         ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
     if (std::string::npos != error_msg.find("&section&"))
         ReplaceToken(error_msg, "&section&", opener_section);
-    _scanner.Error(error_msg.c_str());
-    return kERR_UserError;
+    _scanner.UserError(error_msg.c_str());
 }
 
-AGS::ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
+void AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
 {
     if (_openInfoStack.empty())
-        return kERR_None;
+        return;
 
     struct OpenInfo const oi = _openInfoStack.back();
     size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
@@ -807,17 +744,16 @@ AGS::ErrorType AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
         ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
     if (std::string::npos != error_msg.find("&section&"))
         ReplaceToken(error_msg, "&section&", opener_section);
-    _scanner.Error(error_msg.c_str());
-    return kERR_UserError;
+    _scanner.UserError(error_msg.c_str());
 }
 
 // Check the nesting of () [] {}, error if mismatch
-AGS::ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
+void AGS::Scanner::CheckMatcherNesting(Symbol token)
 {
     switch (token)
     {
     default:
-        return kERR_None;
+        return;
 
     case kKW_CloseBrace:
     case kKW_CloseBracket:
@@ -828,22 +764,50 @@ AGS::ErrorType AGS::Scanner::CheckMatcherNesting(Symbol token)
     case kKW_OpenBracket:
     case kKW_OpenParenthesis:
         _ocMatcher.Push(token, _tokenList.Length());
-        return kERR_None;
+        return;
     }
     // Can't reach
 }
 
-void AGS::Scanner::Error(char const *msg, ...)
+void AGS::Scanner::Error(bool is_internal, std::string const &message)
 {
+    _msgHandler.AddMessage(
+        is_internal ? MessageHandler::kSV_InternalError : MessageHandler::kSV_UserError,
+        _section,
+        _lineno,
+        is_internal ? "Internal error: " + message :  message);
+
+    // Set a breakpoint here to stop the scanner as soon as an error happens,
+    // before the call stack has unwound:
+    throw ScanningError(message);
+}
+
+void AGS::Scanner::UserError(char const *descr ...)
+{
+    // Convert the parameters into message
     va_list vlist1, vlist2;
-    va_start(vlist1, msg);
+    va_start(vlist1, descr);
     va_copy(vlist2, vlist1);
-    char *message = new char[vsnprintf(nullptr, 0, msg, vlist1) + 1];
-    vsprintf(message, msg, vlist2);
+    size_t const needed_len = vsnprintf(nullptr, 0u, descr, vlist1) + 1u;
+    std::vector<char> message(needed_len, '\0');
+    vsprintf(&message[0u], descr, vlist2);
     va_end(vlist2);
     va_end(vlist1);
 
-    _messageHandler.AddMessage(MessageHandler::kSV_Error, _section, _lineno, message);
+    Error(false, &message[0u]);
+}
 
-    delete[] message;
+void AGS::Scanner::InternalError(char const *descr ...)
+{
+    // Convert the parameters into message
+    va_list vlist1, vlist2;
+    va_start(vlist1, descr);
+    va_copy(vlist2, vlist1);
+    size_t const needed_len = vsnprintf(nullptr, 0u, descr, vlist1) + 1u;
+    std::vector<char> message(needed_len);
+    vsprintf(&message[0u], descr, vlist2);
+    va_end(vlist2);
+    va_end(vlist1);
+
+    Error(true, &message[0u]);
 }

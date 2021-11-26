@@ -9,4 +9,12 @@ AGS::MessageHandler::Entry::Entry(enum Severity sev, std::string const &section,
 {
 }
 
-AGS::MessageHandler::Entry AGS::MessageHandler::_noError = { AGS::MessageHandler::kSV_Error, "", 0u, "((no error))" };
+AGS::MessageHandler::Entry AGS::MessageHandler::_noError = { AGS::MessageHandler::kSV_UserError, "", 0u, "((no error))" };
+
+bool AGS::MessageHandler::HasError() const
+{
+    if (_entries.empty())
+        return false;
+    Severity const sev = _entries.back().Severity;
+    return kSV_UserError == sev || kSV_InternalError == sev;
+}

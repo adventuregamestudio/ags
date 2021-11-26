@@ -104,7 +104,7 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    EXPECT_STREQ("Type mismatch: Can't convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
+    EXPECT_STREQ("Type mismatch: Cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
 TEST_F(Compile0, StructMemberQualifierOrder) {    

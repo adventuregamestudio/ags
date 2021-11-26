@@ -12,30 +12,44 @@
 
 #include "cs_parser.h"
 
-// A  wrapper around cc_compile(), in order to squeeze the C++ style parameters 
-// through the limited means of Managed C++ (CLR) into the C# Editor.
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, long const options, MessageHandler &mh)
 {
     ccCompiledScript *compiled_script =
         new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
 
     compiled_script->StartNewSection(scriptName.empty() ? scriptName : "Unnamed script");
-    int const error_code = cc_compile(script, options, *compiled_script, mh);
-    if (error_code < 0)
+    cc_compile(script, options, *compiled_script, mh);
+    if (mh.HasError())
     {
         auto const &err = mh.GetError();
-        static char buffer[256];
-        ccCurScriptName = buffer;
+
+        constexpr size_t buffer_size = 256;
+        static char message_buffer[buffer_size];
+        message_buffer[0] = '!';
         strncpy_s(
-            buffer,
+            message_buffer + 1,
+            buffer_size - 1,
+            err.Message.c_str(),
+            err.Message.length() + 1);
+
+        static char section_buffer[buffer_size];
+        strncpy_s(
+            section_buffer,
+            buffer_size,
             err.Section.c_str(),
-            sizeof(buffer) / sizeof(char) - 1);
+            err.Section.length() + 1);
+
+        ccCurScriptName = section_buffer;
         currentline = err.Lineno;
-        cc_error(err.Message.c_str());
+        if (mh.kSV_InternalError == err.Severity)
+            cc_error(message_buffer + 1); // Don't have leading '!'
+        else
+            cc_error(message_buffer); // Have leading '!'
     
         delete compiled_script; // Note: delete calls the destructor
         return NULL;
     }
+
     ccCurScriptName = nullptr;
     ccError = 0;
     ccErrorLine = 0;

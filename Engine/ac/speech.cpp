@@ -25,8 +25,11 @@
 
 using namespace AGS::Common;
 
-
+// identifier (username) of the voice pak
+static String VoicePakName;
+// parent part to use when making voice asset names
 static String VoiceAssetPath;
+
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval)
 {
@@ -130,6 +133,7 @@ bool init_voicepak(const String &name)
     }
 
     // Save new resource locations and register asset libraries
+    VoicePakName = name;
     VoiceAssetPath = name.IsEmpty() ? "" : String::FromFormat("%s/", name.GetCStr());
     ResPaths.SpeechPak.Name = speech_file;
     ResPaths.SpeechPak.Path = speech_filepath;
@@ -137,6 +141,11 @@ bool init_voicepak(const String &name)
     AssetMgr->AddLibrary(ResPaths.VoiceDirSub, "voice");
     AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
     return play.voice_avail;
+}
+
+String get_voicepak_name()
+{
+    return VoicePakName;
 }
 
 String get_voice_assetpath()

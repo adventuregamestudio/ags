@@ -46,6 +46,8 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val);
 // Locates and initializes a voice pack of the given *name*, tells if successful;
 // pass empty string for default voice pack.
 bool init_voicepak(const AGS::Common::String &name = "");
+// Gets voice pack's ID name, that is a filename without "sp_" prefix and no extension.
+AGS::Common::String get_voicepak_name();
 // Gets an asset's parent path for voice-over clips and data files
 AGS::Common::String get_voice_assetpath();
 

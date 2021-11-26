@@ -6,7 +6,7 @@
   * Microsoft Visual Studio 2015 or higher - currently the only supported IDE for making Engine and Editor. The free Community edition is sufficient and is available for download at the Microsoft's site:
     * https://visualstudio.microsoft.com/downloads/
     * https://visualstudio.microsoft.com/vs/older-downloads/
-  * If you are using MSVS 2019 and higher you might need to manually download [Windows 8.1 SDK](https://go.microsoft.com/fwlink/p/?LinkId=323507) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
+  * If you are using MSVS 2019 and higher you might need to manually download [Windows 10 SDK (10.0.10240)](https://go.microsoft.com/fwlink/p/?LinkId=619296) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
 * Specifically for the Engine:
   * SDL 2.0.12 or higher (https://www.libsdl.org/download-2.0.php)
   * SDL_Sound 2.0.* (revision 997e90562b35 or higher) https://hg.icculus.org/icculus/SDL_sound/archive/997e90562b35.tar.gz

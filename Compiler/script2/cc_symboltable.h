@@ -65,7 +65,6 @@ enum class TQ : size_t // Type qualifier
     kAttribute = 0,
     kAutoptr,
     kBuiltin,
-    kConst,
     kImport,
     kManaged,
     kProtected,

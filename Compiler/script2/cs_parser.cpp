@@ -268,8 +268,9 @@ void AGS::Parser::SkipTo(SymbolList const &stoplist, SrcList &source)
 void AGS::Parser::SkipToClose(Predefined closer)
 {
     SkipTo(SymbolList{}, _src);
-    if (closer != _src.GetNext())    
-		InternalError("Unexpected closing symbol");
+    Symbol const punctuation = _src.GetNext();
+    if (closer != punctuation)    
+		InternalError("Unexpected closing symbol %s", _sym.GetName(punctuation).c_str());
 }
 
 void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg)
@@ -981,14 +982,31 @@ void AGS::Parser::HandleEndOfSwitch()
         _nest.JumpOutLevel() = overall_jumpout_level;
 }
 
-// Must return a symbol that is a literal.
-void AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const param_vartype, Symbol &default_value)
+Symbol AGS::Parser::ParseConstantExpression(SrcList &src, std::string const &msg)
 {
+    if (!src.Length())
+        InternalError("Empty expression");
+
+    Symbol const first_sym = src.PeekNext();
+
+    ValueLocation vloc;
+    ScopeType scope_type;
+    Vartype vartype;
+    ParseExpression(src, vloc, scope_type, vartype);
+    if (!vloc.IsCompileTimeLiteral())
+        UserError(
+        (msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
+            _sym.GetName(first_sym).c_str());
+    return vloc.symbol;
+}
+
+// Must return a symbol that is a literal.
+Symbol AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const param_vartype)
+{
+    Symbol default_value = kKW_NoSymbol;
+
     if (kKW_Assign != _src.PeekNext())
-    {
-        default_value = kKW_NoSymbol; // No default value given
-        return;
-    }
+        return kKW_NoSymbol; // No default value given
 
     // For giving specifics in error messages
     std::string msg = "In parameter #<idx>: ";
@@ -996,19 +1014,18 @@ void AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const pa
 
     _src.GetNext();   // Eat '='
 
-    Symbol default_symbol = kKW_NoSymbol;
-    ParseConstantExpression(_src, default_symbol, msg);
+    Symbol const default_symbol = ParseConstantExpression(_src, msg);
     
     if (_sym.IsDynVartype(param_vartype))
     {
         default_value = kKW_Null;
         if (kKW_Null == default_symbol)
-            return;
+            return default_value;
         if (_sym.Find("0") == default_symbol)
         {
             if (PP::kMain == _pp)
                 Warning("Found '0' as the default for a dynamic object (prefer 'null')");
-            return;
+            return default_value;
         }
         UserError("Expected the parameter default 'null', found '%s' instead", _sym.GetName(default_symbol).c_str());
     }
@@ -1020,26 +1037,21 @@ void AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const pa
         {
             if (PP::kMain == _pp)
                 Warning("Found '0' as the default for a string (prefer '\"\"')");
-            return;
+            return default_value;
         }
         if (!_sym.IsLiteral(default_value) || kKW_String != _sym[default_value].LiteralD->Vartype)
-        {
             Error (
                 "Expected a constant or literal string as a parameter default, found '%s' instead",
                 _sym.GetName(default_symbol).c_str());
-        }
     }   
 
     if (_sym.IsAnyIntegerVartype(param_vartype))
     {
         if (!_sym.IsLiteral(default_symbol) || kKW_Int != _sym[default_symbol].LiteralD->Vartype)
-        {
             UserError(
                 "Expected a constant integer expression as a parameter default, found '%s' instead",
                 _sym.GetName(default_symbol).c_str());
-        }
-        default_value = default_symbol;
-        return;
+        return default_symbol;
     }
 
     if (kKW_Float == param_vartype)
@@ -1055,11 +1067,11 @@ void AGS::Parser::ParseParamlist_Param_DefaultValue(size_t idx, Vartype const pa
                 "Expected a constant float expression as a parameter default, found '%s' instead",
                 _sym.GetName(default_symbol).c_str());
         }
-        default_value = default_symbol;
-        return;
+        return default_symbol;
     }
 
     UserError("Parameter cannot have any default value");
+    return kKW_NoSymbol; // can't reach
 }
 
 void AGS::Parser::ParseDynArrayMarkerIfPresent(Vartype &vartype)
@@ -1152,24 +1164,10 @@ void AGS::Parser::ParseVarname0(bool accept_member_access, Symbol &structname, S
     }
 }
 
-void AGS::Parser::ParseParamlist_ParamType(Vartype &vartype)
-{
-    if (kKW_Void == vartype)
-        UserError("A function parameter must not have the type 'void'");
-
-    SetDynpointerInManagedVartype(vartype);
-    EatDynpointerSymbolIfPresent(vartype);
-    
-    if (PP::kMain == _pp && !_sym.IsManagedVartype(vartype) && _sym.IsStructVartype(vartype))
-        UserError("'%s' is non-managed; a non-managed struct cannot be passed as parameter", _sym.GetName(vartype).c_str());
-}
-
-
 // We're accepting a parameter list. We've accepted something like "int".
 // We accept a param name such as "i" if present
-void AGS::Parser::ParseParamlist_Param_Name(bool body_follows, Symbol &param_name)
+Symbol AGS::Parser::ParseParamlist_Param_Name(bool body_follows)
 {
-    param_name = kKW_NoSymbol;
 
     if (PP::kPreAnalyze == _pp || !body_follows)
     {
@@ -1177,22 +1175,22 @@ void AGS::Parser::ParseParamlist_Param_Name(bool body_follows, Symbol &param_nam
         Symbol const nextsym = _src.PeekNext();
         if (_sym.IsIdentifier(nextsym))
             _src.GetNext();
-        return;
+        return kKW_NoSymbol;
     }
 
-    ParseVarname(param_name);
+    Symbol const param_name = ParseVarname();
     if (_sym.IsFunction(param_name))
     {
         Warning(
             ReferenceMsgSym("This hides the function '%s()'", param_name).c_str(),
             _sym.GetName(param_name).c_str());
-        return;
+        return param_name;
     }
 
     if (_sym.IsVariable(param_name))
     {
         if (ScT::kLocal != _sym.GetScopeType(param_name))
-            return;
+            return param_name;
 
         UserError(
             ReferenceMsgSym("The name '%s' is already in use as a parameter", param_name).c_str(),
@@ -1200,12 +1198,11 @@ void AGS::Parser::ParseParamlist_Param_Name(bool body_follows, Symbol &param_nam
     }
 
     if (_sym.IsVartype(param_name))
-    {
         Warning(
             ReferenceMsgSym("This hides the type '%s'", param_name).c_str(),
             _sym.GetName(param_name).c_str());
-        return;
-    }
+
+    return param_name;
 }
 
 void AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx)
@@ -1213,9 +1210,8 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifie
     SymbolTableEntry &param_entry = _sym[param_name];
     
     if (tqs[TQ::kReadonly])
-    {
         param_entry.VariableD->TypeQualifiers[TQ::kReadonly] = true;
-    }
+
     // the parameters are pushed backwards, so the top of the
     // stack has the first parameter. The + 1 is because the
     // call will push the return address onto the stack as well
@@ -1226,19 +1222,17 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifie
 
 void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t const param_idx)
 {
-    ParseParamlist_ParamType(param_vartype);
-    if (tqs[TQ::kConst])
-    {
-        param_vartype = _sym.VartypeWith(VTT::kConst, param_vartype);
-        tqs[TQ::kConst] = false;
-    }
+    if (kKW_Void == param_vartype)
+        UserError("Cannot use the type 'void' in a parameter list");
+    if (_sym.IsStructVartype(param_vartype) && !_sym.IsManagedVartype(param_vartype))
+        UserError(
+            ReferenceMsgSym("Cannot use the non-managed struct type '%s' in a parameter list", param_vartype).c_str(),
+            _sym.GetName(param_vartype).c_str());
 
-    Symbol param_name;
-    ParseParamlist_Param_Name(body_follows, param_name);
+    Symbol const param_name = ParseParamlist_Param_Name(body_follows);
     ParseDynArrayMarkerIfPresent(param_vartype);
+    Symbol const param_default = ParseParamlist_Param_DefaultValue(param_idx, param_vartype);
     
-    Symbol param_default;
-    ParseParamlist_Param_DefaultValue(param_idx, param_vartype, param_default);
     if (!body_follows &&
         kKW_NoSymbol == param_default &&
         !_sym[name_of_func].FunctionD->Parameters.empty() &&
@@ -1248,9 +1242,10 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
             param_idx, _sym.GetName(name_of_func).c_str());
     
     _sym[name_of_func].FunctionD->Parameters.push_back({});
-    _sym[name_of_func].FunctionD->Parameters.back().Vartype = param_vartype; 
-    _sym[name_of_func].FunctionD->Parameters.back().Name = param_name;
-    _sym[name_of_func].FunctionD->Parameters.back().Default = param_default;
+    auto &back = _sym[name_of_func].FunctionD->Parameters.back();
+    back.Vartype = param_vartype; 
+    back.Name = param_name;
+    back.Default = param_default;
     
     if (PP::kMain != _pp || !body_follows)
         return;
@@ -1258,8 +1253,8 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
     // All function parameters correspond to local variables.
     // A body will follow, so we need to enter this parameter as a variable into the symbol table
     ParseVardecl_CheckAndStashOldDefn(param_name);
-    ParseVardecl_Var2SymTable(param_name, param_vartype, ScT::kLocal);
-    // Set the offset, make "const" if required
+    ParseVardecl_Var2SymTable(param_name, param_vartype);
+    // Set the offset
     return ParseParamlist_Param_AsVar2Sym(param_name, tqs, param_vartype, param_idx);
 }
 
@@ -1278,48 +1273,45 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
         // Only certain qualifiers allowed
         for (auto tq_it = tqs.begin(); tq_it != tqs.end(); tq_it++)
         {
-            if (!tqs[tq_it->first] || TQ::kConst == tq_it->first || TQ::kReadonly == tq_it->first || TQ::kStatic == tq_it->first)
+            if (!tqs[tq_it->first] || TQ::kReadonly == tq_it->first || TQ::kStatic == tq_it->first)
                 continue;
             UserError("Unexpected '%s' in parameter list", _sym.GetName(tqs.TQ2Symbol(tq_it->first)).c_str());
         }
         
-        Symbol const leading_sym = _src.GetNext();
-        if (kKW_CloseParenthesis == leading_sym)
-            return;   // empty parameter list
-
-        if (_sym.IsVartype(leading_sym))
+        Symbol const leading_sym = _src.PeekNext();
+        if (param_idx == 0 && kKW_Void == leading_sym)
         {
-            if (param_idx == 0 && kKW_Void == leading_sym && kKW_CloseParenthesis == _src.PeekNext() && tqs.empty())
-            {   // explicitly empty parameter list, "(void)"
-                _src.GetNext(); // Eat ')'
-                return;
-            }
-
-            if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
-                UserError("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
-
-            ParseParamlist_Param(funcsym, body_follows, tqs, leading_sym, _sym.NumOfFuncParams(funcsym) + 1);
-            
-            tqs = {}; // type qualifiers have been used up
-
-            Symbol const nextsym = _src.GetNext();
-            Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, nextsym);
-            if (kKW_CloseParenthesis == nextsym)
-                return;
-            continue;
+            _src.GetNext(); // Eat 'void'
+            return Expect(kKW_CloseParenthesis, _src.GetNext());
         }
+
+        if (kKW_CloseParenthesis == leading_sym)
+            return (void) _src.GetNext(); // Eat ')' 
 
         if (kKW_DotDotDot == leading_sym)
         {
             _sym[funcsym].FunctionD->IsVariadic = true;
+            _src.GetNext(); // Eat '...'
             return Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' following the '...'");
         }
-        
-        UserError("Unexpected '%s' in parameter list", _sym.GetName(leading_sym).c_str());
+
+        if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
+            UserError("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
+
+        ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(), _sym.NumOfFuncParams(funcsym) + 1);
+            
+        tqs = {}; // type qualifiers have been used up
+
+        Symbol const punctuation = _src.GetNext();
+        Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, punctuation);
+        if (kKW_CloseParenthesis == punctuation)
+            return;
+        continue;       
     } // while
     
     InternalError("End of input when processing parameter list"); // Cannot happen
 }
+
 void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows)
 {
     _sym.MakeEntryFunction(name_of_function);
@@ -1330,7 +1322,6 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
     entry.FunctionD->Parameters[0].Name = kKW_NoSymbol;
     entry.FunctionD->Parameters[0].Default = kKW_NoSymbol;
     auto &entry_tqs = entry.FunctionD->TypeQualifiers;
-    entry_tqs[TQ::kConst] = tqs[TQ::kConst];
     entry_tqs[TQ::kImport] = tqs[TQ::kImport];
     entry_tqs[TQ::kProtected] = tqs[TQ::kProtected];
     entry_tqs[TQ::kReadonly] = tqs[TQ::kReadonly];
@@ -1513,9 +1504,9 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
             ReferenceMsgSym("'%s' is defined elsewhere as a non-function", name_of_func).c_str(),
             _sym.GetName(name_of_func).c_str());
     if (!_sym.IsManagedVartype(return_vartype) && _sym.IsStructVartype(return_vartype))
-        UserError("Can only return a struct when it is 'managed'");
-    if (tqs[TQ::kConst] && kKW_String != return_vartype)
-        UserError("Can only return a 'const' type when it is 'const string'");
+        UserError(
+            ReferenceMsgSym("Cannot return the non-managed struct type '%s'", return_vartype).c_str(),
+            _sym.GetName(return_vartype).c_str());
 
     if (PP::kPreAnalyze == _pp &&
         body_follows &&
@@ -1578,21 +1569,13 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
 
 void AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows)
 {
-    // __Builtin_
-    // 123456789a
+    //                                                           123456789a
     if (0 == _sym.GetName(name_of_func).substr(0u, 10u).compare("__Builtin_"))
         UserError("Function names may not begin with '__Builtin_'");
 
     ParseFuncdecl_DoesBodyFollow(body_follows);
     ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
     
-    if (tqs[TQ::kConst])
-    {
-        return_vartype = _sym.VartypeWith(VTT::kConst, return_vartype);
-        tqs[TQ::kConst] = false;
-    }
-
-   
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
@@ -2383,7 +2366,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
 
     // Find beginning of third term
     after_term1.StartRead();
-    SkipTo(SymbolList{ kKW_Colon }, after_term1);
+    SkipTo(kKW_Colon, after_term1);
     if (after_term1.ReachedEOF() || kKW_Colon != after_term1.PeekNext())
     {
         expression.SetCursor(tern_idx);
@@ -3653,7 +3636,7 @@ AGS::Symbol AGS::Parser::FindComponentInStruct(Vartype strct, Symbol unqualified
 void AGS::Parser::AccessData_IsClauseLast(SrcList &expression, bool &is_last)
 {
     size_t const cursor = expression.GetCursor();
-    SkipTo(SymbolList{ kKW_Dot },  expression);
+    SkipTo(kKW_Dot,  expression);
     is_last = (kKW_Dot != expression.PeekNext());
     expression.SetCursor(cursor);
 }
@@ -3993,25 +3976,6 @@ void AGS::Parser::ParseExpression(SrcList &src)
     ResultToAX(vartype, vloc);
 }
 
-void AGS::Parser::ParseConstantExpression(SrcList &src, Symbol &lit, std::string const &msg)
-{
-    if (!src.Length())
-        InternalError("Empty expression");
-
-    Symbol const first_sym = src.PeekNext();
-
-    ValueLocation vloc;
-    ScopeType scope_type;
-    Vartype vartype;
-    ParseExpression(src, vloc, scope_type, vartype);
-    if (!vloc.IsCompileTimeLiteral())
-        UserError(
-            (msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
-            _sym.GetName(first_sym).c_str());
-    lit = vloc.symbol;
-}
-
-
 void AGS::Parser::ParseIntegerExpression(SrcList &src, ValueLocation &vloc, std::string const &msg)
 {
     Vartype vartype = kKW_NoSymbol;
@@ -4098,15 +4062,6 @@ void AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs)
     }
 }
 
-void AGS::Parser::ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol vname)
-{
-
-    if (ScT::kImport == scope_type)
-        UserError("Cannot import a compile-time constant (did you mean 'readonly' instead of 'const'?)");
-
-    return ParseConstantDefn(tqs, vartype, vname);
-}
-
 void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype const wanted_vartype, std::vector<char> &initial_val)
 {
     ValueLocation vloc;
@@ -4191,7 +4146,7 @@ void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<
         _sym.GetName(vartype).c_str());
 }
 
-void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type)
+void AGS::Parser::ParseVardecl_Var2SymTable(Symbol const var_name, Vartype const vartype)
 {
     SymbolTableEntry &var_entry = _sym[var_name];
     _sym.MakeEntryVariable(var_name);
@@ -4200,29 +4155,87 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Sc
     _sym.SetDeclared(var_name, _src.GetCursor());
 }
 
-void AGS::Parser::ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname)
+void AGS::Parser::ParseStruct_ConstantDefn(Symbol const name_of_struct)
 {
-    if (tqs[TQ::kReadonly])
-        UserError("Cannot use 'readonly' with compile-time constants");
-    if (kKW_Int != vartype && kKW_Float != vartype)
-        UserError("Can only handle compile-time constants of type 'int' or 'float'");
-    if (_src.PeekNext() == kKW_OpenBracket)
-        UserError("Cannot handle arrays of compile-time constants (did you mean 'readonly' instead of 'const'?)");
-
     if (PP::kMain != _pp)
-        return SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
+    {
+        SkipTo(kKW_Semicolon, _src);
+        Expect(kKW_Semicolon, _src.GetNext());
+        return;
+    }
 
-    // Get the constant value
-    Expect(kKW_Assign, _src.GetNext());
-    
-    Symbol lit;
-    ParseConstantExpression(_src, lit);
-    CheckVartypeMismatch(_sym[lit].LiteralD->Vartype, vartype, true, "");
-    
-    _sym.MakeEntryConstant(vname);
-    SymbolTableEntry &entry = _sym[vname];
-    entry.ConstantD->ValueSym = lit;
-    entry.Declared = _src.GetCursor();
+    Vartype const vartype = ParseVartype();
+    if (kKW_Int != vartype && kKW_Float != vartype)
+        UserError("Can only handle compile-time constants of type 'int' or 'float' but found '%s' instead",
+            _sym.GetName(vartype).c_str());
+
+    bool const in_struct = (kKW_NoSymbol != name_of_struct);
+
+    while (true)
+    {
+        Symbol const unqualified_component = ParseVarname();
+        Symbol const qualified_component =
+            in_struct ? 
+                MangleStructAndComponent(name_of_struct, unqualified_component) : unqualified_component;
+
+        if (PP::kMain == _pp && in_struct)
+        {
+            if (_sym.IsInUse(qualified_component))
+                UserError(
+                    ReferenceMsgSym("'%s' is already defined", qualified_component).c_str(),
+                    _sym.GetName(qualified_component).c_str());
+        
+            // Mustn't be in any ancester
+            Symbol const parent = FindStructOfComponent(name_of_struct, unqualified_component);
+            if (kKW_NoSymbol != parent)
+                UserError(
+                    ReferenceMsgSym(
+                        "The struct '%s' extends '%s', and '%s' is already defined",
+                        parent).c_str(),
+                    _sym.GetName(name_of_struct).c_str(),
+                    _sym.GetName(parent).c_str(),
+                    _sym.GetName(qualified_component).c_str());
+        }
+        if (!in_struct && _nest.TopLevel() > 1)
+            ParseVardecl_CheckAndStashOldDefn(qualified_component);
+
+        if (_src.PeekNext() == kKW_OpenBracket)
+            UserError("Cannot define a compile-time constant array");
+        if (kKW_OpenParenthesis == _src.PeekNext())
+            UserError("Cannot define a compile-time constant function (did you mean 'readonly'?)");
+
+            Expect(kKW_Assign, _src.GetNext());
+
+        Symbol const lit = ParseConstantExpression(_src);
+        CheckVartypeMismatch(_sym[lit].LiteralD->Vartype, vartype, true, "");
+
+        _sym.MakeEntryConstant(qualified_component);
+        SymbolTableEntry &entry = _sym[qualified_component];
+        entry.ConstantD->ValueSym = lit;
+        _sym.SetDeclared(qualified_component, _src.GetCursor());
+
+        if (in_struct)
+        {
+            _sym.MakeEntryComponent(qualified_component);
+            entry.ComponentD->Component = unqualified_component;
+            entry.ComponentD->Parent = name_of_struct;
+            _sym[name_of_struct].VartypeD->Components[unqualified_component] = qualified_component;
+        }
+        else
+        {
+            entry.Scope = _nest.TopLevel();
+        }
+
+        Symbol const punctuation = _src.GetNext();
+        Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (kKW_Semicolon == punctuation)
+            return;
+    }
+}
+
+void AGS::Parser::ParseConstantDefn()
+{
+    ParseStruct_ConstantDefn(kKW_NoSymbol);
 }
 
 void AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type)
@@ -4400,20 +4413,17 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 
 void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs)
 {
-    if (tqs[TQ::kConst] && kKW_String != vartype)
-        return ParseVardecl_ConstantDefn(tqs, vartype, scope_type, var_name);
-
     if (kKW_OpenBracket == _src.PeekNext())
 		ParseArray(var_name, vartype);
 
     // Don't warn for builtins or imports, they might have been predefined
-    if (!tqs[TQ::kBuiltin] && ScT::kImport != scope_type && 0 == _sym.GetSize(vartype))
+    if (!_sym.IsBuiltinVartype(vartype) && ScT::kImport != scope_type && 0 == _sym.GetSize(vartype))
         Warning(
             ReferenceMsgSym("Variable '%s' has zero size", vartype).c_str(),
             _sym.GetName(var_name).c_str());
 
     // Enter the variable into the symbol table
-    ParseVardecl_Var2SymTable(var_name, vartype, scope_type);
+    ParseVardecl_Var2SymTable(var_name, vartype);
     _sym[var_name].VariableD->TypeQualifiers = tqs;
 
     switch (scope_type)
@@ -4448,6 +4458,10 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
             UserError("Cannot redefine the predefined '%s'", _sym.GetName(var_name));
 
         if (_sym.IsVariable(var_name))
+            break;
+
+        // Local compile-time constants can be overridden, but global constants can't
+        if (_sym.IsConstant(var_name) && _sym[var_name].Scope > 0u)
             break;
 
         if (_sym.IsVartype(var_name))
@@ -4733,7 +4747,6 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
         case kKW_Attribute:      tqs[TQ::kAttribute] = true; break;
         case kKW_Autoptr:        tqs[TQ::kAutoptr] = true; break;
         case kKW_Builtin:        tqs[TQ::kBuiltin] = true; break;
-        case kKW_Const:          tqs[TQ::kConst] = true; break;
         case kKW_ImportStd:      tqs[TQ::kImport] = true; istd_found = true;  break;
         case kKW_ImportTry:      tqs[TQ::kImport] = true; itry_found = true;  break;
         case kKW_Internalstring: tqs[TQ::kStringstruct] = true; break;
@@ -4961,7 +4974,7 @@ void AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
 
         ValueLocation vloc;
         int const cursor = _src.GetCursor();
-        SkipTo(SymbolList{ kKW_Comma }, _src);
+        SkipTo(kKW_Comma, _src);
         SrcList expression = SrcList(_src, cursor, _src.GetCursor() - cursor);
         expression.StartRead();
         ParseIntegerExpression(expression, vloc, msg);
@@ -5047,25 +5060,12 @@ void AGS::Parser::ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vart
     _sym[name_of_struct].VartypeD->Size += _sym.GetSize(vname);
 }
 
-void AGS::Parser::ParseStruct_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
-{
-    if (_sym.IsDynarrayVartype(vartype)) // e.g., const int [] zonk;
-        UserError("Expected '('");
-    if (tqs[TQ::kAttribute])
-        UserError("Cannot handle compile-time constant attributes (did you mean 'readonly' instead of 'const'?)");
-    if (tqs[TQ::kImport])
-        UserError("Cannot import a compile-time constant (did you mean 'readonly' instead of 'const'?)");
-
-    return ParseConstantDefn(tqs, vartype, vname);
-}
-
-void AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype)
+void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype)
 {
     size_t const declaration_start = _src.GetCursor();
 
     // Get the variable or function name.
-    Symbol unqualified_component;
-    ParseVarname(unqualified_component);
+    Symbol const unqualified_component = ParseVarname();
     Symbol const qualified_component = MangleStructAndComponent(name_of_struct, unqualified_component);
 
     bool const is_function = (kKW_OpenParenthesis == _src.PeekNext());
@@ -5099,9 +5099,6 @@ void AGS::Parser::ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet
     if (is_function)
         return ParseStruct_FuncDecl(name_of_struct, qualified_component, tqs, vartype);
 
-    if (tqs[TQ::kConst] && kKW_String != vartype)
-        return ParseStruct_ConstantDefn(tqs, vartype, name_of_struct, qualified_component);
-
     return ParseStruct_VariableOrAttributeDefn(tqs, vartype, name_of_struct, qualified_component);
  }
 
@@ -5119,14 +5116,28 @@ void AGS::Parser::EatDynpointerSymbolIfPresent(Vartype vartype)
     UserError("Cannot use '*' on the non-managed type '%s'", _sym.GetName(vartype).c_str());
 }
 
-void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype)
+void AGS::Parser::ParseStruct_Vartype_MemberList(TypeQualifierSet tqs, Symbol name_of_struct, Vartype vartype)
 {
-    if (PP::kMain == _pp)
-		ParseStruct_CheckComponentVartype(name_of_struct, vartype); // Check for illegal struct member types
+    while (true)
+    {
+        ParseStruct_VariableOrFunctionDefn(name_of_struct, tqs, vartype);
 
-    SetDynpointerInManagedVartype(vartype);
-    EatDynpointerSymbolIfPresent(vartype);
-    
+        Symbol const punctuation = _src.GetNext();
+        Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (kKW_Semicolon == punctuation)
+            return;
+    }
+}
+
+void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs)
+{
+    _src.BackUp();
+    Vartype vartype = ParseVartype();
+
+    if (PP::kMain == _pp)
+        // Check for illegal struct member types
+		ParseStruct_CheckComponentVartype(name_of_struct, vartype); 
+
     // "int [] func(...)"
     ParseDynArrayMarkerIfPresent(vartype);
     
@@ -5135,18 +5146,9 @@ void AGS::Parser::ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tq
 		UserError("Cannot use 'noloopcheck' here");
 
     // We've accepted a type expression and are now reading vars or one func that should have this type.
-    while (true)
-    {
-        ParseStruct_MemberDefn(name_of_struct, tqs, vartype);
-        
-        Symbol const punctuation = _src.GetNext();
-        Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
-        if (kKW_Semicolon == punctuation)
-            return;
-    }
+    ParseStruct_Vartype_MemberList(tqs, name_of_struct, vartype);
 }
 
-// Handle a "struct" definition; we've already eaten the keyword "struct"
 void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     size_t const start_of_struct_decl = _src.GetCursor();
@@ -5196,10 +5198,25 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
         bool const in_func_body = false;
         bool const in_struct_decl = true;
         Parse_CheckTQ(tqs, in_func_body, in_struct_decl);
-        
-        Vartype vartype = _src.GetNext();
 
-        ParseStruct_Vartype(stname, tqs, vartype);
+        Symbol const leading_sym = _src.GetNext();
+        switch (leading_sym)
+        {
+        case kKW_Const:
+        {
+            if (kKW_String == _src.PeekNext())
+                break; // Vartype, treated below
+
+            TypeQualifierSet tqs_without_static = tqs;
+            tqs_without_static[TQ::kStatic] = false;
+            Parse_CheckTQSIsEmpty(tqs_without_static);
+            ParseStruct_ConstantDefn(stname);
+            continue;
+        }
+
+        } // switch (leading_sym)
+
+        ParseStruct_Vartype(stname, tqs);
     }
 
     if (PP::kMain == _pp)
@@ -5253,7 +5270,13 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     vardecl_tqs[TQ::kManaged] = false;
     vardecl_tqs[TQ::kStringstruct] = false;
 
-    ParseVartype(stname, vardecl_tqs, struct_of_current_func, name_of_current_func);
+    Vartype vartype = stname;
+    SetDynpointerInManagedVartype(vartype);
+    EatDynpointerSymbolIfPresent(vartype);
+    ParseDynArrayMarkerIfPresent(vartype);
+    ScopeType const scope_type = (vardecl_tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
+
+    ParseVartype_MemberList(vardecl_tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows
@@ -5261,10 +5284,9 @@ void AGS::Parser::ParseEnum_AssignedValue(Symbol vname, CodeCell &value)
 {
     _src.GetNext(); // eat "="
 
-    Symbol lit;
     std::string msg = "In the assignment to <name>: ";
     msg.replace(msg.find("<name>"), 6u, _sym.GetName(vname));
-    ParseConstantExpression(_src, lit, msg);
+    Symbol const lit = ParseConstantExpression(_src, msg);
     
     value = _sym[lit].LiteralD->Value;
 }
@@ -5390,7 +5412,37 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
         UserError("Unexpected '%s' (did you forget a ';'?)", _sym.GetName(nextsym).c_str());
 
     // Take enum that has just been defined as the vartype of a declaration
-    return ParseVartype(enum_name, tqs, struct_of_current_func, name_of_current_func);
+    Vartype vartype = enum_name;
+    ParseDynArrayMarkerIfPresent(vartype);
+    ScopeType const scope_type = tqs[TQ::kImport] ? ScT::kImport : ScT::kGlobal;
+    ParseVartype_MemberList(tqs, vartype, scope_type, false, struct_of_current_func, name_of_current_func);
+}
+
+AGS::Symbol AGS::Parser::ParseVartype(bool const with_dynpointer_handling)
+{
+    bool const leading_const = (kKW_Const == _src.PeekNext());
+    if (leading_const)
+        _src.GetNext(); // Eat 'const'
+
+    Vartype vartype = _src.GetNext();
+    if (!_sym.IsVartype(vartype))
+        UserError("Expected a type, found '%s' instead", _sym.GetName(vartype).c_str());
+    if (_sym[vartype].VartypeD->Flags[VTF::kUndefined])
+        _structRefs[vartype] = _src.GetCursor();
+
+    if (leading_const)
+    {
+        if (kKW_String != vartype)
+            UserError("The only allowed type beginning with 'const' is 'const string' (did you want to use 'readonly'?)");
+        vartype = _sym.VartypeWith(VTT::kConst, vartype);
+    }
+
+    if (with_dynpointer_handling)
+    {
+        SetDynpointerInManagedVartype(vartype);
+        EatDynpointerSymbolIfPresent(vartype);
+    }
+    return vartype;
 }
 
 void AGS::Parser::ParseExport_Function(Symbol func)
@@ -5438,7 +5490,7 @@ void AGS::Parser::ParseExport()
 {
     if (PP::kPreAnalyze == _pp)
     {
-        SkipTo(SymbolList{ kKW_Semicolon }, _src);
+        SkipTo(kKW_Semicolon, _src);
         _src.GetNext(); // Eat ';'
         return;
     }
@@ -5631,22 +5683,78 @@ void AGS::Parser::ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Var
     return ParseVardecl(variable_tqs, vartype, vname, scope_type);
 }
 
-void AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func,Symbol &name_of_current_func)
+void AGS::Parser::ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func)
+{
+    while (true)
+    {
+        // Get the variable or function name.
+        Symbol var_or_func_name = kKW_NoSymbol;
+        Symbol struct_name = kKW_NoSymbol;
+        ParseVarname(struct_name, var_or_func_name);
+
+        bool const is_function = !tqs[TQ::kAttribute] && (kKW_OpenParenthesis == _src.PeekNext());
+
+        // certain qualifiers, such as "static" only go with certain kinds of definitions.
+        ParseVartype_CheckIllegalCombis(is_function, tqs);
+
+        if (is_function)
+        {
+            // Do not set .Extends or the Component flag here. These denote that the
+            // func has been either declared within the struct definition or as extender,
+            // so they are NOT set unconditionally
+            bool body_follows = false;
+            ParseVartype_FuncDecl(tqs, vartype, struct_name, var_or_func_name, no_loop_check, struct_of_current_func, name_of_current_func, body_follows);
+            if (body_follows)
+                return;
+        }
+        else if (_sym.IsDynarrayVartype(vartype) || no_loop_check) // e.g., int [] zonk;
+        {
+            // Those are only allowed with functions
+            UserError("Expected '('");
+        }
+        else
+        {
+            if (kKW_NoSymbol != struct_name)
+                UserError("Variable may not contain '::'");
+
+            ParseVartype_VariableOrAttributeDefn(tqs, vartype, var_or_func_name, scope_type);
+        }
+
+        Symbol const punctuation = _src.GetNext();
+        Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
+        if (kKW_Semicolon == punctuation)
+            return;
+    }
+}
+
+void AGS::Parser::ParseVartypeClause(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     if (_src.ReachedEOF())
         UserError("Unexpected end of input (did you forget ';'?)");
     if (tqs[TQ::kBuiltin])
         UserError("Can only use 'builtin' when declaring a 'struct'");
-
     ParseVartype_CheckForIllegalContext();
-    
-    if (_sym[vartype].VartypeD->Flags[VTF::kUndefined])
-        _structRefs[vartype] = _src.GetCursor();
 
     ScopeType const scope_type = 
         (kKW_NoSymbol != name_of_current_func) ? ScT::kLocal :
         (tqs[TQ::kImport]) ? ScT::kImport : ScT::kGlobal;
+    
+    _src.BackUp();
+    Vartype vartype = ParseVartype(false);
 
+    // Imply a pointer for managed vartypes. However, do NOT do this in 'import' statements.
+    // (Reason: automatically generated code does things like "import Object oFoo;" and
+    // then it really does mean "Object", not "Object *".
+    // This can only happen in automatically generated code:
+    // Users are never allowed to define unpointered managed entities.
+    if (kKW_Dynpointer == _src.PeekNext() ||
+        _sym.IsAutoptrVartype(vartype) ||
+        (ScT::kImport != scope_type && _sym.IsManagedVartype(vartype)))
+    {
+        vartype = _sym.VartypeWith(VTT::kDynpointer, vartype);
+    }
+    EatDynpointerSymbolIfPresent(vartype);
+    
     // Imply a pointer for managed vartypes. However, do NOT
     // do this in import statements. (Reason: automatically
     // generated code does things like "import Object oFoo;" and
@@ -5672,46 +5780,7 @@ void AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &st
         _src.GetNext();
 
     // We've accepted a vartype expression and are now reading vars or one func that should have this type.
-    while(true)
-    {
-        // Get the variable or function name.
-        Symbol var_or_func_name = kKW_NoSymbol;
-        Symbol struct_name = kKW_NoSymbol;
-        ParseVarname(struct_name, var_or_func_name);
-        
-        bool const is_function = !tqs[TQ::kAttribute] && (kKW_OpenParenthesis == _src.PeekNext());
-
-        // certain qualifiers, such as "static" only go with certain kinds of definitions.
-        ParseVartype_CheckIllegalCombis(is_function, tqs);
-        
-        if (is_function)
-        {
-            // Do not set .Extends or the Component flag here. These denote that the
-            // func has been either declared within the struct definition or as extender,
-            // so they are NOT set unconditionally
-            bool body_follows = false;
-            ParseVartype_FuncDecl(tqs, vartype, struct_name, var_or_func_name, no_loop_check, struct_of_current_func, name_of_current_func, body_follows);
-            if (body_follows)
-                return;
-        }
-        else if (_sym.IsDynarrayVartype(vartype) || no_loop_check) // e.g., int [] zonk;
-        {
-            // Those are only allowed with functions
-            UserError("Expected '('");
-        }
-        else 
-        {
-            if (kKW_NoSymbol != struct_name)
-                UserError("Variable may not contain '::'");
-			
-            ParseVartype_VariableOrAttributeDefn(tqs, vartype, var_or_func_name, scope_type);
-        }
-
-        Symbol const punctuation = _src.GetNext();
-        Expect(SymbolList{ kKW_Comma, kKW_Semicolon }, punctuation);
-        if (kKW_Semicolon == punctuation)
-            return;
-    }
+    ParseVartype_MemberList(tqs, vartype, scope_type, no_loop_check, struct_of_current_func, name_of_current_func);
 }
 
 void AGS::Parser::HandleEndOfCompoundStmts()
@@ -6473,32 +6542,37 @@ void AGS::Parser::ParseInput()
 
         // Vartype clauses
 
-        if (kKW_Enum == leading_sym)
+        switch (leading_sym)
         {
+        case kKW_Const:
+            if (kKW_String == _src.PeekNext())
+                break; // Vartype, treated below
+
+            Parse_CheckTQSIsEmpty(tqs);
+            ParseConstantDefn();
+            continue;
+
+        case kKW_Enum:
             Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
             ParseEnum(tqs, struct_of_current_func, name_of_current_func);
             continue;
-        }
 
-        if (kKW_Export == leading_sym)
-        {
+        case kKW_Export:
             Parse_CheckTQSIsEmpty(tqs);
             ParseExport();
             continue;
-        }
 
-        if (kKW_Struct == leading_sym)
-        {
+        case kKW_Struct:
             Parse_CheckTQ(tqs, (name_of_current_func > 0), false);
             ParseStruct(tqs, struct_of_current_func, name_of_current_func);
             continue;
-        }
+        } // switch (leading_sym)
 
-        if (_sym.IsVartype(leading_sym) && kKW_Dot != _src.PeekNext())
+        if (kKW_Const == leading_sym || (_sym.IsVartype(leading_sym) && kKW_Dot != _src.PeekNext()))
         {
             // Note: We cannot check yet whether the TQS are legal because we don't know whether the
             // var / func names that will be defined will be composite.
-            ParseVartype(leading_sym, tqs, struct_of_current_func, name_of_current_func);
+            ParseVartypeClause(tqs, struct_of_current_func, name_of_current_func);
             continue;
         }
 

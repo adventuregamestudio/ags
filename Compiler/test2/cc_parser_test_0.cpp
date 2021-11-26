@@ -676,8 +676,10 @@ TEST_F(Compile0, Protected0) {
 
 TEST_F(Compile0, ParamVoid) {   
 
+    // Can't have a parameter of type 'void'.
+
     char *inpl = "\
-        int Foo(void Bar)                      \n\
+        int Foo(int bar, void bazz)            \n\
         {                                      \n\
             return 1;                          \n\
         }                                      \n\

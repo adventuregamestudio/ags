@@ -55,7 +55,6 @@ std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymb
         { TQ::kAttribute,       kKW_Attribute, },
         { TQ::kAutoptr,         kKW_Autoptr, },
         { TQ::kBuiltin,         kKW_Builtin, },
-        { TQ::kConst,           kKW_Const, },
         { TQ::kImport,          kKW_ImportStd, },
         { TQ::kManaged,         kKW_Managed,  },
         { TQ::kProtected,       kKW_Protected,  },

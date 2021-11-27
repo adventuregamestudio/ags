@@ -553,6 +553,9 @@ Editor:
    individual SizeMultiplier property to Fonts.
  - Alphabetically sort audio clips in the drop lists.
  - Display audio clip length on the preview pane without starting playback.
+ - Now packages Audio and Speech files using extended pack format, allowing longer filenames;
+   This also removes a 4-digit limit on speech file numbers; was 1-9999 per character,
+   now up to 2 billion due to how engine handles these.
  - Sync variable type selector in Global Variables pane with the actual list of supported
    script types.
  - Added ThreadedAudio property to Default Setup.

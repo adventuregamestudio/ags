@@ -502,9 +502,20 @@ namespace AGS.Editor
         /// <summary>
         /// Builds a AGS pack file, using the list of input files and parameters.
         /// Returns null on success and an error message on error.
-        /// Assets will be registered under names equal to their last filenames (w/o parent path).
+        /// Assets will be registered under names equal to their *full* filenames (with parent path).
         /// </summary>
         public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        {
+            return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(f, f)).ToArray(),
+                splitSize, baseFileName, makeFileNameAssumptions);
+        }
+
+        /// <summary>
+        /// Builds a AGS pack file, using the list of input files and parameters.
+        /// Returns null on success and an error message on error.
+        /// Assets will be registered under names equal to their *last* filenames (w/o parent path).
+        /// </summary>
+        public static string MakeFlatDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
         {
             return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(Path.GetFileName(f), f)).ToArray(),
                 splitSize, baseFileName, makeFileNameAssumptions);

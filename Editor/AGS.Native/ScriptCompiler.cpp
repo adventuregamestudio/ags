@@ -20,7 +20,6 @@ see the license.txt for details.
 #include "script/cc_options.h"
 #include "script/cc_error.h"
 
-extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
 static const char *GAME_DEFINITION_FILE_RESOURCE = "__GDF_XML";
@@ -99,31 +98,6 @@ namespace AGS
 			  }
 
 			  script->CompiledData = gcnew CompiledScript(PScript(scrpt));
-		}
-
-		void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE)
-		{
-			char **fileNames = (char**)malloc(sizeof(char*) * fileList->Length);
-			for (int i = 0; i < fileList->Length; i++)
-			{
-				fileNames[i] = (char*)malloc(fileList[i]->Length + 1);
-				ConvertFileNameToCharArray(fileList[i], fileNames[i], fileList[i]->Length + 1);
-			}
-			char baseFileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(baseFileName, baseFileNameChars, MAX_PATH);
-
-			const char *errorMsg = make_data_file(fileList->Length, fileNames, splitSize, baseFileNameChars, isGameEXE);
-
-			for (int i = 0; i < fileList->Length; i++)
-			{
-				free(fileNames[i]);
-			}
-			free(fileNames);
-
-			if (errorMsg != NULL)
-			{
-				throw gcnew AGSEditorException(gcnew String(errorMsg));
-			}
 		}
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)

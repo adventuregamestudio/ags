@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
@@ -496,6 +497,17 @@ namespace AGS.Editor
                 WriteCLIBHeader(new BinaryWriter(wout));
             }
             return null;
+        }
+
+        /// <summary>
+        /// Builds a AGS pack file, using the list of input files and parameters.
+        /// Returns null on success and an error message on error.
+        /// Assets will be registered under names equal to their last filenames (w/o parent path).
+        /// </summary>
+        public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        {
+            return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(Path.GetFileName(f), f)).ToArray(),
+                splitSize, baseFileName, makeFileNameAssumptions);
         }
 
         private static void WriteGameSetupStructBase_Aligned(BinaryWriter writer, Game game)

@@ -23,7 +23,6 @@ see the license.txt for details.
 extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
-extern void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &fileNames);
 static const char *GAME_DEFINITION_FILE_RESOURCE = "__GDF_XML";
 static const char *GAME_DEFINITION_THUMBNAIL_RESOURCE = "__GDF_THUMBNAIL";
 
@@ -125,17 +124,6 @@ namespace AGS
 			{
 				throw gcnew AGSEditorException(gcnew String(errorMsg));
 			}
-		}
-
-		void NativeMethods::CreateVOXFile(String ^fileName, cli::array<String^> ^fileList)
-		{
-			std::vector<AGSString> fileNames;
-			for (int i = 0; i < fileList->Length; i++)
-			{
-				fileNames.push_back(ConvertPathToNativeString(fileList[i]));
-			}
-			AGSString baseFileNameChars = ConvertPathToNativeString(fileName);
-            make_single_lib_data_file(baseFileNameChars, fileNames);
 		}
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)

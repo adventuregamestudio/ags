@@ -1050,7 +1050,7 @@ namespace AGS.Editor
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                Factory.NativeProxy.CreateVOXFile(audioVox, fileListForVox.ToArray());
+                DataFileWriter.MakeDataFile(fileListForVox.ToArray(), 0, audioVox, false);
             }
         }
 

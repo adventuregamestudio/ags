@@ -397,11 +397,6 @@ namespace AGS.Editor
             CreateDataFile(fileList, 0, exeFileName, false);
         }
 
-        public void CreateVOXFile(string fileName, string[] fileList)
-        {
-            _native.CreateVOXFile(fileName, fileList);
-        }
-
         public void CreateTemplateFile(string templateFileName, string[] fileList)
         {
             CreateDataFile(fileList, 0, templateFileName, false);

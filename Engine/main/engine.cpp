@@ -312,34 +312,12 @@ void engine_init_mouse()
 
 void engine_locate_speech_pak()
 {
-    play.want_speech=-2;
-
-    if (!usetup.no_speech_pack) {
-        String speech_file = "speech.vox";
-        String speech_filepath = find_assetlib(speech_file);
-        if (!speech_filepath.IsEmpty()) {
-            Debug::Printf("Initializing speech vox");
-            if (AssetMgr->AddLibrary(speech_filepath) != Common::kAssetNoError) {
-                platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
-                return;
-            }
-            Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
-            play.want_speech=1;
-        }
-        else if (Path::ComparePaths(ResPaths.DataDir, ResPaths.VoiceDir2) != 0)
-        {
-            // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
-            Debug::Printf(kDbgMsg_Info, "Voice pack was not found, but explicit voice directory is defined: enabling voice-over.");
-            play.want_speech=1;
-        }
-        ResPaths.SpeechPak.Name = speech_file;
-        ResPaths.SpeechPak.Path = speech_filepath;
-    }
+    init_voicepak("");
 }
 
 void engine_locate_audio_pak()
 {
-    play.separate_music_lib = 0;
+    play.separate_music_lib = false;
     String music_file = game.GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
     if (!music_filepath.IsEmpty())
@@ -347,7 +325,7 @@ void engine_locate_audio_pak()
         if (AssetMgr->AddLibrary(music_filepath) == kAssetNoError)
         {
             Debug::Printf(kDbgMsg_Info, "%s found and initialized.", music_file.GetCStr());
-            play.separate_music_lib = 1;
+            play.separate_music_lib = true;
             ResPaths.AudioPak.Name = music_file;
             ResPaths.AudioPak.Path = music_filepath;
         }
@@ -412,9 +390,8 @@ void engine_init_audio()
     if (usetup.audio_backend == 0)
     {
         // all audio is disabled
-        // and the voice mode should not go to Voice Only
-        play.want_speech = -2;
-        play.separate_music_lib = 0;
+        play.voice_avail = false;
+        play.separate_music_lib = false;
     }
 }
 
@@ -803,6 +780,7 @@ void engine_init_game_settings()
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
+    play.speech_mode = kSpeech_VoiceText;
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;

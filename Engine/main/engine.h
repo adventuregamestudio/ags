@@ -55,7 +55,8 @@ struct ResourcePaths
     // This is bit ugly, but remain so until more flexible configuration is designed
     String       DataDir2;   // optional data directory
     String       AudioDir2;  // optional audio directory
-    String       VoiceDir2;  // optional voice-over directory
+    String       VoiceDir2;  // optional voice-over directory (base)
+    String       VoiceDirSub;// full voice-over directory with optional sub-dir
 };
 extern ResourcePaths ResPaths;
 

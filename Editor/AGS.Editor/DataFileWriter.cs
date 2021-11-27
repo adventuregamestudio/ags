@@ -346,6 +346,12 @@ namespace AGS.Editor
             return success;
         }
 
+        /// <summary>
+        /// Builds a AGS pack file, using the list of assets and parameters.
+        /// Returns null on success and an error message on error.
+        /// Assets come in tuples, where the first string is the name this asset
+        /// is registered by, and the second is the actual filepath.
+        /// </summary>
         public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName, bool makeFileNameAssumptions)
         {
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;

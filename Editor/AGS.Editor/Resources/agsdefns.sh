@@ -2635,7 +2635,7 @@ builtin managed struct Character {
 
 builtin struct Game {
   /// Changes the active translation.
-  import static bool   ChangeTranslation(const string newTranslationFileName);
+  import static bool   ChangeTranslation(const string newName);
   /// Returns true the first time this command is called with this token.
   import static bool   DoOnceOnly(const string token);
   /// Gets the AGS Colour Number for the specified RGB colour.
@@ -2737,8 +2737,12 @@ builtin struct Game {
   import static readonly attribute int CameraCount;
 #endif
 #ifdef SCRIPT_API_v360
+  /// Changes the active translation.
+  import static bool   ChangeSpeechVox(const string newName);
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
+  /// Gets name of the currently active translation.
+  readonly import static attribute String SpeechVoxFilename;
 #endif
 };
 

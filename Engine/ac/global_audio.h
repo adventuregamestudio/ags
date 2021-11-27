@@ -11,12 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__GLOBALAUDIO_H
 #define __AGS_EE_AC__GLOBALAUDIO_H
+
+#include "speech.h"
 
 void    StopAmbientSound (int channel);
 void    PlayAmbientSound (int channel, int sndnum, int vol, int x, int y);
@@ -46,8 +44,8 @@ void    PlayMP3File (const char *filename);
 void    PlaySilentMIDI (int mnum);
 
 void    SetSpeechVolume(int newvol);
-void    SetVoiceMode (int newmod);
-int     GetVoiceMode ();
+void    SetVoiceMode(int newmod);
+int     GetVoiceMode();
 int     IsVoxAvailable();
 int     IsMusicVoxAvailable ();
 

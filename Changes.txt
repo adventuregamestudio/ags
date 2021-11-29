@@ -3,6 +3,7 @@ REVISION HISTORY
 VERSION 3.6.0, ???
 
 Editor:
+ - Editor requires .NET Framework 4.6 to run.
  - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
    "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
    original game's codepage.
@@ -14,6 +15,7 @@ Editor:
  - Added "TTF font adjustment" property to Fonts, as well as to General Settings where it serves
    as a project default for the new fonts. This property lets you choose between "no changes" and
    backward compatible TTF fixup meant to keep fonts made for AGS displayed as they were meant to.
+ - In the "Import TTF" dialog added a choice to import the size closest to the given pixel height.
  - Fonts now have Auto Outline Style and Auto Outline Thickness properties.
  - Fonts now have a readonly Family Name field, that lets user see the original name of a font
    they've imported (if available).
@@ -21,8 +23,13 @@ Editor:
    is activated. This is equivalent to the Character.SetIdleView script function.
  - Added zoom controls for the Sprite manager.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
+ - Support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added line numbers to the Dialog script editor.
  - Cursor's position in script is now displayed on the status bar.
+ - Default config is now saved also when the game is run in debug mode (F5). This ensures that
+   the test run is using the latest Default Setup, if the user's config has not been created yet.
+ - Editor no longer errors on empty translations when compiling the game.
+ - Editor now exports values of the string type Custom Properties to translations.
  - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
  - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
 
@@ -30,6 +37,7 @@ Compiler:
  - Removed 500-characters line limit.
 
 Script API:
+ - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
  - Added Object.ManualScaling and Object.Scaling.
  - Deprecated Object.IgnoreScaling (use Object.ManualScaling instead).
  - Object.SetView default loop & frame values are now 0 (was -1 which retained loop and frame
@@ -62,6 +70,7 @@ Script API:
    a mask type: 0 - none, 1 - hotspots, 2 - walkbehinds, 3 - walkable areas, 4 - regions. This
    command also works as a toggle switch, calling it with the same mask index will turn it off.
  - Debug(5, n) command that displayed character's walk paths now also works as a toggle switch.
+ - Added eKey constants for Alt keys.
 
 Engine:
  - New SDL2-based backend for graphics, audio and input.
@@ -93,6 +102,7 @@ Engine:
    non-blocking translucent overlays, allowing you to keep playing the game while they are on.
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
+ - Engine no longer bails out with error if the chosen translation cannot be loaded on startup.
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
@@ -553,6 +563,9 @@ Editor:
    individual SizeMultiplier property to Fonts.
  - Alphabetically sort audio clips in the drop lists.
  - Display audio clip length on the preview pane without starting playback.
+ - Now packages Audio and Speech files using extended pack format, allowing longer filenames;
+   This also removes a 4-digit limit on speech file numbers; was 1-9999 per character,
+   now up to 2 billion due to how engine handles these.
  - Sync variable type selector in Global Variables pane with the actual list of supported
    script types.
  - Added ThreadedAudio property to Default Setup.

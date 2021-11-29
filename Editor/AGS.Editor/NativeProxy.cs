@@ -300,24 +300,14 @@ namespace AGS.Editor
             _native.CompileScript(script, preProcessedData, game, messages);
         }
 
-        public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
-        {
-            _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
-        }
-
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)
         {
-            CreateDataFile(fileList, 0, exeFileName, false);
-        }
-
-        public void CreateVOXFile(string fileName, string[] fileList)
-        {
-            _native.CreateVOXFile(fileName, fileList);
+            DataFileWriter.MakeFlatDataFile(fileList, 0, exeFileName, false);
         }
 
         public void CreateTemplateFile(string templateFileName, string[] fileList)
         {
-            CreateDataFile(fileList, 0, templateFileName, false);
+            DataFileWriter.MakeDataFile(fileList, 0, templateFileName, false);
         }
 
         public GameTemplate LoadTemplateFile(string fileName)

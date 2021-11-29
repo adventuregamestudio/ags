@@ -11,23 +11,21 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
-
 #include <memory>
 #include <vector>
-
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
+#include "ac/speech.h"
+#include "ac/timer.h"
 #include "game/roomstruct.h"
 #include "game/viewport.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
 #include "util/string.h"
-#include "ac/timer.h"
 
 // Forward declaration
 namespace AGS
@@ -157,7 +155,8 @@ struct GameState {
     char  walkable_areas_on[MAX_WALK_AREAS+1];
     short screen_flipped;
     int   entered_at_x,entered_at_y, entered_edge;
-    int   want_speech;
+    bool  voice_avail; // whether voice-over is available
+    SpeechMode speech_mode; // speech mode (text, voice, or both)
     int   cant_skip_speech;
     int   script_timers[MAX_TIMERS];
     int   sound_volume,speech_volume;
@@ -165,7 +164,7 @@ struct GameState {
     char  key_skip_wait;
     int   swap_portrait_lastchar;
     int   swap_portrait_lastlastchar;
-    int   separate_music_lib;
+    bool  separate_music_lib;
     int   in_conversation;
     int   screen_tint;
     int   num_parsed_words;

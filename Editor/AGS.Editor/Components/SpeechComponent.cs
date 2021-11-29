@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -13,17 +14,19 @@ namespace AGS.Editor.Components
 {
     class SpeechComponent : BaseComponent
     {
-        public static readonly string SPEECH_DIRECTORY = "Speech";
-        private static readonly string PAMELA_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
-        private static readonly string PAPAGAYO_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.dat";
-        private static readonly string OGG_VORBIS_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.ogg";
-        private static readonly string MP3_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.mp3";
-        private static readonly string WAVEFORM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.wav";
+        public const string SPEECH_DIRECTORY = "Speech";
+        private const string PAMELA_FILE_FILTER = "*.pam";
+        private const string PAPAGAYO_FILE_FILTER = "*.dat";
+        private const string OGG_VORBIS_FILE_FILTER = "*.ogg";
+        private const string MP3_FILE_FILTER = "*.mp3";
+        private const string WAVEFORM_FILE_FILTER = "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private static readonly string SPEECH_VOX_FILE_NAME = "speech.vox";
+        private const string SPEECH_VOX_FILE_NAME = "speech.vox";
 
-        private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
-		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
+        // Source file timestamp records: keep timestamps of the source files used in speech.vox compilation;
+        // used to test whether recompilation is necessary or may be skipped.
+        private Dictionary<string, Dictionary<string, DateTime>> _speechVoxStatus = new Dictionary<string, Dictionary<string, DateTime>>();
+        private Dictionary<string, Dictionary<string, DateTime>> _pamFileStatus = new Dictionary<string, Dictionary<string, DateTime>>();
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
@@ -47,28 +50,71 @@ namespace AGS.Editor.Components
 
         private void _agsEditor_ExtraCompilationStep(CompileMessages errors)
         {
-			string[] pamFileList = ConstructFileListForSyncData();
-
-			if (DoesTargetFileNeedRebuild(LIP_SYNC_DATA_OUTPUT, pamFileList, _pamFileStatus))
-			{
-				CompileLipSyncFiles(errors);
-
-				UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
-			}
+            MakeOneLipSyncDat(SPEECH_DIRECTORY, LIP_SYNC_DATA_OUTPUT, errors);
+            // Also try compile corresponding lipsync dat for each top-level subfolder
+            // inside the main Speech folder.
+            foreach (string dir in Directory.GetDirectories(SPEECH_DIRECTORY))
+            {
+                MakeOneLipSyncDat(dir, LIP_SYNC_DATA_OUTPUT, errors);
+            }
         }
 
         private void _agsEditor_ExtraOutputCreationStep(bool miniExeForDebug)
         {
             if (miniExeForDebug)
                 return;
-            string[] speechFileList = ConstructFileListForSpeechVOX();
-            RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, SPEECH_VOX_FILE_NAME)),
-                speechFileList, _speechVoxStatus);
+            MakeOneVOX(SPEECH_DIRECTORY, SPEECH_VOX_FILE_NAME);
+            // For each top-level subfolder inside the main Speech folder,
+            // make a VOX called "sp_[name].vox", where [name] is the lowercase subfolder name.
+            var subdirs = Directory.GetDirectories(SPEECH_DIRECTORY);
+            foreach (string dir in subdirs)
+            {
+                string outFileName = string.Format("sp_{0}.vox", dir.Substring(SPEECH_DIRECTORY.Length + 1).ToLower());
+                MakeOneVOX(dir, outFileName);
+            }
         }
 
         public override string ComponentID
         {
             get { return ComponentIDs.Speech; }
+        }
+
+        /// <summary>
+        /// Compiles one lipsync dat file from the collection of Pamela files (*.pam).
+        /// </summary>
+        private void MakeOneLipSyncDat(string sourceDir, string outputName, CompileMessages errors)
+        {
+            string[] pamFileList = ConstructFileListForSyncData(sourceDir);
+            string key = sourceDir.ToLower();
+            if (!_pamFileStatus.ContainsKey(key))
+                _pamFileStatus.Add(key, new Dictionary<string, DateTime>());
+            Dictionary<string, DateTime> fileTimes = _pamFileStatus[key];
+
+            string datFileName = Path.Combine(sourceDir, outputName);
+            if (DoesTargetFileNeedRebuild(datFileName, pamFileList, fileTimes))
+            {
+                CompileLipSyncFiles(sourceDir, datFileName, errors);
+                UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, fileTimes);
+            }
+        }
+
+        /// <summary>
+        /// Compiles one VOX file from the collection of voice-over clips and lipsync dat files.
+        /// </summary>
+        private void MakeOneVOX(string sourceDir, string outputName)
+        {
+            string[] speechFileList = ConstructFileListForSpeechVOX(sourceDir);
+            string key = sourceDir.ToLower();
+            if (!_speechVoxStatus.ContainsKey(key))
+                _speechVoxStatus.Add(key, new Dictionary<string, DateTime>());
+            Dictionary<string, DateTime> fileTimes = _speechVoxStatus[key];
+
+            string voxFileName = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, outputName));
+            if (DoesTargetFileNeedRebuild(voxFileName, speechFileList, fileTimes))
+            {
+                RebuildVOXFile(voxFileName, speechFileList);
+                UpdateVOXFileStatusWithCurrentFileTimes(speechFileList, fileTimes);
+            }
         }
 
         private int FindFrameNumberForPhoneme(string phonemeCode)
@@ -208,28 +254,28 @@ namespace AGS.Editor.Components
             return syncDataForThisFile;
         }
 
-        private void CompileLipSyncFiles(CompileMessages errors)
+        private void CompileLipSyncFiles(string sourceDir, string outputName, CompileMessages errors)
         {
             List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAMELA_FILE_FILTER))
+            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAMELA_FILE_FILTER))
             {
                 lipSyncDataLines.Add(CompilePamelaFile(fileName, errors));
             }
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAPAGAYO_FILE_FILTER))
+            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAPAGAYO_FILE_FILTER))
             {
                 lipSyncDataLines.Add(CompilePapagayoFile(fileName, errors));
             }
 
-            if (File.Exists(LIP_SYNC_DATA_OUTPUT))
+            if (File.Exists(outputName))
             {
-                File.Delete(LIP_SYNC_DATA_OUTPUT);
+                File.Delete(outputName);
             }
 
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
-                BinaryWriter bw = new BinaryWriter(new FileStream(LIP_SYNC_DATA_OUTPUT, FileMode.Create, FileAccess.Write));
+                BinaryWriter bw = new BinaryWriter(new FileStream(outputName, FileMode.Create, FileAccess.Write));
                 bw.Write((int)4);
                 bw.Write(lipSyncDataLines.Count);
 
@@ -268,21 +314,21 @@ namespace AGS.Editor.Components
             return rawdatas;
         }
 
-        private string[] ConstructFileListForSpeechVOX()
+        private string[] ConstructFileListForSpeechVOX(string sourceDir)
         {
             List<string> files = new List<string>();
-            Utilities.AddAllMatchingFiles(files, LIP_SYNC_DATA_OUTPUT);
-            Utilities.AddAllMatchingFiles(files, MP3_FILE_FILTER);
-            Utilities.AddAllMatchingFiles(files, OGG_VORBIS_FILE_FILTER);
-            Utilities.AddAllMatchingFiles(files, WAVEFORM_FILE_FILTER);
+            Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, MP3_FILE_FILTER, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, OGG_VORBIS_FILE_FILTER, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, WAVEFORM_FILE_FILTER, true);
             return files.ToArray();
         }
 
-		private string[] ConstructFileListForSyncData()
+		private string[] ConstructFileListForSyncData(string sourceDir)
 		{
 			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, PAMELA_FILE_FILTER);
-			Utilities.AddAllMatchingFiles(files, PAPAGAYO_FILE_FILTER);
+			Utilities.AddAllMatchingFiles(files, sourceDir, PAMELA_FILE_FILTER, true);
+			Utilities.AddAllMatchingFiles(files, sourceDir, PAPAGAYO_FILE_FILTER, true);
 			return files.ToArray();
 		}
 
@@ -324,22 +370,22 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void RebuildVOXFileIfRequired(string voxFileName, string[] filesOnDisk, Dictionary<string,DateTime> sourceFileTimes)
+		private void RebuildVOXFile(string voxFileName, string[] filesOnDisk)
 		{
-			if (DoesTargetFileNeedRebuild(voxFileName, filesOnDisk, sourceFileTimes))
-			{
-				if (File.Exists(voxFileName))
-				{
-					File.Delete(voxFileName);
-				}
-				if (filesOnDisk.Length > 0)
-				{
-					Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
-				}
-				UpdateVOXFileStatusWithCurrentFileTimes(filesOnDisk, sourceFileTimes);
-			}
-
-		}
+            if (File.Exists(voxFileName))
+            {
+                File.Delete(voxFileName);
+            }
+            if (filesOnDisk.Length > 0)
+            {
+                // Register speech assets under names = relative paths inside a Speech folder;
+                // e.g. Speech/cEgo1.ogg => cEgo1.ogg;
+                //      Speech/French/cEgo1.ogg => French/cEgo1.ogg;
+                var assets = filesOnDisk.Select(
+                    f => new Tuple<string, string>(f.Substring(SPEECH_DIRECTORY.Length + 1), f)).ToArray();
+                DataFileWriter.MakeDataFile(assets, 0, voxFileName, false);
+            }
+        }
 
         public override void FromXml(XmlNode node)
         {
@@ -356,25 +402,55 @@ namespace AGS.Editor.Components
 			WriteFileTimes(writer, "PamFiles", _pamFileStatus);
         }
 
-        private void ReadFileTimes(XmlNode node, string elementName, Dictionary<string, DateTime> fileStatuses)
+        /// <summary>
+        /// Read a collection of file time dictionaries.
+        /// </summary>
+        private void ReadFileTimes(XmlNode node, string elementName, Dictionary<string, Dictionary<string, DateTime>> fileStatuses)
         {
             fileStatuses.Clear();
-
             XmlNode mainNode = node.SelectSingleNode(elementName);
-            if (mainNode != null)
+            if (mainNode == null) return;
+            // The main node suppose to contain list of sub-nodes defining source file folders
+            foreach (XmlNode child in mainNode.ChildNodes)
             {
-                foreach (XmlNode child in mainNode.ChildNodes)
-                {
-					string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
-					DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-                    fileStatuses.Add(SerializeUtils.GetAttributeString(child, "Name"), fileTime);
-                }
+                if (child.Name != "Folder") continue;
+                string folderName = SerializeUtils.GetAttributeString(child, "Name");
+                var folderFileStatuses = new Dictionary<string, DateTime>();
+                ReadFileTimes(child, folderName, folderFileStatuses);
+                fileStatuses.Add(folderName, folderFileStatuses);
             }
+        }
+
+        /// <summary>
+        /// Read a single file time dictionary.
+        /// </summary>
+        private void ReadFileTimes(XmlNode mainNode, string elementName, Dictionary<string, DateTime> fileStatuses)
+        {
+            fileStatuses.Clear();
+            foreach (XmlNode child in mainNode.ChildNodes)
+            {
+                if (child.Name != "File") continue;
+                string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
+                DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                fileStatuses.Add(SerializeUtils.GetAttributeString(child, "Name"), fileTime);
+            }
+        }
+
+        private void WriteFileTimes(XmlTextWriter writer, string elementName, Dictionary<string, Dictionary<string, DateTime>> fileStatuses)
+        {
+            writer.WriteStartElement(elementName);
+            // Write as many "folder" sub-elements as there are dictionaries in the collection
+            foreach (string folderName in fileStatuses.Keys)
+            {
+                WriteFileTimes(writer, folderName, fileStatuses[folderName]);
+            }
+            writer.WriteEndElement();
         }
 
         private void WriteFileTimes(XmlTextWriter writer, string elementName, Dictionary<string, DateTime> fileStatuses)
         {
-            writer.WriteStartElement(elementName);
+            writer.WriteStartElement("Folder");
+            writer.WriteAttributeString("Name", elementName);
             foreach (string file in fileStatuses.Keys)
             {
                 writer.WriteStartElement("File");

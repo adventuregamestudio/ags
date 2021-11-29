@@ -11,20 +11,18 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
 #pragma unmanaged
 #endif
 
+#include "util/compress.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
-#include "util/compress.h"
-#include "util/file.h"
 #include "util/lzw.h"
-#include "util/stream.h"
+#include "util/memorystream.h"
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"
 #endif
@@ -333,47 +331,58 @@ Common::Bitmap *load_rle_bitmap8(Stream *in, RGB (*pal)[256])
 // LZW
 //-----------------------------------------------------------------------------
 
-const char *lztempfnm = "~aclzw.tmp";
-
-void save_lzw(Stream *out, const Bitmap *bmpp, const RGB *pall)
+void save_lzw(Stream *out, const Bitmap *bmpp, const RGB (*pal)[256])
 {
-  // First write original bitmap into temporary file
-  Stream *lz_temp_s = File::OpenFileCI(lztempfnm, kFile_CreateAlways, kFile_Write);
-  lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
-  lz_temp_s->WriteInt32(bmpp->GetHeight());
-  lz_temp_s->WriteArray(bmpp->GetData(), bmpp->GetLineLength(), bmpp->GetHeight());
-  delete lz_temp_s;
+  // First write original bitmap's info and data into the memory buffer
+  // NOTE: we must do this purely for backward compatibility with old room formats:
+  // because they also included bmp width and height into compressed data!
+  std::vector<uint8_t> membuf;
+  {
+    MemoryStream memws(membuf, kStream_Write);
+    int w = bmpp->GetWidth(), h = bmpp->GetHeight(), bpp = bmpp->GetBPP();
+    memws.WriteInt32(w * bpp); // stride
+    memws.WriteInt32(h);
+    switch (bpp)
+    {
+    case 1: memws.Write(bmpp->GetData(), w * h * bpp); break;
+    case 2: memws.WriteArrayOfInt16(reinterpret_cast<const int16_t*>(bmpp->GetData()), w * h); break;
+    case 4: memws.WriteArrayOfInt32(reinterpret_cast<const int32_t*>(bmpp->GetData()), w * h); break;
+    default: assert(0); break;
+    }
+  }
 
-  // Now open same file for reading, and begin writing compressed data into required output stream
-  lz_temp_s = File::OpenFileCI(lztempfnm);
-  soff_t temp_sz = lz_temp_s->GetLength();
-  out->WriteArray(&pall[0], sizeof(RGB), 256);
-  out->WriteInt32(temp_sz);
-  soff_t gobacto = out->GetPosition();
+  // Open same buffer for reading, and begin writing compressed data into the output
+  MemoryStream mem_in(membuf);
+  // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+  if (pal)
+    out->WriteArray(*pal, sizeof(RGB), 256);
+  else
+    out->WriteByteCount(0, sizeof(RGB) * 256);
+  out->WriteInt32((uint32_t)mem_in.GetLength());
 
   // reserve space for compressed size
-  out->WriteInt32(temp_sz);
-  lzwcompress(lz_temp_s, out);
+  soff_t cmpsz_at = out->GetPosition();
+  out->WriteInt32(0);
+  lzwcompress(&mem_in, out);
   soff_t toret = out->GetPosition();
-  out->Seek(gobacto, kSeekBegin);
-  soff_t compressed_sz = (toret - gobacto) - 4;
-  out->WriteInt32(compressed_sz);      // write compressed size
-
-  // Delete temp file
-  delete lz_temp_s;
-  File::DeleteFile(lztempfnm);
-
-  // Seek back to the end of the output stream
+  out->Seek(cmpsz_at, kSeekBegin);
+  soff_t compressed_sz = (toret - cmpsz_at) - sizeof(uint32_t);
+  out->WriteInt32(compressed_sz); // write compressed size
+  // seek back to the end of the output stream
   out->Seek(toret, kSeekBegin);
 }
 
-void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, RGB *pall) {
+void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, RGB (*pal)[256]) {
   soff_t        uncompsiz;
   int           *loptr;
   unsigned char *membuffer;
   int           arin;
 
-  in->Read(&pall[0], sizeof(RGB)*256);
+  // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+  if (pal)
+    in->Read(*pal, sizeof(RGB) * 256);
+  else
+    in->Seek(sizeof(RGB) * 256);
   maxsize = in->ReadInt32();
   uncompsiz = in->ReadInt32();
 

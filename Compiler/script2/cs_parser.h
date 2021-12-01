@@ -544,7 +544,7 @@ private:
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
-    void ParseFuncdecl_DoesBodyFollow(bool &body_follows);
+    bool ParseFuncdecl_DoesBodyFollow();
 
     // We're in a func decl. Check whether the declaration is valid.
     void ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check);
@@ -553,7 +553,7 @@ private:
 
     // Parse a function declaration.
     // We're behind the opening '(', and any first extender parameter has already be resolved.
-    void ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
+    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. '-1' if no operator was found

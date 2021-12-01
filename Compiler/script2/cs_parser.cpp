@@ -187,6 +187,7 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 #include <fstream>
 #include <cmath>
 #include <climits>
+#include <memory>
 
 #include "util/string.h"
 
@@ -1575,9 +1576,6 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     _fim.SetFuncCallpoint(name_of_func, imports_idx);
 }
 
-// We're at something like "int foo(", directly before the "("
-// This might or might not be within a struct defn
-// An extender func param, if any, has already been resolved
 void AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows)
 {
     // __Builtin_
@@ -1620,17 +1618,17 @@ void AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, 
     }
 
     // Stash away the known info about the function so that we can check whether this declaration is compatible
-    SymbolTableEntry::FunctionDesc *known_info = _sym[name_of_func].FunctionD;
+    std::shared_ptr<SymbolTableEntry::FunctionDesc> known_info{ _sym[name_of_func].FunctionD };
     _sym[name_of_func].FunctionD = nullptr;
     size_t const known_declared = _sym.GetDeclared(name_of_func);
 
     ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
     ParseFuncdecl_Paramlist(name_of_func, body_follows);
     
-    ParseFuncdecl_CheckThatKnownInfoMatches(_sym.GetName(name_of_func), _sym[name_of_func].FunctionD, known_info, known_declared, body_follows);
+    ParseFuncdecl_CheckThatKnownInfoMatches(_sym.GetName(name_of_func), _sym[name_of_func].FunctionD, known_info.get(), known_declared, body_follows);
     
     // copy the default values from the function prototype into the symbol table
-    if (known_info)
+    if (known_info.get())
     {
         auto &func_parameters = _sym[name_of_func].FunctionD->Parameters;
         auto const &known_parameters = known_info->Parameters;
@@ -1638,10 +1636,8 @@ void AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, 
             func_parameters[parameters_idx].Default = known_parameters[parameters_idx].Default;
     }
 
-    delete known_info;
-
     ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
-    
+
     _sym.SetDeclared(name_of_func, declaration_start);
 }
 
@@ -4111,7 +4107,7 @@ void AGS::Parser::ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartyp
     return ParseConstantDefn(tqs, vartype, vname);
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype const wanted_vartype, void *&initial_val_ptr)
+void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype const wanted_vartype, std::vector<char> &initial_val)
 {
     ValueLocation vloc;
     ScopeType scope_type;
@@ -4130,29 +4126,25 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype co
             _sym.GetName(vartype).c_str());
     
     size_t const wanted_size = _sym.GetSize(wanted_vartype);
-    initial_val_ptr = malloc(sizeof(wanted_size));
-    if (!initial_val_ptr)
-        UserError("Out of memory");
-
+    initial_val.resize(wanted_size);
     switch (wanted_size)
     {
     default:
         UserError("Cannot give an initial value to a variable of type '%s' here", _sym.GetName(wanted_vartype));
         return;
     case 1:
-        (static_cast<int8_t *>(initial_val_ptr))[0] = litval;
+        initial_val[0] = litval;
         return;
     case 2:
-        (static_cast<int16_t *>(initial_val_ptr))[0] = litval;
+        (reinterpret_cast<int16_t *> (&initial_val[0]))[0] = litval;
         return;
     case 4:
-        (static_cast<int32_t *>(initial_val_ptr))[0] = litval;
+        (reinterpret_cast<int32_t *> (&initial_val[0]))[0] = litval;
         return;
     }
-
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr)
+void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val)
 {
     Symbol string_lit = _src.GetNext();
     if (_sym.IsConstant(string_lit))
@@ -4164,24 +4156,18 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val
 
     // The scanner has put the constant string into the strings table. That's where we must find and get it.
     std::string const lit_value = &(_scrip.strings[_sym[string_lit].LiteralD->Value]);
-
+    
     if (lit_value.length() >= STRINGBUFFER_LENGTH)
         UserError(
             "Initializer string is too long (max. chars allowed: %d)",
             STRINGBUFFER_LENGTH - 1);
-    
-	initial_val_ptr = malloc(STRINGBUFFER_LENGTH);
-    if (!initial_val_ptr)
-        UserError("Out of memory");
-    char *init_ptr = static_cast<char *>(initial_val_ptr);
-    // Unfortunately, vanilla C++ does not provide for strncpy_s(), so we cannot use it.
-    std::strncpy(init_ptr, lit_value.c_str(), STRINGBUFFER_LENGTH);
-    init_ptr[STRINGBUFFER_LENGTH - 1] = '\0';
+
+    initial_val.assign(lit_value.begin(), lit_value.end());
+    initial_val.push_back('\0');
 }
 
-void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr)
+void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val)
 {
-    initial_val_ptr = nullptr;
     _src.GetNext(); // Eat '='
 
     Vartype const vartype = _sym.GetVartype(varname);
@@ -4194,10 +4180,10 @@ void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, void *&initi
         UserError("'%s' is an array and cannot be initialized here", _sym.GetName(varname).c_str());
 
     if (kKW_String == vartype)
-        return ParseVardecl_InitialValAssignment_OldString(initial_val_ptr);
+        return ParseVardecl_InitialValAssignment_OldString(initial_val);
 
     if (_sym.IsAnyIntegerVartype(vartype) || kKW_Float == vartype)
-        return ParseVardecl_InitialValAssignment_IntVartypeOrFloat(vartype, initial_val_ptr);
+        return ParseVardecl_InitialValAssignment_IntOrFloatVartype(vartype, initial_val);
 
     UserError(
         "Variable '%s' has type '%s' and cannot be initialized here",
@@ -4316,15 +4302,17 @@ void AGS::Parser::ParseVardecl_Import(Symbol var_name)
     _sym[var_name].VariableD->Offset = static_cast<size_t>(import_offset);
 }
 
-void AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype, void *&initial_val_ptr)
+void AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype)
 {
-    if (kKW_Assign == _src.PeekNext())
-		ParseVardecl_InitialValAssignment(var_name, initial_val_ptr);
+    size_t const vartype_size = _sym.GetSize(vartype);
+    std::vector<char> initial_val(vartype_size + 1, '\0');
 
+    if (kKW_Assign == _src.PeekNext())
+        ParseVardecl_InitialValAssignment(var_name, initial_val);
+    
     SymbolTableEntry &entry = _sym[var_name];
     entry.VariableD->Vartype = vartype;
-    size_t const var_size = _sym.GetSize(vartype);
-    int const global_offset = _scrip.AddGlobal(var_size, initial_val_ptr);
+    int const global_offset = _scrip.AddGlobal(vartype_size, &initial_val[0]);
     if (global_offset < 0)
         InternalError("Cannot allocate global variable");
 
@@ -4431,17 +4419,10 @@ void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scop
     switch (scope_type)
     {
     default:
-        InternalError("Wrong scope type");
-        return; // Can't be reached
+        return InternalError("Wrong scope type");
 
     case ScT::kGlobal:
-    {
-        void *initial_val_ptr = nullptr;
-        ParseVardecl_Global(var_name, vartype, initial_val_ptr);
-        if (initial_val_ptr)
-            free(initial_val_ptr);
-        return;
-    }
+        return ParseVardecl_Global(var_name, vartype);
 
     case ScT::kImport:
         return ParseVardecl_Import(var_name);
@@ -4784,16 +4765,15 @@ void AGS::Parser::ParseStruct_CheckComponentVartype(Symbol stname, Vartype varty
 void AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype)
 {
     if (tqs[TQ::kWriteprotected])
-        UserError("Cannot apply 'writeprotected' to function declaration");
+        UserError("Cannot apply 'writeprotected' to this function declaration");
 
     size_t const declaration_start = _src.GetCursor();
     _src.GetNext(); // Eat '('
 
     bool body_follows;
     ParseFuncdecl(declaration_start, tqs, vartype, struct_of_func, name_of_func, false, body_follows);
-    if (body_follows)
-		UserError("Cannot code a function body within a struct definition");
 
+    // Can't code a body behind the function, so the next symbol must be ';'
     return Expect(kKW_Semicolon, _src.PeekNext());
 }
 
@@ -5326,7 +5306,7 @@ void AGS::Parser::ParseEnum_Name2Symtable(Symbol enum_name)
 void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     size_t const start_of_enum_decl = _src.GetCursor();
-    if (kKW_NoSymbol !=  name_of_current_func)
+    if (kKW_NoSymbol != name_of_current_func)
         UserError("Cannot define an enum type within a function");
     if (tqs[TQ::kBuiltin])
         UserError("Can only use 'builtin' when declaring a struct");
@@ -5334,9 +5314,9 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
     // Get name of the enum, enter it into the symbol table
     Symbol enum_name = _src.GetNext();
     ParseEnum_Name2Symtable(enum_name);
-    
+
     Expect(kKW_OpenBrace, _src.GetNext());
-  
+
     CodeCell current_constant_value = 0;
 
     while (true)
@@ -5357,7 +5337,7 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
 
         Symbol const punctuation = _src.PeekNext();
         Expect(SymbolList{ kKW_Comma, kKW_Assign, kKW_CloseBrace }, punctuation);
-        
+
         if (kKW_Assign == punctuation)
         {
             // the value of this entry is specified explicitly
@@ -5366,16 +5346,16 @@ void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func
         else
         {
             if (std::numeric_limits<CodeCell>::max() == current_constant_value)
-				UserError(
+                UserError(
                     "Cannot assign an enum value higher that %d to %s",
                     std::numeric_limits<CodeCell>::max(),
                     _sym.GetName(item_name).c_str());
-			current_constant_value++;
+            current_constant_value++;
         }
 
         // Enter this enum item as a constant int into the _sym table
         ParseEnum_Item2Symtable(enum_name, item_name, current_constant_value);
-        
+
         Symbol const comma_or_brace = _src.GetNext();
         Expect(SymbolList{ kKW_Comma, kKW_CloseBrace }, comma_or_brace);
         if (kKW_Comma == comma_or_brace)
@@ -5532,7 +5512,7 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
     // func has been either declared within the struct definition or as extender.
 
     ParseFuncdecl(declaration_start, tqs, vartype, struct_name, func_name, false, body_follows);
-            
+
     if (!body_follows)
         return;
 
@@ -5716,6 +5696,7 @@ void AGS::Parser::ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &st
         }
         else if (_sym.IsDynarrayVartype(vartype) || no_loop_check) // e.g., int [] zonk;
         {
+            // Those are only allowed with functions
             UserError("Expected '('");
         }
         else 

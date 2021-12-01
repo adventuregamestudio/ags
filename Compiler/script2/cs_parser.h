@@ -554,10 +554,8 @@ private:
 
     void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
-    // We're at something like "int foo(", directly before the "("
-    // If this is an extender function, we've already resolved that.
-    // Parse the function declaration
-    // This might or might not be within a struct defn
+    // Parse a function declaration.
+    // We're behind the opening '(', and any first extender parameter has already be resolved.
     void ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
@@ -805,12 +803,12 @@ private:
     // 'const int foo = 77;' or similar
     void ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol var_name);
 
-    void ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype var, void *&initial_val_ptr);
+    void ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype var, std::vector<char> &initial_val);
 
-    void ParseVardecl_InitialValAssignment_OldString(void *&initial_val_ptr);
+    void ParseVardecl_InitialValAssignment_OldString(std::vector<char> &initial_val);
 
-    // if initial_value is non-null, return with 'malloc'ed memory that must be 'free'd
-    void ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
+    // Parse the assignment of an initial value to a variable. 
+    void ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val);
 
     // Move variable information into the symbol table
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
@@ -823,7 +821,7 @@ private:
     // there was a forward declaration -- check that the real declaration matches it
     void ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
 
-    void ParseVardecl_Global(Symbol var_name, Vartype vartype, void *&initial_val_ptr);
+    void ParseVardecl_Global(Symbol var_name, Vartype vartype);
 
     void ParseVardecl_Import(Symbol var_name);
 
@@ -892,7 +890,7 @@ private:
 
     void ParseEnum_Name2Symtable(Symbol enum_name);
 
-    // We parse enum eEnumName { value1, value2 };
+    // Parse an enum declaration, possibly followed by vars of this new enum
     void ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);
 
     void ParseExport_Function(Symbol func);

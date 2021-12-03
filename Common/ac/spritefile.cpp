@@ -315,7 +315,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
 }
 
 HError SpriteFile::LoadSpriteData(sprkey_t index, Size &metric, int &bpp,
-    std::vector<char> &data)
+    std::vector<uint8_t> &data)
 {
     metric = Size();
     bpp = 0;
@@ -391,7 +391,7 @@ int SaveSpriteFile(const String &save_to_file,
     writer.Begin(compressOutput, lastslot);
 
     std::unique_ptr<Bitmap> temp_bmp; // for disposing temp sprites
-    std::vector<char> membuf; // for loading raw sprite data
+    std::vector<uint8_t> membuf; // for loading raw sprite data
 
     const bool diff_compress =
         read_from_file && read_from_file->IsFileCompressed() != compressOutput;
@@ -431,7 +431,7 @@ int SaveSpriteFile(const String &save_to_file,
             writer.WriteEmptySlot();
             continue; // empty slot
         }
-        writer.WriteSpriteData(membuf, metric.Width, metric.Height, bpp);
+        writer.WriteSpriteData(&membuf[0], membuf.size(), metric.Width, metric.Height, bpp);
     }
     writer.Finalize();
 
@@ -502,12 +502,12 @@ void SpriteFileWriter::WriteBitmap(Bitmap *image)
     {
         MemoryStream mems(_membuf, kStream_Write);
         rle_compress(image, &mems);
-        WriteSpriteData(_membuf, w, h, bpp);
+        WriteSpriteData(&_membuf[0], _membuf.size(), w, h, bpp);
         _membuf.clear();
     }
     else
     {
-        WriteSpriteData((const char*)image->GetData(), w * h * bpp, w, h, bpp);
+        WriteSpriteData(image->GetData(), w * h * bpp, w, h, bpp);
     }
 }
 
@@ -521,7 +521,7 @@ void SpriteFileWriter::WriteEmptySlot()
     _index.Heights.push_back(0);
 }
 
-void SpriteFileWriter::WriteSpriteData(const char *pbuf, size_t len,
+void SpriteFileWriter::WriteSpriteData(const uint8_t *pbuf, size_t len,
     int w, int h, int bpp)
 {
     if (!_out) return;

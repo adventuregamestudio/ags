@@ -45,8 +45,6 @@ extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern IGraphicsDriver *gfxDriver;
 
-int convert_16bit_bgr = 0;
-
 // Convert guis position and size to proper game resolution.
 // Necessary for pre 3.1.0 games only to sync with modern engine.
 void convert_gui_to_game_resolution(GameDataVersion filever)
@@ -196,18 +194,6 @@ void engine_setup_color_conversions(int coldepth)
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
 
-    // Most cards do 5-6-5 RGB, which is the format the files are saved in
-    // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
-    if ((coldepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
-    {
-        convert_16bit_bgr = 1;
-        if (_rgb_r_shift_16 == 10) {
-            // some very old graphics cards lie about being 16-bit when they
-            // are in fact 15-bit ... get around this
-            _places_r = 3;
-            _places_g = 3;
-        }
-    }
     if (coldepth > 16)
     {
         // when we're using 32-bit colour, it converts hi-color images

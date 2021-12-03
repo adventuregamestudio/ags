@@ -47,7 +47,6 @@ extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 
-extern int convert_16bit_bgr;
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
 extern int displayed_room, starting_room;
@@ -63,10 +62,10 @@ String GetRuntimeInfo()
     String runtimeInfo = String::FromFormat(
         "Adventure Game Studio run-time engine[ACI version %s"
         "[Game resolution %d x %d (%d-bit)"
-        "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
+        "[Running %d x %d at %d-bit%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
         EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
-        mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
+        mode.Width, mode.Height, mode.ColorDepth,
         mode.IsWindowed() ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),

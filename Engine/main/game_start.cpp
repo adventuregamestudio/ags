@@ -48,7 +48,6 @@ extern const char *loadSaveGameOnStartup;
 extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
 extern CharacterInfo*playerchar;
-extern int convert_16bit_bgr;
 
 void start_game_init_editor_debugging()
 {

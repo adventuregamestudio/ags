@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
     // Depending on settings we write either directly into the new room file,
     // or into the temp buffer which we then use to overwrite existing room
     std::unique_ptr<Stream> room_out;
-    std::vector<char> temp_data;
+    std::vector<uint8_t> temp_data;
     if (out_roomfile)
     {
         room_out.reset(File::CreateFile(out_roomfile));

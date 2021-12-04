@@ -54,7 +54,7 @@ const char *IniFileText2 = ""
 
 TEST(IniFile, ReadAndQuery) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
@@ -136,7 +136,7 @@ TEST(IniFile, ReadAndQuery) {
 
 TEST(IniFile, ReadAndModify) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
@@ -216,7 +216,7 @@ TEST(IniFile, ReadAndModify) {
 
 TEST(IniFile, ReadKeyValueTree) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
@@ -282,7 +282,7 @@ TEST(IniFile, ReadKeyValueTree) {
 
 TEST(IniFile, WriteKeyValueTree) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     ConfigTree tree1;
     ConfigTree tree2;
@@ -312,7 +312,7 @@ TEST(IniFile, WriteKeyValueTree) {
 
 TEST(IniFile, MergeTreeWithFile) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data

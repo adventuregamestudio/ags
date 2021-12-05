@@ -38,18 +38,18 @@ using AGS::Common::String;
 // Allegro 4.4 source under "src/x/xwin.c".
 #include "icon.xpm"
 void* allegro_icon = icon_xpm;
-String CommonDataDirectory;
-String UserDataDirectory;
+FSLocation CommonDataDirectory;
+FSLocation UserDataDirectory;
 
 struct AGSLinux : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
-  const char *GetAllUsersDataDirectory() override;
-  const char *GetUserSavedgamesDirectory() override;
-  const char *GetUserConfigDirectory() override;
-  const char *GetUserGlobalConfigDirectory() override;
-  const char *GetAppOutputDirectory() override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetUserConfigDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
   const char* GetNoMouseErrorString() override;
   const char* GetAllegroFailUserHint() override;
@@ -80,65 +80,53 @@ void AGSLinux::DisplayAlert(const char *text, ...) {
     fprintf(stdout, "%s\n", displbuf);
 }
 
-size_t BuildXDGPath(char *destPath, size_t destSize)
+static FSLocation BuildXDGPath()
 {
   // Check to see if XDG_DATA_HOME is set in the enviroment
   const char* home_dir = getenv("XDG_DATA_HOME");
-  size_t l = 0;
   if (home_dir)
-  {
-    l = snprintf(destPath, destSize, "%s", home_dir);
-  }
-  else
-  {
-    // No evironment variable, so we fall back to home dir in /etc/passwd
-    struct passwd *p = getpwuid(getuid());
-    l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
-    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
-      return 0;
-    l += snprintf(destPath + l, destSize - l, "/share");
-    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
-      return 0;
-  }
-  return l;
+    return FSLocation(home_dir);
+  // No evironment variable, so we fall back to home dir in /etc/passwd
+  struct passwd *p = getpwuid(getuid());
+  if (p)
+    return FSLocation(p->pw_dir).Concat(".local/share");
+  return FSLocation();
 }
 
 void DetermineDataDirectories()
 {
-  if (!UserDataDirectory.IsEmpty())
+  if (UserDataDirectory.IsValid())
     return;
-  char xdg_path[256];
-  if (BuildXDGPath(xdg_path, sizeof(xdg_path)) == 0)
-    sprintf(xdg_path, "%s", "/tmp");
-  UserDataDirectory.Format("%s/ags", xdg_path);
-  mkdir(UserDataDirectory.GetCStr(), 0755);
-  CommonDataDirectory.Format("%s/ags-common", xdg_path);
-  mkdir(CommonDataDirectory.GetCStr(), 0755);
+  FSLocation fsloc = BuildXDGPath();
+  if (!fsloc.IsValid())
+    fsloc = FSLocation("/tmp");
+  UserDataDirectory = fsloc.Concat("ags");
+  CommonDataDirectory = fsloc.Concat("ags-common");
 }
 
-const char *AGSLinux::GetAllUsersDataDirectory()
+FSLocation AGSLinux::GetAllUsersDataDirectory()
 {
   DetermineDataDirectories();
   return CommonDataDirectory;
 }
 
-const char *AGSLinux::GetUserSavedgamesDirectory()
+FSLocation AGSLinux::GetUserSavedgamesDirectory()
 {
   DetermineDataDirectories();
   return UserDataDirectory;
 }
 
-const char *AGSLinux::GetUserConfigDirectory()
+FSLocation AGSLinux::GetUserConfigDirectory()
 {
   return GetUserSavedgamesDirectory();
 }
 
-const char *AGSLinux::GetUserGlobalConfigDirectory()
+FSLocation AGSLinux::GetUserGlobalConfigDirectory()
 {
   return GetUserSavedgamesDirectory();
 }
 
-const char *AGSLinux::GetAppOutputDirectory()
+FSLocation AGSLinux::GetAppOutputDirectory()
 {
   DetermineDataDirectories();
   return UserDataDirectory;

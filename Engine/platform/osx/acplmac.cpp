@@ -36,7 +36,7 @@ void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
 //bool PlayMovie(char const *name, int skipType);
 
 static char libraryApplicationSupport[PATH_MAX];
-static char commonDataPath[PATH_MAX];
+static FSLocation commonDataPath;
 
 struct AGSMac : AGSPlatformDriver {
   AGSMac();
@@ -51,10 +51,10 @@ struct AGSMac : AGSPlatformDriver {
   virtual void SetGameWindowIcon() override;
   virtual void ShutdownCDPlayer() override;
     
-  virtual const char *GetUserSavedgamesDirectory() override;
-  virtual const char *GetAllUsersDataDirectory() override;
-  virtual const char *GetUserConfigDirectory() override;
-  virtual const char *GetAppOutputDirectory() override;
+  virtual FSLocation GetUserSavedgamesDirectory() override;
+  virtual FSLocation GetAllUsersDataDirectory() override;
+  virtual FSLocation GetUserConfigDirectory() override;
+  virtual FSLocation GetAppOutputDirectory() override;
   virtual const char *GetIllegalFileChars() override;
 };
 
@@ -62,8 +62,7 @@ AGSMac::AGSMac()
 {
   AGSMacInitPaths(libraryApplicationSupport);
   
-  snprintf(commonDataPath, PATH_MAX, "%s/uk.co.adventuregamestudio", libraryApplicationSupport);
-  AGS::Common::Directory::CreateDirectory(commonDataPath);
+  commonDataPath = FSLocation(libraryApplicationSupport).Concat("uk.co.adventuregamestudio");
 }
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {
@@ -113,22 +112,22 @@ void AGSMac::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-const char* AGSMac::GetAllUsersDataDirectory()
+FSLocation AGSMac::GetAllUsersDataDirectory()
 {
   return commonDataPath;
 }
 
-const char *AGSMac::GetUserSavedgamesDirectory()
+FSLocation AGSMac::GetUserSavedgamesDirectory()
 {
-  return libraryApplicationSupport;
+  return FSLocation(libraryApplicationSupport);
 }
 
-const char *AGSMac::GetUserConfigDirectory()
+FSLocation AGSMac::GetUserConfigDirectory()
 {
-  return libraryApplicationSupport;
+  return FSLocation(libraryApplicationSupport);
 }
 
-const char *AGSMac::GetAppOutputDirectory()
+FSLocation AGSMac::GetAppOutputDirectory()
 {
   return commonDataPath;
 }

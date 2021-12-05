@@ -87,9 +87,9 @@ extern "C" extern LPDIRECTSOUND directsound;
 extern "C" extern LPDIRECTINPUTDEVICE mouse_dinput_device;
 extern "C" extern LPDIRECTINPUTDEVICE key_dinput_device;
 
-char win32SavedGamesDirectory[MAX_PATH] = "\0";
-char win32AppDataDirectory[MAX_PATH] = "\0";
-String win32OutputDirectory;
+FSLocation win32SavedGamesDirectory;
+FSLocation win32AppDataDirectory;
+FSLocation win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
@@ -102,11 +102,11 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void AttachToParentConsole();
   virtual void DisplayAlert(const char*, ...);
   virtual int  GetLastSystemError();
-  virtual const char *GetAllUsersDataDirectory();
-  virtual const char *GetUserSavedgamesDirectory();
-  virtual const char *GetUserConfigDirectory();
-  virtual const char *GetUserGlobalConfigDirectory();
-  virtual const char *GetAppOutputDirectory();
+  virtual FSLocation GetAllUsersDataDirectory();
+  virtual FSLocation GetUserSavedgamesDirectory();
+  virtual FSLocation GetUserConfigDirectory();
+  virtual FSLocation GetUserGlobalConfigDirectory();
+  virtual FSLocation GetAppOutputDirectory();
   virtual const char *GetIllegalFileChars();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
@@ -585,31 +585,33 @@ bool IsWindowsVistaOrGreater() {
   return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
 }
 
-void determine_app_data_folder()
+static void DetermineAppDataFolder()
 {
-  if (win32AppDataDirectory[0] != 0) 
+  if (win32AppDataDirectory.IsValid()) 
   {
     // already discovered
     return;
   }
 
-  WCHAR unicodePath[MAX_PATH];
-  WCHAR unicodeShortPath[MAX_PATH];
+  WCHAR unicodePath[MAX_PATH] = L"";
+  WCHAR unicodeShortPath[MAX_PATH] = L"";
+  char acpParent[MAX_PATH] = "";
+
   SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
   if (GetShortPathNameW(unicodePath, unicodeShortPath, MAX_PATH) == 0)
   {
     platform->DisplayAlert("Unable to get App Data dir: GetShortPathNameW failed");
     return;
   }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH, NULL, NULL);
+  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, acpParent, MAX_PATH, NULL, NULL);
 
-  strcat(win32AppDataDirectory, "\\Adventure Game Studio");
-  mkdir(win32AppDataDirectory);
+  String fullDir = String::FromFormat("%s\\Adventure Game Studio", acpParent);
+  win32AppDataDirectory = FSLocation(acpParent, fullDir);
 }
 
-void determine_saved_games_folder()
+static void DetermineSavedGamesFolder()
 {
-  if (win32SavedGamesDirectory[0] != 0)
+  if (win32SavedGamesDirectory.IsValid())
   {
     // already discovered
     return;
@@ -617,6 +619,8 @@ void determine_saved_games_folder()
 
   WCHAR unicodeSaveGameDir[MAX_PATH] = L"";
   WCHAR unicodeShortSaveGameDir[MAX_PATH] = L"";
+  char acpParent[MAX_PATH] = "";
+  String parentDir, agsDir;
 
   if (IsWindowsVistaOrGreater())
   {
@@ -629,7 +633,9 @@ void determine_saved_games_folder()
       if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
       {
         if (GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH) > 0) {
-          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, acpParent, MAX_PATH, NULL, NULL);
+          parentDir = acpParent;
+          agsDir = acpParent;
         }
         CoTaskMemFree(path);
       }
@@ -645,71 +651,64 @@ void determine_saved_games_folder()
     // with Russian Windows) -- so use Short File Name instead
     if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) > 0)
     {
-      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
-      strcat(win32SavedGamesDirectory, "\\My Saved Games");
-      mkdir(win32SavedGamesDirectory);
+      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, acpParent, MAX_PATH, NULL, NULL);
+      parentDir = acpParent;
+      agsDir.Format("%s\\My Saved Games", acpParent);
     }
   }
 
-  // Fallback to a subdirectory of the app data directory
-  if (win32SavedGamesDirectory[0] == '\0')
-  {
-    determine_app_data_folder();
-    strcpy(win32SavedGamesDirectory, win32AppDataDirectory);
-    strcat(win32SavedGamesDirectory, "\\Saved Games");
-    mkdir(win32SavedGamesDirectory);
-  }
+  win32SavedGamesDirectory = FSLocation(parentDir, agsDir);
 }
 
-void DetermineAppOutputDirectory()
+static void DetermineAppOutputDirectory()
 {
-  if (!win32OutputDirectory.IsEmpty())
+  if (win32OutputDirectory.IsValid())
   {
     return;
   }
 
-  determine_saved_games_folder();
-  bool log_to_saves_dir = false;
-  if (win32SavedGamesDirectory[0])
+  DetermineSavedGamesFolder();
+  // Use system save dir if it's found
+  if (win32SavedGamesDirectory.IsValid())
   {
-    win32OutputDirectory = Path::ConcatPaths(win32SavedGamesDirectory, "Adventure Game Studio");
-    log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
+    // Use "AGS" subdir inside a standard save directory
+    win32OutputDirectory = win32SavedGamesDirectory.Concat("Adventure Game Studio");
   }
-
-  if (!log_to_saves_dir)
+  // ...otherwise try local exe's dir, hoping that it's writeable
+  else
   {
     char theexename[MAX_PATH + 1] = {0};
     GetModuleFileName(NULL, theexename, MAX_PATH);
     PathRemoveFileSpec(theexename);
-    win32OutputDirectory = theexename;
+    win32OutputDirectory = FSLocation(theexename);
   }
 }
 
-const char* AGSWin32::GetAllUsersDataDirectory() 
+FSLocation AGSWin32::GetAllUsersDataDirectory()
 {
-  determine_app_data_folder();
-  return &win32AppDataDirectory[0];
+  DetermineAppDataFolder();
+  return win32AppDataDirectory;
 }
 
-const char *AGSWin32::GetUserSavedgamesDirectory()
+FSLocation AGSWin32::GetUserSavedgamesDirectory()
 {
-  determine_saved_games_folder();
+  DetermineSavedGamesFolder();
   return win32SavedGamesDirectory;
 }
 
-const char *AGSWin32::GetUserConfigDirectory()
+FSLocation AGSWin32::GetUserConfigDirectory()
 {
-  determine_saved_games_folder();
+  DetermineSavedGamesFolder();
   return win32SavedGamesDirectory;
 }
 
-const char *AGSWin32::GetUserGlobalConfigDirectory()
+FSLocation AGSWin32::GetUserGlobalConfigDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;
 }
 
-const char *AGSWin32::GetAppOutputDirectory()
+FSLocation AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;

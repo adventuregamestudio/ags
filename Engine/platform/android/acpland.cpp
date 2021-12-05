@@ -46,7 +46,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetAppOutputDirectory();
+  virtual FSLocation GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
@@ -768,9 +768,9 @@ void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-const char *AGSAndroid::GetAppOutputDirectory()
+FSLocation AGSAndroid::GetAppOutputDirectory()
 {
-  return android_base_directory;
+  return FSLocation(android_base_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

@@ -117,7 +117,7 @@ struct AGSIOS : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetAppOutputDirectory();
+  virtual FSLocation GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
@@ -630,9 +630,9 @@ void AGSIOS::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-const char *AGSIOS::GetAppOutputDirectory()
+FSLocation AGSIOS::GetAppOutputDirectory()
 {
-  return ios_document_directory;
+  return FSLocation(ios_document_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

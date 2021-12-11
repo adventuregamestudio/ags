@@ -1797,7 +1797,8 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
 
 // Attempts to save the current spriteset contents into the temporary file
 // provided by the system API. On success assigns saved_filename.
-void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSString &saved_indexfile)
+void SaveTempSpritefile(int store_flags, bool compressSprites,
+    AGSString &saved_spritefile, AGSString &saved_indexfile)
 {
     // First save new sprite set into the temporary file
     String ^temp_spritefile = nullptr;
@@ -1815,7 +1816,7 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
     AGSString n_temp_spritefile = ConvertPathToNativeString(temp_spritefile);
     AGSString n_temp_indexfile = ConvertPathToNativeString(temp_indexfile);
     AGS::Common::SpriteFileIndex index;
-    if (spriteset.SaveToFile(n_temp_spritefile, compressSprites, index) != 0)
+    if (spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index) != 0)
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
@@ -1868,14 +1869,20 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 }
 
-void SaveNativeSprites(bool compressSprites)
+void SaveNativeSprites(Settings^ gameSettings)
 {
-    if (!spritesModified && (compressSprites == spriteset.IsFileCompressed()))
+    int storeFlags = 0;
+    if (gameSettings->OptimizeSpriteStorage)
+        storeFlags |= AGS::Common::kSprStore_OptimizeForSize;
+    bool compressSprites = gameSettings->CompressSprites;
+
+    if (!spritesModified && (compressSprites == spriteset.IsFileCompressed()) &&
+        storeFlags == spriteset.GetStoreFlags())
         return;
 
     AGSString saved_spritefile;
     AGSString saved_indexfile;
-    SaveTempSpritefile(compressSprites, saved_spritefile, saved_indexfile);
+    SaveTempSpritefile(storeFlags, compressSprites, saved_spritefile, saved_indexfile);
 
     Exception ^main_exception;
     try
@@ -1907,11 +1914,6 @@ void SaveNativeSprites(bool compressSprites)
         }
     }
     spritesModified = false;
-}
-
-void SaveGame(bool compressSprites)
-{
-    SaveNativeSprites(compressSprites);
 }
 
 void SetGameResolution(Game ^game)

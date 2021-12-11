@@ -60,6 +60,7 @@ namespace AGS.Types
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private bool _compressSprites = false;
+        private bool _optimizeSpriteStorage = true;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
@@ -334,6 +335,16 @@ namespace AGS.Types
         {
             get { return _compressSprites; }
             set { _compressSprites = value; }
+        }
+
+        [DisplayName("Enable sprite storage optimization")]
+        [Description("When possible save sprites in game files in a format that requires less storage space. This may reduce the compiled game size on disk, but effect may differ depending on number of colors used in sprites, and other factors.")]
+        [DefaultValue(true)]
+        [Category("Compiler")]
+        public bool OptimizeSpriteStorage
+        {
+            get { return _optimizeSpriteStorage; }
+            set { _optimizeSpriteStorage = value; }
         }
 
         [DisplayName("Save screenshots in save games")]

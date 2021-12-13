@@ -22,11 +22,13 @@ using namespace AGS; // FIXME later
 // RLE compression
 void rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *out);
 void rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *in);
+// Packs a 8-bit bitmap using RLE compression, and writes into stream along with the palette
+void save_rle_bitmap8(Common::Stream *out, const Common::Bitmap *bmp, const RGB (*pal)[256] = nullptr);
+// Reads a 8-bit bitmap with palette from the stream and unpacks from RLE
+Common::Bitmap *load_rle_bitmap8(Common::Stream *in, RGB (*pal)[256] = nullptr);
 
 // LZW compression
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);
 void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, RGB *pall);
-void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);
-void loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, RGB *pall);
 
 #endif // __AC_COMPRESS_H

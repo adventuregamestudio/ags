@@ -59,6 +59,7 @@ public:
     CTF_IntToInt(SymbolTable &sym, Symbol name, CodeCell (*func)(CodeCell, CodeCell))
         : CompileTimeFunc(sym)
         , _func(func)
+        , _name(name)
     {}
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;

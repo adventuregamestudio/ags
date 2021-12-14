@@ -1621,7 +1621,7 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
     ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
 }
 
-void AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx)
+int AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression)
 {
     size_t nesting_depth = 0;
 
@@ -1678,8 +1678,8 @@ void AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx)
         if (current_prio < 0)
             UserError(
                 is_prefix ?
-                    "Cannot use '%s' as a prefix operator" :
-                    "Cannot use '%s' as a binary or postfix operator", 
+                "Cannot use '%s' as a prefix operator" :
+                "Cannot use '%s' as a binary or postfix operator",
                 _sym.GetName(current_sym).c_str());
 
         if (current_prio < largest_prio_found)
@@ -1691,17 +1691,15 @@ void AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx)
         largest_is_prefix = is_prefix;
     } // while (!expression.ReachedEOF())
 
-    idx = index_of_largest;
-    if (largest_is_prefix)
-        // If this prefix operator turns out not to be in first position,
-        // it must be the end of a chain of unary operators and the first
-        // of those should be evaluated first
-        idx = 0;
+    // If a prefix operator turns out not to be in first position,
+    // it must be the end of a chain of unary operators and the first
+    // of those should be evaluated first
+    return (largest_is_prefix) ? 0 : index_of_largest;
 }
 
 // Change the generic opcode to the one that is correct for the vartypes
 // Also check whether the operator can handle the types at all
-void AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype vartype2, CodeCell &opcode)
+CodeCell AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype vartype2)
 {
     if (!_sym.IsOperator(op_sym))
         InternalError("'%s' isn't an operator", _sym.GetName(op_sym).c_str());
@@ -1713,11 +1711,11 @@ void AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype varty
         if (vartype2 != kKW_Float)
             UserError("Cannot apply the operator '%s' to a float and a non-float", _sym.GetName(op_sym).c_str());
 
-        opcode = _sym[op_sym].OperatorD->FloatOpcode;
+        CodeCell opcode = _sym[op_sym].OperatorD->FloatOpcode;
 
         if (SymbolTable::kNoOpcode == opcode)
             UserError("Cannot apply the operator '%s' to float values", _sym.GetName(op_sym).c_str());
-        return;
+        return opcode;
     }
 
     bool const iatos1 = _sym.IsAnyStringVartype(vartype1);
@@ -1726,23 +1724,20 @@ void AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype varty
     if (iatos1 || iatos2)
     {
         if (kKW_Null == vartype1 || kKW_Null == vartype2)
-        {
             // Don't use strings comparison against NULL: This will provoke a runtime error
-            opcode = _sym[op_sym].OperatorD->DynOpcode;
-            return;
-        }
-		
+            return _sym[op_sym].OperatorD->DynOpcode;
+
         if (!iatos1)
             UserError("Can only compare 'null' or a string to another string");
         if (!iatos2)
             UserError("Can only compare a string to another string or 'null'");
 
-        opcode = _sym[op_sym].OperatorD->StringOpcode;
+        CodeCell opcode = _sym[op_sym].OperatorD->StringOpcode;
 
         if (SymbolTable::kNoOpcode == opcode)
             UserError("Cannot apply the operator '%s' to string values", _sym.GetName(op_sym).c_str());
-        
-        return;
+
+        return opcode;
     }
 
     if (((_sym.IsDynpointerVartype(vartype1) || kKW_Null == vartype1) &&
@@ -1750,11 +1745,11 @@ void AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype varty
         ((_sym.IsDynarrayVartype(vartype1) || kKW_Null == vartype1) &&
         (_sym.IsDynarrayVartype(vartype2) || kKW_Null == vartype2)))
     {
-        opcode = _sym[op_sym].OperatorD->DynOpcode;
+        CodeCell opcode = _sym[op_sym].OperatorD->DynOpcode;
 
         if (SymbolTable::kNoOpcode == opcode)
             UserError("Cannot apply the operator '%s' to managed types", _sym.GetName(op_sym).c_str());
-        return;
+        return opcode;
     }
 
     // Other combinations of managed types won't mingle
@@ -1766,14 +1761,15 @@ void AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype varty
             _sym.GetName(vartype2).c_str());
 
     // Integer types
-    opcode = _sym[op_sym].OperatorD->IntOpcode;
+    CodeCell opcode = _sym[op_sym].OperatorD->IntOpcode;
 
     std::string msg = "Left-hand side of '<op>' term";
     msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
     CheckVartypeMismatch(vartype1, kKW_Int, true, msg);
     msg = "Right-hand side of '<op>' term";
     msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
-    return CheckVartypeMismatch(vartype2, kKW_Int, true, msg);
+    CheckVartypeMismatch(vartype2, kKW_Int, true, msg);
+    return opcode;
 }
 
 bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const
@@ -1917,21 +1913,6 @@ void AGS::Parser::CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants
         ((msg.empty()? "Type mismatch" : msg) + ": Cannot convert %s to %s").c_str(),
         is_vartype_string.c_str(),
         wtb_vartype_string.c_str());
-}
-
-// returns whether the vartype of the opcode is always bool
-bool AGS::Parser::IsBooleanOpcode(CodeCell opcode)
-{
-    if (opcode >= SCMD_ISEQUAL && opcode <= SCMD_OR)
-        return true;
-
-    if (opcode >= SCMD_FGREATER && opcode <= SCMD_FLTE)
-        return true;
-
-    if (opcode == SCMD_STRINGSNOTEQ || opcode == SCMD_STRINGSEQUAL)
-        return true;
-
-    return false;
 }
 
 // If we need a String but AX contains a string, 
@@ -2102,15 +2083,13 @@ void AGS::Parser::ParseExpression_PrefixMinus(SrcList &expression, ValueLocation
                 ValueLocation::kCompile_time_literal,
                 kKW_Float == _sym[vloc.symbol].LiteralD->Vartype? _sym.Find("0.0") : _sym.Find("0") };
         bool can_do_it_now = false;
-        ParseExpression_CompileTime(kKW_Minus, vloc_lhs, vloc, can_do_it_now, vloc);
-        if (can_do_it_now)
+        if(ParseExpression_CompileTime(kKW_Minus, vloc_lhs, vloc, vloc))
             return;
     }
 
     ResultToAX(vartype, vloc);
 
-    CodeCell opcode = SCMD_SUBREG;
-    GetOpcode(kKW_Minus, vartype, vartype, opcode);
+    CodeCell const opcode = GetOpcode(kKW_Minus, vartype, vartype);
     
     // Calculate 0 - AX
     // The binary representation of 0.0 is identical to the binary representation of 0
@@ -2150,8 +2129,7 @@ void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList &expressio
         // Try to do the negation now
         ValueLocation const vloc_lhs = { ValueLocation::kCompile_time_literal, _sym.Find("0") };
         bool can_do_it_now = false;
-        ParseExpression_CompileTime(op_sym, vloc_lhs, vloc, can_do_it_now, vloc);
-        if (can_do_it_now)
+        if (ParseExpression_CompileTime(op_sym, vloc_lhs, vloc, vloc))
             return;
     }
 
@@ -2550,8 +2528,7 @@ void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, Val
     _reg_track.SetRegister(SREG_BX);
     // now the result of the left side is in BX, of the right side is in AX
 
-    CodeCell opcode;
-    GetOpcode(operator_sym, vartype_lhs, vartype, opcode);
+    CodeCell const opcode = GetOpcode(operator_sym, vartype_lhs, vartype);
     
     WriteCmd(opcode, SREG_BX, SREG_AX);
     WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
@@ -2561,7 +2538,7 @@ void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, Val
 
     to_exit.Patch(_src.GetLineno());
 
-    if (IsBooleanOpcode(opcode))
+    if (_sym.IsBooleanOperator(operator_sym))
         vartype = kKW_Int;
 
     if (!vloc_lhs.IsCompileTimeLiteral() || !vloc_rhs.IsCompileTimeLiteral())
@@ -2588,8 +2565,7 @@ void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, Val
     }
  
     bool done_at_compile_time = false;
-    ParseExpression_CompileTime(operator_sym, vloc_lhs, vloc_rhs, done_at_compile_time, vloc);
-    if (done_at_compile_time)
+    if (ParseExpression_CompileTime(operator_sym, vloc_lhs, vloc_rhs, vloc))
         start_of_term.Restore();
 }
 
@@ -2994,36 +2970,34 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     MarkAcessed(name_of_func);
 }
 
-void AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc)
+bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, ValueLocation &vloc)
 {
     Vartype const vartype_lhs = _sym[vloc_lhs.symbol].LiteralD->Vartype;
     Vartype const vartype_rhs = _sym[vloc_rhs.symbol].LiteralD->Vartype;
-    possible = false;
     Vartype vartype;
     if (kKW_Float == vartype_lhs)
     {
         if (kKW_Float != vartype_rhs)
-            return;
+            return false;
         vartype = kKW_Float;
     }
     else if (_sym.IsAnyIntegerVartype(vartype_lhs))
     {
         if (!_sym.IsAnyIntegerVartype(vartype_rhs))
-            return;
+            return false;
         vartype = kKW_Int;
     }
     else
     {
-        return;
+        return false;
     }
 
     CompileTimeFunc *const ctf =
         (kKW_Float == vartype) ? _sym[op_sym].OperatorD->FloatCTFunc :
         (kKW_Int == vartype) ?   _sym[op_sym].OperatorD->IntCTFunc :
         nullptr;
-    possible = (nullptr != ctf);
-    if (!possible)
-        return;
+    if (nullptr == ctf)
+        return false;
     try
     {
         ctf->Evaluate(vloc_lhs.symbol, vloc_rhs.symbol, vloc.symbol);
@@ -3033,6 +3007,7 @@ void AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, ValueLocation
         UserError(e.what());
     }
     vloc.location = ValueLocation::kCompile_time_literal;
+    return true;
 }
 
 void AGS::Parser::ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
@@ -3053,8 +3028,7 @@ void AGS::Parser::ParseSideEffectExpression(SrcList &expression)
     ScopeType scope_type;
     Vartype vartype;
 
-    int least_binding_op_idx;
-    IndexOfLeastBondingOperator(expression, least_binding_op_idx);  // can be < 0
+    int const least_binding_op_idx = IndexOfLeastBondingOperator(expression);  // can be < 0
     
     Symbol const op_sym = expression[least_binding_op_idx];
 
@@ -3112,8 +3086,7 @@ void AGS::Parser::ParseExpression_Term(SrcList &expression, ValueLocation &vloc,
     if (expression.Length() == 0)
         InternalError("Cannot parse empty subexpression");
 
-    int least_binding_op_idx; // can be < 0
-    IndexOfLeastBondingOperator(expression, least_binding_op_idx);  
+    int const least_binding_op_idx = IndexOfLeastBondingOperator(expression); // can be < 0
     
     if (0 > least_binding_op_idx)
         ParseExpression_NoOps(expression, vloc, scope_type, vartype);
@@ -4036,8 +4009,7 @@ void AGS::Parser::ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs)
     _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
 
     // Use the operator on LHS and RHS
-    CodeCell opcode;
-    GetOpcode(ass_symbol, lhsvartype, rhsvartype, opcode);
+    CodeCell const opcode = GetOpcode(ass_symbol, lhsvartype, rhsvartype);
     PopReg(SREG_BX);
     _reg_track.SetRegister(SREG_BX);
     WriteCmd(opcode, SREG_AX, SREG_BX);

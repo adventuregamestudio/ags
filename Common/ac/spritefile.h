@@ -78,6 +78,13 @@ enum SpriteFormat
     kSprFmt_PaletteRgb565   = 34
 };
 
+enum SpriteCompression
+{
+    kSprCompress_None = 0,
+    kSprCompress_RLE,
+    kSprCompress_LZW
+};
+
 typedef int32_t sprkey_t;
 
 // SpriteFileIndex contains sprite file's table of contents
@@ -98,14 +105,14 @@ struct SpriteDatHeader
     int BPP = 0; // color depth (bytes per pixel); or input format
     SpriteFormat SFormat = kSprFmt_Undefined; // storage format
     uint32_t PalCount = 0; // palette length, if applicable to storage format
-    int Compress = 0; // compression type
+    SpriteCompression Compress = kSprCompress_None; // compression type
     int Width = 0; // sprite's width
     int Height = 0; // sprite's height
 
     SpriteDatHeader() = default;
     SpriteDatHeader(int bpp, SpriteFormat sformat = kSprFmt_Undefined,
-        uint32_t pal_count = 0, int compress = 0, int w = 0, int h = 0)
-        : BPP(bpp), SFormat(sformat), PalCount(pal_count),
+        uint32_t pal_count = 0, SpriteCompression compress = kSprCompress_None,
+        int w = 0, int h = 0) : BPP(bpp), SFormat(sformat), PalCount(pal_count),
           Compress(compress), Width(w), Height(h) {}
 };
 
@@ -128,7 +135,7 @@ public:
 
     int         GetStoreFlags() const;
     // Tells if bitmaps in the file are compressed
-    bool        IsFileCompressed() const;
+    SpriteCompression GetSpriteCompression() const;
     // Tells the highest known sprite index
     sprkey_t    GetTopmostSprite() const;
 
@@ -163,7 +170,7 @@ private:
     std::unique_ptr<Stream> _stream; // the sprite stream
     SpriteFileVersion _version = kSprfVersion_Current;
     int _storeFlags = 0; // storage flags, specify how sprites may be stored
-    bool _compressed; // are sprites compressed
+    SpriteCompression _compress = kSprCompress_None; // sprite compression type
     sprkey_t _curPos; // current stream position (sprite slot)
 };
 
@@ -182,7 +189,7 @@ public:
     const SpriteFileIndex &GetIndex() const { return _index; }
 
     // Initializes new sprite file format
-    void Begin(int store_flags, bool compress, sprkey_t last_slot = -1);
+    void Begin(int store_flags, SpriteCompression compress, sprkey_t last_slot = -1);
     // Writes a bitmap into file, compressing if necessary
     void WriteBitmap(Bitmap *image);
     // Writes an empty slot marker
@@ -200,7 +207,7 @@ private:
 
     std::unique_ptr<Stream> _out;
     int _storeFlags = 0;
-    bool _compress = false;
+    SpriteCompression _compress = kSprCompress_None;
     soff_t _lastSlotPos = -1; // last slot save position in file
     // sprite index accumulated on write for reporting back to user
     SpriteFileIndex _index;
@@ -214,7 +221,7 @@ private:
 int SaveSpriteFile(const String &save_to_file,
     const std::vector<Bitmap*> &sprites, // available sprites (may contain nullptrs)
     SpriteFile *read_from_file, // optional file to read missing sprites from
-    int store_flags, bool compress, SpriteFileIndex &index);
+    int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves sprite index table in a separate file
 int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
 

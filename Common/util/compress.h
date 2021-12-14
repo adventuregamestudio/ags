@@ -15,6 +15,7 @@
 #define __AC_COMPRESS_H
 
 #include "core/types.h"
+#include <vector>
 
 struct RGB;
 
@@ -30,6 +31,8 @@ void save_rle_bitmap8(Common::Stream *out, const Common::Bitmap *bmp, const RGB 
 Common::Bitmap *load_rle_bitmap8(Common::Stream *in, RGB (*pal)[256] = nullptr);
 
 // LZW compression
+void lzw_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *out);
+void lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *in);
 // Saves bitmap with an optional palette compressed by LZW
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing

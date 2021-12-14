@@ -421,9 +421,9 @@ private:
     std::string _scriptNameBuffer;
 
     // Augment the message with a "See ..." indication
-    // declared is the point in _src where the thing is declared
+    // 'declared' is the point in _src where the thing is declared
     std::string const ReferenceMsgLoc(std::string const &msg, size_t declared);
-    // Augment the message with a "See ..." indication pointing to the declaration of sym
+    // Augment the message with a "See ..." indication pointing to the declaration of 'symb'
     std::string const ReferenceMsgSym(std::string const &msg, Symbol symb);
 
     std::string const TypeQualifierSet2String(TypeQualifierSet tqs) const;
@@ -433,23 +433,27 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
-    // Skim through source, ignoring delimited content completely. Stop in the following cases:
-    // .  A symbol is encountered whose type is in stoplist[]
+    // Skim through 'source', ignoring delimited content completely. Stop in the following cases:
+    // .  A symbol is encountered whose type is in 'stoplist[]'
     // .  A closing symbol is encountered that hasn't been opened.
     // Don't consume the symbol that stops the scan.
     void SkipTo(SymbolList const &stoplist, SrcList &source);
+    // Skim through 'source'. Stop when 'stopsym' is encountered or a closing symbol
+    // that hasn't been opened. Don't consume the symbol that stops the scan.
+    inline void SkipTo(Symbol stopsym, SrcList &source) { SkipTo(SymbolList{ stopsym }, source); }
 
     // Skim through source, ignoring delimited content completely.
     // Stop when a closing symbol is encountered that hasn't been opened.
-    // Eat that symbol and if it isn't closer, report an _internal_ error.
+    // Eat that symbol and if it isn't 'closer', report an _internal_ error.
     void SkipToClose(Predefined closer);
 
-    // If the actual symbol isn't equal to the expected symbol, give an error.
-    // custom_msg, if given, replaces the "Expected " part of the message
-    void Expect(Symbol expected, Symbol actual, std::string const &custom_msg = "");
-
-    // If the actual symbol isn't in the list of expected symbols, give an error.
-    void Expect(std::vector<Symbol> const &expected, Symbol actual);
+    // If the symbol 'actual' isn't in the list 'expected', give an error.
+    // 'custom_msg', if given, replaces the "Expected ..." part of the message
+    void Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg = "");
+    // If the symbol 'actual' isn't equal to the symbol 'expected', give an error.
+    // 'custom_msg', if given, replaces the "Expected " part of the message
+    inline void Expect(Symbol expected, Symbol actual, std::string const &custom_msg = "")
+        { Expect(SymbolList{ expected }, actual, custom_msg); }
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { _sym[symb].Accessed = true; }
@@ -508,40 +512,41 @@ private:
     // Otherwise, a symbol is returned that is a literal.
     void ParseParamlist_Param_DefaultValue(size_t idx, Vartype param_vartype, Symbol &param_default);
 
-    // process a dynamic array declaration, when present
-    // We have accepted something like "int foo" and we might expect a trailing "[]" here
+    // We have accepted something like 'int foo' and a trailing '[]' might follow.
+    // If it does, convert 'vartype' to a dynarray.
     void ParseDynArrayMarkerIfPresent(Vartype &vartype);
 
-    // Extender function, eg. function GoAway(this Character *someone)
-    // We've just accepted something like "int func("
-    // We'll accept something like "this Character *" --OR-- "static Character"
+    // Extender function, eg. 'function GoAway(this Character *someone)'
+    // We've just accepted something like 'int func('
+    // We'll accept something like 'this Character *' --OR-- 'static Character'
     void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func, TypeQualifierSet &tqs);
 
     // In a parameter list, process the vartype of a parameter declaration
     void ParseParamlist_ParamType(Vartype &vartype);
 
-    // We're accepting a parameter list. We've accepted something like "int".
-    // We accept a param name such as "i" if present
+    // We're accepting a parameter list. We've accepted something like 'int'.
+    // We accept a param name such as 'i' if present
     void ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
 
     // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx);
 
-    // process a parameter decl in a function parameter list
+    // Process a parameter decl in a function parameter list
     void ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx);
 
+    // Process a function parameter list
     void ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows);
 
     void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_function, Symbol name_of_function, bool body_follows);
 
-    // there was a forward declaration -- check that the real declaration matches it
+    // There was a forward declaration -- check that the real declaration matches it
     void ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
-    // Enter the function in the imports[] or functions[] array; get its index   
+    // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
     void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs);
 
-    // We're at something like "int foo(", directly before the "("
-    // Find out whether the symbol that follows the corresponding ")" is "{"
+    // We're at something like 'int foo(', directly before the '('
+    // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
     void ParseFuncdecl_DoesBodyFollow(bool &body_follows);
 
     // We're in a func decl. Check whether the declaration is valid.
@@ -555,18 +560,20 @@ private:
     // This might or might not be within a struct defn
     void ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
 
-    // Find the index of the operator in the list that binds the least
-    // so that either side of it can be evaluated first. -1 if no operator was found
+    // Return in 'idx' the index of the operator in the list that binds the least
+    // so that either side of it can be evaluated first. '-1' if no operator was found
     void IndexOfLeastBondingOperator(SrcList &expression, int &idx);
 
-    // Also check whether the operator can handle the types at all
+    // Return in 'opcode' the opcode that corresponds to the operator 'op_sym'
+    // when its parameters have the vartypes 'vartype1' and 'vartype2', respectively.
+    // Check whether the operator 'op_sym' can handle the types at all
     void GetOpcode(Symbol op_sym, Vartype vartype1, Vartype vartype2, CodeCell &opcode);
 
-    // Check for a type mismatch in one direction only
+    // Check for a type mismatch in one direction only (does not yield a UserError if there is)
     bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const;
 
     // Check whether there is a type mismatch; if so, give an error. 'msg' for specializing the error message
-    void CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg);
+    void CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg = "");
 
     // Whether this operator's vartype is always bool
     static bool IsBooleanOpcode(CodeCell opcode);
@@ -607,17 +614,17 @@ private:
     // Return the number of the parameters pushed
     void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args);
 
-    // Process a function call. The parameter list begins with expression[1].
+    // Process a function call. The parameter list begins with 'expression[1u]' (!)
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return in 'possible' whether this is possible.
     void ParseExpression_CompileTime(Symbol op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, bool &possible, ValueLocation &vloc);
 
-    // Check the vartype following "new"
+    // Check the vartype following 'new'
     void ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
-    // Parse the term given in 'expression'. The lowest-binding operator is unary NEW
+    // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     void ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
@@ -650,7 +657,7 @@ private:
     void ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1,
         bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc_term2, AGS::ScopeType &scope_type_term2, AGS::Vartype &vartype_term2);
 
-    // Parse the term given in 'expression'. Expression is a ternary a ? b : c
+    // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
@@ -710,7 +717,7 @@ private:
     // Get the symbol for the get or set function corresponding to the attribute given.
     void ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed, Symbol &func);
 
-    // We call the getter or setter of an attribute
+    // Call the getter or setter of an attribute
     // The next symbol read is the attribute (the part after the '.')
     void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype &vartype);
 
@@ -772,7 +779,7 @@ private:
     // Stop when encountering a 0
     void AccessData_StrCpy();
 
-    // A "*" is allowed here. If it is here, gobble it.
+    // An optional '*' can follow at this point. If it is here, eat it.
     void EatDynpointerSymbolIfPresent(Vartype vartype);
 
     // We are typically in an assignment LHS = RHS; the RHS has already been
@@ -783,17 +790,19 @@ private:
 
     void SkipToEndOfExpression();
 
-    // We are parsing the left hand side of a += or similar statement.
+    // We are parsing the left hand side of a '+=' or similar statement.
     void ParseAssignment_ReadLHSForModification(SrcList &lhs, ScopeType &scope_type, ValueLocation &vloc, Vartype &lhstype);
 
-    // "var = expression"; lhs is the variable
+    // "var = expression"; 'lhs' is the variable
     void ParseAssignment_Assign(SrcList &lhs);
 
-    // We compile something like "var += expression"
+    // We compile something like 'var += expression'
     void ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs);
 
+    // 'const int foo = 77;' or similar
     void ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname);
 
+    // 'const int foo = 77;' or similar
     void ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol var_name);
 
     void ParseVardecl_InitialValAssignment_IntVartypeOrFloat(Vartype var, void *&initial_val_ptr);
@@ -865,17 +874,17 @@ private:
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname);
 
-    // We have accepted something like "struct foo extends bar { const int".
+    // We have accepted something like 'struct foo extends bar { const int'.
     // We're waiting for the name of the member.
     void ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
 
-    // We've accepted, e.g., "struct foo {". Now we're parsing a variable declaration or a function declaration
+    // We've accepted, e.g., 'struct foo {'. Now we're parsing a variable declaration or a function declaration
     void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
 
-    // Handle a "struct" definition clause
+    // Handle a 'struct' definition clause
     void ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    // We've accepted something like "enum foo { bar"; '=' follows
+    // We've accepted something like 'enum foo { bar'; '=' follows
     void ParseEnum_AssignedValue(Symbol vname, CodeCell &value);
 
     // Define the item 'item_name' to have the value 'value'. 
@@ -913,65 +922,65 @@ private:
 
     void ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
-    // We accepted a variable type such as "int", so what follows is a variable, compile-time constant, or function declaration
+    // We accepted a variable type such as 'int', so what follows is a variable, compile-time constant, or function declaration
     void ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
-    // After a command statement. This command might be the end of sequences such as
-    // "if (...) while (...) stmt;"
+    // After a command that might be the end of sequences such as 'if (...) while (...) command;'
     //  Find out what surrounding compound statements have ended and handle these endings.
     void HandleEndOfCompoundStmts();
 
-    // Handle the end of a {...} command
+    // Handle the end of a statement sequence in braces
     void HandleEndOfBraceCommand();
 
-    // Parse the head of a "do ... while(...)" clause
+    // Parse the head of a 'do ... while(...)' clause
     void ParseDo();
 
-    // Handle the end of a "do" body and the "while" clause following it
+    // Handle the end of a 'do' clause and the 'while' clause following it
     void HandleEndOfDo();
 
-    // Handle the end of an "else" body
+    // Handle the end of an 'else' clause
     void HandleEndOfElse();
 
-    // The first clause of "for (I; W; C);" when it is a declaration
+    // The first clause of 'for (I; W; C);' when it is a declaration
     void ParseFor_InitClauseVardecl();
 
-    // The first clause of "for (I; W; C);"
+    // The first clause of 'for (I; W; C);'
     void ParseFor_InitClause(Symbol peeksym);
 
-    // The middle clause of "for (I; W; C);"
+    // The middle clause of 'for (I; W; C);'
     void ParseFor_WhileClause();
 
-    // The last clause of "for (I; W; C);"
+    // The last clause of 'for (I; W; C);'
     void ParseFor_IterateClause();
 
-    // Handle the head of "for (I; W; C);"
+    // Handle the head of 'for (I; W; C);'
     void ParseFor();
 
-    // Evaluate an "if" clause, e.g. "if (i < 0)".
+    // Evaluate an 'if' clause, e.g. 'if (i < 0)'
     void ParseIf();
 
-    // Handle the end of an "if" body
+    // Handle the end of an 'if' body
     void HandleEndOfIf(bool &else_follows);
 
     // Parse, e.g., "switch (bar)"
     void ParseSwitch();
 
-    // Parse "fallthrough;"
+    // We're in a 'switch' body. Parse 'fallthrough;'
     void ParseSwitchFallThrough();
 
-    // Parse "case foo:" or "default:"
+    // We're in a 'switch' body. Parse 'case foo:' or 'default:'
     void ParseSwitchLabel(Symbol case_or_default);
 
-    // Handle the end of a "switch" body
+    // Handle the end of a 'switch' body
     void HandleEndOfSwitch();
 
-    // Parse, e.g., "while (i < 0)"
-    // Is NOT responsible for handling the "while" in a "do ... while" clause
+    // Parse the head of a 'while' statement, e.g., 'while (i < 0)'
+    // NOTE: This function NOT responsible for handling the 'while'
+    // clause of  a 'do ... while' statement.
     void ParseWhile();
 
-    // Handle the end of a "while" body
-    // (Will also handle the outer "for" nesting)
+    // Handle the end of a 'while' body
+    // Also handle the outer 'for' nesting.
     void HandleEndOfWhile();
 
     // We're compiling function body code; the code does not start with a keyword or type.
@@ -1003,21 +1012,29 @@ private:
     // Refresh ccCurScriptName
     void HandleSrcSectionChangeAt(size_t pos);
 
+    // Emit an opcode without parameters
     inline void WriteCmd(CodeCell op)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op); }
+    // Emit an opcode and one parameter
     inline void WriteCmd(CodeCell op, CodeCell p1)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1); }
+    // Emit an opcode and 2 parameters
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2); }
+    // Emit an opcode and 3 parameters
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2, p3); }
+
+    // Emit a PUSH; keep track of the size of the block on the stack that contains pushed values
     inline void PushReg(CodeCell reg)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PushReg(reg); }
+    // Emit a POP; keep track of the size of the block on the stack that contains pushed values
     inline void PopReg(CodeCell reg)
         { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PopReg(reg); }
 
-    // Check whether the qualifiers that accumulated for this decl go together
+    // Make sure that the qualifiers that accumulated for this decl go together
     void Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
+    // Make sure that no qualifiers have accumulated for this decl
     void Parse_CheckTQSIsEmpty(TypeQualifierSet tqs);
 
     // Analyse the decls and collect info about locally defined functions
@@ -1053,7 +1070,7 @@ private:
     // Report an internal error for the section and lineno that _src currently is at; will throw exception
     void InternalError(char const *descr, ...);
 
-    // Record a warning for the current source position
+    // Record a warning for the current source position; will NOT throw exception
     void Warning(char const *descr, ...);
 
 public:

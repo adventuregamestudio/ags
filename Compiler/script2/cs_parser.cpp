@@ -271,41 +271,30 @@ void AGS::Parser::SkipToClose(Predefined closer)
 		InternalError("Unexpected closing symbol");
 }
 
-void AGS::Parser::Expect(Symbol expected, Symbol actual, std::string const &custom_msg)
-{
-    if (actual == expected)
-        return;
-
-    if ("" != custom_msg)
-        UserError(
-            (custom_msg + ", found %s instead").c_str(),
-            _sym.GetName(actual).c_str());
-    else
-        UserError(
-            "Expected '%s', found '%s' instead",
-            _sym.GetName(expected).c_str(),
-            _sym.GetName(actual).c_str());
-}
-
-void AGS::Parser::Expect(std::vector<Symbol> const &expected, Symbol actual)
+void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg)
 {
     for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
         if (actual == expected[expected_idx])
             return;
-    std::string errmsg = "Expected ";
-    for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+
+    std::string errmsg = custom_msg;
+    if (errmsg == "")
     {
-        errmsg += "'" + _sym.GetName(expected[expected_idx]) + "'";
-        if (expected_idx + 2 < expected.size())
-            errmsg += ", ";
-        else if (expected_idx + 2 == expected.size())
-            errmsg += " or ";
+        // Provide a default message
+        errmsg = "Expected ";
+        for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+        {
+            errmsg += "'" + _sym.GetName(expected[expected_idx]) + "'";
+            if (expected_idx + 2 < expected.size())
+                errmsg += ", ";
+            else if (expected_idx + 2 == expected.size())
+                errmsg += " or ";
+        }
     }
     errmsg += ", found '%s' instead";
     UserError(errmsg.c_str(), _sym.GetName(actual).c_str());
 }
             
-
 AGS::Parser::NestingStack::NestingInfo::NestingInfo(NSType stype, ccCompiledScript &scrip)
     : Type(stype)
     , Start(BackwardJumpDest{ scrip })
@@ -1724,7 +1713,7 @@ void AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression, int &idx)
         // The cursor has already moved to the next symbol, so the index is one less
         index_of_largest = expression.GetCursor() - 1;
         largest_is_prefix = is_prefix;
-    }
+    } // while (!expression.ReachedEOF())
 
     idx = index_of_largest;
     if (largest_is_prefix)
@@ -5334,8 +5323,6 @@ void AGS::Parser::ParseEnum_Name2Symtable(Symbol enum_name)
     entry.VartypeD->Flags[VTF::kEnum] = true;
 }
 
-// enum eEnumName { value1, value2 };
-// We've already eaten "enum"
 void AGS::Parser::ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
     size_t const start_of_enum_decl = _src.GetCursor();

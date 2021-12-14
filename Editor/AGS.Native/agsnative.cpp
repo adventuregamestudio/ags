@@ -1797,7 +1797,7 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
 
 // Attempts to save the current spriteset contents into the temporary file
 // provided by the system API. On success assigns saved_filename.
-void SaveTempSpritefile(int store_flags, bool compressSprites,
+void SaveTempSpritefile(int store_flags, AGS::Common::SpriteCompression compressSprites,
     AGSString &saved_spritefile, AGSString &saved_indexfile)
 {
     // First save new sprite set into the temporary file
@@ -1874,9 +1874,9 @@ void SaveNativeSprites(Settings^ gameSettings)
     int storeFlags = 0;
     if (gameSettings->OptimizeSpriteStorage)
         storeFlags |= AGS::Common::kSprStore_OptimizeForSize;
-    bool compressSprites = gameSettings->CompressSprites;
-
-    if (!spritesModified && (compressSprites == spriteset.IsFileCompressed()) &&
+    AGS::Common::SpriteCompression compressSprites =
+        (AGS::Common::SpriteCompression)gameSettings->CompressSpritesType;
+    if (!spritesModified && (compressSprites == spriteset.GetSpriteCompression()) &&
         storeFlags == spriteset.GetStoreFlags())
         return;
 
@@ -3009,7 +3009,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->AutoMoveInWalkMode = !thisgame.options[OPT_NOWALKMODE];
 	game->Settings->BackwardsText = (thisgame.options[OPT_RIGHTLEFTWRITE] != 0);
 	game->Settings->ColorDepth = (GameColorDepth)thisgame.color_depth;
-	game->Settings->CompressSprites = (thisgame.options[OPT_COMPRESSSPRITES] != 0);
+	game->Settings->CompressSpritesType = (SpriteCompression)thisgame.options[OPT_COMPRESSSPRITES];
 	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.options[OPT_CROSSFADEMUSIC];
 	game->Settings->DebugMode = (thisgame.options[OPT_DEBUGMODE] != 0);
 	game->Settings->DialogOptionsBackwards = (thisgame.options[OPT_DIALOGUPWARDS] != 0);

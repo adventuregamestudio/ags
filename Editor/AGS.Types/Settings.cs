@@ -59,7 +59,7 @@ namespace AGS.Types
         private bool _mouseWheelEnabled = true;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
-        private bool _compressSprites = false;
+        private SpriteCompression _compressSprites = SpriteCompression.None;
         private bool _optimizeSpriteStorage = true;
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
@@ -327,11 +327,18 @@ namespace AGS.Types
             }
         }
 
-        [DisplayName("Compress the sprite file")]
+        [Obsolete]
+        public bool CompressSprites
+        {
+            get { return _compressSprites != SpriteCompression.None; }
+            set { _compressSprites = value ? SpriteCompression.RLE : SpriteCompression.None; }
+        }
+
+        [DisplayName("Sprite file compression")]
         [Description("Compress the sprite file to reduce its size, at the expense of performance")]
         [DefaultValue(false)]
         [Category("Compiler")]
-        public bool CompressSprites
+        public SpriteCompression CompressSpritesType
         {
             get { return _compressSprites; }
             set { _compressSprites = value; }

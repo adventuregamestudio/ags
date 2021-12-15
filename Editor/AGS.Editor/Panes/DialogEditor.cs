@@ -26,7 +26,6 @@ namespace AGS.Editor
         private string _lastSearchText = string.Empty;
         private bool _lastCaseSensitive = false;
         private AGSEditor _agsEditor;
-        private string _lastKnownScriptText;
 
         public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
         {
@@ -36,7 +35,7 @@ namespace AGS.Editor
             Init();
         }
 
-        public void Init()
+        private void Init()
         {
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
@@ -69,58 +68,17 @@ namespace AGS.Editor
             {
                 btnDeleteOption.Visible = false;
             }
-        }
 
-        public void OnFirstInit()
-        {
             RegisterEvents();
-            DockingContainer_DockStateChanged(this, null);
+            scintillaEditor.ActivateTextEditor();
         }
 
         private void RegisterEvents()
         {
-            DockingContainer.DockStateChanged += new EventHandler(DockingContainer_DockStateChanged);
-            scintillaEditor.IsModifiedChanged += new EventHandler(scintillaEditor_IsModifiedChanged);
         }
 
         private void UnregisterEvents()
         {
-            DockingContainer.DockStateChanged -= new EventHandler(DockingContainer_DockStateChanged);
-            scintillaEditor.IsModifiedChanged -= new EventHandler(scintillaEditor_IsModifiedChanged);
-        }
-
-        void scintillaEditor_IsModifiedChanged(object sender, EventArgs e)
-        {
-            //Using the same hack as in ScriptEditor.scintillaEditor_IsModifiedChanged
-            if (_lastKnownScriptText == null)
-            {
-                _lastKnownScriptText = _dialog.Text;
-            }
-            string newText = scintillaEditor.GetText();
-            if (_lastKnownScriptText == newText)
-            {
-                DockingContainer container = (DockingContainer)DockingContainer;
-                //container.InitScriptIfNeeded<object>(Reinitialize, null);
-                Reinitialize(null);
-            }
-            _lastKnownScriptText = newText;
-        }
-
-        void DockingContainer_DockStateChanged(object sender, EventArgs e)
-        {
-            DockingContainer container = (DockingContainer)DockingContainer;
-            container.InitScriptIfNeeded<object>(Reinitialize, null);
-        }
-
-        private void Reinitialize(object state)
-        {
-            this.Controls.Clear();
-            _extraMenu.Commands.Clear();
-            flowLayoutPanel1.Controls.Clear();
-            UnregisterEvents();
-            Init();
-            RegisterEvents();
-            scintillaEditor.ActivateTextEditor();
         }
 
         private void InitScintilla()
@@ -166,6 +124,11 @@ namespace AGS.Editor
         protected override string OnGetHelpKeyword()
         {
             return "Dialogs";
+        }
+
+        protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
+        {
+            UnregisterEvents();
         }
 
         protected override void OnCommandClick(string command)

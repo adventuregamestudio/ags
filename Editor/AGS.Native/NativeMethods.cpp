@@ -11,7 +11,7 @@ see the license.txt for details.
 #define WIN32_LEAN_AND_MEAN
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
-#undef BITMAP;
+#undef BITMAP
 #include <stdlib.h>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
@@ -703,7 +703,7 @@ namespace AGS
             if (name->Equals("MAXLIPSYNCFRAMES")) return MAXLIPSYNCFRAMES;
             if (name->Equals("MAXGLOBALMES")) return MAXGLOBALMES;
             if (name->Equals("MAXTOPICOPTIONS")) return MAXTOPICOPTIONS;
-            if (name->Equals("UNIFORM_WALK_SPEED")) return UNIFORM_WALK_SPEED;
+            if (name->Equals("UNIFORM_WALK_SPEED")) return safe_cast<Object^>(UNIFORM_WALK_SPEED);
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
@@ -745,7 +745,7 @@ namespace AGS
             if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
             if (name->Equals("FFLG_REPORTNOMINALHEIGHT")) return FFLG_REPORTNOMINALHEIGHT;
             if (name->Equals("FFLG_ASCENDERFIXUP")) return FFLG_ASCENDERFIXUP;
-            if (name->Equals("OPT_DEBUGMODE")) return OPT_DEBUGMODE;
+            if (name->Equals("OPT_DEBUGMODE")) return safe_cast<Object^>(OPT_DEBUGMODE);
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;
             if (name->Equals("OPT_ANTIGLIDE")) return OPT_ANTIGLIDE;

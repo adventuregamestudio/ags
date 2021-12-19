@@ -110,7 +110,7 @@ TEST(Stream, Common) {
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -124,7 +124,7 @@ TEST(Stream, Common) {
     //-------------------------------------------------------------------------
     // Read data back
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     int16_t int16val = in->ReadInt16();
     int64_t int64val = in->ReadInt64();
@@ -188,7 +188,7 @@ TEST(Stream, AlignedStream) {
     //-------------------------------------------------------------------------
     // Read data back
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_in));

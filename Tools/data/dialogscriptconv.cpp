@@ -82,7 +82,7 @@ String DialogScriptConverter::Convert()
     _lineNumber = 0;
 
     // TODO: TextStreamReader now deletes stream in dtor, which is a design mistake
-    MemoryStream *mems = new MemoryStream(_dlgScript);
+    MemoryStream *mems = new MemoryStream((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength());
     TextStreamReader sr(mems);
 
     String ags_script =

@@ -14,6 +14,8 @@
 #ifndef __AGS_CN_UTIL__LZW_H
 #define __AGS_CN_UTIL__LZW_H
 
+#include "core/types.h"
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 

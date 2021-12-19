@@ -462,7 +462,7 @@ void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
 #endif
 }
 
-int SpriteCache::SaveToFile(const String &filename, bool compressOutput, SpriteFileIndex &index)
+int SpriteCache::SaveToFile(const String &filename, int store_flags, bool compress, SpriteFileIndex &index)
 {
     std::vector<Bitmap*> sprites;
     for (const auto &data : _spriteData)
@@ -475,7 +475,7 @@ int SpriteCache::SaveToFile(const String &filename, bool compressOutput, SpriteF
         pre_save_sprite(data.Image);
         sprites.push_back(data.Image);
     }
-    return SaveSpriteFile(filename, sprites, &_file, compressOutput, index);
+    return SaveSpriteFile(filename, sprites, &_file, store_flags, compress, index);
 }
 
 HError SpriteCache::InitFile(const String &filename, const String &sprindex_filename)

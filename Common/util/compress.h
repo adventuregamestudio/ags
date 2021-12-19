@@ -20,8 +20,8 @@ namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
 // RLE compression
-void rle_compress(Common::Bitmap*, Common::Stream*);
-void rle_decompress(Common::Bitmap*, Common::Stream*);
+void rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *out);
+void rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *in);
 
 // LZW compression
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB *pall);

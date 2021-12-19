@@ -44,7 +44,7 @@ void _delete(int);
 char *lzbuffer;
 int *node;
 int pos;
-long outbytes = 0, maxsize = 0, putbytes = 0;
+size_t outbytes = 0, maxsize = 0, putbytes = 0;
 
 int insert(int i, int run)
 {
@@ -192,8 +192,6 @@ void lzwcompress(Stream *lzw_in, Stream *out)
   free(lzbuffer);
 }
 
-int expand_to_mem = 0;
-unsigned char *membfptr = nullptr;
 void myputc(int ccc, Stream *out)
 {
   if (maxsize > 0) {
@@ -203,19 +201,15 @@ void myputc(int ccc, Stream *out)
   }
 
   outbytes++;
-  if (expand_to_mem) {
-    membfptr[0] = ccc;
-    membfptr++;
-  } else
-    out->WriteInt8(ccc);
+  out->WriteInt8(ccc);
 }
 
-void lzwexpand(Stream *lzw_in, Stream *out)
+void lzwexpand(Stream *lzw_in, Stream *out, size_t out_size)
 {
   int bits, ch, i, j, len, mask;
   char *lzbuffer;
-//  printf(" UnShrinking: %s ",filena);
-  putbytes = 0;
+  outbytes = 0; putbytes = 0;
+  maxsize = out_size;
 
   lzbuffer = (char *)malloc(N);
   if (lzbuffer == nullptr) {
@@ -258,14 +252,4 @@ void lzwexpand(Stream *lzw_in, Stream *out)
   }
 
   free(lzbuffer);
-  expand_to_mem = 0;
-}
-
-unsigned char *lzwexpand_to_mem(Stream *in)
-{
-  unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
-  expand_to_mem = 1;
-  membfptr = membuff;
-  lzwexpand(in, nullptr);
-  return membuff;
 }

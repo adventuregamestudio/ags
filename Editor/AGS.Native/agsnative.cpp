@@ -102,6 +102,7 @@ bool spritesModified = false;
 RoomStruct thisroom;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
+AGS::Common::Version game_compiled_version;
 
 // stuff for importing old games
 int numScriptModules = 0;

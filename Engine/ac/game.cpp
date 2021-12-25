@@ -95,6 +95,7 @@ volatile bool switched_away = false;
 volatile bool game_update_suspend = false;
 volatile char want_exit = 0, abort_engine = 0;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
+Version game_compiled_version;
 int frames_per_second=40;
 int displayed_room=-10,starting_room = -1;
 int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game

@@ -311,8 +311,12 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
+    // Make sure that the file path has system-compatible form
+    String sc_path = orig_sc_path;
+    sc_path.Replace('\\', '/');
+
     // File tokens (they must be the only thing in script path)
-    if (orig_sc_path.Compare(UserConfigFileToken) == 0)
+    if (sc_path.Compare(UserConfigFileToken) == 0)
     {
         auto loc = GetGameUserConfigDir();
         rp = ResolvedPath(loc, DefaultConfigFileName);
@@ -320,26 +324,25 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     // Test absolute paths
-    if (!Path::IsRelativePath(orig_sc_path))
+    if (!Path::IsRelativePath(sc_path))
     {
         if (!read_only)
         {
-            debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
             return false;
         }
-        rp = ResolvedPath(orig_sc_path);
+        rp = ResolvedPath(sc_path);
         return true;
     }
 
     // Resolve location tokens
     // IMPORTANT: for compatibility reasons we support both cases:
     // when token is followed by the path separator and when it is not, in which case it's assumed.
-    String sc_path = orig_sc_path;
     if (sc_path.CompareLeft(GameAssetToken, GameAssetToken.GetLength()) == 0)
     {
         if (!read_only)
         {
-            debug_script_warn("Attempt to access file '%s' denied (cannot write to game assets)", orig_sc_path.GetCStr());
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to game assets)", sc_path.GetCStr());
             return false;
         }
         rp.FullPath = sc_path.Mid(GameAssetToken.GetLength() + 1);

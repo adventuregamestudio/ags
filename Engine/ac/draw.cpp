@@ -2179,9 +2179,9 @@ void draw_gui_and_overlays()
         our_eip = 37;
         {
             for (aa=0;aa<game.numgui;aa++) {
-                if (!guis[aa].IsDisplayed()) continue;
-                if (!guis[aa].HasChanged()) continue;
-                if (guis[aa].Transparency == 255) continue;
+                if (!guis[aa].IsDisplayed()) continue; // not on screen
+                if (!guis[aa].HasChanged()) continue; // no changes: no need to update image
+                if (guis[aa].Transparency == 255) continue; // 100% transparent
 
                 guis[aa].ClearChanged();
                 if (guibg[aa] == nullptr)
@@ -2221,8 +2221,8 @@ void draw_gui_and_overlays()
         // Draw the GUIs
         for (gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
-            if (!guis[aa].IsDisplayed()) continue;
-            if (guis[aa].Transparency == 255) continue;
+            if (!guis[aa].IsDisplayed()) continue; // not on screen
+            if (guis[aa].Transparency == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&
@@ -2231,11 +2231,21 @@ void draw_gui_and_overlays()
                 continue;
 
             add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel());
+        }
 
-            // only poll if the interface is enabled (mouseovers should not
-            // work while in Wait state)
-            if (IsInterfaceEnabled())
-                guis[aa].Poll();
+        // Poll the GUIs
+        // TODO: move this out of the draw routine into game update!!
+        if (IsInterfaceEnabled()) // only poll if the interface is enabled
+        {
+            for (gg = 0; gg < game.numgui; gg++) {
+                if (!guis[gg].IsDisplayed()) continue; // not on screen
+                // Don't touch GUI if "GUIs Turn Off When Disabled"
+                if ((game.options[OPT_DISABLEOFF] == 3) &&
+                    (all_buttons_disabled > 0) &&
+                    (guis[gg].PopupStyle != kGUIPopupNoAutoRemove))
+                    continue;
+                guis[gg].Poll();
+            }
         }
     }
 

@@ -63,9 +63,13 @@ int32_t FindFreeFileSlot()
 
 int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
+  debug_script_print(kDbgMsg_Debug, "FileOpen: request: %s", fnmm);
   int32_t useindx = FindFreeFileSlot();
   if (useindx < 0)
+  {
+    debug_script_warn("FileOpen: no free handles: %s", fnmm);
     return 0;
+  }
 
   ResolvedPath rp;
   if (open_mode == kFile_Open && work_mode == kFile_Read)
@@ -80,13 +84,21 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
   }
 
   Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
+  String resolved_path = rp.FullPath;
   if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+  {
     s = File::OpenFile(rp.AltPath, open_mode, work_mode);
+    resolved_path = rp.AltPath;
+  }
 
   valid_handles[useindx].stream = s;
   if (valid_handles[useindx].stream == nullptr)
+  {
+    debug_script_warn("FileOpen: FAILED: %s", resolved_path.GetCStr());
     return 0;
+  }
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
+  debug_script_print(kDbgMsg_Info, "FileOpen: success: %s", resolved_path.GetCStr());
 
   if (useindx >= num_open_script_files)
     num_open_script_files++;

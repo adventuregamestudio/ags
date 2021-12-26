@@ -313,8 +313,12 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
+    // Make sure that the file path has system-compatible form
+    String sc_path = orig_sc_path;
+    sc_path.Replace('\\', '/');
+
     // File tokens (they must be the only thing in script path)
-    if (orig_sc_path.Compare(UserConfigFileToken) == 0)
+    if (sc_path.Compare(UserConfigFileToken) == 0)
     {
         auto loc = GetGameUserConfigDir();
         rp.FullPath = Path::ConcatPaths(loc.FullDir, DefaultConfigFileName);
@@ -323,21 +327,21 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     // Test absolute paths
-    bool is_absolute = !is_relative_filename(orig_sc_path);
+    bool is_absolute = !is_relative_filename(sc_path);
     if (is_absolute && !read_only)
     {
-        debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
+        debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
         return false;
     }
 
     if (is_absolute)
     {
-        rp.FullPath = orig_sc_path;
+        rp.FullPath = sc_path;
         return true;
     }
 
     // Resolve location tokens
-    String sc_path = FixSlashAfterToken(orig_sc_path);
+    sc_path = FixSlashAfterToken(sc_path);
     FSLocation parent_dir;
     String child_path;
     String alt_path;

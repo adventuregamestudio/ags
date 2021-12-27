@@ -544,7 +544,8 @@ String find_assetlib(const String &filename)
     String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
     if (AssetManager::IsDataFile(libname))
         return libname;
-    if (Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
+    if (!ResPaths.DataDir2.IsEmpty() &&
+        Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
       // Hack for running in Debugger
       libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir2, filename) );

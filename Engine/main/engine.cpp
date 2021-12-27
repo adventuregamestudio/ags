@@ -343,7 +343,8 @@ void engine_locate_speech_pak()
             Debug::Printf(kDbgMsg_Info, "Voice pack found and initialized.");
             play.want_speech=1;
         }
-        else if (Path::ComparePaths(ResPaths.DataDir, ResPaths.VoiceDir2) != 0)
+        else if (!ResPaths.VoiceDir2.IsEmpty() &&
+            Path::ComparePaths(ResPaths.DataDir, ResPaths.VoiceDir2) != 0)
         {
             // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
             Debug::Printf(kDbgMsg_Info, "Voice pack was not found, but explicit voice directory is defined: enabling voice-over.");
@@ -374,7 +375,8 @@ void engine_locate_audio_pak()
                 music_file.GetCStr());
         }
     }
-    else if (Path::ComparePaths(ResPaths.DataDir, ResPaths.AudioDir2) != 0)
+    else if (!ResPaths.AudioDir2.IsEmpty() &&
+        Path::ComparePaths(ResPaths.DataDir, ResPaths.AudioDir2) != 0)
     {
         Debug::Printf(kDbgMsg_Info, "Audio pack was not found, but explicit audio directory is defined.");
     }

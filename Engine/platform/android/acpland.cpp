@@ -49,6 +49,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void DisplayAlert(const char*, ...);
   virtual FSLocation GetAllUsersDataDirectory();
   virtual FSLocation GetUserSavedgamesDirectory();
+  virtual FSLocation GetUserGlobalConfigDirectory();
   virtual FSLocation GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -793,6 +794,11 @@ FSLocation AGSAndroid::GetUserSavedgamesDirectory()
   if (android_save_directory.IsEmpty())
     MakeGameSaveDirectory();
   return FSLocation(android_save_directory);
+}
+
+FSLocation AGSAndroid::GetUserGlobalConfigDirectory()
+{
+  return FSLocation(android_base_directory);
 }
 
 FSLocation AGSAndroid::GetAppOutputDirectory()

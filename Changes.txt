@@ -1,5 +1,40 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 6, December 2021
+
+Editor:
+ - Added line numbers in the dialog script editor.
+ - Fixed Dialog script loosing changes if the pane is closed or redocked.
+ - Fixed controls arrangement on the Dialog pane getting broken when it's redocked.
+
+Engine:
+ - Fixed filepaths in scripts that have backslashes ('\') fail on non-Windows systems.
+   All the File functions will now convert backslashes in filepaths into forward
+   slashes for compatibility.
+ - Fixed engine was still creating standard directories for game saves and data, even
+   if user provided the custom paths for these.
+ - Fixed TextBox control crashing the game if it's empty and player presses Backspace.
+ - Fixed controls on a fully transparent GUI were not interactive (this is an original
+   AGS behavior, which was unintentionally changed in 3.5.0 by mistake).
+
+Compatibility:
+ - When running 3.5.0 games, treat fully transparent GUI as non-interactable.
+   In AGS transparent GUIs may be still interacted with, but 3.5.0 introduced an
+   unintentional (and undocumented) change to this, which was reverted in 3.5.1.
+
+Android:
+ - Support global engine's config file when the game is run from the Launcher: it's
+   located in the AGS games' parent directory, same place where android.cfg is.
+
+WinSetup:
+ - Added "Custom game shared data path" to complement "Custom save path" option.
+
+
+VERSION 3.5.1 - Patch 5, October 2012
+
+Re-released without code changes, only fixing program build instructions for Linux.
+
+
 VERSION 3.5.1 - Patch 4, September 2021
 
 Editor:

@@ -672,27 +672,9 @@ void engine_init_user_directories()
     if (!usetup.shared_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Info, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
 
-    // if end-user specified custom save path, use it
-    bool res = false;
-    if (!usetup.user_data_dir.IsEmpty())
-    {
-        res = SetCustomSaveParent(usetup.user_data_dir);
-        if (!res)
-        {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: custom user save path failed, using default system paths");
-            res = false;
-        }
-    }
-    // if there is no custom path, or if custom path failed, use default system path
-    if (!res)
-    {
-        SetSaveGameDirectoryPath(Path::ConcatPaths(UserSavedgamesRootToken, game.saveGameFolderName));
-    }
+    // Initialize default save directory early, for we'll need it to set restart point
+    SetDefaultSaveDirectory();
 }
-
-#if AGS_PLATFORM_OS_ANDROID
-extern char android_base_directory[256];
-#endif // AGS_PLATFORM_OS_ANDROID
 
 // TODO: remake/remove this nonsense
 int check_write_access() {
@@ -707,21 +689,7 @@ int check_write_access() {
   String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
-      // TODO: The fallback should be done on all platforms, and there's
-      // already similar procedure found in SetSaveGameDirectoryPath.
-      // If Android has extra dirs to fallback to, they should be provided
-      // by platform driver's method, not right here!
-#if AGS_PLATFORM_OS_ANDROID
-  {
-	  put_backslash(android_base_directory);
-      tempPath.Format("%s""tmptest.tmp", android_base_directory);
-	  temp_s = Common::File::CreateFile(tempPath);
-	  if (temp_s == NULL) return 0;
-	  else SetCustomSaveParent(android_base_directory);
-  }
-#else
     return 0;
-#endif // AGS_PLATFORM_OS_ANDROID
 
   our_eip = -1896;
 

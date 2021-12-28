@@ -38,7 +38,8 @@ bool CreateAllDirectories(const String &parent, const String &path)
         return false;
 
     String fixup_parent = Path::MakeTrailingSlash(parent);
-    String sub_path = Path::MakeRelativePath(fixup_parent, path);
+    String fixup_child = Path::MakeTrailingSlash(path);
+    String sub_path = Path::MakeRelativePath(fixup_parent, fixup_child);
     String make_path = parent;
     std::vector<String> dirs = Path::Split(sub_path);
     for (const String &dir : dirs)

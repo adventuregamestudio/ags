@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "util/string_compat.h"
+#include "util/file.h"
 
 
 
@@ -46,7 +47,10 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetAppOutputDirectory();
+  virtual FSLocation GetAllUsersDataDirectory();
+  virtual FSLocation GetUserSavedgamesDirectory();
+  virtual FSLocation GetUserGlobalConfigDirectory();
+  virtual FSLocation GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
@@ -101,8 +105,9 @@ extern void PauseGame();
 extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
-char android_base_directory[256];
-char android_app_directory[256];
+String android_base_directory;
+String android_app_directory;
+String android_save_directory;
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
@@ -492,12 +497,12 @@ JNIEXPORT jboolean JNICALL
   // Get the base directory (usually "/sdcard/ags").
   const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
-  strcpy(android_base_directory, cdirectory);
+  android_base_directory = cdirectory;
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
 
   // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")
   const char* cappDirectory = java_environment->GetStringUTFChars(appDirectory, NULL);
-  strcpy(android_app_directory, cappDirectory);
+  android_app_directory = cappDirectory;
   java_environment->ReleaseStringUTFChars(appDirectory, cappDirectory);
 
   // Reset configuration.
@@ -768,9 +773,37 @@ void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-const char *AGSAndroid::GetAppOutputDirectory()
+static void MakeGameSaveDirectory()
 {
-  return android_base_directory;
+  // Test the app dir for write access, if failed then switch to "base dir"
+  if (File::TestCreateFile("./tmptest.tmp"))
+    android_save_directory = ".";
+  else
+    android_save_directory = android_base_directory;
+}
+
+FSLocation AGSAndroid::GetAllUsersDataDirectory()
+{
+  if (android_save_directory.IsEmpty())
+    MakeGameSaveDirectory();
+  return FSLocation(android_save_directory);
+}
+
+FSLocation AGSAndroid::GetUserSavedgamesDirectory()
+{
+  if (android_save_directory.IsEmpty())
+    MakeGameSaveDirectory();
+  return FSLocation(android_save_directory);
+}
+
+FSLocation AGSAndroid::GetUserGlobalConfigDirectory()
+{
+  return FSLocation(android_base_directory);
+}
+
+FSLocation AGSAndroid::GetAppOutputDirectory()
+{
+  return FSLocation(android_base_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

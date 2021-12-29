@@ -629,8 +629,8 @@ void AGSAndroid::MainInit()
 
     jfieldID fid_game_file_name = env->GetFieldID(clazz, "_game_file_name", "Ljava/lang/String;");
     jobject jobj_game_file_name = env->GetObjectField(activity, fid_game_file_name);
-    const char * _game_file_name;
-    _game_file_name = env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
+    const char * _game_file_name =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
     if(_game_file_name != nullptr) {
         strcpy(psp_game_file_name, _game_file_name);
     }
@@ -638,19 +638,19 @@ void AGSAndroid::MainInit()
 
     jfieldID fid_android_base_directory = env->GetFieldID(clazz, "_android_base_directory", "Ljava/lang/String;");
     jobject jobj_android_base_directory = env->GetObjectField(activity, fid_android_base_directory);
-    const char * _android_base_directory;
-    _android_base_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
+    const char * _android_base_directory =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
     if(_android_base_directory != nullptr) {
-        strcpy(android_base_directory, _android_base_directory);
+        android_base_directory = _android_base_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_base_directory), _android_base_directory);
 
     jfieldID fid_android_app_directory = env->GetFieldID(clazz, "_android_app_directory", "Ljava/lang/String;");
     jobject jobj_android_app_directory = env->GetObjectField(activity, fid_android_app_directory);
-    const char * _android_app_directory;
-    _android_app_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
+    const char * _android_app_directory =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
     if(_android_app_directory != nullptr) {
-        strcpy(android_app_directory, _android_app_directory);
+        android_app_directory = _android_app_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_app_directory), _android_app_directory);
 

@@ -33,6 +33,9 @@
 #define IDC_CUSTOMSAVEDIRCHECK          1039
 #define IDC_CUSTOMSAVEDIR               1040
 #define IDC_CUSTOMSAVEDIRBTN            1041
+#define IDC_CUSTOMAPPDATADIRCHECK       1045
+#define IDC_CUSTOMAPPDATADIR            1046
+#define IDC_CUSTOMAPPDATADIRBTN         1047
 
 // Next default values for new objects
 // 

@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 #include "ac/datetime.h"
+#include "ac/path_helper.h"
 #include "debug/outputhandler.h"
 #include "util/ini_util.h"
 
@@ -79,15 +80,15 @@ public:
     // platform specific data file
     virtual const char * GetGameDataFile() {return nullptr; }
     // Get root directory for storing per-game shared data
-    virtual const char *GetAllUsersDataDirectory() { return "."; }
+    virtual FSLocation GetAllUsersDataDirectory() { return FSLocation("."); }
     // Get root directory for storing per-game saved games
-    virtual const char *GetUserSavedgamesDirectory() { return "."; }
+    virtual FSLocation GetUserSavedgamesDirectory() { return FSLocation("."); }
     // Get root directory for storing per-game user configuration files
-    virtual const char *GetUserConfigDirectory() { return "."; }
+    virtual FSLocation GetUserConfigDirectory() { return FSLocation("."); }
     // Get directory for storing all-games user configuration files
-    virtual const char *GetUserGlobalConfigDirectory()  { return "."; }
+    virtual FSLocation GetUserGlobalConfigDirectory()  { return FSLocation("."); }
     // Get default directory for program output (logs)
-    virtual const char *GetAppOutputDirectory() { return "."; }
+    virtual FSLocation GetAppOutputDirectory() { return FSLocation("."); }
     // Returns array of characters illegal to use in file names
     virtual const char *GetIllegalFileChars() { return "\\/"; }
     virtual const char *GetDiskWriteAccessTroubleshootingText();

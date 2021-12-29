@@ -109,7 +109,13 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
         DebugLogFile.reset(new LogFile());
-        String logfile_path = !path.IsEmpty() ? path : Path::ConcatPaths(platform->GetAppOutputDirectory(), "ags.log");
+        String logfile_path = path;
+        if (logfile_path.IsEmpty())
+        {
+            FSLocation fs = platform->GetAppOutputDirectory();
+            CreateFSDirs(fs);
+            logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
+        }
         if (!DebugLogFile->OpenFile(logfile_path, open_mode))
             return nullptr;
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());

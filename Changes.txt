@@ -8,8 +8,15 @@ Editor:
    "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
    original game's codepage.
  - Added support for adding custom files into the game package. This is done by assigning
-   a list of directories to "Package custom data folder" property in General Settings.
- - Added "TTF fonts height used in the game logic" property to the General Settings, that makes
+   a list of directories to "Package custom data folder" option in General Settings.
+ - Added "Sprite file compression" option in General Settings, replacing "Compress the sprite file"
+   option. The new option allows a selection of compression algorithm used for sprites. Currently
+   supported: None, RLE (old default compression) and LZW.
+ - Added "Enable sprite storage optimization" option to the General Settings, that permits the
+   editor to repack sprites in a different storage format, reducing their disk size whenever
+   possible. This option may be used alongside with the sprite compression. Note that this does not
+   change how the sprites work in game.
+ - Added "TTF fonts height used in the game logic" option to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
  - Added "TTF font adjustment" property to Fonts, as well as to General Settings where it serves

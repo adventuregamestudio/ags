@@ -502,7 +502,7 @@ TEST_F(Compile1, DoubleParameterName) {
 
 TEST_F(Compile1, FuncParamDefaults1) {
 
-    // Can't give a parameter a default here, not a default there
+    // Either give no defaults or give them all
 
     char *inpl = "\
         void Func(int i = 5, float j = 6.0);    \n\
@@ -519,6 +519,20 @@ TEST_F(Compile1, FuncParamDefaults1) {
 
 TEST_F(Compile1, FuncParamDefaults2) {
 
+    // All parameters that follow a default parameter must have a default
+
+    char *inpl = "\
+        import void Func(int i = 5, float j);   \n\
+        ";
+    
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("#2"));
+}
+
+TEST_F(Compile1, FuncParamDefaults3) {
+
     // Can't give a parameter a default here, not a default there
 
     char *inpl = "\
@@ -534,7 +548,7 @@ TEST_F(Compile1, FuncParamDefaults2) {
     EXPECT_NE(std::string::npos, msg.find("#2"));
 }
 
-TEST_F(Compile1, FuncParamDefaults3) {   
+TEST_F(Compile1, FuncParamDefaults4) {   
 
     // Can't give a parameter differing defaults
 
@@ -606,9 +620,9 @@ TEST_F(Compile1, FuncVariadicCollision) {
     EXPECT_NE(std::string::npos, msg.find("additional"));
 }
 
-TEST_F(Compile1, FuncReturnTypes) {   
+TEST_F(Compile1, FuncReturnVartypes) {   
 
-    // Return types
+    // Return vartypes
 
     char *inpl = "\
         int Func(int, float, short);            \n\
@@ -733,7 +747,7 @@ TEST_F(Compile1, FuncDouble) {
     // No two equally-named functions with body
 
     char *inpl = "\
-        int Func()                             \n\
+        int Func()                              \n\
         {                                       \n\
         }                                       \n\
         void Func()                             \n\
@@ -778,6 +792,316 @@ TEST_F(Compile1, FuncNameClash1) {
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("declared as a function"));
+}
+
+TEST_F(Compile1, FuncDeclWrong1) {
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    import int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                    \n\
+    int Func(Struct2 *S1, Struct1 *S2)          \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+   ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("parameter"));
+}
+
+TEST_F(Compile1, FuncDeclWrong2) {
+
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int Func(Struct2 *S1, Struct1 *S2)  \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int Func(Struct1 *S1, Struct2 *S2);  \n\
+   ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("parameter"));
+}
+
+TEST_F(Compile1, FuncDeclReturnVartype) {
+
+    // Should compile.
+
+    char *inpl = "\
+    managed struct DynamicSprite                                    \n\
+    {                                                               \n\
+    };                                                              \n\
+                                                                    \n\
+    struct RotatedView                                              \n\
+    {                                                               \n\
+        import static DynamicSprite *[]                             \n\
+            CreateLoop(int view, int loop, int base_loop = 7);      \n\
+    };                                                              \n\
+                                                                    \n\
+    static DynamicSprite *[]                                        \n\
+        RotatedView::CreateLoop(int view, int loop, int base_loop)  \n\
+    {                                                               \n\
+        return null;                                                \n\
+    }                                                               \n\
+   ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile1, FuncHeader1) {
+
+    // Can't have a specific array size in func parameters
+
+    char *inpl = "\
+        void main(int a[15])                   \n\
+        {                                      \n\
+             return;                           \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("'15'"));
+}
+
+TEST_F(Compile1, FuncHeader2) {
+
+    // Default for float parameter, an int value. Should fail
+
+    char *inpl = "\
+        void Foo(float Param = 7);              \n\
+        {                                      \n\
+             return;                           \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("loat expression"));
+}
+
+TEST_F(Compile1, FuncHeader3) {
+
+    // Integer default for managed parameter. Should fail
+    char *inpl = "\
+        managed struct Payload                  \n\
+        {                                       \n\
+            float foo;                          \n\
+        };                                      \n\
+                                                \n\
+        void Foo(Payload Param = 7);            \n\
+        {                                       \n\
+             return;                            \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("rameter default"));
+}
+
+TEST_F(Compile1, FuncExtenderHeaderFault1a) {
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(this Holzschuh)               \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("Holzschuh"));
+}
+
+TEST_F(Compile1, FuncExtenderHeaderFault1b) {
+
+    // A comma or paren should follow 'Weapon'
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(static Weapon Of Mass Destruction) \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("'Of'"));
+}
+
+TEST_F(Compile1, FuncExtenderHeaderFault1c) {
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(static Weapon *)              \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("tatic extender function"));
+}
+
+TEST_F(Compile1, FuncExtenderHeaderFault2) {
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(this int)                     \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("struct"));
+}
+
+TEST_F(Compile1, FuncDoubleExtender) {
+
+    // Must not define a function with body twice.
+
+    char *inpl = "\
+        struct Weapon {                         \n\
+            int Damage;                         \n\
+        };                                      \n\
+                                                \n\
+        int Foo(this Weapon *)                  \n\
+        {                                       \n\
+            return 1;                           \n\
+        }                                       \n\
+                                                \n\
+        int Weapon::Foo(void)                   \n\
+        {                                       \n\
+            return 2;                           \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("defined"));
+}
+
+TEST_F(Compile1, FuncDoubleNonExtender) {
+
+    char *inpl = "\
+        int Foo(int Bar)                       \n\
+        {                                      \n\
+            return 1;                          \n\
+        }                                      \n\
+        int Foo(int Bat)                       \n\
+        {                                      \n\
+            return 2;                          \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("defined"));
+}
+
+TEST_F(Compile1, FuncUndeclaredStruct1) {
+
+    // Should fail, Struct doesn't have Func
+
+    char *inpl = "\
+        managed struct Struct                       \n\
+        {                                           \n\
+            int Component;                          \n\
+        };                                          \n\
+                                                    \n\
+        void Struct::Func(int Param)                \n\
+        {                                           \n\
+        }                                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string message = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, message.find("Func"));
+}
+
+TEST_F(Compile1, FuncUndeclaredStruct2) {
+
+    // Should succeed, Struct has Func
+
+    char *inpl = "\
+        void Struct::Func(int Param)                \n\
+        {                                           \n\
+        }                                           \n\
+                                                    \n\
+        managed struct Struct                       \n\
+        {                                           \n\
+            void Func(int);                         \n\
+        };                                          \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST_F(Compile1, TypeEqComponent) {

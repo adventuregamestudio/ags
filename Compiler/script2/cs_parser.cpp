@@ -1234,7 +1234,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifie
     _sym.SetDeclared(param_name, _src.GetCursor());
 }
 
-void AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t param_idx)
+void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const body_follows, TypeQualifierSet tqs, Vartype param_vartype, size_t const param_idx)
 {
     ParseParamlist_ParamType(param_vartype);
     if (tqs[TQ::kConst])
@@ -1249,6 +1249,13 @@ void AGS::Parser::ParseParamlist_Param(Symbol name_of_func, bool body_follows, T
     
     Symbol param_default;
     ParseParamlist_Param_DefaultValue(param_idx, param_vartype, param_default);
+    if (!body_follows &&
+        kKW_NoSymbol == param_default &&
+        !_sym[name_of_func].FunctionD->Parameters.empty() &&
+        kKW_NoSymbol != _sym[name_of_func].FunctionD->Parameters.back().Default)
+        UserError(
+            "Parameter #%u of function '%s' follows a default parameter and so must have a default, too",
+            param_idx, _sym.GetName(name_of_func).c_str());
     
     _sym[name_of_func].FunctionD->Parameters.push_back({});
     _sym[name_of_func].FunctionD->Parameters.back().Vartype = param_vartype; 

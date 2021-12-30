@@ -302,11 +302,11 @@ void save_rle_bitmap8(Stream *out, const Bitmap *bmp, const RGB (*pal)[256])
     }
 }
 
-Common::Bitmap *load_rle_bitmap8(Stream *in, RGB (*pal)[256])
+std::unique_ptr<Bitmap> load_rle_bitmap8(Stream *in, RGB (*pal)[256])
 {
     int w = in->ReadInt16();
     int h = in->ReadInt16();
-    Bitmap *bmp = BitmapHelper::CreateBitmap(w, h, 8);
+    std::unique_ptr<Bitmap> bmp(BitmapHelper::CreateBitmap(w, h, 8));
     if (!bmp) return nullptr;
     // Unpack the pixels
     cunpackbitl(bmp->GetDataForWriting(), w * h, in);
@@ -404,7 +404,7 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const RGB (*pal)[256])
   out->Seek(toret, kSeekBegin);
 }
 
-Bitmap *load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
+std::unique_ptr<Bitmap> load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
 {
   // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
   if (pal)
@@ -426,7 +426,7 @@ Bitmap *load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
   VectorStream mem_in(membuf);
   int stride = mem_in.ReadInt32(); // width * bpp
   int height = mem_in.ReadInt32();
-  Bitmap *bmm = BitmapHelper::CreateBitmap((stride / dst_bpp), height, dst_bpp * 8);
+  std::unique_ptr<Bitmap> bmm(BitmapHelper::CreateBitmap((stride / dst_bpp), height, dst_bpp * 8));
   if (!bmm) return nullptr; // out of mem?
 
   size_t num_pixels = stride * height / dst_bpp;

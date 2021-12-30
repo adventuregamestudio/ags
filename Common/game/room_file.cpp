@@ -310,23 +310,23 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     update_polled_stuff_if_runtime();
     // Primary background (LZW or RLE compressed depending on format)
     if (data_ver >= kRoomVersion_pre114_5)
-        room->BgFrames[0].Graphic.reset(
-            load_lzw(in, room->BackgroundBPP, &room->Palette));
+        room->BgFrames[0].Graphic =
+            load_lzw(in, room->BackgroundBPP, &room->Palette);
     else
-        room->BgFrames[0].Graphic.reset(load_rle_bitmap8(in));
+        room->BgFrames[0].Graphic = load_rle_bitmap8(in);
 
     // Area masks
     update_polled_stuff_if_runtime();
     if (data_ver >= kRoomVersion_255b)
-        room->RegionMask.reset(load_rle_bitmap8(in));
+        room->RegionMask = load_rle_bitmap8(in);
     else if (data_ver >= kRoomVersion_114)
         skip_rle_bitmap8(in); // an old version - clear the 'shadow' area into a blank regions bmp (???)
     update_polled_stuff_if_runtime();
-    room->WalkAreaMask.reset(load_rle_bitmap8(in));
+    room->WalkAreaMask = load_rle_bitmap8(in);
     update_polled_stuff_if_runtime();
-    room->WalkBehindMask.reset(load_rle_bitmap8(in));
+    room->WalkBehindMask = load_rle_bitmap8(in);
     update_polled_stuff_if_runtime();
-    room->HotspotMask.reset(load_rle_bitmap8(in));
+    room->HotspotMask = load_rle_bitmap8(in);
     return HError::None();
 }
 
@@ -404,8 +404,8 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
         update_polled_stuff_if_runtime();
-        room->BgFrames[i].Graphic.reset(
-            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette));
+        room->BgFrames[i].Graphic =
+            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
     }
     return HError::None();
 }

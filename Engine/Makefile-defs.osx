@@ -50,7 +50,6 @@ LDFLAGS  := $(addprefix -L,$(LIBDIR))
 BASE_PLATFORM = \
 platform/osx/acplmac.cpp \
 platform/util/libc.c \
-platform/util/pe.c \
 platform/osx/alplmac.mm
 
 CDA := 

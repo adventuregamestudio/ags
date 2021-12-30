@@ -29,6 +29,8 @@ void rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream
 void save_rle_bitmap8(Common::Stream *out, const Common::Bitmap *bmp, const RGB (*pal)[256] = nullptr);
 // Reads a 8-bit bitmap with palette from the stream and unpacks from RLE
 Common::Bitmap *load_rle_bitmap8(Common::Stream *in, RGB (*pal)[256] = nullptr);
+// Skips the 8-bit RLE bitmap
+void skip_rle_bitmap8(Common::Stream *in);
 
 // LZW compression
 void lzw_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *out);
@@ -36,6 +38,6 @@ void lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream
 // Saves bitmap with an optional palette compressed by LZW
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing
-void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, RGB (*pal)[256] = nullptr);
+Common::Bitmap *load_lzw(Common::Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
 
 #endif // __AC_COMPRESS_H

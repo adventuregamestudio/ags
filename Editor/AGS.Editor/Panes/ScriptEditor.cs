@@ -68,7 +68,7 @@ namespace AGS.Editor
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
-        public void Clear()
+        private void Clear()
         {
             this.Controls.Clear();
             _toolbarIcons.Clear();
@@ -86,7 +86,7 @@ namespace AGS.Editor
             scintilla.ToggleBreakpoint -= new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
         }
 
-        public void Init(Script scriptToEdit)
+        private void Init(Script scriptToEdit)
         {
             InitializeComponent();
 

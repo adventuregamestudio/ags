@@ -70,6 +70,7 @@ struct WinConfig
 
     String DataDirectory;
     String UserSaveDir;
+    String AppDataDir;
     GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
@@ -141,6 +142,7 @@ void WinConfig::Load(const ConfigTree &cfg)
 {
     DataDirectory = INIreadstring(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = INIreadstring(cfg, "misc", "user_data_dir");
+    AppDataDir = INIreadstring(cfg, "misc", "shared_data_dir");
     // Backward-compatible resolution type
     GameResType = (GameResolutionType)INIreadint(cfg, "gameproperties", "legacy_resolution", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
@@ -186,6 +188,7 @@ void WinConfig::Load(const ConfigTree &cfg)
 void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
 {
     INIwritestring(cfg, "misc", "user_data_dir", UserSaveDir);
+    INIwritestring(cfg, "misc", "shared_data_dir", AppDataDir);
 
     INIwritestring(cfg, "graphics", "driver", GfxDriverId);
     INIwritestring(cfg, "graphics", "filter", GfxFilterId);
@@ -443,6 +446,8 @@ private:
     INT_PTR OnListSelection(WORD id);
     void OnCustomSaveDirBtn();
     void OnCustomSaveDirCheck();
+    void OnCustomAppDataDirBtn();
+    void OnCustomAppDataDirCheck();
     void OnGfxDriverUpdate();
     void OnGfxFilterUpdate();
     void OnGfxModeUpdate();
@@ -510,6 +515,9 @@ private:
     HWND _hCustomSaveDir = NULL;
     HWND _hCustomSaveDirBtn = NULL;
     HWND _hCustomSaveDirCheck = NULL;
+    HWND _hCustomAppDataDir = NULL;
+    HWND _hCustomAppDataDirBtn = NULL;
+    HWND _hCustomAppDataDirCheck = NULL;
     HWND _hGfxDriverList = NULL;
     HWND _hGfxModeList = NULL;
     HWND _hFullscreenDesktop = NULL;
@@ -566,6 +574,21 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree 
     }
 }
 
+static void SetupCustomDirCtrl(const String &save_dir_opt, const String &def_dir,
+    HWND dir_check, HWND dir_text, HWND dir_btn)
+{
+    String custom_save_dir = save_dir_opt;
+    bool has_save_dir = !custom_save_dir.IsEmpty();
+    if (!has_save_dir)
+        custom_save_dir = def_dir;
+    SetCheck(dir_check, has_save_dir);
+    WCHAR full_save_dir[MAX_PATH_SZ] = { 0 };
+    MakeFullLongPath(STR(custom_save_dir), full_save_dir, MAX_PATH_SZ);
+    SetText(dir_text, full_save_dir);
+    EnableWindow(dir_text, has_save_dir ? TRUE : FALSE);
+    EnableWindow(dir_btn, has_save_dir ? TRUE : FALSE);
+}
+
 INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 {
     _hwnd                   = hwnd;
@@ -573,6 +596,9 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hCustomSaveDir         = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIR);
     _hCustomSaveDirBtn      = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRBTN);
     _hCustomSaveDirCheck    = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRCHECK);
+    _hCustomAppDataDir      = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIR);
+    _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
+    _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
     _hGfxDriverList         = GetDlgItem(_hwnd, IDC_GFXDRIVER);
     _hGfxModeList           = GetDlgItem(_hwnd, IDC_GFXMODE);
     _hFullscreenDesktop     = GetDlgItem(_hwnd, IDC_FULLSCREENDESKTOP);
@@ -603,16 +629,10 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _winCfg.Load(_cfgIn);
 
     // Custom save dir controls
-    String custom_save_dir = _winCfg.UserSaveDir;
-    bool has_save_dir = !custom_save_dir.IsEmpty();
-    if (!has_save_dir)
-        custom_save_dir = _winCfg.DataDirectory;
-    SetCheck(_hCustomSaveDirCheck, has_save_dir);
-    WCHAR full_save_dir[MAX_PATH_SZ] = {0};
-    MakeFullLongPath(STR(custom_save_dir), full_save_dir, MAX_PATH_SZ);
-    SetText(_hCustomSaveDir, full_save_dir);
-    EnableWindow(_hCustomSaveDir, has_save_dir ? TRUE : FALSE);
-    EnableWindow(_hCustomSaveDirBtn, has_save_dir ? TRUE : FALSE);
+    SetupCustomDirCtrl(_winCfg.UserSaveDir, _winCfg.DataDirectory,
+        _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
+    SetupCustomDirCtrl(_winCfg.AppDataDir, _winCfg.DataDirectory,
+        _hCustomAppDataDirCheck, _hCustomAppDataDir, _hCustomAppDataDirBtn);
 
     // Resolution controls
     if (_winCfg.GameResolution.IsNull() &&
@@ -709,6 +729,8 @@ INT_PTR WinSetupDialog::OnCommand(WORD id)
     case IDC_FULLSCREENDESKTOP: OnFullscreenDesktop(); break;
     case IDC_CUSTOMSAVEDIRBTN: OnCustomSaveDirBtn(); break;
     case IDC_CUSTOMSAVEDIRCHECK: OnCustomSaveDirCheck(); break;
+    case IDC_CUSTOMAPPDATADIRBTN: OnCustomAppDataDirBtn(); break;
+    case IDC_CUSTOMAPPDATADIRCHECK: OnCustomAppDataDirCheck(); break;
     case IDOK:
     case IDOKRUN:
         SaveSetup();
@@ -751,6 +773,22 @@ void WinSetupDialog::OnCustomSaveDirCheck()
     bool custom_save_dir = GetCheck(_hCustomSaveDirCheck);
     EnableWindow(_hCustomSaveDir, custom_save_dir ? TRUE : FALSE);
     EnableWindow(_hCustomSaveDirBtn, custom_save_dir ? TRUE : FALSE);
+}
+
+void WinSetupDialog::OnCustomAppDataDirBtn()
+{
+    String data_dir = GetText(_hCustomAppDataDir);
+    if (BrowseForFolder(data_dir))
+    {
+        SetText(_hCustomAppDataDir, STR(data_dir));
+    }
+}
+
+void WinSetupDialog::OnCustomAppDataDirCheck()
+{
+    bool custom_data_dir = GetCheck(_hCustomAppDataDirCheck);
+    EnableWindow(_hCustomAppDataDir, custom_data_dir ? TRUE : FALSE);
+    EnableWindow(_hCustomAppDataDirBtn, custom_data_dir ? TRUE : FALSE);
 }
 
 void WinSetupDialog::OnGfxDriverUpdate()
@@ -1086,36 +1124,35 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id)
     _drvDescMap[drv_desc->Id] = drv_desc;
 }
 
-void WinSetupDialog::SaveSetup()
+static String SaveCustomDirSetup(const String &def_dir, HWND dir_check, HWND dir_text)
 {
-    const bool custom_save_dir = GetCheck(_hCustomSaveDirCheck);
-    if (custom_save_dir)
+    if (!GetCheck(dir_check))
+        return "";
+    // Compare user path with the game data directory. If user chose
+    // path pointing inside game's directory, then store relative
+    // path instead; thus the path will keep pointing at game's
+    // directory if user moves game elsewhere.
+    String custom_dir = GetText(dir_text);
+    WCHAR full_data_dir[MAX_PATH_SZ] = { 0 };
+    WCHAR full_custom_dir[MAX_PATH_SZ] = { 0 };
+    MakeFullLongPath(STR(def_dir), full_data_dir, MAX_PATH_SZ);
+    MakeFullLongPath(STR(custom_dir), full_custom_dir, MAX_PATH_SZ);
+    WCHAR rel_dir[MAX_PATH_SZ] = { 0 };
+    if (PathRelativePathToW(rel_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_custom_dir, FILE_ATTRIBUTE_DIRECTORY) &&
+        wcsstr(rel_dir, L"..") == NULL)
     {
-        // Compare user path with the game data directory. If user chose
-        // path pointing inside game's directory, then store relative
-        // path instead; thus the path will keep pointing at game's
-        // directory if user moves game elsewhere.
-        String save_dir;
-        save_dir = GetText(_hCustomSaveDir);
-        WCHAR full_data_dir[MAX_PATH_SZ] = {0};
-        WCHAR full_save_dir[MAX_PATH_SZ] = {0};
-        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH_SZ);
-        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH_SZ);
-        WCHAR rel_save_dir[MAX_PATH_SZ] = {0};
-        if (PathRelativePathToW(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
-            wcsstr(rel_save_dir, L"..") == NULL)
-        {
-            _winCfg.UserSaveDir = Path::WidePathToUTF8(rel_save_dir);
-        }
-        else
-        {
-            _winCfg.UserSaveDir = save_dir;
-        }
+        return Path::WidePathToUTF8(rel_dir);
     }
     else
     {
-        _winCfg.UserSaveDir = "";
+        return custom_dir;
     }
+}
+
+void WinSetupDialog::SaveSetup()
+{
+    _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
+    _winCfg.AppDataDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomAppDataDirCheck, _hCustomAppDataDir);
 
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Language.Empty();

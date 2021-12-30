@@ -27,11 +27,11 @@
 
 struct AGSPlatformXDGUnix : AGSPlatformDriver {
     void DisplayAlert(const char*, ...) override;
-    const char *GetAllUsersDataDirectory() override;
-    const char *GetUserSavedgamesDirectory() override;
-    const char *GetUserConfigDirectory() override;
-    const char *GetUserGlobalConfigDirectory() override;
-    const char *GetAppOutputDirectory() override;
+    FSLocation GetAllUsersDataDirectory() override;
+    FSLocation GetUserSavedgamesDirectory() override;
+    FSLocation GetUserConfigDirectory() override;
+    FSLocation GetUserGlobalConfigDirectory() override;
+    FSLocation GetAppOutputDirectory() override;
     unsigned long GetDiskFreeSpaceMB() override;
     const char* GetBackendFailUserHint() override;
 };

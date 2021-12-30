@@ -15,9 +15,8 @@
 // LZW compression -- the LZW/GIF patent has expired, so we can use it now!!!
 //
 //=============================================================================
-
+#include "util/lzw.h"
 #include <stdlib.h>
-#include "ac/common.h" // quit
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -44,7 +43,7 @@ void _delete(int);
 char *lzbuffer;
 int *node;
 int pos;
-long outbytes = 0, maxsize = 0, putbytes = 0;
+size_t outbytes = 0, maxsize = 0, putbytes = 0;
 
 int insert(int i, int run)
 {
@@ -118,14 +117,14 @@ void _delete(int z)
   }
 }
 
-void lzwcompress(Stream *lzw_in, Stream *out)
+bool lzwcompress(Stream *lzw_in, Stream *out)
 {
   int ch, i, run, len, match, size, mask;
   char buf[17];
 
   lzbuffer = (char *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));       // 28.5 k !
   if (lzbuffer == nullptr) {
-    quit("unable to compress: out of memory");
+    return false;
   }
 
   node = (int *)(lzbuffer + N + F);
@@ -175,7 +174,7 @@ void lzwcompress(Stream *lzw_in, Stream *out)
       }
 
       if (!((mask += mask) & 0xFF)) {
-        out->WriteArray(buf, size, 1);
+        out->Write(buf, size);
         outbytes += size;
         size = mask = 1;
         buf[0] = 0;
@@ -185,15 +184,14 @@ void lzwcompress(Stream *lzw_in, Stream *out)
   } while (len > 0);
 
   if (size > 1) {
-    out->WriteArray(buf, size, 1);
+    out->Write(buf, size);
     outbytes += size;
   }
 
   free(lzbuffer);
+  return true;
 }
 
-int expand_to_mem = 0;
-unsigned char *membfptr = nullptr;
 void myputc(int ccc, Stream *out)
 {
   if (maxsize > 0) {
@@ -203,23 +201,19 @@ void myputc(int ccc, Stream *out)
   }
 
   outbytes++;
-  if (expand_to_mem) {
-    membfptr[0] = ccc;
-    membfptr++;
-  } else
-    out->WriteInt8(ccc);
+  out->WriteInt8(ccc);
 }
 
-void lzwexpand(Stream *lzw_in, Stream *out)
+bool lzwexpand(Stream *lzw_in, Stream *out, size_t out_size)
 {
   int bits, ch, i, j, len, mask;
   char *lzbuffer;
-//  printf(" UnShrinking: %s ",filena);
-  putbytes = 0;
+  outbytes = 0; putbytes = 0;
+  maxsize = out_size;
 
   lzbuffer = (char *)malloc(N);
   if (lzbuffer == nullptr) {
-    quit("compress.cpp: unable to decompress: insufficient memory");
+    return false;
   }
   i = N - F;
 
@@ -249,8 +243,10 @@ void lzwexpand(Stream *lzw_in, Stream *out)
       if ((putbytes >= maxsize) && (maxsize > 0))
         break;
 
-      if ((lzw_in->EOS()) && (maxsize > 0))
-        quit("Read error decompressing image - file is corrupt");
+      if ((lzw_in->EOS()) && (maxsize > 0)) {
+        free(lzbuffer);
+        return false;
+      }
     }                           // end for mask
 
     if ((putbytes >= maxsize) && (maxsize > 0))
@@ -258,14 +254,5 @@ void lzwexpand(Stream *lzw_in, Stream *out)
   }
 
   free(lzbuffer);
-  expand_to_mem = 0;
-}
-
-unsigned char *lzwexpand_to_mem(Stream *in)
-{
-  unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
-  expand_to_mem = 1;
-  membfptr = membuff;
-  lzwexpand(in, nullptr);
-  return membuff;
+  return true;
 }

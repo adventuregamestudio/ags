@@ -54,12 +54,12 @@ const char *IniFileText2 = ""
 
 TEST(IniFile, ReadAndQuery) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -68,7 +68,7 @@ TEST(IniFile, ReadAndQuery) {
     // Read data back
     IniFile ini;
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     ini.Read(in.get());
     in.reset();
@@ -136,12 +136,12 @@ TEST(IniFile, ReadAndQuery) {
 
 TEST(IniFile, ReadAndModify) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -150,7 +150,7 @@ TEST(IniFile, ReadAndModify) {
     // Read data back
     IniFile ini;
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     ini.Read(in.get());
     in.reset();
@@ -200,13 +200,13 @@ TEST(IniFile, ReadAndModify) {
     //-------------------------------------------------------------------------
     // Write modified data
     membuf.resize(0);
-    out.reset(new MemoryStream(membuf, kStream_Write));
+    out.reset(new VectorStream(membuf, kStream_Write));
     ini.Write(out.get());
     out.reset();
 
     //-------------------------------------------------------------------------
     // Read modified data back and ASSERT_TRUE
-    in.reset(new MemoryStream(membuf));
+    in.reset(new VectorStream(membuf));
     String ini_content;
     ini_content.ReadCount(in.get(), static_cast<size_t>(in->GetLength()));
     in.reset();
@@ -216,12 +216,12 @@ TEST(IniFile, ReadAndModify) {
 
 TEST(IniFile, ReadKeyValueTree) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->Write(IniFileText2, strlen(IniFileText2));
     out.reset();
@@ -229,7 +229,7 @@ TEST(IniFile, ReadKeyValueTree) {
     //-------------------------------------------------------------------------
     // Read data back
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     ConfigTree tree;
     IniUtil::Read(in.get(), tree);
@@ -282,7 +282,7 @@ TEST(IniFile, ReadKeyValueTree) {
 
 TEST(IniFile, WriteKeyValueTree) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     ConfigTree tree1;
     ConfigTree tree2;
@@ -300,10 +300,10 @@ TEST(IniFile, WriteKeyValueTree) {
 
     // write and read back
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
     IniUtil::Write(out.get(), tree1);
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
     IniUtil::Read(in.get(), tree2);
 
     // Assert, that tree2 has exactly same items as tree1
@@ -312,12 +312,12 @@ TEST(IniFile, WriteKeyValueTree) {
 
 TEST(IniFile, MergeTreeWithFile) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -326,7 +326,7 @@ TEST(IniFile, MergeTreeWithFile) {
     // Read data back
     IniFile ini;
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     ini.Read(in.get());
     in.reset();
@@ -355,12 +355,12 @@ TEST(IniFile, MergeTreeWithFile) {
     // Merge with the previously written data and write
     IniUtil::Merge(ini, tree1);
     membuf.resize(0);
-    out.reset(new MemoryStream(membuf, kStream_Write));
+    out.reset(new VectorStream(membuf, kStream_Write));
     ini.Write(out.get());
 
     // Read merge result back into the second tree
     ConfigTree tree2;
-    in.reset(new MemoryStream(membuf));
+    in.reset(new VectorStream(membuf));
     IniUtil::Read(in.get(), tree2);
 
     // Assert, that tree2 has all the items from tree1

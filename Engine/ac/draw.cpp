@@ -69,7 +69,6 @@ using namespace AGS::Engine;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern int convert_16bit_bgr;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
@@ -188,33 +187,6 @@ void setpal() {
 
 int _places_r = 3, _places_g = 2, _places_b = 3;
 
-// convert RGB to BGR for strange graphics cards
-Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
-
-    int x,y;
-    unsigned short c,r,ds,b;
-
-    for (y=0; y < tempbl->GetHeight(); y++) {
-        unsigned short*p16 = (unsigned short *)tempbl->GetScanLine(y);
-
-        for (x=0; x < tempbl->GetWidth(); x++) {
-            c = p16[x];
-            if (c != MASK_COLOR_16) {
-                b = _rgb_scale_5[c & 0x1F];
-                ds = _rgb_scale_6[(c >> 5) & 0x3F];
-                r = _rgb_scale_5[(c >> 11) & 0x1F];
-                // allegro assumes 5-6-5 for 16-bit
-                p16[x] = (((r >> _places_r) << _rgb_r_shift_16) |
-                    ((ds >> _places_g) << _rgb_g_shift_16) |
-                    ((b >> _places_b) << _rgb_b_shift_16));
-
-            }
-        }
-    }
-
-    return tempbl;
-}
-
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 
@@ -255,9 +227,8 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 {
     const int bmp_col_depth = bitmap->GetColorDepth();
-    const int sys_col_depth = System_GetColorDepth();
+    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(bmp_col_depth);
     const int game_col_depth = game.GetColorDepth();
-    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(game_col_depth);
 
     const bool must_switch_palette = bitmap->GetColorDepth() == 8 && game_col_depth > 8;
     if (must_switch_palette)
@@ -272,6 +243,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     // to match graphics driver expectation about pixel format.
     // TODO: make GetCompatibleBitmapFormat tell this somehow
 #if defined (AGS_INVERTED_COLOR_ORDER)
+    const int sys_col_depth = System_GetColorDepth();
     if (sys_col_depth > 16 && bmp_col_depth == 32)
     {
         // Convert RGB to BGR.
@@ -302,11 +274,6 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
             new_bitmap = remove_alpha_channel(bitmap);
         else // else simply convert bitmap
             new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
-    }
-    // Special case when we must convert 16-bit RGB to BGR
-    else if (convert_16bit_bgr == 1 && bmp_col_depth == 16)
-    {
-        new_bitmap = convert_16_to_16bgr(bitmap);
     }
     
     // Finally, if we did not create a new copy already, - convert to driver compatible format
@@ -2215,9 +2182,9 @@ void draw_gui_and_overlays()
         {
             for (int index = 0; index < game.numgui; ++index) {
                 GUIMain &gui = guis[index];
-                if (!gui.IsDisplayed()) continue;
-                if (!gui.HasChanged()) continue;
-                if (gui.Transparency == 255) continue;
+                if (!gui.IsDisplayed()) continue; // not on screen
+                if (!gui.HasChanged()) continue; // no changes: no need to update image
+                if (gui.Transparency == 255) continue; // 100% transparent
 
                 gui.ClearChanged();
                 recreate_guibg_image(&guis[index]);
@@ -2275,8 +2242,8 @@ void draw_gui_and_overlays()
         // Draw the GUIs
         for (int gg = 0; gg < game.numgui; gg++) {
             int aa = play.gui_draw_order[gg];
-            if (!guis[aa].IsDisplayed()) continue;
-            if (guis[aa].Transparency == 255) continue;
+            if (!guis[aa].IsDisplayed()) continue; // not on screen
+            if (guis[aa].Transparency == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&
@@ -2290,11 +2257,21 @@ void draw_gui_and_overlays()
             guibgbmp[aa]->SetRotation(guis[aa].Rotation);
             add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y,
                 guis[aa].GetGraphicSpace().AABB(), guis[aa].ZOrder, false);
+        }
 
-            // only poll if the interface is enabled (mouseovers should not
-            // work while in Wait state)
-            if (IsInterfaceEnabled())
-                guis[aa].Poll(mousex, mousey);
+        // Poll the GUIs
+        // TODO: move this out of the draw routine into game update!!
+        if (IsInterfaceEnabled()) // only poll if the interface is enabled
+        {
+            for (int gg = 0; gg < game.numgui; gg++) {
+                if (!guis[gg].IsDisplayed()) continue; // not on screen
+                // Don't touch GUI if "GUIs Turn Off When Disabled"
+                if ((game.options[OPT_DISABLEOFF] == 3) &&
+                    (all_buttons_disabled > 0) &&
+                    (guis[gg].PopupStyle != kGUIPopupNoAutoRemove))
+                    continue;
+                guis[gg].Poll(mousex, mousey);
+            }
         }
     }
 

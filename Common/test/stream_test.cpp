@@ -105,12 +105,12 @@ TTrickyAlignedData makeTTricky()
 
 TEST(Stream, Common) {
     // Storage buffer
-    std::vector<char> membuf;
+    std::vector<uint8_t> membuf;
 
     //-------------------------------------------------------------------------
     // Write data
     std::unique_ptr<Stream> out(
-        new MemoryStream(membuf, kStream_Write));
+        new VectorStream(membuf, kStream_Write));
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -124,7 +124,7 @@ TEST(Stream, Common) {
     //-------------------------------------------------------------------------
     // Read data back
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     int16_t int16val = in->ReadInt16();
     int64_t int64val = in->ReadInt64();
@@ -181,14 +181,14 @@ void CreateWin32LegacyData() {
 
 TEST(Stream, AlignedStream) {
     // Storage buffer
-    std::vector<char> membuf = { 11, -86, -86, -86, 12, 0, 0, 0, 13, 0, 0, 0, 14, 0, 15, 0, 16, 0, -86, -86, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -86, -86, -86, 18, 0, 0, 0, 19, 0, 0, 0, 20, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 23, 24, -86, 25, 0, 26, 0, 0, 0, 27, 0, 28, 0, 29, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 31, -86, -86, -86, -86, -86, -86, -86, 32, 0, 0, 0, 0, 0, 0, 0, 33, 0, -86, -86, -86, -86, -86, -86, 34, 0, 0, 0, 0, 0, 0, 0, 35, 0, 36, 0, -86, -86, -86, -86, 37, 0, 0, 0, 0, 0, 0, 0, 38, -86, -86, -86, -86, -86, -86, -86, 20, 0, 0, 0 };
+    std::vector<uint8_t> membuf = { 11, 0xAA, 0xAA, 0xAA, 12, 0, 0, 0, 13, 0, 0, 0, 14, 0, 15, 0, 16, 0, 0xAA, 0xAA, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xAA, 0xAA, 0xAA, 18, 0, 0, 0, 19, 0, 0, 0, 20, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 23, 24, 0xAA, 25, 0, 26, 0, 0, 0, 27, 0, 28, 0, 29, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 31, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 32, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 34, 0, 0, 0, 0, 0, 0, 0, 35, 0, 36, 0, 0xAA, 0xAA, 0xAA, 0xAA, 37, 0, 0, 0, 0, 0, 0, 0, 38, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 20, 0, 0, 0 };
 
     TTrickyAlignedData tricky_data_out = makeTTricky();
 
     //-------------------------------------------------------------------------
     // Read data back
     std::unique_ptr<Stream> in(
-        new MemoryStream(membuf));
+        new VectorStream(membuf));
 
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_in));

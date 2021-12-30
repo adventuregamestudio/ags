@@ -62,7 +62,6 @@ String cmdGameDataPath; // game path received from cmdline
 extern GameSetup usetup;
 extern GameState play;
 extern int our_eip;
-extern int convert_16bit_bgr; // CLNUP most likely remove
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];

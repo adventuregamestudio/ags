@@ -11,19 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_CN_UTIL__LZW_H
 #define __AGS_CN_UTIL__LZW_H
+
+#include "core/types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-void lzwcompress(Common::Stream *lzw_in, Common::Stream *out);
-unsigned char *lzwexpand_to_mem(Common::Stream *in);
-
-extern long outbytes, maxsize, putbytes;
+bool lzwcompress(Common::Stream *lzw_in, Common::Stream *out);
+bool lzwexpand(Common::Stream *lzw_in, Common::Stream *out, size_t out_size);
 
 #endif // __AGS_CN_UTIL__LZW_H

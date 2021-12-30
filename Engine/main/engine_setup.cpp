@@ -45,9 +45,6 @@ extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern IGraphicsDriver *gfxDriver;
 
-// CLNUP most likely remove these
-int convert_16bit_bgr = 0;
-
 void engine_setup_system_gamesize()
 {
     scsystem.width = game.GetGameRes().Width;
@@ -112,7 +109,7 @@ void engine_pre_gfxsystem_screen_destroy()
 // CLNUP we want only 32 bit for the future, color conversion should be dropped I guess
 void engine_setup_color_conversions(int coldepth)
 {
-    // default shifts for how we store the sprite data1
+    // default shifts for how we store the sprite data
     _rgb_r_shift_32 = 16;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 0;
@@ -123,36 +120,10 @@ void engine_setup_color_conversions(int coldepth)
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
 
-    // Most cards do 5-6-5 RGB, which is the format the files are saved in
-    // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
-    if ((coldepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
-    {
-        convert_16bit_bgr = 1;
-        if (_rgb_r_shift_16 == 10) {
-            // some very old graphics cards lie about being 16-bit when they
-            // are in fact 15-bit ... get around this
-            _places_r = 3;
-            _places_g = 3;
-        }
-    }
-    if (coldepth > 16)
-    {
-        // when we're using 32-bit colour, it converts hi-color images
-        // the wrong way round - so fix that
-
-        _rgb_r_shift_16 = 11;
-        _rgb_g_shift_16 = 5;
-        _rgb_b_shift_16 = 0;
-    }
-    else if (coldepth == 16)
-    {
-        // ensure that any 32-bit graphics displayed are converted
-        // properly to the current depth
-        _rgb_r_shift_32 = 16;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 0;
-    }
-    else if (coldepth < 16)
+    // TODO: investigate if this is still necessary, and under which circumstances?
+    // the color conversion should likely be done when preparing textures or
+    // rendering to final output instead, not in the main engine code.
+    if (coldepth < 16)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth

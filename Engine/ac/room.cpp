@@ -317,8 +317,6 @@ void unload_old_room() {
 
 }
 
-extern int convert_16bit_bgr;
-
 void update_letterbox_mode()
 {
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);

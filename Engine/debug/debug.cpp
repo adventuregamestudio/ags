@@ -109,7 +109,13 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
         DebugLogFile.reset(new LogFile());
-        String logfile_path = !path.IsEmpty() ? path : Path::ConcatPaths(platform->GetAppOutputDirectory(), "ags.log");
+        String logfile_path = path;
+        if (logfile_path.IsEmpty())
+        {
+            FSLocation fs = platform->GetAppOutputDirectory();
+            CreateFSDirs(fs);
+            logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
+        }
         if (!DebugLogFile->OpenFile(logfile_path, open_mode))
             return nullptr;
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
@@ -305,7 +311,7 @@ void debug_set_console(bool enable)
 }
 
 // Prepends message text with current room number and running script info, then logs result
-void debug_script_print(const String &msg, MessageType mt)
+static void debug_script_print_impl(const String &msg, MessageType mt)
 {
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
@@ -325,13 +331,22 @@ void debug_script_print(const String &msg, MessageType mt)
     Debug::Printf(kDbgGroup_Game, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
 }
 
+void debug_script_print(MessageType mt, const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print_impl(full_msg, mt);
+}
+
 void debug_script_warn(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
     String full_msg = String::FromFormatV(msg, ap);
     va_end(ap);
-    debug_script_print(full_msg, kDbgMsg_Warn);
+    debug_script_print_impl(full_msg, kDbgMsg_Warn);
 }
 
 void debug_script_log(const char *msg, ...)
@@ -340,7 +355,7 @@ void debug_script_log(const char *msg, ...)
     va_start(ap, msg);
     String full_msg = String::FromFormatV(msg, ap);
     va_end(ap);
-    debug_script_print(full_msg, kDbgMsg_Debug);
+    debug_script_print_impl(full_msg, kDbgMsg_Debug);
 }
 
 

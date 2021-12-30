@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
     // Depending on settings we write either directly into the new room file,
     // or into the temp buffer which we then use to overwrite existing room
     std::unique_ptr<Stream> room_out;
-    std::vector<char> temp_data;
+    std::vector<uint8_t> temp_data;
     if (out_roomfile)
     {
         room_out.reset(File::CreateFile(out_roomfile));
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        room_out.reset(new MemoryStream(temp_data, kStream_Write));
+        room_out.reset(new VectorStream(temp_data, kStream_Write));
     }
 
     // Write whole room, except for the block piece (if found)
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     // the original room with the accumulated data
     if (!out_roomfile)
     {
-        std::unique_ptr<Stream> temp_room(new MemoryStream(temp_data));
+        std::unique_ptr<Stream> temp_room(new VectorStream(temp_data));
         room_out.reset(File::CreateFile(in_roomfile));
         if (!room_out)
         {

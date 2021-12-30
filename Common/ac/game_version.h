@@ -15,9 +15,10 @@
 // Game version constants and information
 //
 //=============================================================================
-
 #ifndef __AGS_CN_AC__GAMEVERSION_H
 #define __AGS_CN_AC__GAMEVERSION_H
+
+#include "util/version.h"
 
 /*
 
@@ -150,6 +151,9 @@ enum GameDataVersion
     kGameVersion_Current        = kGameVersion_399
 };
 
+// Data format version of the loaded game
 extern GameDataVersion loaded_game_file_version;
+// The version of the engine the loaded game was compiled for (if available)
+extern AGS::Common::Version game_compiled_version;
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

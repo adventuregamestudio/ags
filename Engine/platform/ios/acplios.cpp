@@ -116,7 +116,7 @@ struct AGSIOS : AGSPlatformDriver
 {
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
-  const char *GetAppOutputDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
 };
@@ -592,9 +592,9 @@ eScriptSystemOSID AGSIOS::GetSystemOSID() {
   return eOS_iOS;
 }
 
-const char *AGSIOS::GetAppOutputDirectory()
+FSLocation AGSIOS::GetAppOutputDirectory()
 {
-  return ios_document_directory;
+  return FSLocation(ios_document_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

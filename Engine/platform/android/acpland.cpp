@@ -33,6 +33,7 @@
 #include "util/android_file.h"
 #include "util/path.h"
 #include "util/string_compat.h"
+#include "util/file.h"
 
 using namespace AGS::Common;
 
@@ -48,7 +49,10 @@ struct AGSAndroid : AGSPlatformDriver
   const char *GetGameDataFile() override;
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
-  const char *GetAppOutputDirectory() override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
   void WriteStdOut(const char *fmt, ...) override;
@@ -97,8 +101,9 @@ extern void PauseGame();
 extern void UnPauseGame();
 //extern int main(int argc,char*argv[]);
 
-char android_base_directory[256];
-char android_app_directory[256];
+String android_base_directory = ".";;
+String android_app_directory = ".";;
+String android_save_directory = ".";;
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
@@ -619,8 +624,8 @@ void AGSAndroid::MainInit()
 
     jfieldID fid_game_file_name = env->GetFieldID(clazz, "_game_file_name", "Ljava/lang/String;");
     jobject jobj_game_file_name = env->GetObjectField(activity, fid_game_file_name);
-    const char * _game_file_name;
-    _game_file_name = env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
+    const char * _game_file_name =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
     if(_game_file_name != nullptr) {
         strcpy(psp_game_file_name, _game_file_name);
     }
@@ -628,19 +633,19 @@ void AGSAndroid::MainInit()
 
     jfieldID fid_android_base_directory = env->GetFieldID(clazz, "_android_base_directory", "Ljava/lang/String;");
     jobject jobj_android_base_directory = env->GetObjectField(activity, fid_android_base_directory);
-    const char * _android_base_directory;
-    _android_base_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
+    const char * _android_base_directory =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
     if(_android_base_directory != nullptr) {
-        strcpy(android_base_directory, _android_base_directory);
+        android_base_directory = _android_base_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_base_directory), _android_base_directory);
 
     jfieldID fid_android_app_directory = env->GetFieldID(clazz, "_android_app_directory", "Ljava/lang/String;");
     jobject jobj_android_app_directory = env->GetObjectField(activity, fid_android_app_directory);
-    const char * _android_app_directory;
-    _android_app_directory = env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
+    const char * _android_app_directory =
+        env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
     if(_android_app_directory != nullptr) {
-        strcpy(android_app_directory, _android_app_directory);
+        android_app_directory = _android_app_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_app_directory), _android_app_directory);
 
@@ -785,9 +790,37 @@ void AGSAndroid::WriteStdErr(const char *fmt, ...)
   }
 }
 
-const char *AGSAndroid::GetAppOutputDirectory()
+static void MakeGameSaveDirectory()
 {
-  return android_base_directory;
+  // Test the app dir for write access, if failed then switch to "base dir"
+  if (File::TestCreateFile("./tmptest.tmp"))
+    android_save_directory = ".";
+  else
+    android_save_directory = android_base_directory;
+}
+
+FSLocation AGSAndroid::GetAllUsersDataDirectory()
+{
+  if (android_save_directory.IsEmpty())
+    MakeGameSaveDirectory();
+  return FSLocation(android_save_directory);
+}
+
+FSLocation AGSAndroid::GetUserSavedgamesDirectory()
+{
+  if (android_save_directory.IsEmpty())
+    MakeGameSaveDirectory();
+  return FSLocation(android_save_directory);
+}
+
+FSLocation AGSAndroid::GetUserGlobalConfigDirectory()
+{
+  return FSLocation(android_base_directory);
+}
+
+FSLocation AGSAndroid::GetAppOutputDirectory()
+{
+  return FSLocation(android_base_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

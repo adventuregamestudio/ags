@@ -119,23 +119,28 @@ if(EMSCRIPTEN)
     set(AGS_DISABLE_THREADS TRUE)
     if(AGS_DISABLE_THREADS)
         add_compile_definitions("AGS_DISABLE_THREADS=1")
-        set(EMSDK_FLAGS "\
+        set(EMSDK_FLAGS_LINKER "\
         -s ALLOW_MEMORY_GROWTH=1 ")
     else()
-        set(EMSDK_FLAGS "\
+        set(EMSDK_FLAGS_COMPILER "\
         -pthread \
-		-s INITIAL_MEMORY=536870912 ")
+        ")
+        set(EMSDK_FLAGS_LINKER "\
+        -s INITIAL_MEMORY=536870912 ")
     endif()
 
-    set(EMSDK_FLAGS "${EMSDK_FLAGS} \
-        -s ASYNCIFY \
+    set(EMSDK_FLAGS_COMPILER "${EMSDK_FLAGS_COMPILER} \
         -O3 \
+        -s DISABLE_EXCEPTION_CATCHING=0 \
+        ")
+
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
+        -s ASYNCIFY \
         -s ALLOW_TABLE_GROWTH=1 \
         -s WASM=1 \
         -s INVOKE_RUN=0 \
 		-s EXIT_RUNTIME=1  \
-		-s EMULATE_FUNCTION_POINTER_CASTS=1 \
-        -s DISABLE_EXCEPTION_CATCHING=0 ")
+		-s EMULATE_FUNCTION_POINTER_CASTS=1 ")
 
     #    set(EMSDK_FLAGS "${EMSDK_FLAGS} \
     #        -g4 \
@@ -143,20 +148,19 @@ if(EMSCRIPTEN)
     #        --emit-symbol-map \
     #        --source-map-base http://0.0.0.0:8000/../ ")
 
-    set(EMSDK_LINKER_FLAGS "\
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
         -s FULL_ES2=1 \
         -s FORCE_FILESYSTEM=1 -lidbfs.js  \
         -s EXPORTED_FUNCTIONS=['_main'] \
         -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
 
-    set(EMSDK_LINKER_FLAGS "${EMSDK_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS}")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS} ${EMSDK_LINKER_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_LINKER}")
 
-    add_compile_options(-sFORCE_FILESYSTEM=1)
     add_compile_options(-fexceptions)
 
     include_directories(${CMAKE_SOURCE_DIR}/include ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${VORBIS_INCLUDE_DIRS} ${OGG_INCLUDE_DIRS})

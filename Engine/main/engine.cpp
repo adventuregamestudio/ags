@@ -69,7 +69,6 @@
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "platform/base/agsplatformdriver.h"
-#include "platform/util/pe.h"
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"

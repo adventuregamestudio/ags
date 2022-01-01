@@ -22,4 +22,4 @@
 
 -keep class uk.co.adventuregamestudio.runtime.AGSRuntimeActivity { *; }
 -keep class uk.co.adventuregamestudio.runtime.PreferencesActivity { *; }
--keep class uk.co.adventuregamestudio.runtime.PEHelper { *; }
+-keep class uk.co.adventuregamestudio.runtime.NativeHelper { *; }

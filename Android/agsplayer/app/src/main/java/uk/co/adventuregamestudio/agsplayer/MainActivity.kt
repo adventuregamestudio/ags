@@ -23,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView
 import uk.co.adventuregamestudio.runtime.PreferencesActivity
 import uk.co.adventuregamestudio.runtime.AGSRuntimeActivity
 import uk.co.adventuregamestudio.runtime.CreditsActivity
-import uk.co.adventuregamestudio.runtime.PEHelper
+import uk.co.adventuregamestudio.runtime.NativeHelper
 import java.io.File
 import java.io.FilenameFilter
 import java.util.*
@@ -32,7 +32,7 @@ import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickListener, GameListRecyclerViewAdapter.ItemCreateContextMenuListener {
     private val gameList = ArrayList<GameModel>()
-    private var pe: PEHelper = PEHelper()
+    private var nativeHelper: NativeHelper = NativeHelper()
     protected var externalStorageRequestDummy = IntArray(1)
     val EXTERNAL_STORAGE_REQUEST_CODE = 2
 
@@ -228,72 +228,33 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
 
 
     private fun searchForGames(): String? {
-        var tempList: Array<String>? = null
+        var dirList: Array<String>? = null
         folderList.clear()
         filenameList.clear()
 
-        // Check for ac2game.dat in the base directory
-        val ac2game = File(baseDirectory.toString() + "/ac2game.dat")
-        if (ac2game.isFile()) return baseDirectory.toString() + "/ac2game.dat"
+        // Check for the game files in the base directory
+        var agsgame_path: String? = nativeHelper.findGameDataInDirectory(baseDirectory)
+        if (agsgame_path != null && File(agsgame_path).isFile()) {
+            return agsgame_path;
+        }
 
         // Check for games in folders
         val agsDirectory = File(baseDirectory)
         if (agsDirectory.isDirectory() && agsDirectory.exists() && agsDirectory.canRead()) {
-            tempList = agsDirectory.list(object : FilenameFilter {
+            dirList = agsDirectory.list(object : FilenameFilter {
                 override fun accept(dir: File, filename: String): Boolean {
                     return File(dir.toString() + "/" + filename).isDirectory()
                 }
             })
         }
-        if (tempList != null) {
-            Arrays.sort(tempList)
-            folderList.clear()
-            filenameList.clear()
-            var i: Int
-            i = 0
-            while (i < tempList.size) {
-                if (File(agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat").isFile()
-                    && pe.isAgsDatafile(
-                        this,
-                        agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat"
-                    )
-                ) {
-                    folderList.add(tempList[i])
-                    filenameList.add(agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat")
-                } else {
-                    val directory = File(agsDirectory.toString() + "/" + tempList[i])
-                    val list: Array<String>? =
-                        directory.list(object : FilenameFilter {
-                            private var found = false
-                            override fun accept(dir: File, filename: String): Boolean {
-                                if (found) return false else {
-                                    if ((filename != "winsetup.exe" && filename.indexOf(".exe") > 0)
-                                        && pe.isAgsDatafile(
-                                            this,
-                                            dir.getAbsolutePath().toString() + "/" + filename
-                                        )
-                                    ) {
-                                        found = true
-                                        return true
-                                    } else if ( filename.indexOf(".ags") > 0)
-                                    {
-                                        // it's an .ags file, so it will fail PE verification since it's not .exe
-                                        // let's return true for now until we have a valid way to verify this
-                                        found = true
-                                        return true
-                                    }
-                                }
-                                return false
-                            }
-                        })
-                    if (list != null && list.isNotEmpty()) {
-                        folderList.add(tempList[i])
-                        filenameList.add(
-                            agsDirectory.toString() + "/" + tempList[i] + "/" + list[0]
-                        )
-                    }
-                }
-                i++
+        if (dirList == null) { return null }
+
+        Arrays.sort(dirList)
+        for (dir in dirList) {
+            agsgame_path = nativeHelper.findGameDataInDirectory(agsDirectory.toString() + "/" + dir)
+            if (agsgame_path != null && File(agsgame_path).isFile()) {
+                folderList.add(dir)
+                filenameList.add(agsgame_path)
             }
         }
         return null

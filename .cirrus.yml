@@ -185,7 +185,7 @@ build_emscripten_task:
   build_emscripten_script: |
     pushd Emscripten && ./build.sh && popd
   package_emscripten_build_script: |
-    pushd Emscripten && mkdir out && pushd build-release && mv ags.js ags.wasm ags.html ../out && popd && popd
+    pushd Emscripten && mkdir out && cp my_game.html my_game_files.js out/ && pushd build-release && mv ags.js ags.wasm ags.html ../out && popd && popd
   emscripten_artifacts:
     path: Emscripten/out/*
 

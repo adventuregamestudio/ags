@@ -105,9 +105,9 @@ extern void PauseGame();
 extern void UnPauseGame();
 //extern int main(int argc,char*argv[]);
 
-String android_base_directory = ".";;
-String android_app_directory = ".";;
-String android_save_directory = ".";;
+String android_base_directory = ".";
+String android_app_directory = ".";
+String android_save_directory = "";
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 

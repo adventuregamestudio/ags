@@ -15,6 +15,7 @@
 //
 // Quit game procedure
 //
+#include <stdio.h>
 #include "core/platform.h"
 #include <allegro.h> // find files, allegro_exit
 #include "ac/cdaudio.h"

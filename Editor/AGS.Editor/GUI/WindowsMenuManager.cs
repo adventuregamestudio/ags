@@ -33,11 +33,19 @@ namespace AGS.Editor
 
             ToolStripMenuItem saveLayoutMenuItem = new ToolStripMenuItem("Save");
             ToolStripMenuItem loadLayoutMenuItem = new ToolStripMenuItem("Load");
+            ToolStripMenuItem resetLayoutMenuItem = new ToolStripMenuItem("Reset To Defaults");
             layoutMenuItem.DropDownItems.Add(saveLayoutMenuItem);
             layoutMenuItem.DropDownItems.Add(loadLayoutMenuItem);
+            layoutMenuItem.DropDownItems.Add(resetLayoutMenuItem);
 
             saveLayoutMenuItem.Click += saveLayoutMenuItem_Click;
             loadLayoutMenuItem.Click += loadLayoutMenuItem_Click;
+            resetLayoutMenuItem.Click += resetLayoutMenuItem_Click;
+        }
+
+        private void resetLayoutMenuItem_Click(object sender, EventArgs e)
+        {
+            _layoutManager.ResetToDefaults();
         }
 
         private void saveLayoutMenuItem_Click(object sender, EventArgs e)

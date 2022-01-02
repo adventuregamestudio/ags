@@ -15,6 +15,7 @@
 // AGS Platform-specific functions
 //
 //=============================================================================
+#include <stdio.h>
 #include <thread>
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"

@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <stdio.h>
 #include <math.h>
 #include "core/platform.h"
 #include "media/audio/audio.h"

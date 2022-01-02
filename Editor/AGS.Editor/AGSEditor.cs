@@ -1161,6 +1161,19 @@ namespace AGS.Editor
 			Dictionary<string, AGS.Types.View> viewNames = new Dictionary<string, AGS.Types.View>();
 			EnsureViewNamesAreUnique(_game.RootViewFolder, viewNames, errors);
 
+            // Test if reserved audio channels do not exceed supported limit
+            int reservedChans = 0;
+            foreach (AudioClipType type in _game.AudioClipTypes)
+            {
+                if (type.MaxChannels <= 0) continue;
+                reservedChans += type.MaxChannels;
+                if (reservedChans > Game.MAX_USER_SOUND_CHANNELS)
+                {
+                    errors.Add(new CompileError("Audio type " + type.Name + " exceeds the limit of sound channels by " +
+                        Math.Min(type.MaxChannels, reservedChans - Game.MAX_USER_SOUND_CHANNELS) +
+                        ". The sum of reserved channels in ALL user audio types should not exceed " + Game.MAX_USER_SOUND_CHANNELS + "."));
+                }
+            }
             foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {
                 if (!File.Exists(clip.CacheFileName))

@@ -73,6 +73,7 @@ namespace AGS.Editor
             else
             {
                 Factory.GUIController.ShowMessage("Failed to load layout!", MessageBoxIcon.Error);
+                _layoutManager.ResetToDefaults();
             }
         }
 

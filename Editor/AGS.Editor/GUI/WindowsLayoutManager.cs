@@ -43,13 +43,17 @@ namespace AGS.Editor
 
         public bool LoadLayout(string path)
         {
-            if (File.Exists(path))
+            try
             {
-                DetachExistingPanes();
-                _dockPanel.LoadFromXml(path, new
-                    DeserializeDockContent(DeserializeContents));
-                return true;
+                if (File.Exists(path))
+                {
+                    DetachExistingPanes();
+                    _dockPanel.LoadFromXml(path, new
+                        DeserializeDockContent(DeserializeContents));
+                    return true;
+                }
             }
+            catch(Exception) { }
             return false;
         }
 

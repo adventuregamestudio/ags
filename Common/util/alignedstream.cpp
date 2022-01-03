@@ -87,7 +87,7 @@ size_t AlignedStream::Read(void *buffer, size_t size)
 
 int32_t AlignedStream::ReadByte()
 {
-    uint8_t b = 0;
+    int32_t b = 0;
     if (_stream)
     {
         ReadPadding(sizeof(uint8_t));
@@ -198,9 +198,9 @@ int32_t AlignedStream::WriteByte(uint8_t b)
     if (_stream)
     {
         WritePadding(sizeof(uint8_t));
-        b = _stream->WriteByte(b);
+        int32_t res = _stream->WriteByte(b);
         _block += sizeof(uint8_t);
-        return b;
+        return res;
     }
     return 0;
 }

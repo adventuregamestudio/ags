@@ -1244,7 +1244,7 @@ void AGS::Parser::ParseParamlist_Param(Symbol const name_of_func, bool const bod
         !_sym[name_of_func].FunctionD->Parameters.empty() &&
         kKW_NoSymbol != _sym[name_of_func].FunctionD->Parameters.back().Default)
         UserError(
-            "Parameter #%u of function '%s' follows a default parameter and so must have a default, too",
+            "Parameter #%u of function '%s' follows an optional parameter and so must have a default, too",
             param_idx, _sym.GetName(name_of_func).c_str());
     
     _sym[name_of_func].FunctionD->Parameters.push_back({});
@@ -1618,7 +1618,7 @@ void AGS::Parser::ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, 
     }
 
     // Stash away the known info about the function so that we can check whether this declaration is compatible
-    std::shared_ptr<SymbolTableEntry::FunctionDesc> known_info{ _sym[name_of_func].FunctionD };
+    std::unique_ptr<SymbolTableEntry::FunctionDesc> known_info{ _sym[name_of_func].FunctionD };
     _sym[name_of_func].FunctionD = nullptr;
     size_t const known_declared = _sym.GetDeclared(name_of_func);
 

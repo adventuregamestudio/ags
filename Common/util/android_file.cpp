@@ -31,6 +31,8 @@ void InitAndroidFile()
     assert(gAAssetManager == nullptr);
     if (gAAssetManager)
         return; // already initialized
+    if(SDL_WasInit(SDL_INIT_EVERYTHING) == 0)
+        return; // SDL has not been initialized yet
 
     JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
 
@@ -65,13 +67,13 @@ void ShutdownAndroidFile()
 AAssetManager* GetAAssetManager()
 {
     if (!gAAssetManager) { InitAndroidFile(); }
-    assert(gAAssetManager);
     return gAAssetManager;
 }
 
 bool GetAAssetExists(const String &filename)
 {
     AAssetManager* mgr = GetAAssetManager();
+    if(mgr == nullptr) return false;
     // TODO: find out if it's acceptable to open/close asset to only test its existance;
     // the alternative is to use AAssetManager_openDir and read asset list using AAssetDir_getNextFileName
     AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
@@ -83,6 +85,7 @@ bool GetAAssetExists(const String &filename)
 soff_t GetAAssetSize(const String &filename)
 {
     AAssetManager* mgr = GetAAssetManager();
+    if(mgr == nullptr) return -1;
     AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
     if (!asset) return -1;
     soff_t len = AAsset_getLength64(asset);
@@ -100,6 +103,7 @@ AndroidADir::AndroidADir(AndroidADir &&aadir)
 AndroidADir::AndroidADir(const String &dirname)
 {
     AAssetManager* mgr = GetAAssetManager();
+    if(mgr == nullptr) {_dir = nullptr; return; }
     _dir = AAssetManager_openDir(mgr, dirname.GetCStr());
 }
 

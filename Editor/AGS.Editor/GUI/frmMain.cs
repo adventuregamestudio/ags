@@ -433,10 +433,11 @@ namespace AGS.Editor
 
         private void LoadLayout()
         {
-            if (!_layoutManager.LoadLayout())
+            if (!_layoutManager.LoadLayout() &&
+                !_layoutManager.ResetToDefaults())
             {
-                SetDefaultLayout();
-            }            
+                SetDefaultLayout(); // last chance fallback
+            }
         }
 
         private void SetDefaultLayout()

@@ -26,13 +26,17 @@ namespace AGS.Editor.Resources
             return new Cursor(typeof(ResourceManager), fileName);
         }
 
-        public static string GetResourceAsString(string fileName)
+        /// <summary>
+        /// Retrieves embedded resources as a string of the given encoding.
+        /// Encoding is ASCII by default.
+        /// </summary>
+        public static string GetResourceAsString(string fileName, Encoding enc = null)
         {
             Stream input = typeof(ResourceManager).Assembly.GetManifestResourceStream(DEFAULT_RESOURCE_PATH + fileName);
             byte[] rawData = new byte[input.Length];
             input.Read(rawData, 0, rawData.Length);
             input.Close();
-            return System.Text.Encoding.ASCII.GetString(rawData);
+            return (enc == null) ? Encoding.ASCII.GetString(rawData) : enc.GetString(rawData);
         }
 
         public static void CopyFileFromResourcesToDisk(string resourceFileName, string diskFileName)

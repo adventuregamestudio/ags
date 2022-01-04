@@ -12,6 +12,7 @@ namespace AGS.Editor
         private DockPanel _dockPanel;
         private List<DockContent> _startupPanes;
         private const string LAYOUT_FILENAME = "Layout.xml";
+        private const string LAYOUT_RESOURCE = "LayoutDefault.xml";
 
         public WindowsLayoutManager(DockPanel dockPanel,
             List<DockContent> startupPanes)
@@ -42,14 +43,30 @@ namespace AGS.Editor
 
         public bool LoadLayout(string path)
         {
-            if (File.Exists(path))
+            try
             {
-                DetachExistingPanes();
-                _dockPanel.LoadFromXml(path, new
-                    DeserializeDockContent(DeserializeContents));
-                return true;
+                if (File.Exists(path))
+                {
+                    DetachExistingPanes();
+                    _dockPanel.LoadFromXml(path, new
+                        DeserializeDockContent(DeserializeContents));
+                    return true;
+                }
             }
+            catch(Exception) { }
             return false;
+        }
+
+        public bool ResetToDefaults()
+        {
+            string layout = Resources.ResourceManager.GetResourceAsString(LAYOUT_RESOURCE, Encoding.Unicode);
+            if (string.IsNullOrEmpty(layout)) return false;
+            byte[] byteArray = Encoding.Unicode.GetBytes(layout);
+            Stream mems = new MemoryStream(byteArray, false);
+            DetachExistingPanes();
+            _dockPanel.LoadFromXml(mems, new
+                    DeserializeDockContent(DeserializeContents));
+            return true;
         }
 
         private void DetachExistingPanes()

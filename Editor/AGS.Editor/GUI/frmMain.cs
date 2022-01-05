@@ -433,19 +433,21 @@ namespace AGS.Editor
 
         private void LoadLayout()
         {
-            if (!_layoutManager.LoadLayout())
-            {
+            var res = _layoutManager.LoadLayout();
+            if (res == WindowsLayoutManager.LayoutResult.LayoutException)
+                Factory.GUIController.ShowMessage("Failed to load panel layout: the layout file may be corrupt or contains invalid data. The layout will be reset.", MessageBoxIcon.Error);
+            if (res != WindowsLayoutManager.LayoutResult.OK)
                 SetDefaultLayout();
-            }            
         }
 
-        private void SetDefaultLayout()
+        public void SetDefaultLayout()
         {
-            this.pnlCallStack.Show(mainContainer, DockState.DockBottom);
-            this.pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
-            this.pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);            
-            this.projectPanel.Show();
-            this.propertiesPanel.Show();                        
+            _layoutManager.DetachAll();
+            pnlCallStack.Show(mainContainer, DockState.DockBottom);
+            pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
+            pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);
+            projectPanel.Show(mainContainer, DockState.DockRight);
+            propertiesPanel.Show(projectPanel.Pane, DockAlignment.Bottom, 0.5f);
         }
 
         private void propertyObjectCombo_SelectedIndexChanged(object sender, EventArgs e)

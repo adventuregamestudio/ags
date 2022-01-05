@@ -58,13 +58,14 @@ namespace AGS.Editor
             {
                 return;
             }
-            if (_layoutManager.LoadLayout(fileName))
+            if (_layoutManager.LoadLayout(fileName) == WindowsLayoutManager.LayoutResult.OK)
             {
                 Factory.GUIController.ShowMessage("Done!", MessageBoxIcon.Information);
             }
             else
             {
                 Factory.GUIController.ShowMessage("Failed to load layout!", MessageBoxIcon.Error);
+                Factory.GUIController.ResetWindowPanes();
             }
         }
 

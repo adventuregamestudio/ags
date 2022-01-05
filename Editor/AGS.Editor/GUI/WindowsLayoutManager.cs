@@ -9,6 +9,13 @@ namespace AGS.Editor
 {
     public class WindowsLayoutManager
     {
+        public enum LayoutResult
+        {
+            OK,
+            NoFile,
+            LayoutException
+        }
+
         private DockPanel _dockPanel;
         private List<DockContent> _startupPanes;
         private const string LAYOUT_FILENAME = "Layout.xml";
@@ -34,22 +41,32 @@ namespace AGS.Editor
             _dockPanel.SaveAsXml(path);
         }
 
-        public bool LoadLayout()
+        public LayoutResult LoadLayout()
         {
             string configFile = GetLayoutFile();
             return LoadLayout(configFile);
         }
 
-        public bool LoadLayout(string path)
+        public LayoutResult LoadLayout(string path)
         {
-            if (File.Exists(path))
+            try
             {
+                if (!File.Exists(path))
+                    return LayoutResult.NoFile;
                 DetachExistingPanes();
                 _dockPanel.LoadFromXml(path, new
                     DeserializeDockContent(DeserializeContents));
-                return true;
+                return LayoutResult.OK;
             }
-            return false;
+            catch (Exception)
+            {
+                return LayoutResult.LayoutException;
+            }
+        }
+
+        public void DetachAll()
+        {
+            DetachExistingPanes();
         }
 
         private void DetachExistingPanes()

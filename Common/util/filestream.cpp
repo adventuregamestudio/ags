@@ -13,10 +13,7 @@
 //=============================================================================
 #include "util/filestream.h"
 #include <stdexcept>
-#include "platform/windows/windows.h"
-#include "util/path.h"
 #include "util/stdio_compat.h"
-#include "util/string.h"
 
 namespace AGS
 {
@@ -54,7 +51,7 @@ bool FileStream::HasErrors() const
 
 void FileStream::Close()
 {
-    if (_ownHandle && _file)
+    if (_ownHandle)
     {
         fclose(_file);
     }
@@ -64,11 +61,7 @@ void FileStream::Close()
 
 bool FileStream::Flush()
 {
-    if (_file)
-    {
-        return fflush(_file) == 0;
-    }
-    return false;
+    return fflush(_file) == 0;
 }
 
 bool FileStream::IsValid() const
@@ -78,30 +71,21 @@ bool FileStream::IsValid() const
 
 bool FileStream::EOS() const
 {
-    return !IsValid() || feof(_file) != 0;
+    return feof(_file) != 0;
 }
 
 soff_t FileStream::GetLength() const
 {
-    if (IsValid())
-    {
-        soff_t pos = (soff_t)ags_ftell(_file);
-        ags_fseek(_file, 0, SEEK_END);
-        soff_t end = (soff_t)ags_ftell(_file);
-        ags_fseek(_file, pos, SEEK_SET);
-        return end;
-    }
-
-    return 0;
+    soff_t pos = (soff_t)ags_ftell(_file);
+    ags_fseek(_file, 0, SEEK_END);
+    soff_t end = (soff_t)ags_ftell(_file);
+    ags_fseek(_file, pos, SEEK_SET);
+    return end;
 }
 
 soff_t FileStream::GetPosition() const
 {
-    if (IsValid())
-    {
-        return (soff_t) ags_ftell(_file);
-    }
-    return -1;
+    return static_cast<soff_t>(ags_ftell(_file));
 }
 
 bool FileStream::CanRead() const
@@ -121,47 +105,26 @@ bool FileStream::CanSeek() const
 
 size_t FileStream::Read(void *buffer, size_t size)
 {
-    if (_file && buffer)
-    {
-        return fread(buffer, sizeof(uint8_t), size, _file);
-    }
-    return 0;
+    return fread(buffer, sizeof(uint8_t), size, _file);
 }
 
 int32_t FileStream::ReadByte()
 {
-    if (_file)
-    {
-        return fgetc(_file);
-    }
-    return -1;
+    return fgetc(_file);
 }
 
 size_t FileStream::Write(const void *buffer, size_t size)
 {
-    if (_file && buffer)
-    {
-        return fwrite(buffer, sizeof(uint8_t), size, _file);
-    }
-    return 0;
+    return fwrite(buffer, sizeof(uint8_t), size, _file);
 }
 
 int32_t FileStream::WriteByte(uint8_t val)
 {
-    if (_file)
-    {
-        return fputc(val, _file);
-    }
-    return -1;
+    return fputc(val, _file);
 }
 
 bool FileStream::Seek(soff_t offset, StreamSeek origin)
 {
-    if (!_file)
-    {
-        return false;
-    }
-
     int stdclib_origin;
     switch (origin)
     {

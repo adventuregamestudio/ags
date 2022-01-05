@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/datastream.h"
 
 namespace AGS
@@ -70,11 +69,6 @@ size_t DataStream::WriteInt64(int64_t val)
 
 size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 {
-    if (!CanRead() || !buffer)
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int16_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
@@ -85,11 +79,6 @@ size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 
 size_t DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
 {
-    if (!CanRead() || !buffer)
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int32_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
@@ -100,11 +89,6 @@ size_t DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
 
 size_t DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
 {
-    if (!CanRead() || !buffer)
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int64_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
@@ -115,11 +99,6 @@ size_t DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
 
 size_t DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count)
 {
-    if (!CanWrite() || !buffer)
-    {
-        return 0;
-    }
-
     size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
@@ -135,11 +114,6 @@ size_t DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t cou
 
 size_t DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count)
 {
-    if (!CanWrite() || !buffer)
-    {
-        return 0;
-    }
-
     size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
@@ -155,11 +129,6 @@ size_t DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t cou
 
 size_t DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count)
 {
-    if (!CanWrite() || !buffer)
-    {
-        return 0;
-    }
-
     size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {

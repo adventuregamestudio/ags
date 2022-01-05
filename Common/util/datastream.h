@@ -34,6 +34,7 @@ public:
     DataStream(DataEndianess stream_endianess = kLittleEndian);
     ~DataStream() override;
 
+    int8_t  ReadInt8() override;
     int16_t ReadInt16() override;
     int32_t ReadInt32() override;
     int64_t ReadInt64() override;
@@ -45,51 +46,52 @@ public:
     // Note that ReadArray and WriteArray do NOT convert byte order even when
     // work with data of different endianess; they are meant for optimal
     // reading and writing blocks of raw bytes
-    inline size_t ReadArray(void *buffer, size_t elem_size, size_t count) override
+    size_t ReadArray(void *buffer, size_t elem_size, size_t count) override
     {
         return Read(buffer, elem_size * count) / elem_size;
     }
 
-    inline size_t ReadArrayOfInt16(int16_t *buffer, size_t count) override
+    size_t ReadArrayOfInt16(int16_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             ReadAndConvertArrayOfInt16(buffer, count) : ReadArray(buffer, sizeof(int16_t), count);
     }
 
-    inline size_t ReadArrayOfInt32(int32_t *buffer, size_t count) override
+    size_t ReadArrayOfInt32(int32_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             ReadAndConvertArrayOfInt32(buffer, count) : ReadArray(buffer, sizeof(int32_t), count);
     }
 
-    inline size_t ReadArrayOfInt64(int64_t *buffer, size_t count) override
+    size_t ReadArrayOfInt64(int64_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             ReadAndConvertArrayOfInt64(buffer, count) : ReadArray(buffer, sizeof(int64_t), count);
     }
 
+    size_t  WriteInt8(int8_t val) override;
     size_t  WriteInt16(int16_t val) override;
     size_t  WriteInt32(int32_t val) override;
     size_t  WriteInt64(int64_t val) override;
     
-    inline size_t WriteArray(const void *buffer, size_t elem_size, size_t count) override
+    size_t WriteArray(const void *buffer, size_t elem_size, size_t count) override
     {
         return Write(buffer, elem_size * count) / elem_size;
     }
 
-    inline size_t WriteArrayOfInt16(const int16_t *buffer, size_t count) override
+    size_t WriteArrayOfInt16(const int16_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             WriteAndConvertArrayOfInt16(buffer, count) : WriteArray(buffer, sizeof(int16_t), count);
     }
 
-    inline size_t WriteArrayOfInt32(const int32_t *buffer, size_t count) override
+    size_t WriteArrayOfInt32(const int32_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             WriteAndConvertArrayOfInt32(buffer, count) : WriteArray(buffer, sizeof(int32_t), count);
     }
 
-    inline size_t WriteArrayOfInt64(const int64_t *buffer, size_t count) override
+    size_t WriteArrayOfInt64(const int64_t *buffer, size_t count) override
     {
         return MustSwapBytes() ?
             WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);

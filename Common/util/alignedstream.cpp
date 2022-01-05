@@ -77,6 +77,14 @@ int32_t AlignedStream::ReadByte()
     return b;
 }
 
+int8_t AlignedStream::ReadInt8()
+{
+    ReadPadding(sizeof(int8_t));
+    int8_t val = _stream->ReadInt8();
+    _block += sizeof(int8_t);
+    return val;
+}
+
 int16_t AlignedStream::ReadInt16()
 {
     ReadPadding(sizeof(int16_t));
@@ -147,6 +155,14 @@ int32_t AlignedStream::WriteByte(uint8_t b)
     int32_t res = _stream->WriteByte(b);
     _block += sizeof(uint8_t);
     return res;
+}
+
+size_t AlignedStream::WriteInt8(int8_t val)
+{
+    WritePadding(sizeof(int8_t));
+    size_t size = _stream->WriteInt8(val);
+    _block += sizeof(int8_t);
+    return size;
 }
 
 size_t AlignedStream::WriteInt16(int16_t val)

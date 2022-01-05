@@ -66,6 +66,7 @@ public:
 
     size_t  Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
+    int8_t  ReadInt8() override;
     int16_t ReadInt16() override;
     int32_t ReadInt32() override;
     int64_t ReadInt64() override;
@@ -76,6 +77,7 @@ public:
 
     size_t  Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t b) override;
+    size_t  WriteInt8(int8_t val) override;
     size_t  WriteInt16(int16_t val) override;
     size_t  WriteInt32(int32_t val) override;
     size_t  WriteInt64(int64_t val) override;

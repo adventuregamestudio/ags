@@ -25,6 +25,13 @@ DataStream::DataStream(DataEndianess stream_endianess)
 
 DataStream::~DataStream() = default;
 
+int8_t DataStream::ReadInt8()
+{
+    int8_t val = 0;
+    Read(&val, sizeof(int8_t));
+    return val;
+}
+
 int16_t DataStream::ReadInt16()
 {
     int16_t val = 0;
@@ -47,6 +54,11 @@ int64_t DataStream::ReadInt64()
     Read(&val, sizeof(int64_t));
     ConvertInt64(val);
     return val;
+}
+
+size_t DataStream::WriteInt8(int8_t val)
+{
+    return Write(&val, sizeof(int8_t));
 }
 
 size_t DataStream::WriteInt16(int16_t val)

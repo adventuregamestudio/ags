@@ -88,6 +88,11 @@ int32_t ProxyStream::ReadByte()
     return _stream->ReadByte();
 }
 
+int8_t ProxyStream::ReadInt8()
+{
+    return _stream->ReadInt8();
+}
+
 int16_t ProxyStream::ReadInt16()
 {
     return _stream->ReadInt16();
@@ -131,6 +136,11 @@ size_t ProxyStream::Write(const void *buffer, size_t size)
 int32_t ProxyStream::WriteByte(uint8_t b)
 {
     return _stream->WriteByte(b);
+}
+
+size_t ProxyStream::WriteInt8(int8_t val)
+{
+    return _stream->WriteInt8(val);
 }
 
 size_t ProxyStream::WriteInt16(int16_t val)

@@ -524,6 +524,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
 
+    // Fixup the frame index, in case the new room does not have enough background frames
+    if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+        play.bg_frame = 0;
+
     // do the palette
     for (cc=0;cc<256;cc++) {
         if (game.paluses[cc]==PAL_BACKGROUND)

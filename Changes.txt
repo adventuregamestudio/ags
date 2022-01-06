@@ -31,14 +31,9 @@ Editor:
  - Added zoom controls for the Sprite manager.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - Support for building multiple speech voxes, by taking files from the Speech subfolders.
- - Added line numbers to the Dialog script editor.
  - Cursor's position in script is now displayed on the status bar.
- - Default config is now saved also when the game is run in debug mode (F5). This ensures that
-   the test run is using the latest Default Setup, if the user's config has not been created yet.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
- - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
- - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
 
 Compiler:
  - Removed 500-characters line limit.
@@ -123,8 +118,6 @@ Engine:
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
- - Fixed crash when there are too many reserved audio type channels.
- - Fixed character may have incorrect Frame values while turning.
 
 Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines.
@@ -148,6 +141,25 @@ WinSetup:
 
 Tools:
 [TODO]
+
+
+VERSION 3.5.1 - Patch 7, January 2022
+
+Editor:
+ - Added "Layout -> Reset to Defaults" menu command.
+ - Editor will now reset panel layout to default state if loading layout fail for any reason.
+ - Default config is now saved also when the game is run in debug mode (F5). This ensures that
+   the test run is using the latest Default Setup, if the user's config has not been created yet.
+ - Editor will now display an error if user tried to reserve too many channels for audio types.
+ - Fixed Editor failing to start if user preferences file is corrupted.
+ - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
+ - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
+
+Engine:
+ - Fixed program crash occuring if the game reserved too many channels for audio types.
+ - Fixed potential crash occuring when player loads a save made in a multi-frame room, but the room
+   was since edited and no longer has as many frames.
+ - Fixed character may have incorrect Frame property values while turning.
 
 
 VERSION 3.5.1 - Patch 6, December 2021

@@ -16,7 +16,7 @@ Engine:
  - Fixed program crash occuring if the game reserved too many channels for audio types.
  - Fixed potential crash occuring when player loads a save made in a multi-frame room, but the room
    was since edited and no longer has as many frames.
- - Fixed character may have incorrect Frame values while turning.
+ - Fixed character may have incorrect Frame property values while turning.
 
 
 VERSION 3.5.1 - Patch 6, December 2021

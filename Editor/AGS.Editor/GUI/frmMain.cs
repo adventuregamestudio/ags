@@ -443,6 +443,10 @@ namespace AGS.Editor
         public void SetDefaultLayout()
         {
             _layoutManager.DetachAll();
+            mainContainer.DockLeftPortion = 0.25f;
+            mainContainer.DockRightPortion = 0.25f;
+            mainContainer.DockTopPortion = 0.25f;
+            mainContainer.DockBottomPortion = 0.25f;
             pnlCallStack.Show(mainContainer, DockState.DockBottom);
             pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
             pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);

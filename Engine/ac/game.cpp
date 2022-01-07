@@ -489,7 +489,7 @@ void unload_game_file()
 
     dialogScriptsScript.reset();
 
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         delete moduleInstFork[i];
         delete moduleInst[i];

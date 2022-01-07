@@ -113,7 +113,7 @@ extern std::vector<PScript> scriptModules;
 extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
-extern int numScriptModules;
+extern size_t numScriptModules;
 
 // TODO: find out if these extra arrays are really necessary. This may be remains from the
 // time when the symbol import table was holding raw pointers to char array.

@@ -81,8 +81,8 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     }
 
     // run script modules
-    for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = RunScriptFunction(moduleInst[kk], tsname, numParams, params);
+    for (auto &module_inst : moduleInst) {
+        toret = RunScriptFunction(module_inst, tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;

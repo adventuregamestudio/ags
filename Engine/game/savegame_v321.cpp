@@ -108,7 +108,7 @@ static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, Re
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of script modules.");
     }
     r_data.ScriptModules.resize(numScriptModules);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         size_t module_size = in->ReadInt32();
         if (pp.ScMdDataSize[i] != module_size)

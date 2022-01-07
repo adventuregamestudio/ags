@@ -916,7 +916,7 @@ HSaveError WriteScriptModules(Stream *out)
         out->Write(gameinst->globaldata, data_len);
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         data_len = moduleInst[i]->globaldatasize;
         out->WriteInt32(data_len);
@@ -940,7 +940,7 @@ HSaveError ReadScriptModules(Stream *in, int32_t cmp_ver, const PreservedParams 
     if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
         return err;
     r_data.ScriptModules.resize(numScriptModules);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         data_len = in->ReadInt32();
         if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))

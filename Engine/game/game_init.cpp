@@ -407,9 +407,9 @@ void AllocScriptModules()
     runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (auto &val : moduleRepExecAddr)
     {
-        moduleRepExecAddr[i].Invalidate();
+        val.Invalidate();
     }
 }
 

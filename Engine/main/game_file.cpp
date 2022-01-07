@@ -54,7 +54,6 @@ extern GameSetupStruct game;
 extern DialogTopic *dialog;
 
 extern AGSPlatformDriver *platform;
-extern int numScriptModules;
 
 
 // Test if engine supports extended capabilities required to run the game

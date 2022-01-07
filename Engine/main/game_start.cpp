@@ -46,7 +46,6 @@ extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 extern GameState play;
 extern std::vector<ccInstance *> moduleInst;
-extern int numScriptModules;
 extern CharacterInfo*playerchar;
 
 void start_game_init_editor_debugging()

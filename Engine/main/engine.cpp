@@ -383,7 +383,12 @@ void engine_init_audio()
     if (usetup.audio_backend != 0)
     {
         Debug::Printf("Initializing audio");
-        audio_core_init(); // audio core system
+        try {
+            audio_core_init(); // audio core system
+        } catch(std::runtime_error) {
+            Debug::Printf("Failed to initialize audio, disabling.");
+            usetup.audio_backend = 0;
+        }
     }
     our_eip = -181;
 

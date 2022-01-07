@@ -39,37 +39,37 @@ extern ccInstance *current_instance; // in script/cc_instance
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalStaticObject(const String &name, void *ptr, ICCStaticObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalStaticArray(const String &name, void *ptr, StaticArray *array_mgr)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), nullptr) == 0;
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
 {
-    return simp.add(name, prval, inst) == 0;
+    return simp.add(name, prval, inst) != UINT32_MAX;
 }
 
 void ccRemoveExternalSymbol(const String &name)

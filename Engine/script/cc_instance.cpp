@@ -510,7 +510,7 @@ int ccInstance::Run(int32_t curpc)
                     break;
                 case FIXUP_IMPORT:
                     {
-                        const ScriptImport *import = simp.getByIndex((int32_t)codeInst->code[pc_at]);
+                        const ScriptImport *import = simp.getByIndex(static_cast<uint32_t>(codeInst->code[pc_at]));
                         if (import)
                         {
                             codeOp.Args[i] = import->Value;
@@ -1636,18 +1636,18 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
         return true;
     }
 
-    resolved_imports = new int[numimports];
+    resolved_imports = new uint32_t[numimports];
     int errors = 0, last_err_idx;
     for (int import_idx = 0; import_idx < scri->numimports; ++import_idx)
     {
         if (scri->imports[import_idx] == nullptr)
         {
-            resolved_imports[import_idx] = -1;
+            resolved_imports[import_idx] = UINT32_MAX;
             continue;
         }
 
         resolved_imports[import_idx] = simp.get_index_of(scri->imports[import_idx]);
-        if (resolved_imports[import_idx] < 0)
+        if (resolved_imports[import_idx] == UINT32_MAX)
         {
             Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
             errors++;
@@ -1823,7 +1823,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         case FIXUP_IMPORT:
             break; // do nothing yet
         default:
-            cc_error_fixups(scri, -1, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
+            cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
             return false;
         }
     }
@@ -1837,8 +1837,8 @@ bool ccInstance::ResolveImportFixups(const ccScript *scri)
         if (scri->fixuptypes[fixup_idx] != FIXUP_IMPORT)
             continue;
 
-        int32_t const fixup = scri->fixups[fixup_idx];
-        int const import_index = resolved_imports[code[fixup]];
+        uint32_t const fixup = scri->fixups[fixup_idx];
+        uint32_t const import_index = resolved_imports[code[fixup]];
         ScriptImport const *import = simp.getByIndex(import_index);
         if (!import)
         {

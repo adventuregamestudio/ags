@@ -18,7 +18,7 @@ using namespace AGS::Common;
 
 // TODO: use endian-agnostic method to access global vars
 
-uint8_t RuntimeScriptValue::ReadByte()
+uint8_t RuntimeScriptValue::ReadByte() const
 {
     if (this->Type == kScValStackPtr || this->Type == kScValGlobalVar)
     {
@@ -42,7 +42,7 @@ uint8_t RuntimeScriptValue::ReadByte()
     return *((uint8_t*)this->GetPtrWithOffset());
 }
 
-int16_t RuntimeScriptValue::ReadInt16()
+int16_t RuntimeScriptValue::ReadInt16() const
 {
     if (this->Type == kScValStackPtr)
     {
@@ -77,7 +77,7 @@ int16_t RuntimeScriptValue::ReadInt16()
     return *((int16_t*)this->GetPtrWithOffset());
 }
 
-int32_t RuntimeScriptValue::ReadInt32()
+int32_t RuntimeScriptValue::ReadInt32() const
 {
     if (this->Type == kScValStackPtr)
     {

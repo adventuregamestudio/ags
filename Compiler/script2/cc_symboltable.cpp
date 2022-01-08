@@ -9,6 +9,8 @@
 AGS::SymbolTableEntry::~SymbolTableEntry()
 {
     // (note that null pointers may be safely 'delete'd, in contrast to 'free'd)
+    delete this->AttributeD;
+    this->AttributeD = nullptr;
     delete this->ConstantD;
     this->ConstantD = nullptr;
     delete this->ComponentD;
@@ -35,6 +37,7 @@ AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &
     this->Accessed = orig.Accessed;
 
     // Deep copy semantics.
+    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{ *(orig.AttributeD) } : nullptr;
     this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
     this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
     this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
@@ -52,20 +55,39 @@ std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymb
     // "static" so that we get a singleton that will only be initialized once, at first use
     static std::map<TypeQualifier, Symbol> const tq2sym =
     {
-        { TQ::kAttribute,       kKW_Attribute, },
         { TQ::kAutoptr,         kKW_Autoptr, },
         { TQ::kBuiltin,         kKW_Builtin, },
-        { TQ::kConst,           kKW_Const, },
         { TQ::kImport,          kKW_ImportStd, },
         { TQ::kManaged,         kKW_Managed,  },
         { TQ::kProtected,       kKW_Protected,  },
         { TQ::kReadonly,        kKW_Readonly, },
         { TQ::kStatic,          kKW_Static, },
-        { TQ::kStringstruct,    kKW_Internalstring, },
+        { TQ::kInternalstring,  kKW_Internalstring, },
         { TQ::kWriteprotected,  kKW_Writeprotected, },
     };
 
     return tq2sym;
+}
+
+AGS::TypeQualifierSet AGS::TypeQualifierSet::WithoutTypedefQualifiers()
+{
+    TypeQualifierSet ret{ *this };
+    ret[TQ::kAutoptr] =
+        ret[TQ::kBuiltin] =
+        ret[TQ::kInternalstring] =
+        ret[TQ::kManaged] = false;
+    return ret;
+}
+
+AGS::TypeQualifierSet AGS::TypeQualifierSet::WithouttVarFuncDefQualifiers()
+{
+    TypeQualifierSet ret{ *this };
+    ret[TQ::kImport] =
+        ret[TQ::kProtected] =
+        ret[TQ::kReadonly] =
+        ret[TQ::kStatic] =
+        ret[TQ::kWriteprotected] = false;
+    return ret;
 }
 
 void AGS::SymbolTableEntry::Clear()
@@ -75,6 +97,10 @@ void AGS::SymbolTableEntry::Clear()
     Scope = 0u;
     // Don't clear Accessed so when a function is first used and then declared, this doesn't clobber the use.
 
+    delete AttributeD;
+    AttributeD = nullptr;
+    delete ComponentD;
+    ComponentD = nullptr;
     delete ConstantD;
     ConstantD = nullptr;
     delete DelimeterD;
@@ -85,8 +111,6 @@ void AGS::SymbolTableEntry::Clear()
     LiteralD = nullptr;
     delete OperatorD;
     OperatorD = nullptr;
-    delete ComponentD;
-    ComponentD = nullptr;
     delete VariableD;
     VariableD = nullptr;
     delete VartypeD;
@@ -100,12 +124,13 @@ AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
     , Accessed(orig.Accessed)
 {
     // Deep copy semantics.
+    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{ *(orig.AttributeD) } : nullptr;
+    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
     this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
     this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
     this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
     this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{ *(orig.LiteralD) } : nullptr;
     this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{ *(orig.OperatorD) } : nullptr;
-    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
     this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{ *(orig.VariableD) } : nullptr;
     this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{ *(orig.VartypeD) } : nullptr;
 }

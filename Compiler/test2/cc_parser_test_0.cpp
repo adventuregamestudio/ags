@@ -113,13 +113,13 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
     // Note, "_tryimport" isn't legal for struct components.
     // Can only use one of "protected", "writeprotected" and "readonly".
 
-    char *inpl = "                                                          \n\
-        struct BothOrders {                                                 \n\
-            protected import static attribute int something;                \n\
-            attribute static import readonly int another;                   \n\
-            readonly import attribute int MyAttrib;                         \n\
-            import readonly attribute int YourAttrib;                       \n\
-        };\
+    char *inpl = "\
+        struct BothOrders {                                 \n\
+            protected static int something;                 \n\
+            static import readonly attribute int another;   \n\
+            readonly import attribute int MyAttrib;         \n\
+            import readonly attribute int YourAttrib;       \n\
+        };                                                  \n\
         ";
 
     int compileResult = cc_compile(inpl, scrip);
@@ -452,33 +452,7 @@ TEST_F(Compile0, Writeprotected) {
     EXPECT_NE(std::string::npos, err.find("Damage"));
 }
 
-TEST_F(Compile0, Protected1) {   
-
-    // Directly taken from the doc on protected, simplified.
-    // Should fail, no modifying of protected components from the outside.
-
-    char *inpl = "\
-        struct Weapon {                        \n\
-            protected int Damage;              \n\
-        };                                     \n\
-                                               \n\
-        Weapon wp;                             \n\
-                                               \n\
-        void main()                            \n\
-        {                                      \n\
-            wp.Damage = 7;                     \n\
-            return;                            \n\
-        }                                      \n\
-        ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    std::string err = last_seen_cc_error();
-    EXPECT_NE(std::string::npos, err.find("Damage"));
-}
-
-TEST_F(Compile0, Protected2) {
+TEST_F(Compile0, Protected1) {
     
     // Directly taken from the doc on protected, simplified.
     // Should fail, no reading protected components from the outside.
@@ -502,6 +476,31 @@ TEST_F(Compile0, Protected2) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     EXPECT_NE(std::string::npos, err.find("Damage"));
+}
+
+TEST_F(Compile0, Protected2) {
+
+    // Is still an attempt to modify a protected component from the outside
+    // ('this.Damage = 7;' or even 'Damage = 7;' would be legal, however.)
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            protected int Damage;              \n\
+            import int DoDamage();             \n\
+        };                                     \n\
+                                               \n\
+        Weapon wp;                             \n\
+                                               \n\
+        int Weapon::DoDamage()                 \n\
+        {                                      \n\
+            wp.Damage = 7;                     \n\
+        }                                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("rotected"));
 }
 
 TEST_F(Compile0, Protected3) {
@@ -676,8 +675,10 @@ TEST_F(Compile0, Protected0) {
 
 TEST_F(Compile0, ParamVoid) {   
 
+    // Can't have a parameter of type 'void'.
+
     char *inpl = "\
-        int Foo(void Bar)                      \n\
+        int Foo(int bar, void bazz)            \n\
         {                                      \n\
             return 1;                          \n\
         }                                      \n\
@@ -759,6 +760,8 @@ TEST_F(Compile0, VartypeLocalSeq2) {
 }
 
 TEST_F(Compile0, StructMemberImport) {    
+
+    // Struct variables must not be 'import'
 
     char *inpl = "\
         struct Parent                   \n\
@@ -1000,6 +1003,49 @@ TEST_F(Compile0, StructManaged2)
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
     EXPECT_EQ(std::string::npos, err.find("xception"));
+}
+
+TEST_F(Compile0, StructRecursiveComponent01)
+{
+    // Cannot have a component that has the same type as the struct;
+    // this construct would be infinitively large
+
+    char *inpl = "\
+        struct Foo              \n\
+        {                       \n\
+            Foo magic;          \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("include a component"));
+    EXPECT_NE(std::string::npos, err.find("'Foo'"));
+}
+
+TEST_F(Compile0, StructRecursiveComponent02)
+{
+    // Cannot have a component that has the same type as the struct;
+    // this construct would be infinitively large
+
+    char *inpl = "\
+        struct Foo              \n\
+        {                       \n\
+            int magic;          \n\
+        };                      \n\
+        struct Bar extends Foo  \n\
+        {                       \n\
+            Foo vodoo;          \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("extends"));
+    EXPECT_NE(std::string::npos, err.find("'Foo'"));
+    EXPECT_NE(std::string::npos, err.find("'Bar'"));
 }
 
 TEST_F(Compile0, Undefined) {   
@@ -1553,7 +1599,7 @@ TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
 
     std::string agscode = "\
         managed struct DynamicSprite            \n\
-         {                                       \n\
+        {                                       \n\
             import static DynamicSprite         \n\
                 *Create(int width, int height, bool hasAlphaChannel = false);   \n\
         };                                      \n\
@@ -1892,6 +1938,48 @@ TEST_F(Compile0, Attributes15) {
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("readonly"));
+}
+
+TEST_F(Compile0, Attributes16) {
+
+    // Import decls of autopointered variables must be processed correctly.
+
+    char *inpl = "\
+        builtin managed struct Object       \n\
+        {                                   \n\
+            import attribute int  Graphic;  \n\
+        } obj;                              \n\
+                                            \n\
+        int foo ()                          \n\
+        {                                   \n\
+            obj.Graphic++;                  \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+}
+
+TEST_F(Compile0, Attributes17)
+{
+
+    // This attribute is type 'float' and assigned an 'int'. This should fail.
+
+    char *inpl = "\
+        builtin managed struct Character            \n\
+        {                                           \n\
+            import attribute float GraphicRotation; \n\
+        };                                          \n\
+        import readonly Character *player;          \n\
+        int foo(void) {                             \n\
+            player.GraphicRotation = 10;            \n\
+        }                                           \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'int'"));
+    EXPECT_NE(std::string::npos, msg.find("'float'"));
 }
 
 TEST_F(Compile0, StructPtrFunc) {

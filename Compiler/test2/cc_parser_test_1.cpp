@@ -1533,27 +1533,6 @@ TEST_F(Compile1, ZeroMemoryAllocation2)
     EXPECT_NE(std::string::npos, msg.find("'Strct'"));
 }
 
-
-TEST_F(Compile1, AttribInc) {
-
-    // Import decls of autopointered variables must be processed correctly.
-
-    char *inpl = "\
-        builtin managed struct Object       \n\
-        {                                   \n\
-            import attribute int  Graphic;  \n\
-        } obj;                              \n\
-                                            \n\
-        int foo ()                          \n\
-        {                                   \n\
-            obj.Graphic++;                  \n\
-        }                                   \n\
-        ";
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-}
-
 TEST_F(Compile1,ForwardStructManaged)
 {
     // Forward-declared structs must be 'managed', so the
@@ -2258,29 +2237,33 @@ TEST_F(Compile1, CompileTimeConstant4)
 
 TEST_F(Compile1, CompileTimeConstant5)
 {
+    // Cannot define a compile-time constant of type 'short'
+
     char *inpl = "\
         const short S = 42; \n\
         ";
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'int'"));
+    EXPECT_NE(std::string::npos, msg.find("'short'"));
 
+    // Cannot define a compile-time constant array
     char *inpl2 = "\
         const int C[]; \n\
         ";
     compile_result = cc_compile(inpl2, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("rray"));
+    EXPECT_NE(std::string::npos, msg.find("array"));
 
+    // Misplaced '[]'
     char *inpl3 = "\
         const int[] C; \n\
         ";
     compile_result = cc_compile(inpl3, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("Expected '('"));
+    EXPECT_NE(std::string::npos, msg.find("'['"));
 }
 
 TEST_F(Compile1, CompileTimeConstant6)
@@ -2314,27 +2297,6 @@ TEST_F(Compile1, StaticThisExtender)
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'static'"));
-}
-
-TEST_F(Compile1, AttributeAssignTypeCheck)
-{
-    // This attribute is type 'float' and assigned an int. This should fail.
-
-    char *inpl = "\
-        builtin managed struct Character            \n\
-        {                                           \n\
-            import attribute float GraphicRotation; \n\
-        };                                          \n\
-        import readonly Character *player;          \n\
-        int foo(void) {                             \n\
-            player.GraphicRotation = 10;            \n\
-        }                                           \n\
-        ";
-    int compile_result = cc_compile(inpl, scrip);
-    std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'int'"));
-    EXPECT_NE(std::string::npos, msg.find("'float'"));
 }
 
 TEST_F(Compile1, ReachabilityAndSwitch1)

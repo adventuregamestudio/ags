@@ -510,7 +510,7 @@ private:
     // We accept a default value clause like "= 15" if it follows at this point.
     // If there isn't any default, kKW_NoSymbol is returned.
     // Otherwise, a symbol is returned that is a literal.
-    void ParseParamlist_Param_DefaultValue(size_t idx, Vartype param_vartype, Symbol &param_default);
+    Symbol ParseParamlist_Param_DefaultValue(size_t idx, Vartype param_vartype);
 
     // We have accepted something like 'int foo' and a trailing '[]' might follow.
     // If it does, convert 'vartype' to a dynarray.
@@ -521,12 +521,9 @@ private:
     // We'll accept something like 'this Character *' --OR-- 'static Character'
     void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func, TypeQualifierSet &tqs);
 
-    // In a parameter list, process the vartype of a parameter declaration
-    void ParseParamlist_ParamType(Vartype &vartype);
-
     // We're accepting a parameter list. We've accepted something like 'int'.
     // We accept a param name such as 'i' if present
-    void ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
+    Symbol ParseParamlist_Param_Name(bool body_follows);
 
     // Additional handling to ParseVardecl_Var2SymTable() that is special for parameters
     void ParseParamlist_Param_AsVar2Sym(Symbol param_name, TypeQualifierSet tqs, Vartype param_vartype, int param_idx);
@@ -547,7 +544,7 @@ private:
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
-    void ParseFuncdecl_DoesBodyFollow(bool &body_follows);
+    bool ParseFuncdecl_DoesBodyFollow();
 
     // We're in a func decl. Check whether the declaration is valid.
     void ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check);
@@ -556,7 +553,7 @@ private:
 
     // Parse a function declaration.
     // We're behind the opening '(', and any first extender parameter has already be resolved.
-    void ParseFuncdecl(size_t declaration_start, TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool &body_follows);
+    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. '-1' if no operator was found
@@ -684,11 +681,11 @@ private:
     void ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
 
     // Parse an expression that must evaluate to a constant at compile time.
-    // Return the symbol that signifies the constant in 'lit'.
+    // Return the symbol that signifies the constant.
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
     // If 'msg' is specified, it is used for targeted error messages.
     // 'src' is parsed from the point where the cursor is.
-    void ParseConstantExpression(SrcList &src, Symbol &lit, std::string const &msg = "");
+    Symbol ParseConstantExpression(SrcList &src, std::string const &msg = "");
 
     // Parse an expression that must convert to an int.
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
@@ -715,9 +712,8 @@ private:
     // Get the symbol for the get or set function corresponding to the attribute given.
     void ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed, Symbol &func);
 
-    // Call the getter or setter of an attribute
-    // The next symbol read is the attribute (the part after the '.')
-    void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype &vartype);
+    // We call the getter or setter of an attribute
+    void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype vartype);
 
     // Memory location contains a pointer to another address. Get that address.
     void AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
@@ -797,11 +793,8 @@ private:
     // We compile something like 'var += expression'
     void ParseAssignment_MAssign(Symbol ass_symbol, SrcList &lhs);
 
-    // 'const int foo = 77;' or similar
-    void ParseConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname);
-
-    // 'const int foo = 77;' or similar
-    void ParseVardecl_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, Symbol var_name);
+    // 'const int foo = 77;'
+    void ParseConstantDefn();
 
     void ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype var, std::vector<char> &initial_val);
 
@@ -811,7 +804,7 @@ private:
     void ParseVardecl_InitialValAssignment(Symbol varname, std::vector<char> &initial_val);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, ScopeType scope_type);
+    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype);
 
     // we have accepted something like "int a" and we're expecting "["
     void ParseArray(Symbol vname, Vartype &vartype);
@@ -851,8 +844,6 @@ private:
 
     void ParseQualifiers(TypeQualifierSet &tqs);
 
-    void ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
-
     void ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
@@ -863,21 +854,28 @@ private:
     // This corresponds to a getter func and a setter func, declare one of them
     void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
+    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet const tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
+
     // We're in a struct declaration. Parse an attribute declaration.
-    void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Vartype vartype, Symbol vname, bool is_indexed, size_t declaration_start);
+    void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
 
-    // We're inside a struct decl, processing a member variable or attribute
-    void ParseStruct_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
-
+    // We're inside a struct decl, processing a member variable
+    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
+    
     // We're inside a struct decl, processing a compile-time constant
-    void ParseStruct_ConstantDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname);
+    void ParseStruct_ConstantDefn(Symbol name_of_struct);
 
     // We have accepted something like 'struct foo extends bar { const int'.
     // We're waiting for the name of the member.
-    void ParseStruct_MemberDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
+    void ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
+
+    void ParseStruct_CheckComponentVartype(Symbol stname, Vartype vartype);
 
     // We've accepted, e.g., 'struct foo {'. Now we're parsing a variable declaration or a function declaration
-    void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs, Vartype vartype);
+    void ParseStruct_Vartype(Symbol name_of_struct, TypeQualifierSet tqs);
+
+    // Within a struct, we've accepted a type. Accept a list of function or variable members
+    void ParseStruct_Vartype_MemberList(TypeQualifierSet tqs, const AGS::Symbol containing_struct, Vartype vartype);
 
     // Handle a 'struct' definition clause
     void ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
@@ -893,6 +891,10 @@ private:
     // Parse an enum declaration, possibly followed by vars of this new enum
     void ParseEnum(TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_function);
 
+    // Read a vartype (that must already be defined at this point)
+    // This is either a vartype name or 'const string'
+    Symbol ParseVartype(bool with_dynpointer_handling = true);
+
     void ParseExport_Function(Symbol func);
     void ParseExport_Variable(Symbol var);
     void ParseExport();
@@ -906,7 +908,7 @@ private:
     // If it does contain '::' then varname will contain the qualified name (a::b) and structname the vartype (a)
     inline void ParseVarname(Symbol &structname, Symbol &varname) { ParseVarname0(true, structname, varname); }
     // Parse a variable name; may not contain '::'
-    inline void ParseVarname(Symbol &varname) { Symbol dummy; ParseVarname0(false, dummy, varname); }
+    inline Symbol ParseVarname() { Symbol dummy, varname; ParseVarname0(false, dummy, varname); return varname; }
 
     void ParseVartype_CheckForIllegalContext();
 
@@ -916,12 +918,14 @@ private:
 
     void ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
-    void ParseVartype_Attribute(TypeQualifierSet tqs, Vartype vartype, Symbol attribute, ScopeType scope_type);
+    void ParseAttribute(TypeQualifierSet tqs, Symbol name_of_current_func);
 
-    void ParseVartype_VariableOrAttributeDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
+    void ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
+
+    void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We accepted a variable type such as 'int', so what follows is a variable, compile-time constant, or function declaration
-    void ParseVartype(Vartype vartype, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
+    void ParseVartypeClause(TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     // After a command that might be the end of sequences such as 'if (...) while (...) command;'
     //  Find out what surrounding compound statements have ended and handle these endings.

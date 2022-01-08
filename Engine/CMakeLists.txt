@@ -530,9 +530,8 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
-target_compile_definitions(engine PRIVATE 
-    $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
-    $<$<CONFIG:DEBUG>:DEBUG_MANAGED_OBJECTS>
+target_compile_definitions(engine PRIVATE
+    $<$<BOOL:AGS_DEBUG_MANAGED_OBJECTS>:DEBUG_MANAGED_OBJECTS>
 )
 
 if (AGS_BUILD_STR)

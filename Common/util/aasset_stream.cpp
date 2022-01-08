@@ -172,6 +172,8 @@ namespace AGS
         void AAssetStream::Open(const String &asset_name, int asset_mode)
         {
             AAssetManager* aAssetManager = GetAAssetManager();
+            if(aAssetManager == nullptr)
+                throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
             _ownHandle = true;
 
             if(!asset_name.IsNullOrSpace() && asset_name[0] == '/') {

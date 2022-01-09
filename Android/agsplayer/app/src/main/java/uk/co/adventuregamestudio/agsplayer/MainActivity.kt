@@ -200,6 +200,27 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         }
     }
 
+    private fun getDirectoryTree(baseDirectory: String, path: String?): LinkedList<String> {
+        val result = LinkedList<String>()
+        var searchDirectory = File(baseDirectory)
+        if (path != null) {
+            searchDirectory = File("$baseDirectory/$path")
+        }
+        if (searchDirectory.isDirectory) {
+            val tempList =
+                searchDirectory.list { dir, filename -> File("$dir/$filename").isDirectory }
+            for (subpath in tempList) {
+                var entry = subpath
+                if (path != null) {
+                    entry = "$path/$entry"
+                }
+                result.add(entry)
+                result.addAll(getDirectoryTree(baseDirectory, entry)!!)
+            }
+        }
+        return result
+    }
+
     private fun buildGamesList() {
         gameList.clear()
 
@@ -228,7 +249,8 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
 
 
     private fun searchForGames(): String? {
-        var dirList: Array<String>? = null
+        var dirList: LinkedList<String>? = null
+        var dirArray: Array<String>? = null
         folderList.clear()
         filenameList.clear()
 
@@ -241,22 +263,24 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         // Check for games in folders
         val agsDirectory = File(baseDirectory)
         if (agsDirectory.isDirectory() && agsDirectory.exists() && agsDirectory.canRead()) {
-            dirList = agsDirectory.list(object : FilenameFilter {
-                override fun accept(dir: File, filename: String): Boolean {
-                    return File(dir.toString() + "/" + filename).isDirectory()
-                }
-            })
-        }
-        if (dirList == null) { return null }
+            dirList = getDirectoryTree(baseDirectory!!, null)
+            if (dirList == null || dirList.isEmpty()) { return null }
+            dirArray = Array(dirList.size) {
+                dirList[it]
+            }
 
-        Arrays.sort(dirList)
-        for (dir in dirList) {
-            agsgame_path = nativeHelper.findGameDataInDirectory(agsDirectory.toString() + "/" + dir)
-            if (agsgame_path != null && File(agsgame_path).isFile()) {
-                folderList.add(dir)
-                filenameList.add(agsgame_path)
+            dirArray = dirArray.distinct().toTypedArray()
+            val finalDirList = dirArray.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, { it }))
+            
+            for (subpath in finalDirList!!) {
+                agsgame_path = nativeHelper.findGameDataInDirectory("$baseDirectory/$subpath")
+                if (agsgame_path != null && File(agsgame_path).isFile) {
+                    folderList.add(subpath)
+                    filenameList.add(agsgame_path)
+                }
             }
         }
+
         return null
     }
 

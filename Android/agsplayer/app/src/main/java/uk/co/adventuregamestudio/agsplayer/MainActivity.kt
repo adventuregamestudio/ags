@@ -1,19 +1,24 @@
 package uk.co.adventuregamestudio.agsplayer
 
 import android.Manifest
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.Keep
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -28,6 +33,7 @@ import java.io.File
 import java.io.FilenameFilter
 import java.util.*
 import kotlin.collections.ArrayList
+import uk.co.adventuregamestudio.agsplayer.FileUtil
 
 
 class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickListener, GameListRecyclerViewAdapter.ItemCreateContextMenuListener {
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     private val filenameList = ArrayList<String>()
 
     private var baseDirectory: String? = null
+    private val REQUEST_TREE = 0xCAFE
 
     private lateinit var gameListRecyclerViewAdapter: GameListRecyclerViewAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +85,32 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         return true
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun browseAgsDirectory() {
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_TREE)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun setAgsBaseDirFromUri(uri: Uri) {
+        val path: String = FileUtil.getFullPathFromTreeUri(uri,this).toString()
+        baseDirectory = path
+        // The launcher will accept paths that don't start with a slash, but
+        // the engine cannot find the game later.
+        if (!baseDirectory!!.startsWith("/")) baseDirectory = "/$baseDirectory"
+        buildGamesListIfPossible()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_TREE && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                setAgsBaseDirFromUri(it)
+            }
+            }
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id: Int = item.itemId
         if (id == R.id.credits) {
@@ -92,6 +125,13 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
             val input = EditText(this)
             input.setText(baseDirectory)
             alert.setView(input)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                alert.setNeutralButton(
+                    "Browse"
+                ) { dialog, whichButton ->
+                    browseAgsDirectory()
+                  }
+            }
             alert.setPositiveButton("Ok"
             ) { _ /*dialog*/, _ /*whichButton*/ ->
                 val value = input.text
@@ -350,5 +390,9 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }
+
+}
+
+private fun AlertDialog.Builder.setNeutralButton(s: String, function: () -> Unit) {
 
 }

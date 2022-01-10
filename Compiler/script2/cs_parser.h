@@ -134,31 +134,6 @@ private:
         kFT_LocalBody = 2,
     };
 
-    // This indicates where a value is delivered.
-    // When reading, we need the value itself.
-    // - It can be in AX (kVL_AX_is_value)
-    // - or in m(MAR) (kVL_MAR_pointsto_value)
-    // - or a constant float or int value (kVL_compile_time_literal)
-    //      In this case the symbol that points to the value is in 'symbol'
-    // When writing, we need a pointer to the adress that has to be modified.
-    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_MAR_pointsto_value).
-    // - or AX, i.e., the value to modify is in m(AX) (kVL_AX_is_value)
-    // - attributes must be modified by calling their setter function (kVL_Attribute)
-    //      In this case the qualified attribute is in 'symbol'
-    struct ValueLocation
-    {
-        enum
-        {
-            kAX_is_value,            // The value is in register AX
-            kMAR_pointsto_value,     // The value is in m(MAR)
-            kAttribute,              // The value must be modified by calling an attribute setter
-            kCompile_time_literal,   // The value is in 'symbol'
-        } location;
-        Symbol symbol; // only meaningful für kCompile_time_literal
-
-        inline bool IsCompileTimeLiteral() const { return kCompile_time_literal == location; }
-    };
-
     // This ought to replace the #defines in script_common.h
     // but we can't touch them since the engine uses them, too
     enum FxFixupType : FixupType // see script_common.h
@@ -317,18 +292,85 @@ private:
     };
     typedef VariableAccess VAC;
 
+    struct EvaluationResult
+    {
+        enum Type
+        {
+            kTY_None = 0,
+            kTY_AttributeName,
+            kTY_Literal,
+            kTY_FunctionName,
+            kTY_RunTimeValue,
+            kTY_StructName,
+        } Type = kTY_None;
+
+        enum Location
+        {
+            kLOC_None = 0,
+            kLOC_MemoryAtMAR, // memory[MAR] after MAR has been updated
+            kLOC_AX,
+            kLOC_SymbolTable, // in the entry _sym[this->Symbol]
+        } Location = kLOC_None;
+
+        Symbol Symbol = kKW_NoSymbol; 
+        Vartype Vartype = kKW_NoSymbol;
+        bool LocalNonParameter = true;
+        bool SideEffects = false;
+        bool Modifiable = false;
+
+        EvaluationResult() = default;
+    };
+
+    // Track when register values are clobbered
+    class RegisterTracking
+    {
+    public:
+        typedef unsigned long TickT;
+
+    private:
+        ccCompiledScript &_scrip;
+        TickT _register[CC_NUM_REGISTERS];
+        std::vector<size_t>_register_list;
+        TickT _tick;
+
+    public:
+        RegisterTracking(ccCompiledScript &scrip);
+
+        // Track that the previous content of register 'reg' is invalid (has been clobbered)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        inline void SetRegister(size_t reg) { _register[reg] = ++_tick; }
+        inline void SetRegister(size_t reg, TickT tick) { _register[reg] = tick; }
+
+        // Track that the previous content of all registers is invalid (e.g., after a call)
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        void SetAllRegisters(void);
+
+        inline TickT GetRegister(size_t reg) const { return _register[reg]; }
+
+        inline TickT GetTick() const { return _tick; }
+
+        // true when the value of register 'reg' that was set at 'tick' is still valid
+        // Only consider SREG_AX .. SREG_DX and SREG_MAR
+        bool IsValid(size_t reg, TickT tick) const { return _register[reg] <= tick; }
+
+        // Find the general purpose register that was set the longest time ago
+        // Only return one of SREG_AX, SREG_BX, SREG_CX, SREG_DX
+        size_t GetGeneralPurposeRegister() const;
+    } _reg_track;
+
     // We set the MAR register lazily to save on runtime computation. This object
     // encapsulates the stashed operations that haven't been done on MAR yet.
-    class MemoryLocation
+    class MarMgr
     {
     private:
         Parser &_parser;
-        ScopeType _ScType;
+        ScopeType _scType;
         size_t _startOffs;
         size_t _componentOffs;
 
     public:
-        MemoryLocation(Parser &parser);
+        MarMgr(Parser &parser);
+        MarMgr& MarMgr::operator=(const MarMgr &other);
 
         // Set the type and the start offset of the MAR register
         void SetStart(ScopeType type, size_t offset);
@@ -336,48 +378,12 @@ private:
         inline void AddComponentOffset(size_t offset) { _componentOffs += offset; };
 
         // Write out the Bytecode necessary to bring MAR up-to-date; reset the object
-        void MakeMARCurrent(size_t lineno, ccCompiledScript &scrip);
+        void UpdateMAR(size_t lineno, ccCompiledScript &scrip);
 
-        inline bool OpsPending() const { return ScT::kNone != _ScType || 0u < _startOffs || 0u < _componentOffs; };
+        inline bool AreAllOpsPending() const { return ScT::kNone != _scType; };
 
         void Reset();
-    };
-
-    // Track when register values are clobbered
-    class SetRegisterTracking
-    {
-
-    private:
-        ccCompiledScript &_scrip;
-        AGS::CodeLoc _register[CC_NUM_REGISTERS];
-        std::vector<size_t>_register_list;
-
-    public:
-        SetRegisterTracking(ccCompiledScript &scrip);
-
-        // Track that the previous content of register 'reg' is invalid (has been clobbered)
-        // Only consider SREG_AX .. SREG_DX and SREG_MAR
-        inline void SetRegister(size_t reg, size_t codesize = INT_MAX)
-            { _register[reg] = std::min<size_t>(codesize, _scrip.codesize); }
-
-        // Track that the previous content of all registers is invalid (e.g., after a call)
-        // Only consider SREG_AX .. SREG_DX and SREG_MAR
-        void SetAllRegisters(void);
-
-        inline size_t GetRegister(size_t reg) const { return _register[reg]; }
-
-        // true when the value of register 'reg' that was set at 'loc' is still valid
-        // Only consider SREG_AX .. SREG_DX and SREG_MAR
-        // Note, this will not work if code is ripped out and re-inserted at a
-        // completely different location, e.g., with switch statements.
-        bool IsValid(size_t reg, AGS::CodeLoc loc) const { return _register[reg] <= loc; }
-
-        // Find the general purpose register that was set the longest time ago
-        // Only return one of SREG_AX, SREG_BX, SREG_CX, SREG_DX
-        // Note, this will not work if code is ripped out and re-inserted at a
-        // completely different location, e.g., with switch statements.
-        size_t GetGeneralPurposeRegister() const;
-    } _reg_track;
+    } _marMgr;
 
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
@@ -499,9 +505,8 @@ private:
     // Remove at nesting_level or higher.
     void RemoveLocalsFromStack(size_t nesting_level);
 
-    // Record the literal as a compile time literal in vloc
-    // If the literal is a string, move it to AX instead.
-    void SetCompileTimeLiteral(Symbol lit, ValueLocation &vloc, Vartype &vartype);
+    // Record the literal as a compile time literal 
+    void SetCompileTimeLiteral(Symbol lit, EvaluationResult &eres);
 
     // Find or create a symbol that is a literal for the value 'value'.
     void FindOrAddIntLiteral(CodeCell value, Symbol &symb);
@@ -580,10 +585,10 @@ private:
     static int GetWriteCommandForSize(int the_size);
 
     // Handle the cases where a value is a whole array or dynarray or struct
-    void HandleStructOrArrayResult(Vartype &vartype, Parser::ValueLocation &vloc);
+    void HandleStructOrArrayResult(EvaluationResult &eres);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
-    void ResultToAX(Vartype vartype, ValueLocation &vloc);
+    void EvaluationResultToAx(EvaluationResult &eres);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
@@ -599,7 +604,7 @@ private:
 
     // Generate the function call for the function that returns the number of elements
     // of a dynarray.
-    void AccessData_GenerateDynarrayLengthFuncCall(MemoryLocation &mloc, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &eres);
 
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
@@ -607,75 +612,84 @@ private:
     void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args);
 
     // Process a function call. The parameter list begins with 'expression[1u]' (!)
-    void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, MemoryLocation &mloc, Vartype &rettype);
+    void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
-    bool ParseExpression_CompileTime(Symbol op_sym, ValueLocation const &vloc_lhs, ValueLocation const &vloc_rhs, ValueLocation &vloc);
+    bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
 
     // Check the vartype following 'new'
     void ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_New(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_New(SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary '-'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixMinus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_PrefixMinus(SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary '+'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixPlus(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_PrefixPlus(SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a boolean or bitwise negation
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixNegate(Symbol operation, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_PrefixNegate(Symbol operation, SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_PrefixModifier(Symbol op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
-    void ParseExpression_PostfixModifier(Symbol op_sym, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_PrefixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
+    // Parse the term given in 'expression'. The lowest-binding operator is '++' or '--'.
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    void ParseExpression_PostfixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
 
     // If consecutive parentheses surround the expression, strip them.
     void StripOutermostParens(SrcList &expression);
 
     // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_Prefix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres);
 
-    void ParseExpression_Postfix(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // Parse the term given in 'expression'. The lowest-binding operator is a unary operator
+    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
+    // If result_used == false then the calling function doesn't use the term result for calculating
+    // This happens when a term is called for side effect only, e.g. in the statement 'foo++;'
+    void ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool result_used);
 
-    void ParseExpression_Ternary_Term2(ValueLocation const &vloc_term1, ScopeType scope_type_term1, Vartype vartype_term1,
-        bool term1_has_been_ripped_out, SrcList &term2, ValueLocation &vloc_term2, AGS::ScopeType &scope_type_term2, AGS::Vartype &vartype_term2);
+    void ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out,
+        SrcList &term2, EvaluationResult &eres_term2, bool result_used);
 
     // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // If result_used == false then the calling function doesn't use the term result for calculating
+    // This happens when a term is called for side effect only, e.g. in the statement 'i ? --foo : ++foo;'
+    void ParseExpression_Ternary(size_t tern_idx, SrcList &expression, EvaluationResult &eres, bool result_used);
 
     // Parse the term given in 'expression'. The lowest-binding operator a binary operator.
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_Binary(size_t op_idx, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    void ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eres);
 
     // Parse the term given in 'expression'. Expression begins with '('
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_InParens(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // If result_used == false then the calling function doesn't use the term result for calculating
+    // This happens when a term is called for side effect only, e.g. in the statement '(--foo);'
+    void ParseExpression_InParens(SrcList &expression, EvaluationResult &eres, bool result_used);
 
     // Parse the term given in 'expression'. Expression does not contain operators
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_NoOps(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // If result_used == false then the calling function doesn't use the term result for calculating
+    // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
+    void ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used);
 
     // Check whether spurious symbols exist after a subterm is processed
     void ParseExpression_CheckUsedUp(AGS::SrcList &expression);
 
     // Parse the term given in 'expression'.
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    // The term must either be a modifying operation or a function call.
-    void ParseSideEffectExpression(SrcList &expression);
-
-    // Parse the term given in 'expression'.
-    // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
-    void ParseExpression_Term(SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
+    // If result_used == false then the calling function doesn't use the term result for calculating
+    // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
+    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true);
 
     // Parse an expression that must evaluate to a constant at compile time.
     // Return the symbol that signifies the constant.
@@ -687,44 +701,42 @@ private:
     // Parse an expression that must convert to an int.
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-    void ParseIntegerExpression(SrcList &src, ValueLocation &vloc, std::string const &msg = "");
+    void ParseIntegerExpression(SrcList &src, EvaluationResult &eres, std::string const &msg = "");
     
     // Parse expression in delimiters, e.g., parentheses
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-    void ParseDelimitedExpression(SrcList &src, Symbol opener, ScopeType &scope_type, Vartype &vartype);
-    void ParseDelimitedExpression(SrcList &src, Symbol opener);
+    void ParseDelimitedExpression(SrcList &src, Symbol opener, EvaluationResult &eres);
 
-    // Parse and evaluate an expression, putting the result into AX
+    // Parse and evaluate an expression
     // 'src' may be longer than the expression. In this case, leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
-    void ParseExpression(SrcList &src, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype);
-    void ParseExpression(SrcList &src, ScopeType &scope_type, Vartype &vartype);
-    void ParseExpression(SrcList &src);
+
+    void ParseExpression(SrcList &src, EvaluationResult &eres);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
-    void AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
+    void AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
 
-    // Get the symbol for the get or set function corresponding to the attribute given.
-    void ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed, Symbol &func);
+    // Return the symbol for the get or set function corresponding to the attribute given.
+    Symbol ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed);
 
     // We call the getter or setter of an attribute
     void AccessData_CallAttributeFunc(bool is_setter, SrcList &expression, Vartype vartype);
 
     // Memory location contains a pointer to another address. Get that address.
-    void AccessData_Dereference(ValueLocation &vloc, MemoryLocation &mloc);
-
-    void AccessData_ProcessArrayIndexConstant(size_t idx, Symbol index_symbol, size_t num_array_elements, size_t element_size, MemoryLocation &mloc);
+    void AccessData_Dereference(EvaluationResult &eres);
 
     // Process one index in a sequence of array indexes
-    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, MemoryLocation &mloc);
+    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
-    void AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, SrcList &expression, ValueLocation &vloc, MemoryLocation &mloc, Vartype &vartype);
+    void AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres);
 
-    void AccessData_Variable(ScopeType scope_type, VariableAccess access_type, SrcList &expression, MemoryLocation &mloc, Vartype &vartype);
+    void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
+
+    void AGS::Parser::AccessData_This(EvaluationResult &eres);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
@@ -734,12 +746,12 @@ private:
     // The "return_scope_type" is used for deciding what values can be returned from a function.
     // implied_this_dot is set if subsequent processing should imply that
     // the expression starts with "this.", with the '.' already read in
-    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &implied_this_dot, bool &static_access, bool &func_was_called);
+    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &implied_this_dot);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, bool static_access, SrcList &expression, ValueLocation &vloc, ScopeType &return_scope_type, MemoryLocation &mloc, Vartype &vartype, bool &func_was_called);
+    void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
@@ -753,17 +765,13 @@ private:
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot
-    void AccessData_IsClauseLast(SrcList &expression, bool &is_last);
+    bool AccessData_IsClauseLast(SrcList &expression);
 
     // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
     // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
     // At end of function, symlist and symlist_len will point to the part of the symbol string
     // that has not been processed yet
-    // NOTE: If this selects an attribute for writing, then the corresponding function will
-    // _not_ be called and symlist[0] will be the attribute.
-    void AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype, bool &func_was_called);
-    inline void AccessData(VariableAccess access_type, SrcList &expression, ValueLocation &vloc, ScopeType &scope_type, Vartype &vartype)
-        { bool dummy; AccessData(access_type, expression, vloc, scope_type, vartype, dummy); }
+    void AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     // Insert Bytecode for:
     // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
@@ -777,12 +785,12 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    void AccessData_AssignTo(ScopeType sct, Vartype vartype, SrcList &expression);
+    void AccessData_AssignTo(SrcList &expression, EvaluationResult eres);
 
     void SkipToEndOfExpression();
 
     // We are parsing the left hand side of a '+=' or similar statement.
-    void ParseAssignment_ReadLHSForModification(SrcList &lhs, ScopeType &scope_type, ValueLocation &vloc, Vartype &lhstype);
+    void ParseAssignment_ReadLHSForModification(SrcList &lhs, EvaluationResult &eres);
 
     // "var = expression"; 'lhs' is the variable
     void ParseAssignment_Assign(SrcList &lhs);
@@ -851,7 +859,7 @@ private:
     // This corresponds to a getter func and a setter func, declare one of them
     void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
-    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet const tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
+    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
 
     // We're in a struct declaration. Parse an attribute declaration.
     void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
@@ -984,7 +992,8 @@ private:
 
     // We're compiling function body code; the code does not start with a keyword or type.
     // Thus, we should be at the start of an assignment or a funccall. Compile it.
-    void ParseAssignmentOrExpression(Symbol cursym);
+    // No symbols of the statement have been consumed yet.
+    void ParseAssignmentOrExpression();
 
     // Parse a 'break;' statement
     void ParseBreak();

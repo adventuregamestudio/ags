@@ -1947,7 +1947,7 @@ TEST_F(Compile0, Attributes16) {
     char *inpl = "\
         builtin managed struct Object       \n\
         {                                   \n\
-            import attribute int  Graphic;  \n\
+            import attribute int Graphic;   \n\
         } obj;                              \n\
                                             \n\
         int foo ()                          \n\

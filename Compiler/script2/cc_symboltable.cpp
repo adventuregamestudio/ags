@@ -166,130 +166,130 @@ AGS::SymbolTable::SymbolTable()
     AddDelimeter(kKW_OpenParenthesis, "(", true, kKW_CloseParenthesis, true);
 
     // Operators
-    AddOperator(kKW_And, "&&", 118, kNoPrio, SCMD_AND);
+    AddOperator(kKW_And, "&&", 118, kNoPrio, true, SCMD_AND);
     // No compile time functions defined here; those are done with special logic.
 
-    AddOperator(kKW_BitAnd, "&", 109, kNoPrio, SCMD_BITAND);
+    AddOperator(kKW_BitAnd, "&", 109, kNoPrio, false, SCMD_BITAND);
     OperatorCtFunctions(
         kKW_BitAnd,
         new CTF_IntToInt(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }),
         nullptr);
 
-    AddOperator(kKW_BitNeg, "~", kNoPrio, 101, kSpecialLogic); // bitwise NOT
+    AddOperator(kKW_BitNeg, "~", kNoPrio, 101, false, kSpecialLogic); // bitwise NOT
     OperatorCtFunctions(
         kKW_BitNeg,
         new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i2; }),
         nullptr);
 
-    AddOperator(kKW_BitOr, "|", 110, kNoPrio, SCMD_BITOR);
+    AddOperator(kKW_BitOr, "|", 110, kNoPrio, false, SCMD_BITOR);
     OperatorCtFunctions(
         kKW_BitOr,
         new CTF_IntToInt(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
         nullptr);
 
-    AddOperator(kKW_BitXor, "^", 110, kNoPrio, SCMD_XORREG);
+    AddOperator(kKW_BitXor, "^", 110, kNoPrio, false, SCMD_XORREG);
     OperatorCtFunctions(
         kKW_BitXor,
         new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }),
         nullptr);
 
-    AddOperator(kKW_Decrement, "--", 101, 101, SCMD_SUB);
+    AddOperator(kKW_Decrement, "--", 101, 101, false, SCMD_SUB);
     // No compile time functions defined here; those are done with special logic.
 
-    AddOperator(kKW_Divide, "/", 103, kNoPrio, SCMD_DIVREG, SCMD_FDIVREG);
+    AddOperator(kKW_Divide, "/", 103, kNoPrio, false, SCMD_DIVREG, SCMD_FDIVREG);
     OperatorCtFunctions(
         kKW_Divide,
         new CTF_IntDivide(*this),
         new CTF_FloatDivide(*this));
 
-    AddOperator(kKW_Equal, "==", 112, kNoPrio, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
+    AddOperator(kKW_Equal, "==", 112, kNoPrio, true, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
     OperatorCtFunctions(
         kKW_Equal,
         new CTF_IntToBool(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
         new CTF_FloatToBool(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
 
-    AddOperator(kKW_Greater, ">", 112, kNoPrio, SCMD_GREATER, SCMD_FGREATER);
+    AddOperator(kKW_Greater, ">", 112, kNoPrio, true, SCMD_GREATER, SCMD_FGREATER);
     OperatorCtFunctions(
         kKW_Greater,
         new CTF_IntToBool(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
         new CTF_FloatToBool(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
 
-    AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, SCMD_GTE, SCMD_FGTE);
+    AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, true, SCMD_GTE, SCMD_FGTE);
     OperatorCtFunctions(
         kKW_GreaterEqual,
         new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
         new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
 
-    AddOperator(kKW_Increment, "++", 101, 101, SCMD_ADD);
+    AddOperator(kKW_Increment, "++", 101, 101, false, SCMD_ADD);
     // No compile time functions defined here; those are done with special logic.
 
-    AddOperator(kKW_Less, "<", 112, kNoPrio, SCMD_LESSTHAN, SCMD_FLESSTHAN);
+    AddOperator(kKW_Less, "<", 112, kNoPrio, true, SCMD_LESSTHAN, SCMD_FLESSTHAN);
     OperatorCtFunctions(
         kKW_Less,
         new CTF_IntToBool(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
         new CTF_FloatToBool(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
 
-    AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, SCMD_LTE, SCMD_FLTE);
+    AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, true, SCMD_LTE, SCMD_FLTE);
     OperatorCtFunctions(
         kKW_LessEqual,
         new CTF_IntToBool(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
         new CTF_FloatToBool(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
 
-    AddOperator(kKW_Minus, "-", 105, 101, SCMD_SUBREG, SCMD_FSUBREG);
+    AddOperator(kKW_Minus, "-", 105, 101, false, SCMD_SUBREG, SCMD_FSUBREG);
     OperatorCtFunctions(
         kKW_Minus,
         new CTF_IntMinus(*this),
         new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
 
-    AddOperator(kKW_Modulo, "%", 103, kNoPrio, SCMD_MODREG);
+    AddOperator(kKW_Modulo, "%", 103, kNoPrio, false, SCMD_MODREG);
     OperatorCtFunctions(
         kKW_Modulo,
         new CTF_IntModulo(*this),
         nullptr);
 
-    AddOperator(kKW_Multiply, "*", 103, kNoPrio, SCMD_MULREG, SCMD_FMULREG);
+    AddOperator(kKW_Multiply, "*", 103, kNoPrio, false, SCMD_MULREG, SCMD_FMULREG);
     OperatorCtFunctions(
         kKW_Multiply,
         new CTF_IntMultiply(*this),
         new CTF_FloatToFloat(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
 
-    AddOperator(kKW_Not, "!", kNoPrio, 101, SCMD_NOTREG); // boolean NOT
+    AddOperator(kKW_Not, "!", kNoPrio, 101, true, SCMD_NOTREG); // boolean NOT
     OperatorCtFunctions(
         kKW_Not,
         new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i2; }),
         nullptr);
 
-    AddOperator(kKW_New, "new", kNoPrio, 101, kSpecialLogic);
+    AddOperator(kKW_New, "new", kNoPrio, 101, false, kSpecialLogic);
     // No compile time functions defined here, will be handled by special logic
 
-    AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
+    AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, true, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
     OperatorCtFunctions(
         kKW_NotEqual,
         new CTF_IntToBool(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
         new CTF_FloatToBool(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
 
-    AddOperator(kKW_Or, "||", 119, kNoPrio, SCMD_OR);
+    AddOperator(kKW_Or, "||", 119, kNoPrio, true, SCMD_OR);
     // No compile time functions defined here; those are handled with special logic.
 
-    AddOperator(kKW_Plus, "+", 105, 101, SCMD_ADDREG, SCMD_FADDREG);
+    AddOperator(kKW_Plus, "+", 105, 101, false, SCMD_ADDREG, SCMD_FADDREG);
     OperatorCtFunctions(
         kKW_Plus,
         new CTF_IntPlus(*this),
         new CTF_FloatToFloat(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
         
-    AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, SCMD_SHIFTLEFT);
+    AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, false, SCMD_SHIFTLEFT);
     OperatorCtFunctions(
         kKW_ShiftLeft,
         new CTF_IntShiftLeft(*this),
         nullptr);
 
-    AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, SCMD_SHIFTRIGHT);
+    AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, false, SCMD_SHIFTRIGHT);
     OperatorCtFunctions(
         kKW_ShiftRight,
         new CTF_IntShiftRight(*this),
         nullptr);
 
-    AddOperator(kKW_Tern, "?", 120, kNoPrio, kSpecialLogic);    // note, operator and keyword
+    AddOperator(kKW_Tern, "?", 120, kNoPrio, false, kSpecialLogic);    // note, operator and keyword
     // No compile time functions defined here; those are handled with special logic.
 
     // Assignments
@@ -771,13 +771,14 @@ AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
+AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, bool boolean, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Name = name;
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = binary_prio;
     entry.OperatorD->UnaryPrio = unary_prio;
+    entry.OperatorD->Boolean = boolean;
     entry.OperatorD->IntOpcode = int_opcode;
     entry.OperatorD->FloatOpcode = float_opcode;
     entry.OperatorD->DynOpcode = dyn_opcode;

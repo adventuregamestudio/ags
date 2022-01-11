@@ -296,6 +296,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         CompileTimeFunc *FloatCTFunc = nullptr;
         CodeCell DynOpcode = kNoOpcode;
         CodeCell StringOpcode = kNoOpcode;
+        bool Boolean = false;
         int BinaryPrio = kNoPrio; 
         int UnaryPrio = kNoPrio;
         bool CanBePartOfAnExpression = false;
@@ -363,7 +364,8 @@ private:
 
     // Add the operator symbol to the symbol table at [kw]. 
     // Priorities: lower value = higher prio.
-    Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
+    // "Boolean" operators return int, no matter what type their arguments
+    Symbol AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, bool boolean, CodeCell int_opcode, CodeCell float_opcode = kNoOpcode, CodeCell dyn_opcode = kNoOpcode, CodeCell string_opcode = kNoOpcode);
 
     // Augment the operator symbol with compile time functions
     void OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func);
@@ -428,6 +430,9 @@ public:
     // Note: Whatever is within delimeters will be skipped completely
     // so it can be part of an expression no matter what is determined here
     bool CanBePartOfAnExpression(Symbol s);
+
+    // Whether the operator is boolean. "Boolean" operators return an 'int' no matter what vartype their arguments
+    inline bool IsBooleanOperator(Symbol s) { return IsOperator(s) && entries.at(s).OperatorD->Boolean; }
 
     // Variables or vartypes
     // Size of a variable or vartype

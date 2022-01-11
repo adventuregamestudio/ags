@@ -803,8 +803,8 @@ TEST_F(Bytecode1, Attributes01) {
       38,    0,   51,    0,           49,    1,    1,    4,    // 7
       51,    4,   48,    2,           52,   29,    6,   45,    // 15
        2,   39,    0,    6,            3,    0,   33,    3,    // 23
-      30,    6,   28,  101,            6,    3,   17,   51,    // 31
-       4,   48,    2,   52,           29,    6,   34,    3,    // 39
+      30,    6,   28,  101,           51,    4,   48,    2,    // 31
+      52,    6,    3,   17,           29,    6,   34,    3,    // 39
       45,    2,   39,    1,            6,    3,    2,   33,    // 47
        3,   35,    1,   30,            6,   51,    4,   48,    // 55
        2,   52,   29,    6,           45,    2,   39,    0,    // 63
@@ -891,8 +891,8 @@ TEST_F(Bytecode1, Attributes02) {
 
     int32_t code[] = {
       38,    0,   73,    3,            8,   51,    0,   47,    // 7
-       3,    1,    1,    4,            6,    3,   17,   51,    // 15
-       4,   48,    2,   52,           29,    6,   29,    3,    // 23
+       3,    1,    1,    4,           51,    4,   48,    2,    // 15
+      52,    6,    3,   17,           29,    6,   29,    3,    // 23
       45,    2,    6,    3,           72,   23,    3,    2,    // 31
        1,    4,   30,    6,           51,    4,   48,    2,    // 39
       52,   29,    6,   45,            2,    6,    3,  107,    // 47
@@ -934,8 +934,8 @@ TEST_F(Bytecode1, Attributes02) {
 
 TEST_F(Bytecode1, Attributes03) {
 
-    // The getters and setters are NOT defined locally, so
-    // import decls should be generated for them.
+    // The getters and setters are NOT defined locally here, 
+    // so import decls should be generated for them.
     // The getters and setters should be called as import funcs.
 
     char *inpl = "\
@@ -961,8 +961,8 @@ TEST_F(Bytecode1, Attributes03) {
 
     int32_t code[] = {
       38,    0,   73,    3,            8,   51,    0,   47,    // 7
-       3,    1,    1,    4,            6,    3,   17,   51,    // 15
-       4,   48,    2,   52,           29,    6,   34,    3,    // 23
+       3,    1,    1,    4,           51,    4,   48,    2,    // 15
+      52,    6,    3,   17,           29,    6,   34,    3,    // 23
       45,    2,   39,    1,            6,    3,    1,   33,    // 31
        3,   35,    1,   30,            6,   51,    4,   48,    // 39
        2,   52,   29,    6,           45,    2,   39,    0,    // 47
@@ -1342,16 +1342,15 @@ TEST_F(Bytecode1, Attributes09) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
     // WriteOutput("Attributes09", scrip);
-    size_t const codesize = 41;
+    size_t const codesize = 37;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,    6,    3,            1,   29,    3,   39,    // 7
-       0,    6,    3,    2,           33,    3,    3,    3,    // 15
-       2,   52,   30,    3,           29,    6,   34,    3,    // 23
-      45,    2,   39,    1,            6,    3,    1,   33,    // 31
-       3,   35,    1,   30,            6,    6,    3,    0,    // 39
-       5,  -999
+      38,    0,   39,    0,            6,    3,    2,   33,    // 7
+       3,    3,    3,    2,           52,    6,    3,    1,    // 15
+      29,    6,   34,    3,           45,    2,   39,    1,    // 23
+       6,    3,    1,   33,            3,   35,    1,   30,    // 31
+       6,    6,    3,    0,            5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -1359,7 +1358,7 @@ TEST_F(Bytecode1, Attributes09) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-      11,   30,  -999
+       6,   26,  -999
     };
     char fixuptypes[] = {
       4,   4,  '\0'
@@ -1558,7 +1557,7 @@ TEST_F(Bytecode1, DynArrayOfPrimitives) {
     int32_t code[] = {
       38,    0,    6,    3,           10,   72,    3,    2,    // 7
        0,   51,    0,   47,            3,    1,    1,    4,    // 15
-       6,    3,    0,   51,            4,   48,    2,   52,    // 23
+      51,    4,   48,    2,           52,    6,    3,    0,    // 23
        1,    2,   14,   27,            3,   51,    4,   48,    // 31
        2,   52,    1,    2,           14,   25,    3,   51,    // 39
        4,   48,    2,   52,            1,    2,    6,   27,    // 47
@@ -1604,8 +1603,8 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
-      38,    0,    6,    3,            1,    6,    2,    0,    // 7
-      48,    2,   52,    1,            2,   16,    8,    3,    // 15
+      38,    0,    6,    2,            0,   48,    2,   52,    // 7
+       6,    3,    1,    1,            2,   16,    8,    3,    // 15
        6,    3,    0,    5,          -999
     };
     CompareCode(&scrip, codesize, code);
@@ -1614,7 +1613,7 @@ TEST_F(Bytecode1, ManagedDerefZerocheck) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       7,  -999
+       4,  -999
     };
     char fixuptypes[] = {
       1,  '\0'
@@ -1671,10 +1670,10 @@ TEST_F(Bytecode1, MemInitPtr1) {
 
     int32_t code[] = {
       38,    0,   73,    3,            4,   51,    0,   47,    // 7
-       3,    1,    1,    4,            6,    3, 1060320051,   51,    // 15
-       4,   48,    2,   52,            8,    3,   73,    3,    // 23
+       3,    1,    1,    4,           51,    4,   48,    2,    // 15
+      52,    6,    3, 1060320051,            8,    3,   73,    3,    // 23
        4,   51,    0,   47,            3,    1,    1,    4,    // 31
-       6,    3,    4,   51,            4,   48,    2,   52,    // 39
+      51,    4,   48,    2,           52,    6,    3,    4,    // 39
       26,    3,   51,    4,           48,    3,   29,    3,    // 47
       51,   12,   48,    3,           29,    3,    6,    3,    // 55
       77,   23,    3,    2,            1,    8,   29,    3,    // 63
@@ -2094,7 +2093,7 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("StructWOldstyleString1", scrip);
-    const size_t codesize = 135;
+    size_t const codesize = 131;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -2106,39 +2105,39 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
        3,   70,  -26,    1,            5,    1,    3,    5,    // 47
        2,    6,    3,    0,            8,    3,    6,    2,    // 55
        2,    3,    2,    3,           29,    3,    6,    2,    // 63
-     404,   29,    2,    6,            2, 1816,    7,    3,    // 71
-      30,    2,   46,    3,            3,   32,    3,  404,    // 79
-      11,    2,    3,    1,            2,    2,   30,    3,    // 87
-       3,    3,    5,    3,            2,    4,    6,    7,    // 95
-     199,    3,    4,    2,            7,    3,    3,    5,    // 103
-       2,    8,    3,   28,           25,    1,    4,    1,    // 111
-       1,    5,    1,    2,            7,    1,    3,    7,    // 119
-       3,   70,  -26,    1,            5,    1,    3,    5,    // 127
-       2,    6,    3,    0,            8,    3,    5,  -999
+    1816,    7,    3,   46,            3,    3,   32,    3,    // 71
+     404,    6,    2,  404,           11,    2,    3,   30,    // 79
+       3,    1,    2,    2,            3,    3,    5,    3,    // 87
+       2,    4,    6,    7,          199,    3,    4,    2,    // 95
+       7,    3,    3,    5,            2,    8,    3,   28,    // 103
+      25,    1,    4,    1,            1,    5,    1,    2,    // 111
+       7,    1,    3,    7,            3,   70,  -26,    1,    // 119
+       5,    1,    3,    5,            2,    6,    3,    0,    // 127
+       8,    3,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
-    const size_t numfixups = 5;
+    size_t const numfixups = 5;
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-       4,    7,   56,   64,         69,  -999
+       4,    7,   56,   64,         75,  -999
     };
     char fixuptypes[] = {
       3,   1,   1,   1,      1,  '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
 
-    const int numimports = 0;
+    int const numimports = 0;
     std::string imports[] = {
      "[[SENTINEL]]"
     };
     CompareImports(&scrip, numimports, imports);
 
-    const size_t numexports = 0;
+    size_t const numexports = 0;
     EXPECT_EQ(numexports, scrip.numexports);
 
-    const size_t stringssize = 16;
+    size_t const stringssize = 16;
     EXPECT_EQ(stringssize, scrip.stringssize);
 
     char strings[] = {

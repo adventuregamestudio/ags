@@ -346,7 +346,7 @@ TEST_F(Compile1, ExpressionArray1) {
 
 TEST_F(Compile1, FuncTypeClash1) {
 
-    // Can't use func except in a func call
+    // Can't use func here except in a func call
 
     char *inpl = "\
         int Func()                              \n\
@@ -1632,7 +1632,7 @@ TEST_F(Compile1, FuncThenAssign)
     int compile_result2 = cc_compile(inpl2, scrip);
     std::string msg2 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
-    EXPECT_NE(std::string::npos, msg2.find("'('"));
+    EXPECT_NE(std::string::npos, msg2.find("'player'"));
 }
 
 TEST_F(Compile1, BuiltinForbidden)
@@ -2157,14 +2157,18 @@ TEST_F(Compile1, IncrementReadonly)
 
 TEST_F(Compile1, SpuriousExpression)
 {
+    // Warn that '77' doesn't have any effect
+
     char *inpl = "\
         int main() {            \n\
             77;                 \n\
         }                       \n\
         ";
-    int compile_result = cc_compile(inpl, scrip);
+    MessageHandler mh;
+    int compile_result = cc_compile(inpl, 0, scrip, mh);
     std::string msg = last_seen_cc_error();
-    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    ASSERT_EQ(1, mh.GetMessages().size());
 }
 
 TEST_F(Compile1, CompileTimeConstant1)

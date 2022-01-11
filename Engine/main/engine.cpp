@@ -832,8 +832,9 @@ void engine_init_game_settings()
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
-    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
     play.shake_screen_yoff = 0;
+
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUIMAIN_H
 #define __AC_GUIMAIN_H
 
@@ -196,6 +195,7 @@ private:
 namespace GUI
 {
     extern GuiVersion GameGuiVersion;
+    extern GuiOptions Options;
 
     // Draw standart "shading" effect over rectangle
     void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
@@ -232,8 +232,10 @@ namespace GUI
 } // namespace AGS
 
 extern std::vector<Common::GUIMain> guis;
-extern int all_buttons_disabled, gui_inv_pic;
-extern int gui_disabled_style;
+// Tells if all controls are disabled
+// TODO: investigate how this variable works, and if this is at all needed
+extern int all_buttons_disabled;
+extern int gui_inv_pic;
 
 extern int mousex, mousey;
 
@@ -258,7 +260,5 @@ extern void set_our_eip(int eip);
 #define SET_EIP(x) set_our_eip(x);
 extern void set_eip_guiobj(int eip);
 extern int get_eip_guiobj();
-
-extern bool outlineGuiObjects;
 
 #endif // __AC_GUIMAIN_H

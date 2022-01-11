@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "gui/guimain.h"
 #include <algorithm>
 #include "ac/game_version.h"
 #include "ac/spritecache.h"
@@ -21,7 +21,6 @@
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
-#include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
 #include "util/stream.h"
@@ -32,13 +31,15 @@ using namespace AGS::Common;
 
 #define MOVER_MOUSEDOWNLOCKED -4000
 
-int all_buttons_disabled = 0, gui_inv_pic = -1;
-int gui_disabled_style = 0;
+int all_buttons_disabled = -1, gui_inv_pic = -1;
 
 namespace AGS
 {
 namespace Common
 {
+
+GuiOptions GUI::Options;
+
 
 /* static */ String GUIMain::FixupGUIName(const String &name)
 {
@@ -266,7 +267,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(379)
 
-    if (all_buttons_disabled && gui_disabled_style == GUIDIS_BLACKOUT)
+    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
     for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
@@ -275,7 +276,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
         GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
 
-        if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
+        if (!objToDraw->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
             continue;
         if (!objToDraw->IsVisible())
             continue;
@@ -286,7 +287,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
         if (HighlightCtrl == _ctrlDrawOrder[ctrl_index])
         {
-            if (outlineGuiObjects)
+            if (GUI::Options.OutlineControls)
                 selectedColour = 13;
             draw_color = subbmp.GetCompatibleColor(selectedColour);
             DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, objToDraw->Y, draw_color);
@@ -295,7 +296,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
             DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, 
                     objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
         }
-        if (outlineGuiObjects)
+        if (GUI::Options.OutlineControls)
         {
             // draw a dotted outline round all objects
             draw_color = subbmp.GetCompatibleColor(selectedColour);

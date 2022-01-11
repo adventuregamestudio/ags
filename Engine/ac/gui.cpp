@@ -485,32 +485,14 @@ void unexport_gui_controls(int ee)
     }
 }
 
-int convert_gui_disabled_style(int oldStyle) {
-    int toret = GUIDIS_GREYOUT;
-
-    // if GUIs Turn Off is selected, don't grey out buttons for
-    // any Persistent GUIs which remain
-    // set to 0x80 so that it is still non-zero, but has no effect
-    if (oldStyle == 3)
-        toret = GUIDIS_GUIOFF;
-    // GUIs Go Black
-    else if (oldStyle == 1)
-        toret = GUIDIS_BLACKOUT;
-    // GUIs unchanged
-    else if (oldStyle == 2)
-        toret = GUIDIS_UNCHANGED;
-
-    return toret;
-}
-
 void update_gui_disabled_status() {
     // update GUI display status (perhaps we've gone into
     // an interface disabled state)
     int all_buttons_was = all_buttons_disabled;
-    all_buttons_disabled = 0;
+    all_buttons_disabled = -1;
 
     if (!IsInterfaceEnabled()) {
-        all_buttons_disabled = gui_disabled_style;
+        all_buttons_disabled = GUI::Options.DisabledStyle;
     }
 
     if (all_buttons_was != all_buttons_disabled) {
@@ -519,7 +501,7 @@ void update_gui_disabled_status() {
         for (int aa = 0; aa < game.numgui; aa++) {
             guis[aa].OnControlPositionChanged(); // this marks GUI as changed too
         }
-        if (gui_disabled_style != GUIDIS_UNCHANGED) {
+        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
             invalidate_screen();
         }
     }
@@ -527,7 +509,7 @@ void update_gui_disabled_status() {
 
 
 int adjust_x_for_guis (int xx, int yy) {
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0))
         return xx;
     // If it's covered by a GUI, move it right a bit
     for (int aa=0;aa < game.numgui; aa++) {
@@ -550,7 +532,7 @@ int adjust_x_for_guis (int xx, int yy) {
 }
 
 int adjust_y_for_guis ( int yy) {
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0))
         return yy;
     // If it's covered by a GUI, move it down a bit
     for (int aa=0;aa < game.numgui; aa++) {
@@ -574,7 +556,7 @@ int adjust_y_for_guis ( int yy) {
 
 int gui_get_interactable(int x,int y)
 {
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0))
         return -1;
     return GetGUIAt(x, y);
 }
@@ -583,7 +565,7 @@ int gui_on_mouse_move()
 {
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0)) ;
     else {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it

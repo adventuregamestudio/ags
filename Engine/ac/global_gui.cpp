@@ -202,8 +202,8 @@ void SetGUIBackgroundPic (int guin, int slotn) {
 }
 
 void DisableInterface() {
-  if (play.disabled_user_interface == 0 && // only if was enabled before
-      gui_disabled_style != GUIDIS_UNCHANGED)
+  if ((play.disabled_user_interface == 0) && // only if was enabled before
+      (GUI::Options.DisabledStyle != kGuiDis_Unchanged))
   { // If GUI looks change when disabled, then update them all
     GUI::MarkAllGUIForUpdate();
   }
@@ -216,7 +216,7 @@ void EnableInterface() {
   if (play.disabled_user_interface<1) {
     play.disabled_user_interface=0;
     set_default_cursor();
-    if (gui_disabled_style != GUIDIS_UNCHANGED)
+    if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
     { // If GUI looks change when disabled, then update them all
         GUI::MarkAllGUIForUpdate();
     }

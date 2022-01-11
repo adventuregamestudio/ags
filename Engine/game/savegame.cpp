@@ -578,7 +578,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         on_background_frame_change();
     }
 
-    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
 
     // restore the queue now that the music is playing
     play.music_queue_size = queuedMusicSize;

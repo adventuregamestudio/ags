@@ -85,7 +85,6 @@ int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
-bool outlineGuiObjects = false;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);

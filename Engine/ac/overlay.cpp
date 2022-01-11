@@ -317,7 +317,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
 {
     if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
-        for (int id = OVER_CUSTOM + 1; id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
+        for (int id = OVER_CUSTOM + 1; (size_t)id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
             if (find_overlay_of_type(id) == -1) { type=id; break; }
         }
     }
@@ -327,6 +327,9 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.y=y;
     over._offsetX = pic_offx;
     over._offsetY = pic_offy;
+    // by default draw speech and portraits over GUI, and the rest under GUI
+    over.zorder = (type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
+        INT_MAX : INT_MIN;
     over.type=type;
     over.timeout=0;
     over.bgSpeechForChar = -1;

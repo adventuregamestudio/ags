@@ -25,6 +25,7 @@ namespace AGS.Types
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
+        public const string PROPERTY_CLIPGUICONTROLS = "GUI controls clip their contents";
         public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
         public const string PROPERTY_DIALOG_SCRIPT_NARRATEFN = "Custom Narrate function in dialog scripts";
         public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
@@ -46,6 +47,7 @@ namespace AGS.Types
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
+        private bool _clipGuiControls = true;
         private bool _pixelPerfect = true;
         private bool _autoMoveInWalkMode = true;
         private bool _letterboxMode = false;
@@ -497,6 +499,17 @@ namespace AGS.Types
         {
             get { return _whenInterfaceDisabled; }
             set { _whenInterfaceDisabled = value; }
+        }
+
+        [DisplayName(PROPERTY_CLIPGUICONTROLS)]
+        [Description("GUI controls will clip their graphical contents, such as text, preventing it from being drawn outside of their rectangle." +
+            "\nNOTE: Button images are clipped using individual button's property.")]
+        [DefaultValue(true)]
+        [Category("Visual")]
+        public bool ClipGUIControls
+        {
+            get { return _clipGuiControls; }
+            set { _clipGuiControls = value; }
         }
 
         [DisplayName("GUI alpha rendering style")]

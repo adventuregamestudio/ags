@@ -835,6 +835,7 @@ void engine_init_game_settings()
     play.shake_screen_yoff = 0;
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
+    GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));

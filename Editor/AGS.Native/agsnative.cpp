@@ -1942,7 +1942,10 @@ void GameUpdated(Game ^game, bool forceUpdate) {
 
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+  thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+
+  AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
 
   BaseColorDepth = thisgame.color_depth * 8;
 

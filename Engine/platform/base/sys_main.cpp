@@ -14,10 +14,12 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
+using namespace AGS::Common;
 using namespace AGS::Engine;
 
 // ----------------------------------------------------------------------------
@@ -29,7 +31,7 @@ int sys_main_init(/*config*/) {
 
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
-        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
     return 0;
@@ -53,7 +55,7 @@ const int DEFAULT_DISPLAY_INDEX = 0; // TODO: is this always right?
 int sys_get_desktop_resolution(int &width, int &height) {
     SDL_Rect r;
     if (SDL_GetDisplayBounds(DEFAULT_DISPLAY_INDEX, &r) != 0) {
-        SDL_Log("SDL_GetDisplayBounds failed: %s", SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
         return -1;
     }
     width = r.w;
@@ -68,7 +70,7 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
     dms.clear();
     for (int i = 0; i < count; ++i) {
         if (SDL_GetDisplayMode(display_id, i, &mode) != 0) {
-            SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+            Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
         AGS::Engine::DisplayMode dm;

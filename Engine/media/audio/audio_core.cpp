@@ -47,13 +47,16 @@ struct AudioCoreSlot
 
 static struct 
 {
+    // Device handle (could be a real hardware, or a service/server)
     ALCdevice *alcDevice = nullptr;
+    // Context handle (all OpenAL operations are performed using the current context)
     ALCcontext *alcContext = nullptr;
 
+    // Audio thread: polls sound decoders, feeds OpenAL sources
     std::thread audio_core_thread;
     bool audio_core_thread_running = false;
 
-    // slot ids
+    // Sound slot id counter
     int nextId = 0;
 
     // One mutex to lock them all... any operation on individual decoders
@@ -71,24 +74,24 @@ static struct
 
 void audio_core_init() 
 {
-   /* InitAL opens a device and sets up a context using default attributes, making
-    * the program ready to call OpenAL functions. */
+    /* InitAL opens a device and sets up a context using default attributes, making
+     * the program ready to call OpenAL functions. */
 
     /* Open and initialize a device */
     g_acore.alcDevice = alcOpenDevice(nullptr);
-    if (!g_acore.alcDevice) { throw std::runtime_error("PlayStateError opening device"); }
+    if (!g_acore.alcDevice) { throw std::runtime_error("AudioCore: error opening device"); }
 
     g_acore.alcContext = alcCreateContext(g_acore.alcDevice, nullptr);
-    if (!g_acore.alcContext) { throw std::runtime_error("PlayStateError creating context"); }
+    if (!g_acore.alcContext) { throw std::runtime_error("AudioCore: error creating context"); }
 
-    if (alcMakeContextCurrent(g_acore.alcContext) == ALC_FALSE) { throw std::runtime_error("PlayStateError setting context"); }
+    if (alcMakeContextCurrent(g_acore.alcContext) == ALC_FALSE) { throw std::runtime_error("AudioCore: error setting context"); }
 
     const ALCchar *name = nullptr;
     if (alcIsExtensionPresent(g_acore.alcDevice, "ALC_ENUMERATE_ALL_EXT"))
         name = alcGetString(g_acore.alcDevice, ALC_ALL_DEVICES_SPECIFIER);
     if (!name || alcGetError(g_acore.alcDevice) != AL_NO_ERROR)
         name = alcGetString(g_acore.alcDevice, ALC_DEVICE_SPECIFIER);
-    printf("Opened \"%s\"\n", name);
+    agsdbg::Printf(ags::kDbgMsg_Info, "AudioCore: opened device \"%s\"\n", name);
 
     // SDL_Sound
     Sound_Init();

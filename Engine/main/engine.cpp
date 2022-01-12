@@ -385,8 +385,8 @@ void engine_init_audio()
         Debug::Printf("Initializing audio");
         try {
             audio_core_init(); // audio core system
-        } catch(std::runtime_error) {
-            Debug::Printf("Failed to initialize audio, disabling.");
+        } catch(std::runtime_error ex) {
+            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio: %s", ex.what());
             usetup.audio_backend = 0;
         }
     }

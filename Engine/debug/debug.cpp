@@ -260,7 +260,24 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 {
     // Setup SDL output
     SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO); // TODO: backend log verbosity from config
+    String sdl_log = INIreadstring(cfg, "log", "sdl", "info");
+    int priority;
+    if (StrUtil::StringToInt(sdl_log, priority, 0) == StrUtil::kNoError)
+    {
+        SDL_LogSetAllPriority(static_cast<SDL_LogPriority>(priority));
+    }
+    else
+    {
+        const char *sdl_priority[SDL_NUM_LOG_PRIORITIES] = { "", "verbose", "debug", "info", "warn", "error", "critical" };
+        for (size_t i = 0; i < SDL_NUM_LOG_PRIORITIES; ++i)
+        {
+            if (sdl_log.CompareNoCase(sdl_priority[i]) == 0)
+            {
+                SDL_LogSetAllPriority(static_cast<SDL_LogPriority>(i));
+                break;
+            }
+        }
+    }
 
     // Register outputs
     apply_debug_config(cfg);

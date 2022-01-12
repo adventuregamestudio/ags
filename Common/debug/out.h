@@ -95,6 +95,8 @@ enum MessageType
     // Debug reason is for arbitrary information about events and current
     // game state.
     kDbgMsg_Debug               ,
+    // Total number of message types (should be last)
+    kNumDbgMsg                  ,
 
 
     // Convenient aliases

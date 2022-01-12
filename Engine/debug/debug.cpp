@@ -99,6 +99,33 @@ const String OutputSystemID = "stdout";
 const String OutputGameConsoleID = "console";
 
 
+// ----------------------------------------------------------------------------
+// SDL log output
+// ----------------------------------------------------------------------------
+
+// SDL log priority names
+static const char *SDL_priority[SDL_NUM_LOG_PRIORITIES] = {
+    nullptr, "VERBOSE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
+};
+// SDL log category names
+static const char *SDL_category[SDL_LOG_CATEGORY_RESERVED1] = {
+    "APP", "ERROR", "SYSTEM", "AUDIO", "VIDEO", "RENDER", "INPUT"
+};
+// Conversion between SDL priorities and our MessageTypes
+static MessageType SDL_to_MT[SDL_NUM_LOG_PRIORITIES] = {
+    kDbgMsg_None, kDbgMsg_All, kDbgMsg_Debug, kDbgMsg_Info, kDbgMsg_Warn, kDbgMsg_Error, kDbgMsg_Alert
+};
+// Print SDL message through our own log
+void SDL_Log_Output(void *userdata, int category, SDL_LogPriority priority, const char *message) {
+    char buf[SDL_MAX_LOG_MESSAGE];
+    snprintf(buf, SDL_MAX_LOG_MESSAGE, "%s: %s: %s",
+        SDL_category[category], SDL_priority[priority], message);
+    DbgMgr.Print(kDbgGroup_SDL, SDL_to_MT[priority], String::Wrapper(buf));
+}
+
+// ----------------------------------------------------------------------------
+// Log configuration
+// ----------------------------------------------------------------------------
 
 PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
@@ -143,6 +170,7 @@ std::vector<String> parse_log_multigroup(const String &group_str)
         case 'g': grplist.push_back("game"); break;
         case 'c': grplist.push_back("sprcache"); break;
         case 'o': grplist.push_back("manobj"); break;
+        case 'l': grplist.push_back("sdl"); break;
         }
     }
     return grplist;
@@ -230,6 +258,10 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
 
 void init_debug(const ConfigTree &cfg, bool stderr_only)
 {
+    // Setup SDL output
+    SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO); // TODO: backend log verbosity from config
+
     // Register outputs
     apply_debug_config(cfg);
     platform->SetOutputToErr(stderr_only);
@@ -244,12 +276,16 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 
 void apply_debug_config(const ConfigTree &cfg)
 {
-    apply_log_config(cfg, OutputSystemID, /* defaults */ true, { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info) });
+    apply_log_config(cfg, OutputSystemID, /* defaults */ true,
+        { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info),
+          DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
+        });
     bool legacy_log_enabled = INIreadint(cfg, "misc", "log", 0) != 0;
     apply_log_config(cfg, OutputFileID,
         /* defaults */
         legacy_log_enabled,
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+          DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Script, kDbgMsg_All),
 #ifdef DEBUG_SPRITECACHE

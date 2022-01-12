@@ -108,6 +108,7 @@ DebugManager::DebugManager()
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Script, "script"), "Script"));
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache"));
     RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj"));
+    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SDL, "sdl"), "SDL"));
     _firstFreeGroupID = _groups.size();
     _lastGroupID = _firstFreeGroupID;
 }

@@ -45,8 +45,8 @@ void Camera::SetSize(const Size cam_size)
     _position.SetWidth(real_size.Width);
     _position.SetHeight(real_size.Height);
     // readjust in case went off-room after size changed
-    int x = Math::Clamp(x, 0, thisroom.Width - _position.GetWidth());
-    int y = Math::Clamp(y, 0, thisroom.Height - _position.GetHeight());
+    int x = Math::Clamp(_position.Left, 0, thisroom.Width - _position.GetWidth());
+    int y = Math::Clamp(_position.Top, 0, thisroom.Height - _position.GetHeight());
     if (_position.Left != x || _position.Top != y)
     {
         _position.MoveTo(Point(x, y));

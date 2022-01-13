@@ -868,7 +868,7 @@ void engine_setup_scsystem_auxiliary()
 {
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString.GetCStr(), 10);
-    if (usetup.override_script_os >= 0)
+    if (usetup.override_script_os > eOS_Unknown)
     {
         scsystem.os = usetup.override_script_os;
     }

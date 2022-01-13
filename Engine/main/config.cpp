@@ -480,8 +480,8 @@ void apply_config(const ConfigTree &cfg)
 
         usetup.override_multitasking = INIreadint(cfg, "override", "multitasking", -1);
         String override_os = INIreadstring(cfg, "override", "os");
-        usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(
-            override_os, CstrArr<5>{"", "dos", "win", "linux", "mac"}, (eScriptSystemOSID)-1);
+        usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
+            CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
         usetup.override_upscale = INIreadint(cfg, "override", "upscale", usetup.override_upscale) > 0;
     }
 

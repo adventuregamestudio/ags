@@ -88,18 +88,20 @@ Locations of two latter files differ between running platforms:
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
 * **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
   * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
-  * \[outputname\] = +GROUPLIST[:LEVEL];<br>
-    Groups may be defined either by name or by a LIST of one-letter IDs, preceded by '+', e.g. +ABCD:LEVEL. Verbosity may be defined either by name or a numberic ID.
+  * \[outputname\] = +GROUPLIST[:LEVEL];
+    Groups may be defined either by name or by a LIST of one-letter IDs, preceded by '+', e.g. +ABCD:LEVEL. Verbosity may be defined either by name or a numeric ID.
     - OUTPUTs are:
       * stdout, file, console (where \"console\" is internal engine's console);
     - GROUPs are:
-      * all, main (m), game (g), manobj (o), sprcache (c);
+      * all, main (m), game (g), manobj (o), sdl (l), sprcache (c);
     - LEVELs are:
       * all, alert (1), fatal (2), error (3), warn (4), info (5), debug (6);
     - Examples:
       * file=all:warn
       * stdout=+mg:debug
   * file-path = \[string\] - custom path to the log file.
+  * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
+    * verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[override\]** - special options, overriding game behavior.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:
@@ -134,7 +136,7 @@ Following OPTIONS are supported when running from command line:
 * --loadsavedgame \<filepath\> - load savegame on startup.
 * --localuserconf - read and write user config in the game's directory rather than using standard system path. Game directory must be writeable.
 * --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
-* --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation above).
+* --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation for the related config option).
   * Examples:
     * --log-file=all:warn
     * --log-stdout=+mg:debug
@@ -145,6 +147,7 @@ Following OPTIONS are supported when running from command line:
 * --nospr - don't draw room objects and characters (for test purposes).
 * --noupdate - don't run game update (for test purposes).
 * --novideo - don't play game videos (for test purposes).
+* --sdl-log=LEVEL - setup SDL's own logging level (see explanation for the related config option).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
 * --shared-data-dir \<DIR\> - set the shared game data directory. Corresponds to "shared_data_dir" config option.
 * --startr \<room_number\> - start game by loading certain room (for test purposes).

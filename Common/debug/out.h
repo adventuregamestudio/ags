@@ -95,6 +95,8 @@ enum MessageType
     // Debug reason is for arbitrary information about events and current
     // game state.
     kDbgMsg_Debug               ,
+    // Total number of message types (should be last)
+    kNumDbgMsg                  ,
 
 
     // Convenient aliases
@@ -116,7 +118,9 @@ enum CommonDebugGroup
     // Sprite cache logging
     kDbgGroup_SprCache,
     // Group for debugging managed object state (can slow engine down!)
-    kDbgGroup_ManObj
+    kDbgGroup_ManObj,
+    // SDL backend group
+    kDbgGroup_SDL
 };
 
 // Debug group identifier defining either numeric or string id, or both

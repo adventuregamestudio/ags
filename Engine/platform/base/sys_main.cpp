@@ -27,8 +27,6 @@ using namespace AGS::Engine;
 // ----------------------------------------------------------------------------
 
 int sys_main_init(/*config*/) {
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE); // TODO: backend log verbosity from config
-
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());

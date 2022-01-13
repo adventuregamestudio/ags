@@ -104,9 +104,14 @@ struct HashStrNoCase : public std::unary_function<String, size_t>
     }
 };
 
+// Alias for vector of Strings
 typedef std::vector<String> StringV;
+// Alias for case-sensitive hash-map of Strings
 typedef std::unordered_map<String, String> StringMap;
+// Alias for case-insensitive hash-map of Strings
 typedef std::unordered_map<String, String, HashStrNoCase, StrEqNoCase> StringIMap;
+// Alias for std::array of C-strings
+template <size_t SIZE> using CstrArr = std::array<const char*, SIZE>;
 
 } // namespace Common
 } // namespace AGS

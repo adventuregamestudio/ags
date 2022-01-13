@@ -144,26 +144,16 @@ enum ScreenSizeDefinition
 
 static ScreenSizeDefinition parse_legacy_screendef(const String &option)
 {
-    const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-    for (int i = 0; i < kNumScreenDef; ++i)
-    {
-        if (option.CompareNoCase(screen_sz_def_options[i]) == 0)
-        {
-            return (ScreenSizeDefinition)i;
-        }
-    }
-    return kScreenDef_Undefined;
+    return StrUtil::ParseEnum<ScreenSizeDefinition>(option,
+        CstrArr<kNumScreenDef>{"explicit", "scaling", "max"}, kScreenDef_Undefined);
 }
 
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value)
 {
-    if (option.CompareNoCase("round") == 0 || option.CompareNoCase("max_round") == 0)
-        return kFrame_Round;
-    if (option.CompareNoCase("stretch") == 0)
-        return kFrame_Stretch;
-    if (option.CompareNoCase("proportional") == 0)
-        return kFrame_Proportional;
-    return def_value;
+    // Backward compatible option name from the previous versions
+    if (option.CompareNoCase("max_round") == 0) return kFrame_Round;
+    return StrUtil::ParseEnum<FrameScaleDef>(option,
+        CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"}, def_value);
 }
 
 static FrameScaleDef parse_legacy_scaling_option(const String &option, int &scale)
@@ -479,47 +469,19 @@ void apply_config(const ConfigTree &cfg)
         usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;
-        const char *mouse_ctrl_options[kNumMouseCtrlOptions] = { "never", "fullscreen", "always" };
         String mouse_str = INIreadstring(cfg, "mouse", "control_when", "fullscreen");
-        for (int i = 0; i < kNumMouseCtrlOptions; ++i)
-        {
-            if (mouse_str.CompareNoCase(mouse_ctrl_options[i]) == 0)
-            {
-                usetup.mouse_ctrl_when = (MouseControlWhen)i;
-                break;
-            }
-        }
+        usetup.mouse_ctrl_when = StrUtil::ParseEnum<MouseControlWhen>(
+            mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
+                usetup.mouse_ctrl_when);
         usetup.mouse_ctrl_enabled = INIreadint(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled) > 0;
-        const char *mouse_speed_options[kNumMouseSpeedDefs] = { "absolute", "current_display" };
         mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
-        for (int i = 0; i < kNumMouseSpeedDefs; ++i)
-        {
-            if (mouse_str.CompareNoCase(mouse_speed_options[i]) == 0)
-            {
-                usetup.mouse_speed_def = (MouseSpeedDef)i;
-                break;
-            }
-        }
+        usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
+            mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
         usetup.override_multitasking = INIreadint(cfg, "override", "multitasking", -1);
         String override_os = INIreadstring(cfg, "override", "os");
-        usetup.override_script_os = -1;
-        if (override_os.CompareNoCase("dos") == 0)
-        {
-            usetup.override_script_os = eOS_DOS;
-        }
-        else if (override_os.CompareNoCase("win") == 0)
-        {
-            usetup.override_script_os = eOS_Win;
-        }
-        else if (override_os.CompareNoCase("linux") == 0)
-        {
-            usetup.override_script_os = eOS_Linux;
-        }
-        else if (override_os.CompareNoCase("mac") == 0)
-        {
-            usetup.override_script_os = eOS_Mac;
-        }
+        usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(
+            override_os, CstrArr<5>{"", "dos", "win", "linux", "mac"}, (eScriptSystemOSID)-1);
         usetup.override_upscale = INIreadint(cfg, "override", "upscale", usetup.override_upscale) > 0;
     }
 

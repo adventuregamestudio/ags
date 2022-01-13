@@ -176,20 +176,12 @@ std::vector<String> parse_log_multigroup(const String &group_str)
     return grplist;
 }
 
-MessageType get_messagetype_from_string(const String &mt)
+MessageType get_messagetype_from_string(const String &option)
 {
-    int mtype;
-    if (StrUtil::StringToInt(mt, mtype, 0) == StrUtil::kNoError)
-        return (MessageType)mtype;
-
-    if (mt.CompareNoCase("alert") == 0) return kDbgMsg_Alert;
-    else if (mt.CompareNoCase("fatal") == 0) return kDbgMsg_Fatal;
-    else if (mt.CompareNoCase("error") == 0) return kDbgMsg_Error;
-    else if (mt.CompareNoCase("warn") == 0) return kDbgMsg_Warn;
-    else if (mt.CompareNoCase("info") == 0) return kDbgMsg_Info;
-    else if (mt.CompareNoCase("debug") == 0) return kDbgMsg_Debug;
-    else if (mt.CompareNoCase("all") == 0) return kDbgMsg_All;
-    return kDbgMsg_None;
+    if (option.CompareNoCase("all") == 0) return kDbgMsg_All;
+    return StrUtil::ParseEnumAllowNum<MessageType>(option,
+        CstrArr<kNumDbgMsg>{"", "alert", "fatal", "error", "warn", "info", "debug"},
+        kDbgMsg_None);
 }
 
 typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
@@ -260,24 +252,10 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 {
     // Setup SDL output
     SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
-    String sdl_log = INIreadstring(cfg, "log", "sdl", "info");
-    int priority;
-    if (StrUtil::StringToInt(sdl_log, priority, 0) == StrUtil::kNoError)
-    {
-        SDL_LogSetAllPriority(static_cast<SDL_LogPriority>(priority));
-    }
-    else
-    {
-        const char *sdl_priority[SDL_NUM_LOG_PRIORITIES] = { "", "verbose", "debug", "info", "warn", "error", "critical" };
-        for (size_t i = 0; i < SDL_NUM_LOG_PRIORITIES; ++i)
-        {
-            if (sdl_log.CompareNoCase(sdl_priority[i]) == 0)
-            {
-                SDL_LogSetAllPriority(static_cast<SDL_LogPriority>(i));
-                break;
-            }
-        }
-    }
+    String sdl_log = INIreadstring(cfg, "log", "sdl");
+    SDL_LogPriority priority = StrUtil::ParseEnumAllowNum<SDL_LogPriority>(sdl_log,
+        CstrArr<SDL_NUM_LOG_PRIORITIES>{"", "verbose", "debug", "info", "warn", "error", "critical"}, SDL_LOG_PRIORITY_INFO);
+    SDL_LogSetAllPriority(priority);
 
     // Register outputs
     apply_debug_config(cfg);

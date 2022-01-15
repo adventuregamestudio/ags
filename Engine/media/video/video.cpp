@@ -379,8 +379,9 @@ void play_theora_video(const char *name, int skip, int flags)
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
-    // Disable framedrop because it can lead to the PSP not playing the video at all.
-    apeg_enable_framedrop(psp_video_framedrop);
+    // Disable framedrop, because after porting to SDL2 and OpenAL, APEG detects
+    // audio ahead too often, and with framedrop video does not advance at all.
+    apeg_enable_framedrop(/*psp_video_framedrop*/FALSE);
     update_polled_stuff_if_runtime();
 
     stretch_flc = (flags % 10);

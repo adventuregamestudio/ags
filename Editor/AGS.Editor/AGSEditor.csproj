@@ -203,6 +203,12 @@
     </Compile>
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
+    <Compile Include="Panes\ZoomTrackbar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ZoomTrackbar.Designer.cs">
+      <DependentUpon>ZoomTrackbar.cs</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">
@@ -365,6 +371,9 @@
     <EmbeddedResource Include="Panes\GUIEditor.resx">
       <SubType>Designer</SubType>
       <DependentUpon>GUIEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ZoomTrackbar.resx">
+      <DependentUpon>ZoomTrackbar.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

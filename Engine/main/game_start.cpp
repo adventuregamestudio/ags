@@ -63,7 +63,7 @@ void start_game_init_editor_debugging()
     while (waitUntil > AGS_Clock::now())
     {
         // pick up any breakpoints in game_start
-        check_for_messages_from_editor();
+        check_for_messages_from_debugger();
     }
 
     ccSetDebugHook(scriptDebugHook);

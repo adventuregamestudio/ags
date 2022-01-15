@@ -89,6 +89,25 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 float fps = std::numeric_limits<float>::quiet_NaN();
 FPSDisplayMode display_fps = kFPS_Hide;
 
+void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_values, const String& command)
+{
+    String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="Windows-1252"?><Debugger Command="%s">)", command.GetCStr());
+#if AGS_PLATFORM_OS_WINDOWS
+    messageToSend.Append(String::FromFormat("  <EngineWindow>%d</EngineWindow> ", (int)sys_win_get_window()));
+#endif
+
+    for(const auto& tag_value : tag_values)
+    {
+        String tag_line = String::FromFormat("  <%s><![CDATA[%s]]></%s> ",
+                                             tag_value.first.GetCStr(), tag_value.second.GetCStr(), tag_value.first.GetCStr());
+        messageToSend.Append(tag_line);
+    }
+
+    messageToSend.Append("</Debugger>\n");
+
+    editor_debugger->SendMessageToEditor(messageToSend.GetCStr());
+}
+
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;
 std::unique_ptr<ConsoleOutputTarget> DebugConsole;
@@ -275,6 +294,7 @@ void apply_debug_config(const ConfigTree &cfg)
           DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
         });
     bool legacy_log_enabled = CfgReadBoolInt(cfg, "misc", "log", false);
+
     apply_log_config(cfg, OutputFileID,
         /* defaults */
         legacy_log_enabled,
@@ -397,33 +417,28 @@ struct Breakpoint
 
 std::vector<Breakpoint> breakpoints;
 
-bool send_message_to_editor(const char *msg, const char *errorMsg) 
+bool send_state_to_debugger(const String& msg, const String& errorMsg)
 {
     // Get either saved callstack from a script error, or current execution point
-    String callStack = (errorMsg && cc_has_error()) ?
+    String callStack = (!errorMsg.IsEmpty() && cc_has_error()) ?
         cc_get_error().CallStack : cc_get_callstack();
     if (callStack.IsEmpty())
         return false;
 
-    String message;
-    message.AppendFmt("<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
-#if AGS_PLATFORM_OS_WINDOWS
-    message.AppendFmt("  <EngineWindow>%d</EngineWindow> ", (int)sys_win_get_window());
-#endif
-    message.AppendFmt("  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
-    if (errorMsg != nullptr)
-    {
-        message.AppendFmt("  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg);
-    }
-    message.Append("</Debugger>");
+    std::vector<std::pair<String, String>> scipt_info = { { "ScriptState", callStack } };
 
-    editor_debugger->SendMessageToEditor(message.GetCStr());
+    if (!errorMsg.IsEmpty())
+    {
+        scipt_info.emplace_back( "ErrorMessage", errorMsg );
+    }
+
+    send_message_to_debugger(scipt_info, msg);
     return true;
 }
 
-bool send_message_to_editor(const char *msg) 
+bool send_state_to_debugger(const char *msg)
 {
-    return send_message_to_editor(msg, nullptr);
+    return send_state_to_debugger(String(msg), String());
 }
 
 bool init_editor_debugging() 
@@ -444,12 +459,12 @@ bool init_editor_debugging()
 
         // Wait for the editor to send the initial breakpoints
         // and then its READY message
-        while (check_for_messages_from_editor() != 2) 
+        while (check_for_messages_from_debugger() != 2)
         {
             platform->Delay(10);
         }
 
-        send_message_to_editor("START");
+        send_state_to_debugger("START");
         Debug::Printf(kDbgMsg_Info, "External debugger initialized");
         return true;
     }
@@ -458,7 +473,7 @@ bool init_editor_debugging()
     return false;
 }
 
-int check_for_messages_from_editor()
+int check_for_messages_from_debugger()
 {
     if (editor_debugger->IsMessageAvailable())
     {
@@ -552,7 +567,7 @@ int check_for_messages_from_editor()
 
 
 
-bool send_exception_to_editor(const char *qmsg)
+bool send_exception_to_debugger(const char *qmsg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     want_exit = false;
@@ -560,10 +575,10 @@ bool send_exception_to_editor(const char *qmsg)
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
 
-    if (!send_message_to_editor("ERROR", qmsg))
+    if (!send_state_to_debugger("ERROR", qmsg))
         return false;
 
-    while ((check_for_messages_from_editor() == 0) && (!want_exit))
+    while ((check_for_messages_from_debugger() == 0) && (!want_exit))
     {
         platform->Delay(10);
     }
@@ -581,7 +596,7 @@ void break_into_debugger()
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
 
-    send_message_to_editor("BREAK");
+    send_state_to_debugger("BREAK");
     game_paused_in_debugger = 1;
 
     while (game_paused_in_debugger) 

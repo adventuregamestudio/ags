@@ -63,8 +63,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void WriteStdErr(const char *fmt, ...);
 };
 
-
-//int psp_return_to_menu = 1;
 int psp_ignore_acsetup_cfg_file = 1;
 int psp_clear_cache_on_room_change = 0;
 int psp_rotation = 0;
@@ -75,11 +73,9 @@ char* psp_translations[100];
 // Mouse option
 int config_mouse_control_mode;
 
-
 // Graphic options
 int psp_gfx_scaling;
 int psp_gfx_smoothing;
-
 
 // Audio options from the Allegro library.
 unsigned int psp_audio_samplerate = 44100;
@@ -103,7 +99,6 @@ extern int display_fps;
 extern int want_exit;
 extern void PauseGame();
 extern void UnPauseGame();
-//extern int main(int argc,char*argv[]);
 
 String android_base_directory = ".";
 String android_app_directory = ".";
@@ -116,19 +111,9 @@ extern char saveGameDirectory[260];
 extern const char *loadSaveGameOnStartup;
 char lastSaveGameName[200];
 
-
-JavaVM* android_jni_vm;
-JNIEnv *java_environment;
-jobject java_object;
-jclass java_class;
-jmethodID java_messageCallback;
-jmethodID java_blockExecution;
-jmethodID java_swapBuffers;
-jmethodID java_setRotation;
-jmethodID java_enableLongclick;
-
 bool reset_configuration = false;
 
+// NOTE: the JVM can't use JNI outside here due to C++ name mangling
 extern "C" 
 {
 
@@ -153,33 +138,6 @@ const int CONFIG_TRANSLATION = 17;
 const int CONFIG_DEBUG_LOGCAT = 18;
 const int CONFIG_MOUSE_METHOD = 19;
 const int CONFIG_MOUSE_LONGCLICK = 20;
-
-
-JNIEXPORT jstring JNICALL
-  Java_com_bigbluecup_android_EngineGlue_findGameDataInDirectory(JNIEnv* env, jclass klass, jstring path)
-{
-  int tmp_errno = 0;
-  int *orig_allegro_errno;
-  auto path_c = env->GetStringUTFChars(path, NULL);
-  auto path_str = String(path_c);
-
-  // We have to configure our own allegro_errno because
-  // - we call al_find* during the search
-  // - allegro might not have been initialised yet
-
-  orig_allegro_errno = allegro_errno;
-  allegro_errno = &tmp_errno;
-
-  auto result_str = FindGameData(path_str);
-  
-  allegro_errno = orig_allegro_errno;
-
-  if (result_str.GetLength() == 0) { return NULL; }
-
-  auto result_jni = env->NewStringUTF(result_str.GetCStr());
-  return result_jni;
-}
-
 
 JNIEXPORT jboolean JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
@@ -210,7 +168,6 @@ JNIEXPORT jboolean JNICALL
     fprintf(config, "mouse_longclick = %d\n", config_mouse_longclick);
 	
     fprintf(config, "[compatibility]\n");
-//    fprintf(config, "ignore_acsetup_cfg_file = %d\n", psp_ignore_acsetup_cfg_file);
     fprintf(config, "clear_cache_on_room_change = %d\n", psp_clear_cache_on_room_change);
 
     fprintf(config, "[sound]\n");
@@ -455,27 +412,6 @@ JNIEXPORT jint JNICALL
   return i;
 }
 
-
-JNIEXPORT void JNICALL
-  Java_com_bigbluecup_android_EngineGlue_pauseEngine(JNIEnv* env, jobject object)
-{
-  PauseGame();
-}
-
-JNIEXPORT void JNICALL
-  Java_com_bigbluecup_android_EngineGlue_resumeEngine(JNIEnv* env, jobject object)
-{
-  UnPauseGame();
-}
-
-
-JNIEXPORT void JNICALL
-  Java_com_bigbluecup_android_EngineGlue_shutdownEngine(JNIEnv* env, jobject object)
-{
-  want_exit = 1;
-}
-
-
 void selectLatestSavegame()
 {
   DIR* dir;
@@ -510,7 +446,7 @@ void selectLatestSavegame()
   }
 }
 
-}
+} // END of Extern "C"
 
 
 int ReadInteger(int* variable, const ConfigTree &cfg, const char* section, const char* name, int minimum, int maximum, int default_value)
@@ -535,7 +471,6 @@ int ReadInteger(int* variable, const ConfigTree &cfg, const char* section, const
 }
 
 
-
 int ReadString(char* variable, const ConfigTree &cfg, const char* section, const char* name, const char* default_value)
 {
   if (reset_configuration)
@@ -554,7 +489,6 @@ int ReadString(char* variable, const ConfigTree &cfg, const char* section, const
 }
 
 
-
 void ResetConfiguration()
 {
   reset_configuration = true;
@@ -565,16 +499,11 @@ void ResetConfiguration()
 }
 
 
-
 bool ReadConfiguration(const char* filename, bool read_everything)
 {
   ConfigTree cfg;
   if (IniUtil::Read(filename, cfg) || reset_configuration)
   {
-//    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
-
-//    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
-
     ReadString(&psp_translation[0], cfg, "misc", "translation", "default");
 
     ReadInteger((int*)&psp_config_enabled, cfg, "misc", "config_enabled", 0, 1, 0);
@@ -588,7 +517,6 @@ bool ReadConfiguration(const char* filename, bool read_everything)
 
     ReadInteger((int*)&psp_rotation, cfg, "misc", "rotation", 0, 2, 0);
 
-//    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
     ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
 
     ReadInteger((int*)&psp_audio_samplerate, cfg, "sound", "samplerate", 0, 44100, 44100);
@@ -728,7 +656,7 @@ const char * AGSAndroid::GetGameDataFile()
 }
 
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
-  return 1;//cd_player_control(cmdd, datt);
+  return 1;
 }
 
 void AGSAndroid::DisplayAlert(const char *text, ...) {
@@ -738,22 +666,6 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, args);
   SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative",displbuf, nullptr);
   va_end(args);
-
-
-  /*
-  // It is possible that this is called from a thread that is not yet known
-  // to the Java VM. So attach it first before displaying the message.
-  JNIEnv* thread_env;
- // android_jni_vm->AttachCurrentThread(&thread_env, NULL);
-
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
-
-  jstring java_string = thread_env->NewStringUTF(displbuf);
-  thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
-  usleep(1000 * 1000);
-  thread_env->CallVoidMethod(java_object, java_blockExecution);
-*/
-//  android_jni_vm->DetachCurrentThread();
 }
 
 void AGSAndroid::Delay(int millis) {
@@ -770,12 +682,11 @@ eScriptSystemOSID AGSAndroid::GetSystemOSID() {
 }
 
 int AGSAndroid::InitializeCDPlayer() {
-  return 1;//cd_player_init();
+  return 1;
 }
 
 void AGSAndroid::PostBackendExit() {
   ShutdownAndroidFile();
-  //java_environment->DeleteGlobalRef(java_class);
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)
@@ -805,7 +716,7 @@ void AGSAndroid::WriteStdErr(const char *fmt, ...)
 }
 
 void AGSAndroid::ShutdownCDPlayer() {
-  //cd_exit();
+
 }
 
 static void MakeGameSaveDirectory()

@@ -36,30 +36,40 @@ namespace AGS.Editor
 		private static int _LastSelectedSprite = 0;
         private static ViewLoop _copiedLoop;
 
+        private float _zoomLevel = 1.0f;
         private ViewLoop _loop;
         private bool _isLastLoop;
         private int _loopDisplayY;
         private int _selectedFrame;
         private int _framelessWidth;
+        private GUIController _guiController;
 
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            _guiController = guiController;
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
             chkRunNextLoop.DataBindings.Add("Checked", _loop, "RunNextLoop", false, DataSourceUpdateMode.OnPropertyChanged);
             _isLastLoop = false;
+            UpdateSize();
+        }
+
+        void UpdateSize()
+        {
+            FRAME_DISPLAY_SIZE = _guiController.AdjustSizeFrom96DpiToSystemDpi((int)(FRAME_DISPLAY_SIZE_96DPI * _zoomLevel));
+            this.Height = chkRunNextLoop.Height + lblLoopTitle.Height + FRAME_DISPLAY_SIZE + 28;
             _loopDisplayY = chkRunNextLoop.Top + chkRunNextLoop.Height + 2;
 
-            FRAME_DISPLAY_SIZE = guiController.AdjustSizeFrom96DpiToSystemDpi(FRAME_DISPLAY_SIZE_96DPI);
             btnNewFrame.Width = FRAME_DISPLAY_SIZE;
             btnNewFrame.Height = FRAME_DISPLAY_SIZE;
             btnNewFrame.Top = _loopDisplayY;
 
             _framelessWidth = Math.Min(chkRunNextLoop.Width, this.Width + this.Left);
             UpdateControlWidth();
+            Invalidate();
         }
 
         public ViewLoop Loop
@@ -405,6 +415,19 @@ namespace AGS.Editor
             btnNewFrame.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-frame/flat/style");
             btnNewFrame.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-frame/flat/border/size");
             btnNewFrame.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-frame/flat/border/color");
+        }
+
+        public float ZoomLevel
+        {
+            get
+            {
+                return _zoomLevel;
+            }
+            set
+            {
+                _zoomLevel = value;
+                UpdateSize();
+            }
         }
     }
 }

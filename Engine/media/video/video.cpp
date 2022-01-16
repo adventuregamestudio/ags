@@ -188,7 +188,7 @@ void play_flc_file(int numb,int playflags) {
     if (open_fli_pf(pf) == FLI_OK)
     {
         // TODO: refactor all this later!!!
-        SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
+        const SDL_TimerID sdl_timer_id = SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
         const int loop = 0; // TODO: add looping FLIC support to API?
 
         // actual FLI playback state, base on original Allegro 4's do_play_fli
@@ -219,6 +219,8 @@ void play_flc_file(int numb,int playflags) {
                 SDL_Delay(1);
             }
         }
+
+        SDL_RemoveTimer(sdl_timer_id);
     }
     else
     {

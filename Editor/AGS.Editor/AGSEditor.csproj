@@ -743,6 +743,8 @@
     <EmbeddedResource Include="Resources\audio.ico" />
     <EmbeddedResource Include="Resources\audio_speech.ico" />
     <EmbeddedResource Include="Resources\ags_cup.png" />
+    <EmbeddedResource Include="Resources\audio_indicator.ico" />
+    <EmbeddedResource Include="Resources\delay_indicator.ico" />
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />

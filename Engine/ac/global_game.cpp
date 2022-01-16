@@ -76,7 +76,6 @@ extern int load_new_game_restore;
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
 extern RoomStatus*croom;
-extern int gui_disabled_style;
 extern RoomStruct thisroom;
 extern int getloctype_index;
 extern IGraphicsDriver *gfxDriver;
@@ -443,7 +442,7 @@ int SetGameOption (int opt, int setting) {
     if (opt == OPT_DUPLICATEINV)
         update_invorder();
     else if (opt == OPT_DISABLEOFF) {
-        gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+        GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
         // If GUI was disabled at this time then also update it, as visual style could've changed
         if (play.disabled_user_interface > 0) { GUI::MarkAllGUIForUpdate(); }
     } else if (opt == OPT_PORTRAITSIDE) {

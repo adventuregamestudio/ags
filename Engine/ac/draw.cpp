@@ -2297,8 +2297,8 @@ void draw_gui_and_overlays()
             if (guis[aa].Transparency == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
-            if ((game.options[OPT_DISABLEOFF] == 3) &&
-                (all_buttons_disabled > 0) &&
+            if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
+                (all_buttons_disabled >= 0) &&
                 (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
@@ -2313,8 +2313,8 @@ void draw_gui_and_overlays()
             for (int gg = 0; gg < game.numgui; gg++) {
                 if (!guis[gg].IsDisplayed()) continue; // not on screen
                 // Don't touch GUI if "GUIs Turn Off When Disabled"
-                if ((game.options[OPT_DISABLEOFF] == 3) &&
-                    (all_buttons_disabled > 0) &&
+                if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
+                    (all_buttons_disabled >= 0) &&
                     (guis[gg].PopupStyle != kGUIPopupNoAutoRemove))
                     continue;
                 guis[gg].Poll();

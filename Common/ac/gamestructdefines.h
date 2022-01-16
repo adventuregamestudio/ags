@@ -70,15 +70,14 @@
 #define OPT_GLOBALTALKANIMSPD 39
 #define OPT_HIGHESTOPTION_321 39
 #define OPT_SPRITEALPHA     40
-#define OPT_HIGHESTOPTION_330 OPT_SPRITEALPHA
 #define OPT_SAFEFILEPATHS   41
-#define OPT_HIGHESTOPTION_335 OPT_SAFEFILEPATHS
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API (ScriptAPIVersion) used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility (ScriptAPIVersion) used to compile game script
 #define OPT_RENDERATSCREENRES 45 // scale sprites at the (final) screen resolution
 #define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
 #define OPT_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
+#define OPT_CLIPGUICONTROLS 48 // clip drawn gui control contents to the control's rectangle
 #define OPT_HIGHESTOPTION   OPT_WALKSPEEDABSOLUTE
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99

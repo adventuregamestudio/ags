@@ -20,11 +20,6 @@
 #include "gui/guidefines.h"
 #include "util/string.h"
 
-#define GUIDIS_GREYOUT   1
-#define GUIDIS_BLACKOUT  2
-#define GUIDIS_UNCHANGED 4
-#define GUIDIS_GUIOFF  0x80
-
 struct KeyInput;
 
 
@@ -124,6 +119,6 @@ HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align);
 // Tells if all controls are disabled
 extern int all_buttons_disabled;
 // Tells if the given control is considered enabled, taking global flag into account
-inline bool IsGUIEnabled(AGS::Common::GUIObject *g) { return !all_buttons_disabled && g->IsEnabled(); }
+inline bool IsGUIEnabled(AGS::Common::GUIObject *g) { return (all_buttons_disabled < 0) && g->IsEnabled(); }
 
 #endif // __AC_GUIOBJECT_H

@@ -85,7 +85,6 @@ int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
-bool outlineGuiObjects = false;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
@@ -1943,7 +1942,10 @@ void GameUpdated(Game ^game, bool forceUpdate) {
 
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+  thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+
+  AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
 
   BaseColorDepth = thisgame.color_depth * 8;
 

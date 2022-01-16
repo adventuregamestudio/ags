@@ -11,14 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUIDEFINES_H
 #define __AC_GUIDEFINES_H
 
 #define GUIMAGIC          0xcafebeef
 #define MAX_GUIOBJ_EVENTS 10
 #define TEXTWINDOW_PADDING_DEFAULT  3
-//#define MAX_OBJ_EACH_TYPE 251
 
 // TODO: find out more about gui version history
 //=============================================================================
@@ -189,6 +187,25 @@ enum GuiSvgVersion
 {
     kGuiSvgVersion_Initial  = 0,
     kGuiSvgVersion_350      = 1
+};
+
+enum GuiDisableStyle
+{
+    kGuiDis_Greyout   = 0,
+    kGuiDis_Blackout  = 1,
+    kGuiDis_Unchanged = 2,
+    kGuiDis_Off       = 3
+};
+
+// Global GUI options
+struct GuiOptions
+{
+    // Clip GUI control's contents to the control's rectangle
+    bool ClipControls = true;
+    // How the GUI controls are drawn when the interface is disabled
+    GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
+    // Whether to graphically outline GUI controls
+    bool OutlineControls = false;
 };
 
 } // namespace Common

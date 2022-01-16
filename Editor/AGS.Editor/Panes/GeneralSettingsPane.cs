@@ -129,6 +129,7 @@ namespace AGS.Editor
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ALLOWRELATIVEASSETS) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_FONT_HEIGHT_IN_LOGIC) ||
+                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_CLIPGUICONTROLS) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RENDERATSCREENRES))
             {
                 Factory.Events.OnGameSettingsChanged();

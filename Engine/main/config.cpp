@@ -352,6 +352,7 @@ extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
+extern int psp_clear_cache_on_room_change;
 extern char psp_translation[];
 #if AGS_PLATFORM_OS_ANDROID
 extern int config_mouse_control_mode;
@@ -415,6 +416,7 @@ void override_config_ext(ConfigTree &cfg)
 
     INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
     INIwritestring(cfg, "language", "translation", psp_translation);
+    INIwriteint(cfg, "misc", "clear_cache_on_room_change", psp_clear_cache_on_room_change != 0);
 }
 
 void apply_config(const ConfigTree &cfg)
@@ -455,6 +457,7 @@ void apply_config(const ConfigTree &cfg)
         // This option is backwards (usevox is 0 if no_speech_pack)
         usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;
 
+        usetup.clear_cache_on_room_change = INIreadint(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
         usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = INIreadstring(cfg, "misc", "shared_data_dir");
 

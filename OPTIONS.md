@@ -86,6 +86,7 @@ Locations of two latter files differ between running platforms:
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
+  * clear_cache_on_room_change = \[0; 1\] - whether to clear sprite cache on every room change.
 * **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
   * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
   * \[outputname\] = +GROUPLIST[:LEVEL];
@@ -127,6 +128,7 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
+* --clear-cache-on-room-change - clears sprite cache on every room change
 * --conf \<FILEPATH\> - specify explicit config file to read on startup.
 * --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.

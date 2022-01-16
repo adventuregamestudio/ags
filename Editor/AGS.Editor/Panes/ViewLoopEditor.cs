@@ -141,7 +141,15 @@ namespace AGS.Editor
                 bool has_any_info = has_delay_info || has_sound_info;
                 if (!has_any_info) continue;
 
-                string delayString = _loop.Frames[i].Delay.ToString();
+                string delayString;
+                if (_loop.Frames[i].Delay <= 99)
+                {
+                    delayString = _loop.Frames[i].Delay.ToString();
+                }
+                else
+                {
+                    delayString = ">99";
+                }
                 int info_width = 0; 
 
                 if (has_delay_info) info_width += ICON_WIDTH + (int)e.Graphics.MeasureString(delayString, this.Font).Width;

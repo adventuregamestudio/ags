@@ -55,7 +55,7 @@ and SDL2.dll to run.
 Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/.
 Unfortunately, at the time of writing SDL_Sound did not have an official release for a quite a while, and there are no up-to-date prebuilt binaries on their website. This information will be updated would the situation change.
 
-For now, the only way to get a compatible version is to use their Mercurial repository. For the reference, our build server is using revision 997e90562b35: https://hg.icculus.org/icculus/SDL_sound/archive/997e90562b35.tar.gz
+For now, the only way to get a compatible version is to use their GitHub repository. For the reference, our build server is using revision ebcf0fe725: https://github.com/icculus/SDL_sound/archive/ebcf0fe725448f9dbaa7884114e0b96b9c041570.tar.gz
 
 After you downloaded the source this way or another, use CMake to build MSVS solution from their provided CMakeList.txt, then build a static library using wanted configuration.
 

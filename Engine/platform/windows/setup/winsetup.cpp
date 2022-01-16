@@ -651,10 +651,11 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetText(_hVersionText, STR(_winCfg.VersionString));
 
     InitGfxModes();
-
     for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
         AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+    SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
+    EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
 
     SetCheck(_hWindowed, _winCfg.Windowed);
@@ -822,6 +823,9 @@ void WinSetupDialog::OnGfxFilterUpdate()
 
 void WinSetupDialog::OnGfxModeUpdate()
 {
+    if (GetCheck(_hFullscreenDesktop))
+        return;
+
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
     switch (sel)
     {
@@ -864,8 +868,16 @@ void WinSetupDialog::OnWindowedUpdate()
 
 void WinSetupDialog::OnFullscreenDesktop()
 {
-    _winCfg.FsSetup = WindowSetup(kWnd_FullDesktop);
-    EnableWindow(_hGfxModeList, GetCheck(_hFullscreenDesktop) ? FALSE : TRUE);
+    if (GetCheck(_hFullscreenDesktop))
+    {
+        EnableWindow(_hGfxModeList, FALSE);
+        _winCfg.FsSetup = WindowSetup(kWnd_FullDesktop);
+    }
+    else
+    {
+        EnableWindow(_hGfxModeList, TRUE);
+        OnGfxModeUpdate();
+    }
 }
 
 void WinSetupDialog::ShowAdvancedOptions()

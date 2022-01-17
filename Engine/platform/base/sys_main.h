@@ -46,8 +46,8 @@ struct SDL_Window;
 SDL_Window *sys_window_create(const char *window_title, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
 // Returns current game window, if one exists, or null.
 SDL_Window *sys_get_window();
-// Sets current window style, does nothing if window was not created.
-void sys_window_set_style(AGS::Engine::WindowMode mode, int ex_flags = 0);
+// Chnages the window style for the given mode (fullscreen / windowed).
+void sys_window_set_style(AGS::Engine::WindowMode mode, Size size = Size());
 // Set new window size; optionally center new window on screen
 bool sys_window_set_size(int w, int h, bool center);
 // Shows or hides system cursor when it's in the game window

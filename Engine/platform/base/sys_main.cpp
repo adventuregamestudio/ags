@@ -115,18 +115,30 @@ SDL_Window *sys_get_window() {
     return window;
 }
 
-void sys_window_set_style(WindowMode mode, int ex_flags) {
+void sys_window_set_style(WindowMode mode, Size size) {
     if (!window) return;
-    Uint32 flags = 0;
+    // NOTE: depending on which mode we are switching to, the order of
+    // actions may be different; e.g. if we are going windowed mode, then
+    // we first should disable fullscreen and set new size only after;
+    // if we are going fullscreen we first tell required display mode.
     switch (mode)
     {
-    case kWnd_Windowed: flags |= SDL_WINDOW_RESIZABLE; break;
-    case kWnd_Fullscreen: flags |= SDL_WINDOW_FULLSCREEN; break;
-    case kWnd_FullDesktop: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
+    case kWnd_Windowed:
+        SDL_SetWindowFullscreen(window, 0);
+        if (!size.IsNull()) // resize + center
+            sys_window_set_size(size.Width, size.Height, true);
+        SDL_SetWindowResizable(window, SDL_TRUE);
+        break;
+    case kWnd_Fullscreen:
+        if (!size.IsNull())
+            SDL_SetWindowSize(window, size.Width, size.Height);
+        SDL_SetWindowDisplayMode(window, nullptr); // use window size
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+        break;
+    case kWnd_FullDesktop:
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        break;
     }
-    flags |= ex_flags;
-    SDL_SetWindowFullscreen(window, flags);
-    SDL_SetWindowResizable(window, (flags & SDL_WINDOW_RESIZABLE) ? SDL_TRUE : SDL_FALSE);
 }
 
 void sys_window_show_cursor(bool on) {

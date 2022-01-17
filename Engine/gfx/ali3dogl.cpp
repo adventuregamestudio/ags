@@ -141,13 +141,6 @@ void OGLGraphicsDriver::SetupDefaultVertices()
   defaultVertices[3].tv=1.0;
 }
 
-void OGLGraphicsDriver::CreateDesktopScreen()
-{
-  SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
-  _mode.Width = device_screen_physical_width;
-  _mode.Height = device_screen_physical_height;
-}
-
 void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
 {
     SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
@@ -241,12 +234,12 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   }
   else
   {
-    sys_window_set_style(mode.Mode);
-    if (mode.IsWindowed())
-        sys_window_set_size(mode.Width, mode.Height, true);
+    sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
   }
 
-  CreateDesktopScreen();
+  SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
+  _mode.Width = device_screen_physical_width;
+  _mode.Height = device_screen_physical_height;
   return true;
 }
 

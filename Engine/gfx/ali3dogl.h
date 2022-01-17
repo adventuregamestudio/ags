@@ -313,7 +313,6 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-    void CreateDesktopScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);

@@ -122,9 +122,10 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   if (!IsModeSupported(mode))
     return false;
 
-  if (sys_get_window() == nullptr)
+  SDL_Window *window = sys_get_window();
+  if (!window)
   {
-    SDL_Window *window = sys_window_create("", mode.Width, mode.Height, mode.Mode);
+    window = sys_window_create("", mode.Width, mode.Height, mode.Mode);
 
     _hasGamma = SDL_GetWindowGammaRamp(window, _defaultGammaRed, _defaultGammaGreen, _defaultGammaBlue) == 0;
 
@@ -136,7 +137,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 
     SDL_RendererInfo rinfo{};
     if (SDL_GetRendererInfo(_renderer, &rinfo) == 0) {
-      Debug::Printf("Created Renderer: %s", rinfo.name);
+      Debug::Printf(kDbgMsg_Info, "Created SDL Renderer: %s", rinfo.name);
       Debug::Printf("Available texture formats:");
       for (Uint32 i = 0; i < rinfo.num_texture_formats; i++) {
         Debug::Printf("\t- %s", SDL_GetPixelFormatName(rinfo.texture_formats[i]));
@@ -145,9 +146,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   else
   {
-    sys_window_set_style(mode.Mode);
-    if (mode.IsWindowed())
-      sys_window_set_size(mode.Width, mode.Height, true);
+    sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
   }
 
 #if AGS_PLATFORM_OS_ANDROID
@@ -225,6 +224,8 @@ void SDLRendererGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
   ClearDrawLists();
+
+  sys_window_set_style(kWnd_Windowed);
 }
 
 bool SDLRendererGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)

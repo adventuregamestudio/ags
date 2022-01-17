@@ -66,7 +66,7 @@ String GetRuntimeInfo()
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
         EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth,
-        mode.IsWindowed() ? " W" : "",
+        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),
         spriteset.GetCacheSize() / 1024, spriteset.GetMaxCacheSize() / 1024, spriteset.GetLockedSize() / 1024);

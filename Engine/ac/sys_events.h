@@ -127,5 +127,7 @@ void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void)
 void sys_evt_process_one(const SDL_Event &event);
 // Process all events in the backend's queue.
 void sys_evt_process_pending(void);
+// Flushes system events following window initialization.
+void sys_flush_events(void);
 
 #endif // __AGS_EE_AC__SYS_EVENTS_H

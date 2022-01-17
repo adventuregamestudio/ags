@@ -330,6 +330,7 @@ namespace AGS.Types
         }
 
         [Obsolete]
+        [Browsable(false)]
         public bool CompressSprites
         {
             get { return _compressSprites != SpriteCompression.None; }

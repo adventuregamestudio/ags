@@ -80,12 +80,12 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
 
 # Build and install SDL2
 ARG SDL2_VERSION=2.0.12
-RUN curl -fLsS "https://www.libsdl.org/release/SDL2-$SDL2_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
-  cd /tmp/SDL2-$SDL2_VERSION && \
+RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL2_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
+  cd /tmp/SDL-release-$SDL2_VERSION && \
   ./configure --enable-shared --enable-loadso --enable-sdl-dlopen --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \
   make -j$(getconf _NPROCESSORS_ONLN) && make install && \
-  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL2-$SDL2_VERSION/debian/copyright /usr/local/share/doc/libSDL2-2.0/copyright && \
-  rm -r /tmp/SDL2-$SDL2_VERSION
+  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-release-$SDL2_VERSION/debian/copyright /usr/local/share/doc/libSDL2-2.0/copyright && \
+  rm -r /tmp/SDL-release-$SDL2_VERSION
   
 # Build newer libtheora - note that encoding support is disabled AND it's directory uses GH repo name instead
 ARG LIBTHEORA_VERSION=1.1.1
@@ -106,7 +106,7 @@ RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSI
   rm -r /tmp/cmake-$CMAKE_VERSION
 
 # Build and install SDL_sound
-ARG SDL2_SOUND_VERSION=b63aba4d605cf588aa8102b7febe21976bf459ba
+ARG SDL2_SOUND_VERSION=ebcf0fe725448f9dbaa7884114e0b96b9c041570
 RUN cd /tmp && \
   curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz && \
   tar -xvzf SDL_sound.tar.gz && \

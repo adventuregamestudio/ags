@@ -1138,7 +1138,6 @@ bool initialize_native()
 	thisgame.numfonts = 0;
 	new_font();
 
-	spriteset.Reset();
 	HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
 	if (!err)
 	  return false;
@@ -1354,7 +1353,6 @@ bool reload_font(int curFont)
 }
 
 HAGSError reset_sprite_file() {
-  spriteset.Reset();
   HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
   if (!err)
     return err;
@@ -1898,7 +1896,6 @@ void SaveNativeSprites(Settings^ gameSettings)
     finally
     {
         // Reset the sprite cache to whichever file was successfully saved
-        spriteset.Reset();
         HAGSError err = spriteset.InitFile(saved_spritefile, saved_indexfile);
         if (!err)
         {

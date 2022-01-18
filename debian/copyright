@@ -4,7 +4,7 @@ Source: https://github.com/adventuregamestudio/ags
 
 Files: *
 Copyright: 1995-2011, Chris Jones
-           2011-2020, various contributors
+           2011-2022, various contributors
 License: Artistic-2.0 or BSD-3-clause
 
 Files: debian/*
@@ -423,7 +423,7 @@ License: Expat
 Files: Common/util/misc.cpp
        Common/util/misc.h
 Copyright: 1995-2011, Chris Jones
-           2011-2021, various contributors
+           2011-2022, various contributors
            2003, Shawn R. Walker
 License: BSD-2-clause
 

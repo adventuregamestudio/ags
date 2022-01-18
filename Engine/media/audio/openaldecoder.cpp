@@ -84,7 +84,7 @@ ALenum OpenALDecoder::openalFormatFromSample(const SoundSampleUniquePtr &sample)
     }
 
 #ifdef AUDIO_CORE_DEBUG
-    agsdbg::Printf(ags::kDbgMsg_Debug, "openalFormatFromSample: bad format chan:%d format: %d", sample->actual.channels, sample->actual.format);
+    agsdbg::Printf("openalFormatFromSample: bad format chan:%d format: %d", sample->actual.channels, sample->actual.format);
 #endif
 
     return 0;
@@ -210,7 +210,7 @@ bool OpenALDecoder::Init()
 
     if (bufferFormat <= 0) {
 #ifdef AUDIO_CORE_DEBUG
-        agsdbg::Printf(ags::kDbgMsg_Debug, "audio_core_sample_load: RESAMPLING");
+        agsdbg::Printf("audio_core_sample_load: RESAMPLING");
 #endif
         auto desired = Sound_AudioInfo{ AUDIO_S16SYS, sample->actual.channels, sample->actual.rate };
 
@@ -365,7 +365,7 @@ float OpenALDecoder::GetPositionMs()
     dump_al_errors();
     auto positionMs_ = processedBuffersDurationMs_ + alSecOffset*1000.0f;
 #ifdef AUDIO_CORE_DEBUG
-    printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
+    agsdbg::Printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
 #endif
     return positionMs_;
 }

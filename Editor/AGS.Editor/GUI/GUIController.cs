@@ -294,6 +294,11 @@ namespace AGS.Editor
             _imageList.Images.Add(key, image);
         }
 
+        public void ResetWindowPanes()
+        {
+            _mainForm.SetDefaultLayout();
+        }
+
         public void AddOrShowPane(ContentDocument pane)
         {
             _mainForm.AddOrShowPane(pane);

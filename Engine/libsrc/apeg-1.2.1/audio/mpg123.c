@@ -17,7 +17,8 @@
 #include "apeg.h"
 #include "mpg123.h"
 #include "mpeg1dec.h"
-//#include "getbits.h"
+
+const int AUDIO_BUFFER_SIZE = 32 * 1024; // 32 kb
 
 int _apeg_ignore_audio = FALSE;
 int apeg_ignore_audio(int ignore)
@@ -28,8 +29,6 @@ int apeg_ignore_audio(int ignore)
 }
 
 float equalizer[2][32];
-
-static int bufsize = 44100 * 2 * 2 * 200 / 1000;  // 200ms seconds of buffer.
 
 static int down_sample = 0;
 static int down_channel = FALSE;
@@ -147,7 +146,7 @@ int _apeg_start_audio(APEG_LAYER *layer, int enable)
 
 	layer->audio.voice = -1;
 	layer->audio.buf_segment = 0;
-	layer->audio.bufsize = bufsize;
+	layer->audio.bufsize = AUDIO_BUFFER_SIZE;
 	layer->audio.callback_init = 0;
 	layer->audio.callback = 0;
 	layer->audio.callback_arg = 0;

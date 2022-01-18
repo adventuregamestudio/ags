@@ -14,10 +14,12 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
+using namespace AGS::Common;
 using namespace AGS::Engine;
 
 // ----------------------------------------------------------------------------
@@ -25,11 +27,9 @@ using namespace AGS::Engine;
 // ----------------------------------------------------------------------------
 
 int sys_main_init(/*config*/) {
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE); // TODO: backend log verbosity from config
-
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
-        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
     return 0;
@@ -53,7 +53,7 @@ const int DEFAULT_DISPLAY_INDEX = 0; // TODO: is this always right?
 int sys_get_desktop_resolution(int &width, int &height) {
     SDL_Rect r;
     if (SDL_GetDisplayBounds(DEFAULT_DISPLAY_INDEX, &r) != 0) {
-        SDL_Log("SDL_GetDisplayBounds failed: %s", SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
         return -1;
     }
     width = r.w;
@@ -68,7 +68,7 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
     dms.clear();
     for (int i = 0; i < count; ++i) {
         if (SDL_GetDisplayMode(display_id, i, &mode) != 0) {
-            SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+            Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
         AGS::Engine::DisplayMode dm;
@@ -115,18 +115,30 @@ SDL_Window *sys_get_window() {
     return window;
 }
 
-void sys_window_set_style(WindowMode mode, int ex_flags) {
+void sys_window_set_style(WindowMode mode, Size size) {
     if (!window) return;
-    Uint32 flags = 0;
+    // NOTE: depending on which mode we are switching to, the order of
+    // actions may be different; e.g. if we are going windowed mode, then
+    // we first should disable fullscreen and set new size only after;
+    // if we are going fullscreen we first tell required display mode.
     switch (mode)
     {
-    case kWnd_Windowed: flags |= SDL_WINDOW_RESIZABLE; break;
-    case kWnd_Fullscreen: flags |= SDL_WINDOW_FULLSCREEN; break;
-    case kWnd_FullDesktop: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
+    case kWnd_Windowed:
+        SDL_SetWindowFullscreen(window, 0);
+        if (!size.IsNull()) // resize + center
+            sys_window_set_size(size.Width, size.Height, true);
+        SDL_SetWindowResizable(window, SDL_TRUE);
+        break;
+    case kWnd_Fullscreen:
+        if (!size.IsNull())
+            SDL_SetWindowSize(window, size.Width, size.Height);
+        SDL_SetWindowDisplayMode(window, nullptr); // use window size
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+        break;
+    case kWnd_FullDesktop:
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        break;
     }
-    flags |= ex_flags;
-    SDL_SetWindowFullscreen(window, flags);
-    SDL_SetWindowResizable(window, (flags & SDL_WINDOW_RESIZABLE) ? SDL_TRUE : SDL_FALSE);
 }
 
 void sys_window_show_cursor(bool on) {

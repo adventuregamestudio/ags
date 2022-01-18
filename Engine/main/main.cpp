@@ -206,6 +206,10 @@ void main_print_help() {
            "  --nospr                      Don't draw room objects and characters\n"
            "  --noupdate                   Don't run game update\n"
            "  --novideo                    Don't play game videos\n"
+           "  --sdl-log=LEVEL              Setup SDL backend logging level\n"
+           "                               LEVELs are:\n"
+           "                                 verbose (1), debug (2), info (3), warn (4),\n"
+           "                                 error (5), critical (6)\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
@@ -359,6 +363,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
                 cfg["log"][logarg.Left(split_at)] = logarg.Mid(split_at + 1);
             else
                 cfg["log"][logarg] = "";
+        }
+        else if (ags_strnicmp(arg, "--sdl-log", 9) == 0 && arg[9] == '=')
+        {
+            cfg["log"]["sdl"] = arg + 10;
         }
         else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;

@@ -104,8 +104,8 @@ void GUIButton::Draw(Bitmap *ds)
     bool const draw_disabled =
         !IsGUIEnabled(this) &&
         button_is_clickable &&
-        gui_disabled_style != GUIDIS_UNCHANGED &&
-        gui_disabled_style != GUIDIS_GUIOFF;
+        GUI::Options.DisabledStyle != kGuiDis_Unchanged &&
+        GUI::Options.DisabledStyle != kGuiDis_Off;
 
 
     // TODO: should only change properties in reaction to particular events
@@ -310,12 +310,12 @@ void GUIButton::WriteToSavegame(Stream *out) const
 
 void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
 {
-    if (draw_disabled && gui_disabled_style == GUIDIS_BLACKOUT)
+    if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
         return; // button should not be shown at all
 
     // NOTE: the CLIP flag only clips the image, not the text
-    if (IsClippingImage())
-        ds->SetClip(Rect(X, Y, X + Width - 1, Y + Height - 1));
+    if (IsClippingImage() && !GUI::Options.ClipControls)
+        ds->SetClip(RectWH(X, Y, Width, Height));
     if (spriteset[CurrentImage] != nullptr)
         draw_gui_sprite(ds, CurrentImage, X, Y, true);
 
@@ -349,17 +349,19 @@ void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
         }
     }
 
-    if (draw_disabled && gui_disabled_style == GUIDIS_GREYOUT)
+    if ((draw_disabled) && (GUI::Options.DisabledStyle == kGuiDis_Greyout))
     {
         GUI::DrawDisabledEffect(ds, RectWH(X, Y,
             spriteset[CurrentImage]->GetWidth(),
             spriteset[CurrentImage]->GetHeight()));
     }
-    ds->ResetClip();
 
     // Don't print Text of (INV) (INVSHR) (INVNS)
     if (_placeholder == kButtonPlace_None && !_unnamed)
         DrawText(ds, draw_disabled);
+
+    if (IsClippingImage() && !GUI::Options.ClipControls)
+        ds->ResetClip();
 }
 
 void GUIButton::DrawText(Bitmap *ds, bool draw_disabled)
@@ -385,7 +387,7 @@ void GUIButton::DrawText(Bitmap *ds, bool draw_disabled)
 
 void GUIButton::DrawTextButton(Bitmap *ds, bool draw_disabled)
 {
-    if (draw_disabled && gui_disabled_style == GUIDIS_BLACKOUT)
+    if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
         return; // button should not be shown at all
 
     color_t draw_color = ds->GetCompatibleColor(7);

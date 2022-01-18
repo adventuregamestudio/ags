@@ -2130,8 +2130,10 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
         Character_UnlockView(chap);
         chap->idleleft=chap->idletime;
     }
-    if ((loopn < 0) || (loopn >= views[chap->view].numLoops))
-        quit("!AnimateCharacter: invalid loop number specified");
+    if ((loopn < 0) || (loopn >= views[chap->view].numLoops)) {
+        quitprintf("!AnimateCharacter: invalid loop number\n"
+            "(trying to animate '%s' using loop %d. View is currently %d).",chap->name,loopn,chap->view+1);
+    }
     if ((sframe < 0) || (sframe >= views[chap->view].loops[loopn].numFrames))
         quit("!AnimateCharacter: invalid starting frame number specified");
     Character_StopMoving(chap);

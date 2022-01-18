@@ -232,26 +232,16 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     update_polled_stuff_if_runtime();
     // Primary background
-    Bitmap *mask = nullptr;
-    load_lzw(in, &mask, room->BackgroundBPP, &room->Palette);
-    room->BgFrames[0].Graphic.reset(mask);
-
-    // Mask bitmaps
+    room->BgFrames[0].Graphic = load_lzw(in, room->BackgroundBPP, &room->Palette);
+    // Area masks
     update_polled_stuff_if_runtime();
-    mask = load_rle_bitmap8(in);
-    room->RegionMask.reset(mask);
-
+    room->RegionMask = load_rle_bitmap8(in);
     update_polled_stuff_if_runtime();
-    mask = load_rle_bitmap8(in);
-    room->WalkAreaMask.reset(mask);
-
+    room->WalkAreaMask = load_rle_bitmap8(in);
     update_polled_stuff_if_runtime();
-    mask = load_rle_bitmap8(in);
-    room->WalkBehindMask.reset(mask);
-
+    room->WalkBehindMask = load_rle_bitmap8(in);
     update_polled_stuff_if_runtime();
-    mask = load_rle_bitmap8(in);
-    room->HotspotMask.reset(mask);
+    room->HotspotMask = load_rle_bitmap8(in);
     return HError::None();
 }
 
@@ -327,9 +317,8 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
         update_polled_stuff_if_runtime();
-        Bitmap *frame = nullptr;
-        load_lzw(in, &frame, room->BackgroundBPP, &room->BgFrames[i].Palette);
-        room->BgFrames[i].Graphic.reset(frame);
+        room->BgFrames[i].Graphic =
+            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
     }
     return HError::None();
 }

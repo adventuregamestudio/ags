@@ -25,6 +25,7 @@ namespace AGS.Editor
             viewToEdit.ViewUpdated += _viewUpdateHandler;
 
             InitializeComponent();
+
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _editingView = viewToEdit;
             InitializeControls();
@@ -37,6 +38,28 @@ namespace AGS.Editor
         protected override string OnGetHelpKeyword()
         {
             return "Views";
+        }
+
+        void UpdateLoopVisuals()
+        {
+            int i = 0;
+            foreach (var loopPane in _loopPanes)
+            {
+                loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
+                loopPane.Top = 10 + i * loopPane.Height + editorPanel.AutoScrollPosition.Y;
+
+                if (loopPane.IsLastLoop)
+                {
+                    btnNewLoop.Top = 10 + loopPane.Top + loopPane.Height;
+                    btnDeleteLastLoop.Top = btnNewLoop.Top;
+                }
+                i++;
+            }
+        }
+
+        private void sldZoomLevel_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateLoopVisuals();
         }
 
         private void InitializeControls()
@@ -80,6 +103,7 @@ namespace AGS.Editor
         {
             ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController);
             loopPane.Left = 10 + editorPanel.AutoScrollPosition.X;
+            loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
             loopPane.SelectedFrameChanged += new ViewLoopEditor.SelectedFrameChangedHandler(loopPane_SelectedFrameChanged);
 			loopPane.NewFrameAdded += new ViewLoopEditor.NewFrameAddedHandler(loopPane_NewFrameAdded);
@@ -324,5 +348,7 @@ namespace AGS.Editor
             btnNewLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-option/flat/border/size");
             btnNewLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-option/flat/border/color");
         }
+
+
     }
 }

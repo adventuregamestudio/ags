@@ -23,6 +23,9 @@ namespace AGS.Editor
         private const string MENU_ITEM_PASTE_OVER_LOOP_FLIPPED = "PasteLoopFlipped";
         private const string MENU_ITEM_FLIP_ALL = "FlipAll";
         private const string MENU_ITEM_QUICK_IMPORT = "QuickImport";
+        private Icon _audioIcon = Resources.ResourceManager.GetIcon("audio_indicator.ico");
+        private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
+        private const int ICON_WIDTH = 16;
 
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
@@ -33,30 +36,40 @@ namespace AGS.Editor
 		private static int _LastSelectedSprite = 0;
         private static ViewLoop _copiedLoop;
 
+        private float _zoomLevel = 1.0f;
         private ViewLoop _loop;
         private bool _isLastLoop;
         private int _loopDisplayY;
         private int _selectedFrame;
         private int _framelessWidth;
+        private GUIController _guiController;
 
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            _guiController = guiController;
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
             chkRunNextLoop.DataBindings.Add("Checked", _loop, "RunNextLoop", false, DataSourceUpdateMode.OnPropertyChanged);
             _isLastLoop = false;
+            UpdateSize();
+        }
+
+        void UpdateSize()
+        {
+            FRAME_DISPLAY_SIZE = _guiController.AdjustSizeFrom96DpiToSystemDpi((int)(FRAME_DISPLAY_SIZE_96DPI * _zoomLevel));
+            this.Height = chkRunNextLoop.Height + lblLoopTitle.Height + FRAME_DISPLAY_SIZE + 28;
             _loopDisplayY = chkRunNextLoop.Top + chkRunNextLoop.Height + 2;
 
-            FRAME_DISPLAY_SIZE = guiController.AdjustSizeFrom96DpiToSystemDpi(FRAME_DISPLAY_SIZE_96DPI);
             btnNewFrame.Width = FRAME_DISPLAY_SIZE;
             btnNewFrame.Height = FRAME_DISPLAY_SIZE;
             btnNewFrame.Top = _loopDisplayY;
 
             _framelessWidth = Math.Min(chkRunNextLoop.Width, this.Width + this.Left);
             UpdateControlWidth();
+            Invalidate();
         }
 
         public ViewLoop Loop
@@ -132,12 +145,40 @@ namespace AGS.Editor
             e.Graphics.ReleaseHdc();
 
 			for (int i = 0; i < _loop.Frames.Count; i++)
-			{
-				string delayString = "DLY:" + _loop.Frames[i].Delay;
-				int textWidth = (int)e.Graphics.MeasureString(delayString, this.Font).Width;
-				Point textPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (textWidth / 2), btnNewFrame.Bottom + 2);
-				e.Graphics.DrawString(delayString, this.Font, Brushes.Black, textPos);
-			}
+            {
+                bool has_delay_info = _loop.Frames[i].Delay != 0;
+                bool has_sound_info = _loop.Frames[i].Sound != 0;
+                bool has_any_info = has_delay_info || has_sound_info;
+                if (!has_any_info) continue;
+
+                string delayString;
+                if (_loop.Frames[i].Delay <= 99)
+                {
+                    delayString = _loop.Frames[i].Delay.ToString();
+                }
+                else
+                {
+                    delayString = ">99";
+                }
+                int info_width = 0; 
+
+                if (has_delay_info) info_width += ICON_WIDTH + (int)e.Graphics.MeasureString(delayString, this.Font).Width;
+                if (has_sound_info) info_width += ICON_WIDTH;
+
+                Point infoPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (info_width / 2), btnNewFrame.Bottom + 2);
+
+                if (has_delay_info)
+                {
+                    e.Graphics.DrawString(delayString, this.Font, Brushes.Black, infoPos);
+                    infoPos.X += (int)e.Graphics.MeasureString(delayString, this.Font).Width - 1;
+                    e.Graphics.DrawIcon(_delayIcon, infoPos.X, infoPos.Y);
+                    infoPos.X += ICON_WIDTH + 3;
+                }
+                if (has_sound_info)
+                {
+                    e.Graphics.DrawIcon(_audioIcon, infoPos.X, infoPos.Y);
+                }
+            }
         }
 
 		private void InsertNewFrame(int afterIndex)
@@ -374,6 +415,19 @@ namespace AGS.Editor
             btnNewFrame.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-frame/flat/style");
             btnNewFrame.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-frame/flat/border/size");
             btnNewFrame.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-frame/flat/border/color");
+        }
+
+        public float ZoomLevel
+        {
+            get
+            {
+                return _zoomLevel;
+            }
+            set
+            {
+                _zoomLevel = value;
+                UpdateSize();
+            }
         }
     }
 }

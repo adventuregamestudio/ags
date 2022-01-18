@@ -1,19 +1,24 @@
 package uk.co.adventuregamestudio.agsplayer
 
 import android.Manifest
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.Keep
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,16 +28,17 @@ import androidx.recyclerview.widget.RecyclerView
 import uk.co.adventuregamestudio.runtime.PreferencesActivity
 import uk.co.adventuregamestudio.runtime.AGSRuntimeActivity
 import uk.co.adventuregamestudio.runtime.CreditsActivity
-import uk.co.adventuregamestudio.runtime.PEHelper
+import uk.co.adventuregamestudio.runtime.NativeHelper
 import java.io.File
 import java.io.FilenameFilter
 import java.util.*
 import kotlin.collections.ArrayList
+import uk.co.adventuregamestudio.agsplayer.FileUtil
 
 
 class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickListener, GameListRecyclerViewAdapter.ItemCreateContextMenuListener {
     private val gameList = ArrayList<GameModel>()
-    private var pe: PEHelper = PEHelper()
+    private var nativeHelper: NativeHelper = NativeHelper()
     protected var externalStorageRequestDummy = IntArray(1)
     val EXTERNAL_STORAGE_REQUEST_CODE = 2
 
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     private val filenameList = ArrayList<String>()
 
     private var baseDirectory: String? = null
+    private val REQUEST_TREE = 0xCAFE
 
     private lateinit var gameListRecyclerViewAdapter: GameListRecyclerViewAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +85,32 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         return true
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun browseAgsDirectory() {
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_TREE)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun setAgsBaseDirFromUri(uri: Uri) {
+        val path: String = FileUtil.getFullPathFromTreeUri(uri,this).toString()
+        baseDirectory = path
+        // The launcher will accept paths that don't start with a slash, but
+        // the engine cannot find the game later.
+        if (!baseDirectory!!.startsWith("/")) baseDirectory = "/$baseDirectory"
+        buildGamesListIfPossible()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_TREE && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                setAgsBaseDirFromUri(it)
+            }
+            }
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id: Int = item.itemId
         if (id == R.id.credits) {
@@ -92,6 +125,13 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
             val input = EditText(this)
             input.setText(baseDirectory)
             alert.setView(input)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                alert.setNeutralButton(
+                    "Browse"
+                ) { dialog, whichButton ->
+                    browseAgsDirectory()
+                  }
+            }
             alert.setPositiveButton("Ok"
             ) { _ /*dialog*/, _ /*whichButton*/ ->
                 val value = input.text
@@ -200,6 +240,27 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         }
     }
 
+    private fun getDirectoryTree(baseDirectory: String, path: String?): LinkedList<String> {
+        val result = LinkedList<String>()
+        var searchDirectory = File(baseDirectory)
+        if (path != null) {
+            searchDirectory = File("$baseDirectory/$path")
+        }
+        if (searchDirectory.isDirectory) {
+            val tempList =
+                searchDirectory.list { dir, filename -> File("$dir/$filename").isDirectory }
+            for (subpath in tempList) {
+                var entry = subpath
+                if (path != null) {
+                    entry = "$path/$entry"
+                }
+                result.add(entry)
+                result.addAll(getDirectoryTree(baseDirectory, entry)!!)
+            }
+        }
+        return result
+    }
+
     private fun buildGamesList() {
         gameList.clear()
 
@@ -228,74 +289,38 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
 
 
     private fun searchForGames(): String? {
-        var tempList: Array<String>? = null
+        var dirList: LinkedList<String>? = null
+        var dirArray: Array<String>? = null
         folderList.clear()
         filenameList.clear()
 
-        // Check for ac2game.dat in the base directory
-        val ac2game = File(baseDirectory.toString() + "/ac2game.dat")
-        if (ac2game.isFile()) return baseDirectory.toString() + "/ac2game.dat"
+        // Check for the game files in the base directory
+        var agsgame_path: String? = nativeHelper.findGameDataInDirectory(baseDirectory)
+        if (agsgame_path != null && File(agsgame_path).isFile()) {
+            return agsgame_path;
+        }
 
         // Check for games in folders
         val agsDirectory = File(baseDirectory)
         if (agsDirectory.isDirectory() && agsDirectory.exists() && agsDirectory.canRead()) {
-            tempList = agsDirectory.list(object : FilenameFilter {
-                override fun accept(dir: File, filename: String): Boolean {
-                    return File(dir.toString() + "/" + filename).isDirectory()
+            dirList = getDirectoryTree(baseDirectory!!, null)
+            if (dirList == null || dirList.isEmpty()) { return null }
+            dirArray = Array(dirList.size) {
+                dirList[it]
+            }
+
+            dirArray = dirArray.distinct().toTypedArray()
+            val finalDirList = dirArray.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, { it }))
+            
+            for (subpath in finalDirList!!) {
+                agsgame_path = nativeHelper.findGameDataInDirectory("$baseDirectory/$subpath")
+                if (agsgame_path != null && File(agsgame_path).isFile) {
+                    folderList.add(subpath)
+                    filenameList.add(agsgame_path)
                 }
-            })
-        }
-        if (tempList != null) {
-            Arrays.sort(tempList)
-            folderList.clear()
-            filenameList.clear()
-            var i: Int
-            i = 0
-            while (i < tempList.size) {
-                if (File(agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat").isFile()
-                    && pe.isAgsDatafile(
-                        this,
-                        agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat"
-                    )
-                ) {
-                    folderList.add(tempList[i])
-                    filenameList.add(agsDirectory.toString() + "/" + tempList[i] + "/ac2game.dat")
-                } else {
-                    val directory = File(agsDirectory.toString() + "/" + tempList[i])
-                    val list: Array<String>? =
-                        directory.list(object : FilenameFilter {
-                            private var found = false
-                            override fun accept(dir: File, filename: String): Boolean {
-                                if (found) return false else {
-                                    if ((filename != "winsetup.exe" && filename.indexOf(".exe") > 0)
-                                        && pe.isAgsDatafile(
-                                            this,
-                                            dir.getAbsolutePath().toString() + "/" + filename
-                                        )
-                                    ) {
-                                        found = true
-                                        return true
-                                    } else if ( filename.indexOf(".ags") > 0)
-                                    {
-                                        // it's an .ags file, so it will fail PE verification since it's not .exe
-                                        // let's return true for now until we have a valid way to verify this
-                                        found = true
-                                        return true
-                                    }
-                                }
-                                return false
-                            }
-                        })
-                    if (list != null && list.isNotEmpty()) {
-                        folderList.add(tempList[i])
-                        filenameList.add(
-                            agsDirectory.toString() + "/" + tempList[i] + "/" + list[0]
-                        )
-                    }
-                }
-                i++
             }
         }
+
         return null
     }
 
@@ -389,5 +414,9 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }
+
+}
+
+private fun AlertDialog.Builder.setNeutralButton(s: String, function: () -> Unit) {
 
 }

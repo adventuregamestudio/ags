@@ -184,7 +184,7 @@ void play_flc_file(int numb,int playflags) {
     if (open_fli_pf(pf) == FLI_OK)
     {
         // TODO: refactor all this later!!!
-        SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
+        const SDL_TimerID sdl_timer_id = SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
         const int loop = 0; // TODO: add looping FLIC support to API?
 
         // actual FLI playback state, base on original Allegro 4's do_play_fli
@@ -215,6 +215,8 @@ void play_flc_file(int numb,int playflags) {
                 SDL_Delay(1);
             }
         }
+
+        SDL_RemoveTimer(sdl_timer_id);
     }
     else
     {
@@ -375,8 +377,9 @@ void play_theora_video(const char *name, int skip, int flags)
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
-    // Disable framedrop because it can lead to the PSP not playing the video at all.
-    apeg_enable_framedrop(psp_video_framedrop);
+    // Disable framedrop, because after porting to SDL2 and OpenAL, APEG detects
+    // audio ahead too often, and with framedrop video does not advance at all.
+    apeg_enable_framedrop(/*psp_video_framedrop*/FALSE);
     update_polled_stuff_if_runtime();
 
     stretch_flc = (flags % 10);

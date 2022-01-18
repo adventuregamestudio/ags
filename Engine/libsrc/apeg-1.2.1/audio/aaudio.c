@@ -8,6 +8,7 @@
 
 #include "openal_support.h"
 
+const int MAX_BUFFERS_QUEUED = 4;
 
 int _apeg_audio_get_position(APEG_LAYER *layer)
 {
@@ -23,6 +24,9 @@ int _apeg_audio_get_position(APEG_LAYER *layer)
 		printf("_apeg_audio_get_position: alGetSourcei AL_SAMPLE_OFFSET error: %d\n", err);
 		return 0;
 	}
+	// NOTE: returned offset is relative to the current buffer queue;
+	// we must also add accumulated value of processed samples
+	np += layer->audio.processedSamples;
 
 	if(np < 0)
 	{
@@ -41,20 +45,30 @@ int _apeg_audio_get_position(APEG_LAYER *layer)
 
 static int _apeg_audio_unqueue_buffers(APEG_LAYER *layer)
 {
-	ALint processed = 0;
-	alGetSourcei(layer->audio.alSource, AL_BUFFERS_PROCESSED, &processed);
-	check_al_error("alGetSourcei AL_BUFFERS_PROCESSED")
+	while (1) {
+		ALuint processed = 0;
+		alGetSourcei(layer->audio.alSource, AL_BUFFERS_PROCESSED, &processed);
+		check_al_error("alGetSourcei AL_BUFFERS_PROCESSED")
+		if (processed == 0) { break; }
 
-	while (processed > 0) {
 		ALuint bufid = 0;
-        alSourceUnqueueBuffers(layer->audio.alSource, 1, &bufid);
+		alSourceUnqueueBuffers(layer->audio.alSource, 1, &bufid);
 		check_al_error("alSourceUnqueueBuffers")
 
 		ALint processedBytes = 0;
+		ALint bits = 0;
+		ALint channels = 0;
 		alGetBufferi(bufid, AL_SIZE, &processedBytes);
+		alGetBufferi(bufid, AL_CHANNELS, &channels);
+		// IMPORTANT! mojoAL is *LYING* about buffer bitness, because it reports the one
+		// passed to alBufferData, but internally always works with Float32; therefore
+		// final samples found in the buffer are in float32!
+		//alGetBufferi(bufid, AL_BITS, &bits);
+		bits = sizeof(ALfloat) * 8;
 		check_al_error("alGetBufferi AL_SIZE")
 
-		layer->audio.processedSamples += processedBytes / layer->stream.audio.channels / 2;
+		int bufferSamples = (processedBytes * 8) / (channels * bits);
+		layer->audio.processedSamples += bufferSamples;
 
 		alDeleteBuffers(1, &bufid);
 		check_al_error("alDeleteBuffers")
@@ -93,7 +107,7 @@ int _apeg_audio_flush(APEG_LAYER *layer)
 	alGetSourcei(layer->audio.alSource, AL_BUFFERS_QUEUED, &queued);
 	check_al_error("alGetSourcei AL_BUFFERS_QUEUED")
 
-	if (queued >= 4) {
+	if (queued >= MAX_BUFFERS_QUEUED) {
 		return ret;
 	}
 

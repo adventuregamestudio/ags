@@ -101,8 +101,6 @@ int get_eip_guiobj()
   return eip_guiobj;
 }
 
-bool outlineGuiObjects = false;
-
 namespace AGS
 {
 namespace Common

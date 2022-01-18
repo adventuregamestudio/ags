@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/textstreamreader.h"
@@ -54,26 +53,17 @@ bool TextStreamReader::EOS() const
 
 char TextStreamReader::ReadChar()
 {
-    if (_stream)
+    // Skip carriage-returns
+    char c;
+    do
     {
-        // Skip carriage-returns
-        char c;
-        do
-        {
-            c = _stream->ReadByte();
-        }
-        while (!_stream->EOS() && c == '\r');
-        return c;
-    }
-    return '\0';
+        c = _stream->ReadByte();
+    } while (!_stream->EOS() && c == '\r');
+    return c;
 }
 
 String TextStreamReader::ReadString(size_t length)
 {
-    if (!_stream)
-    {
-        return "";
-    }
     // TODO: remove carriage-return characters
     return String::FromStreamCount(_stream, length);
 }
@@ -83,11 +73,6 @@ String TextStreamReader::ReadLine()
     // TODO
     // Probably it is possible to group Stream::ReadString with this,
     // both use similar algorythm, difference is only in terminator chars
-
-    if (!_stream)
-    {
-        return "";
-    }
 
     String str;
     int chars_read_last = 0;
@@ -142,12 +127,8 @@ String TextStreamReader::ReadLine()
 
 String TextStreamReader::ReadAll()
 {
-    if (_stream)
-    {
-        soff_t len = _stream->GetLength() - _stream->GetPosition();
-        return ReadString(len > SIZE_MAX ? SIZE_MAX : (size_t)len);
-    }
-    return "";
+    soff_t len = _stream->GetLength() - _stream->GetPosition();
+    return ReadString(len > SIZE_MAX ? SIZE_MAX : (size_t)len);
 }
 
 } // namespace Common

@@ -37,7 +37,8 @@ using namespace AGS; // FIXME later
 
 enum eScriptSystemOSID
 {
-    eOS_DOS = 1,
+    eOS_Unknown = 0,
+    eOS_DOS,
     eOS_Win,
     eOS_Linux,
     eOS_Mac,
@@ -45,7 +46,8 @@ enum eScriptSystemOSID
     eOS_iOS,
     eOS_PSP,
     eOS_Web,
-    eOS_FreeBSD
+    eOS_FreeBSD,
+    eNumOS
 };
 
 enum SetupReturnValue

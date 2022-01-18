@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Various string helpers.
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
@@ -20,15 +20,13 @@
 
 #include "util/string_types.h"
 
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
-
-//=============================================================================
-
 namespace AGS
 {
 namespace Common
 {
+
+class Stream;
+
 namespace StrUtil
 {
     enum ConversionError
@@ -74,6 +72,30 @@ namespace StrUtil
     // Serialize and unserialize a string map, both keys and values are read using ReadString
     void            ReadStringMap(StringMap &map, Stream *in);
     void            WriteStringMap(const StringMap &map, Stream *out);
+
+
+    // Parses enum value by name, using provided C-string array,
+    // where strings are compared as case-insensitive; returns def_val if failed;
+    template<typename T, std::size_t SIZE>
+    T ParseEnum(const String &option, const CstrArr<SIZE>& arr, const T def_val = static_cast<T>(-1))
+    {
+        for (auto it = arr.cbegin(); it < arr.cend(); ++it)
+            if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
+                return static_cast<T>(it - arr.begin());
+        return def_val;
+    }
+    // Parses enum value either as a number, or searching withing the C-string array,
+    // where strings are compared as case-insensitive; returns def_val if failed to do both
+    template<typename T, std::size_t SIZE>
+    T ParseEnumAllowNum(const String &option, const CstrArr<SIZE>& arr, const T def_val = static_cast<T>(-1))
+    {
+        int num = StrUtil::StringToInt(option, -1);
+        if (num >= 0) return static_cast<T>(num);
+        for (auto it = arr.cbegin(); it < arr.cend(); ++it)
+            if ((*it && *it[0] != 0) && (option.CompareNoCase(*it) == 0))
+                return static_cast<T>(it - arr.begin());
+        return def_val;
+    }
 }
 } // namespace Common
 } // namespace AGS

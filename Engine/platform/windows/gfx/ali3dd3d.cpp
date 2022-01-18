@@ -566,15 +566,10 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
 int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
-  if (sys_get_window() == nullptr)
+  SDL_Window *window = sys_get_window();
+  if (!window)
   {
     sys_window_create("", mode.Width, mode.Height, mode.Mode);
-  }
-  else
-  {
-    sys_window_set_style(mode.Mode);
-    if (mode.IsWindowed())
-        sys_window_set_size(mode.Width, mode.Height, true);
   }
 
   HWND hwnd = (HWND)sys_win_get_window();
@@ -587,7 +582,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = hwnd;
-  d3dpp.Windowed = TRUE;
+  d3dpp.Windowed = mode.IsRealFullscreen() ? FALSE : TRUE;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
@@ -612,9 +607,11 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     hr = ResetD3DDevice();
   }
   else
+  {
     hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, &direct3ddevice);
+  }
   if (hr != D3D_OK)
   {
     if (!previousError.IsEmpty())
@@ -629,6 +626,15 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
     int ft_res = FirstTimeInit();
     if (ft_res != 0)
       return ft_res;
+  }
+  else
+  {
+    // Only adjust window styles in non-fullscreen modes:
+    // for real fullscreen Direct3D will adjust the window and display.
+    if (!mode.IsRealFullscreen())
+    {
+      sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+    }
   }
   return 0;
 }

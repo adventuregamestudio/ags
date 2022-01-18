@@ -23,7 +23,6 @@
 
 
 extern GameSetupStruct game;
-extern int gui_disabled_style;
 extern GameState play;
 extern CharacterExtras *charextra;
 
@@ -44,7 +43,7 @@ int GUIInvWindow::GetCharacterId() const
 void GUIInvWindow::Draw(Bitmap *ds)
 {
     const bool enabled = IsGUIEnabled(this);
-    if (!enabled && (gui_disabled_style == GUIDIS_BLACKOUT))
+    if (!enabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return;
 
     // backwards compatibility
@@ -81,7 +80,7 @@ void GUIInvWindow::Draw(Bitmap *ds)
     }
 
     if (!enabled &&
-        gui_disabled_style == GUIDIS_GREYOUT && 
+        GUI::Options.DisabledStyle == kGuiDis_Greyout &&
         play.inventory_greys_out == 1)
     {
         // darken the inventory when disabled

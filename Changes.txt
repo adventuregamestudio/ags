@@ -7,6 +7,7 @@ Editor:
  - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
    "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
    original game's codepage.
+ - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
  - Added "Sprite file compression" option in General Settings, replacing "Compress the sprite file"
@@ -16,6 +17,7 @@ Editor:
    editor to repack sprites in a different storage format, reducing their disk size whenever
    possible. This option may be used alongside with the sprite compression. Note that this does not
    change how the sprites work in game.
+ - Added "GUI controls clip their contents" option to the General Settings.
  - Added "TTF fonts height used in the game logic" option to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
@@ -28,17 +30,12 @@ Editor:
    they've imported (if available).
  - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
    is activated. This is equivalent to the Character.SetIdleView script function.
- - Added zoom controls for the Sprite manager.
+ - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
- - Support for building multiple speech voxes, by taking files from the Speech subfolders.
- - Added line numbers to the Dialog script editor.
+ - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Cursor's position in script is now displayed on the status bar.
- - Default config is now saved also when the game is run in debug mode (F5). This ensures that
-   the test run is using the latest Default Setup, if the user's config has not been created yet.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
- - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
- - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
 
 Compiler:
  - Removed 500-characters line limit.
@@ -113,6 +110,8 @@ Engine:
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
+ - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
+   log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
    "--localuserconf"; the new option directly tells the location of user config file.
  - Path related command-line and config options, - such as "shared_data_dir", "user_data_dir"
@@ -123,12 +122,14 @@ Engine:
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
- - Fixed crash when there are too many reserved audio type channels.
- - Fixed character may have incorrect Frame values while turning.
 
 Android:
- - Rewrote universal AGS game launcher/player using up-to-date Google guidelines.
+ - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former
+   "launcher" is now called "AGS Player".
  - Implemented single game project template meant for building your own signed APK.
+ - In AGS Player added "Browse" button to the game folder selection, which opens default system
+   file picker.
+ - AGS Player now searches for games recursively, in all the subfolders.
 
 OSX:
  - OpenGL renderer is now supported on MacOS.
@@ -148,6 +149,25 @@ WinSetup:
 
 Tools:
 [TODO]
+
+
+VERSION 3.5.1 - Patch 7, January 2022
+
+Editor:
+ - Added "Layout -> Reset to Defaults" menu command.
+ - Editor will now reset panel layout to default state if loading layout fail for any reason.
+ - Default config is now saved also when the game is run in debug mode (F5). This ensures that
+   the test run is using the latest Default Setup, if the user's config has not been created yet.
+ - Editor will now display an error if user tried to reserve too many channels for audio types.
+ - Fixed Editor failing to start if user preferences file is corrupted.
+ - Fixed "Use old-style custom dialog options API" was not set when importing pre-3.4.0 projects.
+ - Fixed comboboxes' drop-down arrows were not painted with the right color from a color theme.
+
+Engine:
+ - Fixed program crash occuring if the game reserved too many channels for audio types.
+ - Fixed potential crash occuring when player loads a save made in a multi-frame room, but the room
+   was since edited and no longer has as many frames.
+ - Fixed character may have incorrect Frame property values while turning.
 
 
 VERSION 3.5.1 - Patch 6, December 2021

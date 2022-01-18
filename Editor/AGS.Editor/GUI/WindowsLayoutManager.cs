@@ -9,9 +9,17 @@ namespace AGS.Editor
 {
     public class WindowsLayoutManager
     {
+        public enum LayoutResult
+        {
+            OK,
+            NoFile,
+            LayoutException
+        }
+
         private DockPanel _dockPanel;
         private List<DockContent> _startupPanes;
         private const string LAYOUT_FILENAME = "Layout.xml";
+        private const string LAYOUT_RESOURCE = "LayoutDefault.xml";
 
         public WindowsLayoutManager(DockPanel dockPanel,
             List<DockContent> startupPanes)
@@ -34,22 +42,44 @@ namespace AGS.Editor
             _dockPanel.SaveAsXml(path);
         }
 
-        public bool LoadLayout()
+        public LayoutResult LoadLayout()
         {
             string configFile = GetLayoutFile();
             return LoadLayout(configFile);
         }
 
-        public bool LoadLayout(string path)
+        public LayoutResult LoadLayout(string path)
         {
-            if (File.Exists(path))
+            try
             {
+                if (!File.Exists(path))
+                    return LayoutResult.NoFile;
                 DetachExistingPanes();
                 _dockPanel.LoadFromXml(path, new
                     DeserializeDockContent(DeserializeContents));
-                return true;
+                return LayoutResult.OK;
             }
-            return false;
+            catch (Exception)
+            {
+                return LayoutResult.LayoutException;
+            }
+        }
+
+        public bool ResetToDefaults()
+        {
+            string layout = Resources.ResourceManager.GetResourceAsString(LAYOUT_RESOURCE, Encoding.Unicode);
+            if (string.IsNullOrEmpty(layout)) return false;
+            byte[] byteArray = Encoding.Unicode.GetBytes(layout);
+            Stream mems = new MemoryStream(byteArray, false);
+            DetachExistingPanes();
+            _dockPanel.LoadFromXml(mems, new
+                    DeserializeDockContent(DeserializeContents));
+            return true;
+        }
+
+        public void DetachAll()
+        {
+            DetachExistingPanes();
         }
 
         private void DetachExistingPanes()

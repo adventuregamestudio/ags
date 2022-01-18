@@ -82,6 +82,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
@@ -207,6 +208,12 @@
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
     <Compile Include="Panes\FreePanControl.cs">
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Panes\ZoomTrackbar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ZoomTrackbar.Designer.cs">
+      <DependentUpon>ZoomTrackbar.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
@@ -344,6 +351,7 @@
     <Compile Include="GUI\ProjectTree.cs" />
     <Compile Include="GUI\ProjectTreeItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>
@@ -369,6 +377,9 @@
     <EmbeddedResource Include="Panes\GUIEditor.resx">
       <SubType>Designer</SubType>
       <DependentUpon>GUIEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ZoomTrackbar.resx">
+      <DependentUpon>ZoomTrackbar.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -589,6 +600,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\LayoutDefault.xml" />
     <EmbeddedResource Include="GUI\AboutDialog.resx">
       <SubType>Designer</SubType>
       <DependentUpon>AboutDialog.cs</DependentUpon>
@@ -748,6 +760,8 @@
     <EmbeddedResource Include="Resources\audio.ico" />
     <EmbeddedResource Include="Resources\audio_speech.ico" />
     <EmbeddedResource Include="Resources\ags_cup.png" />
+    <EmbeddedResource Include="Resources\audio_indicator.ico" />
+    <EmbeddedResource Include="Resources\delay_indicator.ico" />
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />

@@ -26,12 +26,16 @@
 #include "media/audio/audiodefines.h"
 #include "media/audio/openal.h"
 #include "util/string.h"
+#ifdef AUDIO_CORE_DEBUG
+#include "debug/out.h"
+#endif
+
 
 struct SoundSampleDeleterFunctor {
     void operator()(Sound_Sample* p) {
         Sound_FreeSample(p);
 #ifdef AUDIO_CORE_DEBUG
-        agsdbg::Printf(ags::kDbgMsg_Init, "SoundSampleDeleterFunctor");
+        AGS::Common::Debug::Printf("SoundSampleDeleterFunctor");
 #endif
     }
 };

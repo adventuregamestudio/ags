@@ -418,8 +418,6 @@ target_sources(engine
     platform/base/sys_main.cpp
     platform/base/sys_main.h
     platform/util/libc.c
-    platform/util/pe.c
-    platform/util/pe.h
     plugin/agsplugin.cpp
     plugin/agsplugin.h
     plugin/global_plugin.cpp
@@ -482,6 +480,11 @@ target_sources(engine
     platform/windows/winapi_exclusive.h
 )
 
+if(ANDROID)
+    target_sources(engine PRIVATE
+        platform/android/helper/jni_helper.cpp)
+endif()
+
 if(MACOS)
     target_sources(engine PRIVATE 
         platform/osx/alplmac.mm
@@ -528,9 +531,8 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
-target_compile_definitions(engine PRIVATE 
-    $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
-    $<$<CONFIG:DEBUG>:DEBUG_MANAGED_OBJECTS>
+target_compile_definitions(engine PRIVATE
+    $<$<BOOL:AGS_DEBUG_MANAGED_OBJECTS>:DEBUG_MANAGED_OBJECTS>
 )
 
 if (AGS_BUILD_STR)
@@ -586,23 +588,6 @@ endif()
 get_target_property(ENGINE_SOURCES engine SOURCES)
 # Set ROOT to parent directory to include Plugins/
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
-
-# Android helper
-# -----------------------------------------------------------------------------
-
-if(ANDROID)
-    add_library(pe SHARED)
-    set_target_properties(pe PROPERTIES
-            CXX_STANDARD 11
-            CXX_EXTENSIONS NO
-            C_STANDARD 11
-            C_EXTENSIONS YES
-            )
-    target_sources(pe
-            PRIVATE
-            platform/android/helper/pe_jni.c)
-    target_link_libraries(pe PRIVATE engine)
-endif(ANDROID)
 
 # Standalone exe
 # -----------------------------------------------------------------------------

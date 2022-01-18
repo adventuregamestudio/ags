@@ -498,16 +498,19 @@ void sys_evt_process_one(const SDL_Event &event) {
         switch (event.window.event)
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
+            Debug::Printf("Window event: focus gained");
             if (_on_switchin_callback) {
                 _on_switchin_callback();
             }
             break;
         case SDL_WINDOWEVENT_FOCUS_LOST:
+            Debug::Printf("Window event: focus lost");
             if (_on_switchout_callback) {
                 _on_switchout_callback();
             }
             break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
+            Debug::Printf("Window event: size changed (%d, %d)", event.window.data1, event.window.data2);
             engine_on_window_changed(Size(event.window.data1, event.window.data2));
             break;
         }
@@ -537,4 +540,12 @@ void sys_evt_process_pending(void) {
     while (SDL_PollEvent(&event)) {
         sys_evt_process_one(event);
     }
+}
+
+void sys_flush_events(void) {
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_WINDOWEVENT);
+    SDL_FlushEvents(SDL_KEYDOWN, SDL_TEXTINPUT);
+    SDL_FlushEvents(SDL_MOUSEMOTION, SDL_MOUSEWHEEL);
+    ags_clear_input_state();
 }

@@ -356,6 +356,7 @@ namespace AGS.Editor
                     }
                     font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 }
+                game.Settings.ClipGUIControls = false;
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);

@@ -33,11 +33,23 @@ namespace AGS.Editor
 
             ToolStripMenuItem saveLayoutMenuItem = new ToolStripMenuItem("Save");
             ToolStripMenuItem loadLayoutMenuItem = new ToolStripMenuItem("Load");
+            ToolStripMenuItem resetLayoutMenuItem = new ToolStripMenuItem("Reset to Defaults");
             layoutMenuItem.DropDownItems.Add(saveLayoutMenuItem);
             layoutMenuItem.DropDownItems.Add(loadLayoutMenuItem);
+            layoutMenuItem.DropDownItems.Add(resetLayoutMenuItem);
 
             saveLayoutMenuItem.Click += saveLayoutMenuItem_Click;
             loadLayoutMenuItem.Click += loadLayoutMenuItem_Click;
+            resetLayoutMenuItem.Click += resetLayoutMenuItem_Click;
+        }
+
+        private void resetLayoutMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Factory.GUIController.ShowQuestion("Do you really want to reset the Editor window layout? This will close all the windows and rearrange the panels to their default positions.",
+                MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                Factory.GUIController.ResetWindowPanes();
+            }
         }
 
         private void saveLayoutMenuItem_Click(object sender, EventArgs e)
@@ -58,13 +70,14 @@ namespace AGS.Editor
             {
                 return;
             }
-            if (_layoutManager.LoadLayout(fileName))
+            if (_layoutManager.LoadLayout(fileName) == WindowsLayoutManager.LayoutResult.OK)
             {
                 Factory.GUIController.ShowMessage("Done!", MessageBoxIcon.Information);
             }
             else
             {
                 Factory.GUIController.ShowMessage("Failed to load layout!", MessageBoxIcon.Error);
+                Factory.GUIController.ResetWindowPanes();
             }
         }
 

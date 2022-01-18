@@ -7,6 +7,7 @@ Editor:
  - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
    "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
    original game's codepage.
+ - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
  - Added "Sprite file compression" option in General Settings, replacing "Compress the sprite file"
@@ -16,6 +17,7 @@ Editor:
    editor to repack sprites in a different storage format, reducing their disk size whenever
    possible. This option may be used alongside with the sprite compression. Note that this does not
    change how the sprites work in game.
+ - Added "GUI controls clip their contents" option to the General Settings.
  - Added "TTF fonts height used in the game logic" option to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
@@ -28,9 +30,9 @@ Editor:
    they've imported (if available).
  - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
    is activated. This is equivalent to the Character.SetIdleView script function.
- - Added zoom controls for the Sprite manager.
+ - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
- - Support for building multiple speech voxes, by taking files from the Speech subfolders.
+ - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Cursor's position in script is now displayed on the status bar.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
@@ -108,6 +110,8 @@ Engine:
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
+ - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
+   log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
    "--localuserconf"; the new option directly tells the location of user config file.
  - Path related command-line and config options, - such as "shared_data_dir", "user_data_dir"
@@ -120,8 +124,12 @@ Engine:
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
 
 Android:
- - Rewrote universal AGS game launcher/player using up-to-date Google guidelines.
+ - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former
+   "launcher" is now called "AGS Player".
  - Implemented single game project template meant for building your own signed APK.
+ - In AGS Player added "Browse" button to the game folder selection, which opens default system
+   file picker.
+ - AGS Player now searches for games recursively, in all the subfolders.
 
 OSX:
  - OpenGL renderer is now supported on MacOS.

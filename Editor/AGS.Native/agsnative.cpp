@@ -1767,8 +1767,26 @@ void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
 	}
 }
 
+int RemoveLeftoverSprites(SpriteFolder ^folder)
+{
+    int removed = 0;
+    // NOTE: we do not ever remove sprite 0, because it's used as a placeholder too
+    for (AGS::Common::sprkey_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    {
+        if (!spriteset.DoesSpriteExist(i)) continue;
+        if (folder->FindSpriteByID(i, true) == nullptr)
+        {
+            spriteset.RemoveSprite(i, true);
+            removed++;
+        }
+    }
+    return removed;
+}
+
 void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
 {
+    // Test for missing sprites: when the game has a sprite ref,
+    // but the sprite file does not have respective data
     std::vector<int> missing;
     UpdateNativeSprites(game->RootSpriteFolder, missing);
     if (missing.size() > 0)
@@ -1790,6 +1808,17 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
             "This could happen if it was not saved properly last time. Some sprites could be missing actual images. "
             "You may try restoring them by reimporting from the source files.{1}{2}Affected sprites:{3}{4}",
             missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine, sprnum->ToString()));
+    }
+
+    // Test for leftovers: when the game does NOT have a sprite ref,
+    // but the sprite file has the data in the slot.
+    if (RemoveLeftoverSprites(game->RootSpriteFolder) > 0)
+    {
+        spritesModified = true;
+        errors->Add(String::Format(
+            "Sprite file (acsprset.spr) contained extra data that is not referenced by the game project. "
+            "This could happen if it was not saved properly last time. This leftover data will be removed completely "
+            "next time you save your project."));
     }
 }
 

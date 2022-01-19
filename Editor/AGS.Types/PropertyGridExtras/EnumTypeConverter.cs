@@ -95,6 +95,13 @@ namespace AGS.Types
             {
                 if ((fi.Attributes & FieldAttributes.Literal) != 0)
                 {
+                    // hide enum values that have browsable set to false
+                    BrowsableAttribute[] browsables = (BrowsableAttribute[]) fi.GetCustomAttributes(typeof(BrowsableAttribute), false);
+                    if (browsables.Length > 0)
+                    {
+                        if (browsables[0].Browsable == false) continue;
+                    }
+
                     values.Add((int)fi.GetRawConstantValue());
                 }
             }

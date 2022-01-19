@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
-using System.Windows.Forms;
+using AGS.Types.Enums;
 
 namespace AGS.Editor
 {
@@ -72,6 +72,24 @@ namespace AGS.Editor
             {
 				EngineHasExited();
             }
+            else if (command == "LOG")
+            {
+                XmlNode logTextNode = doc.DocumentElement.SelectSingleNode("Text");
+                XmlNode logGroupIDNode = doc.DocumentElement.SelectSingleNode("GroupID");
+                XmlNode logMTIDNode = doc.DocumentElement.SelectSingleNode("MTID");
+                LogGroup group;
+                LogLevel level;
+                try
+                {
+                    group = (LogGroup)Convert.ToInt32(logGroupIDNode.InnerText);
+                    level = (LogLevel)Convert.ToInt32(logMTIDNode.InnerText);
+                }
+                catch
+                {
+                    return;
+                }
+                LogMessage(logTextNode.InnerText, group, level);
+            }
         }
 
         private DebugCallStack ParseCallStackIntoObjectForm(string callStackFromEngine, string errorMessage)
@@ -116,6 +134,11 @@ namespace AGS.Editor
             }
 
             _communicator.SendMessage("<Engine Command=\"READY\" EditorWindow=\"" + editorHwnd + "\" />");
+        }
+
+        public void LogMessage(string message, LogGroup group, LogLevel level)
+        {
+            Factory.GUIController.ShowEngineLogPanel(message, group, level);
         }
 
 		public void EngineHasExited()

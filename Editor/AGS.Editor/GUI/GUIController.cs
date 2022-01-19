@@ -8,11 +8,13 @@ using System.Xml;
 using Microsoft.Win32;
 using AGS.Editor.Components;
 using AGS.Types;
+using AGS.Types.Enums;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
 using System.Drawing.Text;
 using System.Linq;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
@@ -50,6 +52,7 @@ namespace AGS.Editor
         private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
 
         private frmMain _mainForm;
+        private LogPanel _pnlEngineLog;
         private Dictionary<string, IEditorComponent> _menuItems;
         private ImageList _imageList = new ImageList();
         private ProjectTree _treeManager;
@@ -329,6 +332,21 @@ namespace AGS.Editor
             {
                 _mainForm.pnlOutput.Show();
             }
+        }
+
+        public void SetLogPanel(LogPanel pnlEngineLog)
+        {
+            _pnlEngineLog = pnlEngineLog;
+        }
+
+        public void ClearEngineLogMessages()
+        {
+            _pnlEngineLog.Clear();
+        }
+
+        public void ShowEngineLogPanel(string message, LogGroup group, LogLevel level)
+        {
+            _pnlEngineLog.WriteLogMessage(message, group, level);
         }
 
         public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")

@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
 using AGS.Editor.Preferences;
+using AGS.Editor.Components;
 
 namespace AGS.Editor
 {
@@ -498,10 +499,12 @@ namespace AGS.Editor
         public void TestGame(bool withDebugger)
         {
             string parameter = string.Empty;
+                        
             if (withDebugger)
             {
+                string logDebugger = Factory.ComponentController.FindComponent<DebugLogComponent>()?.GetCmdLineLogGroupsAndLevels();
                 // debugger connection params
-                parameter = "--enabledebugger " + Factory.AGSEditor.Debugger.InstanceIdentifier;
+                parameter = logDebugger + " --enabledebugger " + Factory.AGSEditor.Debugger.InstanceIdentifier;
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.Windowed)
             {
@@ -519,6 +522,8 @@ namespace AGS.Editor
                 " \"" + Factory.AGSEditor.GameDirectory + "\"" +
                 " \"" + AudioClip.AUDIO_CACHE_DIRECTORY + "\"" +
                 " \"" + "Speech" + "\"";
+
+            Factory.GUIController.ClearEngineLogMessages();
 
             RunEXEFile(Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe"), parameter, true);
 

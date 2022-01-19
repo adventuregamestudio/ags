@@ -60,8 +60,14 @@ namespace AGS.Editor
                             XmlDocument doc = new XmlDocument();
                             string xmlString = _separator_string + receivedXml;
 
-                            doc.LoadXml(xmlString);
-
+                            try
+                            {
+                                doc.LoadXml(xmlString);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
                             MessageReceived(doc);
                         }
                     }

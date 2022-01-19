@@ -813,7 +813,10 @@
     <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp">
+    <ClCompile Include="..\..\Engine\media\audio\sdldecoder.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1676,7 +1679,10 @@
     <ClInclude Include="..\..\Engine\media\audio\openal.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h">
+    <ClInclude Include="..\..\Engine\media\audio\sdldecoder.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\openalsource.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
   </ItemGroup>

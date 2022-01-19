@@ -25,6 +25,9 @@ namespace AGS.Editor
         public event ActiveDocumentChangedHandler OnActiveDocumentChanged;
         public event EventHandler OnMainWindowActivated;
 
+        private TabbedDocumentManager.ActiveDocumentChangeHandler _activeDocumentChanged;
+        private TabbedDocumentManager.ActiveDocumentChangeHandler _activeDocumentChanging;
+
         private Dictionary<string, object> _propertyObjectList = null;
         private bool _ignorePropertyListChange = false;
 		//private int _splitterXtoSet = 0;
@@ -36,9 +39,11 @@ namespace AGS.Editor
         {
             InitializeComponent();
 
-            _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());            
-            tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
-            tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
+            _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());
+            _activeDocumentChanged = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
+            _activeDocumentChanging = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
+            tabbedDocumentContainer1.ActiveDocumentChanged += _activeDocumentChanged;
+            tabbedDocumentContainer1.ActiveDocumentChanging += _activeDocumentChanging;
 			this.Load += new EventHandler(frmMain_Load);
             this.Activated += new EventHandler(frmMain_Activated);
             this.Deactivate += new EventHandler(frmMain_Deactivated);
@@ -105,6 +110,13 @@ namespace AGS.Editor
                     this.SetPropertyObject(document.SelectedPropertyGridObject);
                 }
             }
+        }
+
+        private void removeTabbedDocumentEventHandlers()
+        {
+            // we remove these events to prevent an exception when closing AGS with an object selected in the property grid
+            tabbedDocumentContainer1.ActiveDocumentChanged -= _activeDocumentChanged;
+            tabbedDocumentContainer1.ActiveDocumentChanging -= _activeDocumentChanging;
         }
 
         private void tabbedDocumentContainer1_ActiveDocumentChanging(ContentDocument newActiveDocument)
@@ -183,6 +195,7 @@ namespace AGS.Editor
 
         private void tabbedDocumentContainer1_ActiveDocumentChanged(ContentDocument newActiveDocument)
         {
+            if (this == null) return;
             RefreshPropertyGridForDocument(newActiveDocument);
 
             if (newActiveDocument != null)
@@ -361,7 +374,7 @@ namespace AGS.Editor
         }
 
         public void SetPropertyObject(object propertiesObject)
-        {            
+        {
             propertiesPanel.propertiesGrid.SelectedObject = propertiesObject;
             SelectObjectInPropertyList(propertiesObject);
         }

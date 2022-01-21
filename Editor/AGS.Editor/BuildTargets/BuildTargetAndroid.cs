@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -50,6 +51,67 @@ namespace AGS.Editor
             stream.Close();
         }
 
+        private string GetProjectDir()
+        {
+            return GetCompiledPath(ANDROID_DIR, "mygame");
+        }
+
+        private string GetAssetEmbeddedDir()
+        {
+            return Path.Combine(GetProjectDir(), "app\\src\\main\\assets");
+        }
+
+        private string GetAssetNonEmbeddedDir()
+        {
+            return Path.Combine(GetProjectDir(), "game\\src\\main\\assets");
+        }
+
+        private string GetAssetsDir()
+        {
+            AndroidBuildFormat buildFormat = Factory.AGSEditor.CurrentGame.Settings.AndroidBuildFormat;
+            bool destinationIsMainAssets = buildFormat != AndroidBuildFormat.Aab;
+            return destinationIsMainAssets ? GetAssetEmbeddedDir() : GetAssetNonEmbeddedDir();
+        }
+
+        private void ClearInvalidAssetDirIfNeeded()
+        {
+            AndroidBuildFormat buildFormat = Factory.AGSEditor.CurrentGame.Settings.AndroidBuildFormat;
+            bool clearEmbeddedDir = buildFormat == AndroidBuildFormat.Aab;
+            string dirToClear = clearEmbeddedDir ? GetAssetEmbeddedDir() : GetAssetNonEmbeddedDir();
+            if(Directory.Exists(dirToClear) && Directory.GetFiles(dirToClear).Length != 0)
+            {
+                Directory.Delete(dirToClear, true);
+                Directory.CreateDirectory(dirToClear);
+            }
+        }
+
+        private string GetFinalAppName()
+        {
+            Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
+            string androidPackageName = gameSettings.AndroidPackageName;
+            string[] nameParts = androidPackageName.Split('.');
+            int lastPart = nameParts.Length - 1;
+            if (lastPart < 0) lastPart = 0;
+            string ext = ".aab";
+            if (gameSettings.AndroidBuildFormat == AndroidBuildFormat.ApkEmbedded) ext = ".apk";
+            return "app-" + nameParts[lastPart] + "-release" + ext;
+        }
+
+        private string GetOutputDir()
+        {
+            Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
+            string outputBuildDir = GetCompiledPath(ANDROID_DIR, "mygame");
+            if (gameSettings.AndroidBuildFormat == AndroidBuildFormat.ApkEmbedded)
+            {
+                outputBuildDir = Path.Combine(outputBuildDir, "app\\build\\outputs\\apk\\release");
+            } 
+            else
+            {
+                outputBuildDir = Path.Combine(outputBuildDir, "app\\build\\outputs\\bundle\\release");
+            }
+            return outputBuildDir;
+        }
+        
         private void WriteProjectProperties(string dest_dir)
         {
             string fileName = Path.Combine(dest_dir, "project.properties");
@@ -230,7 +292,8 @@ namespace AGS.Editor
 
         public override void DeleteMainGameData(string name)
         {
-            string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, ANDROID_DIR), name + ".ags");
+            string assetsDir = GetAssetsDir();
+            string filename = Path.Combine(assetsDir, name + ".ags");
             Utilities.DeleteFileIfExists(filename);
         }
 
@@ -238,14 +301,13 @@ namespace AGS.Editor
         {
             if (!base.Build(errors, forceRebuild)) return false;
 
-            string assets_dir = GetCompiledPath(ANDROID_DIR, "mygame\\app\\src\\main\\assets");
-            string mygame_dir = GetCompiledPath(ANDROID_DIR, "mygame");
+            AndroidBuildFormat buildFormat = Factory.AGSEditor.CurrentGame.Settings.AndroidBuildFormat;
+            string appName = GetFinalAppName();
 
-            if (!Directory.Exists(assets_dir))
-            {
-                // doesn't exist, let's create it
-                Directory.CreateDirectory(assets_dir);
-            }
+            string prjDir = GetProjectDir();
+            string assetsDir = GetAssetsDir();
+            if (!Directory.Exists(assetsDir)) Directory.CreateDirectory(assetsDir);
+            ClearInvalidAssetDirIfNeeded();
 
             foreach (string fileName in Directory.GetFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY)))
             {
@@ -255,38 +317,35 @@ namespace AGS.Editor
                     (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(fileName).Equals(AGSEditor.CONFIG_FILE_NAME, StringComparison.OrdinalIgnoreCase)))
                 {
-                    string dest_filename = Path.Combine(assets_dir, Path.GetFileName(fileName));
+                    string dest_filename = Path.Combine(assetsDir, Path.GetFileName(fileName));
                     Utilities.HardlinkOrCopy(dest_filename, fileName, true);
                 }
             }
 
-
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(assets_dir);
+            Factory.AGSEditor.WriteConfigFile(assetsDir);
 
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())
             {
                 string fileName = pair.Key;
-                string origin_dir = pair.Value;
+                string originDir = pair.Value;
 
-                string dest_dir = GetCompiledPath(ANDROID_DIR, Path.GetDirectoryName(fileName));
+                string destDir = GetCompiledPath(ANDROID_DIR, Path.GetDirectoryName(fileName));
 
-                if(!Directory.Exists(dest_dir))
+                if(!Directory.Exists(destDir))
                 {
                     // doesn't exist, let's create it
-                    Directory.CreateDirectory(dest_dir);
+                    Directory.CreateDirectory(destDir);
                 }
 
-                string dest_file = GetCompiledPath(ANDROID_DIR, fileName);
-                string origin_file = Path.Combine(origin_dir, fileName);
-                string destFileName = Utilities.ResolveSourcePath(dest_file);
-                string sourceFileName = Utilities.ResolveSourcePath(origin_file);
+                string destFile = GetCompiledPath(ANDROID_DIR, fileName);
+                string originFile = Path.Combine(originDir, fileName);
+                string destFileName = Utilities.ResolveSourcePath(destFile);
+                string sourceFileName = Utilities.ResolveSourcePath(originFile);
 
                 if (fileName.EndsWith(".so")) { 
-                    Utilities.HardlinkOrCopy(dest_file, origin_file, true);
-                } 
-                else
-                {
+                    Utilities.HardlinkOrCopy(destFile, originFile, true);
+                } else {
                     File.Copy(sourceFileName, destFileName, true);
                 }
             }
@@ -294,6 +353,11 @@ namespace AGS.Editor
             WriteProjectProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
             WriteLocalStaticProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
 
+            string buildCommand = "/C gradlew.bat bundleRelease & pause";
+            if (buildFormat == AndroidBuildFormat.ApkEmbedded)
+            {
+                buildCommand = "/C gradlew.bat assembleRelease & pause";
+            }
 
             using (Process proc = new Process
             {
@@ -301,9 +365,9 @@ namespace AGS.Editor
                 {
                     UseShellExecute = false,
                     FileName = "cmd.exe",
-                    Arguments = "/C gradlew.bat assembleRelease & pause",
+                    Arguments = buildCommand,
                     CreateNoWindow = false,
-                    WorkingDirectory = mygame_dir
+                    WorkingDirectory = prjDir
                 }
             })
             {
@@ -318,7 +382,22 @@ namespace AGS.Editor
                 }
             }
 
-            return true;
+            string appFinalFile = GetFinalAppName();
+            string appSrcDir = GetOutputDir();
+            string generatedAppFile = Path.Combine(appSrcDir, appFinalFile);
+
+            if(File.Exists(generatedAppFile))
+            {
+                try
+                {
+                    Utilities.HardlinkOrCopy(GetCompiledPath(ANDROID_DIR, appFinalFile), generatedAppFile, true);
+                }
+                catch { }
+
+                return true;
+            }
+
+            return false;
         }
 
         public override string Name

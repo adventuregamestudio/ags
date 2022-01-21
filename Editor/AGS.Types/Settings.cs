@@ -28,6 +28,9 @@ namespace AGS.Types
         public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
         public const string PROPERTY_DIALOG_SCRIPT_NARRATEFN = "Custom Narrate function in dialog scripts";
         public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
+        public const string PROPERTY_ANDROID_PACKAGE_NAME = "Android Package Name";
+        public const string PROPERTY_ANDROID_APP_VERSION_CODE = "App Version Code";
+        public const string PROPERTY_ANDROID_APP_VERSION_NAME = "App Version Name";
 
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
@@ -121,6 +124,9 @@ namespace AGS.Types
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
         private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
+        private string _androidPackageName = "com.mystudio.mygame";
+        private int _androidAppVersionCode = 1;
+        private string _androidAppVersionName = DEFAULT_VERSION;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -1246,6 +1252,37 @@ namespace AGS.Types
             get { return _renderAtScreenRes; }
             set { _renderAtScreenRes = value; }
         }
+
+        [DisplayName(PROPERTY_ANDROID_PACKAGE_NAME)]
+        [Description("The app package name, used in app store.")]
+        [DefaultValue("com.mystudio.mygame")]
+        [Category("Android")]
+        public string AndroidPackageName
+        {
+            get { return _androidPackageName; }
+            set { _androidPackageName = value; }
+        }
+
+        [DisplayName(PROPERTY_ANDROID_APP_VERSION_CODE)]
+        [Description("The version ID used by Google Play Store and others - positive integer, must be different from the last one uploaded.")]
+        [DefaultValue("1")]
+        [Category("Android")]
+        public int AndroidAppVersionCode
+        {
+            get { return _androidAppVersionCode; }
+            set { _androidAppVersionCode = value; }
+        }
+
+        [DisplayName(PROPERTY_ANDROID_APP_VERSION_NAME)]
+        [Description("The version name visible to users, this can be anything.")]
+        [DefaultValue("com.mystudio.mygame")]
+        [Category("Android")]
+        public string AndroidAppVersionName
+        {
+            get { return _androidAppVersionName; }
+            set { _androidAppVersionName = value; }
+        }
+
 
         [Obsolete]
         [Browsable(false)]

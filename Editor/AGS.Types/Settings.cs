@@ -127,6 +127,7 @@ namespace AGS.Types
         private string _androidPackageName = "com.mystudio.mygame";
         private int _androidAppVersionCode = 1;
         private string _androidAppVersionName = DEFAULT_VERSION;
+        private AndroidBuildFormat _androidBuildFormat = AndroidBuildFormat.ApkEmbedded;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -1260,7 +1261,19 @@ namespace AGS.Types
         public string AndroidPackageName
         {
             get { return _androidPackageName; }
-            set { _androidPackageName = value; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentException("Package name cannot be empty");
+                }
+                if ((value.Length > 0) && (!Regex.IsMatch(value, @"^([a-zA-Z0-9\.\ ]+)$")))
+                {
+                    throw new ArgumentException("Package name can only contain letters, number and dots.");
+                }
+                value = value.Replace(" ", "");
+                _androidPackageName = value.ToLower().Trim(); 
+            }
         }
 
         [DisplayName(PROPERTY_ANDROID_APP_VERSION_CODE)]
@@ -1282,6 +1295,16 @@ namespace AGS.Types
             get { return _androidAppVersionName; }
             set { _androidAppVersionName = value; }
         }
+
+        [DisplayName("Build Format")]
+        [Description("Use embedded formats when testing locally. Google Play only accepts AAB.")]
+        [DefaultValue("Aab")]
+        [Category("Android")]
+        public AndroidBuildFormat AndroidBuildFormat
+        {
+            get { return _androidBuildFormat; }
+            set { _androidBuildFormat = value; }
+        }        
 
 
         [Obsolete]

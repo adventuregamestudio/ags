@@ -155,6 +155,8 @@ SpriteFile::SpriteFile()
 HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filename,
     std::vector<Size> &metrics)
 {
+    Close();
+
     char buff[20];
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
@@ -236,6 +238,10 @@ HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filen
 void SpriteFile::Close()
 {
     _stream.reset();
+    _spriteData.clear();
+    _version = kSprfVersion_Undefined;
+    _storeFlags = 0;
+    _compress = kSprCompress_None;
     _curPos = -2;
 }
 
@@ -502,18 +508,18 @@ void SpriteFile::SeekToSprite(sprkey_t index)
 }
 
 
-// Finds the topmost occupied slot index. Warning: may be slow.
-static sprkey_t FindTopmostSprite(const std::vector<Bitmap*> &sprites)
+// Finds the topmost occupied slot index
+static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, Bitmap*>> &sprites)
 {
     sprkey_t topmost = -1;
     for (sprkey_t i = 0; i < static_cast<sprkey_t>(sprites.size()); ++i)
-        if (sprites[i])
+        if (sprites[i].first)
             topmost = i;
     return topmost;
 }
 
 int SaveSpriteFile(const String &save_to_file,
-    const std::vector<Bitmap*> &sprites,
+    const std::vector<std::pair<bool, Bitmap*>> &sprites,
     SpriteFile *read_from_file,
     int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
@@ -521,9 +527,7 @@ int SaveSpriteFile(const String &save_to_file,
     if (output == nullptr)
         return -1;
 
-    sprkey_t lastslot = read_from_file ? read_from_file->GetTopmostSprite() : 0;
-    lastslot = std::max(lastslot, FindTopmostSprite(sprites));
-
+    sprkey_t lastslot = FindTopmostSprite(sprites);
     SpriteFileWriter writer(std::move(output));
     writer.Begin(store_flags, compress, lastslot);
 
@@ -538,8 +542,13 @@ int SaveSpriteFile(const String &save_to_file,
 
     for (sprkey_t i = 0; i <= lastslot; ++i)
     {
-        Bitmap *image = (size_t)i < sprites.size() ? sprites[i] : nullptr;
+        if (!sprites[i].first)
+        { // empty slot
+            writer.WriteEmptySlot();
+            continue;
+        }
 
+        Bitmap *image = sprites[i].second;
         // if compression setting is different, load the sprite into memory
         // (otherwise we will be able to simply copy bytes from one file to another
         if ((image == nullptr) && diff_compress)

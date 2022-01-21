@@ -196,6 +196,7 @@ namespace AGS.Editor
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWeb());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetAndroid());
         }
 
         public Game CurrentGame

@@ -12,6 +12,82 @@ namespace AGS.Editor
     {
         public const string ANDROID_DIR = "Android";
 
+        private string EscapeFilenamePathStringAsNeeded(string str)
+        {
+            int len = str.Length;
+            for (int i = 0; i < len; i++)
+            {
+                char c = str[i];
+                if (c == '\\')
+                {
+                    char next_c = '\0';
+                    char prev_c = '\0';
+
+                    if(i+1 < len) next_c = str[i + 1];
+                    if(i-1 > 0)   prev_c = str[i - 1];
+
+                    if (next_c != '\\' && prev_c != '\\')
+                    {
+                        str = str.Insert(i, "\\");
+                        len = str.Length;
+                    }
+                }
+            }
+
+            return str;
+        }
+
+        private void WriteStringToFile(string fileName, string fileText)
+        {
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            FileStream stream = File.Create(fileName);
+            byte[] bytes = Encoding.UTF8.GetBytes(fileText);
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Close();
+        }
+
+        private void WriteProjectProperties(string dest_dir)
+        {
+            string fileName = Path.Combine(dest_dir, "project.properties");
+
+            Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
+            string androidPackageName = gameSettings.AndroidPackageName;
+            string androidAppVersionId = gameSettings.AndroidAppVersionCode.ToString();
+            string androidAppVersionName = gameSettings.AndroidAppVersionName;
+            if (string.IsNullOrEmpty(androidPackageName)) androidPackageName = "com.mystudio.mygame";
+            if (string.IsNullOrEmpty(androidAppVersionId)) androidAppVersionId = "1";
+            if (string.IsNullOrEmpty(androidAppVersionName)) androidAppVersionName = "1.0";
+
+            string fileText = "applicationId=" + androidPackageName + "\n" +
+                              "versionCode=" + androidAppVersionId + "\n" +
+                              "versionName=" + androidAppVersionName + "\n";
+
+            WriteStringToFile(fileName, fileText);
+        }
+
+        private void WriteLocalStaticProperties(string dest_dir)
+        {
+            string fileName = Path.Combine(dest_dir, "local.static.properties");
+
+            // this should NOT GET KEYS FROM SETTINGS
+            Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
+            string storeFile = EscapeFilenamePathStringAsNeeded(gameSettings.AndroidKeystoreFile);
+            string storePassword = gameSettings.AndroidKeystorePassword;
+            string keyAlias = gameSettings.AndroidKeystoreKeyAlias;
+            string keyPassword = gameSettings.AndroidKeystoreKeyPassword;
+
+            string fileText = "storeFile=" + storeFile + "\n" +
+                              "storePassword=" + storePassword + "\n" +
+                              "keyAlias=" + keyAlias + "\n" +
+                              "keyPassword=" + keyPassword + "\n";
+
+            WriteStringToFile(fileName, fileText);
+        }
+
         public override IDictionary<string, string> GetRequiredLibraryPaths()
         {
             Dictionary<string, string> paths = new Dictionary<string, string>();
@@ -214,6 +290,10 @@ namespace AGS.Editor
                     File.Copy(sourceFileName, destFileName, true);
                 }
             }
+
+            WriteProjectProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
+            WriteLocalStaticProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
+
 
             using (Process proc = new Process
             {

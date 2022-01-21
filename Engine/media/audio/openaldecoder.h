@@ -30,7 +30,7 @@
 #include "debug/out.h"
 #endif
 
-
+// RAII wrapper over SDL_Sound sample
 struct SoundSampleDeleterFunctor {
     void operator()(Sound_Sample* p) {
         Sound_FreeSample(p);
@@ -39,8 +39,26 @@ struct SoundSampleDeleterFunctor {
 #endif
     }
 };
-
 using SoundSampleUniquePtr = std::unique_ptr<Sound_Sample, SoundSampleDeleterFunctor>;
+
+// RAII wrapper over SDL resampling filter
+struct SDLResampler
+{
+public:
+    SDLResampler() = default;
+    SDLResampler(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+        { Setup(src_fmt, src_chans, src_rate, dst_fmt, dst_chans, dst_rate); }
+    bool HasConversion() const { return _cvt.needed > 0; }
+    bool Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate);
+    void *Convert(void *data, size_t sz, size_t &out_sz);
+
+private:
+    SDL_AudioCVT _cvt{};
+    std::vector<uint8_t> _buf;
+};
+
 
 class OpenALDecoder
 {
@@ -59,11 +77,15 @@ public:
     PlaybackState GetPlayState();
     float GetPositionMs();
     float GetDurationMs();
+    void SetSpeed(float speed);
 
 private:
+    static const int MaxQueue = 2;
+
     ALuint source_;
 
-    bool repeat_;
+    bool repeat_ = false;
+    float speed_ = 1.f; // change in playback rate
 
     PlaybackState playState_ = PlayStateInitial;
 
@@ -73,12 +95,13 @@ private:
     SoundSampleUniquePtr sample_ = nullptr;
     float duration_ = 0.f;
 
+    // SDL resampler state, in case dynamic resampling in necessary
+    SDLResampler resampler_;
+
     PlaybackState onLoadPlayState_ = PlayStatePaused;
     float onLoadPositionMs = 0.0f;
-
-    float processedBuffersDurationMs_ = 0.0f;
-
     bool EOS_ = false;
+    float processedBuffersDurationMs_ = 0.0f;
 
     static float buffer_duration_ms(ALuint bufferID);
     static ALenum openalFormatFromSample(const SoundSampleUniquePtr &sample);

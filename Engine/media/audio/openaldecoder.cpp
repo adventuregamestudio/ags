@@ -13,6 +13,7 @@
 //=============================================================================
 #include "media/audio/openaldecoder.h"
 #include <array>
+#include <SDL.h>
 #include "debug/out.h"
 
 namespace ags = AGS::Common;
@@ -32,7 +33,31 @@ void dump_al_errors()
 }
 
 
-const auto SourceMinimumQueuedBuffers = 2;
+bool SDLResampler::Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
+    SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+{
+    SDL_zero(_cvt);
+    return SDL_BuildAudioCVT(&_cvt, src_fmt, src_chans, src_rate,
+        dst_fmt, dst_chans, dst_rate) >= 0;
+}
+
+void *SDLResampler::Convert(void *data, size_t sz, size_t &out_sz)
+{
+    if (_buf.size() < sz * _cvt.len_mult)
+    {
+        size_t len = sz * _cvt.len_mult;
+        _buf.resize(len);
+    }
+    _cvt.buf = &_buf[0];
+    _cvt.len = _cvt.len_cvt = sz;
+    SDL_memcpy(_cvt.buf, data, sz);
+    if (SDL_ConvertAudio(&_cvt) < 0)
+        return nullptr;
+    out_sz = _cvt.len_cvt;
+    return &_buf[0];
+}
+
+
 const auto SampleDefaultBufferSize = 64 * 1024;
 
 static struct
@@ -114,8 +139,8 @@ void OpenALDecoder::PollBuffers()
     DecoderUnqueueProcessedBuffers();
 
     // generate extra buffers if none are free
-    if (g_oaldec.freeBuffers.size() < SourceMinimumQueuedBuffers) {
-        std::array<ALuint, SourceMinimumQueuedBuffers> genbufs;
+    if (g_oaldec.freeBuffers.size() < MaxQueue) {
+        std::array<ALuint, MaxQueue> genbufs;
         alGenBuffers(genbufs.size(), genbufs.data());
         dump_al_errors();
         for (const auto &b : genbufs) {
@@ -129,7 +154,7 @@ void OpenALDecoder::PollBuffers()
         alGetSourcei(source_, AL_BUFFERS_QUEUED, &buffersQueued);
         dump_al_errors();
 
-        if (buffersQueued >= SourceMinimumQueuedBuffers) { break; }
+        if (buffersQueued >= MaxQueue) { break; }
 
         assert(g_oaldec.freeBuffers.size() > 0);
         auto it = std::prev(g_oaldec.freeBuffers.end());
@@ -154,7 +179,20 @@ void OpenALDecoder::PollBuffers()
         // Nothing was decoded last time - skip
         if (sz == 0) { continue; }
 
-        alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
+        void *input_buf = sample_->buffer;
+        size_t input_sz = sz;
+        if (resampler_.HasConversion())
+        {
+            size_t conv_sz;
+            void *conv = resampler_.Convert(sample_->buffer, sz, conv_sz);
+            if (conv)
+            {
+                input_buf = conv;
+                input_sz = conv_sz;
+            }
+        }
+
+        alBufferData(b, sampleOpenAlFormat_, input_buf, input_sz, sample_->desired.rate);
         dump_al_errors();
 
         alSourceQueueBuffers(source_, 1, &b);
@@ -170,8 +208,8 @@ OpenALDecoder::OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
     : source_(source)
     , sampleData_(std::move(sampleBuf))
     , sampleExt_(sampleExt)
-    , repeat_(repeat) {
-
+    , repeat_(repeat)
+{
 }
 
 OpenALDecoder::OpenALDecoder(OpenALDecoder&& dec)
@@ -373,4 +411,17 @@ float OpenALDecoder::GetPositionMs()
 float OpenALDecoder::GetDurationMs()
 {
     return duration_;
+}
+
+void OpenALDecoder::SetSpeed(float speed)
+{
+    speed_ = speed;
+
+    // Configure resample
+    int new_freq = static_cast<int>(sample_->desired.rate / speed_);
+    if (!resampler_.Setup(sample_->desired.format, sample_->desired.channels,
+        (int)sample_->desired.rate, sample_->desired.format, sample_->desired.channels, new_freq))
+    { // error, reset
+        speed_ = 1.0;
+    }
 }

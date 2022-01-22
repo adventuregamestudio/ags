@@ -66,7 +66,8 @@ static struct
 } g_oaldec;
 
 
-float OpenALDecoder::buffer_duration_ms(ALuint bufferID) {
+// Returns buffer duration in seconds
+static float buffer_duration(ALuint bufferID) {
     ALint sizeInBytes;
     ALint channels;
     ALint bits;
@@ -78,9 +79,8 @@ float OpenALDecoder::buffer_duration_ms(ALuint bufferID) {
     alGetBufferi(bufferID, AL_FREQUENCY, &frequency);
 
     auto lengthInSamples = sizeInBytes * 8 / (channels * bits);
-    return 1000.0f * (float)lengthInSamples / (float)frequency;
+    return (float)lengthInSamples / (float)frequency;
 }
-
 
 ALenum OpenALDecoder::openalFormatFromSample(const SoundSampleUniquePtr &sample) {
     if (sample->desired.channels == 1) {
@@ -127,7 +127,9 @@ void OpenALDecoder::DecoderUnqueueProcessedBuffers()
         alSourceUnqueueBuffers(source_, 1, &b);
         dump_al_errors();
 
-        processedBuffersDurationMs_ += buffer_duration_ms(b);
+        assert(bufferRecords.size() > 0);
+        processedBuffersDurationMs_ += bufferRecords.front().Time * 1000.f;
+        bufferRecords.pop_front();
 
         g_oaldec.freeBuffers.push_back(b);
     }
@@ -197,6 +199,9 @@ void OpenALDecoder::PollBuffers()
 
         alSourceQueueBuffers(source_, 1, &b);
         dump_al_errors();
+
+        // Push buffer record
+        bufferRecords.push_back(BufferParams(buffer_duration(b), speed_));
 
         g_oaldec.freeBuffers.erase(it);
     }
@@ -387,6 +392,7 @@ void OpenALDecoder::Seek(float pos_ms)
         DecoderUnqueueProcessedBuffers();
         Sound_Seek(sample_.get(), pos_ms);
         processedBuffersDurationMs_ = pos_ms;
+        lastPosReport = pos_ms;
         // will play when buffers are added in poll
     }
 }
@@ -398,14 +404,20 @@ PlaybackState OpenALDecoder::GetPlayState()
 
 float OpenALDecoder::GetPositionMs()
 {
-    float alSecOffset = 0.0f;
-    alGetSourcef(source_, AL_SEC_OFFSET, &alSecOffset);
+    float al_offset = 0.f;
+    alGetSourcef(source_, AL_SEC_OFFSET, &al_offset);
     dump_al_errors();
-    auto positionMs_ = processedBuffersDurationMs_ + alSecOffset*1000.0f;
+    float off_ms = 0.f;
+    if (bufferRecords.size() > 0)
+        off_ms = al_offset * bufferRecords.front().Speed * 1000.f;
+    float pos_ms = processedBuffersDurationMs_ + off_ms;
 #ifdef AUDIO_CORE_DEBUG
-    agsdbg::Printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
+    agsdbg::Printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, off_ms, pos_ms);
 #endif
-    return positionMs_;
+    // Dirty fixup, in case the reported position jumps back when the playback speed changes
+    pos_ms = std::max(lastPosReport, pos_ms);
+    lastPosReport = pos_ms;
+    return pos_ms;
 }
 
 float OpenALDecoder::GetDurationMs()

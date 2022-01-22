@@ -22,6 +22,7 @@
 #ifndef __AGS_EE_MEDIA__OPENALDECODER_H
 #define __AGS_EE_MEDIA__OPENALDECODER_H
 #include <future>
+#include <deque>
 #include <SDL_sound.h>
 #include "media/audio/audiodefines.h"
 #include "media/audio/openal.h"
@@ -102,8 +103,20 @@ private:
     float onLoadPositionMs = 0.0f;
     bool EOS_ = false;
     float processedBuffersDurationMs_ = 0.0f;
+    float lastPosReport = 0.f; // to fixup reported position, in case speed changes
 
-    static float buffer_duration_ms(ALuint bufferID);
+    // Keeping record of some precalculated buffer properties
+    struct BufferParams
+    {
+        float AlTime = 0.f; // buffer time in internal openal's rate (in seconds)
+        float Speed = 0.f; // associated playback speed
+        float Time = 0.f; // buffer time in the real playback rate (speed-adjusted)
+        BufferParams() = default;
+        BufferParams(float t, float sp) : AlTime(t), Speed(sp), Time(t * sp) {}
+    };
+    // playback speeds related to queued buffers
+    std::deque<BufferParams> bufferRecords;
+
     static ALenum openalFormatFromSample(const SoundSampleUniquePtr &sample);
     void DecoderUnqueueProcessedBuffers();
     void PollBuffers();

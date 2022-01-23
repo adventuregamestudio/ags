@@ -63,6 +63,7 @@ namespace AGS
 			void LoadNewSpriteFile();
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad);
 			void SaveRoomFile(Room ^roomToSave);
+            void SaveDefaultRoomFile(Room ^roomToSave);
 			void DrawRoomBackground(int hDC, Room ^room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency);
 			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			void DeleteBackground(Room ^room, int backgroundNumber);

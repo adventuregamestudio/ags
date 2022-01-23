@@ -3757,7 +3757,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		CompileCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
 	}
 
-	for (size_t i = 0; i <= MAX_WALK_AREAS; ++i)
+	rs.WalkAreaCount = room->WalkableAreas->Count;
+	for (size_t i = 0; i < rs.WalkAreaCount; ++i)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		rs.WalkAreas[i].Light = area->AreaSpecificView;
@@ -3774,13 +3775,15 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		}
 	}
 
-	for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+	rs.WalkBehindCount = room->WalkBehinds->Count;
+	for (size_t i = 0; i < rs.WalkBehindCount; ++i)
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		rs.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
-	for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+	rs.RegionCount = room->Regions->Count;
+	for (size_t i = 0; i < rs.RegionCount; ++i)
 	{
 		RoomRegion ^area = room->Regions[i];
 		rs.Regions[i].Tint = 0;
@@ -3802,13 +3805,30 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
     // Prepare script links
     convert_room_interactions_to_native(room, rs);
-	rs.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+    if (room->Script->CompiledData)
+	    rs.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
 }
 
 void save_crm_file(Room ^room)
 {
     RoomStruct rs;
     convert_room_to_native(room, rs);
+    AGSString roomFileName = ConvertPathToNativeString(room->FileName);
+    save_room_file(rs, roomFileName);
+}
+
+void save_default_crm_file(Room ^room)
+{
+    RoomStruct rs;
+    convert_room_to_native(room, rs);
+    // Insert default backgrounds and masks
+    for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
+        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, 0, thisgame.color_depth * 8));
+    rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 0, 8));
+    rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 0, 8));
+    rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 0, 8));
+    rs.WalkBehindMask.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, 0, 8));
+    // Now save the resulting CRM
     AGSString roomFileName = ConvertPathToNativeString(room->FileName);
     save_room_file(rs, roomFileName);
 }
@@ -3858,12 +3878,11 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     for (size_t i = 0; i < (size_t)rs.BgFrameCount; ++i)
         fix_block(rs.BgFrames[i].Graphic.get());
 
-    Stream *out = AGSFile::CreateFile(path);
+    std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");
 
-    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out, kRoomVersion_Current);
-    delete out;
+    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
 

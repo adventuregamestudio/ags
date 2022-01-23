@@ -6,8 +6,8 @@ mkdir emscripten
 pushd emscripten
 git clone https://github.com/emscripten-core/emsdk.git
 pushd emsdk
-./emsdk install latest
-./emsdk activate latest
+./emsdk install 3.1.2
+./emsdk activate 3.1.2
 source ./emsdk_env.sh
 popd
 popd

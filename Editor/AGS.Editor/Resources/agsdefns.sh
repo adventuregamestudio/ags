@@ -1881,8 +1881,8 @@ builtin managed struct Hotspot {
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
   readonly import attribute int ID;
-  /// Gets the name of the hotspot.
-  readonly import attribute String Name;
+  /// Gets/sets the name of the hotspot.
+  import attribute String Name;
   /// Gets the X co-ordinate of the walk-to point for this hotspot.
   readonly import attribute int WalkToX;
   /// Gets the Y co-ordinate of the walk-to point for this hotspot.
@@ -2285,8 +2285,8 @@ builtin managed struct Object {
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
   readonly import attribute bool Moving;
-  /// Gets the object's description.
-  readonly import attribute String Name;
+  /// Gets/sets the name of the object.
+  import attribute String Name;
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
   /// Gets/sets the object's transparency.

@@ -624,6 +624,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].last_height = 0;
             croom->obj[cc].blocking_width = 0;
             croom->obj[cc].blocking_height = 0;
+            croom->obj[cc].name = thisroom.Objects[cc].Name;
             if (thisroom.Objects[cc].Baseline>=0)
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
             if (thisroom.Objects[cc].Sprite > UINT16_MAX)
@@ -642,7 +643,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
         for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
-            croom->hotspot_enabled[cc] = 1;
+            croom->hotspot[cc].Enabled = true;
+            croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
         }
         for (cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;

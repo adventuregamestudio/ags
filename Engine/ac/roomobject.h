@@ -20,6 +20,7 @@
 
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
@@ -43,7 +44,9 @@ struct RoomObject {
     char  overall_speed;
     char  on;
     char  flags;
+    // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
+    Common::String name;
 
     RoomObject();
 
@@ -58,8 +61,8 @@ struct RoomObject {
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromSavegame(Common::Stream *in, int save_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__ROOMSTATUS_H
 #define __AGS_EE_AC__ROOMSTATUS_H
 
@@ -27,6 +23,15 @@
 namespace AGS { namespace Common { class Stream; } }
 using AGS::Common::Stream;
 using AGS::Common::Interaction;
+
+struct HotspotState
+{
+    bool Enabled = false;
+    Common::String Name;
+
+    void ReadFromSavegame(Common::Stream *in, int save_ver);
+    void WriteToSavegame(Common::Stream *out) const;
+};
 
 // This struct is saved in the save games - it contains everything about
 // a room that could change
@@ -51,7 +56,7 @@ struct RoomStatus {
     EventBlock objcond[MAX_ROOM_OBJECTS];
     EventBlock misccond;
 #endif
-    char  hotspot_enabled[MAX_ROOM_HOTSPOTS];
+    HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
     int   interactionVariableValues[MAX_GLOBAL_VARIABLES];
@@ -64,7 +69,7 @@ struct RoomStatus {
 
     void ReadFromFile_v321(Common::Stream *in);
     void ReadRoomObjects_Aligned(Common::Stream *in);
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, int save_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

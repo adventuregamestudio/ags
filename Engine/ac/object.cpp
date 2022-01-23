@@ -29,6 +29,7 @@
 #include "ac/view.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
+#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
@@ -295,6 +296,7 @@ void Object_SetName(ScriptObject *objj, const char *newName) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
     croom->obj[objj->id].name = newName;
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {

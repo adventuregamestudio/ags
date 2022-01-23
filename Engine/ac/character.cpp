@@ -15,7 +15,6 @@
 // AGS Character functions
 //
 //=============================================================================
-
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
@@ -1404,6 +1403,7 @@ const char* Character_GetName(CharacterInfo *chaa) {
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
     strncpy(chaa->name, newName, 40);
     chaa->name[39] = 0;
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int Character_GetNormalView(CharacterInfo *chaa) {

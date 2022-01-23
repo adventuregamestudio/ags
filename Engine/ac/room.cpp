@@ -587,7 +587,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom = getRoomStatus(newnum);
     else croom=&troom;
 
-    if (croom->beenhere > 0) {
+    // Decide what to do if we have been or not in this room before
+    if (croom->beenhere > 0)
+    {
         // if we've been here before, save the Times Run information
         // since we will overwrite the actual NewInteraction structs
         // (cos they have pointers and this might have been loaded from
@@ -602,8 +604,21 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             for (cc=0;cc < MAX_ROOM_REGIONS;cc++)
                 thisroom.Regions[cc].Interaction->CopyTimesRun(croom->intrRegion[cc]);
         }
+        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
+            thisroom.LocalVariables[i].Value = croom->interactionVariableValues[i];
+
+        // Always copy object and hotspot names for < 3.6.0 games, because they were not settable
+        if (loaded_game_file_version < kGameVersion_360_16)
+        {
+            for (cc = 0; cc < croom->numobj; ++cc)
+                croom->obj[cc].name = thisroom.Objects[cc].Name;
+            for (cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) 
+                croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
+        }
     }
-    if (croom->beenhere==0) {
+    else
+    {
+        // If we have not been in this room before, then copy necessary fields from thisroom
         croom->numobj=thisroom.ObjectCount;
         croom->tsdatasize=0;
         for (cc=0;cc<croom->numobj;cc++) {
@@ -652,11 +667,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         croom->beenhere=1;
         in_new_room=2;
-    }
-    else {
-        // We have been here before
-        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
-            thisroom.LocalVariables[i].Value = croom->interactionVariableValues[i];
     }
 
     update_polled_stuff_if_runtime();

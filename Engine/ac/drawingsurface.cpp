@@ -124,8 +124,12 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 }
 
 void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int translev) {
-    if ((translev < 0) || (translev > 99))
-        quit("!DrawingSurface.DrawSurface: invalid parameter (transparency must be 0-99)");
+    if ((translev < 0) || (translev > 100))
+        quit("!DrawingSurface.DrawSurface: invalid parameter (transparency must be 0-100)");
+
+    // 100% transparency, don't draw anything
+    if (translev == 100)
+        return;
 
     Bitmap *ds = target->StartDrawing();
     Bitmap *surfaceToDraw = source->GetBitmapSurface();
@@ -144,8 +148,8 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
         quit("!DrawingSurface.DrawSurface: 256-colour surfaces cannot be drawn transparently");
 
     // Draw it transparently
-    GfxUtil::DrawSpriteWithTransparency(ds, surfaceToDraw, 0, 0,
-        GfxDef::Trans100ToAlpha255(translev));
+    draw_sprite_support_alpha(ds, target->hasAlphaChannel != 0, 0, 0, surfaceToDraw, source->hasAlphaChannel != 0,
+        kBlendMode_Alpha, GfxDef::Trans100ToAlpha255(translev));
     target->FinishedDrawing();
 }
 

@@ -2328,3 +2328,25 @@ TEST_F(Compile1, ReachabilityAndSwitch1)
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     ASSERT_EQ(0, mh.GetMessages().size());
 }
+
+TEST_F(Compile1, IfClauseFloat)
+{
+    // Should complain that the if clause isn't vartype 'int'
+
+    char *inpl = "\
+        managed struct Strct                \n\
+        {                                   \n\
+        };                                  \n\
+                                            \n\
+        float foo()                         \n\
+        {                                   \n\
+            if (foo())                      \n\
+                return 1.0;                 \n\
+            return 0.1;                     \n\
+        }                                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'float'"));
+}

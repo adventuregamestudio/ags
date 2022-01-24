@@ -567,7 +567,7 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode0, While) {
+TEST_F(Bytecode0, FlowWhile) {
 
     char *inpl = "\
     char c = 'x';             \n\
@@ -586,7 +586,7 @@ TEST_F(Bytecode0, While) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("While", scrip);
+    // WriteOutput("FlowWhile", scrip);
     size_t const codesize = 100;
     EXPECT_EQ(codesize, scrip.codesize);
 
@@ -617,6 +617,95 @@ TEST_F(Bytecode0, While) {
       1,   1,   1,   1,     '\0'
     };
     CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode0, FlowWhileTrue)
+{
+    // Mustn't short-circuit the 'while()' body
+
+    char *inpl = "\n\
+        enum bool { false = 0, true }; \n\
+        int main()          \n\
+        {                   \n\
+            while (true)    \n\
+            {               \n\
+                int i = 5;  \n\
+            }               \n\
+        }                   \n\
+        ";
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("FlowWhileTrue", scrip);
+    size_t const codesize = 16;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            5,   29,    3,    2,    // 7
+       1,    4,   31,  -10,            6,    3,    0,    5,    // 15
+     -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode0, FlowDoWhileFalse)
+{
+    // Don't emit back jump
+
+    char *inpl = "\n\
+        enum bool { false = 0, true }; \n\
+        int main()              \n\
+        {                       \n\
+            do                  \n\
+            {                   \n\
+                int i = 5;      \n\
+                continue;       \n\
+            } while (false);    \n\
+        }                       \n\
+        ";
+    int compileResult = cc_compile(inpl, scrip);
+    EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("FlowDoWhileFalse", scrip);
+    size_t const codesize = 19;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,            5,   29,    3,    2,    // 7
+       1,    4,   31,  -10,            2,    1,    4,    6,    // 15
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
 
     int const numimports = 0;
     std::string imports[] = {

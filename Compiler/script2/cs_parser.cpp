@@ -918,9 +918,15 @@ void AGS::Parser::HandleEndOfDo()
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "In 'while' clause");
     Expect(kKW_Semicolon, _src.GetNext());
-    
-    // Jump back to the start of the loop while the condition is true
-    _nest.Start().WriteJump(SCMD_JNZ, _src.GetLineno());
+
+    if (!(eres.kTY_Literal == eres.Type &&
+          eres.kLOC_SymbolTable == eres.Location &&
+          0 == _sym[eres.Symbol].LiteralD->Value))
+    {
+        EvaluationResultToAx(eres);
+        // Jump back to the start of the loop while the condition is true
+        _nest.Start().WriteJump(SCMD_JNZ, _src.GetLineno());
+    }
     // Jumps out of the loop should go here
     _nest.JumpOut().Patch(_src.GetLineno());
 
@@ -5895,6 +5901,8 @@ void AGS::Parser::ParseIf()
 {
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
+    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "'if' condition");
+    EvaluationResultToAx(eres);
     
     _nest.Push(NSType::kIf);
 
@@ -5943,10 +5951,15 @@ void AGS::Parser::ParseWhile()
     
     _nest.Push(NSType::kWhile);
 
-    // Now the code that has just been generated has put the result of the check into AX
-    // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
-    _nest.JumpOut().AddParam();
+    if (!(eres.kTY_Literal == eres.Type &&
+        eres.kLOC_SymbolTable == eres.Location &&
+        0 != _sym[eres.Symbol].LiteralD->Value))
+    {
+        EvaluationResultToAx(eres);
+        // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
+        WriteCmd(SCMD_JZ, kDestinationPlaceholder);
+        _nest.JumpOut().AddParam();
+    }
     _nest.Start().Set(condition_eval_loc);
 }
 

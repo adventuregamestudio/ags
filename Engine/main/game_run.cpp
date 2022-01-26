@@ -392,7 +392,6 @@ bool run_service_key_controls(KeyInput &out_key)
         // ctrl+D - show info
         char infobuf[900];
         int ff;
-        // MACPORT FIX 9/6/5: added last %s
         sprintf(infobuf, "In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
             displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x, playerchar->y,
             playerchar->view + 1, playerchar->loop, playerchar->frame,

@@ -266,6 +266,11 @@ namespace AGS.Editor
             _native.SaveRoomFile(roomToSave);
         }
 
+        public void SaveDefaultRoom(Room roomToSave)
+        {
+            _native.SaveDefaultRoomFile(roomToSave);
+        }
+
         public void DrawRoomBackground(IntPtr hDC, Room room, int x, int y, int backgroundNumber, float scaleFactor, RoomAreaMaskType maskType, int selectedArea, int maskTransparency)
         {
             _native.DrawRoomBackground((int)hDC, room, x, y, backgroundNumber, scaleFactor, maskType, selectedArea, maskTransparency);

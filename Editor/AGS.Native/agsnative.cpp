@@ -3811,10 +3811,9 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
 void save_crm_file(Room ^room)
 {
-    RoomStruct rs;
-    convert_room_to_native(room, rs);
+    convert_room_to_native(room, thisroom);
     AGSString roomFileName = ConvertPathToNativeString(room->FileName);
-    save_room_file(rs, roomFileName);
+    save_room_file(thisroom, roomFileName);
 }
 
 void save_default_crm_file(Room ^room)

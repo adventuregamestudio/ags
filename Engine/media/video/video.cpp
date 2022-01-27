@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
@@ -48,127 +47,62 @@ extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
 extern int psp_video_framedrop;
 
-enum VideoPlaybackType
-{
-    kVideoNone,
-    kVideoFlic,
-    kVideoTheora
-};
 
-VideoPlaybackType video_type = kVideoNone;
-
-// FLIC player start
+//-----------------------------------------------------------------------------
+// VideoPlayer
+//-----------------------------------------------------------------------------
+volatile int fli_timer = 0; // TODO: use SDL thread conditions instead?
+int canabort = 0, stretch_flc = 1;
 Bitmap *fli_buffer = nullptr;
-short fliwidth,fliheight;
-int canabort=0, stretch_flc = 1;
-Bitmap *hicol_buf=nullptr;
-IDriverDependantBitmap *fli_ddb = nullptr;
+short fliwidth, fliheight;
+Bitmap *hicol_buf = nullptr;
 Bitmap *fli_target = nullptr;
 int fliTargetWidth, fliTargetHeight;
-volatile int fli_timer = 0; // TODO: use SDL thread conditions instead?
-int check_if_user_input_should_cancel_video()
-{
-    KeyInput key;
-    int mbut, mwheelz;
-    if (run_service_key_controls(key)) {
-        if ((key.Key==eAGSKeyCodeEscape) && (canabort==1))
-            return 1;
-        if (canabort >= 2)
-            return 1;  // skip on any key
-    }
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && canabort == 3) {
-        return 1; // skip on mouse click
-    }
-    return 0;
-}
+IDriverDependantBitmap *fli_ddb = nullptr;
 
-Uint32 fli_timer_callback(Uint32 interval, void *param)
+namespace AGS
+{
+namespace Engine
+{
+
+Uint32 VideoTimerCallback(Uint32 interval, void *param)
 {
     fli_timer++;
     return interval;
 }
 
-int fli_callback() {
-    Bitmap *usebuf = fli_buffer;
-
-    update_audio_system_on_game_loop ();
-
-    if (game.color_depth > 1) {
-        hicol_buf->Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
-        usebuf=hicol_buf;
+bool CheckUserInputSkip()
+{
+    KeyInput key;
+    int mbut, mwheelz;
+    if (run_service_key_controls(key))
+    {
+        if ((key.Key == eAGSKeyCodeEscape) && (canabort == 1))
+            return true;
+        if (canabort >= 2)
+            return true;  // skip on any key
     }
-
-    const Rect &view = play.GetMainViewport();
-    if (stretch_flc == 0)
-        fli_target->Blit(usebuf, 0,0, view.GetWidth()/2-fliwidth/2, view.GetHeight()/2-fliheight/2, view.GetWidth(), view.GetHeight());
-    else 
-        fli_target->StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0, view.GetWidth(), view.GetHeight()));
-
-    gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
-    gfxDriver->DrawSprite(0, 0, fli_ddb);
-    render_to_screen();
-
-    return check_if_user_input_should_cancel_video();
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && canabort == 3)
+        return true; // skip on mouse click
+    return false;
 }
 
-void play_flc_file(int numb,int playflags) {
-    RGB oldpal[256];
+VideoPlayer::~VideoPlayer()
+{
+    Close();
+}
 
-    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
-    if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
-
-    if (play.fast_forward)
-        return;
-
-    get_palette_range(oldpal, 0, 255);
-
+bool VideoPlayer::Open(const String &name, int skip, int flags)
+{
     int clearScreenAtStart = 1;
-    canabort = playflags % 10;
-    playflags -= canabort;
+    canabort = skip;
+    stretch_flc = (flags % 100) == 0;
 
-    if (canabort == 2) // convert to PlayVideo-compatible setting
-        canabort = 3;
-
-    if (playflags % 100 == 0)
-        stretch_flc = 1;
-    else
-        stretch_flc = 0;
-
-    if (playflags / 100)
+    if (flags / 100)
         clearScreenAtStart = 0;
 
-    String flicname = String::FromFormat("flic%d.flc", numb);
-    Stream *in = AssetMgr->OpenAsset(flicname);
-    if (!in)
-    {
-        flicname.Format("flic%d.fli", numb);
-        in = AssetMgr->OpenAsset(flicname);
-    }
-    if (!in)
-    {
-        debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
-        return;
-    }
-
-    in->Seek(8);
-    fliwidth = in->ReadInt16();
-    fliheight = in->ReadInt16();
-    delete in;
-
-    if (game.color_depth > 1) {
-        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,game.GetColorDepth());
-        hicol_buf->Clear();
-    }
-    // override the stretch option if necessary
-    const Rect &view = play.GetMainViewport();
-    if ((fliwidth == view.GetWidth()) && (fliheight == view.GetHeight()))
-        stretch_flc = 0;
-    else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
-        stretch_flc = 1;
-    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8);
-    if (fli_buffer==nullptr) quit("Not enough memory to play animation");
-    fli_buffer->Clear();
+    if (!OpenImpl(name))
+        return false;
 
     if (clearScreenAtStart)
     {
@@ -180,57 +114,143 @@ void play_flc_file(int numb,int playflags) {
         render_to_screen();
     }
 
-    video_type = kVideoFlic;
-    fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
-    fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
+    _sdlTimer = SDL_AddTimer(fli_speed, VideoTimerCallback, nullptr);
+    _loop = false;
+    fli_timer = 1;
+    return true;
+}
 
-    PACKFILE *pf = PackfileFromAsset(AssetPath(flicname, "*"));
-    if (open_fli_pf(pf) == FLI_OK)
-    {
-        // TODO: refactor all this later!!!
-        const SDL_TimerID sdl_timer_id = SDL_AddTimer(fli_speed, fli_timer_callback, nullptr);
-        const int loop = 0; // TODO: add looping FLIC support to API?
+void VideoPlayer::Close()
+{
+    CloseImpl();
 
-        // actual FLI playback state, base on original Allegro 4's do_play_fli
-        fli_timer = 1;
-        int ret = next_fli_frame(loop);
-        while (ret == FLI_OK) {
-            /* update the palette */
-            if (fli_pal_dirty_from <= fli_pal_dirty_to)
-                set_palette_range(fli_palette, fli_pal_dirty_from, fli_pal_dirty_to, TRUE);
+    SDL_RemoveTimer(_sdlTimer);
+}
 
-            /* update the screen */
-            if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
-                blit(fli_bitmap, fli_buffer->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
-                    fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
-            }
-
-            reset_fli_variables();
-
-            ret = fli_callback();
-            if (ret != FLI_OK)
-                break;
-
-            ret = next_fli_frame(loop);
-            fli_timer--;
-
-            while (fli_timer <= 0) {
-                /* wait a bit */
-                SDL_Delay(1);
-            }
-        }
-
-        SDL_RemoveTimer(sdl_timer_id);
+bool VideoPlayer::Poll()
+{
+    // Acquire next video frame
+    if (!NextFrame())
+        return false;
+    // Render current frame
+    if (!Render())
+        return false;
+    // Check user input skipping the video
+    if (CheckUserInputSkip())
+        return false;
+    // Wait for timer
+    fli_timer--;
+    while (fli_timer <= 0) {
+        SDL_Delay(1);
     }
+    return true;
+}
+
+bool VideoPlayer::Render()
+{
+    Bitmap *usebuf = fli_buffer;
+
+    update_audio_system_on_game_loop();
+
+    if (game.color_depth > 1) {
+        hicol_buf->Blit(fli_buffer, 0, 0, 0, 0, fliwidth, fliheight);
+        usebuf = hicol_buf;
+    }
+
+    const Rect &view = play.GetMainViewport();
+    if (stretch_flc == 0)
+        fli_target->Blit(usebuf, 0, 0, view.GetWidth() / 2 - fliwidth / 2, view.GetHeight() / 2 - fliheight / 2, view.GetWidth(), view.GetHeight());
     else
+        fli_target->StretchBlt(usebuf, RectWH(0, 0, fliwidth, fliheight), RectWH(0, 0, view.GetWidth(), view.GetHeight()));
+
+    gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
+    gfxDriver->DrawSprite(0, 0, fli_ddb);
+    render_to_screen();
+    return true;
+}
+
+std::unique_ptr<VideoPlayer> gl_Video;
+
+//-----------------------------------------------------------------------------
+// FLIC video player implementation
+//-----------------------------------------------------------------------------
+
+class FlicPlayer : public VideoPlayer
+{
+public:
+    FlicPlayer() = default;
+    ~FlicPlayer();
+
+    void Restore() override;
+
+private:
+    bool OpenImpl(const AGS::Common::String &name) override;
+    void CloseImpl() override;
+    bool NextFrame() override;
+
+    PACKFILE *_pf = nullptr;
+    RGB _oldpal[256]{};
+};
+
+FlicPlayer::~FlicPlayer()
+{
+    CloseImpl();
+}
+
+void FlicPlayer::Restore()
+{
+    // If the FLIC video is playing, restore its palette
+    set_palette_range(fli_palette, 0, 255, 0);
+}
+
+bool FlicPlayer::OpenImpl(const AGS::Common::String &name)
+{
+    Stream *in = AssetMgr->OpenAsset(name);
+    if (!in)
+        return false;
+    in->Seek(8);
+    fliwidth = in->ReadInt16();
+    fliheight = in->ReadInt16();
+    delete in;
+
+    PACKFILE *pf = PackfileFromAsset(AssetPath(name, "*"));
+    if (open_fli_pf(pf) != FLI_OK)
     {
+        pack_fclose(pf);
         // This is not a fatal error that should prevent the game from continuing
         Debug::Printf("FLI/FLC animation play error");
+        return false;
     }
-    pack_fclose(pf);
-    
+    _pf = pf;
 
-    video_type = kVideoNone;
+    get_palette_range(_oldpal, 0, 255);
+
+    if (game.color_depth > 1)
+    {
+        hicol_buf = BitmapHelper::CreateBitmap(fliwidth, fliheight, game.GetColorDepth());
+        hicol_buf->Clear();
+    }
+    // override the stretch option if necessary
+    const Rect &view = play.GetMainViewport();
+    if ((fliwidth == view.GetWidth()) && (fliheight == view.GetHeight()))
+        stretch_flc = 0;
+    else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
+        stretch_flc = 1;
+    fli_buffer = BitmapHelper::CreateBitmap(fliwidth, fliheight, 8);
+    if (fli_buffer == nullptr) quit("Not enough memory to play animation");
+    fli_buffer->Clear();
+
+    fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
+    fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
+    return true;
+}
+
+void FlicPlayer::CloseImpl()
+{
+    if (_pf)
+        pack_fclose(_pf);
+    _pf = nullptr;
+
     delete fli_buffer;
     fli_buffer = nullptr;
     // NOTE: the screen bitmap could change in the meanwhile, if the display mode has changed
@@ -239,7 +259,7 @@ void play_flc_file(int numb,int playflags) {
         Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
         screen_bmp->Clear();
     }
-    set_palette_range(oldpal, 0, 255, 0);
+    set_palette_range(_oldpal, 0, 255, 0);
     render_to_screen();
 
     delete fli_target;
@@ -249,15 +269,76 @@ void play_flc_file(int numb,int playflags) {
 
 
     delete hicol_buf;
-    hicol_buf=nullptr;
+    hicol_buf = nullptr;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
-    while (ags_mgetbutton()!= MouseNone) { } // clear any queued mouse events.
+    while (ags_mgetbutton() != MouseNone) {} // clear any queued mouse events.
     invalidate_screen();
 }
 
-// FLIC player end
+bool FlicPlayer::NextFrame()
+{
+    // actual FLI playback state, base on original Allegro 4's do_play_fli
 
-// Theora player begin
+    /* get next frame */
+    if (next_fli_frame(IsLooping() ? 1 : 0) != FLI_OK)
+        return false;
+
+    /* update the palette */
+    if (fli_pal_dirty_from <= fli_pal_dirty_to)
+        set_palette_range(fli_palette, fli_pal_dirty_from, fli_pal_dirty_to, TRUE);
+
+    /* update the screen */
+    if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
+        blit(fli_bitmap, fli_buffer->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
+            fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
+    }
+
+    reset_fli_variables();
+    return true;
+}
+
+} // namespace Engine
+} // namespace AGS
+
+
+void play_flc_file(int numb, int playflags)
+{
+    if (play.fast_forward)
+        return; // skip video
+    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
+    if (loaded_game_file_version <= kGameVersion_272)
+        play.screen_is_faded_out = 0;
+
+    // Convert flags
+    int skip = playflags % 10;
+    playflags -= skip;
+    if (skip == 2) // convert to PlayVideo-compatible setting
+        skip = 3;
+
+    gl_Video.reset(new FlicPlayer());
+    // Try couple of various filename formats
+    String flicname = String::FromFormat("flic%d.flc", numb);
+    if (!gl_Video->Open(flicname, skip, playflags))
+    {
+        flicname.Format("flic%d.fli", numb);
+        if (!gl_Video->Open(flicname, skip, playflags))
+        {
+            gl_Video.reset();
+            debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
+            return;
+        }
+    }
+
+    // Loop until finished or skipped by player
+    while (gl_Video->Poll());
+
+    gl_Video.reset();
+}
+
+//-----------------------------------------------------------------------------
+// Theora video player implementation
+//-----------------------------------------------------------------------------
+
 // TODO: find a way to take Bitmap here?
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
@@ -266,7 +347,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
 	if (theoraBuffer == nullptr)
     {
         // No video, only sound
-        return check_if_user_input_should_cancel_video();
+        return CheckUserInputSkip();
     }
 
     gl_TheoraBuffer.WrapAllegroBitmap(theoraBuffer, true);
@@ -306,7 +387,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     update_audio_system_on_game_loop ();
     render_to_screen();
 
-    return check_if_user_input_should_cancel_video();
+    return CheckUserInputSkip();
 }
 
 //
@@ -428,13 +509,11 @@ void play_theora_video(const char *name, int skip, int flags)
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
 
-    video_type = kVideoTheora;
     if (apeg_play_apeg_stream(oggVid, nullptr, 0, theora_playing_callback) == APEG_ERROR)
     {
         Display("Error playing theora video '%s'", name);
     }
     apeg_close_stream(oggVid);
-    video_type = kVideoNone;
 
     //destroy_bitmap(fli_buffer);
     delete fli_target;
@@ -443,15 +522,11 @@ void play_theora_video(const char *name, int skip, int flags)
     fli_ddb = nullptr;
     invalidate_screen();
 }
-// Theora player end
 
 void video_on_gfxmode_changed()
 {
-    if (video_type == kVideoFlic)
-    {
-        // If the FLIC video is playing, restore its palette
-        set_palette_range(fli_palette, 0, 255, 0);
-    }
+    if (gl_Video)
+        gl_Video->Restore();
 }
 
 #else

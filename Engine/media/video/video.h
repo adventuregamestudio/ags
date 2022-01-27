@@ -12,11 +12,58 @@
 //
 //=============================================================================
 //
-//
+// Video playback interface
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEO_H
 #define __AGS_EE_MEDIA__VIDEO_H
+#include "util/string.h"
+
+namespace AGS
+{
+namespace Engine
+{
+
+using AGS::Common::String;
+
+// Parent video player class, provides basic playback logic,
+// while relying on frame decoding being implemented in derived classes.
+class VideoPlayer
+{
+public:
+    virtual ~VideoPlayer();
+    // Tries to open a video file of a given name
+    bool Open(const String &name, int skip, int flags);
+    // Stops the playback, releasing any resources
+    void Close();
+    // Restores the video after display switch
+    virtual void Restore() {};
+
+    // Tells if video playback is looping
+    bool IsLooping() const { return _loop; }
+
+    // Updates the video playback
+    bool Poll();
+
+protected:
+    // Opens the video, implementation-specific
+    virtual bool OpenImpl(const String &name) { return false; };
+    // Closes the video, implementation-specific
+    virtual void CloseImpl() {};
+    // Retrieves next video frame, implementation-specific
+    virtual bool NextFrame() { return false; };
+
+    // Renders the current frame
+    bool Render();
+
+private:
+    bool _loop = false;
+    uint32_t _sdlTimer = 0u;
+};
+
+} // namespace Engine
+} // namespace AGS
+
 
 void play_theora_video(const char *name, int skip, int flags);
 void play_flc_file(int numb,int playflags);

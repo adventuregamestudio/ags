@@ -188,7 +188,7 @@ void play_flc_file(int numb,int playflags) {
     // Ports can still play FLI if separate file is put into game's directory.
 #if AGS_FLI_FROM_PACK_FILE
     size_t asset_size;
-    PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname), asset_size);
+    PACKFILE *pf = PackfileFromAsset(AssetPath(flicname, ""), asset_size);
     if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
 #else
     if (play_fli(flicname, (BITMAP*)fli_buffer->GetAllegroBitmap(), 0, fli_callback)==FLI_ERROR)

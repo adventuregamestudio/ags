@@ -373,9 +373,9 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
           }
         }
         wait = views[view].loops[loop].frames[frame].speed;
-        // idle anim doesn't have speed stored cos animating==0
+        // idle anim doesn't have speed stored cos animating==0 (TODO: investigate why?)
         if (idleleft < 0)
-          wait += animspeed+5;
+          wait += idle_anim_speed;
         else 
           wait += (animating >> 8) & 0x00ff;
 
@@ -508,10 +508,9 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
         else if (useloop >= maxLoops)
           useloop = 0;
 
-        animate_character(this,useloop,
-          animspeed+5,(idletime == 0) ? 1 : 0, 1);
+        animate_character(this, useloop, idle_anim_speed, (idletime == 0) ? 1 : 0, 1);
 
-        // don't set Animating while the idle anim plays
+        // don't set Animating while the idle anim plays (TODO: investigate why?)
         animating = 0;
       }
     }  // end do idle animation

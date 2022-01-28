@@ -94,7 +94,7 @@ namespace AGS.Editor
          * --------------------------------------------------------------------
          * 3.6.0          - Settings.CustomDataDir, TTFHeightDefinedBy, TTFMetricsFixup;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
-         *                - Character.IdleDelay
+         *                - Character.IdleDelay, Character.IdleAnimationDelay;
          *                - RuntimeSetup.FullscreenDesktop
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060000;

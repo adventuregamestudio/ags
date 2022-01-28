@@ -1593,7 +1593,7 @@ namespace AGS.Editor
                 writer.Write(0);                                       // z
                 writer.Write(0);                                       // walkwait
                 writer.Write((short)character.SpeechAnimationDelay);   // speech_anim_speed
-                writer.Write((short)0);                                // reserved1
+                writer.Write((short)character.IdleAnimationDelay);     // idle_anim_speed
                 writer.Write((short)0);                                // blocking_width
                 writer.Write((short)0);                                // blocking_height
                 writer.Write(0);                                       // index_id

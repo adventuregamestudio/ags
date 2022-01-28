@@ -2590,6 +2590,10 @@ builtin managed struct Character {
   /// Returns the character at the specified position within this room.
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v360
+  /// Gets/sets the character's idle animation delay.
+  import attribute int  IdleAnimationDelay;
+#endif
 #ifdef STRICT
   /// The character's current X-position.
   import attribute int  x;

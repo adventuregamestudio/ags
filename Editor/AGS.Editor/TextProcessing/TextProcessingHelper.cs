@@ -30,6 +30,8 @@ namespace AGS.Editor
                 }                
             }
 
+            ProcessPropertySchema(processor, game.PropertySchema, errors);
+
             foreach (GUI gui in game.RootGUIFolder.AllItemsFlat)
             {
                 foreach (GUIControl control in gui.Controls)
@@ -68,6 +70,15 @@ namespace AGS.Editor
 			}
 
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
+        }
+
+        private static void ProcessPropertySchema(IGameTextProcessor processor, CustomPropertySchema schema,
+            CompileMessages errors)
+        {
+            foreach (var def in schema.PropertyDefinitions.Where(n => n.Type == CustomPropertyType.Text))
+            {
+                def.DefaultValue = processor.ProcessText(def.DefaultValue, GameTextType.ItemDescription);
+            }
         }
 
         public static void ProcessProperties(IGameTextProcessor processor, CustomPropertySchema schema,

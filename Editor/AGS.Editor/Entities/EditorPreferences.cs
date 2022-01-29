@@ -7,6 +7,8 @@ using System.Windows.Forms.Design;
 using System.Drawing.Design;
 using Microsoft.Win32;
 using AGS.Types;
+using System.Reflection;
+using System.Linq;
 
 namespace AGS.Editor.Preferences
 {
@@ -296,72 +298,34 @@ namespace AGS.Editor.Preferences
             return success;
         }
 
+        private List<PropertyInfo> GetBrowsableProperties()
+        {
+            return GetType().GetProperties()
+               .Where(f => f.GetCustomAttributes<BrowsableAttribute>().Contains(BrowsableAttribute.Yes))
+               .ToList();
+        }
+
         public AppSettings CloneAppSettings()
         {
             AppSettings clone = new AppSettings();
-            clone.BackupWarningInterval = BackupWarningInterval;
-            clone.ColorTheme = ColorTheme;
-            clone.DefaultImportPath = DefaultImportPath;
-            clone.DialogOnMultipleTabsClose = DialogOnMultipleTabsClose;
-            clone.IndentUseTabs = IndentUseTabs;
-            clone.KeepHelpOnTop = KeepHelpOnTop;
-            clone.LastBackupWarning = LastBackupWarning;
-            clone.MainWinHeight = MainWinHeight;
-            clone.MainWinMaximize = MainWinMaximize;
-            clone.MainWinWidth = MainWinWidth;
-            clone.MainWinX = MainWinX;
-            clone.MainWinY = MainWinY;
-            clone.MessageBoxOnCompile = MessageBoxOnCompile;
-            clone.MigratedSettings = MigratedSettings;
-            clone.NewGamePath = NewGamePath;
-            clone.PaintProgramPath = PaintProgramPath;
-            clone.RecentGames = RecentGames;
-            clone.RecentSearches = RecentSearches;
-            clone.ReloadScriptOnExternalChange = ReloadScriptOnExternalChange;
-            clone.RemapPalettizedBackgrounds = RemapPalettizedBackgrounds;
-            clone.SendAnonymousStats = SendAnonymousStats;
-            clone.SettingsKey = SettingsKey;
-            clone.ShowViewPreviewByDefault = ShowViewPreviewByDefault;
-            clone.SpriteImportMethod = SpriteImportMethod;
-            clone.StartupPane = StartupPane;
-            clone.StatsLastSent = StatsLastSent;
-            clone.TabSize = TabSize;
-            clone.TestGameWindowStyle = TestGameWindowStyle;
-            clone.UpgradedSettings = UpgradedSettings;
+            List<PropertyInfo> props = GetBrowsableProperties();
+
+            foreach (PropertyInfo prop in props)
+            {
+                clone[prop.Name] = this[prop.Name];
+            }
 
             return clone;
         }
 
         public void Apply(AppSettings settings)
         {
-            BackupWarningInterval = settings.BackupWarningInterval;
-            ColorTheme = settings.ColorTheme;
-            DefaultImportPath = settings.DefaultImportPath;
-            DialogOnMultipleTabsClose = settings.DialogOnMultipleTabsClose;
-            IndentUseTabs = settings.IndentUseTabs;
-            KeepHelpOnTop = settings.KeepHelpOnTop;
-            LastBackupWarning = settings.LastBackupWarning;
-            MainWinHeight = settings.MainWinHeight;
-            MainWinMaximize = settings.MainWinMaximize;
-            MainWinWidth = settings.MainWinWidth;
-            MainWinX = settings.MainWinX;
-            MainWinY = settings.MainWinY;
-            MessageBoxOnCompile = settings.MessageBoxOnCompile;
-            MigratedSettings = settings.MigratedSettings;
-            NewGamePath = settings.NewGamePath;
-            PaintProgramPath = settings.PaintProgramPath;
-            RecentGames = settings.RecentGames;
-            RecentSearches = settings.RecentSearches;
-            ReloadScriptOnExternalChange = settings.ReloadScriptOnExternalChange;
-            RemapPalettizedBackgrounds = settings.RemapPalettizedBackgrounds;
-            SendAnonymousStats = settings.SendAnonymousStats;
-            ShowViewPreviewByDefault = settings.ShowViewPreviewByDefault;
-            SpriteImportMethod = settings.SpriteImportMethod;
-            StartupPane = settings.StartupPane;
-            StatsLastSent = settings.StatsLastSent;
-            TabSize = settings.TabSize;
-            TestGameWindowStyle = settings.TestGameWindowStyle;
-            UpgradedSettings = settings.UpgradedSettings;
+            List<PropertyInfo> props = GetBrowsableProperties();
+
+            foreach (PropertyInfo prop in props)
+            {
+                this[prop.Name] = settings[prop.Name];
+            }
         }
 
         [Browsable(false)]
@@ -394,6 +358,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Test Game Style")]
         [Description("Game should run in window or full-screen when you test it. When using F5 game will always run in a window.")]
         [Category("Test Game")]
@@ -412,6 +377,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Editor Startup Action")]
         [Description("What editor should do at startup.")]
         [Category("Editor Appearance")]
@@ -430,6 +396,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Pop-up messages on Compile")]
         [Description("In which cases the editor should show pop-up windows when compiling.")]
         [Category("Editor Appearance")]
@@ -448,6 +415,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Script file modified externally, should it reload?")]
         [Description("If a script is open for editing and is modified by another program, should it reload?")]
         [Category("Script Editor")]
@@ -466,6 +434,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Default sprite import transparency")]
         [Description("Sprite transparency import method to use by default.")]
         [Category("Sprite Editor")]
@@ -484,6 +453,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Tab width")]
         [Description("How many space characters a tab width should be. This setting requires editor restart to be applied.")]
         [Category("Script Editor")]
@@ -501,7 +471,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
-
+        [Browsable(true)]
         [DisplayName("Indent Uses Tabs")]
         [Description("Should editor use tabs instead of spaces when indenting?")]
         [Category("Script Editor")]
@@ -519,6 +489,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Show view preview by default in view editors")]
         [Description("Wheter view preview is always showing when a view editor is loaded.")]
         [Category("Editor Appearance")]
@@ -536,6 +507,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Default image editor")]
         [Description("When you double-click a sprite, what program do you want to use to edit it? This program must support PNG and BMP files.")]
         [Category("Sprite Editor")]
@@ -554,6 +526,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("New Game Directory")]
         [Description("When you create a new game, where do you want it to go?")]
         [Category("New Game Directory")]
@@ -620,6 +593,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("7")]
         public int BackupWarningInterval
@@ -634,6 +608,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Remap palette of room backgrounds")]
         [Description("Remap paletter of room background into allocated background palette slots (8-bit games only).")]
         [Category("Import of 8-bit background")]
@@ -681,6 +656,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Keep Help window on top")]
         [Description("Should Help window always be on top of the Editor window when shown?")]
         [Category("Editor Appearance")]
@@ -698,6 +674,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Ask before closing multiple tabs")]
         [Description("Prompt dialog on closing multiple tabs.")]
         [Category("Editor Appearance")]
@@ -715,6 +692,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Color Theme")]
         [Description("Select which theme the editor should be using.")]
         [Category("Editor Appearance")]
@@ -733,6 +711,7 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
         [DisplayName("Import Directory")]
         [Description("When you import files, where do you want to look first?")]
         [Category("Import Directory")]

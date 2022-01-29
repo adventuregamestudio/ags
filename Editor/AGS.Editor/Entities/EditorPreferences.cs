@@ -6,51 +6,72 @@ using System.IO;
 using System.Windows.Forms.Design;
 using System.Drawing.Design;
 using Microsoft.Win32;
+using AGS.Types;
 
 namespace AGS.Editor.Preferences
 {
     [Flags]
     public enum StartupPane
     {
+        [Description("Show Start Page")]
         StartPage = 0,
+        [Description("Show Game Settings")]
         GeneralSettings = 1,
+        [Description("No panes should open")]
         None = 2
     }
 
     [Flags]
     public enum MessageBoxOnCompile
     {
+        [Description("Always")]
         Always = 0,
+        [Description("When there are warnings or errors")]
         WarningsAndErrors = 1,
+        [Description("When there are errors")]
         OnlyErrors = 2,
+        [Description("Never")]
         Never = 3
     }
 
     [Flags]
     public enum ReloadScriptOnExternalChange
     {
+        [Description("Ask what to do")]
         Prompt = 0,
+        [Description("Always reload the file")]
         Always = 1,
+        [Description("Never reload the file")]
         Never = 2
     }
 
     [Flags]
     public enum SpriteImportMethod
     {
+        [Description("Palette index 0")]
         Pixel0 = 0,
+        [Description("Top -left Pixel")]
         TopLeft = 1,
+        [Description("Bottom-left Pixel")]
         BottomLeft = 2,
+        [Description("Top-right Pixel")]
         TopRight = 3,
+        [Description("Bottom-right Pixel")]
         BottomRight = 4,
+        [Description("Leave as-is")]
         LeaveAsIs = 5,
+        [Description("No transparency")]
         NoTransparency = 6
     }
 
     [Flags]
     public enum TestGameWindowStyle
     {
+        [Description("Use game setup configuration")]
         UseGameSetup = 0,
+        [Description("Always run full-screen")]
         FullScreen = 1,
+        [Description("Always run in a window")]
         Windowed = 2
     }
 
@@ -363,6 +384,7 @@ namespace AGS.Editor.Preferences
         [Category("Test Game")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("UseGameSetup")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public TestGameWindowStyle TestGameWindowStyle
         {
             get
@@ -380,6 +402,7 @@ namespace AGS.Editor.Preferences
         [Category("Editor Appearance")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("StartPage")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public StartupPane StartupPane
         {
             get
@@ -397,6 +420,7 @@ namespace AGS.Editor.Preferences
         [Category("Editor Appearance")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("WarningsAndErrors")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public MessageBoxOnCompile MessageBoxOnCompile
         {
             get
@@ -409,11 +433,12 @@ namespace AGS.Editor.Preferences
             }
         }
 
-        [DisplayName("Reload Script file modified externally")]
+        [DisplayName("Script file modified externally, should it reload?")]
         [Description("If a script is open for editing and is modified by another program, should it reload?")]
         [Category("Script Editor")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("Prompt")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public ReloadScriptOnExternalChange ReloadScriptOnExternalChange
         {
             get
@@ -431,6 +456,7 @@ namespace AGS.Editor.Preferences
         [Category("Sprite Editor")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("LeaveAsIs")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public SpriteImportMethod SpriteImportMethod
         {
             get

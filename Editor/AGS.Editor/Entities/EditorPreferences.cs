@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.IO;
+using System.Windows.Forms.Design;
+using System.Drawing.Design;
 using Microsoft.Win32;
 
 namespace AGS.Editor.Preferences
@@ -498,6 +500,7 @@ namespace AGS.Editor.Preferences
         [Category("Sprite Editor")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
+        [EditorAttribute(typeof(FileNameEditor), typeof(UITypeEditor))]
         public string PaintProgramPath
         {
             get
@@ -515,6 +518,7 @@ namespace AGS.Editor.Preferences
         [Category("New Game Directory")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
         public string NewGamePath
         {
             get
@@ -692,6 +696,7 @@ namespace AGS.Editor.Preferences
         [Category("Import Directory")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
         public string DefaultImportPath
         {
             get

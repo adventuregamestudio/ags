@@ -310,10 +310,13 @@ namespace AGS.Editor
 
         private void cmbColorTheme_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string newColorTheme = ((ColorTheme)cmbColorTheme.SelectedItem).Name;
-            if (_settings.ColorTheme != newColorTheme)
+            ColorTheme newColorTheme = (ColorTheme)cmbColorTheme.SelectedItem;
+
+            if (newColorTheme == null) return;
+
+            if (_settings.ColorTheme != newColorTheme.Name)
             {
-                _settings.ColorTheme = newColorTheme;
+                _settings.ColorTheme = newColorTheme.Name;
             }
         }
 

@@ -75,6 +75,21 @@ namespace AGS.Editor.Preferences
         Windowed = 2
     }
 
+    public class ColorThemeTypeConverter : BaseListSelectTypeConverter<string, string>
+    {
+        protected override Dictionary<string, string> GetValueList(ITypeDescriptorContext context)
+        {
+            Dictionary<string, string> colorThemeList = new Dictionary<string, string>();
+
+            foreach (ColorTheme colorTheme in Factory.GUIController.ColorThemes.Themes)
+            {
+                colorThemeList.Add(colorTheme.Name, colorTheme.Name);
+            }
+
+            return colorThemeList;
+        }
+    }
+
     public class RecentGame : IEquatable<RecentGame>
     {
         // default constructor is needed to serialize
@@ -705,6 +720,7 @@ namespace AGS.Editor.Preferences
         [Category("Editor Appearance")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
+        [TypeConverter(typeof(ColorThemeTypeConverter))]
         public string ColorTheme
         {
             get

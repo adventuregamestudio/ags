@@ -76,8 +76,8 @@ HError DataExtParser::PostAssert()
     const soff_t block_end = _blockStart + _blockLen;
     if (cur_pos > block_end)
     {
-        String err = String::FromFormat("Block: '%s', expected to end at offset: %lld, finished reading at %lld.",
-            _extID.GetCStr(), block_end, cur_pos);
+        String err = String::FromFormat("Block: '%s', expected to end at offset: %jd, finished reading at %jd.",
+            _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
         if (cur_pos <= block_end + GetOverLeeway(_blockID))
             Debug::Printf(kDbgMsg_Warn, err);
         else
@@ -85,8 +85,8 @@ HError DataExtParser::PostAssert()
     }
     else if (cur_pos < block_end)
     {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %lld, finished reading at %lld",
-            _extID.GetCStr(), block_end, cur_pos);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
+            _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
         _in->Seek(block_end, Common::kSeekBegin);
     }
     return HError::None();

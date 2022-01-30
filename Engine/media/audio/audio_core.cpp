@@ -210,12 +210,12 @@ void audio_core_set_master_volume(float newvol)
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
 {
     ALuint source_ = g_acore.slots_[slot_handle]->source_;
+    auto &player = g_acore.slots_[slot_handle]->decoder_;
 
     alSourcef(source_, AL_GAIN, volume*0.7f);
     dump_al_errors();
 
-    alSourcef(source_, AL_PITCH, speed);
-    dump_al_errors();
+    player.SetSpeed(speed);
 
     if (panning != 0.0f) {
         // https://github.com/kcat/openal-soft/issues/194

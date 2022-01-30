@@ -13,6 +13,7 @@
 //=============================================================================
 #include "media/audio/openaldecoder.h"
 #include <array>
+#include <SDL.h>
 #include "debug/out.h"
 
 namespace ags = AGS::Common;
@@ -32,7 +33,31 @@ void dump_al_errors()
 }
 
 
-const auto SourceMinimumQueuedBuffers = 2;
+bool SDLResampler::Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
+    SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+{
+    SDL_zero(_cvt);
+    return SDL_BuildAudioCVT(&_cvt, src_fmt, src_chans, src_rate,
+        dst_fmt, dst_chans, dst_rate) >= 0;
+}
+
+void *SDLResampler::Convert(void *data, size_t sz, size_t &out_sz)
+{
+    if (_buf.size() < sz * _cvt.len_mult)
+    {
+        size_t len = sz * _cvt.len_mult;
+        _buf.resize(len);
+    }
+    _cvt.buf = &_buf[0];
+    _cvt.len = _cvt.len_cvt = sz;
+    SDL_memcpy(_cvt.buf, data, sz);
+    if (SDL_ConvertAudio(&_cvt) < 0)
+        return nullptr;
+    out_sz = _cvt.len_cvt;
+    return &_buf[0];
+}
+
+
 const auto SampleDefaultBufferSize = 64 * 1024;
 
 static struct
@@ -41,7 +66,8 @@ static struct
 } g_oaldec;
 
 
-float OpenALDecoder::buffer_duration_ms(ALuint bufferID) {
+// Returns buffer duration in seconds
+static float buffer_duration(ALuint bufferID) {
     ALint sizeInBytes;
     ALint channels;
     ALint bits;
@@ -53,9 +79,8 @@ float OpenALDecoder::buffer_duration_ms(ALuint bufferID) {
     alGetBufferi(bufferID, AL_FREQUENCY, &frequency);
 
     auto lengthInSamples = sizeInBytes * 8 / (channels * bits);
-    return 1000.0f * (float)lengthInSamples / (float)frequency;
+    return (float)lengthInSamples / (float)frequency;
 }
-
 
 ALenum OpenALDecoder::openalFormatFromSample(const SoundSampleUniquePtr &sample) {
     if (sample->desired.channels == 1) {
@@ -102,7 +127,9 @@ void OpenALDecoder::DecoderUnqueueProcessedBuffers()
         alSourceUnqueueBuffers(source_, 1, &b);
         dump_al_errors();
 
-        processedBuffersDurationMs_ += buffer_duration_ms(b);
+        assert(bufferRecords.size() > 0);
+        processedBuffersDurationMs_ += bufferRecords.front().Time * 1000.f;
+        bufferRecords.pop_front();
 
         g_oaldec.freeBuffers.push_back(b);
     }
@@ -114,8 +141,8 @@ void OpenALDecoder::PollBuffers()
     DecoderUnqueueProcessedBuffers();
 
     // generate extra buffers if none are free
-    if (g_oaldec.freeBuffers.size() < SourceMinimumQueuedBuffers) {
-        std::array<ALuint, SourceMinimumQueuedBuffers> genbufs;
+    if (g_oaldec.freeBuffers.size() < MaxQueue) {
+        std::array<ALuint, MaxQueue> genbufs;
         alGenBuffers(genbufs.size(), genbufs.data());
         dump_al_errors();
         for (const auto &b : genbufs) {
@@ -129,7 +156,7 @@ void OpenALDecoder::PollBuffers()
         alGetSourcei(source_, AL_BUFFERS_QUEUED, &buffersQueued);
         dump_al_errors();
 
-        if (buffersQueued >= SourceMinimumQueuedBuffers) { break; }
+        if (buffersQueued >= MaxQueue) { break; }
 
         assert(g_oaldec.freeBuffers.size() > 0);
         auto it = std::prev(g_oaldec.freeBuffers.end());
@@ -154,11 +181,27 @@ void OpenALDecoder::PollBuffers()
         // Nothing was decoded last time - skip
         if (sz == 0) { continue; }
 
-        alBufferData(b, sampleOpenAlFormat_, sample_->buffer, sz, sample_->desired.rate);
+        void *input_buf = sample_->buffer;
+        size_t input_sz = sz;
+        if (resampler_.HasConversion())
+        {
+            size_t conv_sz;
+            void *conv = resampler_.Convert(sample_->buffer, sz, conv_sz);
+            if (conv)
+            {
+                input_buf = conv;
+                input_sz = conv_sz;
+            }
+        }
+
+        alBufferData(b, sampleOpenAlFormat_, input_buf, input_sz, sample_->desired.rate);
         dump_al_errors();
 
         alSourceQueueBuffers(source_, 1, &b);
         dump_al_errors();
+
+        // Push buffer record
+        bufferRecords.push_back(BufferParams(buffer_duration(b), speed_));
 
         g_oaldec.freeBuffers.erase(it);
     }
@@ -170,8 +213,8 @@ OpenALDecoder::OpenALDecoder(ALuint source, const std::vector<char> &sampleBuf,
     : source_(source)
     , sampleData_(std::move(sampleBuf))
     , sampleExt_(sampleExt)
-    , repeat_(repeat) {
-
+    , repeat_(repeat)
+{
 }
 
 OpenALDecoder::OpenALDecoder(OpenALDecoder&& dec)
@@ -349,6 +392,7 @@ void OpenALDecoder::Seek(float pos_ms)
         DecoderUnqueueProcessedBuffers();
         Sound_Seek(sample_.get(), pos_ms);
         processedBuffersDurationMs_ = pos_ms;
+        lastPosReport = pos_ms;
         // will play when buffers are added in poll
     }
 }
@@ -360,17 +404,36 @@ PlaybackState OpenALDecoder::GetPlayState()
 
 float OpenALDecoder::GetPositionMs()
 {
-    float alSecOffset = 0.0f;
-    alGetSourcef(source_, AL_SEC_OFFSET, &alSecOffset);
+    float al_offset = 0.f;
+    alGetSourcef(source_, AL_SEC_OFFSET, &al_offset);
     dump_al_errors();
-    auto positionMs_ = processedBuffersDurationMs_ + alSecOffset*1000.0f;
+    float off_ms = 0.f;
+    if (bufferRecords.size() > 0)
+        off_ms = al_offset * bufferRecords.front().Speed * 1000.f;
+    float pos_ms = processedBuffersDurationMs_ + off_ms;
 #ifdef AUDIO_CORE_DEBUG
-    agsdbg::Printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, alSecOffset*1000.0f, positionMs_);
+    agsdbg::Printf("proc:%f plus:%f = %f\n", processedBuffersDurationMs_, off_ms, pos_ms);
 #endif
-    return positionMs_;
+    // Dirty fixup, in case the reported position jumps back when the playback speed changes
+    pos_ms = std::max(lastPosReport, pos_ms);
+    lastPosReport = pos_ms;
+    return pos_ms;
 }
 
 float OpenALDecoder::GetDurationMs()
 {
     return duration_;
+}
+
+void OpenALDecoder::SetSpeed(float speed)
+{
+    speed_ = speed;
+
+    // Configure resample
+    int new_freq = static_cast<int>(sample_->desired.rate / speed_);
+    if (!resampler_.Setup(sample_->desired.format, sample_->desired.channels,
+        (int)sample_->desired.rate, sample_->desired.format, sample_->desired.channels, new_freq))
+    { // error, reset
+        speed_ = 1.0;
+    }
 }

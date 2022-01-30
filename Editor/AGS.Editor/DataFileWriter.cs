@@ -1764,6 +1764,7 @@ namespace AGS.Editor
             // of type WriteExtensionProc that does the actual writing job.
 
             WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
+            WriteExtension("v360_cursors", WriteExt_360Cursors, writer, game, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1773,7 +1774,7 @@ namespace AGS.Editor
             return true;
         }
 
-        // 3.6.0: font outline properties
+        // >= 3.6.0: font outline properties
         private static void WriteExt_360Fonts(BinaryWriter writer, Game game, CompileMessages errors)
         {
             // adjustable font outlines
@@ -1783,6 +1784,20 @@ namespace AGS.Editor
                 writer.Write((int)game.Fonts[i].AutoOutlineStyle);
                 // reserved ints
                 writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+        }
+
+        // >= 3.6.0: extended cursor properties
+        private static void WriteExt_360Cursors(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            // adjustable font outlines
+            for (int i = 0; i < game.Cursors.Count; ++i)
+            {
+                writer.Write((int)game.Cursors[i].AnimationDelay);
+                // reserved ints
                 writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);

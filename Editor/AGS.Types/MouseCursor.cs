@@ -9,27 +9,19 @@ namespace AGS.Types
     [DefaultProperty("Image")]
     public class MouseCursor
     {
-        private string _name;
-        private bool _standardMode;
-        private int _id;
-        private int _image;
-        private int _hotspotX, _hotspotY;
-        private int _view;
-        private bool _animate;
-        private bool _animateOnlyOnHotspot;
-        private bool _animateOnlyWhenMoving;
+        private string _name = string.Empty;
+        private bool _standardMode = false;
+        private int _id = 0;
+        private int _image = 0;
+        private int _hotspotX = 0, _hotspotY = 0;
+        private int _view = 0;
+        private bool _animate = false;
+        private bool _animateOnlyOnHotspot = false;
+        private bool _animateOnlyWhenMoving = false;
+        private int _animateDelay = 5;
 
         public MouseCursor()
         {
-            _standardMode = false;
-            _name = string.Empty;
-            _image = 0;
-            _hotspotX = 0;
-            _hotspotY = 0;
-            _view = 0;
-            _animate = false;
-            _animateOnlyOnHotspot = false;
-            _animateOnlyWhenMoving = false;
         }
 
         [Description("The ID number of the cursor")]
@@ -116,6 +108,14 @@ namespace AGS.Types
         {
             get { return _animateOnlyWhenMoving; }
             set { _animateOnlyWhenMoving = value; }
+        }
+
+        [Description("Delay between changing frames whilst animating")]
+        [Category("Appearance")]
+        public int AnimationDelay
+        {
+            get { return _animateDelay; }
+            set { _animateDelay = value; }
         }
 
         [Description("The name of the cursor")]

@@ -22,18 +22,23 @@ using namespace AGS; // FIXME later
 #define MCF_DISABLED 2
 #define MCF_STANDARD 4
 #define MCF_HOTSPOT  8  // only animate when over hotspot
-// this struct is also in the plugin header file
+// IMPORTANT: exposed to plugin API as AGSCursor!
+// do not change topmost fields, unless planning breaking compatibility.
 struct MouseCursor {
-    int   pic;
-    short hotx, hoty;
-    short view;
-    char  name[10];
-    char  flags;
-    MouseCursor();
+    int   pic = 0;
+    short hotx = 0, hoty = 0;
+    short view = -1;
+    char  name[10]{};
+    char  flags = 0;
+
+    // up to here is a part of plugin API
+    int   animdelay = 5;
+
+    MouseCursor() = default;
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

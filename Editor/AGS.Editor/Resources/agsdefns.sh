@@ -791,7 +791,7 @@ struct Mouse {
   /// Changes the active hotspot for the specified mouse cursor.
   import static void ChangeModeHotspot(CursorMode, int x, int y);
   /// Changes the view used to animate the specified mouse cursor.
-  import static void ChangeModeView(CursorMode, int view);
+  import static void ChangeModeView(CursorMode, int view, int delay = SCR_NO_VALUE);
   /// Disables the specified cursor mode.
   import static void DisableMode(CursorMode);
   /// Re-enables the specified cursor mode.

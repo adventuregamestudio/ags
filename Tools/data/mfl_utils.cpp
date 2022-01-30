@@ -63,8 +63,8 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const Strin
             if (wrote == asset.Size)
                 printf("+ %s\n", asset.FileName.GetCStr());
             else
-                printf("Error: file was not written correctly: %s\n Expected: %lld, wrote: %lld bytes\n",
-                    asset.FileName.GetCStr(), asset.Size, wrote);
+                printf("Error: file was not written correctly: %s\n Expected: %jd, wrote: %jd bytes\n",
+                    asset.FileName.GetCStr(), static_cast<intmax_t>(asset.Size), static_cast<intmax_t>(wrote));
         }
     }
     return HError::None();

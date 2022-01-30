@@ -1,5 +1,6 @@
-#include <inttypes.h>
-#include <stdio.h>
+#include <cinttypes>
+#include <cstdio>
+#include <cstring>
 #include "game/room_file.h"
 #include "util/data_ext.h"
 #include "util/file.h"

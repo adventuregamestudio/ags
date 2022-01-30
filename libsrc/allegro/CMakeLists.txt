@@ -108,7 +108,7 @@ if(UNIX)
     # XXX size_t
 endif(UNIX)
 
-if(UNIX AND NOT ANDROID)
+if(UNIX AND NOT (ANDROID OR EMSCRIPTEN))
     check_c_source_runs("
         static int notsupported = 1;
         void test_ctor (void) __attribute__((constructor));

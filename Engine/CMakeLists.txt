@@ -471,6 +471,8 @@ target_sources(engine
 
     platform/ios/acplios.cpp
 
+    platform/emscripten/acpemscripten.cpp
+
     platform/bsd/acplbsd.cpp
 
     platform/windows/win_ex_handling.cpp
@@ -547,7 +549,7 @@ target_link_libraries(engine PUBLIC
     Cda::Cda
     glm::glm
     External::OpenAL
-    SDL2::SDL2
+    ${SDL2_LIBRARY}
     SDL2_sound::SDL2_sound
 )
 
@@ -613,7 +615,7 @@ target_sources(ags
     main/main_sdl2.cpp
 )
 
-target_link_libraries(ags PRIVATE engine SDL2::SDL2main)
+target_link_libraries(ags PRIVATE engine ${SDL2MAIN_LIBRARY})
 
 if (LINUX)
     # We may override `allegro_icon` and `load_midi_pf` depending on the version

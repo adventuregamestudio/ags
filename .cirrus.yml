@@ -176,6 +176,19 @@ build_android_task:
   libs_artifacts:
     path: AGS-*-android-libs-*.zip
 
+
+build_emscripten_task:
+  container:
+    image: ubuntu:focal
+  install_packages_script: |
+    export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y tzdata git pkg-config curl build-essential cmake bash python3 python3-pip
+  build_emscripten_script: |
+    pushd Emscripten && ./build.sh && popd
+  package_emscripten_build_script: |
+    pushd Emscripten && mkdir out && cp my_game.html my_game_files.js out/ && pushd build-release && mv ags.js ags.wasm ags.html ../out && popd && popd
+  emscripten_artifacts:
+    path: Emscripten/out/*
+
 build_editor_task:
   windows_container:
     dockerfile: ci/windows/Dockerfile

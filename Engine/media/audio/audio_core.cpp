@@ -97,14 +97,18 @@ void audio_core_init()
     Sound_Init();
 
     g_acore.audio_core_thread_running = true;
+#if !defined(AGS_DISABLE_THREADS)
     g_acore.audio_core_thread = std::thread(audio_core_entry);
+#endif
 }
 
 void audio_core_shutdown()
 {
     g_acore.audio_core_thread_running = false;
+#if !defined(AGS_DISABLE_THREADS)
     if (g_acore.audio_core_thread.joinable())
         g_acore.audio_core_thread.join();
+#endif
 
     // dispose all the active slots
     g_acore.slots_.clear();
@@ -271,25 +275,32 @@ PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float 
 // AUDIO PROCESSING
 // -------------------------------------------------------------------------------------------------
 
+void audio_core_entry_poll()
+{
+    // burn off any errors for new loop
+    dump_al_errors();
+
+    for (auto &entry : g_acore.slots_) {
+        auto &slot = entry.second;
+
+        try {
+            slot->decoder_.Poll();
+        } catch (const std::exception& e) {
+            agsdbg::Printf(ags::kDbgMsg_Error, "OpenALDecoder poll exception %s", e.what());
+        }
+    }
+}
+
+#if !defined(AGS_DISABLE_THREADS)
 static void audio_core_entry()
 {
     std::unique_lock<std::mutex> lk(g_acore.mixer_mutex_m);
 
     while (g_acore.audio_core_thread_running) {
-        
-        // burn off any errors for new loop
-        dump_al_errors();
 
-        for (auto &entry : g_acore.slots_) {
-            auto &slot = entry.second;
-
-            try {
-                slot->decoder_.Poll();
-            } catch (const std::exception& e) {
-                agsdbg::Printf(ags::kDbgMsg_Error, "OpenALDecoder poll exception %s", e.what());
-            }
-        }
+        audio_core_entry_poll();
 
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));
     }
 }
+#endif

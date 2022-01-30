@@ -22,6 +22,7 @@
 #include "main/update.h"
 #include "util/math.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -154,7 +155,7 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(Stream *in)
+void RoomObject::ReadFromSavegame(Stream *in, int save_ver)
 {
     x = in->ReadInt32();
     y = in->ReadInt32();
@@ -180,9 +181,13 @@ void RoomObject::ReadFromFile(Stream *in)
     flags = in->ReadInt8();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
+    if (save_ver > 0)
+    {
+        name = StrUtil::ReadString(in);
+    }
 }
 
-void RoomObject::WriteToFile(Stream *out) const
+void RoomObject::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(x);
     out->WriteInt32(y);
@@ -208,4 +213,5 @@ void RoomObject::WriteToFile(Stream *out) const
     out->WriteInt8(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
+    StrUtil::WriteString(name, out);
 }

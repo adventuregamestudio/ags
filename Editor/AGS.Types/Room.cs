@@ -82,8 +82,6 @@ namespace AGS.Types
             {
                 RoomHotspot hotspot = new RoomHotspot(this);
                 hotspot.ID = i;
-                if (i == 0) hotspot.Description = "No hotspot";
-                else hotspot.Description = "Hotspot " + i;
                 _hotspots.Add(hotspot);
             }
 

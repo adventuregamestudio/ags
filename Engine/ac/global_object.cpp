@@ -395,7 +395,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    strcpy(buffer, get_translation(thisroom.Objects[obj].Name.GetCStr()));
+    strcpy(buffer, get_translation(croom->obj[obj].name.GetCStr()));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {

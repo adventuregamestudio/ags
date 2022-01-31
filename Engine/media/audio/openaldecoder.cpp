@@ -174,8 +174,12 @@ void OpenALDecoder::PollBuffers()
             // if repeat, then seek to start.
             else if (repeat_) {
                 auto res = Sound_Rewind(sample_.get());
-                auto success = (res != 0);
-                EOS_ = !success;
+                if (res != 0)
+                {
+                    processedBuffersDurationMs_ = 0;
+                    lastPosReport = 0;
+                    EOS_ = false;
+                }
             }
         }
         // Nothing was decoded last time - skip

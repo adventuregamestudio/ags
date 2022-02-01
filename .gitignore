@@ -148,3 +148,13 @@ Windows/Installer/Source/*
 # Emscripten EMSDK
 Emscripten/emscripten/
 Emscripten/build*/
+
+# ignore tools built from their makefiles
+Tools/agf2autoash/agf2autoash
+Tools/agf2dlgasc/agf2dlgasc
+Tools/agf2glvar/agf2glvar
+Tools/agspak/agspak
+Tools/agsunpak/agsunpak
+Tools/crm2ash/crm2ash
+Tools/crmpak/crmpak
+Tools/trac/trac

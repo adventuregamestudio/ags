@@ -81,14 +81,7 @@ namespace AGS.Editor.Preferences
     {
         protected override Dictionary<string, string> GetValueList(ITypeDescriptorContext context)
         {
-            Dictionary<string, string> colorThemeList = new Dictionary<string, string>();
-
-            foreach (ColorTheme colorTheme in Factory.GUIController.ColorThemes.Themes)
-            {
-                colorThemeList.Add(colorTheme.Name, colorTheme.Name);
-            }
-
-            return colorThemeList;
+            return Factory.GUIController.ColorThemes.Themes.ToDictionary(t => t.Name, t => t.Name);
         }
     }
 
@@ -298,19 +291,17 @@ namespace AGS.Editor.Preferences
             return success;
         }
 
-        private List<PropertyInfo> GetBrowsableProperties()
+        private IEnumerable<PropertyInfo> GetBrowsableProperties()
         {
             return GetType().GetProperties()
-               .Where(f => f.GetCustomAttributes<BrowsableAttribute>().Contains(BrowsableAttribute.Yes))
-               .ToList();
+               .Where(f => f.GetCustomAttributes<BrowsableAttribute>().Contains(BrowsableAttribute.Yes));
         }
 
         public AppSettings CloneAppSettings()
         {
             AppSettings clone = new AppSettings();
-            List<PropertyInfo> props = GetBrowsableProperties();
 
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in GetBrowsableProperties())
             {
                 clone[prop.Name] = this[prop.Name];
             }
@@ -320,9 +311,7 @@ namespace AGS.Editor.Preferences
 
         public void Apply(AppSettings settings)
         {
-            List<PropertyInfo> props = GetBrowsableProperties();
-
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in GetBrowsableProperties())
             {
                 this[prop.Name] = settings[prop.Name];
             }

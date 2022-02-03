@@ -31,13 +31,13 @@ bool get_property_desc(PropertyDesc &desc, const char *property, PropertyType wa
 {
     PropertySchema::const_iterator sch_it = game.propSchema.find(property);
     if (sch_it == game.propSchema.end())
-        quit("!GetProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+        quitprintf("!Did not find property '%s' in the schema. Make sure you are using the property's name, and not its description, when calling this command.", property);
 
     desc = sch_it->second;
     if (want_type == kPropertyString && desc.Type != kPropertyString)
-        quit("!GetTextProperty: need to use GetProperty for a non-text property");
+        quitprintf("!Property '%s' isn't a text property.  Use GetProperty/SetProperty for non-text properties", property);
     else if (want_type != kPropertyString && desc.Type == kPropertyString)
-        quit("!GetProperty: need to use GetTextProperty for a text property");
+        quitprintf("!Property '%s' is a text property.  Use GetTextProperty/SetTextProperty for text properties", property);
     return true;
 }
 

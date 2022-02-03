@@ -110,6 +110,13 @@ namespace AGS.Editor
                 this.scintillaControl1.RegisterImage(i + 1, AutoCompleteIcons[i]);
             }
 
+            // EXPERIMENT!!!
+            bool is_unicode = Factory.AGSEditor.CurrentGame.Settings.UnicodeMode;
+            Scintilla.ScintillaControl.DefaultEncoding = is_unicode ?
+                Encoding.UTF8 : Encoding.Default;
+            this.scintillaControl1.CodePage = (int)(is_unicode ?
+                Scintilla.Constants.SC_CP_UTF8 : 0);
+            // EXPERIMENT!!!
             this.scintillaControl1.EOLMode = (int)EndOfLine.Crlf;
             this.scintillaControl1.WrapMode = (int)Wrap.None;
             this.scintillaControl1.ClearAll();

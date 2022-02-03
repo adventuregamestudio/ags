@@ -18,6 +18,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
+        public const string PROPERTY_UNICODE = "Unicode mode";
         public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
@@ -41,6 +42,7 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
+        private bool _unicodeMode = true;
         private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
@@ -280,6 +282,14 @@ namespace AGS.Types
                 if (LegacyLetterboxResolution == GameResolutions.Custom)
                     LetterboxMode = false;
             }
+        }
+
+        [DisplayName(PROPERTY_UNICODE)]
+        [Category("(Basic properties)")]
+        public bool UnicodeMode
+        {
+            get { return _unicodeMode; }
+            set { _unicodeMode = value; }
         }
 
         [DisplayName("Allow relative asset resolutions")]

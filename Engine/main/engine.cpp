@@ -614,7 +614,11 @@ void engine_init_game_settings()
     Debug::Printf("Initialize game settings");
 
     // Setup a text encoding mode depending on the game data hint
-    set_uformat(U_ASCII);
+    //set_uformat(U_ASCII);
+    if (game.options[OPT_GAMETEXTENCODING] > 0)
+        set_uformat(U_UTF8);
+    else
+        set_uformat(U_ASCII);
 
     int ee;
 

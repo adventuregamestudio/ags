@@ -32,14 +32,18 @@ namespace AGS.Types
         private int[] _breakpointedLines = new int[0];
         private DateTime _lastSavedAt = DateTime.MinValue;
 
-		/// <summary>
-		/// Creates a new Script which can be compiled with the AGS Script Compiler.
-		/// </summary>
-		/// <param name="fileName">The script filename. If the script is internally
-		/// generated and not stored on disk, make up a name and prefix it with
-		/// an underscore.</param>
-		/// <param name="text">The script itself.</param>
-		/// <param name="isHeader">Is this a script header or an actual script?</param>
+        // EXPERIMENT!!!!
+        public static Encoding TextEncoding = Encoding.UTF8;
+        // EXPERIMENT!!!!
+
+        /// <summary>
+        /// Creates a new Script which can be compiled with the AGS Script Compiler.
+        /// </summary>
+        /// <param name="fileName">The script filename. If the script is internally
+        /// generated and not stored on disk, make up a name and prefix it with
+        /// an underscore.</param>
+        /// <param name="text">The script itself.</param>
+        /// <param name="isHeader">Is this a script header or an actual script?</param>
         public Script(string fileName, string text, bool isHeader)
         {
             _fileName = fileName;
@@ -172,7 +176,7 @@ namespace AGS.Types
                 try
                 {
                     // Ensure that the file gets written in 8-bit ANSI
-                    byte[] bytes = Encoding.Default.GetBytes(_text);
+                    byte[] bytes = TextEncoding.GetBytes(_text);
                     using (BinaryWriter binWriter = new BinaryWriter(File.Open(_fileName, FileMode.Create)))
                     {
                         binWriter.Write(bytes);
@@ -193,7 +197,7 @@ namespace AGS.Types
             using (BinaryReader reader = new BinaryReader(File.Open(_fileName, FileMode.Open, FileAccess.Read)))
             {
                 byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
-                _text = Encoding.Default.GetString(bytes);
+                _text = TextEncoding.GetString(bytes);
             }
 			_modified = false;
         }

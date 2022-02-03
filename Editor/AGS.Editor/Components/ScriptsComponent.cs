@@ -623,5 +623,11 @@ namespace AGS.Editor.Components
         {
             return null;
         }
+
+        public override void GameSettingsChanged()
+        {
+            Script.TextEncoding = Factory.AGSEditor.CurrentGame.Settings.UnicodeMode ?
+                    Encoding.UTF8 : Encoding.Default;
+        }
     }
 }

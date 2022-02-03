@@ -88,6 +88,9 @@ namespace AGS.Editor
         {
             Game game = Factory.AGSEditor.CurrentGame;
 
+            Script.TextEncoding = Factory.AGSEditor.CurrentGame.Settings.UnicodeMode ?
+                    Encoding.UTF8 : Encoding.Default;
+
             // TODO: this may be noticably slow especially for sprites. Display some kind of
             // progress window to notify user.
             // Convert absolute paths to relative paths. This is an automatic fixup from when the

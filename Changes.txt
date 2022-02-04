@@ -153,6 +153,17 @@ Tools:
 [TODO]
 
 
+VERSION 3.5.1 - Patch 8, Ferbuary 2022
+
+Engine:
+ - Clearer error messages for Get/SetProperty functions.
+ - Fixed PlayFlic() command fails to start the video (regression in 3.5.1).
+ - Fixed DrawingSurface.DrawSurface() not applying transparency parameter correctly if the
+   drawn surface has alpha channel.
+ - Fixed @OVERHOTSPOT@ is not updated immediately when character's name changes while cursor
+   is above that character.
+
+
 VERSION 3.5.1 - Patch 7, January 2022
 
 Editor:

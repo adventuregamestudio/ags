@@ -719,6 +719,81 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
+        [DisplayName("Keystore File Path")]
+        [Description("Your Keystore File (*.jks/*.store).")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FileNameEditor), typeof(UITypeEditor))]
+        public string AndroidKeystoreFile
+        {
+            get 
+            { 
+                return (string)(this["AndroidKeystoreFile"]); 
+            }
+            set 
+            { 
+                this["AndroidKeystoreFile"] = value; 
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Keystore Password")]
+        [Description("Keystore Password. Must be the same as Key Password for most key types.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [PasswordPropertyText(true)]
+        public string AndroidKeystorePassword
+        {
+            get 
+            { 
+                return (string)(this["AndroidKeystorePassword"]);
+            }
+            set 
+            {
+                this["AndroidKeystorePassword"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Key Alias")]
+        [Description("Keystore Key Alias")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("key0")]
+        [UserScopedSettingAttribute()]
+        public string AndroidKeystoreKeyAlias
+        {
+            get
+            {
+                return (string)(this["AndroidKeystoreKeyAlias"]);
+            }
+            set
+            {
+                this["AndroidKeystoreKeyAlias"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Key Password")]
+        [Description("Keystore Key Password. Must be the same as Keystore Password for most key types.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [PasswordPropertyText(true)]
+        public string AndroidKeystoreKeyPassword
+        {
+            get
+            {
+                return (string)(this["AndroidKeystoreKeyPassword"]);
+            }
+            set
+            {
+                this["AndroidKeystoreKeyPassword"] = value;
+            }
+        }
+
         [Browsable(false)]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("640")]

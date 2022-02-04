@@ -752,7 +752,7 @@ HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, const PreservedParams &
         return err;
     for (int i = 0; i < game.numcursors; ++i)
     {
-        game.mcurs[i].ReadFromSavegame(in);
+        game.mcurs[i].ReadFromSavegame(in, cmp_ver);
     }
     return err;
 }
@@ -1190,7 +1190,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Mouse Cursors",
-        0,
+        1,
         0,
         WriteMouseCursors,
         ReadMouseCursors

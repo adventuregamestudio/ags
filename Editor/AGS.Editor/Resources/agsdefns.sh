@@ -791,7 +791,7 @@ struct Mouse {
   /// Changes the active hotspot for the specified mouse cursor.
   import static void ChangeModeHotspot(CursorMode, int x, int y);
   /// Changes the view used to animate the specified mouse cursor.
-  import static void ChangeModeView(CursorMode, int view);
+  import static void ChangeModeView(CursorMode, int view, int delay = SCR_NO_VALUE);
   /// Disables the specified cursor mode.
   import static void DisableMode(CursorMode);
   /// Re-enables the specified cursor mode.
@@ -2589,6 +2589,10 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v3507
   /// Returns the character at the specified position within this room.
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v360
+  /// Gets/sets the character's idle animation delay.
+  import attribute int  IdleAnimationDelay;
 #endif
 #ifdef STRICT
   /// The character's current X-position.

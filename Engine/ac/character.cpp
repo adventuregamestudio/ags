@@ -1139,6 +1139,8 @@ int Character_GetAnimationSpeed(CharacterInfo *chaa) {
 void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval) {
 
     chaa->animspeed = newval;
+    if (loaded_game_file_version < kGameVersion_360_16)
+        chaa->idle_anim_speed = chaa->animspeed + 5;
 }
 
 int Character_GetBaseline(CharacterInfo *chaa) {
@@ -1512,6 +1514,16 @@ void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
     }
 
     chaa->speech_anim_speed = newDelay;
+}
+
+int Character_GetIdleAnimationDelay(CharacterInfo *chaa)
+{
+    return chaa->idle_anim_speed;
+}
+
+void Character_SetIdleAnimationDelay(CharacterInfo *chaa, int newDelay)
+{
+    chaa->idle_anim_speed = newDelay;
 }
 
 int Character_GetSpeechView(CharacterInfo *chaa) {
@@ -3668,6 +3680,17 @@ RuntimeScriptValue Sc_Character_SetSpeechAnimationDelay(void *self, const Runtim
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSpeechAnimationDelay);
 }
 
+RuntimeScriptValue Sc_Character_GetIdleAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetIdleAnimationDelay);
+}
+
+// void (CharacterInfo *chaa, int newDelay)
+RuntimeScriptValue Sc_Character_SetIdleAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIdleAnimationDelay);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetSpeechColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3907,6 +3930,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
 	    ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint);
 	ccAddExternalObjectFunction("Character::get_ID",                    Sc_Character_GetID);
 	ccAddExternalObjectFunction("Character::get_IdleView",              Sc_Character_GetIdleView);
+    ccAddExternalObjectFunction("Character::get_IdleAnimationDelay",    Sc_Character_GetIdleAnimationDelay);
+    ccAddExternalObjectFunction("Character::set_IdleAnimationDelay",    Sc_Character_SetIdleAnimationDelay);
 	ccAddExternalObjectFunction("Character::geti_InventoryQuantity",    Sc_Character_GetIInventoryQuantity);
 	ccAddExternalObjectFunction("Character::seti_InventoryQuantity",    Sc_Character_SetIInventoryQuantity);
 	ccAddExternalObjectFunction("Character::get_IgnoreLighting",        Sc_Character_GetIgnoreLighting);

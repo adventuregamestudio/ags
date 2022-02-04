@@ -195,13 +195,15 @@ void ChangeCursorHotspot (int curs, int x, int y) {
         set_mouse_cursor (cur_cursor);
 }
 
-void Mouse_ChangeModeView(int curs, int newview) {
+void Mouse_ChangeModeViewEx(int curs, int newview, int delay) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!Mouse.ChangeModeView: invalid mouse cursor");
 
     newview--;
 
     game.mcurs[curs].view = newview;
+    if (delay != SCR_NO_VALUE)
+        game.mcurs[curs].animdelay = delay;
 
     if (newview >= 0)
     {
@@ -210,6 +212,10 @@ void Mouse_ChangeModeView(int curs, int newview) {
 
     if (curs == cur_cursor)
         mouse_delay = 0;  // force update
+}
+
+void Mouse_ChangeModeView(int curs, int newview) {
+    Mouse_ChangeModeViewEx(curs, newview, SCR_NO_VALUE);
 }
 
 void SetNextCursor () {
@@ -461,9 +467,14 @@ RuntimeScriptValue Sc_ChangeCursorHotspot(const RuntimeScriptValue *params, int3
 }
 
 // void (int curs, int newview)
-RuntimeScriptValue Sc_Mouse_ChangeModeView(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Mouse_ChangeModeView_2(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(Mouse_ChangeModeView);
+}
+
+RuntimeScriptValue Sc_Mouse_ChangeModeView(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(Mouse_ChangeModeViewEx);
 }
 
 // void (int modd)
@@ -600,7 +611,8 @@ void RegisterMouseAPI()
 {
     ccAddExternalStaticFunction("Mouse::ChangeModeGraphic^2",       Sc_ChangeCursorGraphic);
     ccAddExternalStaticFunction("Mouse::ChangeModeHotspot^3",       Sc_ChangeCursorHotspot);
-    ccAddExternalStaticFunction("Mouse::ChangeModeView^2",          Sc_Mouse_ChangeModeView);
+    ccAddExternalStaticFunction("Mouse::ChangeModeView^2",          Sc_Mouse_ChangeModeView_2);
+    ccAddExternalStaticFunction("Mouse::ChangeModeView^3",          Sc_Mouse_ChangeModeView);
     ccAddExternalStaticFunction("Mouse::Click^1",                   Sc_Mouse_Click);
     ccAddExternalStaticFunction("Mouse::DisableMode^1",             Sc_disable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::EnableMode^1",              Sc_enable_cursor_mode);

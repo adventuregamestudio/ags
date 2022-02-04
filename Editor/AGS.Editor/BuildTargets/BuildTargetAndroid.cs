@@ -1,11 +1,11 @@
-﻿using AGS.Types;
+﻿using AGS.Editor.Preferences;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -136,11 +136,11 @@ namespace AGS.Editor
             string fileName = Path.Combine(dest_dir, "local.static.properties");
 
             // this should NOT GET KEYS FROM SETTINGS
-            Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
-            string storeFile = EscapeFilenamePathStringAsNeeded(gameSettings.AndroidKeystoreFile);
-            string storePassword = gameSettings.AndroidKeystorePassword;
-            string keyAlias = gameSettings.AndroidKeystoreKeyAlias;
-            string keyPassword = gameSettings.AndroidKeystoreKeyPassword;
+            AppSettings settings = Factory.AGSEditor.Settings;
+            string storeFile = EscapeFilenamePathStringAsNeeded(settings.AndroidKeystoreFile);
+            string storePassword = settings.AndroidKeystorePassword;
+            string keyAlias = settings.AndroidKeystoreKeyAlias;
+            string keyPassword = settings.AndroidKeystoreKeyPassword;
 
             string fileText = "storeFile=" + storeFile + "\n" +
                               "storePassword=" + storePassword + "\n" +

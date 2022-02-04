@@ -4,6 +4,7 @@ VERSION 3.6.0, ???
 
 Editor:
  - Editor requires .NET Framework 4.6 to run.
+ - Added Web/Emscripten build target support (requires "Web build component" installed).
  - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
    "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
    original game's codepage.
@@ -30,12 +31,16 @@ Editor:
    they've imported (if available).
  - Added IdleDelay property to Characters that lets you set time needed to pass before IdleView
    is activated. This is equivalent to the Character.SetIdleView script function.
+ - Added Character.IdleAnimationDelay property to let setup idle view's animation speed.
+ - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
+ - Rooms created from a Blank template will now have default background of a game's resolution.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Cursor's position in script is now displayed on the status bar.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
+ - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
  - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
    and marking it for deletion.
 
@@ -44,14 +49,17 @@ Compiler:
 
 Script API:
  - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
+ - Hotspot.Name and Object.Name may now be set in script.
  - Added Object.ManualScaling and Object.Scaling.
  - Deprecated Object.IgnoreScaling (use Object.ManualScaling instead).
  - Object.SetView default loop & frame values are now 0 (was -1 which retained loop and frame
    indexes from the previous view, often unexpected to the user).
+ - Added Character.IdleAnimationDelay to let control idle view's animation speed.
  - Character.Scaling is no longer limited by a range of 5-200 (now supports 1-32767).
  - DrawingSurface.DrawImage() and DrawSurface() now support optional source rect coordinates.
  - Added functions for getting DrawingSurface of room masks: GetDrawingSurfaceForWalkableArea(),
    GetDrawingSurfaceForWalkbehind(), Hotspot.GetDrawingSurface(), Region.GetDrawingSurface().
+ - Added new delay parameter to Mouse.ChangeModeView() to let control cursor's animation speed.
  - Added Room.Exists().
  - Added System.Log().
  - Added SkipWait() that skips any active Wait() function.
@@ -120,6 +128,8 @@ Engine:
    and "user_conf_dir", now support $GAMENAME$ token in path which is resolved to the game's title.
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Fixed potential crash on room load if the walkable area mask contained color values
+   above the supported range.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -145,6 +155,9 @@ Compatibility:
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
  - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
+
+Web / Emscripten:
+ - Initial port release.
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.

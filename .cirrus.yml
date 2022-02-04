@@ -179,15 +179,17 @@ build_android_task:
 
 build_emscripten_task:
   container:
-    image: ubuntu:focal
-  install_packages_script: |
-    export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y tzdata git pkg-config curl build-essential cmake bash python3 python3-pip
+    dockerfile: ci/emscripten/Dockerfile 
   build_emscripten_script: |
     pushd Emscripten && ./build.sh && popd
   package_emscripten_build_script: |
-    pushd Emscripten && mkdir out && cp my_game.html my_game_files.js out/ && pushd build-release && mv ags.js ags.wasm ags.html ../out && popd && popd
+    tmp=/tmp/bundle$$
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    pushd Emscripten && mkdir -p $tmp && cp my_game.html my_game_files.js $tmp && pushd build-release && mv ags.js ags.wasm ags.html $tmp && popd && popd
+    mv $tmp/my_game.html $tmp/index.html
+    bsdtar -f ags_${version}_web.tar.gz -cvzC $tmp index.html ags.js ags.wasm my_game_files.js
   emscripten_artifacts:
-    path: Emscripten/out/*
+    path: ags_*.tar.gz
 
 build_editor_task:
   windows_container:

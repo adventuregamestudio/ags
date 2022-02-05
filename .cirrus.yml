@@ -188,7 +188,7 @@ build_emscripten_task:
     pushd Emscripten && mkdir -p $tmp && cp my_game.html my_game_files.js $tmp && pushd build-release && mv ags.js ags.wasm ags.html $tmp && popd && popd
     mv $tmp/my_game.html $tmp/index.html
     bsdtar -f ags_${version}_web.tar.gz -cvzC $tmp index.html ags.js ags.wasm my_game_files.js
-  emscripten_artifacts:
+  binaries_artifacts:
     path: ags_*.tar.gz
 
 build_editor_task:
@@ -250,6 +250,7 @@ windows_packaging_task:
     - build_editor
     - build_windows
     - linux_packaging
+    - build_emscripten
   windows_container:
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
@@ -282,6 +283,11 @@ windows_packaging_task:
     call Script\setvar.cmd ACI_VERSION_STR &&
     cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/linux_packaging/binaries/ags_!ACI_VERSION_STR!_linux.tar.gz" |
     tar -f - -xvC Windows\Installer\Source\Linux --strip-components 1"
+  get_emscripten_bundle_script: >
+    mkdir Windows\Installer\Source\Web &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_emscripten/binaries/ags_!ACI_VERSION_STR!_web.tar.gz" |
+    tar -f - -xvC Windows\Installer\Source\Web"
   make_installer_script: >
     powershell Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
   installer_artifacts:
@@ -291,6 +297,7 @@ windows_packaging_task:
     move Windows\Installer\Source\Engine\* Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Licenses Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Linux Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Web Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\ &&
     for %%f in (Windows\Installer\Output\*.exe) do
@@ -361,6 +368,7 @@ make_release_task:
     - build_linux_debian
     - windows_packaging
     - linux_packaging
+    - build_emscripten
     - pdb_packaging
   container:
     image: alpine:3.10
@@ -390,6 +398,7 @@ make_release_task:
     for download in "windows_packaging/archive/$(basename AGS-*.exe .exe).zip" \
       "windows_packaging/windevdependenciesvs/WinDevDependenciesVS.zip" \
       "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
+      "build_emscripten/binaries/ags_${version}_web.tar.gz" \
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \
       "build_linux_debian/debian_packages/ags_${version}_i386.deb" \
       "build_linux_debian/debian_packages/ags_${version}_amd64.deb" \

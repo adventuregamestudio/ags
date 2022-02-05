@@ -31,6 +31,7 @@
 #include "ac/global_hotspot.h"
 #include "ac/global_object.h"
 #include "ac/global_room.h"
+#include "ac/global_video.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/room.h"
@@ -40,7 +41,6 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
-#include "media/video/video.h"
 #include "script/script_runtime.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
@@ -743,7 +743,7 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           play_sound (IPARAM1);
           break;
       case 8:  // Play Flic
-          play_flc_file(IPARAM1, IPARAM2);
+          PlayFlic(IPARAM1, IPARAM2);
           break;
       case 9:  // Run Dialog
           { int room_was = play.room_changes;

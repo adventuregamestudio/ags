@@ -62,38 +62,27 @@ VideoPlayer::~VideoPlayer()
     Close();
 }
 
-bool VideoPlayer::Open(const String &name, int skip, int flags)
+bool VideoPlayer::Open(const String &name, int flags, VideoSkipType skip)
 {
-    int clearScreenAtStart = 1;
-    _stretchVideo = (flags % 100) == 0;
-
-    if (flags / 100)
-        clearScreenAtStart = 0;
-
     if (!OpenImpl(name, flags))
         return false;
 
-    /// AUDIO
-    /* Start the audio stream */
-    if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
-    {
-        _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));
-        _audioOut->Play();
-        _wantAudio = true;
-    }
-    ///
-
     _flags = flags;
     _skip = skip;
-    /// THEORA
-    if (flags < 10)
+    // Start the audio stream
+    if ((flags & kVideo_EnableAudio) != 0)
     {
         stop_all_sound_and_music();
+        if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
+        {
+            _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));
+            _audioOut->Play();
+            _wantAudio = true;
+        }
     }
-    /// THEORA
 
     // TODO: needed for FLIC, but perhaps may be done differently
-    if (clearScreenAtStart)
+    if ((flags & kVideo_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
@@ -216,7 +205,7 @@ bool VideoPlayer::RenderVideo()
 
     int drawAtX = 0, drawAtY = 0;
     const Rect &view = play.GetMainViewport();
-    if (!_stretchVideo)
+    if ((_flags & kVideo_Stretch) != 0)
     {
         drawAtX = view.GetWidth() / 2 - _targetSize.Width / 2;
         drawAtY = view.GetHeight() / 2 - _targetSize.Height / 2;
@@ -272,7 +261,7 @@ public:
     void Restore() override;
 
 private:
-    bool OpenImpl(const AGS::Common::String &name, int flags) override;
+    bool OpenImpl(const AGS::Common::String &name, int &flags) override;
     void CloseImpl() override;
     bool NextFrame() override;
 
@@ -291,7 +280,7 @@ void FlicPlayer::Restore()
     set_palette_range(fli_palette, 0, 255, 0);
 }
 
-bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int /* flags */)
+bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
 {
     Stream *in = AssetMgr->OpenAsset(name);
     if (!in)
@@ -320,9 +309,9 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int /* flags */)
     // override the stretch option if necessary
     const Rect &view = play.GetMainViewport();
     if ((fliwidth == view.GetWidth()) && (fliheight == view.GetHeight()))
-        _stretchVideo = false;
+        flags &= ~kVideo_Stretch;
     else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
-        _stretchVideo = true;
+        flags |= kVideo_Stretch;
     _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
 
     _targetBitmap.reset(BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth()));
@@ -374,7 +363,7 @@ public:
     ~TheoraPlayer();
 
 private:
-    bool OpenImpl(const AGS::Common::String &name, int flags) override;
+    bool OpenImpl(const AGS::Common::String &name, int &flags) override;
     void CloseImpl() override;
     bool NextFrame() override;
 
@@ -437,7 +426,7 @@ static void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int v
 
 }
 
-bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
+bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
 {
     std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
@@ -448,7 +437,7 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
     // Disable framedrop, because after porting to SDL2 and OpenAL, APEG detects
     // audio ahead too often, and with framedrop video does not advance at all.
     apeg_enable_framedrop(/*psp_video_framedrop*/FALSE);
-    apeg_ignore_audio((flags >= 10) ? 1 : 0);
+    apeg_ignore_audio((flags & kVideo_EnableAudio) == 0);
 
     APEG_STREAM* apeg_stream = apeg_open_stream_ex(video_stream.get());
     if (!apeg_stream)
@@ -470,10 +459,10 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
     if ((_targetSize.Width == video_w) && (_targetSize.Height == video_h))
     {
         // don't need to stretch after all
-        _stretchVideo = false;
+        flags &= ~kVideo_Stretch;
     }
 
-    if ((_stretchVideo) && (!gfxDriver->HasAcceleratedTransform()))
+    if (((flags & kVideo_Stretch) != 0) && (!gfxDriver->HasAcceleratedTransform()))
     {
         _targetBitmap.reset(BitmapHelper::CreateClearBitmap(
             play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), game.GetColorDepth()));
@@ -580,27 +569,15 @@ void video_run(std::unique_ptr<VideoPlayer> video)
     gl_Video.reset();
 }
 
-void play_flc_file(int numb, int playflags)
+void play_flc_video(int numb, int flags, VideoSkipType skip)
 {
-    if (play.fast_forward)
-        return; // skip video
-    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
-    if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
-
-    // Convert flags
-    int skip = playflags % 10;
-    playflags -= skip;
-    if (skip == 2) // convert to PlayVideo-compatible setting
-        skip = 3;
-
     std::unique_ptr<FlicPlayer> video(new FlicPlayer());
     // Try couple of various filename formats
     String flicname = String::FromFormat("flic%d.flc", numb);
-    if (!video->Open(flicname, skip, playflags))
+    if (!video->Open(flicname, flags, skip))
     {
         flicname.Format("flic%d.fli", numb);
-        if (!video->Open(flicname, skip, playflags))
+        if (!video->Open(flicname, flags, skip))
         {
             debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
             return;
@@ -610,10 +587,10 @@ void play_flc_file(int numb, int playflags)
     video_run(std::move(video));
 }
 
-void play_theora_video(const char *name, int skip, int flags)
+void play_theora_video(const char *name, int flags, VideoSkipType skip)
 {
     std::unique_ptr<TheoraPlayer> video(new TheoraPlayer());
-    if (!video->Open(name, skip, flags))
+    if (!video->Open(name, flags, skip))
     {
         debug_script_warn("Error playing theora video '%s'", name);
         return;

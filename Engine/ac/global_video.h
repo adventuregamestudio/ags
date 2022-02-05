@@ -11,14 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__GLOBALVIDEO_H
 #define __AGS_EE_AC__GLOBALVIDEO_H
 
-void scrPlayVideo(const char* name, int skip, int flags);
-void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags);
+void PlayFlic(int numb, int flags);
+void PlayVideo(const char* name, int skip, int flags);
 
 #endif // __AGS_EE_AC__GLOBALVIDEO_H

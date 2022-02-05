@@ -30,6 +30,22 @@ namespace Common { class Bitmap; }
 namespace Engine
 {
 
+enum VideoFlags
+{
+    kVideo_EnableVideo    = 0x0001,
+    kVideo_Stretch        = 0x0002,
+    kVideo_ClearScreen    = 0x0004,
+    kVideo_EnableAudio    = 0x0010,
+};
+
+enum VideoSkipType
+{
+    VideoSkipNone         = 0,
+    VideoSkipEscape       = 1,
+    VideoSkipAnyKey       = 2,
+    VideoSkipKeyOrMouse   = 3
+};
+
 class IDriverDependantBitmap;
 using AGS::Common::Bitmap;
 using AGS::Common::String;
@@ -41,7 +57,7 @@ class VideoPlayer
 public:
     virtual ~VideoPlayer();
     // Tries to open a video file of a given name
-    bool Open(const String &name, int skip, int flags);
+    bool Open(const AGS::Common::String &name, int flags, VideoSkipType skip);
     // Stops the playback, releasing any resources
     void Close();
     // Restores the video after display switch
@@ -54,8 +70,8 @@ public:
     bool Poll();
 
 protected:
-    // Opens the video, implementation-specific
-    virtual bool OpenImpl(const String &name, int flags) { return false; };
+    // Opens the video, implementation-specific; allows to modify flags
+    virtual bool OpenImpl(const String &name, int &flags) { return false; };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Retrieves next video frame, implementation-specific
@@ -74,7 +90,6 @@ protected:
     std::unique_ptr<Bitmap> _targetBitmap;
     IDriverDependantBitmap *_videoDDB = nullptr;
     Size _targetSize{};
-    bool _stretchVideo = false;
     uint32_t _frameTime = 0u;
 
 private:
@@ -89,7 +104,7 @@ private:
 
     bool _loop = false;
     int _flags = 0;
-    int _skip = 0;
+    VideoSkipType _skip = VideoSkipNone;
     uint32_t _sdlTimer = 0u;
     std::atomic<int> _timerPos{};
     std::unique_ptr<OpenAlSource> _audioOut;
@@ -99,8 +114,8 @@ private:
 } // namespace AGS
 
 
-void play_theora_video(const char *name, int skip, int flags);
-void play_flc_file(int numb,int playflags);
+void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
+void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
 
 // Update video playback if the display mode has changed
 void video_on_gfxmode_changed();

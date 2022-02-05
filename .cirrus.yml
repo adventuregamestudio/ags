@@ -149,30 +149,15 @@ build_android_task:
     greedy: true
   git_submodules_script: git submodule update --init --recursive
   build_debug_library_and_runtime_script: |
-    pushd Android/agsplayer && ./gradlew assembleDebug && popd
+    pushd Android && ./and-build.sh build_debug && popd
   build_release_library_and_runtime_script: |
-    pushd Android/agsplayer && ./gradlew assembleRelease && popd
-    bsdtar -f android-libs-release.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/release/out/lib
+    pushd Android && ./and-build.sh build_release && popd
   rename_apks_script: |
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
-    pushd Android/agsplayer/app/build/outputs/apk/debug/
-    for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
-      mv -v $apk AGS-${version}-${apk#*-}
-    done
-    popd
-    mv Android/agsplayer/app/build/outputs/apk/debug/*.apk .
-    pushd Android/agsplayer/app/build/outputs/apk/release/
-    for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
-      mv -v $apk AGS-${version}-${apk#*-}
-    done
-    popd
-    mv Android/agsplayer/app/build/outputs/apk/release/*.apk .
+    pushd Android && ./and-build.sh archive_apks && popd
   apks_artifacts:
     path: AGS-*.apk
   create_libs_archive_script: |
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
-    bsdtar -f AGS-${version}-android-libs-debug.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/debug/out/lib
-    bsdtar -f AGS-${version}-android-libs-release.zip -acv --strip-components 8 Android/agsplayer/app/build/intermediates/stripped_native_libs/release/out/lib
+    pushd Android && ./and-build.sh archive_libs && popd
   libs_artifacts:
     path: AGS-*-android-libs-*.zip
 

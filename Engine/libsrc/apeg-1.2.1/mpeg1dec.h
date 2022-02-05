@@ -82,7 +82,7 @@ void apeg_fast_idct(short*);
 void apeg_motion_vector(struct APEG_LAYER*, int*, int, int);
 
 /* mpeg2dec.c */
-void apeg_error_jump(char*);
+void apeg_error_jump(struct APEG_LAYER*, const char*);
 void _apeg_initialize_buffer(struct APEG_LAYER*);
 
 /* recon.c */
@@ -111,8 +111,6 @@ extern const unsigned char apeg_scan[64];
 
 /* buffers for multiuse purposes */
 extern short apeg_block[6][64];
-
-extern char apeg_error[256];
 
 
 // layer specific variables
@@ -227,6 +225,9 @@ typedef struct APEG_LAYER {
 
 		int inited;
 	} audio;
+
+	// Jump point for if the decoder hits a fault
+	jmp_buf jmp_buffer;
 } APEG_LAYER;
 
 #endif	// MPEG1DEC_H

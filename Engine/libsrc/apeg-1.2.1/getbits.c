@@ -83,13 +83,13 @@ next_code:
 			if(code >= 0x40)
 			{
 				if(code >= 0x80)
-					apeg_error_jump("Error in packet header");
+					apeg_error_jump(layer, "Error in packet header");
 
 				// skip STD_buffer_scale
 				skip_bytes(layer, 1);
 				code = get_byte(layer);
 				if(code >= 0x40)
-					apeg_error_jump("Error in packet header");
+					apeg_error_jump(layer, "Error in packet header");
 			}
 
 			// skip presentation and decoding time stamps
@@ -99,7 +99,7 @@ next_code:
 			else if(code >= 0x20)
 				skip_bytes(layer, 4);
 			else if(code != 0x0f)
-				apeg_error_jump("Error in packet header");
+				apeg_error_jump(layer, "Error in packet header");
 
 			return;
 
@@ -123,9 +123,9 @@ next_code:
 			}
 			else
 			{
-				sprintf(apeg_error, "Unknown startcode 0x%08x in system layer",
-				                    code);
-				apeg_error_jump(NULL);
+				snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error),
+					"Unknown startcode 0x%08x in system layer", code);
+				apeg_error_jump(layer, NULL);
 			}
 			goto next_code;
 	}

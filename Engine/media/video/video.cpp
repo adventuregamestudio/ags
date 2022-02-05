@@ -522,7 +522,7 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
     _dataStream = std::move(video_stream);
     fli_speed = 1000 / _apegStream->frame_rate;
     fli_buffer = new Bitmap(); // FIXME: use target directly if possible?
-    memset(apeg_error, 0, sizeof(apeg_error));
+    apeg_set_error(apeg_stream, NULL);
     
     return true;
 }

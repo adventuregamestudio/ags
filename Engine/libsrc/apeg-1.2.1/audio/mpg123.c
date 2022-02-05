@@ -55,13 +55,13 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 
 	if(layer->stream.audio.freq <= 0)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Illegal audio frequency (%dhz)",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Illegal audio frequency (%dhz)",
 		         layer->stream.audio.freq);
 		return APEG_ERROR;
 	}
 	if(layer->stream.audio.channels <= 0)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Illegal channel count (%d)",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Illegal channel count (%d)",
 		         layer->stream.audio.channels);
 		return APEG_ERROR;
 	}
@@ -74,7 +74,7 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 	layer->audio.pcm.samples = malloc(layer->audio.bufsize+buffer_padding);
 	if(!layer->audio.pcm.samples)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Error allocating %d bytes for audio buffer",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Error allocating %d bytes for audio buffer",
 		         layer->audio.bufsize+buffer_padding);
 		return APEG_ERROR;
 	}

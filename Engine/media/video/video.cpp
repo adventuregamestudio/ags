@@ -52,41 +52,10 @@ extern int psp_video_framedrop;
 //-----------------------------------------------------------------------------
 // VideoPlayer
 //-----------------------------------------------------------------------------
-volatile int fli_timer = 0; // TODO: use SDL thread conditions instead?
-int canabort = 0, stretch_flc = 1;
-Bitmap *fli_buffer = nullptr;
-short fliwidth, fliheight;
-Bitmap *hicol_buf = nullptr;
-Bitmap *fli_target = nullptr;
-int fliTargetWidth, fliTargetHeight;
-IDriverDependantBitmap *fli_ddb = nullptr;
-
 namespace AGS
 {
 namespace Engine
 {
-
-Uint32 VideoTimerCallback(Uint32 interval, void *param)
-{
-    fli_timer++;
-    return interval;
-}
-
-bool CheckUserInputSkip()
-{
-    KeyInput key;
-    int mbut, mwheelz;
-    if (run_service_key_controls(key))
-    {
-        if ((key.Key == eAGSKeyCodeEscape) && (canabort == 1))
-            return true;
-        if (canabort >= 2)
-            return true;  // skip on any key
-    }
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && canabort == 3)
-        return true; // skip on mouse click
-    return false;
-}
 
 VideoPlayer::~VideoPlayer()
 {
@@ -96,8 +65,7 @@ VideoPlayer::~VideoPlayer()
 bool VideoPlayer::Open(const String &name, int skip, int flags)
 {
     int clearScreenAtStart = 1;
-    canabort = skip;
-    stretch_flc = (flags % 100) == 0;
+    _stretchVideo = (flags % 100) == 0;
 
     if (flags / 100)
         clearScreenAtStart = 0;
@@ -124,6 +92,7 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
     }
     /// THEORA
 
+    // TODO: needed for FLIC, but perhaps may be done differently
     if (clearScreenAtStart)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
@@ -134,20 +103,38 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
         render_to_screen();
     }
 
-    _sdlTimer = SDL_AddTimer(fli_speed, VideoTimerCallback, nullptr);
+    _timerPos = 1;
+    _sdlTimer = SDL_AddTimer(_frameTime, VideoPlayer::VideoTimerCallback, this);
     _loop = false;
-    fli_timer = 1;
     return true;
 }
 
 void VideoPlayer::Close()
 {
+    // Stop playback timer
+    SDL_RemoveTimer(_sdlTimer);
     // Shutdown openal source
     _audioOut.reset();
-
+    // Close video decoder and free resources
     CloseImpl();
 
-    SDL_RemoveTimer(_sdlTimer);
+    _videoFrame.reset();
+    _hicolBuf.reset();
+    _targetBitmap.reset();
+    if (_videoDDB)
+        gfxDriver->DestroyDDB(_videoDDB);
+    _videoDDB = nullptr;
+
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if (gfxDriver->UsesMemoryBackBuffer())
+    {
+        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+        screen_bmp->Clear();
+    }
+    render_to_screen();
+
+    ags_clear_input_state();
+    invalidate_screen();
 }
 
 int VideoPlayer::GetAudioPos()
@@ -163,17 +150,40 @@ bool VideoPlayer::Poll()
     // Render current frame
     if (_audioFrame && !RenderAudio())
         return false;
-    if (fli_buffer && !RenderVideo())
+    if (_videoFrame && !RenderVideo())
         return false;
     // Check user input skipping the video
     if (CheckUserInputSkip())
         return false;
     // Wait for timer
-    fli_timer--;
-    while (fli_timer <= 0) {
+    _timerPos--;
+    while (_timerPos <= 0) {
         SDL_Delay(1);
     }
     return true;
+}
+
+uint32_t VideoPlayer::VideoTimerCallback(uint32_t interval, void *param)
+{
+    auto player = reinterpret_cast<VideoPlayer*>(param);
+    player->_timerPos++;
+    return interval;
+}
+
+bool VideoPlayer::CheckUserInputSkip()
+{
+    KeyInput key;
+    int mbut, mwheelz;
+    if (run_service_key_controls(key))
+    {
+        if ((key.Key == eAGSKeyCodeEscape) && (_skip == 1))
+            return true;
+        if (_skip >= 2)
+            return true;  // skip on any key
+    }
+    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && _skip == 3)
+        return true; // skip on mouse click
+    return false;
 }
 
 bool VideoPlayer::RenderAudio()
@@ -187,42 +197,42 @@ bool VideoPlayer::RenderAudio()
 
 bool VideoPlayer::RenderVideo()
 {
-    assert(fli_buffer);
-    Bitmap *usebuf = fli_buffer;
+    assert(_videoFrame);
+    Bitmap *usebuf = _videoFrame.get();
 
     // FIXME: for FLIC only!! do we need this always, or only when stretched, or at all??
     // FIXME: test target bitmap, not game's depth?
     if ((game.color_depth > 1) && (usebuf->GetBPP() == 1))
     {
-        hicol_buf->Blit(fli_buffer, 0, 0, 0, 0, fliwidth, fliheight);
-        usebuf = hicol_buf;
+        _hicolBuf->Blit(usebuf);
+        usebuf = _hicolBuf.get();
     }
 
     // FIXME: create on Open?
-    if (fli_ddb == nullptr)
+    if (!_videoDDB)
     {
-        fli_ddb = gfxDriver->CreateDDBFromBitmap(usebuf, false, true);
+        _videoDDB = gfxDriver->CreateDDBFromBitmap(usebuf, false, true);
     }
 
     int drawAtX = 0, drawAtY = 0;
     const Rect &view = play.GetMainViewport();
-    if (stretch_flc == 0)
+    if (!_stretchVideo)
     {
-        drawAtX = view.GetWidth() / 2 - fliTargetWidth / 2;
-        drawAtY = view.GetHeight() / 2 - fliTargetHeight / 2;
+        drawAtX = view.GetWidth() / 2 - _targetSize.Width / 2;
+        drawAtY = view.GetHeight() / 2 - _targetSize.Height / 2;
 
         if (!gfxDriver->HasAcceleratedTransform())
         {
-            fli_target->StretchBlt(usebuf, RectWH(0, 0, usebuf->GetWidth(), usebuf->GetHeight()),
-                RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
+            _targetBitmap->StretchBlt(usebuf, RectWH(0, 0, usebuf->GetWidth(), usebuf->GetHeight()),
+                RectWH(drawAtX, drawAtY, _targetSize.Width, _targetSize.Height));
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, _targetBitmap.get(), false);
             drawAtX = 0;
             drawAtY = 0;
         }
         else
         {
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, usebuf, false);
-            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight, false);
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
+            _videoDDB->SetStretch(_targetSize.Width, _targetSize.Height, false);
         }
 
         /* FROM FLIC:
@@ -231,7 +241,7 @@ bool VideoPlayer::RenderVideo()
     }
     else
     {
-        gfxDriver->UpdateDDBFromBitmap(fli_ddb, usebuf, false);
+        gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
         drawAtX = view.GetWidth() / 2 - usebuf->GetWidth() / 2;
         drawAtY = view.GetHeight() / 2 - usebuf->GetHeight() / 2;
         /* FROM FLIC:
@@ -242,7 +252,7 @@ bool VideoPlayer::RenderVideo()
     /* FROM FLIC:
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     */
-    gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
+    gfxDriver->DrawSprite(drawAtX, drawAtY, _videoDDB);
     render_to_screen();
     return true;
 }
@@ -287,8 +297,8 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int /* flags */)
     if (!in)
         return false;
     in->Seek(8);
-    fliwidth = in->ReadInt16();
-    fliheight = in->ReadInt16();
+    const int fliwidth = in->ReadInt16();
+    const int fliheight = in->ReadInt16();
     delete in;
 
     PACKFILE *pf = PackfileFromAsset(AssetPath(name, "*"));
@@ -305,23 +315,20 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int /* flags */)
 
     if (game.color_depth > 1)
     {
-        hicol_buf = BitmapHelper::CreateBitmap(fliwidth, fliheight, game.GetColorDepth());
-        hicol_buf->Clear();
+        _hicolBuf.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, game.GetColorDepth()));
     }
     // override the stretch option if necessary
     const Rect &view = play.GetMainViewport();
     if ((fliwidth == view.GetWidth()) && (fliheight == view.GetHeight()))
-        stretch_flc = 0;
+        _stretchVideo = false;
     else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
-        stretch_flc = 1;
-    fli_buffer = BitmapHelper::CreateBitmap(fliwidth, fliheight, 8);
-    if (fli_buffer == nullptr) quit("Not enough memory to play animation");
-    fli_buffer->Clear();
+        _stretchVideo = true;
+    _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
 
-    fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
-    fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
-    fliTargetWidth = view.GetWidth();
-    fliTargetHeight = view.GetHeight();
+    _targetBitmap.reset(BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth()));
+    _videoDDB = gfxDriver->CreateDDBFromBitmap(_targetBitmap.get(), false, true);
+    _targetSize = view.GetSize();
+    _frameTime = fli_speed;
     return true;
 }
 
@@ -331,28 +338,7 @@ void FlicPlayer::CloseImpl()
         pack_fclose(_pf);
     _pf = nullptr;
 
-    delete fli_buffer;
-    fli_buffer = nullptr;
-    // NOTE: the screen bitmap could change in the meanwhile, if the display mode has changed
-    if (gfxDriver->UsesMemoryBackBuffer())
-    {
-        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-        screen_bmp->Clear();
-    }
     set_palette_range(_oldpal, 0, 255, 0);
-    render_to_screen();
-
-    delete fli_target;
-    gfxDriver->DestroyDDB(fli_ddb);
-    fli_target = nullptr;
-    fli_ddb = nullptr;
-
-
-    delete hicol_buf;
-    hicol_buf = nullptr;
-    //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
-    while (ags_mgetbutton() != MouseNone) {} // clear any queued mouse events.
-    invalidate_screen();
 }
 
 bool FlicPlayer::NextFrame()
@@ -369,7 +355,7 @@ bool FlicPlayer::NextFrame()
 
     /* update the screen */
     if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
-        blit(fli_bitmap, fli_buffer->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
+        blit(fli_bitmap, _videoFrame->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
@@ -479,23 +465,23 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
     }
 
     _apegStream = apeg_stream;
-    calculate_destination_size_maintain_aspect_ratio(video_w, video_h, &fliTargetWidth, &fliTargetHeight);
+    calculate_destination_size_maintain_aspect_ratio(video_w, video_h, &_targetSize.Width, &_targetSize.Height);
 
-    if ((fliTargetWidth == video_w) && (fliTargetHeight == video_h) && (stretch_flc))
+    if ((_targetSize.Width == video_w) && (_targetSize.Height == video_h))
     {
         // don't need to stretch after all
-        stretch_flc = 0;
+        _stretchVideo = false;
     }
 
-    if ((stretch_flc) && (!gfxDriver->HasAcceleratedTransform()))
+    if ((_stretchVideo) && (!gfxDriver->HasAcceleratedTransform()))
     {
-        fli_target = BitmapHelper::CreateBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), game.GetColorDepth());
-        fli_target->Clear();
-        fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
+        _targetBitmap.reset(BitmapHelper::CreateClearBitmap(
+            play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), game.GetColorDepth()));
+        _videoDDB = gfxDriver->CreateDDBFromBitmap(_targetBitmap.get(), false, true);
     }
     else
     {
-        fli_ddb = nullptr;
+        _videoDDB = nullptr;
     }
 
     if (gfxDriver->UsesMemoryBackBuffer())
@@ -503,8 +489,8 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
 
     // Init APEG
     _dataStream = std::move(video_stream);
-    fli_speed = 1000 / _apegStream->frame_rate;
-    fli_buffer = new Bitmap(); // FIXME: use target directly if possible?
+    _frameTime = 1000 / _apegStream->frame_rate;
+    _videoFrame.reset(new Bitmap()); // FIXME: use target directly if possible?
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
@@ -515,17 +501,8 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
 
 void TheoraPlayer::CloseImpl()
 {
-    delete fli_buffer;
-    fli_buffer = nullptr;
     apeg_close_stream(_apegStream);
     _apegStream = nullptr;
-
-    delete fli_target;
-    if (fli_ddb)
-        gfxDriver->DestroyDDB(fli_ddb);
-    fli_target = nullptr;
-    fli_ddb = nullptr;
-    invalidate_screen();
 }
 
 bool TheoraPlayer::NextFrame()
@@ -577,7 +554,7 @@ bool TheoraPlayer::NextFrame()
             */
     }
 
-    fli_buffer->WrapAllegroBitmap(_apegStream->bitmap, true);
+    _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);
 
     return ret == APEG_OK;
 }

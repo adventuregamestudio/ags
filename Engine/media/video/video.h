@@ -17,14 +17,21 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEO_H
 #define __AGS_EE_MEDIA__VIDEO_H
+#include <atomic>
+#include "util/geometry.h"
 #include "util/string.h"
 #include "media/audio/openalsource.h"
 
 namespace AGS
 {
+
+namespace Common { class Bitmap; }
+
 namespace Engine
 {
 
+class IDriverDependantBitmap;
+using AGS::Common::Bitmap;
 using AGS::Common::String;
 
 // Parent video player class, provides basic playback logic,
@@ -62,7 +69,19 @@ protected:
     SoundBuffer _audioFrame{};
     bool _wantAudio = false;
 
+    std::unique_ptr<Bitmap> _videoFrame;
+    std::unique_ptr<Bitmap> _hicolBuf;
+    std::unique_ptr<Bitmap> _targetBitmap;
+    IDriverDependantBitmap *_videoDDB = nullptr;
+    Size _targetSize{};
+    bool _stretchVideo = false;
+    uint32_t _frameTime = 0u;
+
 private:
+    // Timer callback, triggers next frame
+    static uint32_t VideoTimerCallback(uint32_t interval, void *param);
+    // Checks input events, tells if the video should be skipped
+    bool CheckUserInputSkip();
     // Renders the current audio data
     bool RenderAudio();
     // Renders the current video frame
@@ -72,6 +91,7 @@ private:
     int _flags = 0;
     int _skip = 0;
     uint32_t _sdlTimer = 0u;
+    std::atomic<int> _timerPos{};
     std::unique_ptr<OpenAlSource> _audioOut;
 };
 

@@ -612,8 +612,9 @@ void video_shutdown()
 
 #else
 
-void play_theora_video(const char *name, int skip, int flags) {}
-void play_flc_file(int numb,int playflags) {}
+void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip) {}
+void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip) {}
 void video_on_gfxmode_changed() {}
+void video_shutdown() {}
 
 #endif

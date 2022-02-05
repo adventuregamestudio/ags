@@ -132,6 +132,6 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
 
 #else
 
-void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags) {}
+void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip) {}
 
 #endif

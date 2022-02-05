@@ -47,7 +47,7 @@ public:
 
 protected:
     // Opens the video, implementation-specific
-    virtual bool OpenImpl(const String &name) { return false; };
+    virtual bool OpenImpl(const String &name, int flags) { return false; };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Retrieves next video frame, implementation-specific
@@ -58,6 +58,8 @@ protected:
 
 private:
     bool _loop = false;
+    int _flags = 0;
+    int _skip = 0;
     uint32_t _sdlTimer = 0u;
 };
 

@@ -724,3 +724,67 @@ void _apeg_initialize_buffer(APEG_LAYER *layer)
 	if(layer->system_stream_flag != OGG_SYSTEM)
 		apeg_flush_bits(layer, 0); /* fills valid data into Bfr */
 }
+
+extern void alvorbis_get_data(APEG_LAYER *layer);
+int apeg_get_audio_frame(APEG_STREAM *stream)
+{
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if (layer->audio.pcm.point < layer->audio.bufsize)
+		alvorbis_get_data(layer);
+	return APEG_OK;
+}
+
+int apeg_play_audio_frame(APEG_STREAM *stream)
+{
+	return _apeg_audio_flush((APEG_LAYER*)stream);
+}
+
+int apeg_audio_get_position(APEG_STREAM *stream)
+{
+	return _apeg_audio_get_position((APEG_LAYER*)stream);
+}
+
+int apeg_get_video_frame(APEG_STREAM *stream)
+{
+	int ret = APEG_OK;
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if (!layer->picture)
+	{
+		if ((layer->stream.flags&APEG_MPG_VIDEO))
+		{
+			// Get the next MPEG header
+			if (apeg_get_header(layer) == 1)
+			{
+				// Decode the next picture
+				if (layer->picture_type != B_TYPE ||
+					!framedrop || layer->stream.timer <= 1)
+					layer->picture = apeg_get_frame(layer);
+			}
+			// If end of stream, display the last frame
+			else if ((!framedrop || layer->stream.timer <= 1) &&
+				!layer->got_last)
+			{
+				layer->got_last = TRUE;
+				layer->picture = layer->backward_frame;
+			}
+		}
+		else
+			layer->picture = altheora_get_frame(layer);
+
+		if (pack_feof(layer->pf) &&
+			(!(layer->stream.flags&APEG_HAS_AUDIO) ||
+				ret != APEG_OK))
+			ret = APEG_EOF;
+	}
+	return ret;
+}
+
+int apeg_display_video_frame(APEG_STREAM *stream)
+{
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if (layer->picture && (!framedrop || layer->stream.timer == 0))
+	{
+		apeg_display_frame(layer, layer->picture);
+	}
+	layer->picture = NULL;
+}

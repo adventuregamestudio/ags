@@ -101,8 +101,17 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
     if (flags / 100)
         clearScreenAtStart = 0;
 
-    if (!OpenImpl(name))
+    if (!OpenImpl(name, flags))
         return false;
+     
+    _flags = flags;
+    _skip = skip;
+    /// THEORA
+    if (flags < 10)
+    {
+        stop_all_sound_and_music();
+    }
+    /// THEORA
 
     if (clearScreenAtStart)
     {
@@ -152,19 +161,60 @@ bool VideoPlayer::Render()
 
     update_audio_system_on_game_loop();
 
-    if (game.color_depth > 1) {
+    // FIXME: for FLIC only!! do we need this always, or only when stretched, or at all??
+    // FIXME: test target bitmap, not game's depth?
+    if ((game.color_depth > 1) && (usebuf->GetBPP() == 1))
+    {
         hicol_buf->Blit(fli_buffer, 0, 0, 0, 0, fliwidth, fliheight);
         usebuf = hicol_buf;
     }
 
+    // FIXME: create on Open?
+    if (fli_ddb == nullptr)
+    {
+        fli_ddb = gfxDriver->CreateDDBFromBitmap(usebuf, false, true);
+    }
+
+    int drawAtX = 0, drawAtY = 0;
     const Rect &view = play.GetMainViewport();
     if (stretch_flc == 0)
-        fli_target->Blit(usebuf, 0, 0, view.GetWidth() / 2 - fliwidth / 2, view.GetHeight() / 2 - fliheight / 2, view.GetWidth(), view.GetHeight());
-    else
-        fli_target->StretchBlt(usebuf, RectWH(0, 0, fliwidth, fliheight), RectWH(0, 0, view.GetWidth(), view.GetHeight()));
+    {
+        drawAtX = view.GetWidth() / 2 - fliTargetWidth / 2;
+        drawAtY = view.GetHeight() / 2 - fliTargetHeight / 2;
 
+        if (!gfxDriver->HasAcceleratedTransform())
+        {
+            fli_target->StretchBlt(usebuf, RectWH(0, 0, usebuf->GetWidth(), usebuf->GetHeight()),
+                RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
+            gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
+            drawAtX = 0;
+            drawAtY = 0;
+        }
+        else
+        {
+            gfxDriver->UpdateDDBFromBitmap(fli_ddb, usebuf, false);
+            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight, false);
+        }
+
+        /* FROM FLIC:
+        fli_target->Blit(usebuf, 0, 0, view.GetWidth() / 2 - fliwidth / 2, view.GetHeight() / 2 - fliheight / 2, view.GetWidth(), view.GetHeight());
+        */
+    }
+    else
+    {
+        gfxDriver->UpdateDDBFromBitmap(fli_ddb, usebuf, false);
+        drawAtX = view.GetWidth() / 2 - usebuf->GetWidth() / 2;
+        drawAtY = view.GetHeight() / 2 - usebuf->GetHeight() / 2;
+        /* FROM FLIC:
+        fli_target->StretchBlt(usebuf, RectWH(0, 0, fliwidth, fliheight), RectWH(0, 0, view.GetWidth(), view.GetHeight()));
+        */
+    }
+
+    /* FROM FLIC:
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
-    gfxDriver->DrawSprite(0, 0, fli_ddb);
+    */
+    gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
+    update_audio_system_on_game_loop();
     render_to_screen();
     return true;
 }
@@ -184,7 +234,7 @@ public:
     void Restore() override;
 
 private:
-    bool OpenImpl(const AGS::Common::String &name) override;
+    bool OpenImpl(const AGS::Common::String &name, int flags) override;
     void CloseImpl() override;
     bool NextFrame() override;
 
@@ -203,7 +253,7 @@ void FlicPlayer::Restore()
     set_palette_range(fli_palette, 0, 255, 0);
 }
 
-bool FlicPlayer::OpenImpl(const AGS::Common::String &name)
+bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int /* flags */)
 {
     Stream *in = AssetMgr->OpenAsset(name);
     if (!in)
@@ -242,6 +292,8 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name)
 
     fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
+    fliTargetWidth = view.GetWidth();
+    fliTargetHeight = view.GetHeight();
     return true;
 }
 
@@ -335,59 +387,33 @@ void play_flc_file(int numb, int playflags)
     gl_Video.reset();
 }
 
+namespace AGS
+{
+namespace Engine
+{
+
 //-----------------------------------------------------------------------------
 // Theora video player implementation
 //-----------------------------------------------------------------------------
 
-// TODO: find a way to take Bitmap here?
-Bitmap gl_TheoraBuffer;
-int theora_playing_callback(BITMAP *theoraBuffer)
+class TheoraPlayer : public VideoPlayer
 {
-    sys_evt_process_pending();
-	if (theoraBuffer == nullptr)
-    {
-        // No video, only sound
-        return CheckUserInputSkip();
-    }
+public:
+    TheoraPlayer() = default;
+    ~TheoraPlayer();
 
-    gl_TheoraBuffer.WrapAllegroBitmap(theoraBuffer, true);
+private:
+    bool OpenImpl(const AGS::Common::String &name, int flags) override;
+    void CloseImpl() override;
+    bool NextFrame() override;
 
-    int drawAtX = 0, drawAtY = 0;
-    const Rect &viewport = play.GetMainViewport();
-    if (fli_ddb == nullptr)
-    {
-        fli_ddb = gfxDriver->CreateDDBFromBitmap(&gl_TheoraBuffer, false, true);
-    }
-    if (stretch_flc) 
-    {
-        drawAtX = viewport.GetWidth() / 2 - fliTargetWidth / 2;
-        drawAtY = viewport.GetHeight() / 2 - fliTargetHeight / 2;
-        if (!gfxDriver->HasAcceleratedTransform())
-        {
-            fli_target->StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
-                RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
-            drawAtX = 0;
-            drawAtY = 0;
-        }
-        else
-        {
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
-            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight, false);
-        }
-    }
-    else
-    {
-        gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
-        drawAtX = viewport.GetWidth() / 2 - gl_TheoraBuffer.GetWidth() / 2;
-        drawAtY = viewport.GetHeight() / 2 - gl_TheoraBuffer.GetHeight() / 2;
-    }
+    std::unique_ptr<Stream> _dataStream;
+    APEG_STREAM *_apegStream = nullptr;
+};
 
-    gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
-    update_audio_system_on_game_loop ();
-    render_to_screen();
-
-    return CheckUserInputSkip();
+TheoraPlayer::~TheoraPlayer()
+{
+    CloseImpl();
 }
 
 //
@@ -414,23 +440,9 @@ void apeg_stream_skip(int bytes, void *ptr)
 }
 //
 
-APEG_STREAM* get_theora_size(Stream *video_stream, int *width, int *height)
-{
-    APEG_STREAM* oggVid = apeg_open_stream_ex(video_stream);
-    if (oggVid != nullptr)
-    {
-        apeg_get_video_size(oggVid, width, height);
-    }
-    else
-    {
-        *width = 0;
-        *height = 0;
-    }
-    return oggVid;
-}
 
 // TODO: use shared utility function for placing rect in rect
-void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeight, int *targetWidth, int *targetHeight)
+static void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeight, int *targetWidth, int *targetHeight)
 {
     const Rect &viewport = play.GetMainViewport();
     float aspectRatioVideo = (float)vidWidth / (float)vidHeight;
@@ -454,7 +466,7 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 }
 
-void play_theora_video(const char *name, int skip, int flags)
+bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
 {
     std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
@@ -465,29 +477,26 @@ void play_theora_video(const char *name, int skip, int flags)
     // Disable framedrop, because after porting to SDL2 and OpenAL, APEG detects
     // audio ahead too often, and with framedrop video does not advance at all.
     apeg_enable_framedrop(/*psp_video_framedrop*/FALSE);
-    update_polled_stuff_if_runtime();
-
-    stretch_flc = (flags % 10);
-    canabort = skip;
     apeg_ignore_audio((flags >= 10) ? 1 : 0);
 
-    int videoWidth, videoHeight;
-    APEG_STREAM *oggVid = get_theora_size(video_stream.get(), &videoWidth, &videoHeight);
-
-    if (videoWidth == 0)
+    APEG_STREAM* apeg_stream = apeg_open_stream_ex(video_stream.get());
+    if (!apeg_stream)
     {
-        Display("Unable to load theora video '%s'", name);
-        return;
+        debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
+        return false;
+    }
+    int video_w, video_h;
+    apeg_get_video_size(apeg_stream, &video_w, &video_h);
+    if (video_w <= 0 || video_h <= 0)
+    {
+        debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
+        return false;
     }
 
-    if (flags < 10)
-    {
-        stop_all_sound_and_music();
-    }
+    _apegStream = apeg_stream;
+    calculate_destination_size_maintain_aspect_ratio(video_w, video_h, &fliTargetWidth, &fliTargetHeight);
 
-    calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
-
-    if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))
+    if ((fliTargetWidth == video_w) && (fliTargetHeight == video_h) && (stretch_flc))
     {
         // don't need to stretch after all
         stretch_flc = 0;
@@ -509,18 +518,100 @@ void play_theora_video(const char *name, int skip, int flags)
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
 
-    if (apeg_play_apeg_stream(oggVid, nullptr, 0, theora_playing_callback) == APEG_ERROR)
-    {
-        Display("Error playing theora video '%s'", name);
-    }
-    apeg_close_stream(oggVid);
+    // Init APEG
+    _dataStream = std::move(video_stream);
+    fli_speed = 1000 / _apegStream->frame_rate;
+    fli_buffer = new Bitmap(); // FIXME: use target directly if possible?
+    memset(apeg_error, 0, sizeof(apeg_error));
+    
+    return true;
+}
 
-    //destroy_bitmap(fli_buffer);
+void TheoraPlayer::CloseImpl()
+{
+    delete fli_buffer;
+    fli_buffer = nullptr;
+    apeg_close_stream(_apegStream);
+    _apegStream = nullptr;
+
     delete fli_target;
-    gfxDriver->DestroyDDB(fli_ddb);
+    if (fli_ddb)
+        gfxDriver->DestroyDDB(fli_ddb);
     fli_target = nullptr;
     fli_ddb = nullptr;
     invalidate_screen();
+}
+
+bool TheoraPlayer::NextFrame()
+{
+    const int framedrop = 0;
+
+    // reset some data
+    //APEG_LAYER *layer = reinterpret_cast<APEG_LAYER*>(_apegStream);
+    _apegStream->frame = 0;
+    _apegStream->frame_updated = -1;
+    _apegStream->audio.flushed = FALSE;
+
+    int ret = 0;
+    if ((_apegStream->flags & APEG_HAS_AUDIO))
+    {
+        apeg_get_audio_frame(_apegStream);
+        apeg_play_audio_frame(_apegStream); // FIXME: do ourselves instead
+        if ((_apegStream->flags & APEG_HAS_VIDEO))
+        {
+            int t = apeg_audio_get_position(_apegStream);
+            if (t >= 0) {
+                double audio_pos_secs = (double)t / (double)_apegStream->audio.freq;
+                double audio_frames = audio_pos_secs * _apegStream->frame_rate;
+                _apegStream->timer = audio_frames - _apegStream->frame;
+                // could be negative.. so will wait until 0 ?
+            }
+        }
+    }
+
+    if ((_apegStream->flags & APEG_HAS_VIDEO))
+    {
+        ret = apeg_get_video_frame(_apegStream);
+
+        if (_apegStream->timer > 0)
+        {
+            // Update frame and timer count
+            ++(_apegStream->frame);
+            --(_apegStream->timer);
+
+            // If we're not behind, update the display frame
+            _apegStream->frame_updated = 0;
+            apeg_display_video_frame(_apegStream);
+        }
+        /* FIXME: how to do here?
+        if (_apegStream->frame_updated == 1 || layer->picture)
+            ret = APEG_OK;
+            */
+    }
+
+    fli_buffer->WrapAllegroBitmap(_apegStream->bitmap, true);
+
+    return ret == APEG_OK;
+}
+
+} // namespace Engine
+} // namespace AGS
+
+
+void play_theora_video(const char *name, int skip, int flags)
+{
+    gl_Video.reset(new TheoraPlayer());
+    if (!gl_Video->Open(name, skip, flags))
+    {
+        gl_Video.reset();
+        debug_script_warn("Error playing theora video '%s'", name);
+        return;
+    }
+
+    // Loop until finished or skipped by player
+    while (gl_Video->Poll());
+
+    gl_Video.reset();
 }
 
 void video_on_gfxmode_changed()

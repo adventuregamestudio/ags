@@ -72,5 +72,7 @@ void play_flc_file(int numb,int playflags);
 
 // Update video playback if the display mode has changed
 void video_on_gfxmode_changed();
+// Stop current playback and dispose all video resource
+void video_shutdown();
 
 #endif // __AGS_EE_MEDIA__VIDEO_H

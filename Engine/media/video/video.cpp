@@ -103,7 +103,7 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
 
     if (!OpenImpl(name, flags))
         return false;
-     
+
     _flags = flags;
     _skip = skip;
     /// THEORA
@@ -159,8 +159,6 @@ bool VideoPlayer::Render()
 {
     Bitmap *usebuf = fli_buffer;
 
-    update_audio_system_on_game_loop();
-
     // FIXME: for FLIC only!! do we need this always, or only when stretched, or at all??
     // FIXME: test target bitmap, not game's depth?
     if ((game.color_depth > 1) && (usebuf->GetBPP() == 1))
@@ -214,7 +212,6 @@ bool VideoPlayer::Render()
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     */
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
-    update_audio_system_on_game_loop();
     render_to_screen();
     return true;
 }
@@ -349,49 +346,6 @@ bool FlicPlayer::NextFrame()
     return true;
 }
 
-} // namespace Engine
-} // namespace AGS
-
-
-void play_flc_file(int numb, int playflags)
-{
-    if (play.fast_forward)
-        return; // skip video
-    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
-    if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
-
-    // Convert flags
-    int skip = playflags % 10;
-    playflags -= skip;
-    if (skip == 2) // convert to PlayVideo-compatible setting
-        skip = 3;
-
-    gl_Video.reset(new FlicPlayer());
-    // Try couple of various filename formats
-    String flicname = String::FromFormat("flic%d.flc", numb);
-    if (!gl_Video->Open(flicname, skip, playflags))
-    {
-        flicname.Format("flic%d.fli", numb);
-        if (!gl_Video->Open(flicname, skip, playflags))
-        {
-            gl_Video.reset();
-            debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
-            return;
-        }
-    }
-
-    // Loop until finished or skipped by player
-    while (gl_Video->Poll());
-
-    gl_Video.reset();
-}
-
-namespace AGS
-{
-namespace Engine
-{
-
 //-----------------------------------------------------------------------------
 // Theora video player implementation
 //-----------------------------------------------------------------------------
@@ -513,8 +467,6 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
         fli_ddb = nullptr;
     }
 
-    update_polled_stuff_if_runtime();
-
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
 
@@ -598,26 +550,74 @@ bool TheoraPlayer::NextFrame()
 } // namespace AGS
 
 
+//-----------------------------------------------------------------------------
+// Running the single video playback
+//-----------------------------------------------------------------------------
+
+void video_run(std::unique_ptr<VideoPlayer> video)
+{
+    gl_Video = std::move(video);
+    // Loop until finished or skipped by player
+    while (gl_Video->Poll())
+    {
+        sys_evt_process_pending();
+        update_audio_system_on_game_loop();
+    }
+
+    gl_Video.reset();
+}
+
+void play_flc_file(int numb, int playflags)
+{
+    if (play.fast_forward)
+        return; // skip video
+    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
+    if (loaded_game_file_version <= kGameVersion_272)
+        play.screen_is_faded_out = 0;
+
+    // Convert flags
+    int skip = playflags % 10;
+    playflags -= skip;
+    if (skip == 2) // convert to PlayVideo-compatible setting
+        skip = 3;
+
+    std::unique_ptr<FlicPlayer> video(new FlicPlayer());
+    // Try couple of various filename formats
+    String flicname = String::FromFormat("flic%d.flc", numb);
+    if (!video->Open(flicname, skip, playflags))
+    {
+        flicname.Format("flic%d.fli", numb);
+        if (!video->Open(flicname, skip, playflags))
+        {
+            debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
+            return;
+        }
+    }
+
+    video_run(std::move(video));
+}
+
 void play_theora_video(const char *name, int skip, int flags)
 {
-    gl_Video.reset(new TheoraPlayer());
-    if (!gl_Video->Open(name, skip, flags))
+    std::unique_ptr<TheoraPlayer> video(new TheoraPlayer());
+    if (!video->Open(name, skip, flags))
     {
-        gl_Video.reset();
         debug_script_warn("Error playing theora video '%s'", name);
         return;
     }
 
-    // Loop until finished or skipped by player
-    while (gl_Video->Poll());
-
-    gl_Video.reset();
+    video_run(std::move(video));
 }
 
 void video_on_gfxmode_changed()
 {
     if (gl_Video)
         gl_Video->Restore();
+}
+
+void video_shutdown()
+{
+    gl_Video.reset();
 }
 
 #else

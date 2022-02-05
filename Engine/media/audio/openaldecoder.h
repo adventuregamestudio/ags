@@ -120,6 +120,7 @@ private:
     static ALenum openalFormatFromSample(const SoundSampleUniquePtr &sample);
     void DecoderUnqueueProcessedBuffers();
     void PollBuffers();
+    void SetResampling();
 };
 
 

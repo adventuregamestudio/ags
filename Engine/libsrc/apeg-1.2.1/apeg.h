@@ -118,9 +118,7 @@ void apeg_set_audio_callbacks(int (*init)(APEG_STREAM *stream, int *channels,
 
 
 void apeg_set_error(APEG_STREAM *stream, const char *text);
-int apeg_get_audio_frame(APEG_STREAM *stream);
-int apeg_play_audio_frame(APEG_STREAM *stream);
-int apeg_audio_get_position(APEG_STREAM *stream);
+int apeg_get_audio_frame(APEG_STREAM *stream, unsigned char **pbuf, int *count);
 int apeg_get_video_frame(APEG_STREAM *stream);
 int apeg_display_video_frame(APEG_STREAM *stream);
 

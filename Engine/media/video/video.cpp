@@ -38,6 +38,7 @@
 #include "main/game_run.h"
 #include "util/stream.h"
 #include "media/audio/audio_system.h"
+#include "media/audio/openal.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -104,6 +105,16 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
     if (!OpenImpl(name, flags))
         return false;
 
+    /// AUDIO
+    /* Start the audio stream */
+    if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
+    {
+        _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));
+        _audioOut->Play();
+        _wantAudio = true;
+    }
+    ///
+
     _flags = flags;
     _skip = skip;
     /// THEORA
@@ -131,9 +142,17 @@ bool VideoPlayer::Open(const String &name, int skip, int flags)
 
 void VideoPlayer::Close()
 {
+    // Shutdown openal source
+    _audioOut.reset();
+
     CloseImpl();
 
     SDL_RemoveTimer(_sdlTimer);
+}
+
+int VideoPlayer::GetAudioPos()
+{
+    return _audioOut ? _audioOut->GetPositionMs() : 0;
 }
 
 bool VideoPlayer::Poll()
@@ -142,7 +161,9 @@ bool VideoPlayer::Poll()
     if (!NextFrame())
         return false;
     // Render current frame
-    if (!Render())
+    if (_audioFrame && !RenderAudio())
+        return false;
+    if (fli_buffer && !RenderVideo())
         return false;
     // Check user input skipping the video
     if (CheckUserInputSkip())
@@ -155,8 +176,18 @@ bool VideoPlayer::Poll()
     return true;
 }
 
-bool VideoPlayer::Render()
+bool VideoPlayer::RenderAudio()
 {
+    assert(_audioFrame);
+    assert(_audioOut != nullptr);
+    _wantAudio = _audioOut->PutData(_audioFrame) > 0u;
+    _audioOut->Poll();
+    return true;
+}
+
+bool VideoPlayer::RenderVideo()
+{
+    assert(fli_buffer);
     Bitmap *usebuf = fli_buffer;
 
     // FIXME: for FLIC only!! do we need this always, or only when stretched, or at all??
@@ -474,8 +505,11 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int flags)
     _dataStream = std::move(video_stream);
     fli_speed = 1000 / _apegStream->frame_rate;
     fli_buffer = new Bitmap(); // FIXME: use target directly if possible?
-    apeg_set_error(apeg_stream, NULL);
-    
+    _audioChannels = _apegStream->audio.channels;
+    _audioFreq = _apegStream->audio.freq;
+    _audioFormat = AUDIO_S16SYS;
+    apeg_set_error(_apegStream, NULL);
+
     return true;
 }
 
@@ -505,15 +539,17 @@ bool TheoraPlayer::NextFrame()
     _apegStream->audio.flushed = FALSE;
 
     int ret = 0;
-    if ((_apegStream->flags & APEG_HAS_AUDIO))
+    if ((_apegStream->flags & APEG_HAS_AUDIO) && _wantAudio)
     {
-        apeg_get_audio_frame(_apegStream);
-        apeg_play_audio_frame(_apegStream); // FIXME: do ourselves instead
+        unsigned char *buf = nullptr;
+        int count = 0;
+        ret = apeg_get_audio_frame(_apegStream, &buf, &count);
+        _audioFrame = SoundBuffer(buf, count);
         if ((_apegStream->flags & APEG_HAS_VIDEO))
         {
-            int t = apeg_audio_get_position(_apegStream);
-            if (t >= 0) {
-                double audio_pos_secs = (double)t / (double)_apegStream->audio.freq;
+            int pos_ms = GetAudioPos();
+            if (pos_ms >= 0) {
+                double audio_pos_secs = (double)pos_ms / 1000.0;
                 double audio_frames = audio_pos_secs * _apegStream->frame_rate;
                 _apegStream->timer = audio_frames - _apegStream->frame;
                 // could be negative.. so will wait until 0 ?

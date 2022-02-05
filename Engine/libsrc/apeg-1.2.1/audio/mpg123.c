@@ -12,8 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "openal_support.h"
-
 #include "apeg.h"
 #include "mpg123.h"
 #include "mpeg1dec.h"
@@ -84,20 +82,6 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 
 	layer->audio.samples_per_update = layer->audio.bufsize / 2 /
 	                                  layer->stream.audio.channels;
-
-	layer->audio.processedSamples = 0;
-
-	/* clear */ alGetError();
-
-	/* Start the audio stream */
-	alGenSources((ALuint)1, &layer->audio.alSource);
-	check_al_error("alGenSources")
-
-	alSourceRewind(layer->audio.alSource);
-	check_al_error("alSourceRewind")
-
-    alSourcei(layer->audio.alSource, AL_BUFFER, 0);
-	check_al_error("alSourcei AL_BUFFER")
 
 	layer->audio.last_pos = -1;
 	layer->audio.pos = -layer->audio.samples_per_update*2;

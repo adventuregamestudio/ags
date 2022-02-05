@@ -420,7 +420,8 @@ void apeg_disable_length_detection(int disable)
 
 static int decode_stream(APEG_LAYER *layer, BITMAP *target)
 {
-	int ret;
+    int ret;
+    /*
 	int dw, dh;
 
 	if((ret = setjmp(layer->jmp_buffer)) != 0)
@@ -516,7 +517,7 @@ static int decode_stream(APEG_LAYER *layer, BITMAP *target)
 				SDL_Delay(1);
 		}
 	} while(ret == APEG_OK);
-
+    */
 	return ret;
 }
 
@@ -728,7 +729,7 @@ void apeg_set_error(APEG_STREAM *stream, const char *text)
 }
 
 extern void alvorbis_get_data(APEG_LAYER *layer);
-int apeg_get_audio_frame(APEG_STREAM *stream)
+int apeg_get_audio_frame(APEG_STREAM *stream, unsigned char **pbuf, int *count)
 {
 	int ret;
 	APEG_LAYER *layer = (APEG_LAYER*)stream;
@@ -736,23 +737,13 @@ int apeg_get_audio_frame(APEG_STREAM *stream)
 		return ret;
 	if (layer->audio.pcm.point < layer->audio.bufsize)
 		alvorbis_get_data(layer);
-	return APEG_OK;
-}
-
-int apeg_play_audio_frame(APEG_STREAM *stream)
-{
-	int ret;
-	if ((ret = setjmp(((APEG_LAYER*)stream)->jmp_buffer)) != 0)
-		return ret;
-	return _apeg_audio_flush((APEG_LAYER*)stream);
-}
-
-int apeg_audio_get_position(APEG_STREAM *stream)
-{
-	int ret;
-	if ((ret = setjmp(((APEG_LAYER*)stream)->jmp_buffer)) != 0)
-		return ret;
-	return _apeg_audio_get_position((APEG_LAYER*)stream);
+	*pbuf = layer->audio.pcm.samples;
+	*count = layer->audio.pcm.point;
+	// flush
+	layer->audio.pos = -1;
+	layer->audio.pcm.point = 0;
+	layer->stream.audio.flushed = TRUE;
+	return (*count) > 0 ? APEG_OK : APEG_EOF;
 }
 
 int apeg_get_video_frame(APEG_STREAM *stream)

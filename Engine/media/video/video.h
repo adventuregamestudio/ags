@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_MEDIA__VIDEO_H
 #define __AGS_EE_MEDIA__VIDEO_H
 #include "util/string.h"
+#include "media/audio/openalsource.h"
 
 namespace AGS
 {
@@ -53,14 +54,25 @@ protected:
     // Retrieves next video frame, implementation-specific
     virtual bool NextFrame() { return false; };
 
-    // Renders the current frame
-    bool Render();
+    int GetAudioPos(); // in ms
+
+    int _audioChannels = 0;
+    int _audioFreq = 0;
+    SDL_AudioFormat _audioFormat = 0;
+    SoundBuffer _audioFrame{};
+    bool _wantAudio = false;
 
 private:
+    // Renders the current audio data
+    bool RenderAudio();
+    // Renders the current video frame
+    bool RenderVideo();
+
     bool _loop = false;
     int _flags = 0;
     int _skip = 0;
     uint32_t _sdlTimer = 0u;
+    std::unique_ptr<OpenAlSource> _audioOut;
 };
 
 } // namespace Engine

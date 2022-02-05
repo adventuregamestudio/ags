@@ -209,9 +209,6 @@ typedef struct APEG_LAYER {
 		int buf_segment;
 		int voice;
 
-		unsigned int alSource;
-		int processedSamples;
-
 		int bufsize;
 
 		int samples_per_update;

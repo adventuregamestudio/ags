@@ -1670,9 +1670,6 @@
     <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpg123.h">
       <Filter>Library Sources\apeg</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\openal_support.h">
-      <Filter>Library Sources\apeg</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>

@@ -16,7 +16,6 @@ int alvorbis_stop_streaming(struct APEG_LAYER*);
 int alvorbis_update(struct APEG_LAYER*);
 
 int _apeg_audio_poll(struct APEG_LAYER*);
-int _apeg_audio_get_position(struct APEG_LAYER*);
 void _apeg_audio_set_speed_multiple(struct APEG_LAYER*, float);
 int _apeg_audio_close(struct APEG_LAYER*);
 int _apeg_audio_flush(struct APEG_LAYER*);

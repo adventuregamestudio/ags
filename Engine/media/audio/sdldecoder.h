@@ -66,6 +66,7 @@ struct SoundBuffer
     SoundBuffer(SoundBuffer &&buf)
         : Data(buf.Data), Size(buf.Size), Ts(buf.Ts), DurMs(buf.DurMs) { buf = SoundBuffer(); }
     SoundBuffer &operator=(const SoundBuffer &buf) = default;
+    operator bool() const { return Data && Size > 0; }
 };
 
 // RAII wrapper over SDL resampling filter;

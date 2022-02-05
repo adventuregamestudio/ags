@@ -96,8 +96,6 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
  */
 int _apeg_audio_poll(APEG_LAYER *layer)
 {
-
-
 	if(layer->stream.flags & APEG_VORBIS_AUDIO)
 		return alvorbis_update(layer);
 
@@ -139,6 +137,3 @@ int _apeg_start_audio(APEG_LAYER *layer, int enable)
 		return APEG_OK;
 	return APEG_ERROR;
 }
-
-
-

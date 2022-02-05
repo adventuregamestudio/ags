@@ -11,12 +11,9 @@ struct APEG_LAYER;
 typedef unsigned char byte;
 extern int _apeg_ignore_audio;
 
-int alvorbis_init_streaming(struct APEG_LAYER*);
-int alvorbis_stop_streaming(struct APEG_LAYER*);
 int alvorbis_update(struct APEG_LAYER*);
 
 int _apeg_audio_poll(struct APEG_LAYER*);
-void _apeg_audio_set_speed_multiple(struct APEG_LAYER*, float);
 int _apeg_audio_close(struct APEG_LAYER*);
 int _apeg_audio_flush(struct APEG_LAYER*);
 

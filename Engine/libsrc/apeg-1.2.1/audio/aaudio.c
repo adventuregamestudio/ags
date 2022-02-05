@@ -1,8 +1,3 @@
-#include <string.h>
-#include <stdio.h>
-
-#include "apeg.h"
-#include "mpg123.h"
 #include "mpeg1dec.h"
 
 

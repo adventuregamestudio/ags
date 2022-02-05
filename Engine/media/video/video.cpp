@@ -434,9 +434,6 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
-    // Disable framedrop, because after porting to SDL2 and OpenAL, APEG detects
-    // audio ahead too often, and with framedrop video does not advance at all.
-    apeg_enable_framedrop(/*psp_video_framedrop*/FALSE);
     apeg_ignore_audio((flags & kVideo_EnableAudio) == 0);
 
     APEG_STREAM* apeg_stream = apeg_open_stream_ex(video_stream.get());
@@ -537,10 +534,6 @@ bool TheoraPlayer::NextFrame()
             _apegStream->frame_updated = 0;
             apeg_display_video_frame(_apegStream);
         }
-        /* FIXME: how to do here?
-        if (_apegStream->frame_updated == 1 || layer->picture)
-            ret = APEG_OK;
-            */
     }
 
     _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);

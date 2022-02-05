@@ -63,7 +63,6 @@ typedef struct APEG_STREAM {
 
 	int sequence;
 
-	int sdl_timer_id;
 	volatile int timer;
 
 	int flags;
@@ -81,7 +80,6 @@ typedef struct APEG_STREAM {
 APEG_STREAM *apeg_open_stream_ex(void *ptr);
 int apeg_reset_stream(APEG_STREAM *stream);
 void apeg_close_stream(APEG_STREAM *stream);
-int apeg_play_apeg_stream(APEG_STREAM *stream_to_play, BITMAP *bmp, int loop, int (*callback)(BITMAP*tempBuffer));
 
 int apeg_ignore_video(int ignore);
 int apeg_ignore_audio(int ignore);
@@ -99,7 +97,6 @@ void apeg_set_display_callbacks(int (*init)(APEG_STREAM *stream, int coded_w,
                                 void *ptr);
 void apeg_set_display_depth(int depth);
 
-void apeg_enable_framedrop(int framedrop);
 void apeg_disable_length_detection(int skipdetect);
 
 void apeg_reset_colors(APEG_STREAM *stream);
@@ -122,7 +119,6 @@ int apeg_get_audio_frame(APEG_STREAM *stream, unsigned char **pbuf, int *count);
 int apeg_get_video_frame(APEG_STREAM *stream);
 int apeg_display_video_frame(APEG_STREAM *stream);
 
-extern APEG_STREAM *apeg_stream;
 extern PALETTE apeg_palette;
 
 #ifdef __cplusplus

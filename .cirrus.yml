@@ -148,6 +148,8 @@ build_android_task:
     memory: 8G
     greedy: true
   git_submodules_script: git submodule update --init --recursive
+  build_prepare_script: |
+    pushd Android && ./and-build.sh prepare && popd
   build_debug_library_and_runtime_script: |
     pushd Android && ./and-build.sh build_debug && popd
   build_release_library_and_runtime_script: |
@@ -156,10 +158,10 @@ build_android_task:
     pushd Android && ./and-build.sh archive_apks && popd
   apks_artifacts:
     path: AGS-*.apk
-  create_libs_archive_script: |
-    pushd Android && ./and-build.sh archive_libs && popd
-  libs_artifacts:
-    path: AGS-*-android-libs-*.zip
+  create_proj_archive_script: |
+    pushd Android && ./and-build.sh archive_project && popd
+  proj_artifacts:
+    path: AGS-*-android-proj-*.zip
 
 
 build_emscripten_task:
@@ -389,8 +391,8 @@ make_release_task:
       "build_linux_debian/debian_packages/ags_${version}_amd64.deb" \
       "build_android/apks/AGS-${version}-debug.apk" \
       "build_android/apks/AGS-${version}-release.apk" \
-      "build_android/libs/AGS-${version}-android-libs-debug.zip" \
-      "build_android/libs/AGS-${version}-android-libs-release.zip"
+      "build_android/proj/AGS-${version}-android-proj-debug.zip" \
+      "build_android/proj/AGS-${version}-android-proj-release.zip"
     do
       url="$baseurl/$download"
       echo "Downloading $url"

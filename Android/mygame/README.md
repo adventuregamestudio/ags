@@ -110,12 +110,12 @@ To be easier for debugging, keep your game files on `mygame/app/src/main/assets`
 
 ## Testing the app bundle
 
-If you want to make sure that the built `.aab` bundle actually has your game package working, you can use the bundletool, grab it from it's [release page](https://github.com/google/bundletool/releases). Additionally, you will need to install java, [grab it here](https://www.java.com/en/download/).
+If you want to make sure that the built `.aab` bundle actually has your game package working, you can use the bundletool, grab it from it's [release page](https://github.com/google/bundletool/releases).
 
 Now, you will need to set `JAVA_HOME`, `ANDROID_HOME` and make sure java is on your Path to be able to use this tool. Below is an example for configuring via `cmd.exe` on Windows, but adjust it accordingly, attention to java directory that will change on each version.
 
     setx ANDROID_HOME "%USERPROFILE%\AppData\Local\Android\Sdk"
-	setx JAVA_HOME "C:\Program Files\Java\jre1.8.0_301"
+	setx JAVA_HOME "%ProgramFiles%\Android\Android Studio\jre"
 	setx Path "%Path%;%JAVA_HOME%\bin"
 
 With that set, generate APKs with the `--local-testing` flag
@@ -125,6 +125,8 @@ With that set, generate APKs with the `--local-testing` flag
 And after, you can push the generated apks file with package, just connect a device (or turn on the emulator) and run bundletool to sideload the APKs:
 
     java -jar bundletool.jar install-apks --apks=output.apks
+
+_note:_ If you don't have Android Studio installed you will need to install java, [grab it here](https://www.java.com/en/download/), and you need to tell your software where Java is, so use `setx JAVA_HOME "C:\Program Files\Java\jre1.8.0_301"`.
 
 
 ## Androig Configuration

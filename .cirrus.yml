@@ -238,6 +238,7 @@ windows_packaging_task:
     - build_windows
     - linux_packaging
     - build_emscripten
+    - build_android
   windows_container:
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
@@ -275,6 +276,11 @@ windows_packaging_task:
     call Script\setvar.cmd ACI_VERSION_STR &&
     cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_emscripten/binaries/ags_!ACI_VERSION_STR!_web.tar.gz" |
     tar -f - -xvC Windows\Installer\Source\Web"
+  get_android_bundle_script: >
+    mkdir Windows\Installer\Source\Android &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_android/proj/AGS-!ACI_VERSION_STR!-android-proj-release.zip" --output "%TEMP%\Android.zip" &&
+    tar -f "%TEMP%\Android.zip" -xvzC Windows\Installer\Source\Android"
   make_installer_script: >
     powershell Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
   installer_artifacts:
@@ -285,6 +291,7 @@ windows_packaging_task:
     move Windows\Installer\Source\Licenses Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Linux Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Web Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Android Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\ &&
     for %%f in (Windows\Installer\Output\*.exe) do

@@ -19,7 +19,6 @@ namespace AGS.Types
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
         public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
-        public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
@@ -41,7 +40,7 @@ namespace AGS.Types
         private string _gameFileName = string.Empty;
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
-        private GameColorDepth _colorDepth = GameColorDepth.HighColor;
+        private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
         private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
@@ -237,7 +236,6 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
-        [AGSNoSerialize]
         [Browsable(false)]
         [Obsolete("Old Resolution property of Enum type is replaced by CustomResolution of Size type.")]
         public GameResolutions Resolution
@@ -329,8 +327,8 @@ namespace AGS.Types
             }
         }
 
-        [Obsolete]
         [Browsable(false)]
+        [Obsolete("Boolean CompressSprites is replaced with CompressSpritesType.")]
         public bool CompressSprites
         {
             get { return _compressSprites != SpriteCompression.None; }
@@ -932,12 +930,8 @@ namespace AGS.Types
             set { _alwaysDisplayTextAsSpeech = value; }
         }
 
-        [AGSNoSerialize]
         [Browsable(false)]
-        [DisplayName(PROPERTY_LEGACY_HIRES_FONTS)]
-        [Description("Tells AGS that your fonts are designed for high resolution (higher than 320x240), and therefore not to scale them up in hi-res game")]
-        [DefaultValue(false)]
-        [Category("Text output")]
+        [Obsolete("FontsForHiRes property is replaced with individual SizeMultiplier in each font.")]
         public bool FontsForHiRes
         {
             get { return _fontsAreHiRes; }

@@ -945,7 +945,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   int blockSize = (!thisgame.IsLegacyHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
+  int char_height = thisgame.fonts[fontnum].Size * thisgame.fonts[fontnum].SizeMultiplier;
   int grid_size   = max(10, char_height);
   int grid_margin = max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -1997,11 +1997,11 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     FontInfo &font_info = thisgame.fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
 
-    int old_sizept = font_info.SizePt;
+    int old_size = font_info.Size;
     int old_scaling = font_info.SizeMultiplier;
     int old_flags = font_info.Flags;
 
-    font_info.SizePt = font->PointSize;
+    font_info.Size = font->PointSize;
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
@@ -2015,7 +2015,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
         font_info.Flags |= FFLG_ASCENDERFIXUP;
 
     if (forceUpdate ||
-        font_info.SizePt != old_sizept ||
+        font_info.Size != old_size ||
         font_info.SizeMultiplier != old_scaling ||
         font_info.Flags != old_flags)
     {
@@ -3285,7 +3285,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		{
 			font->OutlineStyle = FontOutlineStyle::UseOutlineFont;
 		}
-		font->PointSize = thisgame.fonts[i].SizePt;
+		font->PointSize = thisgame.fonts[i].Size;
 		font->Name = gcnew String(String::Format("Font {0}", i));
 
 		game->Fonts->Add(font);

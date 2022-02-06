@@ -6,9 +6,9 @@ namespace AGS.Types
 {
     public enum FontHeightDefinition
     {
-        [Description("Nominal height (point size)")]
+        [Description("Nominal height (import size)")]
         NominalHeight,
-        [Description("Real pixel height")]
+        [Description("Full graphical height")]
         PixelHeight
     }
 }

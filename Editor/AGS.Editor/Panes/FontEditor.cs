@@ -72,7 +72,7 @@ namespace AGS.Editor
 
         private void ImportTTFFont(string fileName, string newTTFName, string newWFNName)
         {
-            ImportTTFDialog.FontSizeMeaning sizeType;
+            FontHeightDefinition sizeType;
             int sizeValue;
             if (!ImportTTFDialog.Show(out sizeType, out sizeValue, 
                     _item.PointSize > 0 ? _item.PointSize : DEFAULT_IMPORTED_FONT_SIZE, Int32.MaxValue))
@@ -87,7 +87,7 @@ namespace AGS.Editor
                 Factory.NativeProxy.ReloadFont(_item.ID);
                 // If user asked to get a certain pixel height, then try to change the font's
                 // point size, until found the closest result
-                if (sizeType == ImportTTFDialog.FontSizeMeaning.RealPixelHeight)
+                if (sizeType == FontHeightDefinition.PixelHeight)
                 {
                     sizeValue = Factory.NativeProxy.FindTTFSizeForHeight(newTTFName, sizeValue);
                 }

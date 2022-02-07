@@ -720,6 +720,44 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("JAVA_HOME")]
+        [Description("The path to your JRE and JDK directory, usually 'C:\\Program Files\\Android\\Android Studio\\jre'. Leave empty if your JAVA_HOME environment variable is set.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
+        public string AndroidJavaHome
+        {
+            get
+            {
+                return (string)(this["AndroidJavaHome"]);
+            }
+            set
+            {
+                this["AndroidJavaHome"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("ANDROID_HOME")]
+        [Description("The path to your Android SDK directory, usually 'C:\\Users\\user\\AppData\\Local\\Android\\Sdk'. Leave empty if your ANDROID_HOME environment variable is set.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
+        public string AndroidHome
+        {
+            get
+            {
+                return (string)(this["AndroidHome"]);
+            }
+            set
+            {
+                this["AndroidHome"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("Keystore File Path")]
         [Description("Your Keystore File (*.jks/*.store).")]
         [Category("Android")]

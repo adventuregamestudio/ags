@@ -28,6 +28,7 @@ RoomOptions::RoomOptions()
     , PlayerCharOff(false)
     , PlayerView(0)
     , MusicVolume(kRoomVolumeNormal)
+    , Flags(0)
 {
 }
 

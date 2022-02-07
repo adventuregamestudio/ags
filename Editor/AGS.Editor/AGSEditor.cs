@@ -96,6 +96,7 @@ namespace AGS.Editor
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
          *                - Character.IdleDelay, Character.IdleAnimationDelay;
          *                - Cursor.AnimationDelay
+         *                - Room.BackgroundAnimationEnabled
          *                - RuntimeSetup.FullscreenDesktop
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060000;

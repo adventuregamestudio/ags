@@ -3518,6 +3518,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room)
     room->Height = rs.Height;
     room->ColorDepth = rs.BgFrames[0].Graphic->GetColorDepth();
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
+    room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
     room->Resolution = (AGS::Types::RoomResolution)rs.GetResolutionType();
     room->MaskResolution = rs.MaskResolution;
@@ -3708,6 +3709,9 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Height = room->Height;
 	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
 	rs.BgFrameCount = room->BackgroundCount;
+    rs.Options.Flags = 0;
+    if (!room->BackgroundAnimationEnabled)
+        rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
 
 	rs.MessageCount = room->Messages->Count;
 	for (size_t i = 0; i < rs.MessageCount; ++i)

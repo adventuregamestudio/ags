@@ -42,7 +42,8 @@ namespace AGS.Types
         private int _colorDepth;
         private int _width;
         private int _height;
-        private int _backgroundAnimationDelay;
+        private int _backgroundAnimationDelay = 5;
+        private bool _backgroundAnimEnabled = true;
         private int _backgroundCount;
         private int _gameId;
         private bool _modified;
@@ -294,6 +295,15 @@ namespace AGS.Types
         {
             get { return _backgroundAnimationDelay; }
             set { _backgroundAnimationDelay = value; }
+        }
+
+        [Description("Whether the background frames will switch automatically (only applicable if you have imported more than one)")]
+        [DefaultValue(true)]
+        [Category("Settings")]
+        public bool BackgroundAnimationEnabled
+        {
+            get { return _backgroundAnimEnabled; }
+            set { _backgroundAnimEnabled = value; }
         }
 
         [Browsable(false)]

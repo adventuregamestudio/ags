@@ -38,6 +38,40 @@ namespace AGS.Editor
             return str;
         }
 
+        private string GetEnvironmentPreferences(string env_variable_name, string preferences_variable_value)
+        {
+            string variable_process = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.Process);
+            string variable_user = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.User);
+            string variable_machine = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.Machine);
+
+            string[] vars_in_pref_order = new string[] { 
+                preferences_variable_value, variable_process, variable_user, variable_machine };
+
+            for(int i=0; i<vars_in_pref_order.Length; i++)
+            {
+                string variable = vars_in_pref_order[i];
+                if (!string.IsNullOrEmpty(variable) && Directory.Exists(variable))
+                {
+                    return variable;
+                }
+
+            }
+
+            return null;
+        }
+
+        private string GetJavaHome()
+        {
+            AppSettings settings = Factory.AGSEditor.Settings;
+            return GetEnvironmentPreferences("JAVA_HOME", settings.AndroidJavaHome);
+        }
+
+        private string GetAndroidHome()
+        {
+            AppSettings settings = Factory.AGSEditor.Settings;
+            return GetEnvironmentPreferences("ANDROID_HOME", settings.AndroidHome);
+        }
+
         private void WriteStringToFile(string fileName, string fileText)
         {
             if (File.Exists(fileName))
@@ -49,6 +83,44 @@ namespace AGS.Editor
             byte[] bytes = Encoding.UTF8.GetBytes(fileText);
             stream.Write(bytes, 0, bytes.Length);
             stream.Close();
+        }
+
+        private bool RunCommand(string command, string working_dir, bool show_window = true)
+        {
+
+            using (Process proc = new Process
+            {
+                StartInfo =
+                {
+                    UseShellExecute = false,
+                    FileName = "cmd.exe",
+                    Arguments = command,
+                    CreateNoWindow = !show_window,
+                    WorkingDirectory = working_dir
+                }
+            })
+            {
+                try
+                {
+                    proc.Start();
+                    proc.WaitForExit();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private void StopGradle()
+        {
+            string prjDir = GetProjectDir();
+            string gradle_path = Path.Combine(prjDir, "gradlew.bat");
+            if (!Directory.Exists(prjDir) || !File.Exists(gradle_path)) return;
+
+            RunCommand("/C gradlew.bat --stop", prjDir, false);
         }
 
         private string GetProjectDir()
@@ -116,6 +188,18 @@ namespace AGS.Editor
         {
             string fileName = Path.Combine(dest_dir, "project.properties");
 
+            if(File.Exists(fileName))
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch
+                {
+                    StopGradle();
+                }
+            }
+
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
             string androidPackageName = gameSettings.AndroidPackageName;
             string androidAppVersionId = gameSettings.AndroidAppVersionCode.ToString();
@@ -134,6 +218,18 @@ namespace AGS.Editor
         private void WriteLocalStaticProperties(string dest_dir)
         {
             string fileName = Path.Combine(dest_dir, "local.static.properties");
+
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch
+                {
+                    StopGradle();
+                }
+            }
 
             // this should NOT GET KEYS FROM SETTINGS
             AppSettings settings = Factory.AGSEditor.Settings;
@@ -301,10 +397,27 @@ namespace AGS.Editor
         {
             if (!base.Build(errors, forceRebuild)) return false;
 
+            string prjDir = GetProjectDir();
+            string java_home = GetJavaHome();
+            string android_home = GetAndroidHome();
+
+            if (string.IsNullOrEmpty(java_home))
+            {
+                errors.Add(new CompileError("Android Build: JAVA_HOME is not set in Preferences or Environment variables. Can't find Java."));
+            }
+            if (string.IsNullOrEmpty(android_home))
+            {
+                errors.Add(new CompileError("Android Build: ANDROID_HOME is not set in Preferences or Environment variables. Can't find Android SDK."));
+            }
+            if(errors.Count > 0)
+            {
+                return false;
+
+            }
+
             AndroidBuildFormat buildFormat = Factory.AGSEditor.CurrentGame.Settings.AndroidBuildFormat;
             string appName = GetFinalAppName();
 
-            string prjDir = GetProjectDir();
             string assetsDir = GetAssetsDir();
             if (!Directory.Exists(assetsDir)) Directory.CreateDirectory(assetsDir);
             ClearInvalidAssetDirIfNeeded();
@@ -353,33 +466,21 @@ namespace AGS.Editor
             WriteProjectProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
             WriteLocalStaticProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
 
-            string buildCommand = "/C gradlew.bat bundleRelease & pause";
-            if (buildFormat == AndroidBuildFormat.ApkEmbedded)
-            {
-                buildCommand = "/C gradlew.bat assembleRelease & pause";
-            }
+            string gradle_task = "bundleRelease";
+            if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradle_task = "assembleRelease";
 
-            using (Process proc = new Process
+            string buildCmd = "";
+            buildCmd += "/C ";
+            buildCmd += "set \"JAVA_HOME=" + java_home + "\" & ";
+            buildCmd += "set \"ANDROID_HOME=" + android_home + "\" & ";
+            buildCmd += "set \"PATH=%JAVA_HOME%\\bin:%PATH%\" & ";
+            buildCmd += "gradlew.bat " + gradle_task + " & ";
+            buildCmd += "pause";
+
+            if (!RunCommand(buildCmd, prjDir))
             {
-                StartInfo =
-                {
-                    UseShellExecute = false,
-                    FileName = "cmd.exe",
-                    Arguments = buildCommand,
-                    CreateNoWindow = false,
-                    WorkingDirectory = prjDir
-                }
-            })
-            {
-                try
-                {
-                    proc.Start();
-                    proc.WaitForExit();
-                }
-                catch
-                {
-                    return false;
-                }
+                errors.Add(new CompileError("There was an error running gradle to build the Android App."));
+                return false;
             }
 
             string appFinalFile = GetFinalAppName();
@@ -396,6 +497,8 @@ namespace AGS.Editor
 
                 return true;
             }
+
+            errors.Add(new CompileError("Failed to generate Android App."));
 
             return false;
         }

@@ -19,7 +19,7 @@
 #define __AGS_CN_AC__OLDGAMESETUPSTRUCT_H
 
 #include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
-#ifdef UNUSED_CODE
+#if defined (OBSOLETE)
 #include "ac/eventblock.h"       // EventBlock
 #endif
 #include "ac/interfaceelement.h"    // InterfaceElement
@@ -40,9 +40,9 @@ struct OriGameSetupStruct {
     char              *globalscript;
     int               numcharacters;
     OldCharacterInfo     *chars;
-#ifdef UNUSED_CODE
-    EventBlock        __charcond[50];   // [IKM] 2012-06-22: does not seem to be used anywhere
-    EventBlock        __invcond[100];   // same
+#if defined (OBSOLETE)
+    EventBlock        __charcond[50];
+    EventBlock        __invcond[100];
 #endif
     ccScript          *compiled_script;
     int               playercharacter;

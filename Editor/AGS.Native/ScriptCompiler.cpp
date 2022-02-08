@@ -78,7 +78,7 @@ namespace AGS
 			    scrpt = ccCompileText(mainScript, mainScriptName);
  			    if ((scrpt == NULL) || (ccError != 0))
 			    {
-				    exceptionToThrow = gcnew CompileError(ToStr(ccErrorString), ToStr(ccCurScriptName), ccErrorLine);
+				    exceptionToThrow = gcnew CompileError(tcv.ConvertAny(ccErrorString), tcv.ConvertASCII(ccCurScriptName), ccErrorLine);
 			    }
         }
 			  
@@ -105,10 +105,10 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char iconNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(iconName, iconNameChars, MAX_PATH);
+                tcv.ConvertASCIIFilename(iconName, iconNameChars, MAX_PATH);
 
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+                tcv.ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
 				ReplaceIconFromFile(iconNameChars, fileNameChars);
 			}
@@ -148,7 +148,7 @@ namespace AGS
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
 			char fileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+			tcv.ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
       HMODULE module = LoadLibrary(fileNameChars);
       if (module == NULL)
@@ -186,7 +186,7 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+                tcv.ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
         if (newData == nullptr) 
         {

@@ -97,13 +97,19 @@ extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
 AGSString editorVersionNumber;
+TextConverter tcv;
 
-System::String^ ToStr(const AGS::Common::String &str)
+System::String^ TextConverter::ConvertAny(const AGS::Common::String &str)
+{
+    return _unicodeMode ? ConvertUTF8(str) : gcnew String(str.GetCStr());
+}
+
+System::String^ TextConverter::ConvertASCII(const AGS::Common::String &str)
 {
     return gcnew String(str.GetCStr());
 }
 
-System::String^ ToStrUTF8(const AGS::Common::String &str)
+System::String^ TextConverter::ConvertUTF8(const AGS::Common::String &str)
 {
     size_t len = strlen(str.GetCStr()); // we need number of bytes, not chars
     array<Byte>^ buf = gcnew array<Byte>(len);
@@ -111,36 +117,44 @@ System::String^ ToStrUTF8(const AGS::Common::String &str)
     return System::Text::Encoding::UTF8->GetString(buf);
 }
 
-// Converts C# string to the native ANSI string
-AGSString ConvertStringToNativeString(System::String^ clrString)
+AGSString TextConverter::ConvertAny(System::String^ clr_str)
 {
-    if (clrString == nullptr)
+    return _unicodeMode ? ConvertUTF8(clr_str) : ConvertASCII(clr_str);
+}
+
+AGSString TextConverter::ConvertASCII(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
         return AGSString();
-    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
     AGSString str = stringPointer;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
     return str;
 }
 
-// Converts C# string to the native ANSI string
-AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
+void TextConverter::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len)
 {
-    if (clrString == nullptr)
-        return AGSString();
-    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-    AGSString str = stringPointer;
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
+    size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
+    memcpy(buf, stringPointer, ansi_len);
+    buf[ansi_len - 1] = 0;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
-    return str.Left(buf_len - 1);
 }
 
-// Converts C# string containing path to the native UTF-8 string
-AGSString ConvertPathToNativeString(System::String^ clrString)
+void TextConverter::ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len)
 {
-    if (clrString == nullptr)
+    ConvertASCIIToArray(clr_str, buf, buf_len);
+    if (strchr(buf, '?') != nullptr)
+        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clr_str));
+}
+
+AGSString TextConverter::ConvertUTF8(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
         return AGSString();
-    int len = System::Text::Encoding::UTF8->GetByteCount(clrString);
+    int len = System::Text::Encoding::UTF8->GetByteCount(clr_str);
     cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
-    System::Text::Encoding::UTF8->GetBytes(clrString, 0, clrString->Length, buf, 0);
+    System::Text::Encoding::UTF8->GetBytes(clr_str, 0, clr_str->Length, buf, 0);
     IntPtr utf8ptr = Marshal::AllocHGlobal(buf->Length);
     Marshal::Copy(buf, 0, utf8ptr, buf->Length);
     AGSString str = (const char*)utf8ptr.ToPointer();
@@ -148,21 +162,6 @@ AGSString ConvertPathToNativeString(System::String^ clrString)
     return str;
 }
 
-void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len)
-{
-    char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-    size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
-    memcpy(buf, stringPointer, ansi_len);
-    buf[ansi_len - 1] = 0;
-    System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
-}
-
-void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len)
-{
-    ConvertStringToCharArray(clrString, buf, buf_len);
-    if (strchr(buf, '?') != NULL)
-        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
-}
 
 namespace AGS
 {
@@ -171,7 +170,7 @@ namespace AGS
 		NativeMethods::NativeMethods(String ^editorVersion)
 		{
 			lastPaletteSet = nullptr;
-			editorVersionNumber = ConvertStringToNativeString(editorVersion);
+			editorVersionNumber = tcv.ConvertASCII(editorVersion);
 		}
 
 		void NativeMethods::Initialize()
@@ -205,7 +204,7 @@ namespace AGS
 			HAGSError err = reset_sprite_file();
 			if (!err)
 			{
-				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + tcv.ConvertUTF8(err->FullMessage()));
 			}
 		}
 
@@ -260,11 +259,11 @@ namespace AGS
 
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+			AGSString fileNameAnsi = tcv.ConvertUTF8(fileName);
 			AGSString errorMsg = import_sci_font(fileNameAnsi, fontSlot);
 			if (errorMsg != NULL) 
 			{
-				throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
+				throw gcnew AGSEditorException(tcv.ConvertUTF8(errorMsg));
 			}
 		}
 
@@ -278,7 +277,7 @@ namespace AGS
 
     int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)
     {
-        AGSString filename = ConvertStringToNativeString(fileName);
+        AGSString filename = tcv.ConvertUTF8(fileName);
         FontMetrics metrics;
         if (!TTFFontRenderer::MeasureFontOfPixelHeight(filename, pixelHeight, &metrics))
         {
@@ -460,7 +459,7 @@ namespace AGS
 
 		AGS::Types::Game^ NativeMethods::ImportOldGameFile(String^ fileName)
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+			AGSString fileNameAnsi = tcv.ConvertUTF8(fileName);
 			Game ^game = import_compiled_game_dta(fileNameAnsi);
 			return game;
 		}
@@ -597,7 +596,7 @@ namespace AGS
 
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
-      AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+      AGSString fileNameAnsi = tcv.ConvertUTF8(fileName);
       char *iconDataBuffer = NULL;
       long iconDataSize = 0;
 
@@ -645,21 +644,21 @@ namespace AGS
 
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
+			AGSString fileNameAnsi = tcv.ConvertUTF8(templateFileName);
             HAGSError err = extract_template_files(fileNameAnsi);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + tcv.ConvertUTF8(err->FullMessage()));
 			}
 		}
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
+			AGSString fileNameAnsi = tcv.ConvertUTF8(templateFileName);
             HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + tcv.ConvertUTF8(err->FullMessage()));
 			}
 		}
 

@@ -21,41 +21,46 @@ namespace AGS.Editor
         public const int MAXMULTIFILES = 256; // 1-byte index
         public const int MAX_PATH = 260; // corresponds to WinAPI definition
 
-        // TODO: probably move these GetAnsiBytes functions to some utility class
-
-        // Converts unicode string into ANSI array of bytes; the returned array
-        // will NOT have a null-terminator appended.
-        private static byte[] GetAnsiBytes(string text)
+        public static Encoding TextEncoding
         {
-            return GetAnsiBytes(text, -1, -1, 0);
+            get; set;
         }
 
-        // Converts unicode string into ANSI array of bytes; the returned array
-        // will contain converted string with the null-terminator appended.
-        private static byte[] GetAnsiBytesTerminated(string text)
+        // TODO: probably move these GetTextBytes functions to some utility class
+
+        // Converts unicode string into array of bytes using current TextEncoding;
+        // the returned array will NOT have a null-terminator appended.
+        private static byte[] GetTextBytes(string text)
         {
-            return GetAnsiBytes(text, -1, -1, 1);
+            return GetTextBytes(text, -1, -1, 0);
         }
 
-        // Converts unicode string into ANSI array of bytes; the returned array
-        // will contain converted string with the null-terminator appended.
+        // Converts unicode string into array of bytes using current TextEncoding;
+        // the returned array will contain converted string with the null-terminator appended.
+        private static byte[] GetTextBytesTerminated(string text)
+        {
+            return GetTextBytes(text, -1, -1, 1);
+        }
+
+        // Converts unicode string into array of bytes using current TextEncoding;
+        // the returned array will contain converted string with the null-terminator appended.
         // The resulting array will be no longer than max_len bytes in size.
-        private static byte[] GetAnsiBytesTerminated(string text, int max_len)
+        private static byte[] GetTextBytesTerminated(string text, int max_len)
         {
-            return GetAnsiBytes(text, -1, max_len, 1);
+            return GetTextBytes(text, -1, max_len, 1);
         }
 
-        // Converts unicode string into ANSI array of bytes.
+        // Converts unicode string into array of bytes using current TextEncoding.
         // If fixed_length parameter has positive value, the returned array will
         // be exactly 'fixed_length' in size. In such case the larger string
         // gets truncated, and in case of shorter string all the unused bytes
         // are zeroed. No null terminator is appended explicitly though.
-        public static byte[] GetAnsiBytes(string text, int fixed_length)
+        public static byte[] GetTextBytes(string text, int fixed_length)
         {
-            return GetAnsiBytes(text, fixed_length, fixed_length, 0);
+            return GetTextBytes(text, fixed_length, fixed_length, 0);
         }
 
-        // Converts unicode string into ANSI array of bytes.
+        // Converts unicode string into array of bytes using current TextEncoding.
         // If min_size and max_size parameters have positive values, the returned
         // array's length will be ensured to be in min_size to max_size range..
         // If reserve_bytes is positive, that number of bytes will be reserved
@@ -64,24 +69,26 @@ namespace AGS.Editor
         // If converted string appears larger than array is allowed to accomodate,
         // then it gets truncated; if it is shorter, all the unused bytes are
         // zeroed.
-        public static byte[] GetAnsiBytes(string text, int min_size, int max_size, int reserve_bytes)
+        public static byte[] GetTextBytes(string text, int min_size, int max_size, int reserve_bytes)
         {
-            // We must convert original Unicode string into ANSI string,
-            // because AGS engine currently supports only these.
-            // When doing so we should use current system's codepage, to meet
-            // common expectations of the game developers (and comply to how
-            // the Editor behaved in the past).
+            // We must convert original Unicode string into either ANSI or UTF-8 string,
+            // depending on the current TextEncoding setting.
+            // When converting to ANSI we will be using current system's codepage, to meet
+            // common expectations of the game developers (and comply to how the Editor
+            // behaved in the past).
             //
             // The output array will be at least min_size in size.
-            byte[] bytes = new byte[Math.Max(min_size, Encoding.Default.GetByteCount(text) + reserve_bytes)];
-            Encoding.Default.GetBytes(text, 0, text.Length, bytes, 0);
-            if (max_size <= 0 || bytes.Length <= max_size)
-                return bytes;
             // If the output array is larger than requested length, then truncate it;
             // must remember to preseve some bytes in the end, if requested by caller.
-            byte[] fixed_bytes = new byte[max_size];
-            Array.Copy(bytes, fixed_bytes, fixed_bytes.Length - reserve_bytes);
-            return fixed_bytes;
+            int size = Math.Max(min_size, TextEncoding.GetByteCount(text) + reserve_bytes);
+            if (max_size >= 0) size = Math.Min(max_size, size);
+            byte[] bytes = new byte[size];
+            try
+            {
+                TextEncoding.GetBytes(text, 0, text.Length, bytes, 0);
+            }
+            catch (Exception) { }
+            return bytes;
         }
 
 
@@ -120,6 +127,7 @@ namespace AGS.Editor
         static DataFileWriter()
         {
             ourlib = new MultiFileLibNew();
+            TextEncoding = Encoding.Default;
         }
 
         static Stream TryFileOpen(string fileName, FileAccess access)
@@ -217,7 +225,7 @@ namespace AGS.Editor
 
         static void FilePutStringEncrypted(string text, BinaryWriter writer)
         {
-            byte[] bytes = GetAnsiBytesTerminated(text);
+            byte[] bytes = GetTextBytesTerminated(text);
             FileWriteDataEncrypted(bytes, writer);
         }
 
@@ -237,7 +245,7 @@ namespace AGS.Editor
                 writer.Write((int)0);
             else
             {
-                byte[] bytes = GetAnsiBytes(text);
+                byte[] bytes = GetTextBytes(text);
                 writer.Write((int)bytes.Length);
                 writer.Write(bytes);
             }
@@ -257,13 +265,7 @@ namespace AGS.Editor
                 writer.Write((byte)0);
                 return;
             }
-            // This does not make much sense, but trying to match ANSI AGS logic
-            // as close as possible, we will both truncate string to maxLen chars,
-            // and truncate resulting byte array to maxLen bytes.
-            int len = text.IndexOf('\0');
-            if (len == -1) len += maxLen;
-            if (len < text.Length) text = text.Substring(0, len);
-            writer.Write(GetAnsiBytesTerminated(text, maxLen));
+            writer.Write(GetTextBytesTerminated(text, maxLen));
         }
 
         /// <summary>
@@ -276,7 +278,7 @@ namespace AGS.Editor
             if (string.IsNullOrEmpty(text))
                 writer.Write((byte)0);
             else
-                writer.Write(GetAnsiBytesTerminated(text));
+                writer.Write(GetTextBytesTerminated(text));
         }
 
         /// <summary>
@@ -674,7 +676,7 @@ namespace AGS.Editor
         public static void WriteString(string src, int length, BinaryWriter writer)
         {
             if ((writer == null) || (length <= 0)) return;
-            byte[] bytes = GetAnsiBytes(src, length);
+            byte[] bytes = GetTextBytes(src, length);
             writer.Write(bytes);
         }
 
@@ -835,7 +837,7 @@ namespace AGS.Editor
 
         static void WriteStringEncrypted(BinaryWriter writer, string text)
         {
-            byte[] bytes = GetAnsiBytesTerminated(text);
+            byte[] bytes = GetTextBytesTerminated(text);
             EncryptText(bytes);
             writer.Write(bytes.Length);
             writer.Write(bytes);

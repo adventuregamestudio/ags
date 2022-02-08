@@ -123,6 +123,19 @@ namespace AGS.Editor
             RunCommand("/C gradlew.bat --stop", prjDir, false);
         }
 
+        private void InstallSdkToolsIfNeeded()
+        {
+            string androidHome = GetAndroidHome();
+            string javaHome = GetJavaHome();
+            string prjDir = GetProjectDir();
+
+            string packages = "\"build-tools;30.0.3\" \"ndk;21.3.6528147\" \"platforms;android-29\"";
+
+            RunCommand("/C " + "set \"JAVA_HOME=" + javaHome + "\" & " +
+                      "set \"ANDROID_HOME=" + androidHome + "\" & "    +
+                      androidHome + "\\tools\\bin\\sdkmanager " + packages, prjDir, true);
+        }
+
         private string GetProjectDir()
         {
             return GetCompiledPath(ANDROID_DIR, "mygame");
@@ -414,6 +427,8 @@ namespace AGS.Editor
                 return false;
 
             }
+
+            InstallSdkToolsIfNeeded();
 
             AndroidBuildFormat buildFormat = Factory.AGSEditor.CurrentGame.Settings.AndroidBuildFormat;
             string appName = GetFinalAppName();

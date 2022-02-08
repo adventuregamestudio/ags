@@ -34,6 +34,7 @@ Editor:
  - Added Character.IdleAnimationDelay property to let setup idle view's animation speed.
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
  - Rooms created from a Blank template will now have default background of a game's resolution.
+ - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.

@@ -149,9 +149,9 @@ namespace AGS.Types
                 sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
                 sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
-                sw.WriteLine("// Text encoding hint");
+                sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
                 sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
-                sw.WriteLine("// Source text encoding hint");
+                sw.WriteLine("// Source text encoding hint - default codepage number as \".12xx\", or UTF-8");
                 sw.WriteLine("//#GameEncoding=" +
                     (string.IsNullOrEmpty(_gameEncodingHint) ? ("." + Encoding.Default.CodePage) : _gameEncodingHint));
                 sw.WriteLine("//  ");

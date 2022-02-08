@@ -18,7 +18,6 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
-        public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
@@ -224,7 +223,6 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
-        [AGSNoSerialize]
         [Browsable(false)]
         [Obsolete("Old Resolution property of Enum type is replaced by CustomResolution of Size type.")]
         public GameResolutions Resolution
@@ -285,8 +283,8 @@ namespace AGS.Types
             }
         }
 
-        [Obsolete]
         [Browsable(false)]
+        [Obsolete("Boolean CompressSprites is replaced with CompressSpritesType.")]
         public bool CompressSprites
         {
             get { return _compressSprites != SpriteCompression.None; }
@@ -816,8 +814,8 @@ namespace AGS.Types
             set { _alwaysDisplayTextAsSpeech = value; }
         }
 
-        [Obsolete]
         [Browsable(false)]
+        [Obsolete("FontsForHiRes property is replaced with individual SizeMultiplier in each font.")]
         public bool FontsForHiRes { get { return false; } }
 
         [DisplayName(PROPERTY_ANTI_ALIAS_FONTS)]

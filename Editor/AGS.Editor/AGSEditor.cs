@@ -98,6 +98,7 @@ namespace AGS.Editor
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
          *                - Character.IdleDelay, Character.IdleAnimationDelay;
          *                - Cursor.AnimationDelay
+         *                - Room.BackgroundAnimationEnabled
          *                - RuntimeSetup.FullscreenDesktop
          * 3.99.99        - BlendMode for various objects, Character.Transparency.
          *

@@ -12,7 +12,7 @@ namespace AGS.Types
         private int _id;
         private string _name;
         private string _familyName;
-        private int _pointSize;
+        private int _fontSize;
         private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
@@ -27,7 +27,7 @@ namespace AGS.Types
         public Font()
         {
             _name = string.Empty;
-            _pointSize = 0;
+            _fontSize = 0;
             _outlineFont = 0;
             _outlineStyle = FontOutlineStyle.None;
             _fontHeight = 0;
@@ -54,22 +54,24 @@ namespace AGS.Types
         }
 
         [Browsable(false)]
+        // NOTE: this property's name is incorrect, as it's not really a "point size"
         public int PointSize
         {
-            get { return _pointSize; }
-            set { _pointSize = value; }
+            get { return _fontSize; }
+            set { _fontSize = value; }
         }
 
-        [Description("The point size that this TTF font was imported at")]
+        [Description("The nominal size that this TTF font was imported at")]
         [Category("Appearance")]
-        [DisplayName("Point size")]
+        [DisplayName("Font Size")]
+        // NOTE: this property's name is incorrect, as it's not really a "point size"
         public string PointSizeDescription
         {
-            get { return (_pointSize < 1) ? "N/A" : "" + _pointSize + " pt"; }
+            get { return (_fontSize < 1) ? "N/A" : _fontSize.ToString(); }
         }
 
         [AGSNoSerialize]
-        [Description("The actual height of a font, in pixels")]
+        [Description("The full graphical height of a font, in pixels")]
         [Category("Appearance")]
         [DisplayName("Font Height")]
         [ReadOnly(true)]

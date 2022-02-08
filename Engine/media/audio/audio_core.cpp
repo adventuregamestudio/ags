@@ -209,6 +209,7 @@ void audio_core_set_master_volume(float newvol)
 
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
 {
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     ALuint source_ = g_acore.slots_[slot_handle]->source_;
     auto &player = g_acore.slots_[slot_handle]->decoder_;
 

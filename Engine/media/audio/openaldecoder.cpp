@@ -285,6 +285,8 @@ bool OpenALDecoder::Init()
     if (onLoadPositionMs >= 0.0f) {
         Seek(onLoadPositionMs);
     }
+
+    SetResampling(); // setup resampling if necessary
     return true;
 }
 
@@ -319,6 +321,17 @@ void OpenALDecoder::Poll()
         playState_ = PlayStateFinished;
     }
 
+}
+
+void OpenALDecoder::SetResampling()
+{
+    // Configure resample
+    int new_freq = static_cast<int>(sample_->desired.rate / speed_);
+    if (!resampler_.Setup(sample_->desired.format, sample_->desired.channels,
+        (int)sample_->desired.rate, sample_->desired.format, sample_->desired.channels, new_freq))
+    { // error, reset
+        speed_ = 1.0;
+    }
 }
 
 void OpenALDecoder::Play()
@@ -433,11 +446,7 @@ void OpenALDecoder::SetSpeed(float speed)
 {
     speed_ = speed;
 
-    // Configure resample
-    int new_freq = static_cast<int>(sample_->desired.rate / speed_);
-    if (!resampler_.Setup(sample_->desired.format, sample_->desired.channels,
-        (int)sample_->desired.rate, sample_->desired.format, sample_->desired.channels, new_freq))
-    { // error, reset
-        speed_ = 1.0;
-    }
+    // Setup resampling if already inited, otherwise wait until init
+    if (sample_)
+        SetResampling();
 }

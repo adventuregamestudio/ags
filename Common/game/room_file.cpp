@@ -33,7 +33,8 @@
 #define LEGACY_HOTSPOT_NAME_LEN 30
 #define LEGACY_ROOM_PASSWORD_LENGTH 11
 #define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
-#define ROOM_LEGACY_OPTIONS_SIZE 10
+// Reserved room options (each is a byte)
+#define ROOM_OPTIONS_RESERVED 4
 #define LEGACY_TINT_IS_ENABLED 0x80000000
 
 namespace AGS
@@ -200,7 +201,8 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     room->Options.PlayerCharOff = in->ReadInt8() != 0;
     room->Options.PlayerView = in->ReadInt8();
     room->Options.MusicVolume = (RoomVolumeMod)in->ReadInt8();
-    in->Seek(ROOM_LEGACY_OPTIONS_SIZE - 5);
+    room->Options.Flags = in->ReadInt8();
+    in->Seek(ROOM_OPTIONS_RESERVED);
     
     room->MessageCount = in->ReadInt16();
     room->GameID = in->ReadInt32();
@@ -599,8 +601,8 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt8(room->Options.PlayerCharOff ? 1 : 0);
     out->WriteInt8(room->Options.PlayerView);
     out->WriteInt8(room->Options.MusicVolume);
-    out->WriteByteCount(0, ROOM_LEGACY_OPTIONS_SIZE - 5);
-
+    out->WriteInt8(room->Options.Flags);
+    out->WriteByteCount(0, ROOM_OPTIONS_RESERVED);
     out->WriteInt16((int16_t)room->MessageCount);
     out->WriteInt32(room->GameID);
 

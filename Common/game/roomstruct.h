@@ -80,6 +80,12 @@ enum RoomVolumeMod
     kRoomVolumeMax      = kRoomVolumeExtra2,
 };
 
+// Extended room boolean options
+enum RoomFlags
+{
+    kRoomFlag_BkgFrameLocked = 0x01
+};
+
 // Flag tells that walkable area does not have continious zoom
 #define NOT_VECTOR_SCALED  -10000
 // Flags tells that room is not linked to particular game ID
@@ -122,6 +128,8 @@ struct RoomOptions
     int  PlayerView;
     // Room's music volume modifier
     RoomVolumeMod MusicVolume;
+    // A collection of boolean options
+    int  Flags;
 
     RoomOptions();
 };

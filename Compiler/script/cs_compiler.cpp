@@ -14,30 +14,21 @@
 
 const char *ccSoftwareVersion = "1.0";
 
-char**defaultheaders = NULL;
-char**defaultHeaderNames = NULL;
-static int numheaders=0;
-static int capacityHeaders=0;
+std::vector<const char*> defaultheaders;
+std::vector<const char*> defaultHeaderNames;
 
 MacroTable predefinedMacros;
 
-int ccAddDefaultHeader(char* nhead, char *nName)
+int ccAddDefaultHeader(const char* nhead, const char *nName)
 {
-    if (numheaders >= capacityHeaders)
-    {
-        capacityHeaders += 50;
-        defaultheaders = (char**)realloc(defaultheaders, sizeof(char*) * capacityHeaders);
-        defaultHeaderNames = (char**)realloc(defaultHeaderNames, sizeof(char*) * capacityHeaders);
-    }
-
-    defaultheaders[numheaders] = nhead;
-    defaultHeaderNames[numheaders] = nName;
-    numheaders++;
+    defaultheaders.push_back(nhead);
+    defaultHeaderNames.push_back(nName);
     return 0;
 }
 
 void ccRemoveDefaultHeaders() {
-    numheaders = 0;
+    defaultheaders.clear();
+    defaultHeaderNames.clear();
 }
 
 void ccSetSoftwareVersion(const char *versionNumber) {
@@ -45,7 +36,6 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 }
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
-    int t;
     ccCompiledScript *cctemp = new ccCompiledScript();
     cctemp->init();
 
@@ -57,8 +47,8 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     ccError = 0;
     ccErrorLine = 0;
 
-    for (t=0;t<numheaders;t++) {
-        if (defaultHeaderNames[t] != NULL)
+    for (size_t t=0;t<defaultheaders.size();t++) {
+        if (defaultHeaderNames[t])
             ccCurScriptName = defaultHeaderNames[t];
         else
             ccCurScriptName = "Internal header file";
@@ -80,7 +70,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         return NULL;
     }
 
-    for (t=0; (size_t)t<sym.entries.size();t++) {
+    for (size_t t=0; t<sym.entries.size();t++) {
         int stype = sym.get_type(t);
         // blank out the name for imports that are not used, to save space
         // in the output file
@@ -113,7 +103,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     if (ccGetOption(SCOPT_EXPORTALL)) {
         // export all functions
-        for (t=0;t<cctemp->numfunctions;t++) {
+        for (size_t t=0;t<cctemp->numfunctions;t++) {
             if (cctemp->add_new_export(cctemp->functions[t],EXPORT_FUNCTION,
                 cctemp->funccodeoffs[t], cctemp->funcnumparams[t]) == -1) {
                     cctemp->shutdown();

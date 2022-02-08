@@ -44,9 +44,10 @@ namespace AGS
 
 			  CompileMessage ^exceptionToThrow = nullptr;
 
-        char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
-			  char *mainScript;
-			  char *mainScriptName;
+              std::vector<AGSString> scriptHeaders;
+              scriptHeaders.resize(preProcessedScripts->Length - 1);
+              AGSString mainScript;
+              AGSString mainScriptName;
         ccScript *scrpt = NULL;
 			  int headerCount = 0;
 
@@ -54,17 +55,17 @@ namespace AGS
 			  {
           if (headerCount < preProcessedScripts->Length - 1)
           {
-				    scriptHeaders[headerCount] = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(header).ToPointer();
+				    scriptHeaders[headerCount] = tcv.ConvertAny(header);
 
-            if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header")) 
+            if (ccAddDefaultHeader(scriptHeaders[headerCount].GetCStr(), "Header")) 
             {
               exceptionToThrow = gcnew CompileError("Too many scripts in game");
             }
 				    headerCount++;
           }
 			  }
-			  mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
-			  mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
+			  mainScript = tcv.ConvertAny(preProcessedScripts[preProcessedScripts->Length - 1]);
+			  mainScriptName = tcv.ConvertAny(script->FileName);
 
 			  ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 
@@ -75,21 +76,12 @@ namespace AGS
 
         if (exceptionToThrow == nullptr)
         {
-			    scrpt = ccCompileText(mainScript, mainScriptName);
+			    scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
  			    if ((scrpt == NULL) || (ccError != 0))
 			    {
 				    exceptionToThrow = gcnew CompileError(tcv.ConvertAny(ccErrorString), tcv.ConvertASCII(ccCurScriptName), ccErrorLine);
 			    }
         }
-			  
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
-
-        for (int i = 0; i < preProcessedScripts->Length - 1; i++) 
-			  {
-				  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
-			  }
-			  delete scriptHeaders;
 
 			  if (exceptionToThrow != nullptr) 
 			  {

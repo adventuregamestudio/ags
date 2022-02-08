@@ -73,6 +73,10 @@ namespace AGS.Editor
         {
             _nativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
             _componentController.NotifyGameSettingsChanged();
+
+            // FIXME
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.Settings.UnicodeMode ?
+                Encoding.UTF8 : Encoding.Default;
         }
 
         private void _events_GameLoad(XmlNode rootNode)
@@ -82,6 +86,10 @@ namespace AGS.Editor
             {
                 _guiController.ShowMessage("This game contains data from a plugin or component '" + componentID + "' which you do not have installed. If you save the game, this data will be lost.", AGS.Types.MessageBoxIconType.Warning);
             }
+
+            // FIXME
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.Settings.UnicodeMode ?
+                Encoding.UTF8 : Encoding.Default;
         }
 
         private void _events_GamePostLoad()

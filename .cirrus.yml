@@ -119,8 +119,8 @@ build_macos_task:
   only_if: $CIRRUS_RELEASE == ''
   osx_instance:
     matrix:
-      - image: mojave-xcode-10.2   # newest minor release of previous version
-      - image: mojave-xcode        # alias to latest xcode (11.x)
+      - image: monterey-xcode-13.2 # newest minor release of previous version
+      - image: big-sur-xcode-12.3  # oldest xcode image available in cirrus
   env:
     matrix:
       - BUILD_TYPE: debug

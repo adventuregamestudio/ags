@@ -9,7 +9,7 @@ parentheses are known to work, but other versions will also
 probably work.
 
 -   libsdl2 (2.0.12 or higher)
--   libsdl_sound for sdl2 (revision 997e90562b35 or higher)
+-   libsdl_sound for sdl2 (revision ebcf0fe72544 or higher)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
@@ -31,7 +31,7 @@ SDL_Sound library installation
 At the time of writing SDL_Sound 2.* did not have a proper release and almost no linux distro provides it.
 Until that is resolved, we recommend to download particular revision archive using following url:
 
-    https://hg.icculus.org/icculus/SDL_sound/archive/9262f9205898.tar.bz2
+    https://github.com/icculus/SDL_sound/archive/ebcf0fe725448f9dbaa7884114e0b96b9c041570.tar.gz
 
 then build and install using CMake (see instructions in the SDL_Sound's docs).
 

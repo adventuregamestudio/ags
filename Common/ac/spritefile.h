@@ -40,6 +40,7 @@ class Bitmap;
 // TODO: research old version differences
 enum SpriteFileVersion
 {
+    kSprfVersion_Undefined = 0,
     kSprfVersion_Uncompressed = 4,
     kSprfVersion_Compressed = 5,
     kSprfVersion_Last32bit = 6,
@@ -150,8 +151,6 @@ public:
     HError      LoadSprite(sprkey_t index, Bitmap *&sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
     HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
-    HError      LoadSpriteData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data,
-        std::vector<uint32_t> &palette);
 
 private:
     // Seek stream to sprite
@@ -216,10 +215,13 @@ private:
 };
 
 
-// Saves all sprites to file; fills in index data for external use
+// Saves all sprites to file; fills in index data for external use.
 // TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
+// Accepts available sprites as pairs of bool and Bitmap pointer, where boolean value
+// tells if sprite exists and Bitmap pointer may be null;
+// If a sprite's bitmap is missing, it will try reading one from the input file stream.
 int SaveSpriteFile(const String &save_to_file,
-    const std::vector<Bitmap*> &sprites, // available sprites (may contain nullptrs)
+    const std::vector<std::pair<bool, Bitmap*>> &sprites,
     SpriteFile *read_from_file, // optional file to read missing sprites from
     int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves sprite index table in a separate file

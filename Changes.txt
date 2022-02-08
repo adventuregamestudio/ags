@@ -36,6 +36,8 @@ Editor:
  - Cursor's position in script is now displayed on the status bar.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
+ - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
+   and marking it for deletion.
 
 Compiler:
  - Removed 500-characters line limit.
@@ -637,6 +639,8 @@ Editor:
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
  - Don't display missing games in the "recent games" list.
+ - Editor now checks for missing sprite data in the spritefile, replacing affected sprites
+   with placeholder image to prevent crashes.
  - Build autocomplete table a little faster.
  - Disabled sending crash reports and anonymous statistics, because of the AGS server issues.
  - Corrected .NET version query for the anonymous statistics report.

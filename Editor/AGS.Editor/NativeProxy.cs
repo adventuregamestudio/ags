@@ -265,6 +265,11 @@ namespace AGS.Editor
             _native.SaveRoomFile(roomToSave);
         }
 
+        public void SaveDefaultRoom(Room roomToSave)
+        {
+            _native.SaveDefaultRoomFile(roomToSave);
+        }
+
         public void ImportBackground(Room room, int backgroundNumber, Bitmap bmp, bool useExactPalette, bool sharePalette)
         {
             _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);

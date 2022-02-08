@@ -448,6 +448,20 @@ namespace AGS.Editor.Components
             return true;
         }
 
+        private Room CreateEmptyRoom(int roomNumber)
+        {
+            Room room = new Room(roomNumber);
+            var gameSettings = _agsEditor.CurrentGame.Settings;
+            room.GameID = gameSettings.UniqueID;
+            room.Width = gameSettings.CustomResolution.Width;
+            room.Height = gameSettings.CustomResolution.Height;
+            room.ColorDepth = (int)gameSettings.ColorDepth * 8; // from bytes to bits per pixel
+            room.BackgroundCount = 1;
+            room.RightEdgeX = room.Width - 1;
+            room.BottomEdgeY = room.Height - 1;
+            return room;
+        }
+
         private void CreateNewRoom(int roomNumber, RoomTemplate template)
         {
             UnloadedRoom newRoom = new UnloadedRoom(roomNumber);
@@ -460,7 +474,9 @@ namespace AGS.Editor.Components
             {
 				if (template.FileName == null)
 				{
-					Resources.ResourceManager.CopyFileFromResourcesToDisk("blank.crm", newRoom.FileName);
+                    // Create a default room and save it, generating clear backgrounds and masks
+					Room room = CreateEmptyRoom(roomNumber);
+					Factory.NativeProxy.SaveDefaultRoom(room);
 					StreamWriter sw = new StreamWriter(newRoom.ScriptFileName);
 					sw.WriteLine("// room script file");
 					sw.Close();

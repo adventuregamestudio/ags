@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h> // memset
 #include <stdlib.h> // free
 #include "ac/common.h"
@@ -20,9 +19,27 @@
 #include "game/customproperties.h"
 #include "game/savegame_components.h"
 #include "util/alignedstream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
+
+
+void HotspotState::ReadFromSavegame(Common::Stream *in, int save_ver)
+{
+    Enabled = in->ReadInt8() != 0;
+    if (save_ver > 0)
+    {
+        Name = StrUtil::ReadString(in);
+    }
+}
+
+void HotspotState::WriteToSavegame(Common::Stream *out) const
+{
+    out->WriteInt8(Enabled);
+    StrUtil::WriteString(Name, out);
+}
+
 
 RoomStatus::RoomStatus()
 {
@@ -32,7 +49,6 @@ RoomStatus::RoomStatus()
     tsdatasize = 0;
     tsdata = nullptr;
     
-    memset(&hotspot_enabled, 0, sizeof(hotspot_enabled));
     memset(&region_enabled, 0, sizeof(region_enabled));
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
 }
@@ -73,12 +89,12 @@ void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     numobj = in->ReadInt32();
     for (int i = 0; i < numobj; ++i)
     {
-        obj[i].ReadFromFile(in, cmp_ver);
+        obj[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(objProps[i], in);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        hotspot_enabled[i] = in->ReadInt8();
+        hotspot[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(hsProps[i], in);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
@@ -106,12 +122,12 @@ void RoomStatus::WriteToSavegame(Stream *out) const
     out->WriteInt32(numobj);
     for (int i = 0; i < numobj; ++i)
     {
-        obj[i].WriteToFile(out);
+        obj[i].WriteToSavegame(out);
         Properties::WriteValues(objProps[i], out);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        out->WriteInt8(hotspot_enabled[i]);
+        hotspot[i].WriteToSavegame(out);
         Properties::WriteValues(hsProps[i], out);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)

@@ -51,6 +51,8 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Android")
     set(ANDROID TRUE)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(EMSCRIPTEN TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     set(FREEBSD TRUE)
 else()
@@ -62,6 +64,7 @@ message( "WIN32:" ${WIN32} )
 message( "LINUX:" ${LINUX} )
 message( "MACOS:" ${MACOS} )
 message( "ANDROID:" ${ANDROID} )
+message( "EMSCRIPTEN:" ${EMSCRIPTEN} )
 message( "FREEBSD:" ${FREEBSD} )
 message("----------------------------------------")
 
@@ -110,6 +113,63 @@ else()
     endif()
 endif()
 
+if(EMSCRIPTEN)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
+
+    set(AGS_OPENGLES2 TRUE)
+    set(USE_FLAGS " -sUSE_SDL=2  -sUSE_FREETYPE=1  -sUSE_VORBIS=1  -sUSE_OGG=1 ")
+    set(AGS_DISABLE_THREADS TRUE)
+    if(AGS_DISABLE_THREADS)
+        add_compile_definitions("AGS_DISABLE_THREADS=1")
+        set(EMSDK_FLAGS_LINKER "\
+        -s ALLOW_MEMORY_GROWTH=1 ")
+    else()
+        set(EMSDK_FLAGS_COMPILER "\
+        -pthread \
+        ")
+        set(EMSDK_FLAGS_LINKER "\
+        -s INITIAL_MEMORY=536870912 ")
+    endif()
+
+    set(EMSDK_FLAGS_COMPILER "${EMSDK_FLAGS_COMPILER} \
+        -O3 \
+        -s DISABLE_EXCEPTION_CATCHING=0 \
+        ")
+
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
+        -s ASYNCIFY \
+        -s ALLOW_TABLE_GROWTH=1 \
+        -s WASM=1 \
+        -s INVOKE_RUN=0 \
+		-s EXIT_RUNTIME=1  \
+		-s EMULATE_FUNCTION_POINTER_CASTS=1 ")
+
+    #    set(EMSDK_FLAGS "${EMSDK_FLAGS} \
+    #        -g4 \
+    #        -fsanitize=null -fsanitize-minimal-runtime \
+    #        --emit-symbol-map \
+    #        --source-map-base http://0.0.0.0:8000/../ ")
+
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
+        -s FULL_ES2=1 \
+        -s FORCE_FILESYSTEM=1 -lidbfs.js  \
+        -s EXPORTED_FUNCTIONS=['_main'] \
+        -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
+
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
+
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_LINKER}")
+
+    add_compile_options(-fexceptions)
+
+    include_directories(${CMAKE_SOURCE_DIR}/include ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${VORBIS_INCLUDE_DIRS} ${OGG_INCLUDE_DIRS})
+
+    message( "Emscripten configured\nCMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}\nCMAKE_C_FLAGS: ${CMAKE_C_FLAGS}\nCMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}\n" )
+endif(EMSCRIPTEN)
+
 add_compile_definitions("_FILE_OFFSET_BITS=64")
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")
@@ -121,8 +181,8 @@ if(MSVC)
     add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
 else()
     add_compile_options(
-        -fsigned-char 
-        -fno-strict-aliasing 
+        -fsigned-char
+        -fno-strict-aliasing
         -fwrapv
 
         -Wall
@@ -177,22 +237,33 @@ if(AGS_TESTS)
     enable_testing()
 endif()
 
-include(FetchSDL2)
+if(NOT EMSCRIPTEN)
+    include(FetchSDL2)
+else()
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
+endif()
 include(FetchSDL_Sound)
 
 include(FindLocalOpenAL)
 include(FindLocalAllegro)
 
-include(FetchOgg)
-include(FetchVorbis)
+if(NOT EMSCRIPTEN)
+    include(FetchOgg)
+    include(FetchVorbis)
+    list(APPEND VORBIS_LIBRARIES Vorbis::VorbisFile)
+    list(APPEND VORBIS_LIBRARIES Vorbis::Vorbis)
+endif()
 include(FetchTheora)
 
 add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
 add_subdirectory(libsrc/tinyxml2                EXCLUDE_FROM_ALL)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
+if(NOT EMSCRIPTEN)
+    add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
+    set(FREETYPE_LIBRARIES FreeType::FreeType)
+endif()
 add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
-add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
 add_subdirectory(Common)
 
 add_subdirectory(Engine/libsrc/apeg-1.2.1       EXCLUDE_FROM_ALL)

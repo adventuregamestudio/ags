@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <string.h>
 #include "ac/characterinfo.h"
+#include <string.h>
+#include "ac/game_version.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
@@ -49,7 +49,7 @@ void CharacterInfo::ReadFromFile(Stream *in)
     z = in->ReadInt32();
     walkwait = in->ReadInt32();
     speech_anim_speed = in->ReadInt16();
-    reserved1 = in->ReadInt16();
+    idle_anim_speed = in->ReadInt16();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();;
     index_id = in->ReadInt32();
@@ -67,6 +67,9 @@ void CharacterInfo::ReadFromFile(Stream *in)
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
+
+    if (loaded_game_file_version < kGameVersion_360_16)
+        idle_anim_speed = animspeed + 5;
 }
 
 void CharacterInfo::WriteToFile(Stream *out) const
@@ -99,7 +102,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt32(z);
     out->WriteInt32(walkwait);
     out->WriteInt16(speech_anim_speed);
-    out->WriteInt16(reserved1);
+    out->WriteInt16(idle_anim_speed);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);;
     out->WriteInt32(index_id);

@@ -1,0 +1,320 @@
+<!doctypehtml>
+  <html lang=en-us>
+
+  <head>
+    <!-- set your game name below -->
+    <title>MY GAME NAME</title>
+
+    <meta charset=utf-8>
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type>
+
+    <!-- reduces probability of scroll bar, need a better solution-->
+    <!-- need to figure out how to add this tag and still work on mobile -->
+    <!-- <meta name="viewport" content="width=device-width,initial-scale=1.0"> -->
+
+    <!-- address bar color in mobile -->
+    <meta name="theme-color" content="#000000" />
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style>
+      body {
+        font-family: arial;
+        margin: 0;
+        padding: none
+      }
+
+      .emscripten {
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        display: block
+      }
+
+      textarea.emscripten {
+        font-family: monospace;
+        width: 80%
+      }
+
+      div.emscripten {
+        text-align: center
+      }
+
+      div.emscripten_border {
+        border: 1px solid #000
+      }
+
+      canvas.emscripten {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        margin: 0px;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: block;
+        min-height: 180px;
+        min-width: 320px;
+        border: 0 none;
+        background-color: #000
+      }
+
+      #textmsgs {
+        font-family: 'Lucida Console', Monaco, monospace;
+        font-size: 200%;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%); /* for IE 9 */
+        -webkit-transform: translate(-50%, -50%); /* for Safari */
+        text-align: center;
+        margin: auto;
+        position: absolute;
+        overflow: hidden;
+        color: #787878;
+        z-index: 1000;
+      }
+
+      .spinner {
+        height: 50px;
+        width: 50px;
+        margin: 0 auto;
+        -webkit-animation: rotation .8s linear infinite;
+        -moz-animation: rotation .8s linear infinite;
+        -o-animation: rotation .8s linear infinite;
+        animation: rotation .8s linear infinite;
+        border-left: 10px solid #0096f0;
+        border-right: 10px solid #0096f0;
+        border-bottom: 10px solid #0096f0;
+        border-top: 10px solid #6400c8;
+        border-radius: 100%;
+        background-color: #c864fa
+      }
+
+      @-webkit-keyframes rotation {
+        from {
+          -webkit-transform: rotate(0)
+        }
+
+        to {
+          -webkit-transform: rotate(360deg)
+        }
+      }
+
+      @-moz-keyframes rotation {
+        from {
+          -moz-transform: rotate(0)
+        }
+
+        to {
+          -moz-transform: rotate(360deg)
+        }
+      }
+
+      @-o-keyframes rotation {
+        from {
+          -o-transform: rotate(0)
+        }
+
+        to {
+          -o-transform: rotate(360deg)
+        }
+      }
+
+      @keyframes rotation {
+        from {
+          transform: rotate(0)
+        }
+
+        to {
+          transform: rotate(360deg)
+        }
+      }
+
+      #status {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 30px;
+        margin-left: 20px;
+        font-weight: 700;
+        color: #787878
+      }
+
+      #progress {
+        height: 20px;
+        width: 300px
+      }
+
+      #controls {
+        display: inline-block;
+        float: right;
+        vertical-align: top;
+        margin-top: 30px;
+        margin-right: 20px
+      }
+
+      #output {
+        width: 320px;
+        height: 100%;
+        margin: 0 auto;
+        margin-top: 10px;
+        border-left: 0;
+        border-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+        display: block;
+        background-color: #000;
+        color: #fff;
+        font-family: 'Lucida Console', Monaco, monospace;
+        outline: 0
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div class=spinner id=spinner></div>
+    <div class=emscripten id=status>Downloading...</div>
+    <span id=controls>
+      <span hidden><input id=resize type=checkbox checked>Resize canvas</span>
+      <span hidden><input id=pointerLock type=checkbox checked>Lock/hide mouse pointer    </span>
+    </span>
+    <div class=emscripten><progress hidden id=progress max=100 value=0></progress></div>
+    <div class=emscripten_border><canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas></div>
+    <div hidden><textarea id=output rows=8 hidden></textarea></div>
+    <div id=textmsgs></div>
+    <script src=my_game_files.js></script>
+    <script>
+      function writeMsgOnCanvas(textToWrtOnCnv) {
+        var txtmsg = document.getElementById("textmsgs");
+        txtmsg.innerHTML = textToWrtOnCnv;
+      }
+
+
+      var file_being_loaded = "";
+      var fileresulthere = {};
+      var file_read_count = 0;
+      var file_total_count = 1;
+      var game_file = "";
+
+      function loadGameFile(filename) {
+        file_being_loaded = filename;
+        writeMsgOnCanvas('loading ' + filename + '...');
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", filename, true);
+        oReq.responseType = "arraybuffer";
+        oReq.onprogress = function (e) {
+          if(e.lengthComputable){
+            writeMsgOnCanvas('loading ' + file_being_loaded + ' ' + Math.round((e.loaded/e.total)*100) + '% ...');
+          }
+        }
+        oReq.onload = function(oEvent) {
+          var arrayBuffer = oReq.response; // Note: not oReq.responseText
+          if (arrayBuffer) {
+            var data = new Uint8Array(arrayBuffer);
+
+            Module['FS_createDataFile']('/', gamefiles[file_read_count], data, true, true, true);
+
+            file_read_count = file_read_count + 1;
+
+            if (file_read_count == file_total_count) {
+              writeMsgOnCanvas("");
+              Module.callMain(['/' + game_file, '--windowed']);
+            } else {
+              loadGameFile(gamefiles[file_read_count]);
+            }
+
+
+          }
+        };
+        oReq.send(null);
+      }
+
+
+      file_total_count = gamefiles.length;
+
+      for (var i = 0; i < file_total_count; i++) {
+        if ((gamefiles[i] != "winsetup.exe") &&
+          (gamefiles[i].endsWith(".exe") ||
+            gamefiles[i].endsWith(".ags"))) {
+          game_file = gamefiles[i];
+          break;
+        }
+      }
+
+      file_read_count = 0;
+
+
+      window.addEventListener("orientationchange", function() {
+        // Generate a resize event if the device doesn't do it
+        window.dispatchEvent(new Event("resize"));
+      }, false);
+    </script>
+
+    <script>
+      function getPrettyTime() {
+        var e = new Date;
+
+        function t(e, t) {
+          for (; e.toString().length < t;) e = "0" + e;
+          return e
+        }
+        return t(e.getHours(), 2) + ":" + t(e.getMinutes(), 2) + ":" + t(e.getSeconds(), 2) + ":" + t(e.getMilliseconds(), 3)
+      }
+      var statusElement = document.getElementById("status"),
+        progressElement = document.getElementById("progress"),
+        spinnerElement = document.getElementById("spinner"),
+        Module = {
+          arguments: [],
+          preRun: [],
+          postRun: [function() {
+            loadGameFile(gamefiles[0]);
+          }],
+          print: function() {
+            var e = document.getElementById("output");
+            return e && (e.value = ""),
+              function(t) {
+                arguments.length > 1 && (t = Array.prototype.slice.call(arguments).join(" "));
+                var n = getPrettyTime() + ": " + t;
+                console.log(n), e && (e.value += n + "\n", e.scrollTop = e.scrollHeight)
+              }
+          }(),
+          printErr: function(e) {
+            arguments.length > 1 && (e = Array.prototype.slice.call(arguments).join(" ")), console.error(e)
+          },
+          canvas: function() {
+            var e = document.getElementById("canvas");
+            return window.addEventListener("resize", (function(t) {
+            //  Module.canvas.style.width = document.getElementById("canvas").clientWidth + "px",
+            //  Module.canvas.style.height = document.getElementById("canvas").clientHeight + "px"
+            }), !0), e.addEventListener("webglcontextlost", (function(e) {
+              alert("WebGL context lost. You will need to reload the page."), e.preventDefault()
+            }), !1), e
+          }(),
+          setStatus: function(e) {
+            if (Module.setStatus.last || (Module.setStatus.last = {
+                time: Date.now(),
+                text: ""
+              }), e !== Module.setStatus.last.text) {
+              var t = e.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/),
+                n = Date.now();
+              writeMsgOnCanvas(e);
+              t && n - Module.setStatus.last.time < 30 || (Module.setStatus.last.time = n, Module.setStatus.last.text = e, t ? (e = t[1], progressElement.value = 100 * parseInt(t[2]), progressElement.max = 100 * parseInt(t[4]), progressElement
+                .hidden = !1, spinnerElement.hidden = !1) : (progressElement.value = null, progressElement.max = null, progressElement.hidden = !0, e || (spinnerElement.hidden = !0)), statusElement.innerHTML = e)
+            }
+          },
+          totalDependencies: 0,
+          monitorRunDependencies: function(e) {
+            this.totalDependencies = Math.max(this.totalDependencies, e), Module.setStatus(e ? "Preparing... (" + (this.totalDependencies - e) + "/" + this.totalDependencies + ")" : "All downloads complete.")
+          }
+        };
+      Module.setStatus("Downloading..."), window.onerror = function(e) {
+        Module.setStatus("Exception thrown, see JavaScript console"), spinnerElement.style.display = "none", Module.setStatus = function(e) {
+          e && Module.printErr("[post-exception status] " + e)
+        }
+      }
+    </script>
+    <script async src=ags.js></script>
+  </body>
+
+  </html>

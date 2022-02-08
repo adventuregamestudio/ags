@@ -13,6 +13,6 @@ target_sources(alfont
     alfont.c
 )
 
-target_link_libraries(alfont PUBLIC Allegro::Allegro FreeType::FreeType)
+target_link_libraries(alfont PUBLIC Allegro::Allegro ${FREETYPE_LIBRARIES})
 
 add_library(AlFont::AlFont ALIAS alfont)

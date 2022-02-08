@@ -180,7 +180,7 @@ void play_flc_file(int numb,int playflags) {
     fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-    PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
+    PACKFILE *pf = PackfileFromAsset(AssetPath(flicname, "*"));
     if (open_fli_pf(pf) == FLI_OK)
     {
         // TODO: refactor all this later!!!

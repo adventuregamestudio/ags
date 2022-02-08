@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
+    <Compile Include="BuildTargets\BuildTargetWeb.cs" />
     <Compile Include="ColorThemes\ColorTheme.cs" />
     <Compile Include="ColorThemes\ColorThemes.cs" />
     <Compile Include="ColorThemes\ColorThemeJson.cs" />
@@ -411,7 +412,6 @@
     <EmbeddedResource Include="Resources\statprop.xpm" />
     <EmbeddedResource Include="Resources\struct.xpm" />
     <EmbeddedResource Include="Resources\agsdefns.sh" />
-    <EmbeddedResource Include="Resources\blank.crm" />
     <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT2.WFN" />

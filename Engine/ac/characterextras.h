@@ -28,6 +28,8 @@ using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
+// The CharacterInfo struct size is fixed because it's exposed to script
+// and plugin API, therefore new stuff has to go here
 // TODO: now safe to merge with CharacterInfo into one class
 struct CharacterExtras {
     short invorder[MAX_INVORDER];

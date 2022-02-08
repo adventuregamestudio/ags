@@ -48,6 +48,7 @@ using namespace AGS; // FIXME later
 
 struct CharacterExtras; // forward declaration
 
+
 struct CharacterInfo {
     int   defview;
     int   talkview;
@@ -70,7 +71,7 @@ struct CharacterInfo {
     short pic_yoffs; // this is fixed in screen coordinates
     int   z;    // z-location, for flying etc
     int   walkwait;
-    short speech_anim_speed, reserved1;  // only 1 reserved left!!
+    short speech_anim_speed, idle_anim_speed;
     short blocking_width, blocking_height;
     int   index_id;  // used for object functions to know the id
     short pic_xoffs; // this is fixed in screen coordinates

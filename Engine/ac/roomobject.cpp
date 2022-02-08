@@ -22,6 +22,7 @@
 #include "main/update.h"
 #include "util/math.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -161,7 +162,7 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
+void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
 {
     x = in->ReadInt32();
     y = in->ReadInt32();
@@ -187,6 +188,10 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
     flags = in->ReadInt8();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
+    if (cmp_ver > 0)
+    {
+        name = StrUtil::ReadString(in);
+    }
     if (cmp_ver >= 10)
     {
         blend_mode = (BlendMode)in->ReadInt32();
@@ -215,7 +220,7 @@ void RoomObject::ReadFromFile(Stream *in, int32_t cmp_ver)
     UpdateGraphicSpace();
 }
 
-void RoomObject::WriteToFile(Stream *out) const
+void RoomObject::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(x);
     out->WriteInt32(y);
@@ -241,6 +246,8 @@ void RoomObject::WriteToFile(Stream *out) const
     out->WriteInt8(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
+    // since version 1
+    StrUtil::WriteString(name, out);
     // since version 10
     out->WriteInt32(blend_mode);
     // Reserved for colour options

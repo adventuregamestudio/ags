@@ -36,19 +36,19 @@ extern RoomObject*objs;
 
 Bitmap *walkareabackup=nullptr, *walkable_areas_temp = nullptr;
 
-void redo_walkable_areas() {
-    thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight());
-
-    int hh,ww;
-    for (hh=0;hh<walkareabackup->GetHeight();hh++) {
-        uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(hh);
-        for (ww=0;ww<walkareabackup->GetWidth();ww++) {
-            //      if (play.walkable_areas_on[_getpixel(thisroom.WalkAreaMask,ww,hh)]==0)
-            if (play.walkable_areas_on[walls_scanline[ww]]==0)
-                walls_scanline[ww] = 0;
+void redo_walkable_areas()
+{
+    thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0);
+    for (int h = 0; h < walkareabackup->GetHeight(); ++h)
+    {
+        uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(h);
+        for (int w = 0; w < walkareabackup->GetWidth(); ++w)
+        {
+            if ((walls_scanline[w] >= sizeof(play.walkable_areas_on)) ||
+                    (play.walkable_areas_on[walls_scanline[w]] == 0))
+                walls_scanline[w] = 0;
         }
     }
-
 }
 
 int get_walkable_area_pixel(int x, int y)

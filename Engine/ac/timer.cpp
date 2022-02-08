@@ -16,6 +16,12 @@
 #include <thread>
 #include "ac/sys_events.h"
 #include "platform/base/agsplatformdriver.h"
+#if defined(AGS_DISABLE_THREADS)
+#include "media/audio/audio_core.h"
+#endif
+#if AGS_PLATFORM_OS_EMSCRIPTEN
+#include "SDL.h"
+#endif
 
 extern volatile bool game_update_suspend;
 
@@ -39,7 +45,7 @@ std::chrono::microseconds GetFrameDuration()
     return tick_duration;
 }
 
-void setTimerFps(int new_fps) 
+void setTimerFps(int new_fps)
 {
     tick_duration = std::chrono::microseconds(1000000LL/new_fps);
     framerate_maxed = new_fps >= 1000;
@@ -61,13 +67,18 @@ void WaitForNextFrame()
     // early exit if we're trying to maximise framerate
     if (frameDuration <= std::chrono::milliseconds::zero()) {
         next_frame_timestamp = now;
+#if !AGS_PLATFORM_OS_EMSCRIPTEN
         // suspend while the game is being switched out
         while (game_update_suspend) {
             sys_evt_process_pending();
             platform->YieldCPU();
         }
+#endif
         return;
     }
+#if defined(AGS_DISABLE_THREADS)
+    audio_core_entry_poll();
+#endif
 
     // jump ahead if we're lagging
     if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND*frameDuration)) {
@@ -76,19 +87,25 @@ void WaitForNextFrame()
 
     auto frame_time_remaining = next_frame_timestamp - now;
     if (frame_time_remaining > std::chrono::milliseconds::zero()) {
+#if AGS_PLATFORM_OS_EMSCRIPTEN
+        SDL_Delay(std::chrono::duration_cast<std::chrono::milliseconds>(frame_time_remaining).count());
+#else
         std::this_thread::sleep_for(frame_time_remaining);
+#endif
     }
-    
+
     next_frame_timestamp += frameDuration;
 
+#if !AGS_PLATFORM_OS_EMSCRIPTEN
     // suspend while the game is being switched out
     while (game_update_suspend) {
         sys_evt_process_pending();
         platform->YieldCPU();
     }
+#endif
 }
 
-void skipMissedTicks() 
+void skipMissedTicks()
 {
     last_tick_time = AGS_Clock::now();
     next_frame_timestamp = AGS_Clock::now();

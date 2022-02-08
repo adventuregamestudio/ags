@@ -2470,7 +2470,7 @@ void construct_game_screen_overlay(bool draw_mouse)
             if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
                 mouse_frame = 0;
             set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + 5;
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + game.mcurs[cur_cursor].animdelay;
             CheckViewFrame(viewnum, loopnum, mouse_frame);
         }
         lastmx = mousex; lastmy = mousey;

@@ -21,6 +21,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "gfx/gfx_def.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
@@ -42,7 +43,9 @@ struct RoomObject {
     char  overall_speed;
     char  on;
     char  flags;
+    // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
+    Common::String name;
     Common::BlendMode blend_mode;
     float rotation;
 
@@ -62,8 +65,8 @@ struct RoomObject {
     void update_cycle_view_forwards();
     void update_cycle_view_backwards();
 
-    void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 
 private:
     Common::GraphicSpace _gs;

@@ -33,12 +33,13 @@ There may be other temporary development branches meant for preparing and testin
 
 To get started building the AGS engine, see the platform-specific instructions or forum threads:
 
--    [CMAKE](CMAKE.md) - this readme covers the centralized build system using CMake
--    [Android](Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
--    [iOS](iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
--    [Linux](debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
--    [Mac OS X](OSX/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
--    [Windows](Windows/README.md)
+- [CMAKE](CMAKE.md) - this readme covers the centralized build system using CMake
+- [Android](Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
+- [iOS](iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
+- [Linux](debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
+- [Mac OS X](OSX/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
+- [Windows](Windows/README.md)
+- [Emscripten Web port](Emscripten/README.md)
 
 No longer actively supported, but may work with older code revisions:
 -    [PSP](PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))

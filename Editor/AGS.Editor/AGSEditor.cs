@@ -96,7 +96,8 @@ namespace AGS.Editor
          * --------------------------------------------------------------------
          * 3.6.0          - Settings.CustomDataDir, TTFHeightDefinedBy, TTFMetricsFixup;
          *                - Font.AutoOutlineStyle, AutoOutlineThickness;
-         *                - Character.IdleDelay
+         *                - Character.IdleDelay, Character.IdleAnimationDelay;
+         *                - Cursor.AnimationDelay
          *                - RuntimeSetup.FullscreenDesktop
          * 3.99.99        - BlendMode for various objects, Character.Transparency.
          *
@@ -197,6 +198,7 @@ namespace AGS.Editor
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWeb());
         }
 
         public Game CurrentGame

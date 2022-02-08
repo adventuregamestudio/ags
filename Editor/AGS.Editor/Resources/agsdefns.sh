@@ -779,7 +779,7 @@ struct Mouse {
   /// Changes the active hotspot for the specified mouse cursor.
   import static void ChangeModeHotspot(CursorMode, int x, int y);
   /// Changes the view used to animate the specified mouse cursor.
-  import static void ChangeModeView(CursorMode, int view);
+  import static void ChangeModeView(CursorMode, int view, int delay = SCR_NO_VALUE);
   /// Disables the specified cursor mode.
   import static void DisableMode(CursorMode);
   /// Re-enables the specified cursor mode.
@@ -1427,8 +1427,8 @@ builtin managed struct Hotspot {
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
   readonly import attribute int ID;
-  /// Gets the name of the hotspot.
-  readonly import attribute String Name;
+  /// Gets/sets the name of the hotspot.
+  import attribute String Name;
   /// Gets the X co-ordinate of the walk-to point for this hotspot.
   readonly import attribute int WalkToX;
   /// Gets the Y co-ordinate of the walk-to point for this hotspot.
@@ -1810,8 +1810,8 @@ builtin managed struct Object {
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
   readonly import attribute bool Moving;
-  /// Gets the object's description.
-  readonly import attribute String Name;
+  /// Gets/sets the name of the object.
+  import attribute String Name;
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
   /// Gets/sets the object's transparency.
@@ -2080,6 +2080,10 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v3507
   /// Returns the character at the specified position within this room.
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v360
+  /// Gets/sets the character's idle animation delay.
+  import attribute int  IdleAnimationDelay;
 #endif
   /// The character's current X-position.
   import attribute int  x;

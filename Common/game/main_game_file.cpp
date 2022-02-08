@@ -582,6 +582,18 @@ HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
         }
         return HError::None();
     }
+    else if (ext_id.CompareNoCase("v360_cursors") == 0)
+    {
+        for (int i = 0; i < _ents.Game.numcursors; ++i)
+        {
+            _ents.Game.mcurs[i].animdelay = _in->ReadInt32();
+            // reserved
+            _in->ReadInt32();
+            _in->ReadInt32();
+            _in->ReadInt32();
+        }
+        return HError::None();
+    }
     // Early development version of "ags4"
     if (ext_id.CompareNoCase("ext_ags399") == 0)
     {

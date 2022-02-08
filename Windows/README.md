@@ -21,8 +21,7 @@
 **IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
-  FIXME!!! -- need sdl2 related library set
-  * https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0
+  * https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.15/WinDevDependenciesVS.zip
 
 You still have to download library sources though, because you'd need header files.
 If you go this way, then skip **"Building the libraries"** sections altogether.
@@ -73,8 +72,7 @@ Engine requires following libraries:
 * libtheora
 * libvorbis
 
-You may download the prebuilt libraries [here](https://www.dropbox.com/s/3vdq7qw01tdtfux/ags-prebuilt-libs-3.5.x.zip?dl=0), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
-FIXME!!! -- need sdl2 related library set
+You may download the prebuilt libraries [here](https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.15/WinDevDependenciesVS.zip), although you'd still have to get library sources from their homepages because you need their headers for the engine compilation.
 
 If you prefer to build everything yourself: you need to build *static* libraries compiled with **/MT** or **/MTd** option (*statically* linked runtime C library). This is important or you may get linking errors, as engine itself is compiled with **/MT(d)**.
 

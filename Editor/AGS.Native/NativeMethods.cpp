@@ -31,6 +31,7 @@ extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
 extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
 extern void save_crm_file(Room ^roomToSave);
+extern void save_default_crm_file(Room ^roomToSave);
 extern AGSString import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 // Draws font char sheet on the provided context and returns the height of drawn object;
@@ -461,6 +462,11 @@ namespace AGS
 		{
 			save_crm_file(roomToSave);
 		}
+
+        void NativeMethods::SaveDefaultRoomFile(AGS::Types::Room ^roomToSave)
+        {
+            save_default_crm_file(roomToSave);
+        }
 
 		void NativeMethods::ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette)
 		{

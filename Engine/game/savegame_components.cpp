@@ -663,7 +663,7 @@ HSaveError ReadMouseCursors(Stream *in, int32_t cmp_ver, const PreservedParams &
         return err;
     for (int i = 0; i < game.numcursors; ++i)
     {
-        game.mcurs[i].ReadFromSavegame(in);
+        game.mcurs[i].ReadFromSavegame(in, cmp_ver);
     }
     return err;
 }
@@ -995,7 +995,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams &pp, 
         return err;
     for (int i = 0; i < objmls_count; ++i)
     {
-        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0);
+        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME!!
         if (!err)
             return err;
     }
@@ -1102,7 +1102,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Mouse Cursors",
-        0,
+        1,
         0,
         WriteMouseCursors,
         ReadMouseCursors
@@ -1235,7 +1235,8 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (!err)
         return err;
     if (in->GetPosition() - info.DataOffset != info.DataSize)
-        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %lld, actual: %lld", info.DataSize, in->GetPosition() - info.DataOffset));
+        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %jd, actual: %jd",
+            static_cast<intmax_t>(info.DataSize), static_cast<intmax_t>(in->GetPosition() - info.DataOffset)));
     if (!AssertFormatTag(in, info.Name, false))
         return new SavegameError(kSvgErr_ComponentClosingTagFormat);
     return HSaveError::None();

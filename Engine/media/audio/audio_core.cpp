@@ -97,14 +97,18 @@ void audio_core_init()
     Sound_Init();
 
     g_acore.audio_core_thread_running = true;
+#if !defined(AGS_DISABLE_THREADS)
     g_acore.audio_core_thread = std::thread(audio_core_entry);
+#endif
 }
 
 void audio_core_shutdown()
 {
     g_acore.audio_core_thread_running = false;
+#if !defined(AGS_DISABLE_THREADS)
     if (g_acore.audio_core_thread.joinable())
         g_acore.audio_core_thread.join();
+#endif
 
     // dispose all the active slots
     g_acore.slots_.clear();
@@ -206,12 +210,12 @@ void audio_core_set_master_volume(float newvol)
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
 {
     ALuint source_ = g_acore.slots_[slot_handle]->source_;
+    auto &player = g_acore.slots_[slot_handle]->decoder_;
 
     alSourcef(source_, AL_GAIN, volume*0.7f);
     dump_al_errors();
 
-    alSourcef(source_, AL_PITCH, speed);
-    dump_al_errors();
+    player.SetSpeed(speed);
 
     if (panning != 0.0f) {
         // https://github.com/kcat/openal-soft/issues/194
@@ -271,25 +275,32 @@ PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float 
 // AUDIO PROCESSING
 // -------------------------------------------------------------------------------------------------
 
+void audio_core_entry_poll()
+{
+    // burn off any errors for new loop
+    dump_al_errors();
+
+    for (auto &entry : g_acore.slots_) {
+        auto &slot = entry.second;
+
+        try {
+            slot->decoder_.Poll();
+        } catch (const std::exception& e) {
+            agsdbg::Printf(ags::kDbgMsg_Error, "OpenALDecoder poll exception %s", e.what());
+        }
+    }
+}
+
+#if !defined(AGS_DISABLE_THREADS)
 static void audio_core_entry()
 {
     std::unique_lock<std::mutex> lk(g_acore.mixer_mutex_m);
 
     while (g_acore.audio_core_thread_running) {
-        
-        // burn off any errors for new loop
-        dump_al_errors();
 
-        for (auto &entry : g_acore.slots_) {
-            auto &slot = entry.second;
-
-            try {
-                slot->decoder_.Poll();
-            } catch (const std::exception& e) {
-                agsdbg::Printf(ags::kDbgMsg_Error, "OpenALDecoder poll exception %s", e.what());
-            }
-        }
+        audio_core_entry_poll();
 
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));
     }
 }
+#endif

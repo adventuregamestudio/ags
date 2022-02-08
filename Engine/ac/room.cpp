@@ -503,7 +503,21 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom = getRoomStatus(newnum);
     else croom=&troom;
 
-    if (croom->beenhere==0) {
+    // Decide what to do if we have been or not in this room before
+    if (croom->beenhere > 0)
+    {
+        // Always copy object and hotspot names for < 3.6.0 games, because they were not settable
+        if (loaded_game_file_version < kGameVersion_360_16)
+        {
+            for (cc = 0; cc < croom->numobj; ++cc)
+                croom->obj[cc].name = thisroom.Objects[cc].Name;
+            for (cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
+                croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
+        }
+    }
+    else
+    {
+        // If we have not been in this room before, then copy necessary fields from thisroom
         croom->numobj=thisroom.ObjectCount;
         croom->tsdatasize=0;
         for (cc=0;cc<croom->numobj;cc++) {
@@ -513,6 +527,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].num = Math::InRangeOrDef<uint16_t>(thisroom.Objects[cc].Sprite, 0);
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].flags = thisroom.Objects[cc].Flags;
+            croom->obj[cc].name = thisroom.Objects[cc].Name;
             if (thisroom.Objects[cc].Baseline>=0)
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
             croom->obj[cc].blend_mode = thisroom.Objects[cc].BlendMode;
@@ -533,7 +548,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
         for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
-            croom->hotspot_enabled[cc] = 1;
+            croom->hotspot[cc].Enabled = true;
+            croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
         }
         for (cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;

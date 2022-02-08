@@ -343,6 +343,11 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060000)
             {
+                foreach (Character c in game.Characters)
+                {
+                    c.IdleAnimationDelay = c.AnimationDelay + 5;
+                }
+
                 game.Settings.TTFHeightDefinedBy = FontHeightDefinition.NominalHeight;
                 game.Settings.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 foreach (Font font in game.Fonts)

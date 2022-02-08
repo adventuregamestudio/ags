@@ -615,14 +615,14 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.Objects[aa].Name.GetCStr()));
+        strcpy(tempo,get_translation(croom->obj[aa].name.GetCStr()));
         if (play.get_loc_name_last_time != 3000+aa)
             GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name.GetCStr()));
+    if (onhs>0) strcpy(tempo,get_translation(croom->hotspot[onhs].Name.GetCStr()));
     if (play.get_loc_name_last_time != onhs)
         GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;

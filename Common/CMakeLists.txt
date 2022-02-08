@@ -184,7 +184,7 @@ target_sources(common
 	platform/windows/windows.h
 )
 
-target_link_libraries(common PUBLIC SDL2::SDL2 Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
+target_link_libraries(common PUBLIC ${SDL2_LIBRARY} Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

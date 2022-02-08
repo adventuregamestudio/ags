@@ -1124,7 +1124,9 @@ void new_font () {
 
 bool initialize_native()
 {
-    set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+    // Set text encoding and init allegro
+    set_uformat(U_UTF8);
+    set_filename_encoding(U_UNICODE);
     install_allegro(SYSTEM_NONE, &errno, atexit);
 
     AssetMgr.reset(new AssetManager());
@@ -1958,7 +1960,9 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
 void GameUpdated(Game ^game, bool forceUpdate) {
   // Game text conversion mode
-  tcv = TextConverter(game->Settings->UnicodeMode);
+  bool unicode_mode = game->Settings->UnicodeMode;
+  tcv = TextConverter(unicode_mode);
+  set_uformat(unicode_mode ? U_UTF8 : U_ASCII);
 
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
@@ -1968,6 +1972,7 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
+  thisgame.options[OPT_GAMETEXTENCODING] = game->Settings->UnicodeMode ? 1 : 0;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;

@@ -37,7 +37,6 @@ FSLocation UserDataDirectory;
 
 struct AGSEmscripten : AGSPlatformDriver {
 
-  int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
@@ -47,15 +46,7 @@ struct AGSEmscripten : AGSPlatformDriver {
   unsigned long GetDiskFreeSpaceMB() override;
   const char* GetBackendFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
-  int  InitializeCDPlayer() override;
-  void ShutdownCDPlayer() override;
 };
-
-
-int AGSEmscripten::CDPlayerCommand(int cmdd, int datt) 
-{
-    return 0;
-}
 
 void AGSEmscripten::DisplayAlert(const char *text, ...) 
 {
@@ -121,16 +112,6 @@ const char* AGSEmscripten::GetBackendFailUserHint()
 eScriptSystemOSID AGSEmscripten::GetSystemOSID() 
 {
     return eOS_Web;
-}
-
-int AGSEmscripten::InitializeCDPlayer() 
-{
-    return 0;// cd_player_init();
-}
-
-void AGSEmscripten::ShutdownCDPlayer() 
-{
-    //cd_exit();
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

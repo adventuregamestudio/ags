@@ -1957,6 +1957,9 @@ void GameDirChanged(String ^workingDir)
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
 void GameUpdated(Game ^game, bool forceUpdate) {
+  // Game text conversion mode
+  tcv = TextConverter(game->Settings->UnicodeMode);
+
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;

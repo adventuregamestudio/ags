@@ -768,10 +768,31 @@ TEST_F(Scan, MatchBraceParen5)
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
-    EXPECT_LE(7u, scanner.GetLineno());
+    EXPECT_EQ(6u, scanner.GetLineno());
     std::string errmsg = mh.GetError().Message;
-    EXPECT_NE(std::string::npos, errmsg.find("not been closed"));
-    EXPECT_NE(std::string::npos, errmsg.find("ine 6"));
+    EXPECT_NE(std::string::npos, errmsg.find("isn't closed"));
+}
+
+TEST_F(Scan, MatchBraceParen6)
+{
+    // The scanner checks that nested (), [], {} match.
+    // Opener without closer
+
+    char *Input = "\
+            struct MyStruct \n\
+            {               \n\
+                int i;      \n\
+            void Test()     \n\
+            {               \n\
+                S.          \n\
+            }               \n\
+        ";
+    AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
+    EXPECT_EQ(2u, scanner.GetLineno());
+    std::string errmsg = mh.GetError().Message;
+    EXPECT_NE(std::string::npos, errmsg.find("isn't closed"));
 }
 
 TEST_F(Scan, ConsecutiveStringLiterals1)

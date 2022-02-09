@@ -106,6 +106,7 @@ void SDLDecoder::Seek(float pos_ms)
 SoundBuffer SDLDecoder::GetData()
 {
     if (!_sample || _EOS) { return SoundBuffer(); }
+    float old_pos = _posMs;
     auto sz = Sound_Decode(_sample.get());
     _posBytes += sz;
     _posMs = static_cast<float>(_posBytes) / _bytesPerMs;
@@ -123,7 +124,8 @@ SoundBuffer SDLDecoder::GetData()
             _posMs = 0u;
         }
     }
-    return SoundBuffer(_sample->buffer, sz);
+    return SoundBuffer(_sample->buffer, sz, old_pos, static_cast<float>(
+        SoundHelper::DurationMsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
 }
 
 } // namespace Engine

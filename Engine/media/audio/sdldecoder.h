@@ -56,12 +56,15 @@ struct SoundBuffer
 {
     const void *Data = nullptr;
     size_t Size = 0u;
-    // TODO: include input piece timestamp!
+    float Ts = -1.f; // timestamp; negative means undefined
+    float DurMs = 0.f; // buffer duration, in ms
 
     SoundBuffer() = default;
-    SoundBuffer(const void *data, size_t sz) : Data(data), Size(sz) {}
+    SoundBuffer(const void *data, size_t sz, float ts = -1.f, float dur_ms = 0.f)
+        : Data(data), Size(sz), Ts(ts), DurMs(dur_ms) {}
     SoundBuffer(const SoundBuffer &buf) = default;
-    SoundBuffer(SoundBuffer &&buf) : Data(buf.Data), Size(buf.Size) { buf.Data = nullptr; buf.Size = 0u; }
+    SoundBuffer(SoundBuffer &&buf)
+        : Data(buf.Data), Size(buf.Size), Ts(buf.Ts), DurMs(buf.DurMs) { buf = SoundBuffer(); }
     SoundBuffer &operator=(const SoundBuffer &buf) = default;
 };
 
@@ -149,6 +152,11 @@ namespace SoundHelper
     inline size_t BytesPerMs(SDL_AudioFormat format, int chans, int freq)
     {
         return (SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000);
+    }
+    // Calculate number of milliseconds from given number of bytes of sound data
+    inline uint32_t DurationMsFromBytes(size_t count, SDL_AudioFormat format, int chans, int freq)
+    {
+        return (count * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq);
     }
 } // namespace SoundHelper
 

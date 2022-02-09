@@ -129,13 +129,10 @@ float OpenAlSource::GetPositionMs() const
     float off_ms = 0.f;
     if (_bufferRecords.size() > 0)
         off_ms = al_offset * _bufferRecords.front().Speed * 1000.f;
-    float pos_ms = _processedMs + off_ms;
+    float pos_ms = _positionMs + off_ms;
 #ifdef AUDIO_CORE_DEBUG
-    Debug::Printf("proc:%f plus:%f = %f\n", _processedMs, off_ms, pos_ms);
+    Debug::Printf("proc:%f plus:%f = %f\n", _positionMs, off_ms, pos_ms);
 #endif
-    // Dirty fixup, in case the reported position jumps back when the playback speed changes
-    pos_ms = std::max(_lastPosReport, pos_ms);
-    _lastPosReport = pos_ms;
     return pos_ms;
 }
 
@@ -160,6 +157,10 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     g_oalint.freeBuffers.pop_back();
 
     SoundBuffer input_buf = data;
+    // use provided timestamp, or calc our own
+    const float use_ts = data.Ts >= 0.f ? data.Ts : _predictTs;
+    const float dur_ms = static_cast<float>(
+        SoundHelper::DurationMsFromBytes(data.Size, _inputFormat, _channels, _freq));
     if (_resampler.HasConversion())
     {
         size_t conv_sz;
@@ -175,8 +176,9 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     alSourceQueueBuffers(_source, 1, &buf_id);
     dump_al_errors();
     _queued++;
+    _predictTs += dur_ms;
     // Push buffer record
-    _bufferRecords.push_back(BufferParams(GetBufferMs(buf_id), _speed));
+    _bufferRecords.push_back(BufferRecord(use_ts, dur_ms, _speed));
     return data.Size;
 }
 
@@ -195,7 +197,7 @@ void OpenAlSource::Unqueue()
 
         _queued--;
         assert(_bufferRecords.size() > 0);
-        _processedMs += _bufferRecords.front().Time;
+        _positionMs = _bufferRecords.front().Timestamp +_bufferRecords.front().Duration;
         _bufferRecords.pop_front();
 
         g_oalint.freeBuffers.push_back(buf_id);
@@ -224,15 +226,14 @@ ALuint OpenAlSource::Poll()
     return _queued;
 }
 
-void OpenAlSource::Play(float timestamp)
+void OpenAlSource::Play()
 {
     switch (_playState)
     {
     case PlayStateInitial:
-    case PlayStatePaused:
     case PlayStateStopped:
+    case PlayStatePaused:
         _playState = PlayStatePlaying;
-        _processedMs = timestamp;
         // If the queue is empty then do not call alSourcePlay right away,
         // because mojoAL can drop a clip out of its slot if it is not
         // initialized with something; see mojoal.c mix_source
@@ -257,7 +258,8 @@ void OpenAlSource::Stop()
     case PlayStatePlaying:
     case PlayStatePaused:
         _playState = PlayStateStopped;
-        _processedMs = 0;
+        _positionMs = 0.f;
+        _predictTs = 0.f;
         alSourceStop(_source);
         dump_al_errors();
         Unqueue();
@@ -287,12 +289,6 @@ void OpenAlSource::Pause()
 void OpenAlSource::Resume()
 { // function is reserved, simply call Play() for now
     Play();
-}
-
-void OpenAlSource::SetPlayTime(float timestamp)
-{
-    _processedMs = timestamp;
-    _lastPosReport = timestamp;
 }
 
 void OpenAlSource::SetSpeed(float speed)

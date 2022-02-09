@@ -60,17 +60,13 @@ public:
     ALuint Poll();
 
     // Starts the playback, the sound will be played as soon as there's any data is in queue
-    void Play() { Play(_processedMs); }
-    // Starts the playback, telling the position value associated with the sound data
-    void Play(float timestamp);
+    void Play();
     // Stops the playback, clears the queued data
     void Stop();
     // Pauses the playback, keeps the queued data
     void Pause();
     // Resumes the playback from the current position
     void Resume();
-    // Sets the arbitrary playback position associated with current sound data
-    void SetPlayTime(float timestamp);
     // Sets the playback speed; the speed is implemented through a resampling
     void SetSpeed(float speed);
 
@@ -85,23 +81,23 @@ private:
     int _channels = 0;
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
-    float _processedMs = 0.0f;
-    mutable float _lastPosReport = 0.f; // to fixup reported position, in case speed changes
+    float _positionMs = 0.f;
+    float _predictTs = 0.f; // next timestamp prediction
     unsigned _queued = 0u;
 
     // SDL resampler state, in case dynamic resampling in necessary
     SDLResampler _resampler;
     // Keeping record of some precalculated buffer properties
-    struct BufferParams
+    struct BufferRecord
     {
-        float AlTime = 0.f; // buffer time in internal openal's rate (in seconds)
+        float Timestamp = 0.f;
+        float Duration = 0.f;
         float Speed = 0.f; // associated playback speed
-        float Time = 0.f; // buffer time in the real playback rate (speed-adjusted)
-        BufferParams() = default;
-        BufferParams(float t, float sp) : AlTime(t), Speed(sp), Time(t * sp) {}
+        BufferRecord() = default;
+        BufferRecord(float ts, float dur, float sp) : Timestamp(ts), Duration(dur), Speed(sp) {}
     };
     // playback speeds related to queued buffers
-    std::deque<BufferParams> _bufferRecords;
+    std::deque<BufferRecord> _bufferRecords;
 };
 
 } // namespace Engine

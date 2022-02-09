@@ -185,7 +185,6 @@ void AudioCoreSlot::Seek(float pos_ms)
     case PlayStatePaused:
     case PlayStateStopped:
         _source->Stop();
-        _source->SetPlayTime(pos_ms);
         _decoder->Seek(pos_ms);
     default:
         break;

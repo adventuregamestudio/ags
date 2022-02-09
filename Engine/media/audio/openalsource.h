@@ -44,8 +44,6 @@ public:
 
     // Tells if the al source is valid and usable
     bool IsValid() const { return _source > 0; }
-    // FIXME: only use source id privately
-    ALuint GetSourceID() const { return _source; }
     // Gets current playback state
     PlaybackState GetPlayState() const { return _playState; }
     // Tells if the data queue is empty
@@ -67,8 +65,13 @@ public:
     void Pause();
     // Resumes the playback from the current position
     void Resume();
-    // Sets the playback speed; the speed is implemented through a resampling
+
+    // Sets the sound panning (-1.0f to 1.0)
+    void SetPanning(float panning);
+    // Sets the playback speed (fraction of normal); NOTE: the speed is implemented through resampling
     void SetSpeed(float speed);
+    // Sets the playback volume (gain)
+    void SetVolume(float volume);
 
 private:
     // Unqueues processed buffers

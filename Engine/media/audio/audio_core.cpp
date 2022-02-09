@@ -358,27 +358,10 @@ void audio_core_set_master_volume(float newvol)
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    ALuint source_ = g_acore.slots_[slot_handle]->GetAlSource().GetSourceID();
     auto &player = g_acore.slots_[slot_handle]->GetAlSource();
-
-    alSourcef(source_, AL_GAIN, volume*0.7f);
-    dump_al_errors();
-
+    player.SetVolume(volume * 0.7f); // TODO: find out why 0.7f is here?
     player.SetSpeed(speed);
-
-    if (panning != 0.0f) {
-        // https://github.com/kcat/openal-soft/issues/194
-        alSourcei(source_, AL_SOURCE_RELATIVE, AL_TRUE);
-        dump_al_errors();
-        alSource3f(source_, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
-        dump_al_errors();
-    }
-    else {
-        alSourcei(source_, AL_SOURCE_RELATIVE, AL_FALSE);
-        dump_al_errors();
-        alSource3f(source_, AL_POSITION, 0.0f, 0.0f, 0.0f);
-        dump_al_errors();
-    }
+    player.SetPanning(panning);
 }
 
 // -------------------------------------------------------------------------------------------------

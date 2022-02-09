@@ -291,6 +291,23 @@ void OpenAlSource::Resume()
     Play();
 }
 
+void OpenAlSource::SetPanning(float panning)
+{
+    if (panning != 0.0f) {
+        // https://github.com/kcat/openal-soft/issues/194
+        alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE);
+        dump_al_errors();
+        alSource3f(_source, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
+        dump_al_errors();
+    }
+    else {
+        alSourcei(_source, AL_SOURCE_RELATIVE, AL_FALSE);
+        dump_al_errors();
+        alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f);
+        dump_al_errors();
+    }
+}
+
 void OpenAlSource::SetSpeed(float speed)
 {
     _speed = speed;
@@ -301,6 +318,12 @@ void OpenAlSource::SetSpeed(float speed)
     { // error, reset
         _speed = 1.0;
     }
+}
+
+void OpenAlSource::SetVolume(float volume)
+{
+    alSourcef(_source, AL_GAIN, volume);
+    dump_al_errors();
 }
 
 } // namespace Engine

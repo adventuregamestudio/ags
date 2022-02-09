@@ -82,8 +82,10 @@ bool SDLDecoder::Open(float pos_ms)
     }
 
     _sample = std::move(sample);
-    _duration = static_cast<float>(Sound_GetDuration(_sample.get()));
-    if (pos_ms >= 0.0f) {
+    _bytesPerMs = SoundHelper::BytesPerMs(_sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+    _durationMs = static_cast<float>(Sound_GetDuration(_sample.get()));
+    _posMs = 0u;
+    if (pos_ms >= 0u) {
         Seek(pos_ms);
     }
     return true;
@@ -96,15 +98,17 @@ void SDLDecoder::Close()
 
 void SDLDecoder::Seek(float pos_ms)
 {
-    if (_sample && pos_ms >= 0.f) {
-        Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms));
-    }
+    if (!_sample || pos_ms < 0.f) return;
+    if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) != 0)
+        _posMs = pos_ms;
 }
 
 SoundBuffer SDLDecoder::GetData()
 {
     if (!_sample || _EOS) { return SoundBuffer(); }
     auto sz = Sound_Decode(_sample.get());
+    _posBytes += sz;
+    _posMs = static_cast<float>(_posBytes) / _bytesPerMs;
     // If read less than the buffer size - that means
     // either we reached end of sound stream OR decoding error occured
     if (sz < _sample->buffer_size) {
@@ -115,6 +119,8 @@ SoundBuffer SDLDecoder::GetData()
         // if repeat, then seek to start.
         else if (_repeat) {
             _EOS = Sound_Rewind(_sample.get()) == 0;
+            _posBytes = 0u;
+            _posMs = 0u;
         }
     }
     return SoundBuffer(_sample->buffer, sz);

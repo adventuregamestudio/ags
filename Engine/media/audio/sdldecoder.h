@@ -117,7 +117,7 @@ public:
     // Gets current reading position, in ms
     float GetPositionMs() const { return _posMs; }
     // Gets total duration, in ms
-    float GetDurationMs() const { return _duration; }
+    float GetDurationMs() const { return _durationMs; }
 
     // Try initializing the sound sample, returns the result
     bool Open(float pos_ms = 0.f);
@@ -132,11 +132,25 @@ private:
     std::vector<char> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
-    float _duration = 0.f;
+    uint32_t _bytesPerMs = 0u;
+    float _durationMs = 0.f;
     bool _repeat = false;
     bool _EOS = false;
+    uint32_t _posBytes = 0u;
     float _posMs = 0.f;
 };
+
+
+namespace SoundHelper
+{
+    // Tells bytes per sample from SDL_Audio format
+    inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
+    // Calculate number of bytes of sound data per millisecond
+    inline size_t BytesPerMs(SDL_AudioFormat format, int chans, int freq)
+    {
+        return (SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000);
+    }
+} // namespace SoundHelper
 
 } // namespace Engine
 } // namespace AGS

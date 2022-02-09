@@ -21,7 +21,6 @@ namespace AGS.Types
         private const int GLOBAL_MESSAGE_ID_START = 500;
 
         public const int MAX_CURSORS = 20;
-        public const int MAX_DIALOGS = 500;
         public const int MAX_INV_ITEMS = 300;
         public const int MAX_SOUND_CHANNELS = 8;
         public const int MAX_USER_SOUND_CHANNELS = MAX_SOUND_CHANNELS - 1; // 1 reserved for Speech

@@ -140,6 +140,7 @@ Following OPTIONS are supported when running from command line:
     * --log-stdout=+mg:debug
 * --log-file-path=PATH - define custom path for the log file.
 * --no-message-box - disable alerts as modal message boxes (Windows only).
+* --no-translation - use default game language on start.
 * --noiface - don't draw game GUI (for test purposes).
 * --noscript - don't run room scripts (for test purposes); *WARNING:* unreliable.
 * --nospr - don't draw room objects and characters (for test purposes).
@@ -157,6 +158,7 @@ Following OPTIONS are supported when running from command line:
   * --tell-filepath - print all filepaths engine uses for the game.
   * --tell-graphicdriver - print list of supported graphic drivers.
 * --test - run game in the test mode, unlocking test key combinations and console.
+* --translation - select the given translation on start.
 * --user-data-dir \<DIR\> - set the save game directory. Corresponds to "user_data_dir" config option.
 * --windowed - run in windowed mode.
 

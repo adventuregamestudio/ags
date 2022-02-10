@@ -30,7 +30,6 @@ GameSetupStruct::GameSetupStruct()
     , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
-    memset(mcurs, 0, sizeof(mcurs));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));
     memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
@@ -169,9 +168,6 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
 
 HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (numcursors > MAX_CURSOR)
-        return new MainGameFileError(kMGFErr_TooManyCursors, String::FromFormat("Count: %d, max: %d", numcursors, MAX_CURSOR));
-
     ReadMouseCursors_Aligned(in);
     return HGameFileError::None();
 }
@@ -214,6 +210,7 @@ void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 
 void GameSetupStruct::ReadMouseCursors_Aligned(Stream *in)
 {
+    mcurs.resize(numcursors);
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
@@ -459,7 +456,8 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
     }
 
     memcpy (&gss->invinfo[0], &ogss->invinfo[0], 100 * sizeof(InventoryItemInfo));
-    memcpy (&gss->mcurs[0], &ogss->mcurs[0], 10 * sizeof(MouseCursor));
+    for (int i = 0; i < 10; ++i)
+        gss->mcurs[i] = ogss->mcurs[i];
     for (int i = 0; i < MAXGLOBALMES; i++)
         gss->messages[i] = ogss->messages[i];
     gss->dict = ogss->dict;

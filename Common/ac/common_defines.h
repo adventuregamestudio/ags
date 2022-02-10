@@ -95,7 +95,6 @@
 
 #define LEGACY_MAX_SPRITES_V25  6000
 #define LEGACY_MAX_SPRITES      30000
-#define MAX_CURSOR          20
 
 #if AGS_PLATFORM_OS_WINDOWS
 #define AGS_INLINE inline

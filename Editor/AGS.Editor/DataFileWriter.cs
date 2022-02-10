@@ -1480,11 +1480,6 @@ namespace AGS.Editor
                 writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? NativeConstants.IFLG_STARTWITH : (char)0);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
-            if (game.Cursors.Count > NativeConstants.MAX_CURSOR)
-            {
-                errors.Add(new CompileError("Too many cursors"));
-                return false;
-            }
             for (int i = 0; i < game.Cursors.Count; ++i)
             {
                 char flags = (char)0;

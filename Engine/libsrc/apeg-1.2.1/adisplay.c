@@ -153,7 +153,7 @@ void apeg_initialize_display(APEG_LAYER *layer, int cs)
 			return;
 		}
 		if(ret < 0)
-			apeg_error_jump(NULL);
+			apeg_error_jump(layer, NULL);
 		layer->display_frame = NULL;
 	}
 
@@ -230,8 +230,9 @@ void apeg_initialize_display(APEG_LAYER *layer, int cs)
 			break;
 
 		default:
-			sprintf(apeg_error, "Unsupported color depth (%ibpp)", depth);
-			apeg_error_jump(NULL);
+			snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error),
+				"Unsupported color depth (%ibpp)", depth);
+			apeg_error_jump(layer, NULL);
 	}
 
 	if(layer->stream.bitmap)
@@ -241,7 +242,7 @@ void apeg_initialize_display(APEG_LAYER *layer, int cs)
 	layer->stream.bitmap = create_bitmap_ex(depth, layer->coded_width,
 	                                        layer->coded_height);
 	if(!layer->stream.bitmap)
-		apeg_error_jump("Couldn't create internal bitmap");
+		apeg_error_jump(layer, "Couldn't create internal bitmap");
 
 	// Initialize color placement tables
 	apeg_reset_colors((APEG_STREAM*)layer);

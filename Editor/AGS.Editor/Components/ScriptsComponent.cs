@@ -626,8 +626,7 @@ namespace AGS.Editor.Components
 
         public override void GameSettingsChanged()
         {
-            Script.TextEncoding = Factory.AGSEditor.CurrentGame.Settings.UnicodeMode ?
-                    Encoding.UTF8 : Encoding.Default;
+            Script.TextEncoding = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding;
         }
     }
 }

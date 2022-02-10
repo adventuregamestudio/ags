@@ -111,11 +111,8 @@ namespace AGS.Editor
             }
 
             // EXPERIMENT!!!
-            bool is_unicode = Factory.AGSEditor.CurrentGame.Settings.UnicodeMode;
-            Scintilla.ScintillaControl.DefaultEncoding = is_unicode ?
-                Encoding.UTF8 : Encoding.Default;
-            this.scintillaControl1.CodePage = (int)(is_unicode ?
-                Scintilla.Constants.SC_CP_UTF8 : 0);
+            Scintilla.ScintillaControl.DefaultEncoding = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding;
+            this.scintillaControl1.CodePage = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding.CodePage;
             // EXPERIMENT!!!
             this.scintillaControl1.EOLMode = (int)EndOfLine.Crlf;
             this.scintillaControl1.WrapMode = (int)Wrap.None;

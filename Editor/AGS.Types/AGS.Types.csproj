@@ -190,6 +190,7 @@
     <Compile Include="PropertyGridExtras\RoomMessagesUIEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteFileNameEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteSelectUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\TextEncodingTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\ViewUIEditor.cs" />
     <Compile Include="Room.cs" />
     <Compile Include="RoomHotspot.cs" />

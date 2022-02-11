@@ -446,6 +446,12 @@ void selectLatestSavegame()
   }
 }
 
+JNIEXPORT void JNICALL
+Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jobject object, jobjectArray translations)
+{
+  SDL_StartTextInput();
+}
+
 } // END of Extern "C"
 
 

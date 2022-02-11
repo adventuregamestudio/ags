@@ -1961,7 +1961,6 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 void GameUpdated(Game ^game, bool forceUpdate) {
   // Game text conversion mode
   bool unicode_mode = game->Settings->UnicodeMode;
-  tcv = TextConverter(unicode_mode);
   set_uformat(unicode_mode ? U_UTF8 : U_ASCII);
 
   // TODO: this function may get called when only one item is added/removed or edited;

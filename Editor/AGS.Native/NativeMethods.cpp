@@ -101,7 +101,7 @@ TextConverter tcv;
 
 System::String^ TextConverter::ConvertAny(const AGS::Common::String &str)
 {
-    return _unicodeMode ? ConvertUTF8(str) : gcnew String(str.GetCStr());
+    return Convert(str, AGS::Native::NativeMethods::GetGameTextEncoding());
 }
 
 System::String^ TextConverter::ConvertASCII(const AGS::Common::String &str)
@@ -111,15 +111,22 @@ System::String^ TextConverter::ConvertASCII(const AGS::Common::String &str)
 
 System::String^ TextConverter::ConvertUTF8(const AGS::Common::String &str)
 {
+    return Convert(str, System::Text::Encoding::UTF8);
+}
+
+System::String^ TextConverter::Convert(const AGS::Common::String &str, System::Text::Encoding^ enc)
+{
     size_t len = strlen(str.GetCStr()); // we need number of bytes, not chars
     array<Byte>^ buf = gcnew array<Byte>(len);
     Marshal::Copy((IntPtr)(void*)str.GetCStr(), buf, 0, (int)len);
-    return System::Text::Encoding::UTF8->GetString(buf);
+    return enc->GetString(buf);
 }
 
 AGSString TextConverter::ConvertAny(System::String^ clr_str)
 {
-    return _unicodeMode ? ConvertUTF8(clr_str) : ConvertASCII(clr_str);
+    if (clr_str == nullptr)
+        return AGSString();
+    return Convert(clr_str, AGS::Native::NativeMethods::GetGameTextEncoding());
 }
 
 AGSString TextConverter::ConvertASCII(System::String^ clr_str)
@@ -152,13 +159,18 @@ AGSString TextConverter::ConvertUTF8(System::String^ clr_str)
 {
     if (clr_str == nullptr)
         return AGSString();
-    int len = System::Text::Encoding::UTF8->GetByteCount(clr_str);
+    return Convert(clr_str, System::Text::Encoding::UTF8);
+}
+
+AGSString TextConverter::Convert(System::String^ clr_str, System::Text::Encoding^ enc)
+{
+    int len = enc->GetByteCount(clr_str);
     cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
-    System::Text::Encoding::UTF8->GetBytes(clr_str, 0, clr_str->Length, buf, 0);
-    IntPtr utf8ptr = Marshal::AllocHGlobal(buf->Length);
-    Marshal::Copy(buf, 0, utf8ptr, buf->Length);
-    AGSString str = (const char*)utf8ptr.ToPointer();
-    Marshal::FreeHGlobal(utf8ptr);
+    enc->GetBytes(clr_str, 0, clr_str->Length, buf, 0);
+    IntPtr dest_ptr = Marshal::AllocHGlobal(buf->Length);
+    Marshal::Copy(buf, 0, dest_ptr, buf->Length);
+    AGSString str = (const char*)dest_ptr.ToPointer();
+    Marshal::FreeHGlobal(dest_ptr);
     return str;
 }
 
@@ -173,8 +185,14 @@ namespace AGS
 			editorVersionNumber = tcv.ConvertASCII(editorVersion);
 		}
 
+        System::Text::Encoding^ NativeMethods::GetGameTextEncoding()
+        {
+            return _gameTextEncoding;
+        }
+
 		void NativeMethods::Initialize()
 		{
+            _gameTextEncoding = System::Text::Encoding::UTF8;
 			if (!initialize_native())
 			{
 				throw gcnew AGS::Types::InvalidDataException("Native initialization failed.");
@@ -188,6 +206,7 @@ namespace AGS
 
 		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
 		{
+            _gameTextEncoding = game->Settings->GameTextEncoding;
 			this->PaletteColoursUpdated(game);
 			GameUpdated(game, true);
 			UpdateNativeSpritesToGame(game, errors);
@@ -215,6 +234,7 @@ namespace AGS
 
 		void NativeMethods::GameSettingsChanged(Game ^game)
 		{
+            _gameTextEncoding = game->Settings->GameTextEncoding;
 			GameUpdated(game, false);
 		}
 

@@ -24,7 +24,7 @@ typedef AGS::Common::String AGSString;
 class TextConverter
 {
 public:
-    TextConverter(bool unicode_mode = false) : _unicodeMode(unicode_mode) {}
+    TextConverter() = default;
 
     //-------------------------------------------------------------------------
     // Native to managed string convertions
@@ -53,7 +53,10 @@ public:
     AGSString ConvertUTF8(System::String^ clr_str);
 
 private:
-    bool _unicodeMode = false;
+    // Convert native to managed using given encoder
+    System::String^ Convert(const AGS::Common::String &str, System::Text::Encoding^ enc);
+    // Convert managed to native using given encoder
+    AGSString Convert(System::String^ clr_str, System::Text::Encoding^ enc);
 };
 
 extern AGSString editorVersionNumber;

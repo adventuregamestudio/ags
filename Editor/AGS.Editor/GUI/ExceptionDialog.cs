@@ -70,6 +70,7 @@ namespace AGS.Editor
             string encodedForm = "exceptionText=" + HttpUtility.UrlEncode(exceptionText)
                 + "&screenShot=" + HttpUtility.UrlEncode(GetScreenshotAsSerializedBase64String());
 
+            // NOTE: the message encoding depends on the data exchange format
             byte[] dataToUpload = System.Text.Encoding.Default.GetBytes(encodedForm);
 
             using (System.Net.WebClient webClient = new System.Net.WebClient())

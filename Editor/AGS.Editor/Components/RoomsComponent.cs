@@ -406,6 +406,7 @@ namespace AGS.Editor.Components
                 {
                     roomScript = "// room script file\r\n";
                 }
+                // [UNICODE] TODO: implement encoding hint in the room's metadata
                 StreamWriter sw = new StreamWriter(scriptFile, false, Encoding.Default);
                 sw.Write(roomScript);
                 sw.Close();

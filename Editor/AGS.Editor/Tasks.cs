@@ -387,6 +387,7 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060020)
             {
+                // [UNICODE] TODO: read encoding from the XML header!!!
                 game.Settings.GameTextEncoding = Encoding.Default;
             }
 

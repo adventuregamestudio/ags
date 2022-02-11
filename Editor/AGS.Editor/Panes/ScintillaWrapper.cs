@@ -111,8 +111,8 @@ namespace AGS.Editor
             }
 
             // EXPERIMENT!!!
-            Scintilla.ScintillaControl.DefaultEncoding = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding;
-            this.scintillaControl1.CodePage = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding.CodePage;
+            Scintilla.ScintillaControl.DefaultEncoding = Factory.AGSEditor.CurrentGame.DefaultEncoding;
+            this.scintillaControl1.CodePage = Factory.AGSEditor.CurrentGame.DefaultEncoding.CodePage;
             // EXPERIMENT!!!
             this.scintillaControl1.EOLMode = (int)EndOfLine.Crlf;
             this.scintillaControl1.WrapMode = (int)Wrap.None;

@@ -283,7 +283,8 @@ namespace AGS.Editor.Components
                 {
 					bw.Write((short)line.Phonemes.Count);
 
-					byte[] fileNameBytes = Encoding.Default.GetBytes(line.FileName);
+                    // [UNICODE] TODO: check if filename should/can be utf8?
+                    byte[] fileNameBytes = Encoding.Default.GetBytes(line.FileName);
 					byte[] paddedFileNameBytes = new byte[14];
 					Array.Copy(fileNameBytes, paddedFileNameBytes, fileNameBytes.Length);
 					paddedFileNameBytes[fileNameBytes.Length] = 0;

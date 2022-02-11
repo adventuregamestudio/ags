@@ -75,7 +75,7 @@ namespace AGS.Editor
             _componentController.NotifyGameSettingsChanged();
 
             // FIXME
-            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.Settings.GameTextEncoding;
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.DefaultEncoding;
         }
 
         private void _events_GameLoad(XmlNode rootNode)
@@ -87,14 +87,14 @@ namespace AGS.Editor
             }
 
             // FIXME
-            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.Settings.GameTextEncoding;
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.DefaultEncoding;
         }
 
         private void _events_GamePostLoad()
         {
             Game game = Factory.AGSEditor.CurrentGame;
 
-            Script.TextEncoding = Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding;
+            Script.TextEncoding = Factory.AGSEditor.CurrentGame.DefaultEncoding;
 
             // TODO: this may be noticably slow especially for sprites. Display some kind of
             // progress window to notify user.

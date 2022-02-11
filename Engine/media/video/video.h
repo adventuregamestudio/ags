@@ -60,6 +60,8 @@ public:
     bool Open(const AGS::Common::String &name, int flags, VideoSkipType skip);
     // Stops the playback, releasing any resources
     void Close();
+    // Begins playback
+    void Play();
     // Restores the video after display switch
     virtual void Restore() {};
 
@@ -86,10 +88,8 @@ protected:
     bool _wantAudio = false;
 
     std::unique_ptr<Bitmap> _videoFrame;
-    std::unique_ptr<Bitmap> _hicolBuf;
-    std::unique_ptr<Bitmap> _targetBitmap;
-    IDriverDependantBitmap *_videoDDB = nullptr;
-    Size _targetSize{};
+    int _frameDepth = 0; // bits per pixel
+    Size _frameSize{};
     uint32_t _frameTime = 0u;
 
 private:
@@ -102,12 +102,20 @@ private:
     // Renders the current video frame
     bool RenderVideo();
 
+    // Parameters
     bool _loop = false;
     int _flags = 0;
     VideoSkipType _skip = VideoSkipNone;
+    // Playback state
     uint32_t _sdlTimer = 0u;
     std::atomic<int> _timerPos{};
+    // Audio
     std::unique_ptr<OpenAlSource> _audioOut;
+    // Video
+    Rect _dstRect{};
+    std::unique_ptr<Bitmap> _hicolBuf;
+    std::unique_ptr<Bitmap> _targetBitmap;
+    IDriverDependantBitmap *_videoDDB = nullptr;
 };
 
 } // namespace Engine

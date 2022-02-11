@@ -80,16 +80,30 @@ bool VideoPlayer::Open(const String &name, int flags, VideoSkipType skip)
             _wantAudio = true;
         }
     }
-
-    // TODO: needed for FLIC, but perhaps may be done differently
-    if ((flags & kVideo_ClearScreen) != 0)
+    // Setup video
+    if ((flags & kVideo_EnableVideo) != 0)
     {
-        if (gfxDriver->UsesMemoryBackBuffer())
+        _dstRect = PlaceInRect(play.GetMainViewport(), RectWH(_frameSize), kPlaceStretchProportional);
+        // override the stretch option if necessary
+        if (_frameSize == _dstRect.GetSize())
+            _flags &= ~kVideo_Stretch;
+        else
+            _flags |= kVideo_Stretch;
+
+        if (gfxDriver->HasAcceleratedTransform() || ((_flags & kVideo_Stretch) == 0))
         {
-            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-            screen_bmp->Clear();
+            _videoDDB = gfxDriver->CreateDDB(_frameSize.Width, _frameSize.Height, _frameDepth, true);
         }
-        render_to_screen();
+        else
+        {
+            // For software rendering - create helper bitmaps in case of stretching;
+            // If we are decoding a 8-bit frame in a hi-color game, and stretching,
+            // then create a hi-color buffer, as bitmap lib cannot stretch with depth change
+            if ((_frameDepth == 8) && (game.GetColorDepth() > 8))
+                _hicolBuf.reset(BitmapHelper::CreateBitmap(_frameSize.Width, _frameSize.Height, game.GetColorDepth()));
+            _targetBitmap.reset(BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), game.GetColorDepth()));
+            _videoDDB = gfxDriver->CreateDDB(_dstRect.GetWidth(), _dstRect.GetHeight(), game.GetColorDepth(), true);
+        }
     }
 
     _timerPos = 1;
@@ -121,9 +135,22 @@ void VideoPlayer::Close()
         screen_bmp->Clear();
     }
     render_to_screen();
-
+    invalidate_screen(); // ?
     ags_clear_input_state();
-    invalidate_screen();
+}
+
+void VideoPlayer::Play()
+{
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if ((_flags & kVideo_ClearScreen) != 0)
+    {
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+            screen_bmp->Clear();
+        }
+        render_to_screen();
+    }
 }
 
 int VideoPlayer::GetAudioPos()
@@ -133,6 +160,9 @@ int VideoPlayer::GetAudioPos()
 
 bool VideoPlayer::Poll()
 {
+    // Check user input skipping the video
+    if (CheckUserInputSkip())
+        return false;
     // Acquire next video frame
     if (!NextFrame())
         return false;
@@ -140,9 +170,6 @@ bool VideoPlayer::Poll()
     if (_audioFrame && !RenderAudio())
         return false;
     if (_videoFrame && !RenderVideo())
-        return false;
-    // Check user input skipping the video
-    if (CheckUserInputSkip())
         return false;
     // Wait for timer
     _timerPos--;
@@ -189,59 +216,31 @@ bool VideoPlayer::RenderVideo()
     assert(_videoFrame);
     Bitmap *usebuf = _videoFrame.get();
 
-    // FIXME: for FLIC only!! do we need this always, or only when stretched, or at all??
-    // FIXME: test target bitmap, not game's depth?
-    if ((game.color_depth > 1) && (usebuf->GetBPP() == 1))
+    // Use intermediate hi-color buffer if necessary
+    if (_hicolBuf)
     {
         _hicolBuf->Blit(usebuf);
         usebuf = _hicolBuf.get();
     }
 
-    // FIXME: create on Open?
-    if (!_videoDDB)
-    {
-        _videoDDB = gfxDriver->CreateDDBFromBitmap(usebuf, false, true);
-    }
-
-    int drawAtX = 0, drawAtY = 0;
-    const Rect &view = play.GetMainViewport();
     if ((_flags & kVideo_Stretch) != 0)
     {
-        drawAtX = view.GetWidth() / 2 - _targetSize.Width / 2;
-        drawAtY = view.GetHeight() / 2 - _targetSize.Height / 2;
-
-        if (!gfxDriver->HasAcceleratedTransform())
+        if (gfxDriver->HasAcceleratedTransform())
         {
-            _targetBitmap->StretchBlt(usebuf, RectWH(0, 0, usebuf->GetWidth(), usebuf->GetHeight()),
-                RectWH(drawAtX, drawAtY, _targetSize.Width, _targetSize.Height));
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, _targetBitmap.get(), false);
-            drawAtX = 0;
-            drawAtY = 0;
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
+            _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
         }
         else
         {
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
-            _videoDDB->SetStretch(_targetSize.Width, _targetSize.Height, false);
+            _targetBitmap->StretchBlt(usebuf, RectWH(_dstRect.GetSize()));
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, _targetBitmap.get(), false);
         }
-
-        /* FROM FLIC:
-        fli_target->Blit(usebuf, 0, 0, view.GetWidth() / 2 - fliwidth / 2, view.GetHeight() / 2 - fliheight / 2, view.GetWidth(), view.GetHeight());
-        */
     }
     else
     {
         gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
-        drawAtX = view.GetWidth() / 2 - usebuf->GetWidth() / 2;
-        drawAtY = view.GetHeight() / 2 - usebuf->GetHeight() / 2;
-        /* FROM FLIC:
-        fli_target->StretchBlt(usebuf, RectWH(0, 0, fliwidth, fliheight), RectWH(0, 0, view.GetWidth(), view.GetHeight()));
-        */
     }
-
-    /* FROM FLIC:
-    gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
-    */
-    gfxDriver->DrawSprite(drawAtX, drawAtY, _videoDDB);
+    gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
     render_to_screen();
     return true;
 }
@@ -302,21 +301,9 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
 
     get_palette_range(_oldpal, 0, 255);
 
-    if (game.color_depth > 1)
-    {
-        _hicolBuf.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, game.GetColorDepth()));
-    }
-    // override the stretch option if necessary
-    const Rect &view = play.GetMainViewport();
-    if ((fliwidth == view.GetWidth()) && (fliheight == view.GetHeight()))
-        flags &= ~kVideo_Stretch;
-    else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
-        flags |= kVideo_Stretch;
     _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
-
-    _targetBitmap.reset(BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth()));
-    _videoDDB = gfxDriver->CreateDDBFromBitmap(_targetBitmap.get(), false, true);
-    _targetSize = view.GetSize();
+    _frameDepth = 8;
+    _frameSize = Size(fliwidth, fliheight);
     _frameTime = fli_speed;
     return true;
 }
@@ -400,32 +387,6 @@ void apeg_stream_skip(int bytes, void *ptr)
 }
 //
 
-
-// TODO: use shared utility function for placing rect in rect
-static void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeight, int *targetWidth, int *targetHeight)
-{
-    const Rect &viewport = play.GetMainViewport();
-    float aspectRatioVideo = (float)vidWidth / (float)vidHeight;
-    float aspectRatioScreen = (float)viewport.GetWidth() / (float)viewport.GetHeight();
-
-    if (aspectRatioVideo == aspectRatioScreen)
-    {
-        *targetWidth = viewport.GetWidth();
-        *targetHeight = viewport.GetHeight();
-    }
-    else if (aspectRatioVideo > aspectRatioScreen)
-    {
-        *targetWidth = viewport.GetWidth();
-        *targetHeight = (int)(((float)viewport.GetWidth() / aspectRatioVideo) + 0.5f);
-    }
-    else
-    {
-        *targetHeight = viewport.GetHeight();
-        *targetWidth = (float)viewport.GetHeight() * aspectRatioVideo;
-    }
-
-}
-
 bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
 {
     std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
@@ -451,37 +412,20 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     }
 
     _apegStream = apeg_stream;
-    calculate_destination_size_maintain_aspect_ratio(video_w, video_h, &_targetSize.Width, &_targetSize.Height);
-
-    if ((_targetSize.Width == video_w) && (_targetSize.Height == video_h))
-    {
-        // don't need to stretch after all
-        flags &= ~kVideo_Stretch;
-    }
-
-    if (((flags & kVideo_Stretch) != 0) && (!gfxDriver->HasAcceleratedTransform()))
-    {
-        _targetBitmap.reset(BitmapHelper::CreateClearBitmap(
-            play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), game.GetColorDepth()));
-        _videoDDB = gfxDriver->CreateDDBFromBitmap(_targetBitmap.get(), false, true);
-    }
-    else
-    {
-        _videoDDB = nullptr;
-    }
 
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
 
     // Init APEG
     _dataStream = std::move(video_stream);
+    _frameDepth = game.GetColorDepth();
+    _frameSize = Size(video_w, video_h);
     _frameTime = 1000 / _apegStream->frame_rate;
     _videoFrame.reset(new Bitmap()); // FIXME: use target directly if possible?
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
-
     return true;
 }
 
@@ -552,6 +496,7 @@ bool TheoraPlayer::NextFrame()
 void video_run(std::unique_ptr<VideoPlayer> video)
 {
     gl_Video = std::move(video);
+    gl_Video->Play();
     // Loop until finished or skipped by player
     while (gl_Video->Poll())
     {

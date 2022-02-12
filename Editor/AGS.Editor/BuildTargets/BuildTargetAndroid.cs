@@ -12,6 +12,60 @@ namespace AGS.Editor
     class BuildTargetAndroid : BuildTargetBase
     {
         public const string ANDROID_DIR = "Android";
+        public const string ANDROID_CFG = "android.cfg";
+
+        private void WriteAndroidCfg(string outputDir)
+        {
+            string configPath = Path.Combine(outputDir, ANDROID_CFG);
+
+            RuntimeSetup setup = Factory.AGSEditor.CurrentGame.DefaultSetup;
+            int rotation = (int)setup.Rotation;
+
+            NativeProxy.WritePrivateProfileString("misc", "config_enabled", "1", configPath);
+            NativeProxy.WritePrivateProfileString("misc", "rotation", rotation.ToString(), configPath);
+            NativeProxy.WritePrivateProfileString("misc", "translation", setup.Translation, configPath);
+
+            NativeProxy.WritePrivateProfileString("controls", "mouse_method", "0", configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_longclick", "1", configPath);
+
+            NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", "0", configPath);
+
+            NativeProxy.WritePrivateProfileString("sound", "samplerate", "44100", configPath);
+            NativeProxy.WritePrivateProfileString("sound", "enabled", "1", configPath);
+            NativeProxy.WritePrivateProfileString("sound", "threaded", "1", configPath);
+            NativeProxy.WritePrivateProfileString("sound", "cache_size", "64", configPath);
+
+            NativeProxy.WritePrivateProfileString("midi", "enabled", "0", configPath);
+            NativeProxy.WritePrivateProfileString("midi", "preload_patches", "0", configPath);
+
+            NativeProxy.WritePrivateProfileString("video", "framedrop", "0", configPath);
+
+            if (setup.GraphicsDriver == GraphicsDriver.Software) {
+                NativeProxy.WritePrivateProfileString("graphics", "renderer", "0", configPath);
+            } else {
+                NativeProxy.WritePrivateProfileString("graphics", "renderer", "1", configPath);
+            }
+
+            if (setup.GraphicsFilter == "StdScale") {
+                NativeProxy.WritePrivateProfileString("graphics", "smoothing", "0", configPath);
+            } else {
+                NativeProxy.WritePrivateProfileString("graphics", "smoothing", "1", configPath);
+            }
+
+            if (setup.FullscreenGameScaling == GameScaling.ProportionalStretch) {
+                NativeProxy.WritePrivateProfileString("graphics", "scaling", "1", configPath);
+            } else if (setup.FullscreenGameScaling == GameScaling.StretchToFit) {
+                NativeProxy.WritePrivateProfileString("graphics", "scaling", "2", configPath);
+            } else {
+                NativeProxy.WritePrivateProfileString("graphics", "scaling", "0", configPath);
+            }
+
+            NativeProxy.WritePrivateProfileString("graphics", "super_sampling", "0", configPath);
+            NativeProxy.WritePrivateProfileString("graphics", "smooth_sprites", setup.AAScaledSprites ? "1" : "0", configPath);
+
+            NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
+            NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+        }
 
         private string EscapeFilenamePathStringAsNeeded(string str)
         {
@@ -340,7 +394,6 @@ namespace AGS.Editor
                 "mygame\\settings.gradle",
                 "mygame\\app\\build.gradle",
                 "mygame\\app\\src\\main\\AndroidManifest.xml",
-                "mygame\\app\\src\\main\\assets\\android.cfg",
                 "mygame\\app\\src\\main\\java\\com\\mystudioname\\mygamename\\App.java",
                 "mygame\\app\\src\\main\\java\\com\\mystudioname\\mygamename\\MainActivity.java",
                 "mygame\\app\\src\\main\\res\\drawable\\download_landscape.png",
@@ -452,6 +505,7 @@ namespace AGS.Editor
 
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(assetsDir);
+            WriteAndroidCfg(assetsDir);
 
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())
             {

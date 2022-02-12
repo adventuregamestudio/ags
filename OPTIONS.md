@@ -48,6 +48,10 @@ Locations of two latter files differ between running platforms:
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
   * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
   * vsync = \[0; 1\] - enable or disable vertical sync.
+  * rotation = \[string | integer\] - screen rotation. Possible values are:
+    * unlocked (0) - device can be freely rotated if possible.
+    * portrait (1) - locks the screen in portrait orientation.
+    * landscape (2) - locks the screen in landscape orientation.
 * **\[sound\]** - sound options
   * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
@@ -150,6 +154,7 @@ Following OPTIONS are supported when running from command line:
 * --nospr - don't draw room objects and characters (for test purposes).
 * --noupdate - don't run game update (for test purposes).
 * --novideo - don't play game videos (for test purposes).
+* --rotation \<MODE\> - screen rotation preferences. MODEs are:  unlocked (0), portrait (1), landscape (2).
 * --sdl-log=LEVEL - setup SDL's own logging level (see explanation for the related config option).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
 * --shared-data-dir \<DIR\> - set the shared game data directory. Corresponds to "shared_data_dir" config option.

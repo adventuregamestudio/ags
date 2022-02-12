@@ -33,7 +33,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-const auto GlobalGainScaling = 0.7f;
+const auto GlobalGainScaling = 0.7f; // TODO: find out why 0.7f is here?
 
 static void audio_core_entry();
 
@@ -106,8 +106,6 @@ void AudioCoreSlot::Poll()
     if (!_bufferPending.Data && !_decoder->EOS())
     {
         _bufferPending = _decoder->GetData();
-        // FIXME: learn about rewind, to let alsource adjust playback pos
-        // pass timestamp along with the buffer?
     }
     if (_bufferPending.Data)
     {
@@ -359,7 +357,7 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     auto &player = g_acore.slots_[slot_handle]->GetAlSource();
-    player.SetVolume(volume * 0.7f); // TODO: find out why 0.7f is here?
+    player.SetVolume(volume * GlobalGainScaling);
     player.SetSpeed(speed);
     player.SetPanning(panning);
 }

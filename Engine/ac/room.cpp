@@ -924,8 +924,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
 }
 
-extern int psp_clear_cache_on_room_change;
-
 // new_room: changes the current room number, and loads the new room from disk
 void new_room(int newnum,CharacterInfo*forchar) {
     EndSkippingUntilCharStops();
@@ -959,7 +957,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // change rooms
     unload_old_room();
 
-    if (psp_clear_cache_on_room_change)
+    if (usetup.clear_cache_on_room_change)
     {
         // Delete all cached sprites
         spriteset.DisposeAll();

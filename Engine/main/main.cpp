@@ -154,6 +154,7 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
            "  --conf FILEPATH              Specify explicit config file to read on startup\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
@@ -314,6 +315,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             strncpy (play.takeover_from, argv[ee + 2], 49);
             play.takeover_from[49] = 0;
             ee += 2;
+        }
+        else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
+        {
+            INIwritestring(cfg, "misc", "clear_cache_on_room_change", "1");
         }
         else if (ags_strnicmp(arg, "--tell", 6) == 0) {
             if (arg[6] == 0)

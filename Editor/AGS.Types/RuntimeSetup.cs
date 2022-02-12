@@ -57,6 +57,7 @@ namespace AGS.Types
             VSync = false;
             AAScaledSprites = false;
             RenderAtScreenResolution = false;
+            Rotation = ScreenRotationMode.Unlocked;
             DigitalSound = RuntimeAudioDriver.Default;
             MidiSound = RuntimeAudioDriver.Default;
             UseVoicePack = true;
@@ -200,6 +201,16 @@ namespace AGS.Types
         [DefaultValue(false)]
         [Category("Graphics")]
         public bool RenderAtScreenResolution
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Rotation mode")]
+        [Description("Sets if the player can freely rotate the screen or if it should be locked to a specific orientation.")]
+        [DefaultValue(ScreenRotationMode.Unlocked)]
+        [Category("Graphics")]
+        public ScreenRotationMode Rotation
         {
             get;
             set;

@@ -347,6 +347,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
 }
 
 // Variables used for mobile port configs
+extern int psp_rotation;
 extern int psp_gfx_renderer;
 extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
@@ -407,6 +408,12 @@ void override_config_ext(ConfigTree &cfg)
     else
         INIwriteint(cfg, "graphics", "supersampling", 0);
 
+    // psp_gfx_rotation - scaling style:
+    //    * 0 - unlocked, let the user rotate as wished.
+    //    * 1 - portrait
+    //    * 2 - landscape
+    INIwriteint(cfg, "graphics", "rotation", psp_rotation);
+
 #if AGS_PLATFORM_OS_ANDROID
     // config_mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
@@ -451,6 +458,12 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.Params.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
         usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
         usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
+
+        usetup.rotation = (ScreenRotation)INIreadint(cfg, "graphics", "rotation", usetup.rotation);
+        String rotation_str = INIreadstring(cfg, "graphics", "rotation", "unlocked");
+        usetup.rotation = StrUtil::ParseEnum<ScreenRotation>(
+                rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
+                usetup.rotation);
 
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
 

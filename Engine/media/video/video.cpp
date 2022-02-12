@@ -62,13 +62,12 @@ VideoPlayer::~VideoPlayer()
     Close();
 }
 
-bool VideoPlayer::Open(const String &name, int flags, VideoSkipType skip)
+bool VideoPlayer::Open(const String &name, int flags)
 {
     if (!OpenImpl(name, flags))
         return false;
 
     _flags = flags;
-    _skip = skip;
     // Start the audio stream
     if ((flags & kVideo_EnableAudio) != 0)
     {
@@ -106,16 +105,13 @@ bool VideoPlayer::Open(const String &name, int flags, VideoSkipType skip)
         }
     }
 
-    _timerPos = 1;
-    _sdlTimer = SDL_AddTimer(_frameTime, VideoPlayer::VideoTimerCallback, this);
+    _frameTime = 1000 / _frameRate;
     _loop = false;
     return true;
 }
 
 void VideoPlayer::Close()
 {
-    // Stop playback timer
-    SDL_RemoveTimer(_sdlTimer);
     // Shutdown openal source
     _audioOut.reset();
     // Close video decoder and free resources
@@ -127,30 +123,10 @@ void VideoPlayer::Close()
     if (_videoDDB)
         gfxDriver->DestroyDDB(_videoDDB);
     _videoDDB = nullptr;
-
-    // TODO: needed for FLIC, but perhaps may be done differently
-    if (gfxDriver->UsesMemoryBackBuffer())
-    {
-        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-        screen_bmp->Clear();
-    }
-    render_to_screen();
-    invalidate_screen(); // ?
-    ags_clear_input_state();
 }
 
 void VideoPlayer::Play()
 {
-    // TODO: needed for FLIC, but perhaps may be done differently
-    if ((_flags & kVideo_ClearScreen) != 0)
-    {
-        if (gfxDriver->UsesMemoryBackBuffer())
-        {
-            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-            screen_bmp->Clear();
-        }
-        render_to_screen();
-    }
 }
 
 int VideoPlayer::GetAudioPos()
@@ -160,9 +136,6 @@ int VideoPlayer::GetAudioPos()
 
 bool VideoPlayer::Poll()
 {
-    // Check user input skipping the video
-    if (CheckUserInputSkip())
-        return false;
     // Acquire next video frame
     if (!NextFrame())
         return false;
@@ -171,35 +144,7 @@ bool VideoPlayer::Poll()
         return false;
     if (_videoFrame && !RenderVideo())
         return false;
-    // Wait for timer
-    _timerPos--;
-    while (_timerPos <= 0) {
-        SDL_Delay(1);
-    }
     return true;
-}
-
-uint32_t VideoPlayer::VideoTimerCallback(uint32_t interval, void *param)
-{
-    auto player = reinterpret_cast<VideoPlayer*>(param);
-    player->_timerPos++;
-    return interval;
-}
-
-bool VideoPlayer::CheckUserInputSkip()
-{
-    KeyInput key;
-    int mbut, mwheelz;
-    if (run_service_key_controls(key))
-    {
-        if ((key.Key == eAGSKeyCodeEscape) && (_skip == 1))
-            return true;
-        if (_skip >= 2)
-            return true;  // skip on any key
-    }
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && _skip == 3)
-        return true; // skip on mouse click
-    return false;
 }
 
 bool VideoPlayer::RenderAudio()
@@ -304,7 +249,7 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
-    _frameTime = fli_speed;
+    _frameRate = 1000 / fli_speed;
     return true;
 }
 
@@ -420,7 +365,7 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     _dataStream = std::move(video_stream);
     _frameDepth = game.GetColorDepth();
     _frameSize = Size(video_w, video_h);
-    _frameTime = 1000 / _apegStream->frame_rate;
+    _frameRate = _apegStream->frame_rate;
     _videoFrame.reset(new Bitmap()); // FIXME: use target directly if possible?
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
@@ -491,20 +436,66 @@ bool TheoraPlayer::NextFrame()
 
 //-----------------------------------------------------------------------------
 // Running the single video playback
+//
+// TODO: Single video playback as a "game state" class?
 //-----------------------------------------------------------------------------
+// Checks input events, tells if the video should be skipped
+static bool video_check_user_input(VideoSkipType skip)
+{
+    KeyInput key;
+    int mbut, mwheelz;
+    if (run_service_key_controls(key))
+    {
+        if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+            return true;
+        if (skip >= VideoSkipAnyKey)
+            return true;  // skip on any key
+    }
+    if (run_service_mb_controls(mbut, mwheelz) && (mbut >= 0) && (skip == VideoSkipKeyOrMouse))
+        return true; // skip on mouse click
+    return false;
+}
 
-void video_run(std::unique_ptr<VideoPlayer> video)
+static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipType skip)
 {
     gl_Video = std::move(video);
+
+    // Clear the screen before starting playback
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if ((flags & kVideo_ClearScreen) != 0)
+    {
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+            screen_bmp->Clear();
+        }
+        render_to_screen();
+    }
+    
     gl_Video->Play();
+    const int old_fps = setTimerFps(gl_Video->GetFramerate());
     // Loop until finished or skipped by player
     while (gl_Video->Poll())
     {
         sys_evt_process_pending();
-        update_audio_system_on_game_loop();
+        // Check user input skipping the video
+        if (video_check_user_input(skip)) break;
+        UpdateGameAudioOnly(); // wait for next frame using video rate
     }
-
+    setTimerFps(old_fps);
     gl_Video.reset();
+
+    // Clear the screen after stopping playback
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if (gfxDriver->UsesMemoryBackBuffer())
+    {
+        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+        screen_bmp->Clear();
+    }
+    render_to_screen();
+
+    invalidate_screen();
+    ags_clear_input_state();
 }
 
 void play_flc_video(int numb, int flags, VideoSkipType skip)
@@ -512,29 +503,29 @@ void play_flc_video(int numb, int flags, VideoSkipType skip)
     std::unique_ptr<FlicPlayer> video(new FlicPlayer());
     // Try couple of various filename formats
     String flicname = String::FromFormat("flic%d.flc", numb);
-    if (!video->Open(flicname, flags, skip))
+    if (!video->Open(flicname, flags))
     {
         flicname.Format("flic%d.fli", numb);
-        if (!video->Open(flicname, flags, skip))
+        if (!video->Open(flicname, flags))
         {
             debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
             return;
         }
     }
 
-    video_run(std::move(video));
+    video_run(std::move(video), flags, skip);
 }
 
 void play_theora_video(const char *name, int flags, VideoSkipType skip)
 {
     std::unique_ptr<TheoraPlayer> video(new TheoraPlayer());
-    if (!video->Open(name, flags, skip))
+    if (!video->Open(name, flags))
     {
         debug_script_warn("Error playing theora video '%s'", name);
         return;
     }
 
-    video_run(std::move(video));
+    video_run(std::move(video), flags, skip);
 }
 
 void video_on_gfxmode_changed()

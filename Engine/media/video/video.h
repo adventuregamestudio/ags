@@ -12,7 +12,13 @@
 //
 //=============================================================================
 //
-// Video playback interface
+// Video playback interface.
+//
+// TODO: good future changes:
+//  - do not render to the screen right inside the VideoPlayer class,
+//    instead write the frame into the bitmap or texture, and expose
+//    current frame in the interface to let the engine decide what to do
+//    with it.
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEO_H
@@ -51,13 +57,15 @@ using AGS::Common::Bitmap;
 using AGS::Common::String;
 
 // Parent video player class, provides basic playback logic,
-// while relying on frame decoding being implemented in derived classes.
+// queries audio and video frames from decoders, plays audio chunks,
+// renders the video frames on screen, according to the stretch flags.
+// Relies on frame decoding being implemented in derived classes.
 class VideoPlayer
 {
 public:
     virtual ~VideoPlayer();
     // Tries to open a video file of a given name
-    bool Open(const AGS::Common::String &name, int flags, VideoSkipType skip);
+    bool Open(const AGS::Common::String &name, int flags);
     // Stops the playback, releasing any resources
     void Close();
     // Begins playback
@@ -65,10 +73,12 @@ public:
     // Restores the video after display switch
     virtual void Restore() {};
 
+    // Get suggested video framerate (frames per second)
+    uint32_t GetFramerate() const { return _frameRate; }
     // Tells if video playback is looping
     bool IsLooping() const { return _loop; }
 
-    // Updates the video playback
+    // Updates the video playback, renders next frame
     bool Poll();
 
 protected:
@@ -90,13 +100,9 @@ protected:
     std::unique_ptr<Bitmap> _videoFrame;
     int _frameDepth = 0; // bits per pixel
     Size _frameSize{};
-    uint32_t _frameTime = 0u;
+    uint32_t _frameRate = 0u;
 
 private:
-    // Timer callback, triggers next frame
-    static uint32_t VideoTimerCallback(uint32_t interval, void *param);
-    // Checks input events, tells if the video should be skipped
-    bool CheckUserInputSkip();
     // Renders the current audio data
     bool RenderAudio();
     // Renders the current video frame
@@ -105,10 +111,8 @@ private:
     // Parameters
     bool _loop = false;
     int _flags = 0;
-    VideoSkipType _skip = VideoSkipNone;
     // Playback state
-    uint32_t _sdlTimer = 0u;
-    std::atomic<int> _timerPos{};
+    uint32_t _frameTime = 0u; // frame duration in ms
     // Audio
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video

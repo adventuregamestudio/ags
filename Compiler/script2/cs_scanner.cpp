@@ -726,24 +726,11 @@ void AGS::Scanner::OpenCloseMatcher::EndOfInputCheck()
 
     struct OpenInfo const oi = _openInfoStack.back();
     size_t const opener_section_id = _scanner._tokenList.GetSectionIdAt(oi.Pos);
-    std::string const &opener_section = _scanner._tokenList.SectionId2Section(opener_section_id);
-    size_t const opener_lineno = _scanner._tokenList.GetLinenoAt(oi.Pos);
+    _scanner._section = _scanner._tokenList.SectionId2Section(opener_section_id);
+    _scanner._lineno = _scanner._tokenList.GetLinenoAt(oi.Pos);
 
-    std::string const &current_section = _scanner._section;
-    size_t const current_lineno = _scanner._lineno;
-
-    std::string error_msg = "The '&opener&' in &section& on line &lineno& has not been closed.";
-    if (opener_section == current_section)
-    {
-        error_msg = "The '&opener&' on line &lineno& has not been closed.";
-        if (opener_lineno == current_lineno)
-            error_msg = "The '&opener&' on this line has not been closed.";
-    }
+    std::string error_msg = "The '&opener&' on this line isn't closed.";
     ReplaceToken(error_msg, "&opener&", _scanner._sym.GetName(oi.Opener));
-    if (std::string::npos != error_msg.find("&lineno&"))
-        ReplaceToken(error_msg, "&lineno&", std::to_string(opener_lineno));
-    if (std::string::npos != error_msg.find("&section&"))
-        ReplaceToken(error_msg, "&section&", opener_section);
     _scanner.UserError(error_msg.c_str());
 }
 

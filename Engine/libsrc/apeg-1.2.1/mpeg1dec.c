@@ -601,9 +601,7 @@ int apeg_get_video_frame(APEG_STREAM *stream)
 		else
 			layer->picture = altheora_get_frame(layer);
 
-		if (pack_feof(layer->pf) &&
-			(!(layer->stream.flags&APEG_HAS_AUDIO) ||
-				ret != APEG_OK))
+		if (pack_feof(layer->pf))
 			ret = APEG_EOF;
 	}
 	return ret;

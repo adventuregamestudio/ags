@@ -417,9 +417,8 @@ void TheoraPlayer::CloseImpl()
 
 bool TheoraPlayer::NextFrame()
 {
-    const int framedrop = 0;
-
     // reset some data
+    bool has_audio = false, has_video = false;
     _apegStream->frame_updated = -1;
     _apegStream->audio.flushed = FALSE;
 
@@ -427,14 +426,17 @@ bool TheoraPlayer::NextFrame()
     {
         unsigned char *buf = nullptr;
         int count = 0;
-        if (apeg_get_audio_frame(_apegStream, &buf, &count) == APEG_ERROR)
+        int ret = apeg_get_audio_frame(_apegStream, &buf, &count);
+        if (ret == APEG_ERROR)
             return false;
         _audioFrame = SoundBuffer(buf, count);
+        has_audio = ret != APEG_EOF;
     }
 
     if ((_apegStream->flags & APEG_HAS_VIDEO))
     {
-        if (apeg_get_video_frame(_apegStream) == APEG_ERROR)
+        int ret = apeg_get_video_frame(_apegStream);
+        if (ret == APEG_ERROR)
             return false;
 
         // Update frame count
@@ -443,11 +445,11 @@ bool TheoraPlayer::NextFrame()
         // Update the display frame
         _apegStream->frame_updated = 0;
         apeg_display_video_frame(_apegStream);
+        _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);
+        has_video = ret != APEG_EOF;
     }
 
-    _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);
-
-    return true;
+    return has_audio || has_video;
 }
 
 } // namespace Engine

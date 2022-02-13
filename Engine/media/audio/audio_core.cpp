@@ -91,26 +91,26 @@ void AudioCoreSlot::Init()
 {
     _playState = _decoder->Open(_onLoadPositionMs) ?
         _onLoadPlayState : PlayStateError;
+    if (_playState == PlayStatePlaying)
+        _source->Play();
 }
 
 void AudioCoreSlot::Poll()
 {
-    if (_playState == PlaybackState::PlayStateError) { return; }
     if (_playState == PlaybackState::PlayStateInitial)
-    {
         Init();
-    }
-    if (_playState != PlayStatePlaying) { return; }
+    if (_playState != PlayStatePlaying)
+        return;
 
     // Read data from Decoder and pass into the Al Source
     if (!_bufferPending.Data && !_decoder->EOS())
-    {
+    { // if no buffer saved, and still something to decode, then read a buffer
         _bufferPending = _decoder->GetData();
     }
     if (_bufferPending.Data)
-    {
+    { // if having a buffer already, then try to put into source
         if (_source->PutData(_bufferPending) > 0)
-            _bufferPending = SoundBuffer();
+            _bufferPending = SoundBuffer(); // clear buffer on success
     }
     _source->Poll();
     // If both finished decoding and playing, we done here.

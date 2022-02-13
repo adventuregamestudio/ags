@@ -385,49 +385,34 @@ bool TheoraPlayer::NextFrame()
     const int framedrop = 0;
 
     // reset some data
-    //APEG_LAYER *layer = reinterpret_cast<APEG_LAYER*>(_apegStream);
-    _apegStream->frame = 0;
     _apegStream->frame_updated = -1;
     _apegStream->audio.flushed = FALSE;
 
-    int ret = 0;
     if ((_apegStream->flags & APEG_HAS_AUDIO) && _wantAudio)
     {
         unsigned char *buf = nullptr;
         int count = 0;
-        ret = apeg_get_audio_frame(_apegStream, &buf, &count);
+        if (apeg_get_audio_frame(_apegStream, &buf, &count) == APEG_ERROR)
+            return false;
         _audioFrame = SoundBuffer(buf, count);
-        if ((_apegStream->flags & APEG_HAS_VIDEO))
-        {
-            int pos_ms = GetAudioPos();
-            if (pos_ms >= 0) {
-                double audio_pos_secs = (double)pos_ms / 1000.0;
-                double audio_frames = audio_pos_secs * _apegStream->frame_rate;
-                _apegStream->timer = audio_frames - _apegStream->frame;
-                // could be negative.. so will wait until 0 ?
-            }
-        }
     }
 
     if ((_apegStream->flags & APEG_HAS_VIDEO))
     {
-        ret = apeg_get_video_frame(_apegStream);
+        if (apeg_get_video_frame(_apegStream) == APEG_ERROR)
+            return false;
 
-        if (_apegStream->timer > 0)
-        {
-            // Update frame and timer count
-            ++(_apegStream->frame);
-            --(_apegStream->timer);
+        // Update frame count
+        ++(_apegStream->frame);
 
-            // If we're not behind, update the display frame
-            _apegStream->frame_updated = 0;
-            apeg_display_video_frame(_apegStream);
-        }
+        // Update the display frame
+        _apegStream->frame_updated = 0;
+        apeg_display_video_frame(_apegStream);
     }
 
     _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);
 
-    return ret == APEG_OK;
+    return true;
 }
 
 } // namespace Engine

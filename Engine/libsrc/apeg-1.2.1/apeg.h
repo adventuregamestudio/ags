@@ -63,8 +63,6 @@ typedef struct APEG_STREAM {
 
 	int sequence;
 
-	volatile int timer;
-
 	int flags;
 
 	APEG_AUDIO_INF audio;

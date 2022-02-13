@@ -177,15 +177,6 @@ static PACKFILE_VTABLE ext_vtable =
 };
 
 
-// The timer.. increments the int pointed to by 'param'
-static Uint32 timer_proc(Uint32 interval, void *param)
-{
-	++(*(volatile int*)param);
-    return interval;
-}
-END_OF_STATIC_FUNCTION(timer_proc);
-
-
 // Gets called at the beginning of every "open" function, to ensure
 // things are initialized
 static void Initialize_Decoder(void)
@@ -194,8 +185,6 @@ static void Initialize_Decoder(void)
 
 	if(!inited)
 	{
-		// Lock the timer function
-		LOCK_FUNCTION(timer_proc);
 		inited = TRUE;
 	}
 }
@@ -401,9 +390,6 @@ static void setup_stream(APEG_LAYER *layer)
 		// Start the timer
 		if(layer->stream.frame_rate <= 0.0)
 			apeg_error_jump(layer, "Illegal frame rate in stream");
-
-		// Reset the timer and return the stream
-		layer->stream.timer = -1;
 	}
 }
 

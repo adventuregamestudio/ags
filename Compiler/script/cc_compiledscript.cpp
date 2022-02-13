@@ -126,7 +126,7 @@ int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
         return 0;
     // if this import has been referenced, flag an error
     if (sym.entries[sidx].flags & SFLG_ACCESSED) {
-        cc_error("Already referenced name as import; you must define it before using it");
+        cc_error("Already referenced name '%s' as import; you must define it before using it", namm);
         return -1;
     }
     // if they set the No Override Imports flag, don't allow it

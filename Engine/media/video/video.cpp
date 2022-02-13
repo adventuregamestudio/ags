@@ -577,6 +577,8 @@ void video_shutdown()
 
 void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip) {}
 void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip) {}
+void video_pause() {}
+void video_resume() {}
 void video_on_gfxmode_changed() {}
 void video_shutdown() {}
 

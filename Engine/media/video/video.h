@@ -68,8 +68,10 @@ public:
     bool Open(const AGS::Common::String &name, int flags);
     // Stops the playback, releasing any resources
     void Close();
-    // Begins playback
+    // Begins or resumes playback
     void Play();
+    // Pauses playback
+    void Pause();
     // Restores the video after display switch
     virtual void Restore() {};
 
@@ -77,6 +79,8 @@ public:
     uint32_t GetFramerate() const { return _frameRate; }
     // Tells if video playback is looping
     bool IsLooping() const { return _loop; }
+    // Get current playback state
+    PlaybackState GetPlayState() const { return _playState; }
 
     // Updates the video playback, renders next frame
     bool Poll();
@@ -107,12 +111,15 @@ private:
     bool RenderAudio();
     // Renders the current video frame
     bool RenderVideo();
+    // Resumes after pausing
+    void Resume();
 
     // Parameters
     bool _loop = false;
     int _flags = 0;
     // Playback state
     uint32_t _frameTime = 0u; // frame duration in ms
+    PlaybackState _playState = PlayStateInitial;
     // Audio
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video
@@ -129,6 +136,10 @@ private:
 void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
 void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
 
+// Pause the active video
+void video_pause();
+// Resume the active video
+void video_resume();
 // Update video playback if the display mode has changed
 void video_on_gfxmode_changed();
 // Stop current playback and dispose all video resource

@@ -127,6 +127,30 @@ void VideoPlayer::Close()
 
 void VideoPlayer::Play()
 {
+    switch (_playState)
+    {
+    case PlayStatePaused: Resume(); /* fall-through */
+    case PlayStateInitial: _playState = PlayStatePlaying; break;
+    default: break; // TODO: support rewind/replay from stop/finished state?
+    }
+}
+
+void VideoPlayer::Pause()
+{
+    if (_playState != PlayStatePlaying) return;
+
+    if (_audioOut)
+        _audioOut->Pause();
+    _playState = PlayStatePaused;
+}
+
+void VideoPlayer::Resume()
+{
+    if (_playState != PlayStatePaused) return;
+
+    if (_audioOut)
+        _audioOut->Resume();
+    _playState = PlayStatePlaying;
 }
 
 int VideoPlayer::GetAudioPos()
@@ -136,14 +160,25 @@ int VideoPlayer::GetAudioPos()
 
 bool VideoPlayer::Poll()
 {
+    if (_playState != PlayStatePlaying)
+        return false;
     // Acquire next video frame
     if (!NextFrame())
+    {
+        _playState = PlayStateFinished;
         return false;
+    }
     // Render current frame
     if (_audioFrame && !RenderAudio())
+    {
+        _playState = PlayStateError;
         return false;
+    }
     if (_videoFrame && !RenderVideo())
+    {
+        _playState = PlayStateError;
         return false;
+    }
     return true;
 }
 
@@ -460,12 +495,14 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
     gl_Video->Play();
     const int old_fps = setTimerFps(gl_Video->GetFramerate());
     // Loop until finished or skipped by player
-    while (gl_Video->Poll())
+    while (gl_Video->GetPlayState() == PlayStatePlaying ||
+           gl_Video->GetPlayState() == PlayStatePaused)
     {
         sys_evt_process_pending();
         // Check user input skipping the video
         if (video_check_user_input(skip)) break;
-        UpdateGameAudioOnly(); // wait for next frame using video rate
+        gl_Video->Poll(); // update/render next frame
+        UpdateGameAudioOnly(); // update the game and wait for next frame
     }
     setTimerFps(old_fps);
     gl_Video.reset();
@@ -511,6 +548,18 @@ void play_theora_video(const char *name, int flags, VideoSkipType skip)
     }
 
     video_run(std::move(video), flags, skip);
+}
+
+void video_pause()
+{
+    if (gl_Video)
+        gl_Video->Pause();
+}
+
+void video_resume()
+{
+    if (gl_Video)
+        gl_Video->Play();
 }
 
 void video_on_gfxmode_changed()

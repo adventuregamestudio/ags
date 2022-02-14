@@ -28,7 +28,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Importing your own sprite graphics";
+            return "Sprite Manager";
         }
 
 		protected override void OnWindowActivated()

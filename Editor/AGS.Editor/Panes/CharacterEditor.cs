@@ -35,7 +35,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Characters";
+            return "Character Editor";
         }
         
         public void UpdateViewPreview()

@@ -401,22 +401,25 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     // Init APEG
     _dataStream = std::move(video_stream);
     _frameDepth = game.GetColorDepth();
-    _frameSize = Size(video_w, video_h);
     _frameRate = _apegStream->frame_rate;
+    const Size video_size = Size(video_w, video_h);
     // According to the documentation:
     // encoded theora frames must be a multiple of 16 in width and height.
     // Which means that the original content may end up positioned on a larger frame.
     // In such case we store this surface in a separate wrapper for the reference,
     // while the actual video frame is assigned a sub-bitmap (a portion of the full frame).
-    if (Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != _frameSize)
+    if (((flags & kVideo_LegacyFrameSize) == 0) &&
+        (Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != video_size))
     {
         _theoraFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
-        _videoFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFrame.get(), RectWH(_frameSize)));
+        _videoFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFrame.get(), RectWH(video_size)));
     }
     else
     {
         _videoFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
     }
+    _frameSize = _videoFrame->GetSize();
+
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;

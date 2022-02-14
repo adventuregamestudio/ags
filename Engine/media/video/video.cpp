@@ -82,7 +82,8 @@ bool VideoPlayer::Open(const String &name, int flags)
     // Setup video
     if ((flags & kVideo_EnableVideo) != 0)
     {
-        _dstRect = PlaceInRect(play.GetMainViewport(), RectWH(_frameSize), kPlaceStretchProportional);
+        _dstRect = PlaceInRect(play.GetMainViewport(), RectWH(_frameSize),
+            ((_flags & kVideo_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
         // override the stretch option if necessary
         if (_frameSize == _dstRect.GetSize())
             _flags &= ~kVideo_Stretch;

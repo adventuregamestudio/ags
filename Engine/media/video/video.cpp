@@ -336,6 +336,8 @@ private:
 
     std::unique_ptr<Stream> _dataStream;
     APEG_STREAM *_apegStream = nullptr;
+    // Optional wrapper around original buffer frame (in case we want to extract a portion of it)
+    std::unique_ptr<Bitmap> _theoraFrame;
 };
 
 TheoraPlayer::~TheoraPlayer()
@@ -383,8 +385,7 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
         debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
         return false;
     }
-    int video_w, video_h;
-    apeg_get_video_size(apeg_stream, &video_w, &video_h);
+    int video_w = apeg_stream->w, video_h = apeg_stream->h;
     if (video_w <= 0 || video_h <= 0)
     {
         debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
@@ -401,7 +402,20 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     _frameDepth = game.GetColorDepth();
     _frameSize = Size(video_w, video_h);
     _frameRate = _apegStream->frame_rate;
-    _videoFrame.reset(new Bitmap()); // FIXME: use target directly if possible?
+    // According to the documentation:
+    // encoded theora frames must be a multiple of 16 in width and height.
+    // Which means that the original content may end up positioned on a larger frame.
+    // In such case we store this surface in a separate wrapper for the reference,
+    // while the actual video frame is assigned a sub-bitmap (a portion of the full frame).
+    if (Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != _frameSize)
+    {
+        _theoraFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
+        _videoFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFrame.get(), RectWH(_frameSize)));
+    }
+    else
+    {
+        _videoFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
+    }
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
@@ -445,7 +459,6 @@ bool TheoraPlayer::NextFrame()
         // Update the display frame
         _apegStream->frame_updated = 0;
         apeg_display_video_frame(_apegStream);
-        _videoFrame->WrapAllegroBitmap(_apegStream->bitmap, true);
         has_video = ret != APEG_EOF;
     }
 

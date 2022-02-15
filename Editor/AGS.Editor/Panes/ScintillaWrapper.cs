@@ -110,6 +110,10 @@ namespace AGS.Editor
                 this.scintillaControl1.RegisterImage(i + 1, AutoCompleteIcons[i]);
             }
 
+            // EXPERIMENT!!!
+            Scintilla.ScintillaControl.DefaultEncoding = Factory.AGSEditor.CurrentGame.DefaultEncoding;
+            this.scintillaControl1.CodePage = Factory.AGSEditor.CurrentGame.DefaultEncoding.CodePage;
+            // EXPERIMENT!!!
             this.scintillaControl1.EOLMode = (int)EndOfLine.Crlf;
             this.scintillaControl1.WrapMode = (int)Wrap.None;
             this.scintillaControl1.ClearAll();

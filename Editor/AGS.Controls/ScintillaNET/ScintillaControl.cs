@@ -23,7 +23,11 @@ namespace Scintilla
         public const string DEFAULT_DLL_NAME = "SciLexer.dll";
         private static readonly object _nativeEventKey = new object();
         private bool _isDialog = false;
-        
+
+        // EXPERIMENT!!!
+        public static Encoding DefaultEncoding = Encoding.UTF8;
+        // EXPERIMENT!!!
+
 
         private List<String> _keywords;
 
@@ -891,7 +895,8 @@ namespace Scintilla
             //  something else will cuase 2 Byte characters to
             //  be interpreted as junk.
             // ** MY CHANGE: CHANGE TO DEFAULT ENCODING SO THAT ASCII CHARS 128-255 WORK
-            text = Encoding.Default.GetString(buffer, 0, length);
+            //text = Encoding.Default.GetString(buffer, 0, length);
+            text = DefaultEncoding.GetString(buffer, 0, length);
 
             return (int)ret;
         }
@@ -945,7 +950,9 @@ namespace Scintilla
             //  UTF-16 strings into a UTF-8 encoded byte array.
             //fixed (byte* bp = UTF8Encoding.UTF8.GetBytes(ZeroTerminated(lParam)))
             // ** MY CHANGE: Use 8-bit ANSI
-            fixed (byte* bp = Encoding.Default.GetBytes(ZeroTerminated(lParam)))
+            //fixed (byte* bp = Encoding.Default.GetBytes(ZeroTerminated(lParam)))
+            //    return (int)SendMessageDirect(msg, IntPtr.Zero, (IntPtr)bp);
+            fixed (byte* bp = DefaultEncoding.GetBytes(ZeroTerminated(lParam)))
                 return (int)SendMessageDirect(msg, IntPtr.Zero, (IntPtr)bp);
         }
 

@@ -16,6 +16,8 @@ namespace AGS
 		{
 		private:
 			cli::array<PaletteEntry^>^ lastPaletteSet;
+            static System::Text::Encoding^ _gameTextEncoding;
+
       void UpdateResourceInFile(String ^fileToUpdate, const char *resourceName, cli::array<System::Byte> ^newData);
       BaseTemplate^ LoadTemplateFile(String ^fileName, bool isRoomTemplate);
       void FindAndUpdateMemory(unsigned char *data, int dataLen, const unsigned char *searchFor, int searchForLen, const unsigned char *replaceWith);
@@ -23,6 +25,8 @@ namespace AGS
 
 		public:
 			NativeMethods(String ^version);
+
+            static System::Text::Encoding^ GetGameTextEncoding();
 
 			void Initialize();
             void NewWorkingDirSet(String^ workingDir);

@@ -139,6 +139,7 @@ namespace AGS.Editor
                 timeout++;
             }
 
+            // [UNICODE] TODO: investigate if we want to have these commands in UTF-8
             StreamWriter sw = new StreamWriter(SEND_MESSAGE_FILE, false, Encoding.Default);
             sw.Write(data);
             sw.Close();

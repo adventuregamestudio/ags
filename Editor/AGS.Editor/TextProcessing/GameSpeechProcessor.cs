@@ -190,7 +190,7 @@ namespace AGS.Editor
         private string ProcessDialogScript(string script)
         {
             StringBuilder sb = new StringBuilder(script.Length);
-            StreamReader sr = new StreamReader(new MemoryStream(Encoding.Default.GetBytes(script), false), Encoding.Default);
+            StreamReader sr = new StreamReader(new MemoryStream(_game.DefaultEncoding.GetBytes(script), false), _game.DefaultEncoding);
             string thisLine;
             string originalLine;
             while ((thisLine = sr.ReadLine()) != null)

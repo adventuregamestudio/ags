@@ -73,6 +73,9 @@ namespace AGS.Editor
         {
             _nativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
             _componentController.NotifyGameSettingsChanged();
+
+            // FIXME
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.DefaultEncoding;
         }
 
         private void _events_GameLoad(XmlNode rootNode)
@@ -82,11 +85,16 @@ namespace AGS.Editor
             {
                 _guiController.ShowMessage("This game contains data from a plugin or component '" + componentID + "' which you do not have installed. If you save the game, this data will be lost.", AGS.Types.MessageBoxIconType.Warning);
             }
+
+            // FIXME
+            DataFileWriter.TextEncoding = _agsEditor.CurrentGame.DefaultEncoding;
         }
 
         private void _events_GamePostLoad()
         {
             Game game = Factory.AGSEditor.CurrentGame;
+
+            Script.TextEncoding = Factory.AGSEditor.CurrentGame.DefaultEncoding;
 
             // TODO: this may be noticably slow especially for sprites. Display some kind of
             // progress window to notify user.

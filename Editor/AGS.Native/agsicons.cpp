@@ -228,6 +228,6 @@ void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const u
 
   if (!errorMsg.IsEmpty())
   {
-	  throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
+	  throw gcnew AGSEditorException(tcv.ConvertUTF8(errorMsg));
   }
 }

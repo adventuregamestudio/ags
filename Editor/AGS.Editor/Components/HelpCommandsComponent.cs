@@ -222,6 +222,7 @@ namespace AGS.Editor.Components
             {
                 byte[] data = webClient.DownloadData(UPDATES_URL);
                 return Encoding.Default.GetString(data);
+                // NOTE: the message encoding depends on the data exchange format
             }
         }
 

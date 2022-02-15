@@ -385,6 +385,12 @@ namespace AGS.Editor
                 game.Settings.ClipGUIControls = false;
             }
 
+            if (xmlVersionIndex < 3060020)
+            {
+                // [UNICODE] TODO: read encoding from the XML header!!!
+                game.Settings.GameTextEncoding = Encoding.Default;
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

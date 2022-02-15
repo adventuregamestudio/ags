@@ -209,6 +209,7 @@ namespace AGS.Editor
                             break;
 
                         //fire message received event
+                        // [UNICODE] TODO: investigate if we want to have these commands in UTF-8
                         client.server.OnMessageReceived(client, Encoding.Default.GetString(buffer, 0, bytesRead));
                     }
                 }
@@ -232,6 +233,7 @@ namespace AGS.Editor
         /// <param name="message">the message to send</param>
         public void SendMessage(string message)
         {
+            // [UNICODE] TODO: investigate if we want to have these commands in UTF-8
             byte[] messageBuffer = Encoding.Default.GetBytes(message);
             lock (this._clients)
             {

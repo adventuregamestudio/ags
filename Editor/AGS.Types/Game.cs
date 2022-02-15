@@ -111,6 +111,11 @@ namespace AGS.Types
             InitializeDefaultPalette();
         }
 
+        public Encoding DefaultEncoding
+        {
+            get { return _settings.GameTextEncoding; }
+        }
+
         public string[] GlobalMessages
         {
             get { return _globalMessages; }

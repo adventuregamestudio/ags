@@ -18,6 +18,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
+        public const string PROPERTY_UNICODE = "Text format";
         public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
@@ -44,6 +45,8 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
+        private Encoding _gameTextEncoding = Encoding.UTF8;
+        private string _gameTextEncodingName = "UTF-8";
         private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
@@ -286,6 +289,39 @@ namespace AGS.Types
                 _resolution = value;
                 if (LegacyLetterboxResolution == GameResolutions.Custom)
                     LetterboxMode = false;
+            }
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public bool UnicodeMode
+        {
+            get { return GameTextEncoding == Encoding.UTF8; }
+            set { GameTextEncoding = value ? Encoding.UTF8 : Encoding.Default; }
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public Encoding GameTextEncoding
+        {
+            get { return _gameTextEncoding; }
+            set
+            {
+                _gameTextEncoding = value;
+                _gameTextEncodingName = _gameTextEncoding.WebName;
+            }
+        }
+
+        [DisplayName(PROPERTY_UNICODE)]
+        [Category("(Basic properties)")]
+        [TypeConverter(typeof(TextEncodingTypeConverter))]
+        public string GameTextEncodingName
+        {
+            get { return _gameTextEncodingName; }
+            set
+            {
+                _gameTextEncodingName = value;
+                _gameTextEncoding = Encoding.GetEncoding(_gameTextEncodingName);
             }
         }
 

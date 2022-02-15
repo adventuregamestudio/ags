@@ -38,6 +38,7 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
+            // [UNICODE] TODO: assign default encoding from the game settings!!!
             _gameEncodingHint = "." + Encoding.Default.CodePage;
             EncodingHint = "UTF-8";
         }
@@ -85,6 +86,7 @@ namespace AGS.Types
             set
             {
                 _encodingHint = value;
+                // [UNICODE] TODO: assign default encoding from the game settings!!!
                 _encoding = Encoding.Default;
                 if (!string.IsNullOrEmpty(value))
                 {
@@ -119,6 +121,7 @@ namespace AGS.Types
             _rightToLeftText = null;
             _encodingHint = null;
             _gameEncodingHint = null;
+            // [UNICODE] TODO: assign default encoding from the game settings!!!
             _encoding = Encoding.Default;
             LoadData();
         }

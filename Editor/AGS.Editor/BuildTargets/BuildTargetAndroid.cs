@@ -236,6 +236,46 @@ namespace AGS.Editor
             return "app-" + nameParts[lastPart] + "-release" + ext;
         }
 
+        private bool IsProjectSane(CompileMessages errors)
+        {
+            AppSettings preferences = Factory.AGSEditor.Settings;
+            string javaHome = GetJavaHome();
+            string androidHome = GetAndroidHome();
+
+            if (string.IsNullOrEmpty(javaHome)) {
+                errors.Add(new CompileError("Android Build: JAVA_HOME is not set in Preferences or Environment variables."));
+            } else {
+                if (!Directory.Exists(javaHome) ||
+                    !(File.Exists(Path.Combine(javaHome, "bin\\javac.exe")) || File.Exists(Path.Combine(javaHome, "bin\\javac")))
+                )
+                {
+                    errors.Add(new CompileError("Android Build: JAVA_HOME is not a valid JDK path. Can't find javac."));
+                }
+            }
+
+            if (string.IsNullOrEmpty(androidHome)) {
+                errors.Add(new CompileError("Android Build: ANDROID_HOME is not set in Preferences or Environment variables."));
+            } else {
+                if (!Directory.Exists(androidHome) ||
+                        !(File.Exists(Path.Combine(androidHome, "tools\\bin\\sdkmanager.bat")) || File.Exists(Path.Combine(androidHome, "tools\\bin\\sdkmanager")))
+                    )
+                {
+                    errors.Add(new CompileError("Android Build: ANDROID_HOME is not a valid SDK path. Can't find sdkmanager."));
+                }
+            }
+
+            if (string.IsNullOrEmpty(preferences.AndroidKeystoreFile)) {
+                errors.Add(new CompileError("Android Build: Keystore File path was not set in Preferences."));
+            } else {
+                if(!File.Exists(preferences.AndroidKeystoreFile))
+                {
+                    errors.Add(new CompileError("Android Build: Keystore File path is invalid."));
+                }
+            }
+
+            return errors.Count == 0;
+        }
+
         private string GetOutputDir()
         {
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
@@ -273,7 +313,7 @@ namespace AGS.Editor
             string androidAppVersionName = gameSettings.AndroidAppVersionName;
             if (string.IsNullOrEmpty(androidPackageName)) androidPackageName = "com.mystudio.mygame";
             if (string.IsNullOrEmpty(androidAppVersionId)) androidAppVersionId = "1";
-            if (string.IsNullOrEmpty(androidAppVersionName)) androidAppVersionName = "1.0";
+            if (string.IsNullOrEmpty(androidAppVersionName)) androidAppVersionName = gameSettings.Version; // use desktop version when empty
 
             string fileText = "applicationId=" + androidPackageName + "\n" +
                               "versionCode=" + androidAppVersionId + "\n" +
@@ -467,18 +507,9 @@ namespace AGS.Editor
             string java_home = GetJavaHome();
             string android_home = GetAndroidHome();
 
-            if (string.IsNullOrEmpty(java_home))
-            {
-                errors.Add(new CompileError("Android Build: JAVA_HOME is not set in Preferences or Environment variables. Can't find Java."));
-            }
-            if (string.IsNullOrEmpty(android_home))
-            {
-                errors.Add(new CompileError("Android Build: ANDROID_HOME is not set in Preferences or Environment variables. Can't find Android SDK."));
-            }
-            if(errors.Count > 0)
+            if(!IsProjectSane(errors))
             {
                 return false;
-
             }
 
             InstallSdkToolsIfNeeded();

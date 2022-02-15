@@ -37,7 +37,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Views";
+            return "View Editor";
         }
 
         void UpdateLoopVisuals()

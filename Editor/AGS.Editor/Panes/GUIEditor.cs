@@ -137,7 +137,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "GUI";
+            return "Editing GUIs";
         }
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)

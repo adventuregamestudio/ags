@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace AGS.Editor
 {
@@ -291,6 +292,33 @@ namespace AGS.Editor
             return outputBuildDir;
         }
         
+        private void WriteProjectXml(string dest_dir)
+        {
+            string fileName = Path.Combine(dest_dir, "app\\src\\main\\res\\values\\project.xml");
+
+            using (TextWriter writer = File.CreateText(fileName))
+            {
+                string gameName = Factory.AGSEditor.CurrentGame.Settings.GameName;
+
+                XmlDocument doc = new XmlDocument();
+                XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+                doc.AppendChild(docNode);
+
+                XmlNode resourcesNode = doc.CreateElement("resources");
+                doc.AppendChild(resourcesNode);
+
+                XmlNode stringNode = doc.CreateElement("string");
+                XmlAttribute stringAttribute = doc.CreateAttribute("name");
+                stringAttribute.Value = "app_name";
+                stringNode.Attributes.Append(stringAttribute);
+                stringNode.InnerText = gameName;
+
+                resourcesNode.AppendChild(stringNode);
+
+                doc.Save(writer);
+            }
+        }
+
         private void WriteProjectProperties(string dest_dir)
         {
             string fileName = Path.Combine(dest_dir, "project.properties");
@@ -451,7 +479,6 @@ namespace AGS.Editor
                 "mygame\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher.png",
                 "mygame\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_round.png",
                 "mygame\\app\\src\\main\\res\\values\\colors.xml",
-                "mygame\\app\\src\\main\\res\\values\\project.xml",
                 "mygame\\app\\src\\main\\res\\values\\strings.xml",
                 "mygame\\app\\src\\main\\res\\values\\styles.xml",
                 "mygame\\game\\build.gradle",
@@ -563,8 +590,11 @@ namespace AGS.Editor
                 }
             }
 
-            WriteProjectProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
-            WriteLocalStaticProperties(GetCompiledPath(ANDROID_DIR, "mygame"));
+            string dest_dir = GetCompiledPath(ANDROID_DIR, "mygame");
+
+            WriteProjectProperties(dest_dir);
+            WriteLocalStaticProperties(dest_dir);
+            WriteProjectXml(dest_dir);
 
             string gradle_task = "bundleRelease";
             if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradle_task = "assembleRelease";

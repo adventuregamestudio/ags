@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -93,40 +93,6 @@ namespace AGS.Editor
             return str;
         }
 
-        private string GetEnvironmentPreferences(string env_variable_name, string preferences_variable_value)
-        {
-            string variable_process = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.Process);
-            string variable_user = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.User);
-            string variable_machine = Environment.GetEnvironmentVariable(env_variable_name, EnvironmentVariableTarget.Machine);
-
-            string[] vars_in_pref_order = new string[] { 
-                preferences_variable_value, variable_process, variable_user, variable_machine };
-
-            for(int i=0; i<vars_in_pref_order.Length; i++)
-            {
-                string variable = vars_in_pref_order[i];
-                if (!string.IsNullOrEmpty(variable) && Directory.Exists(variable))
-                {
-                    return variable;
-                }
-
-            }
-
-            return null;
-        }
-
-        private string GetJavaHome()
-        {
-            AppSettings settings = Factory.AGSEditor.Settings;
-            return GetEnvironmentPreferences("JAVA_HOME", settings.AndroidJavaHome);
-        }
-
-        private string GetAndroidHome()
-        {
-            AppSettings settings = Factory.AGSEditor.Settings;
-            return GetEnvironmentPreferences("ANDROID_HOME", settings.AndroidHome);
-        }
-
         private void WriteStringToFile(string fileName, string fileText)
         {
             if (File.Exists(fileName))
@@ -140,55 +106,22 @@ namespace AGS.Editor
             stream.Close();
         }
 
-        private bool RunCommand(string command, string working_dir, bool show_window = true)
-        {
-
-            using (Process proc = new Process
-            {
-                StartInfo =
-                {
-                    UseShellExecute = false,
-                    FileName = "cmd.exe",
-                    Arguments = command,
-                    CreateNoWindow = !show_window,
-                    WorkingDirectory = working_dir
-                }
-            })
-            {
-                try
-                {
-                    proc.Start();
-                    proc.WaitForExit();
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            return false;
-        }
-
         private void StopGradle()
         {
             string prjDir = GetProjectDir();
             string gradle_path = Path.Combine(prjDir, "gradlew.bat");
             if (!Directory.Exists(prjDir) || !File.Exists(gradle_path)) return;
 
-            RunCommand("/C gradlew.bat --stop", prjDir, false);
+            AndroidUtilities.RunGradlewStop(prjDir);
         }
 
         private void InstallSdkToolsIfNeeded()
         {
-            string androidHome = GetAndroidHome();
-            string javaHome = GetJavaHome();
             string prjDir = GetProjectDir();
 
             string packages = "\"build-tools;30.0.3\" \"ndk;21.3.6528147\" \"platforms;android-29\"";
 
-            RunCommand("/C " + "set \"JAVA_HOME=" + javaHome + "\" & " +
-                      "set \"ANDROID_HOME=" + androidHome + "\" & "    +
-                      androidHome + "\\tools\\bin\\sdkmanager " + packages, prjDir, true);
+            AndroidUtilities.RunSdkManager(packages, prjDir);
         }
 
         private string GetProjectDir()
@@ -239,39 +172,9 @@ namespace AGS.Editor
 
         private bool IsProjectSane(CompileMessages errors)
         {
-            AppSettings preferences = Factory.AGSEditor.Settings;
-            string javaHome = GetJavaHome();
-            string androidHome = GetAndroidHome();
-
-            if (string.IsNullOrEmpty(javaHome)) {
-                errors.Add(new CompileError("Android Build: JAVA_HOME is not set in Preferences or Environment variables."));
-            } else {
-                if (!Directory.Exists(javaHome) ||
-                    !(File.Exists(Path.Combine(javaHome, "bin\\javac.exe")) || File.Exists(Path.Combine(javaHome, "bin\\javac")))
-                )
-                {
-                    errors.Add(new CompileError("Android Build: JAVA_HOME is not a valid JDK path. Can't find javac."));
-                }
-            }
-
-            if (string.IsNullOrEmpty(androidHome)) {
-                errors.Add(new CompileError("Android Build: ANDROID_HOME is not set in Preferences or Environment variables."));
-            } else {
-                if (!Directory.Exists(androidHome) ||
-                        !(File.Exists(Path.Combine(androidHome, "tools\\bin\\sdkmanager.bat")) || File.Exists(Path.Combine(androidHome, "tools\\bin\\sdkmanager")))
-                    )
-                {
-                    errors.Add(new CompileError("Android Build: ANDROID_HOME is not a valid SDK path. Can't find sdkmanager."));
-                }
-            }
-
-            if (string.IsNullOrEmpty(preferences.AndroidKeystoreFile)) {
-                errors.Add(new CompileError("Android Build: Keystore File path was not set in Preferences."));
-            } else {
-                if(!File.Exists(preferences.AndroidKeystoreFile))
-                {
-                    errors.Add(new CompileError("Android Build: Keystore File path is invalid."));
-                }
+            foreach (string error in AndroidUtilities.GetPreferencesErrors())
+            {
+                errors.Add(new CompileError("Android Build: " + error));
             }
 
             return errors.Count == 0;
@@ -531,8 +434,6 @@ namespace AGS.Editor
             if (!base.Build(errors, forceRebuild)) return false;
 
             string prjDir = GetProjectDir();
-            string java_home = GetJavaHome();
-            string android_home = GetAndroidHome();
 
             if(!IsProjectSane(errors))
             {
@@ -596,18 +497,10 @@ namespace AGS.Editor
             WriteLocalStaticProperties(dest_dir);
             WriteProjectXml(dest_dir);
 
-            string gradle_task = "bundleRelease";
-            if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradle_task = "assembleRelease";
+            GradleTasks gradleTask = GradleTasks.bundleRelease;
+            if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradleTask = GradleTasks.assembleRelease;
 
-            string buildCmd = "";
-            buildCmd += "/C ";
-            buildCmd += "set \"JAVA_HOME=" + java_home + "\" & ";
-            buildCmd += "set \"ANDROID_HOME=" + android_home + "\" & ";
-            buildCmd += "set \"PATH=%JAVA_HOME%\\bin:%PATH%\" & ";
-            buildCmd += "gradlew.bat " + gradle_task + " & ";
-            buildCmd += "pause";
-
-            if (!RunCommand(buildCmd, prjDir))
+            if (!AndroidUtilities.RunGradlewTask(gradleTask, prjDir))
             {
                 errors.Add(new CompileError("There was an error running gradle to build the Android App."));
                 return false;

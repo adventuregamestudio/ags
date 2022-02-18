@@ -442,6 +442,8 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
+            Script.TextEncoding = _agsEditor.CurrentGame.TextEncoding;
+
             // The Script_PanelClosed event will get called as we remove each
             // one, so we need to be careful with the enumerator
             while (_editors.Values.Count > 0) 
@@ -453,6 +455,11 @@ namespace AGS.Editor.Components
             _editors.Clear();
 
             RePopulateTreeView(null);
+        }
+
+        public override void GameSettingsChanged()
+        {
+            Script.TextEncoding = _agsEditor.CurrentGame.TextEncoding;
         }
 
         private void Script_PanelClosed(object sender, EventArgs e)

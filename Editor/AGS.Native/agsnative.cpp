@@ -1964,6 +1964,7 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
+  thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
@@ -3027,6 +3028,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	}
 
 	Game^ game = gcnew Game();
+    game->Settings->GameTextEncoding = thisgame.options[OPT_GAMETEXTENCODING] == 65001 ? "UTF-8" : "ANSI";
     game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
 	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
 	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);

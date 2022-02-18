@@ -139,7 +139,7 @@ namespace AGS.Editor
                 timeout++;
             }
 
-            StreamWriter sw = new StreamWriter(SEND_MESSAGE_FILE, false, Encoding.Default);
+            StreamWriter sw = new StreamWriter(SEND_MESSAGE_FILE, false, Encoding.UTF8);
             sw.Write(data);
             sw.Close();
         }

@@ -552,6 +552,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     if (displayed_room >= 0)
     {
+        // Fixup the frame index, in case the restored room does not have enough background frames
+        if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+            play.bg_frame = 0;
+
         for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
         {
             if (r_data.RoomBkgScene[i])
@@ -658,8 +662,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     {
         // the restart point, no room was loaded
         load_new_room(playerchar->room, playerchar);
-        playerchar->prevroom = -1;
-
         first_room_initialization();
     }
 

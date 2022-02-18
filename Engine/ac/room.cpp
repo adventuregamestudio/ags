@@ -517,10 +517,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
 
-    // Fixup the frame index, in case the new room does not have enough background frames
-    if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
-        play.bg_frame = 0;
-
     // do the palette
     for (cc=0;cc<256;cc++) {
         if (game.paluses[cc]==PAL_BACKGROUND)
@@ -909,8 +905,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     new_room_flags=0;
     play.gscript_timer=-1;  // avoid screw-ups with changing screens
     play.player_on_region = 0;
-    play.bg_frame = 0;
-    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+
     // trash any input which they might have done while it was loading
     ags_clear_input_buffer();
     // no fade in, so set the palette immediately in case of 256-col sprites
@@ -967,6 +962,10 @@ void new_room(int newnum,CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     load_new_room(newnum,forchar);
+
+    // Reset background frame state (it's not a part of the RoomStatus currently)
+    play.bg_frame = 0;
+    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void set_room_placeholder()
@@ -994,8 +993,12 @@ int find_highest_room_entered() {
 
 void first_room_initialization() {
     starting_room = displayed_room;
+    playerchar->prevroom = -1;
     set_loop_counter(0);
     mouse_z_was = sys_mouse_z;
+    // Reset background frame state
+    play.bg_frame = 0;
+    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void check_new_room() {

@@ -125,7 +125,7 @@ namespace AGS
 		bool SourceCodeControl::Initialize(System::String^ dllName, int mainWindowHwnd)
 		{
 			mainAppHwnd = (HWND)mainWindowHwnd;
-			ConvertFileNameToCharArray(dllName, sourceControlDllName, MAX_PATH);
+			TextHelper::ConvertASCIIFilename(dllName, sourceControlDllName, MAX_PATH);
 			sourceControlDllHandle = LoadLibrary(sourceControlDllName);
 			if (sourceControlDllHandle == NULL)
 			{
@@ -200,8 +200,8 @@ namespace AGS
 			this->CloseProject();
 
 			_getcwd(sourceControlLocalPath, MAX_PATH);
-			ConvertStringToCharArray(project->AuxPath, sourceControlAuxPath, SCC_PRJPATH_LEN + 1);
-			ConvertStringToCharArray(project->ProjectName, sourceControlProjectName, SCC_PRJPATH_LEN + 1);
+			TextHelper::ConvertASCIIFilename(project->AuxPath, sourceControlAuxPath, SCC_PRJPATH_LEN + 1);
+			TextHelper::ConvertASCIIToArray(project->ProjectName, sourceControlProjectName, SCC_PRJPATH_LEN + 1);
 
 			if (SccOpenProject(SccContext, mainAppHwnd, sourceControlUserName,
 							sourceControlProjectName, sourceControlLocalPath,
@@ -221,7 +221,7 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
+				TextHelper::ConvertASCIIFilename(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
 
       int errorCode;
@@ -250,9 +250,9 @@ namespace AGS
 			{
 				options[i] = SCC_FILETYPE_AUTO;
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
+				TextHelper::ConvertASCIIFilename(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
+			TextHelper::ConvertASCIIToArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode;
 			if ((errorCode = SccAdd(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, options, 0)) != SCC_OK) 
@@ -276,9 +276,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
+				TextHelper::ConvertASCIIFilename(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
+			TextHelper::ConvertASCIIToArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccCheckin(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 
@@ -301,9 +301,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
+				TextHelper::ConvertASCIIFilename(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
+			TextHelper::ConvertASCIIToArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccCheckout(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 
@@ -328,8 +328,8 @@ namespace AGS
 
 			char currentName[MAX_PATH];
 			char newName[MAX_PATH];
-      ConvertFileNameToCharArray(currentPath, currentName, MAX_PATH);
-			ConvertFileNameToCharArray(newPath, newName, MAX_PATH);
+			TextHelper::ConvertASCIIFilename(currentPath, currentName, MAX_PATH);
+			TextHelper::ConvertASCIIFilename(newPath, newName, MAX_PATH);
 
       int errorCode = SccRename(SccContext, mainAppHwnd, currentName, newName);
 			if (errorCode != SCC_OK) 
@@ -346,9 +346,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-				ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
+				TextHelper::ConvertASCIIFilename(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
+			TextHelper::ConvertASCIIToArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccRemove(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 

@@ -34,6 +34,8 @@ namespace AGS
 
 		void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game)
 		{
+			TextConverter^ tcv = NativeMethods::GetGameTextConverter();
+
 			if (script->CompiledData != nullptr)
 			{
 				//script->CompiledData->Dispose();
@@ -44,9 +46,10 @@ namespace AGS
 
 			  CompileMessage ^exceptionToThrow = nullptr;
 
-        char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
-			  char *mainScript;
-			  char *mainScriptName;
+			  std::vector<AGSString> scriptHeaders;
+			  scriptHeaders.resize(preProcessedScripts->Length - 1);
+			  AGSString mainScript;
+			  AGSString mainScriptName;
         ccScript *scrpt = NULL;
 			  int headerCount = 0;
 
@@ -54,17 +57,17 @@ namespace AGS
 			  {
           if (headerCount < preProcessedScripts->Length - 1)
           {
-				    scriptHeaders[headerCount] = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(header).ToPointer();
+				    scriptHeaders[headerCount] = tcv->Convert(header);
 
-            if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header")) 
+            if (ccAddDefaultHeader(scriptHeaders[headerCount].GetCStr(), "Header")) 
             {
               exceptionToThrow = gcnew CompileError("Too many scripts in game");
             }
 				    headerCount++;
           }
 			  }
-			  mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
-			  mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
+			  mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
+			  mainScriptName = tcv->Convert(script->FileName);
 
 			  ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 
@@ -75,21 +78,12 @@ namespace AGS
 
         if (exceptionToThrow == nullptr)
         {
-			    scrpt = ccCompileText(mainScript, mainScriptName);
+			    scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
  			    if ((scrpt == NULL) || (ccError != 0))
 			    {
-				    exceptionToThrow = gcnew CompileError(ToStr(ccErrorString), ToStr(ccCurScriptName), ccErrorLine);
+				    exceptionToThrow = gcnew CompileError(tcv->Convert(ccErrorString), TextHelper::ConvertASCII(ccCurScriptName), ccErrorLine);
 			    }
         }
-			  
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-			  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
-
-        for (int i = 0; i < preProcessedScripts->Length - 1; i++) 
-			  {
-				  System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
-			  }
-			  delete scriptHeaders;
 
 			  if (exceptionToThrow != nullptr) 
 			  {
@@ -105,10 +99,10 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char iconNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(iconName, iconNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(iconName, iconNameChars, MAX_PATH);
 
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
 				ReplaceIconFromFile(iconNameChars, fileNameChars);
 			}
@@ -148,7 +142,7 @@ namespace AGS
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
 			char fileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+			TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
       HMODULE module = LoadLibrary(fileNameChars);
       if (module == NULL)
@@ -186,7 +180,7 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
         if (newData == nullptr) 
         {

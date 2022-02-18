@@ -21,13 +21,55 @@
 
 typedef AGS::Common::String AGSString;
 
-System::String^ ToStr(const AGS::Common::String &str);
-System::String^ ToStrUTF8(const AGS::Common::String &str);
+// TextConverter provides methods for converting between managed
+// System::String and native AGSString using provided Encoding.
+public ref class TextConverter
+{
+public:
+    TextConverter(System::Text::Encoding^ enc);
+    System::Text::Encoding^ GetEncoding();
+    // Convert native string to managed using current encoding
+    System::String^ Convert(const AGS::Common::String &str);
+    // Convert managed string to native using current encoding
+    AGSString Convert(System::String^ clr_str);
 
-AGSString ConvertStringToNativeString(System::String^ clrString);
-AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len);
-AGSString ConvertPathToNativeString(System::String^ clrString);
-void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len);
-void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len);
+private:
+    System::Text::Encoding^ _encoding = nullptr;
+};
+
+// TextHelper namespace groups several text conversion functions
+// that always use explicit encoding either by definition or as an argument.
+namespace TextHelper
+{
+    // Gets a global game text converter, dependent on the game settings.
+    TextConverter^ GetGameTextConverter();
+
+    //-------------------------------------------------------------------------
+    // Native to managed string convertions
+    // Convert ASCII text to managed string;
+    // this is for symbol names of variables, functions and alike
+    System::String^ ConvertASCII(const AGS::Common::String &str);
+    // Convert UTF-8 text to managed string;
+    // this is for filepaths and error messages, etc
+    System::String^ ConvertUTF8(const AGS::Common::String &str);
+
+    //-------------------------------------------------------------------------
+    // Managed to native string convertions
+    // Convert ASCII managed text to native string;
+    // this is for symbol names of variables, functions and alike
+    AGSString ConvertASCII(System::String^ clr_str);
+    void ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len);
+    // Convert managed text to native string, forcing ASCII and testing for unknown chars
+    // TODO: fix it uses and replace with ConvertUTF8ToArray
+    void ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len);
+    // Convert UTF-8 managed text to native string;
+    // this is for filepaths and error messages, etc
+    AGSString ConvertUTF8(System::String^ clr_str);
+
+    // Convert native to managed using given encoder
+    System::String^ Convert(const AGS::Common::String &str, System::Text::Encoding^ enc);
+    // Convert managed to native using given encoder
+    AGSString Convert(System::String^ clr_str, System::Text::Encoding^ enc);
+};
 
 extern AGSString editorVersionNumber;

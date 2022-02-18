@@ -15,7 +15,6 @@ namespace AGS.Types
         private const string SPEECH_FONT_TAG = "//#SpeechFont=";
         private const string TEXT_DIRECTION_TAG = "//#TextDirection=";
         private const string ENCODING_TAG = "//#Encoding=";
-        private const string GAMEENCODING_TAG = "//#GameEncoding=";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
@@ -27,7 +26,6 @@ namespace AGS.Types
         private int? _speechFont;
         private bool? _rightToLeftText;
         private string _encodingHint;
-        private string _gameEncodingHint;
         private Encoding _encoding;
         private Dictionary<string, string> _translatedLines;
 
@@ -38,7 +36,6 @@ namespace AGS.Types
             _normalFont = null;
             _speechFont = null;
             _rightToLeftText = null;
-            _gameEncodingHint = "." + Encoding.Default.CodePage;
             EncodingHint = "UTF-8";
         }
 
@@ -99,11 +96,6 @@ namespace AGS.Types
             get { return _encoding; }
         }
 
-        public string GameEncodingHint
-        {
-            get { return _gameEncodingHint; }
-        }
-
         public bool Modified
         {
             get { return _modified; }
@@ -118,7 +110,6 @@ namespace AGS.Types
             _speechFont = null;
             _rightToLeftText = null;
             _encodingHint = null;
-            _gameEncodingHint = null;
             _encoding = Encoding.Default;
             LoadData();
         }
@@ -151,9 +142,6 @@ namespace AGS.Types
                 sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
                 sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
                 sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
-                sw.WriteLine("// Source text encoding hint - default codepage number as \".12xx\", or UTF-8");
-                sw.WriteLine("//#GameEncoding=" +
-                    (string.IsNullOrEmpty(_gameEncodingHint) ? ("." + Encoding.Default.CodePage) : _gameEncodingHint));
                 sw.WriteLine("//  ");
                 sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
@@ -233,10 +221,6 @@ namespace AGS.Types
             else if (line.StartsWith(ENCODING_TAG))
             {
                 EncodingHint = line.Substring(ENCODING_TAG.Length);
-            }
-            else if (line.StartsWith(GAMEENCODING_TAG))
-            {
-                _gameEncodingHint = line.Substring(GAMEENCODING_TAG.Length);
             }
         }
 

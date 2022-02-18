@@ -215,7 +215,7 @@ namespace AGS.Editor.Components
                     ((ScriptEditor)document.Control).SaveChanges();
                 }
 
-                ImportExport.ExportScriptModule(header, script, fileName);
+                ImportExport.ExportScriptModule(header, script, fileName, _agsEditor.CurrentGame.TextEncoding);
             }
             catch (Exception ex)
             {
@@ -228,7 +228,7 @@ namespace AGS.Editor.Components
             try
             {
                 string destFileName = FindFirstAvailableFileName(Path.GetFileNameWithoutExtension(fileName));
-                List<Script> newScripts = ImportExport.ImportScriptModule(fileName);
+                List<Script> newScripts = ImportExport.ImportScriptModule(fileName, _agsEditor.CurrentGame.TextEncoding);
                 newScripts[0].FileName = destFileName + ".ash";
                 newScripts[1].FileName = destFileName + ".asc";
                 newScripts[0].Modified = true;

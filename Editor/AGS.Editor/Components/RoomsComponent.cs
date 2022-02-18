@@ -406,6 +406,7 @@ namespace AGS.Editor.Components
                 {
                     roomScript = "// room script file\r\n";
                 }
+                // NOTE: old game format: texts are always ANSI/ASCII
                 StreamWriter sw = new StreamWriter(scriptFile, false, Encoding.Default);
                 sw.Write(roomScript);
                 sw.Close();

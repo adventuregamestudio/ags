@@ -253,7 +253,7 @@ namespace AGS.Editor
                 // write the offset into the EXE where the first data file resides
                 ostream.Write(BitConverter.GetBytes(startPosition), 0, 8);
                 // write the CLIB end signature so the engine knows this is a valid EXE
-                ostream.Write(Encoding.UTF8.GetBytes(DataFileWriter.CLIB_END_SIGNATURE.ToCharArray()), 0,
+                ostream.Write(Encoding.ASCII.GetBytes(DataFileWriter.CLIB_END_SIGNATURE.ToCharArray()), 0,
                     DataFileWriter.CLIB_END_SIGNATURE.Length);
             }
         }

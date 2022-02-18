@@ -124,7 +124,7 @@ namespace AGS.Editor.Components
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
                 bw.Write(TRANSLATION_BLOCK_GAME_ID);
-                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, Encoding.Default);
+                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
                 bw.Write(gameName.Length + 4 + 4);
                 bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
                 bw.Write(gameName.Length);

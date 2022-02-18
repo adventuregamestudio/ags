@@ -273,11 +273,11 @@ namespace AGS.Editor
                 string moduleVersion = ReadNullTerminatedString(reader);
 
                 int scriptLength = reader.ReadInt32();
-                string moduleScript = Encoding.Default.GetString(reader.ReadBytes(scriptLength));
+                string moduleScript = Encoding.Default.GetString(reader.ReadBytes(scriptLength)); // always ANSI
                 reader.ReadByte();  // discard the null terminating byte
 
                 scriptLength = reader.ReadInt32();
-                string moduleHeader = Encoding.Default.GetString(reader.ReadBytes(scriptLength));
+                string moduleHeader = Encoding.Default.GetString(reader.ReadBytes(scriptLength)); // always ANSI
                 reader.ReadByte();  // discard the null terminating byte
 
                 int uniqueKey = reader.ReadInt32();
@@ -310,7 +310,7 @@ namespace AGS.Editor
             return importErrors;
         }
 
-        public static List<Script> ImportScriptModule(string fileName)
+        public static List<Script> ImportScriptModule(string fileName, Encoding defEncoding)
         {
             BinaryReader reader = new BinaryReader(new FileStream(fileName, FileMode.Open, FileAccess.Read));
             string fileSig = Encoding.ASCII.GetString(reader.ReadBytes(16));
@@ -325,25 +325,29 @@ namespace AGS.Editor
                 throw new AGS.Types.InvalidDataException("This module requires a newer version of AGS.");
             }
 
-            string author = ReadNullTerminatedString(reader);
-            string description = ReadNullTerminatedString(reader);
-            string name = ReadNullTerminatedString(reader);
-            string version = ReadNullTerminatedString(reader);
+            Encoding enc = defEncoding;
+
+            var author = ReadNullTerminatedStringAsBytes(reader);
+            var description = ReadNullTerminatedStringAsBytes(reader);
+            var name = ReadNullTerminatedStringAsBytes(reader);
+            var version = ReadNullTerminatedString(reader);
 
             int scriptLength = reader.ReadInt32();
-            string moduleScript = Encoding.Default.GetString(reader.ReadBytes(scriptLength));
+            var scriptBytes = reader.ReadBytes(scriptLength);
             reader.ReadByte();  // discard null terminator
 
             int headerLength = reader.ReadInt32();
-            string moduleHeader = Encoding.Default.GetString(reader.ReadBytes(headerLength));
+            var headerBytes = reader.ReadBytes(headerLength);
             reader.ReadByte();  // discard null terminator
 
             int uniqueKey = reader.ReadInt32();
             reader.Close();
 
             List<Script> scriptsImported = new List<Script>();
-            Script header = new Script(null, moduleHeader, name, description, author, version, uniqueKey, true);
-            Script mainScript = new Script(null, moduleScript, name, description, author, version, uniqueKey, false);
+            Script header = new Script(null, enc.GetString(scriptBytes), enc.GetString(name),
+                enc.GetString(description), enc.GetString(author), version, uniqueKey, true);
+            Script mainScript = new Script(null, enc.GetString(headerBytes), enc.GetString(name),
+                enc.GetString(description), enc.GetString(author), version, uniqueKey, false);
             scriptsImported.Add(header);
             scriptsImported.Add(mainScript);
 
@@ -351,22 +355,21 @@ namespace AGS.Editor
             return scriptsImported;
         }
 
-        public static void ExportScriptModule(Script header, Script script, string fileName)
+        public static void ExportScriptModule(Script header, Script script, string fileName, Encoding defEncoding)
         {
+            Encoding enc = defEncoding;
             BinaryWriter writer = new BinaryWriter(new FileStream(fileName, FileMode.Create, FileAccess.Write));
             writer.Write(Encoding.ASCII.GetBytes(MODULE_FILE_SIGNATURE));
             writer.Write((int)1);  // version
 
-            WriteNullTerminatedString(script.Author, writer);
-            WriteNullTerminatedString(script.Description, writer);
-            WriteNullTerminatedString(script.Name, writer);
-            WriteNullTerminatedString(script.Version, writer);
+            WriteStringTerminated(script.Author, enc, writer);
+            WriteStringTerminated(script.Description, enc, writer);
+            WriteStringTerminated(script.Name, enc, writer);
+            WriteStringTerminated(script.Version, enc, writer);
 
-            writer.Write((int)script.Text.Length);
-            WriteNullTerminatedString(script.Text, writer);
+            WriteStringLongTerminated(script.Text, enc, writer);
 
-            writer.Write((int)header.Text.Length);
-            WriteNullTerminatedString(header.Text, writer);
+            WriteStringLongTerminated(header.Text, enc, writer);
 
             writer.Write((int)script.UniqueKey);
 			writer.Write((int)0);  // Permissions
@@ -377,6 +380,7 @@ namespace AGS.Editor
 
         private static void ReadGlobalScriptAndScriptHeader(BinaryReader reader, Game game, out Script globalScript, out Script scriptHeader)
         {
+            // NOTE: old game format: texts are always ANSI/ASCII
             int scriptHeaderLength = reader.ReadInt32() - 1;
             string scriptHeaderText = Encoding.Default.GetString(reader.ReadBytes(scriptHeaderLength));
             string extraScript = "// Automatically converted interaction variables" + Environment.NewLine;
@@ -400,19 +404,24 @@ namespace AGS.Editor
             reader.ReadByte(); // skip the null terminator
         }
 
-        private static string ReadNullTerminatedString(BinaryReader reader)
-        {
-			return ReadNullTerminatedString(reader, 0);
-        }
+		private static string ReadNullTerminatedString(BinaryReader reader)
+ 		{
+			return Encoding.Default.GetString(ReadNullTerminatedStringAsBytes(reader, 0));
+		}
 
 		private static string ReadNullTerminatedString(BinaryReader reader, int fixedLength)
 		{
-			StringBuilder sb = new StringBuilder(100);
+			return Encoding.Default.GetString(ReadNullTerminatedStringAsBytes(reader, fixedLength));
+		}
+
+        private static byte[] ReadNullTerminatedStringAsBytes(BinaryReader reader, int fixedLength = 0)
+        {
+			List<byte> bytes = new List<byte>(100);
 			int bytesToRead = fixedLength;
 			byte thisChar;
 			while ((thisChar = reader.ReadByte()) != 0)
 			{
-				sb.Append((char)thisChar);
+				bytes.Add(thisChar);
 				bytesToRead--;
 
 				if ((fixedLength > 0) && (bytesToRead < 1))
@@ -424,12 +433,22 @@ namespace AGS.Editor
 			{
 				reader.ReadBytes(bytesToRead - 1);
 			}
-			return sb.ToString();
+			return bytes.ToArray();
 		}
 
-		private static void WriteNullTerminatedString(string text, BinaryWriter writer)
+        // TODO: merge with the similar methods in DataFileWriter, maybe make a class with Encoder
+        /// Writes a null-terminated string using given encoding
+        private static void WriteStringTerminated(string text, Encoding enc, BinaryWriter writer)
         {
-            writer.Write(Encoding.Default.GetBytes(text));
+            writer.Write(enc.GetBytes(text));
+            writer.Write((byte)0);
+        }
+
+        /// Writes a null-terminated string, prepending with 32-bit length value (in bytes)
+        private static void WriteStringLongTerminated(string text, Encoding enc, BinaryWriter writer)
+        {
+            writer.Write(enc.GetByteCount(text));
+            writer.Write(enc.GetBytes(text));
             writer.Write((byte)0);
         }
 
@@ -569,8 +588,8 @@ namespace AGS.Editor
             {
                 File.Delete(fileName);
             }
-            XmlTextWriter writer = new XmlTextWriter(fileName, Encoding.Default);
-            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + Encoding.Default.WebName + "\"");
+            XmlTextWriter writer = new XmlTextWriter(fileName, game.TextEncoding);
+            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + game.TextEncoding.WebName + "\"");
             writer.WriteComment("AGS Exported Character file. DO NOT EDIT THIS FILE BY HAND, IT IS GENERATED AUTOMATICALLY BY THE AGS EDITOR.");
             writer.WriteStartElement(CHARACTER_XML_ROOT_NODE);
             writer.WriteAttributeString(CHARACTER_XML_VERSION_ATTRIBUTE, CHARACTER_XML_CURRENT_VERSION.ToString());
@@ -654,14 +673,14 @@ namespace AGS.Editor
             writer.Write((short)character.MovementSpeed);
             writer.Write((short)character.AnimationDelay);
             WriteZeros(writer, 606);
-            writer.Write(Encoding.Default.GetBytes(character.RealName));
+            writer.Write(Encoding.Default.GetBytes(character.RealName)); // always ANSI
             WriteZeros(writer, 40 - character.RealName.Length);
             string scriptName = character.ScriptName;
             if (scriptName.StartsWith("c"))
             {
                 scriptName = scriptName.Substring(1).ToUpper();
             }
-            writer.Write(Encoding.Default.GetBytes(scriptName));
+            writer.Write(Encoding.Default.GetBytes(scriptName)); // always ANSI
             WriteZeros(writer, 20 - scriptName.Length);
             writer.Write((short)0);
 
@@ -1248,8 +1267,8 @@ namespace AGS.Editor
             {
                 File.Delete(fileName);
             }
-            XmlTextWriter writer = new XmlTextWriter(fileName, Encoding.Default);
-			writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + Encoding.Default.WebName + "\"");
+            XmlTextWriter writer = new XmlTextWriter(fileName, game.TextEncoding);
+			writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + game.TextEncoding.WebName + "\"");
 			writer.WriteComment("AGS Exported GUI file. DO NOT EDIT THIS FILE BY HAND, IT IS GENERATED AUTOMATICALLY BY THE AGS EDITOR.");
             writer.WriteStartElement(GUI_XML_ROOT_NODE);
             writer.WriteAttributeString(GUI_XML_VERSION_ATTRIBUTE, GUI_XML_CURRENT_VERSION.ToString());

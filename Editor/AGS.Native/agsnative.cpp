@@ -1123,7 +1123,9 @@ void new_font () {
 
 bool initialize_native()
 {
-    set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+    // Set text encoding and init allegro
+    set_uformat(U_UTF8);
+    set_filename_encoding(U_UNICODE);
     install_allegro(SYSTEM_NONE, &errno, atexit);
 
     AssetMgr.reset(new AssetManager());
@@ -1956,6 +1958,7 @@ void GameDirChanged(String ^workingDir)
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
 void GameUpdated(Game ^game, bool forceUpdate) {
+  set_uformat(game->UnicodeMode ? U_UTF8 : U_ASCII);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;

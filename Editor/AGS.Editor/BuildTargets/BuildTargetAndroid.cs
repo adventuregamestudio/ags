@@ -7,13 +7,30 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using AGS.Editor.Utils;
+using System.Collections.ObjectModel;
 
 namespace AGS.Editor
 {
+    enum IconAssetType
+    {
+        NoIconFiles,
+        AllIconFiles,
+        AllNonRoundIconFiles
+    }
+
     class BuildTargetAndroid : BuildTargetBase
     {
         public const string ANDROID_DIR = "Android";
-        public const string ANDROID_CFG = "android.cfg";
+
+        private const string ANDROID_CFG = "android.cfg";
+
+        private const string PROJECT_DIR = "icons\\android";
+        private const string ICON_FILENAME = "ic_launcher.png";
+        private const string ICON_ROUND_FILENAME = "ic_launcher_round.png";
+        private const string ICON_RES_DIR = "app\\src\\main\\res";
+        public static readonly IList<string> ICON_DIRS = new ReadOnlyCollection<string> (new List<string> {
+            "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi",
+        });
 
         private void WriteAndroidCfg(string outputDir)
         {
@@ -68,6 +85,58 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
         }
 
+        private IconAssetType GetGameIconType()
+        {
+            string projIconDir = PROJECT_DIR;
+
+            if (!Directory.Exists(projIconDir)) return IconAssetType.NoIconFiles;
+
+            bool hasAllIcIcons = true;
+            bool hasAllRoundIcIcons = true;
+            foreach(string icondir in ICON_DIRS)
+            {
+                string icPath = Path.Combine(projIconDir, icondir, ICON_FILENAME);
+                string icRoundPath = Path.Combine(projIconDir, icondir, ICON_ROUND_FILENAME);
+
+                hasAllIcIcons = hasAllIcIcons && File.Exists(icPath);
+                hasAllRoundIcIcons = hasAllRoundIcIcons && File.Exists(icRoundPath);
+            }
+
+            if (hasAllIcIcons && hasAllRoundIcIcons) return IconAssetType.AllIconFiles;
+
+            if (hasAllIcIcons) return IconAssetType.AllNonRoundIconFiles;
+
+            return IconAssetType.NoIconFiles;
+        }
+
+        private void SetGameIcons(IconAssetType icType, string destDir)
+        {
+            string projIconDir = PROJECT_DIR;
+            string destIconDir = Path.Combine(destDir, ICON_RES_DIR);
+
+            switch (icType)
+            {
+                case IconAssetType.AllIconFiles:
+                    foreach (string icondir in ICON_DIRS)
+                    {
+                        string icPathPartial = Path.Combine(icondir, ICON_FILENAME);
+                        string icRoundPathPartial = Path.Combine(icondir, ICON_ROUND_FILENAME);
+                        File.Copy(Path.Combine(projIconDir, icPathPartial), Path.Combine(destIconDir, icPathPartial), overwrite:true);
+                        File.Copy(Path.Combine(projIconDir, icRoundPathPartial), Path.Combine(destIconDir, icRoundPathPartial), overwrite: true);
+                    }
+                    break;
+                case IconAssetType.AllNonRoundIconFiles:
+                    foreach (string icondir in ICON_DIRS)
+                    {
+                        string toRemoveRoundPath = Path.Combine(destIconDir, icondir, ICON_ROUND_FILENAME);
+                        string icPathPartial = Path.Combine(icondir, ICON_FILENAME);
+                        if (File.Exists(toRemoveRoundPath)) File.Delete(toRemoveRoundPath);
+                        File.Copy(Path.Combine(projIconDir, icPathPartial), Path.Combine(destIconDir, icPathPartial), overwrite: true);
+                    }
+                    break;
+            }
+        }
+
         private string EscapeFilenamePathStringAsNeeded(string str)
         {
             int len = str.Length;
@@ -108,7 +177,7 @@ namespace AGS.Editor
 
         private void StopGradle()
         {
-            string prjDir = GetProjectDir();
+            string prjDir = GetAndroidProjectInCompiledDir();
             string gradle_path = Path.Combine(prjDir, "gradlew.bat");
             if (!Directory.Exists(prjDir) || !File.Exists(gradle_path)) return;
 
@@ -117,26 +186,26 @@ namespace AGS.Editor
 
         private void InstallSdkToolsIfNeeded()
         {
-            string prjDir = GetProjectDir();
+            string prjDir = GetAndroidProjectInCompiledDir();
 
             string packages = "\"build-tools;30.0.3\" \"ndk;21.3.6528147\" \"platforms;android-29\"";
 
             AndroidUtilities.RunSdkManager(packages, prjDir);
         }
 
-        private string GetProjectDir()
+        private string GetAndroidProjectInCompiledDir()
         {
             return GetCompiledPath(ANDROID_DIR, "mygame");
         }
 
         private string GetAssetEmbeddedDir()
         {
-            return Path.Combine(GetProjectDir(), "app\\src\\main\\assets");
+            return Path.Combine(GetAndroidProjectInCompiledDir(), "app\\src\\main\\assets");
         }
 
         private string GetAssetNonEmbeddedDir()
         {
-            return Path.Combine(GetProjectDir(), "game\\src\\main\\assets");
+            return Path.Combine(GetAndroidProjectInCompiledDir(), "game\\src\\main\\assets");
         }
 
         private string GetAssetsDir()
@@ -433,7 +502,7 @@ namespace AGS.Editor
         {
             if (!base.Build(errors, forceRebuild)) return false;
 
-            string prjDir = GetProjectDir();
+            string andProjDir = GetAndroidProjectInCompiledDir();
 
             if(!IsProjectSane(errors))
             {
@@ -471,12 +540,12 @@ namespace AGS.Editor
                 string fileName = pair.Key;
                 string originDir = pair.Value;
 
-                string destDir = GetCompiledPath(ANDROID_DIR, Path.GetDirectoryName(fileName));
+                string dest = GetCompiledPath(ANDROID_DIR, Path.GetDirectoryName(fileName));
 
-                if(!Directory.Exists(destDir))
+                if(!Directory.Exists(dest))
                 {
                     // doesn't exist, let's create it
-                    Directory.CreateDirectory(destDir);
+                    Directory.CreateDirectory(dest);
                 }
 
                 string destFile = GetCompiledPath(ANDROID_DIR, fileName);
@@ -491,16 +560,18 @@ namespace AGS.Editor
                 }
             }
 
-            string dest_dir = GetCompiledPath(ANDROID_DIR, "mygame");
+            string destDir = GetCompiledPath(ANDROID_DIR, "mygame");
 
-            WriteProjectProperties(dest_dir);
-            WriteLocalStaticProperties(dest_dir);
-            WriteProjectXml(dest_dir);
+            WriteProjectProperties(destDir);
+            WriteLocalStaticProperties(destDir);
+            WriteProjectXml(destDir);
+            IconAssetType iconType = GetGameIconType();
+            if(iconType != IconAssetType.NoIconFiles) SetGameIcons(iconType, destDir);
 
             GradleTasks gradleTask = GradleTasks.bundleRelease;
             if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradleTask = GradleTasks.assembleRelease;
 
-            if (!AndroidUtilities.RunGradlewTask(gradleTask, prjDir))
+            if (!AndroidUtilities.RunGradlewTask(gradleTask, andProjDir))
             {
                 errors.Add(new CompileError("There was an error running gradle to build the Android App."));
                 return false;

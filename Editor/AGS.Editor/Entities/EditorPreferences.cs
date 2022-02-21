@@ -832,6 +832,24 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
+        [DisplayName("Use gradle daemon")]
+        [Description("Gradle daemon can severily improve building speed, but it may increase ram usage. If you are recurrently building for Android, consider turning it on.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("false")]
+        [UserScopedSettingAttribute()]
+        public bool AndroidBuildGradleDaemon
+        {
+            get
+            {
+                return (bool)(this["AndroidBuildGradleDaemon"]);
+            }
+            set
+            {
+                this["AndroidBuildGradleDaemon"] = value;
+            }
+        }
+
         [Browsable(false)]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("640")]

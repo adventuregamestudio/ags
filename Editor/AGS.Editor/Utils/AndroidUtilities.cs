@@ -175,19 +175,21 @@ namespace AGS.Editor.Utils
             return cmd;
         }
 
-        private static bool RunGradlewTaskByName(string task_str, string working_dir, bool show_window = true)
+        private static bool RunGradlewTaskByName(string task_str, string working_dir, bool use_daemon = false, bool show_window = true)
         {
             string cmd = GetPrefixEnv();
-            cmd += "gradlew.bat " + task_str + " & ";
+            cmd += "gradlew.bat ";
+            if (!use_daemon) cmd += "--no-daemon ";
+            cmd += task_str + " & ";
             cmd += "if ERRORLEVEL 1 pause";
 
             return RunInCmdEXE(cmd, working_dir, show_window);
         }
 
-        public static bool RunGradlewTask(GradleTasks task, string working_dir, bool show_window = true)
+        public static bool RunGradlewTask(GradleTasks task, string working_dir, bool use_daemon = false, bool show_window = true)
         {
             string task_str = task.ToString();
-            return RunGradlewTaskByName(task_str, working_dir, show_window);
+            return RunGradlewTaskByName(task_str, working_dir, use_daemon:use_daemon, show_window:show_window);
         }
 
         public static bool RunGradlewStop(string working_dir)

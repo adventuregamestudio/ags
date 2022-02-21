@@ -31,6 +31,7 @@ namespace AGS.Editor
         public static readonly IList<string> ICON_DIRS = new ReadOnlyCollection<string> (new List<string> {
             "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi",
         });
+        private bool UseGradleDaemon = false;
 
         private void WriteAndroidCfg(string outputDir)
         {
@@ -177,6 +178,8 @@ namespace AGS.Editor
 
         private void StopGradle()
         {
+            if (!UseGradleDaemon) return;
+
             string prjDir = GetAndroidProjectInCompiledDir();
             string gradle_path = Path.Combine(prjDir, "gradlew.bat");
             if (!Directory.Exists(prjDir) || !File.Exists(gradle_path)) return;
@@ -502,6 +505,7 @@ namespace AGS.Editor
         {
             if (!base.Build(errors, forceRebuild)) return false;
 
+            UseGradleDaemon = Factory.AGSEditor.Settings.AndroidBuildGradleDaemon;
             string andProjDir = GetAndroidProjectInCompiledDir();
 
             if(!IsProjectSane(errors))
@@ -571,7 +575,7 @@ namespace AGS.Editor
             GradleTasks gradleTask = GradleTasks.bundleRelease;
             if (buildFormat == AndroidBuildFormat.ApkEmbedded) gradleTask = GradleTasks.assembleRelease;
 
-            if (!AndroidUtilities.RunGradlewTask(gradleTask, andProjDir))
+            if (!AndroidUtilities.RunGradlewTask(gradleTask, andProjDir, use_daemon:UseGradleDaemon))
             {
                 errors.Add(new CompileError("There was an error running gradle to build the Android App."));
                 return false;

@@ -179,7 +179,7 @@ namespace AGS.Editor.Utils
         {
             string cmd = GetPrefixEnv();
             cmd += "gradlew.bat " + task_str + " & ";
-            cmd += "pause";
+            cmd += "if ERRORLEVEL 1 pause";
 
             return RunInCmdEXE(cmd, working_dir, show_window);
         }

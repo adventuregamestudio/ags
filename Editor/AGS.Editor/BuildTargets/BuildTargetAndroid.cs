@@ -230,8 +230,8 @@ namespace AGS.Editor
         private string GetFinalAppName()
         {
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
-            string androidPackageName = gameSettings.AndroidPackageName;
-            string[] nameParts = androidPackageName.Split('.');
+            string applicationId = gameSettings.AndroidApplicationId;
+            string[] nameParts = applicationId.Split('.');
             int lastPart = nameParts.Length - 1;
             if (lastPart < 0) lastPart = 0;
             string ext = ".aab";
@@ -308,7 +308,7 @@ namespace AGS.Editor
             }
 
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
-            string androidPackageName = gameSettings.AndroidPackageName;
+            string androidPackageName = gameSettings.AndroidApplicationId;
             string androidAppVersionId = gameSettings.AndroidAppVersionCode.ToString();
             string androidAppVersionName = gameSettings.AndroidAppVersionName;
             if (string.IsNullOrEmpty(androidPackageName)) androidPackageName = "com.mystudio.mygame";

@@ -119,22 +119,90 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ScintillaNET\Constants.cs" />
-    <Compile Include="ScintillaNET\Enums.generated.cs" />
-    <Compile Include="ScintillaNET\EventArgs.cs" />
-    <Compile Include="ScintillaNET\Lexers.generated.cs" />
-    <Compile Include="ScintillaNET\ScintillaControl.cs">
+    <Compile Include="ScintillaNET\Annotation.cs" />
+    <Compile Include="ScintillaNET\AutoCSelectionEventArgs.cs" />
+    <Compile Include="ScintillaNET\AutomaticFold.cs" />
+    <Compile Include="ScintillaNET\BeforeModificationEventArgs.cs" />
+    <Compile Include="ScintillaNET\CaretStyle.cs" />
+    <Compile Include="ScintillaNET\ChangeAnnotationEventArgs.cs" />
+    <Compile Include="ScintillaNET\CharAddedEventArgs.cs" />
+    <Compile Include="ScintillaNET\Command.cs" />
+    <Compile Include="ScintillaNET\CopyFormat.cs" />
+    <Compile Include="ScintillaNET\Document.cs" />
+    <Compile Include="ScintillaNET\DoubleClickEventArgs.cs" />
+    <Compile Include="ScintillaNET\DwellEventArgs.cs" />
+    <Compile Include="ScintillaNET\EdgeMode.cs" />
+    <Compile Include="ScintillaNET\Eol.cs" />
+    <Compile Include="ScintillaNET\FlagsEnumConverter.cs" />
+    <Compile Include="ScintillaNET\FoldAction.cs" />
+    <Compile Include="ScintillaNET\FoldDisplayText.cs" />
+    <Compile Include="ScintillaNET\FoldFlags.cs" />
+    <Compile Include="ScintillaNET\FoldLevelFlags.cs" />
+    <Compile Include="ScintillaNET\FontQuality.cs" />
+    <Compile Include="ScintillaNET\GapBuffer.cs" />
+    <Compile Include="ScintillaNET\Helpers.cs" />
+    <Compile Include="ScintillaNET\HotspotClickEventArgs.cs" />
+    <Compile Include="ScintillaNET\IdleStyling.cs" />
+    <Compile Include="ScintillaNET\ILoader.cs" />
+    <Compile Include="ScintillaNET\IndentView.cs" />
+    <Compile Include="ScintillaNET\Indicator.cs" />
+    <Compile Include="ScintillaNET\IndicatorClickEventArgs.cs" />
+    <Compile Include="ScintillaNET\IndicatorCollection.cs" />
+    <Compile Include="ScintillaNET\IndicatorFlags.cs" />
+    <Compile Include="ScintillaNET\IndicatorReleaseEventArgs.cs" />
+    <Compile Include="ScintillaNET\IndicatorStyle.cs" />
+    <Compile Include="ScintillaNET\InsertCheckEventArgs.cs" />
+    <Compile Include="ScintillaNET\Lexer.cs" />
+    <Compile Include="ScintillaNET\Line.cs" />
+    <Compile Include="ScintillaNET\LineCollection.cs" />
+    <Compile Include="ScintillaNET\LineEndType.cs" />
+    <Compile Include="ScintillaNET\ListCompletionMethod.cs" />
+    <Compile Include="ScintillaNET\Loader.cs" />
+    <Compile Include="ScintillaNET\Margin.cs" />
+    <Compile Include="ScintillaNET\MarginClickEventArgs.cs" />
+    <Compile Include="ScintillaNET\MarginCollection.cs" />
+    <Compile Include="ScintillaNET\MarginCursor.cs" />
+    <Compile Include="ScintillaNET\MarginOptions.cs" />
+    <Compile Include="ScintillaNET\MarginType.cs" />
+    <Compile Include="ScintillaNET\Marker.cs" />
+    <Compile Include="ScintillaNET\MarkerCollection.cs" />
+    <Compile Include="ScintillaNET\MarkerHandle.cs" />
+    <Compile Include="ScintillaNET\MarkerSymbol.cs" />
+    <Compile Include="ScintillaNET\ModificationEventArgs.cs" />
+    <Compile Include="ScintillaNET\ModificationSource.cs" />
+    <Compile Include="ScintillaNET\MultiPaste.cs" />
+    <Compile Include="ScintillaNET\NativeMemoryStream.cs" />
+    <Compile Include="ScintillaNET\NativeMethods.cs" />
+    <Compile Include="ScintillaNET\NeedShownEventArgs.cs" />
+    <Compile Include="ScintillaNET\Order.cs" />
+    <Compile Include="ScintillaNET\Phases.cs" />
+    <Compile Include="ScintillaNET\PopupMode.cs" />
+    <Compile Include="ScintillaNET\ProjectionEqualityComparer.cs" />
+    <Compile Include="ScintillaNET\PropertyType.cs" />
+    <Compile Include="ScintillaNET\Scintilla.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ScintillaNET\ScintillaControl.Designer.cs">
-      <DependentUpon>ScintillaControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ScintillaNET\ScintillaControl.Generated.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ScintillaNET\Structures.cs" />
-    <Compile Include="ScintillaNET\Utilities.cs" />
-    <Compile Include="ScintillaNET\WinAPI.cs" />
+    <Compile Include="ScintillaNET\ScintillaReader.cs" />
+    <Compile Include="ScintillaNET\SCNotificationEventArgs.cs" />
+    <Compile Include="ScintillaNET\SearchFlags.cs" />
+    <Compile Include="ScintillaNET\Selection.cs" />
+    <Compile Include="ScintillaNET\SelectionCollection.cs" />
+    <Compile Include="ScintillaNET\Status.cs" />
+    <Compile Include="ScintillaNET\Style.cs" />
+    <Compile Include="ScintillaNET\StyleCase.cs" />
+    <Compile Include="ScintillaNET\StyleCollection.cs" />
+    <Compile Include="ScintillaNET\StyleNeededEventArgs.cs" />
+    <Compile Include="ScintillaNET\TabDrawMode.cs" />
+    <Compile Include="ScintillaNET\Technology.cs" />
+    <Compile Include="ScintillaNET\Tuple.cs" />
+    <Compile Include="ScintillaNET\UpdateChange.cs" />
+    <Compile Include="ScintillaNET\UpdateUIEventArgs.cs" />
+    <Compile Include="ScintillaNET\VirtualSpace.cs" />
+    <Compile Include="ScintillaNET\WhitespaceMode.cs" />
+    <Compile Include="ScintillaNET\WrapIndentMode.cs" />
+    <Compile Include="ScintillaNET\WrapMode.cs" />
+    <Compile Include="ScintillaNET\WrapVisualFlagLocation.cs" />
+    <Compile Include="ScintillaNET\WrapVisualFlags.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />

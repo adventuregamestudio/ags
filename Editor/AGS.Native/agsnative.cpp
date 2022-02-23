@@ -2,8 +2,7 @@
 void ThrowManagedException(const char *message);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
-extern bool Scintilla_RegisterClasses(void *hInstance);
-extern int Scintilla_LinkLexers();
+extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 
 #include "agsnative.h"
 #include <allegro.h>

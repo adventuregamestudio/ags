@@ -122,7 +122,7 @@ void ContractionState<LINE>::InsertLine(Sci::Line lineDoc) {
 		heights->InsertSpace(lineDocCast, 1);
 		heights->SetValueAt(lineDocCast, 1);
 		foldDisplayTexts->InsertSpace(lineDocCast, 1);
-		foldDisplayTexts->SetValueAt(lineDocCast, nullptr);
+		foldDisplayTexts->SetValueAt(lineDocCast, __nullptr);
 		const Sci::Line lineDisplay = DisplayFromDoc(lineDoc);
 		displayLines->InsertPartition(lineDocCast, static_cast<LINE>(lineDisplay));
 		displayLines->InsertText(lineDocCast, 1);

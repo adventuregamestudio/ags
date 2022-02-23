@@ -119,6 +119,7 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ScintillaHelper.cs" />
     <Compile Include="ScintillaNET\Annotation.cs" />
     <Compile Include="ScintillaNET\AutoCSelectionEventArgs.cs" />
     <Compile Include="ScintillaNET\AutomaticFold.cs" />

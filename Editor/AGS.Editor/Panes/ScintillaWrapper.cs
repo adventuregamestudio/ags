@@ -117,6 +117,10 @@ namespace AGS.Editor
             this.scintillaControl1.WrapMode = WrapMode.None;
             this.scintillaControl1.ClearAll();
             this.scintillaControl1.Lexer = Lexer.Cpp;
+            // Disable preprocessor styling for now;
+            // to make this work properly we need to supply keywords for preprocessor,
+            // otherwise lexer will not know about external defines.
+            scintillaControl1.SetProperty("lexer.cpp.track.preprocessor", "0");
 
             scintillaControl1.StyleResetDefault();
 

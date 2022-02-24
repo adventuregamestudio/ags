@@ -118,8 +118,12 @@ namespace AGS.Editor
             this.scintillaControl1.ClearAll();
             this.scintillaControl1.Lexer = Lexer.Cpp;
 
+            scintillaControl1.StyleResetDefault();
+
             this.scintillaControl1.Styles[Style.Default].Font = DEFAULT_FONT;
             this.scintillaControl1.Styles[Style.Default].Size = DEFAULT_FONT_SIZE;
+
+            scintillaControl1.StyleClearAll();
 
             this.scintillaControl1.Styles[Style.BraceBad].Font = DEFAULT_FONT;
             this.scintillaControl1.Styles[Style.BraceBad].Size = DEFAULT_FONT_SIZE;

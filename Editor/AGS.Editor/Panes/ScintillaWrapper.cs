@@ -410,7 +410,7 @@ namespace AGS.Editor
         {
 			scintillaControl1.GotoPosition(scintillaControl1.Lines[this.CurrentLine].Position);
 			scintillaControl1.ExecuteCmd(Command.LineEndExtend);
-			scintillaControl1.LineScroll(0 - scintillaControl1.SelectedText.Length, 0);
+			scintillaControl1.LineScroll(0, 0 - scintillaControl1.SelectedText.Length);
         }
 
         public void AddBreakpoint(int lineNumber)

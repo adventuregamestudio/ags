@@ -68,7 +68,12 @@ namespace AGS.Editor
         public event ConstructContextMenuHandler ConstructContextMenu;
         public event ActivateContextMenuHandler ActivateContextMenu;
 
+        private bool _isDialogScript = false;
+        // Set keywords
         private List<string> _keywords = new List<string>();
+        // Autocomplete list
+        private List<string> _autoCKeywords = new List<string>();
+
         private bool _doBraceMatch = false;
         private bool _braceMatchVisible = false;
         private bool _doShowAutocomplete = false;
@@ -378,9 +383,21 @@ namespace AGS.Editor
             get { return scintillaControl1.FirstVisibleLine; }
         }
 
-        public void SetAsDialog()
+        /// <summary>
+        /// Whether to style the contents as dialog script, as opposed to regular script.
+        /// </summary>
+        public bool DialogScriptStyle
         {
-            scintillaControl1.Lexer = Lexer.Container;
+            get { return _isDialogScript; }
+            set
+            {
+                _isDialogScript = value;
+                scintillaControl1.Lexer = value ? Lexer.Container : Lexer.Cpp;
+                if (value)
+                    this.scintillaControl1.StyleNeeded += ScintillaControl1_StyleNeeded;
+                else
+                    this.scintillaControl1.StyleNeeded -= ScintillaControl1_StyleNeeded;
+            }
         }
 
         public void GoToPosition(int newPos)
@@ -489,19 +506,31 @@ namespace AGS.Editor
         public void SetKeyWords(string keyWords)
         {
             this.scintillaControl1.SetKeywords(0, keyWords);
+            SetNormalKeywords(keyWords);
             SetAutoCompleteKeyWords(keyWords);
         }
 
-        public void SetAutoCompleteKeyWords(string keyWords)
+        private void SetNormalKeywords(string keyWords)
         {
             _keywords.Clear();
+            string[] arr = keyWords.Split(' ');
+            foreach (string s in arr)
+            {
+                s.Trim();
+                _keywords.Add(s);
+            }
+        }
+
+        private void SetAutoCompleteKeyWords(string keyWords)
+        {
+            _autoCKeywords.Clear();
             string[] keywordArray = keyWords.Split(' ');
             foreach (string keyword in keywordArray)
             {
                 // "true" and "false" are actually enums, so don't list them as keywords
                 if ((keyword != "true") && (keyword != "false"))
                 {
-                    _keywords.Add(keyword + "?" + IMAGE_INDEX_KEYWORD);
+                    _autoCKeywords.Add(keyword + "?" + IMAGE_INDEX_KEYWORD);
                 }
             }
         }
@@ -2062,7 +2091,7 @@ namespace AGS.Editor
             }
             else
             {
-                foreach (string keyword in _keywords)
+                foreach (string keyword in _autoCKeywords)
                 {
                     globalsList.Add(keyword);
                 }
@@ -2306,6 +2335,210 @@ namespace AGS.Editor
             scintillaControl1.Markers[Marker.FolderTail].SetBackColor(t.GetColor("script-editor/text-editor/marknum-folder-tail"));
             scintillaControl1.SetSelectionBackColor(true, t.GetColor("script-editor/text-editor/selected"));
             scintillaControl1.CaretForeColor = t.GetColor("script-editor/text-editor/caret");
+        }
+
+        /// <summary>
+        /// Custom style the script, depending on a current mode.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ScintillaControl1_StyleNeeded(object sender, StyleNeededEventArgs e)
+        {
+            if (!_isDialogScript) return;
+
+            int line_number = scintillaControl1.LineFromPosition(scintillaControl1.GetEndStyled());
+            int end_pos = e.Position;
+
+            StyleDialogScript(line_number, end_pos);
+        }
+
+        private void StyleDialogScript(int linenum, int end)
+        {
+            int line_length = scintillaControl1.Lines[linenum].Length;
+            int start_pos = scintillaControl1.Lines[linenum].Position;
+            int laststyle = start_pos;
+
+            int stylingMode = Style.Cpp.Default;
+            if (start_pos > 0) stylingMode = scintillaControl1.GetStyleAt(start_pos - 1);
+
+            bool onNewLine = true;
+            bool onScriptLine = false;
+            int i;
+            scintillaControl1.StartStyling(start_pos);
+
+            for (i = start_pos; i < end; i++)
+            {
+                char c = (char)scintillaControl1.GetCharAt(i);
+
+                if (!Char.IsLetterOrDigit(c) && (stylingMode != Style.Cpp.Comment ||
+                    stylingMode != Style.Cpp.CommentLine || stylingMode != Style.Cpp.String))
+                {
+                    string lastword = previousWordFrom(i);
+                    if (lastword.Length != 0)
+                    {
+                        int newMode = stylingMode;
+                        if (onScriptLine && _keywords.Contains(lastword.Trim())) newMode = Style.Cpp.Word;
+                        if (!onScriptLine && stylingMode == Style.Cpp.Word2) // before colon
+                        {
+                            if (lastword.Trim() == "return" || lastword.Trim() == "stop") newMode = Style.Cpp.Word;
+                        }
+                        if (newMode != stylingMode)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle - lastword.Length, stylingMode);
+                            scintillaControl1.SetStyling(lastword.Length, newMode);
+                            laststyle = i;
+                        }
+                    }
+                }
+
+                if (c == '\n')
+                {
+                    onNewLine = true;
+                    onScriptLine = false;
+                    if (stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.String)
+                    {
+                        if (laststyle < i)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                            laststyle = i;
+                        }
+                        stylingMode = Style.Cpp.Default;
+                    }
+                    continue;
+                }
+
+                if (onNewLine)
+                {
+                    if (c == ' ')
+                    {
+                        onScriptLine = true;
+                        onNewLine = false;
+                        continue;
+                    }
+                }
+
+                if (onScriptLine)
+                {
+                    if (isOperator(c))
+                    {
+                        if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                            scintillaControl1.SetStyling(1, Style.Cpp.Operator);
+                            stylingMode = Style.Cpp.Default;
+                            laststyle = i + 1;
+                        }
+                    }
+
+                    else if (isNumeric(c))
+                    {
+                        if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                            scintillaControl1.SetStyling(1, Style.Cpp.Number);
+                            stylingMode = Style.Cpp.Default;
+                            laststyle = i + 1;
+                        }
+                    }
+                    else if (c == '"')
+                    {
+                        if (stylingMode == Style.Cpp.String)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle + 1, stylingMode);
+                            laststyle = i + 1;
+                            stylingMode = Style.Cpp.Default;
+                        }
+                        else stylingMode = Style.Cpp.String;
+                    }
+                }
+                else
+                {
+                    if (onNewLine && stylingMode != Style.Cpp.Comment)
+                    {
+                        scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                        stylingMode = Style.Cpp.Word2;
+                        laststyle = i;
+                    }
+                    if (c == ':' && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
+                    {
+                        scintillaControl1.SetStyling(i - laststyle + 1, stylingMode);
+                        laststyle = i + 1;
+                        stylingMode = Style.Cpp.Number;
+                    }
+                    if (c == '@' && stylingMode == Style.Cpp.Word2)
+                    {
+                        scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                        stylingMode = Style.Cpp.Number;
+                        laststyle = i;
+                    }
+                }
+
+                if (c == '/')
+                {
+                    if (stylingMode == Style.Cpp.Comment && scintillaControl1.GetCharAt(i - 1) == '*')
+                    {
+                        scintillaControl1.SetStyling(i - laststyle + 1, stylingMode);
+                        stylingMode = Style.Cpp.Default;
+                        laststyle = i + 1;
+                    }
+                    else if (scintillaControl1.GetCharAt(i + 1) == '*' && onScriptLine)
+                    {
+                        scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                        stylingMode = Style.Cpp.Comment;
+                        laststyle = i;
+                    }
+                    else if (scintillaControl1.GetCharAt(i + 1) == '/')
+                    {
+                        scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                        stylingMode = Style.Cpp.CommentLine;
+                        laststyle = i;
+                    }
+                }
+
+                onNewLine = false;
+            }
+
+            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+        }
+
+        private string previousWordFrom(int from)
+        {
+            from--;
+            StringBuilder word = new StringBuilder();
+
+            while (Char.IsLetterOrDigit((char)this.scintillaControl1.GetCharAt(from)) && from > 0)
+            {
+                word.Insert(0, (char)this.scintillaControl1.GetCharAt(from));
+                from--;
+            }
+
+            return word.ToString();
+        }
+
+
+        private bool isOperator(int token)
+        {
+            return (token == '(' ||
+                    token == ')' ||
+                    token == '{' ||
+                    token == '}' ||
+                    token == '+' ||
+                    token == '=' ||
+                    token == '*');
+        }
+
+        private bool isNumeric(int token)
+        {
+            return (token == '0' ||
+                    token == '1' ||
+                    token == '2' ||
+                    token == '3' ||
+                    token == '4' ||
+                    token == '5' ||
+                    token == '6' ||
+                    token == '7' ||
+                    token == '8' ||
+                    token == '9');
         }
     }
 }

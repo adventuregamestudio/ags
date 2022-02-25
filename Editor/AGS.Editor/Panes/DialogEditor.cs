@@ -83,7 +83,7 @@ namespace AGS.Editor
 
         private void InitScintilla()
         {
-            scintillaEditor.SetAsDialog();
+            scintillaEditor.DialogScriptStyle = true;
             scintillaEditor.AutoCompleteEnabled = true;
             scintillaEditor.IgnoreLinesWithoutIndent = true;
             scintillaEditor.AutoSpaceAfterComma = false;
@@ -93,7 +93,6 @@ namespace AGS.Editor
             //scintillaEditor.SetKeyWords(dialogKeyWords);
             scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
-            scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetAutoCompleteSource(_dialog);
             scintillaEditor.SetText(_dialog.Script);
             scintillaEditor.EnableLineNumbers();

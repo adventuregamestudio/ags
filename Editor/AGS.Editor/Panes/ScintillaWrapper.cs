@@ -2409,7 +2409,7 @@ namespace AGS.Editor
 
                 if (onNewLine)
                 {
-                    if (c == ' ')
+                    if (c == ' ' || c == '\t')
                     {
                         onScriptLine = true;
                         onNewLine = false;

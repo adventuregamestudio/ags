@@ -144,12 +144,6 @@ namespace AGS.Editor
 
         public void InitScintilla()
         {
-            scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            UpdateStructHighlighting();
-
-            // pressing ( [ or . will auto-complete
-            scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
-
             scintilla.EnableLineNumbers();
 
             scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
@@ -168,6 +162,8 @@ namespace AGS.Editor
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             UpdateStructHighlighting();
+            // pressing ( [ or . will auto-complete
+            scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
         }
 
         public void ActivateWindow()
@@ -255,7 +251,7 @@ namespace AGS.Editor
                     sb.Append(thisEnum.Name + " ");
                 }
             }
-            this.scintilla.SetClassNamesList(sb.ToString());
+            this.scintilla.SetKeyWords(sb.ToString(), ScintillaWrapper.WordListType.GlobalClasses);
         }
 
         private void UpdateFunctionList()

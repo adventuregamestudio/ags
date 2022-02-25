@@ -15,6 +15,17 @@ namespace AGS.Editor
     // This class is a bit of a mess ... autocomplete is out of control!!
     public partial class ScintillaWrapper : UserControl, IScriptEditorControl
     {
+        public enum WordListType
+        {
+            Keywords = 0,
+            Keywords2 = 1,
+            Documentation = 2,
+            GlobalClasses = 3,
+            Preprocessor = 4,
+            Marker = 5,
+            MaxCount
+        }
+
         public delegate void ConstructContextMenuHandler(ContextMenuStrip menuStrip, int clickedPositionInDocument);
         public delegate void ActivateContextMenuHandler(string commandName);
 
@@ -70,6 +81,8 @@ namespace AGS.Editor
 
         private bool _isDialogScript = false;
         // Set keywords
+        private List<string>[] _keywordSets = new List<string>[(int)WordListType.MaxCount];
+        // Full keyword list, for convenient use
         private List<string> _keywords = new List<string>();
         // Autocomplete list
         private List<string> _autoCKeywords = new List<string>();
@@ -144,6 +157,7 @@ namespace AGS.Editor
 
             this.scintillaControl1.Styles[Style.Cpp.Word].ForeColor = Color.FromArgb(0, 0, 244);
             this.scintillaControl1.Styles[Style.Cpp.Word2].ForeColor = Color.FromArgb(43, 145, 175);
+            this.scintillaControl1.Styles[Style.Cpp.GlobalClass].ForeColor = Color.FromArgb(43, 145, 175);
             this.scintillaControl1.Styles[Style.Cpp.Comment].ForeColor = Color.FromArgb(27, 127, 27);
             this.scintillaControl1.Styles[Style.Cpp.CommentLine].ForeColor = Color.FromArgb(27, 127, 27);
             this.scintillaControl1.Styles[Style.Cpp.CommentDoc].ForeColor = Color.FromArgb(27, 127, 27);
@@ -503,27 +517,54 @@ namespace AGS.Editor
             }
         }
 
-        public void SetKeyWords(string keyWords)
+        public void ClearAllKeyWords()
         {
-            this.scintillaControl1.SetKeywords(0, keyWords);
-            SetNormalKeywords(keyWords);
-            SetAutoCompleteKeyWords(keyWords);
+            for (WordListType type = WordListType.Keywords; type <= WordListType.Marker; ++type)
+            {
+                scintillaControl1.SetKeywords((int)type, "");
+            }
+            foreach (var set in _keywordSets) set.Clear();
+            _keywords.Clear();
+            _autoCKeywords.Clear();
         }
 
-        private void SetNormalKeywords(string keyWords)
+        // We need this to comply to the IScriptEditorControl
+        public void SetKeyWords(string keyWords)
         {
-            _keywords.Clear();
+            SetKeyWords(keyWords, WordListType.Keywords);
+        }
+
+        public void SetKeyWords(string keyWords, WordListType type)
+        {
+            scintillaControl1.SetKeywords((int)type, keyWords);
+
+            // Remove previous set keywords of the given type, then add new ones
+            if (_keywordSets[(int)type] == null) _keywordSets[(int)type] = new List<string>();
+            if (type == WordListType.Keywords) // other words are added differently
+            {
+                foreach (var k in _keywordSets[(int)type])
+                    _autoCKeywords.Remove(k);
+                AddAutoCompleteKeyWords(keyWords);
+            }
+            foreach (var k in _keywordSets[(int)type])
+                _keywords.Remove(k);
+            _keywordSets[(int)type].Clear();
+            SetNormalKeywords(keyWords, type);
+        }
+
+        private void SetNormalKeywords(string keyWords, WordListType type)
+        {
             string[] arr = keyWords.Split(' ');
             foreach (string s in arr)
             {
                 s.Trim();
+                _keywordSets[(int)type].Add(s);
                 _keywords.Add(s);
             }
         }
 
-        private void SetAutoCompleteKeyWords(string keyWords)
+        private void AddAutoCompleteKeyWords(string keyWords)
         {
-            _autoCKeywords.Clear();
             string[] keywordArray = keyWords.Split(' ');
             foreach (string keyword in keywordArray)
             {
@@ -533,11 +574,6 @@ namespace AGS.Editor
                     _autoCKeywords.Add(keyword + "?" + IMAGE_INDEX_KEYWORD);
                 }
             }
-        }
-
-        public void SetClassNamesList(string classNames)
-        {
-            this.scintillaControl1.SetKeywords(1, classNames);
         }
 
         public void SetFillupKeys(string fillupKeys)
@@ -2290,6 +2326,8 @@ namespace AGS.Editor
             scintillaControl1.Styles[Style.Cpp.Word].ForeColor = t.GetColor("script-editor/text-editor/word-1/foreground");
             scintillaControl1.Styles[Style.Cpp.Word2].BackColor = t.GetColor("script-editor/text-editor/word-2/background");
             scintillaControl1.Styles[Style.Cpp.Word2].ForeColor = t.GetColor("script-editor/text-editor/word-2/foreground");
+            scintillaControl1.Styles[Style.Cpp.GlobalClass].BackColor = t.GetColor("script-editor/text-editor/word-2/background");
+            scintillaControl1.Styles[Style.Cpp.GlobalClass].ForeColor = t.GetColor("script-editor/text-editor/word-2/foreground");
             scintillaControl1.Styles[Style.Cpp.Identifier].BackColor = t.GetColor("script-editor/text-editor/identifier/background");
             scintillaControl1.Styles[Style.Cpp.Identifier].ForeColor = t.GetColor("script-editor/text-editor/identifier/foreground");
             scintillaControl1.Styles[Style.Cpp.Comment].BackColor = t.GetColor("script-editor/text-editor/comment/background");

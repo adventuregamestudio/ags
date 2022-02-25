@@ -92,7 +92,7 @@ namespace AGS.Editor
             scintillaEditor.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
             //scintillaEditor.SetKeyWords(dialogKeyWords);
             scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
+            scintillaEditor.SetKeyWords(BuildCharacterKeywords(), ScintillaWrapper.WordListType.GlobalClasses);
             scintillaEditor.SetAutoCompleteSource(_dialog);
             scintillaEditor.SetText(_dialog.Script);
             scintillaEditor.EnableLineNumbers();

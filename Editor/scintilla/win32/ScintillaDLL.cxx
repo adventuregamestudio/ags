@@ -21,6 +21,7 @@ sptr_t __stdcall Scintilla_DirectFunction(
 	return Scintilla::DirectFunction(sci, iMessage, wParam, lParam);
 }
 
+/*
 extern "C" int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpvReserved) {
 	//Platform::DebugPrintf("Scintilla::DllMain %d %d\n", hInstance, dwReason);
 	if (dwReason == DLL_PROCESS_ATTACH) {
@@ -33,3 +34,4 @@ extern "C" int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpvR
 	}
 	return TRUE;
 }
+*/

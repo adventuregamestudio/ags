@@ -87,6 +87,9 @@ namespace AGS.Editor
 
         public ScintillaWrapper()
         {
+            // Scintilla is statically linked to our AGS.Native, therefore point to it
+            ScintillaNET.Scintilla.SetModulePath("AGS.Native.dll");
+
             InitializeComponent();
 
             if (AutoCompleteIcons.Count == 0)

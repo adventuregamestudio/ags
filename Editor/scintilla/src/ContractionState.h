@@ -1,65 +1,51 @@
 // Scintilla source code edit control
 /** @file ContractionState.h
- ** Manages visibility of lines for folding.
+ ** Manages visibility of lines for folding and wrapping.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2007 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef CONTRACTIONSTATE_H
 #define CONTRACTIONSTATE_H
 
-/**
- */
-class OneLine {
-public:
-	int displayLine;	///< Position within set of visible lines
-	//int docLine;		///< Inverse of @a displayLine
-	int height;	///< Number of display lines needed to show all of the line
-	bool visible;
-	bool expanded;
-
-	OneLine();
-	virtual ~OneLine() {}
-};
+namespace Scintilla {
 
 /**
- */
-class ContractionState {
-	void Grow(int sizeNew);
-	enum { growSize = 4000 };
-	int linesInDoc;
-	mutable int linesInDisplay;
-	mutable OneLine *lines;
-	int size;
-	mutable int *docLines;
-	mutable int sizeDocLines;
-	mutable bool valid;
-	void MakeValid() const;
-
+*/
+class IContractionState {
 public:
-	ContractionState();
-	virtual ~ContractionState();
+	virtual ~IContractionState() {};
 
-	void Clear();
+	virtual void Clear()=0;
 
-	int LinesInDoc() const;
-	int LinesDisplayed() const;
-	int DisplayFromDoc(int lineDoc) const;
-	int DocFromDisplay(int lineDisplay) const;
+	virtual Sci::Line LinesInDoc() const noexcept=0;
+	virtual Sci::Line LinesDisplayed() const noexcept=0;
+	virtual Sci::Line DisplayFromDoc(Sci::Line lineDoc) const noexcept=0;
+	virtual Sci::Line DisplayLastFromDoc(Sci::Line lineDoc) const noexcept=0;
+	virtual Sci::Line DocFromDisplay(Sci::Line lineDisplay) const noexcept=0;
 
-	void InsertLines(int lineDoc, int lineCount);
-	void DeleteLines(int lineDoc, int lineCount);
+	virtual void InsertLines(Sci::Line lineDoc, Sci::Line lineCount)=0;
+	virtual void DeleteLines(Sci::Line lineDoc, Sci::Line lineCount)=0;
 
-	bool GetVisible(int lineDoc) const;
-	bool SetVisible(int lineDocStart, int lineDocEnd, bool visible);
+	virtual bool GetVisible(Sci::Line lineDoc) const noexcept=0;
+	virtual bool SetVisible(Sci::Line lineDocStart, Sci::Line lineDocEnd, bool isVisible)=0;
+	virtual bool HiddenLines() const noexcept=0;
 
-	bool GetExpanded(int lineDoc) const;
-	bool SetExpanded(int lineDoc, bool expanded);
+	virtual const char *GetFoldDisplayText(Sci::Line lineDoc) const noexcept=0;
+	virtual bool SetFoldDisplayText(Sci::Line lineDoc, const char *text)=0;
 
-	int GetHeight(int lineDoc) const;
-	bool SetHeight(int lineDoc, int height);
+	virtual bool GetExpanded(Sci::Line lineDoc) const noexcept=0;
+	virtual bool SetExpanded(Sci::Line lineDoc, bool isExpanded)=0;
+	virtual Sci::Line ContractedNext(Sci::Line lineDocStart) const noexcept =0;
 
-	void ShowAll();
+	virtual int GetHeight(Sci::Line lineDoc) const noexcept=0;
+	virtual bool SetHeight(Sci::Line lineDoc, int height)=0;
+
+	virtual void ShowAll() noexcept=0;
 };
+
+std::unique_ptr<IContractionState> ContractionStateCreate(bool largeDocument);
+
+}
 
 #endif

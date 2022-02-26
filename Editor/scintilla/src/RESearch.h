@@ -9,17 +9,11 @@
 #ifndef RESEARCH_H
 #define RESEARCH_H
 
-/*
- * The following defines are not meant to be changeable.
- * They are for readability only.
- */
-#define MAXCHR	256
-#define CHRBIT	8
-#define BITBLK	MAXCHR/CHRBIT
+namespace Scintilla {
 
 class CharacterIndexer {
 public:
-	virtual char CharAt(int index)=0;
+	virtual char CharAt(Sci::Position index) const=0;
 	virtual ~CharacterIndexer() {
 	}
 };
@@ -27,39 +21,49 @@ public:
 class RESearch {
 
 public:
-	RESearch(CharClassify *charClassTable);
+	explicit RESearch(CharClassify *charClassTable);
+	// No dynamic allocation so default copy constructor and assignment operator are OK.
 	~RESearch();
-	bool GrabMatches(CharacterIndexer &ci);
-	const char *Compile(const char *pat, int length, bool caseSensitive, bool posix);
-	int Execute(CharacterIndexer &ci, int lp, int endp);
-	int Substitute(CharacterIndexer &ci, char *src, char *dst);
+	void Clear() noexcept;
+	void GrabMatches(const CharacterIndexer &ci);
+	const char *Compile(const char *pattern, Sci::Position length, bool caseSensitive, bool posix) noexcept;
+	int Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp);
 
-	enum {MAXTAG=10};
-	enum {MAXNFA=2048};
-	enum {NOTFOUND=-1};
+	static constexpr int MAXTAG = 10;
+	static constexpr int NOTFOUND = -1;
 
-	int bopat[MAXTAG];
-	int eopat[MAXTAG];
-	char *pat[MAXTAG];
+	Sci::Position bopat[MAXTAG];
+	Sci::Position eopat[MAXTAG];
+	std::string pat[MAXTAG];
 
 private:
-	void Init();
-	void Clear();
-	void ChSet(char c);
-	void ChSetWithCase(char c, bool caseSensitive);
 
-	int PMatch(CharacterIndexer &ci, int lp, int endp, char *ap);
+	static constexpr int MAXNFA = 4096;
+	// The following constants are not meant to be changeable.
+	// They are for readability only.
+	static constexpr int MAXCHR = 256;
+	static constexpr int CHRBIT = 8;
+	static constexpr int BITBLK = MAXCHR / CHRBIT;
 
-	int bol;
-	int  tagstk[MAXTAG]; /* subpat tag stack */
+	void ChSet(unsigned char c) noexcept;
+	void ChSetWithCase(unsigned char c, bool caseSensitive) noexcept;
+	int GetBackslashExpression(const char *pattern, int &incr) noexcept;
+
+	Sci::Position PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp, char *ap);
+
+	Sci::Position bol;
+	Sci::Position tagstk[MAXTAG];  /* subpat tag stack */
 	char nfa[MAXNFA];    /* automaton */
 	int sta;
-	char bittab[BITBLK]; /* bit table for CCL pre-set bits */
+	unsigned char bittab[BITBLK]; /* bit table for CCL pre-set bits */
 	int failure;
 	CharClassify *charClass;
-	bool iswordc(unsigned char x) {
+	bool iswordc(unsigned char x) const noexcept {
 		return charClass->IsWord(x);
 	}
 };
 
+}
+
 #endif
+

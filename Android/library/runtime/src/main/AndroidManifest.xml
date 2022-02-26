@@ -19,11 +19,9 @@
         android:required="false" /> <!-- External mouse input events -->
     <uses-feature
         android:name="android.hardware.type.pc"
-        android:required="false" /> <!-- Allow writing to external storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- Allow reading to external storage -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Allow access to Bluetooth devices -->
-    <uses-permission android:name="android.permission.BLUETOOTH" /> <!-- Allow access to the vibrator -->
-    <uses-permission android:name="android.permission.VIBRATE" />
+        android:required="false" />
+    <uses-permission android:name="android.permission.BLUETOOTH" /> <!-- Allow access to Bluetooth devices -->
+    <uses-permission android:name="android.permission.VIBRATE" /> <!-- Allow access to the vibrator -->
 
     <application
         android:allowBackup="true"

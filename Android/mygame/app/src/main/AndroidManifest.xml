@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mystudioname.mygamename"
@@ -6,25 +7,10 @@
     <!-- Required to access Google Play Licensing -->
     <uses-permission android:name="com.android.vending.CHECK_LICENSE" />
 
-    <!-- Required to download files from Google Play -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
     <!-- Required to keep CPU alive while downloading files
         (NOT to keep screen awake) -->
     <!-- But also required by the engine to keep the screen awake -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- Required to poll the state of the network connection
-        and respond to changes -->
-    <uses-permission
-        android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Required to check whether Wi-Fi is enabled -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-
-    <!-- Required to read and write the expansion files on shared storage -->
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name="com.mystudioname.mygamename.App"
@@ -37,7 +23,8 @@
 
         <activity android:configChanges="orientation|keyboardHidden|screenSize"
             tools:replace="android:configChanges"
-            android:name="uk.co.adventuregamestudio.runtime.AGSRuntimeActivity">
+            android:name="uk.co.adventuregamestudio.runtime.AGSRuntimeActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
@@ -45,7 +32,7 @@
 
         <activity
             android:name="com.mystudioname.mygamename.MainActivity"
-            android:label="@string/app_name" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

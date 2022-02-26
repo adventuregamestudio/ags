@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import uk.co.adventuregamestudio.runtime.PreferencesActivity
-import uk.co.adventuregamestudio.runtime.AGSRuntimeActivity
 import uk.co.adventuregamestudio.runtime.CreditsActivity
 import uk.co.adventuregamestudio.runtime.NativeHelper
 import java.io.File
@@ -34,6 +33,7 @@ import java.io.FilenameFilter
 import java.util.*
 import kotlin.collections.ArrayList
 import uk.co.adventuregamestudio.agsplayer.FileUtil
+import uk.co.adventuregamestudio.agsplayer.AGSPlayerRuntimeActivity
 
 
 class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickListener, GameListRecyclerViewAdapter.ItemCreateContextMenuListener {
@@ -224,7 +224,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
 //    }
 
     private fun startGame(filename: String, loadLastSave: Boolean) {
-        val intent = Intent(this, AGSRuntimeActivity::class.java)
+        val intent = Intent(this, AGSPlayerRuntimeActivity::class.java)
         val b = Bundle()
         b.putString("filename", filename)
         b.putString("directory", baseDirectory)

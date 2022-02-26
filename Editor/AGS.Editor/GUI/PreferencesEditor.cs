@@ -3,16 +3,34 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
     public partial class PreferencesEditor : Form
     {
         private AppSettings _settings;
+
+        private void UpdateAndroidKeystorePasswordState()
+        {
+            if (checkBoxAndroidShowPassword.Checked)
+            {
+                textBoxAndKeystorePassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.No.Password;
+                textBoxAndKeystoreKeyPassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.No.Password;
+            }
+            else
+            {
+                // Hides password using dot list character
+                textBoxAndKeystorePassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.Yes.Password;
+                textBoxAndKeystoreKeyPassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.Yes.Password;
+            }
+        }
+
         public void UpdateControlsForPreferences()
         {
             txtImportPath.Text = _settings.DefaultImportPath;
@@ -50,11 +68,33 @@ namespace AGS.Editor
             chkKeepHelpOnTop.Checked = _settings.KeepHelpOnTop;
             chkPromptDialogOnTabsClose.Checked = _settings.DialogOnMultipleTabsClose;
             cmbScriptReloadOnExternalChange.SelectedIndex = (int)_settings.ReloadScriptOnExternalChange;
+
+            txtAndJavaHomePath.Text = _settings.AndroidJavaHome;
+            radAndJavaHomePath.Checked = (_settings.AndroidJavaHome != string.Empty);
+            radAndJavaHomeEnv.Checked = (_settings.AndroidJavaHome == string.Empty);
+            txtAndJavaHomePath.Enabled = radAndJavaHomePath.Checked;
+            btnAndChooseJavaHomePath.Enabled = txtAndJavaHomePath.Enabled;
+
+            txtAndAndroidHomePath.Text = _settings.AndroidHome;
+            radAndAndroidHomePath.Checked = (_settings.AndroidHome != string.Empty);
+            radAndAndroidHomeEnv.Checked = (_settings.AndroidHome == string.Empty);
+            txtAndAndroidHomePath.Enabled = radAndAndroidHomePath.Checked;
+            btnAndChooseAndroidHomePath.Enabled = txtAndAndroidHomePath.Enabled;
+
+            textBoxAndKeystoreFile.Text = _settings.AndroidKeystoreFile;
+            textBoxAndKeystorePassword.Text = _settings.AndroidKeystorePassword;
+            textBoxAndKeystoreKeyAlias.Text = _settings.AndroidKeystoreKeyAlias;
+            textBoxAndKeystoreKeyPassword.Text = _settings.AndroidKeystoreKeyPassword;
+
+            androidHomeCheck();
+            javaHomeCheck();
         }
 
         public PreferencesEditor()
         {
             InitializeComponent();
+
+            UpdateAndroidKeystorePasswordState();
 
             _settings = Factory.AGSEditor.Settings.CloneAppSettings();
             // just in case they had it set to something silly in 2.72
@@ -333,5 +373,177 @@ namespace AGS.Editor
             }
         }
 
+        private void javaHomeCheck()
+        {
+            labelJdkOk.Visible = AndroidUtilities.IsJdkFound(_settings.AndroidJavaHome);
+        }
+
+        private void androidHomeCheck()
+        {
+            labelSdkOk.Visible = AndroidUtilities.IsSdkFound(_settings.AndroidHome);
+        }
+
+
+        private void radAndJavaHomeEnv_CheckedChanged(object sender, EventArgs e)
+        {
+            radAndJavaHomePath_CheckedChanged(sender, e);
+        }
+
+        private void radAndJavaHomePath_CheckedChanged(object sender, EventArgs e)
+        {
+            txtAndJavaHomePath.Enabled = radAndJavaHomePath.Checked;
+            btnAndChooseJavaHomePath.Enabled = radAndJavaHomePath.Checked;
+
+            _settings.AndroidJavaHome = (radAndJavaHomeEnv.Checked ? string.Empty : txtAndJavaHomePath.Text);
+            javaHomeCheck();
+        }
+
+        private void radAndAndroidHomeEnv_CheckedChanged(object sender, EventArgs e)
+        {
+            radAndAndroidHomePath_CheckedChanged(sender, e);
+        }
+
+        private void radAndAndroidHomePath_CheckedChanged(object sender, EventArgs e)
+        {
+            txtAndAndroidHomePath.Enabled = radAndAndroidHomePath.Checked;
+            btnAndChooseAndroidHomePath.Enabled = radAndAndroidHomePath.Checked;
+
+            _settings.AndroidHome = (radAndAndroidHomeEnv.Checked ? string.Empty : txtAndAndroidHomePath.Text);
+            androidHomeCheck();
+        }
+
+        private void btnAndChooseJavaHomePath_Click(object sender, EventArgs e)
+        {
+            string selectedPath = Factory.GUIController.ShowSelectFolderOrDefaultDialog("JAVA_HOME: Please select the JDK you wish to use (usually in a 'jre/' dir).", txtAndJavaHomePath.Text);
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                if (System.IO.Directory.Exists(selectedPath))
+                {
+                    txtAndJavaHomePath.Text = selectedPath;
+                    _settings.AndroidJavaHome = txtAndJavaHomePath.Text;
+                    javaHomeCheck();
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show("The directory you have selected does not exist. Please select a valid path.", "Invalid directory", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            radAndJavaHomePath.Checked = !string.IsNullOrEmpty(_settings.AndroidJavaHome);
+            radAndJavaHomeEnv.Checked = string.IsNullOrEmpty(_settings.AndroidJavaHome);
+            txtAndJavaHomePath.Text = _settings.AndroidJavaHome;
+            javaHomeCheck();
+        }
+
+        private void btnAndChooseAndroidHomePath_Click(object sender, EventArgs e)
+        {
+            string selectedPath = Factory.GUIController.ShowSelectFolderOrDefaultDialog("ANDROID_HOME: Please select the Android SDK you wish to use (usually in a 'Sdk/' dir).", txtAndAndroidHomePath.Text);
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                if (System.IO.Directory.Exists(selectedPath))
+                {
+                    txtAndAndroidHomePath.Text = selectedPath;
+                    _settings.AndroidHome = txtAndAndroidHomePath.Text;
+                    androidHomeCheck();
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show("The directory you have selected does not exist. Please select a valid path.", "Invalid directory", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            radAndAndroidHomePath.Checked = !string.IsNullOrEmpty(_settings.AndroidHome);
+            radAndAndroidHomeEnv.Checked = string.IsNullOrEmpty(_settings.AndroidHome);
+            txtAndAndroidHomePath.Text = _settings.AndroidHome;
+            androidHomeCheck();
+        }
+
+        private void checkBoxAndroidShowPassword_CheckStateChanged(object sender, EventArgs e)
+        {
+            UpdateAndroidKeystorePasswordState();
+        }
+
+        private void textBoxAndKeystoreFile_Validated(object sender, EventArgs e)
+        {
+            _settings.AndroidKeystoreFile = textBoxAndKeystoreFile.Text;
+        }
+
+        private void textBoxAndKeystorePassword_Validated(object sender, EventArgs e)
+        {
+            _settings.AndroidKeystorePassword = textBoxAndKeystorePassword.Text;
+        }
+
+        private void textBoxAndKeystoreKeyAlias_Validated(object sender, EventArgs e)
+        {
+            _settings.AndroidKeystoreKeyAlias = textBoxAndKeystoreKeyAlias.Text;
+        }
+
+        private void textBoxAndKeystoreKeyPassword_Validated(object sender, EventArgs e)
+        {
+            _settings.AndroidKeystoreKeyPassword = textBoxAndKeystoreKeyPassword.Text;
+        }
+        private void buttonAndroidGenerateKeystore_Click(object sender, EventArgs e)
+        {
+
+            GenerateAndroidKeystore dialog = new GenerateAndroidKeystore();
+            if (dialog.ShowDialog() == DialogResult.OK && dialog.Response != null)
+            {
+                GenerateAndroidKeystoreResponse r = dialog.Response;
+
+                // returned from OK, keystore info was updated 
+                textBoxAndKeystoreFile.Text = r.Keystore;
+                textBoxAndKeystorePassword.Text = r.Password;
+                textBoxAndKeystoreKeyAlias.Text = r.KeyAlias;
+                textBoxAndKeystoreKeyPassword.Text = r.KeyPassword;
+
+                _settings.AndroidKeystoreFile = textBoxAndKeystoreFile.Text;
+                _settings.AndroidKeystorePassword = textBoxAndKeystorePassword.Text;
+                _settings.AndroidKeystoreKeyAlias = textBoxAndKeystoreKeyAlias.Text;
+                _settings.AndroidKeystoreKeyPassword = textBoxAndKeystoreKeyPassword.Text;
+            }
+            dialog.Dispose();
+        }
+
+        private void buttonAndroidChooseKeystore_Click(object sender, EventArgs e)
+        {
+            string initialDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (!string.IsNullOrEmpty(textBoxAndKeystoreFile.Text)) {
+                string dir = Path.GetDirectoryName(textBoxAndKeystoreFile.Text);
+                if (Directory.Exists(dir)) initialDir = dir;
+            }
+
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = "Select an existing keystore.";
+            dialog.RestoreDirectory = true;
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
+            dialog.InitialDirectory = initialDir;
+            dialog.ValidateNames = true;
+            dialog.Filter = "Key store file (*.jks)|*.jks";
+
+            string selectedFile = null;
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                selectedFile = dialog.FileName;
+            }
+            dialog.Dispose();
+
+            if (!string.IsNullOrEmpty(selectedFile))
+            {
+                if (System.IO.File.Exists(selectedFile))
+                {
+                    textBoxAndKeystoreFile.Text = selectedFile;
+                    _settings.AndroidKeystoreFile = textBoxAndKeystoreFile.Text;
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show("The key store file selected does not exist. If you don't have a valid keystore, generate a new one.", "Invalid file", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+        }
     }
 }

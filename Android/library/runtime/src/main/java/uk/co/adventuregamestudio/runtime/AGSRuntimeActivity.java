@@ -1,5 +1,6 @@
 package uk.co.adventuregamestudio.runtime;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -12,18 +13,29 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import org.libsdl.app.SDL;
 import org.libsdl.app.SDLActivity;
 
 import android.Manifest;
 
 import android.content.Intent;
+import android.view.ContextMenu;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.InputMethodManager;
+
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,8 +51,8 @@ public class AGSRuntimeActivity extends SDLActivity {
     private String _android_app_directory = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
     private boolean _loadLastSave = false; // Can't be local variable since ags engine reads it. See acpland.cpp.
 
-    protected final int[] externalStorageRequestDummy = new int[1];
-    public static final int EXTERNAL_STORAGE_REQUEST_CODE = 2;
+    public static native void nativeSdlShowKeyboard();
+
     private static Boolean handledIntent = false;
 
     @Override
@@ -73,11 +85,6 @@ public class AGSRuntimeActivity extends SDLActivity {
 
         // must be reset or it will use the existing value.
         //gamePath = "";
-
-        if(!hasExternalStoragePermission())
-        {
-            showExternalStoragePermissionMissingDialog();
-        }
 
         // Get filename from "Open with" of another application
         // Get the game filename from the launcher activity
@@ -126,69 +133,151 @@ public class AGSRuntimeActivity extends SDLActivity {
 
 
         super.onCreate(savedInstanceState);
+        View view = getContentView();
+        registerForContextMenu(view);
     }
 
+    // Exit confirmation dialog displayed when hitting the "back" button
+    public void showExitConfirmation()
+    {
+        onPause();
 
-    public void showExternalStoragePermissionMissingDialog() {
-        AlertDialog dialog = new AlertDialog.Builder(mSingleton)
-                .setTitle("Storage Permission Missing")
-                .setMessage("AGS for Android will not be able to run non-packaged games without storage permission.")
-                .setNeutralButton("Continue", null)
-                .create();
-        dialog.show();
+        AlertDialog.Builder ad = new AlertDialog.Builder(this);
+        ad.setMessage("Are you sure you want to quit?");
+
+        ad.setPositiveButton("Yes", (dialog, which) -> {
+            onResume();
+            nativeSendQuit();
+        });
+
+        ad.setOnCancelListener(dialog -> onResume());
+        ad.setNegativeButton("No", (dialog, which) -> onResume());
+
+        ad.show();
+    }
+
+    public void toggleKeyboard()
+    {
+        new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                AGSRuntimeActivity::nativeSdlShowKeyboard,
+                200
+        );
+    }
+
+    public void simulateKeyPress(int key, boolean hold_ctrl){
+
+        new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                () -> {
+                    Activity a = (Activity) getContext();
+                    a.getWindow().getDecorView().getRootView();
+                    BaseInputConnection inputConnection = new BaseInputConnection(a.getWindow().getDecorView().getRootView(),
+                            true);
+                    if(hold_ctrl) inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CTRL_LEFT));
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, key));
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {
+
+                    }
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, key));
+                    if(hold_ctrl) inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_CTRL_LEFT));
+                },
+                200
+        );
+    }
+
+    public void simulateKeyPress(int key) {
+        simulateKeyPress(key, false);
+    }
+
+    public boolean onInGameMenuItemSelected(MenuItem item)
+    {
+        int id = item.getItemId();
+
+        // This must be if-else instead of switch-case because it is in a library
+        if (id == R.id.key_f1) {
+            simulateKeyPress(KeyEvent.KEYCODE_F1);
+        } else if(id == R.id.key_f2) {
+            simulateKeyPress(KeyEvent.KEYCODE_F2);
+        } else if(id == R.id.key_f3) {
+            simulateKeyPress(KeyEvent.KEYCODE_F3);
+        } else if(id == R.id.key_f4) {
+            simulateKeyPress(KeyEvent.KEYCODE_F4);
+        } else if(id == R.id.key_f5) {
+            simulateKeyPress(KeyEvent.KEYCODE_F5);
+        } else if(id == R.id.key_f6) {
+            simulateKeyPress(KeyEvent.KEYCODE_F6);
+        } else if(id == R.id.key_f7) {
+            simulateKeyPress(KeyEvent.KEYCODE_F7);
+        } else if(id == R.id.key_f8) {
+            simulateKeyPress(KeyEvent.KEYCODE_F8);
+        } else if(id == R.id.key_f9) {
+            simulateKeyPress(KeyEvent.KEYCODE_F9);
+        } else if(id == R.id.key_f10) {
+            simulateKeyPress(KeyEvent.KEYCODE_F10);
+        } else if(id == R.id.key_f11) {
+            simulateKeyPress(KeyEvent.KEYCODE_F11);
+        } else if(id == R.id.key_f12) {
+            simulateKeyPress(KeyEvent.KEYCODE_F12);
+        } else if(id == R.id.key_ctrla) {
+            simulateKeyPress(KeyEvent.KEYCODE_A, true);
+        } else if(id == R.id.key_ctrlq) {
+            simulateKeyPress(KeyEvent.KEYCODE_Q, true);
+        } else if(id == R.id.key_ctrlv) {
+            simulateKeyPress(KeyEvent.KEYCODE_V, true);
+        } else if(id == R.id.key_ctrlx) {
+            simulateKeyPress(KeyEvent.KEYCODE_X, true);
+        } else if(id == R.id.exitgame) {
+            showExitConfirmation();
+        } else if(id == R.id.toggle_keyboard) {
+            toggleKeyboard();
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int getInGameMenuID()
+    {
+        return R.menu.default_ingame;
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (grantResults.length > 0) {
-            Log.d("AGSRuntimeActivity", "Received a request permission result");
-
-            switch (requestCode) {
-                case EXTERNAL_STORAGE_REQUEST_CODE: {
-                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        Log.d("AGSRuntimeActivity", "Permission granted");
-                    } else {
-                        Log.d("AGSRuntimeActivity", "Did not get permission.");
-                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                            showExternalStoragePermissionMissingDialog();
-                        }
-                    }
-
-                    Log.d("AGSRuntimeActivity", "Unlocking AGS thread");
-                    synchronized (externalStorageRequestDummy) {
-                        externalStorageRequestDummy[0] = grantResults[0];
-                        externalStorageRequestDummy.notify();
-                    }
-                    break;
-                }
-                default:
-                    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            }
-        }
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(getInGameMenuID(), menu);
     }
 
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item)
+    {
+        if (this.onInGameMenuItemSelected(item)) return true;
+        return super.onOptionsItemSelected(item);
+    }
 
-    @Keep
-    public boolean hasExternalStoragePermission() {
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
+    public void showInGameMenu()
+    {
+        View view = getContentView();
+        openContextMenu(view);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent ev)
+    {
+        int action = ev.getAction();
+        int key = ev.getKeyCode();
+
+        if(action == KeyEvent.ACTION_DOWN && key == KeyEvent.KEYCODE_BACK)
+        {
+            showInGameMenu();
             return true;
         }
 
-        Log.d("AGSRuntimeActivity", "Requesting permission and locking AGS thread until we have an answer.");
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_REQUEST_CODE);
-
-        synchronized (externalStorageRequestDummy) {
-            try {
-                externalStorageRequestDummy.wait();
-            } catch (InterruptedException e) {
-                Log.d("AGSRuntimeActivity", "requesting external storage permission", e);
-                return false;
-            }
-        }
-
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return super.dispatchKeyEvent(ev);
     }
 
     @Keep

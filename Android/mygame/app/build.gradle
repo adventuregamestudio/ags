@@ -10,13 +10,16 @@ projectProperties.load(new FileInputStream(projectPropertiesFile))
 
 android {
     compileSdkVersion = 29
-    buildToolsVersion = '29.0.2'
-
+    buildToolsVersion = '30.0.3'
+    def appIdParts = projectProperties['applicationId'].split(/\./)
+    def nameCount = appIdParts.size()
+    def appIdLastPart = appIdParts[nameCount-1]
 
     assetPacks = [":game"]
 
     defaultConfig {
         applicationId projectProperties['applicationId']
+        archivesBaseName = "app-" + appIdLastPart
         minSdkVersion 19
         targetSdkVersion 29
         versionCode Integer.parseInt(projectProperties.getProperty('versionCode'))
@@ -37,6 +40,11 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.release
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

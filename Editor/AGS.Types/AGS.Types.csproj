@@ -116,6 +116,7 @@
     <Compile Include="EditorFeatures\MenuCommands.cs" />
     <Compile Include="EditorFeatures\MessageBoxIconType.cs" />
     <Compile Include="EditorFeatures\RoomTemplate.cs" />
+    <Compile Include="Enums\AndroidBuildFormat.cs" />
     <Compile Include="Enums\FontAutoOutlineStyle.cs" />
     <Compile Include="Enums\CrossfadeSpeed.cs" />
     <Compile Include="Enums\CustomPropertyAppliesTo.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Enums\RoomResolution.cs" />
     <Compile Include="Enums\RoomTransitionStyle.cs" />
     <Compile Include="Enums\RoomVolumeAdjustment.cs" />
+    <Compile Include="Enums\ScreenRotationMode.cs" />
     <Compile Include="Enums\SkipSpeechStyle.cs" />
     <Compile Include="Enums\SourceControlFileStatus.cs" />
     <Compile Include="Enums\SpeechPortraitSide.cs" />

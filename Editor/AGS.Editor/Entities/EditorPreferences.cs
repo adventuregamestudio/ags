@@ -719,6 +719,137 @@ namespace AGS.Editor.Preferences
             }
         }
 
+        [Browsable(true)]
+        [DisplayName("JAVA_HOME")]
+        [Description("The path to your JRE and JDK directory, usually 'C:\\Program Files\\Android\\Android Studio\\jre'. Leave empty if your JAVA_HOME environment variable is set.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
+        public string AndroidJavaHome
+        {
+            get
+            {
+                return (string)(this["AndroidJavaHome"]);
+            }
+            set
+            {
+                this["AndroidJavaHome"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("ANDROID_HOME")]
+        [Description("The path to your Android SDK directory, usually 'C:\\Users\\user\\AppData\\Local\\Android\\Sdk'. Leave empty if your ANDROID_HOME environment variable is set.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FolderNameEditor), typeof(UITypeEditor))]
+        public string AndroidHome
+        {
+            get
+            {
+                return (string)(this["AndroidHome"]);
+            }
+            set
+            {
+                this["AndroidHome"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Keystore File Path")]
+        [Description("Your Keystore File (*.jks/*.store).")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [EditorAttribute(typeof(FileNameEditor), typeof(UITypeEditor))]
+        public string AndroidKeystoreFile
+        {
+            get 
+            { 
+                return (string)(this["AndroidKeystoreFile"]); 
+            }
+            set 
+            { 
+                this["AndroidKeystoreFile"] = value; 
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Keystore Password")]
+        [Description("Keystore Password. Must be the same as Key Password for most key types.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [PasswordPropertyText(true)]
+        public string AndroidKeystorePassword
+        {
+            get 
+            { 
+                return (string)(this["AndroidKeystorePassword"]);
+            }
+            set 
+            {
+                this["AndroidKeystorePassword"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Key Alias")]
+        [Description("Keystore Key Alias")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("key0")]
+        [UserScopedSettingAttribute()]
+        public string AndroidKeystoreKeyAlias
+        {
+            get
+            {
+                return (string)(this["AndroidKeystoreKeyAlias"]);
+            }
+            set
+            {
+                this["AndroidKeystoreKeyAlias"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Key Password")]
+        [Description("Keystore Key Password. Must be the same as Keystore Password for most key types.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("")]
+        [UserScopedSettingAttribute()]
+        [PasswordPropertyText(true)]
+        public string AndroidKeystoreKeyPassword
+        {
+            get
+            {
+                return (string)(this["AndroidKeystoreKeyPassword"]);
+            }
+            set
+            {
+                this["AndroidKeystoreKeyPassword"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Use gradle daemon")]
+        [Description("Gradle daemon can severily improve building speed, but it may increase ram usage. If you are recurrently building for Android, consider turning it on.")]
+        [Category("Android")]
+        [DefaultSettingValueAttribute("false")]
+        [UserScopedSettingAttribute()]
+        public bool AndroidBuildGradleDaemon
+        {
+            get
+            {
+                return (bool)(this["AndroidBuildGradleDaemon"]);
+            }
+            set
+            {
+                this["AndroidBuildGradleDaemon"] = value;
+            }
+        }
+
         [Browsable(false)]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("640")]

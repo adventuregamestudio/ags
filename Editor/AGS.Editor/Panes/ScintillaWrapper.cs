@@ -303,14 +303,6 @@ namespace AGS.Editor
             scintillaControl1.Margins[2].Sensitive = true;
         }
 
-        /// <summary>
-        /// Gets the caret position at the end of indentation on the specified line
-        /// </summary>
-        private int GetLineIndentationPosition(int line)
-        {
-            return (int)scintillaControl1.DirectMessage(ScintillaHelper.SCI_GETLINEINDENTPOSITION, (IntPtr)line, (IntPtr)0);
-        }
-
         void scintillaControl1_MarginClick(object sender, MarginClickEventArgs e)
         {
             int lineNumber = scintillaControl1.LineFromPosition(e.Position);
@@ -973,7 +965,7 @@ namespace AGS.Editor
                         previousLineIndent += scintillaControl1.TabWidth;
                     }
                     scintillaControl1.Lines[lineNumber].Indentation = previousLineIndent;
-                    scintillaControl1.GotoPosition(GetLineIndentationPosition(lineNumber));
+                    scintillaControl1.GotoPosition(scintillaControl1.GetLineIndentationPosition(lineNumber));
                 }
             }
             // The following events must be piped to the UpdateUI event,

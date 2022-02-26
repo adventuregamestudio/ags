@@ -27,6 +27,15 @@ namespace AGS.Controls
             }
         }
 
+        /// <summary>
+        /// Gets the caret position at the end of indentation on the specified line
+        /// </summary>
+        public static int GetLineIndentationPosition(this Scintilla control, int line)
+        {
+            return control.Lines.ByteToCharPosition(
+                (int)control.DirectMessage(SCI_GETLINEINDENTPOSITION, (IntPtr)line, (IntPtr)0));
+        }
+
         public static unsafe int DirectMessage(this Scintilla control, int msg, int wParam, string lParam)
         {
             fixed (byte* bp = Encoding.UTF8.GetBytes(ZeroTerminated(lParam)))

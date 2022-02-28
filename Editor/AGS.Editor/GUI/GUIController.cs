@@ -11,6 +11,8 @@ using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
+using System.Drawing.Text;
+using System.Linq;
 
 namespace AGS.Editor
 {
@@ -71,6 +73,7 @@ namespace AGS.Editor
 
         private GUIController()
         {
+            InstalledFonts = new InstalledFontCollection().Families.ToDictionary(t => t.Name, t => t.Name);
             _menuItems = new Dictionary<string, IEditorComponent>();
         }
 
@@ -140,7 +143,9 @@ namespace AGS.Editor
 
         public ColorThemes ColorThemes { get; private set; }
 
-		public void ShowMessage(string message, MessageBoxIconType icon)
+        public Dictionary<string, string> InstalledFonts { get; private set; }
+
+        public void ShowMessage(string message, MessageBoxIconType icon)
 		{
 			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
 			if (icon == MessageBoxIconType.Warning)

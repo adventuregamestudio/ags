@@ -85,6 +85,14 @@ namespace AGS.Editor.Preferences
         }
     }
 
+    public class InstalledFontTypeConverter : BaseListSelectTypeConverter<string, string>
+    {
+        protected override Dictionary<string, string> GetValueList(ITypeDescriptorContext context)
+        {
+            return Factory.GUIController.InstalledFonts;
+        }
+    }
+
     public class RecentGame : IEquatable<RecentGame>
     {
         // default constructor is needed to serialize
@@ -678,6 +686,45 @@ namespace AGS.Editor.Preferences
             set
             {
                 this["DialogOnMultipleTabsClose"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Script Font")]
+        [Description("Font used in the script editor.")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("Courier New")]
+        [TypeConverter(typeof(InstalledFontTypeConverter))]
+        public string ScriptFont
+        {
+            get
+            {
+                return (string)(this["ScriptFont"]);
+            }
+            set
+            {
+                this["ScriptFont"] = value;
+            }
+        }
+
+
+        [Browsable(true)]
+        [DisplayName("Script Font Size")]
+        [Description("Font used in the script editor.")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("10")]
+        public int ScriptFontSize
+        {
+            get
+            {
+                return (int)(this["ScriptFontSize"]);
+            }
+            set
+            {
+                if (value < 8) value = 8;
+                this["ScriptFontSize"] = value;
             }
         }
 

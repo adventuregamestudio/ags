@@ -10,6 +10,13 @@ namespace AGS.Types
 {
     public static class Utilities
     {
+        /// <summary>
+        /// A UTF-8 Encoding without BOM.
+        /// Unfortunately, default UTF8 encoding provided by .NET is with BOM,
+        /// so we define our own to refer to whenever we need to save files in utf-8.
+        /// </summary>
+        public static Encoding UTF8 = new UTF8Encoding(false);
+
         public static void Swap<T>(this IList<T> list, int index1, int index2)
         {
             if (index1 == index2)

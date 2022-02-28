@@ -98,6 +98,24 @@ namespace AGS.Editor
             Factory.Events.OnGameSettingsChanged();
         }
 
+        private void HandleGameTextFormatChange(string oldFormat, string newFormat)
+        {
+            if (oldFormat == newFormat)
+                return;
+            if (Factory.GUIController.ShowQuestion("Changing the game text format will make the editor and engine treat all the text in all the game files in accordance to the new setting.\n\n"
+                +"* If this is a completely new project - you won't have any trouble.\n\n* If this is a work in progress, and you were using only basic Latin characters in your game, then the text will remain the same.\n\n"
+                +"* If, on other hand, your game contains extended Latin characters or non-Latin languages, these texts may become wrong and require manual conversion.\n\n"
+                +"NOTE: the Translation files will remain unaffected by this setting.\n\nAre you sure you want to continue?",
+                MessageBoxIcon.Warning) == DialogResult.No)
+            {
+                Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding = oldFormat;
+            }
+            else
+            {
+                Factory.Events.OnGameSettingsChanged();
+            }
+        }
+
         private void gameSettings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             // TODO: I find it kind of wrong that general settings pane class decides which
@@ -125,6 +143,10 @@ namespace AGS.Editor
             else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RESOLUTION)
             {
                 HandleGameResolutionChange((Size)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.CustomResolution);
+            }
+            else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_TEXT_FORMAT))
+            {
+                HandleGameTextFormatChange((string)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ALLOWRELATIVEASSETS) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS) ||

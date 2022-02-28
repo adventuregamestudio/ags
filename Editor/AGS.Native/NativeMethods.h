@@ -1,5 +1,6 @@
 #pragma once
 #include <string.h>
+#include "NativeUtils.h"
 
 using namespace AGS::Types;
 using namespace System;
@@ -16,6 +17,8 @@ namespace AGS
 		{
 		private:
 			cli::array<PaletteEntry^>^ lastPaletteSet;
+            static TextConverter^ _gameTextConverter;
+
       void UpdateResourceInFile(String ^fileToUpdate, const char *resourceName, cli::array<System::Byte> ^newData);
       BaseTemplate^ LoadTemplateFile(String ^fileName, bool isRoomTemplate);
       void FindAndUpdateMemory(unsigned char *data, int dataLen, const unsigned char *searchFor, int searchForLen, const unsigned char *replaceWith);
@@ -23,6 +26,8 @@ namespace AGS
 
 		public:
 			NativeMethods(String ^version);
+
+            static TextConverter^ GetGameTextConverter();
 
 			void Initialize();
             void NewWorkingDirSet(String^ workingDir);

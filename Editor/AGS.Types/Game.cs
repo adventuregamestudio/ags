@@ -111,6 +111,23 @@ namespace AGS.Types
             InitializeDefaultPalette();
         }
 
+        public Encoding TextEncoding
+        {
+            get
+            {
+                if (string.Compare(_settings.GameTextEncoding, "ANSI", true) == 0)
+                    return Encoding.Default;
+                else if (string.Compare(_settings.GameTextEncoding, "UTF-8", true) == 0)
+                    return Utilities.UTF8; // UTF-8 w/o BOM
+                return Encoding.GetEncoding(_settings.GameTextEncoding);
+            }
+        }
+
+        public bool UnicodeMode
+        {
+            get { return string.Compare(_settings.GameTextEncoding, "UTF-8", true) == 0; }
+        }
+
         public string[] GlobalMessages
         {
             get { return _globalMessages; }

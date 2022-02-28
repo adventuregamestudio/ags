@@ -54,34 +54,6 @@ namespace AGS.Editor
             return Enum.GetName(typeof(T), enumValue);
         }
 
-        private void ResizeAllGUIs(Size oldResolution, Size newResolution)
-        {
-            int oldWidth = oldResolution.Width;
-            int oldHeight = oldResolution.Height;
-            int newWidth = newResolution.Width;
-            int newHeight = newResolution.Height;
-
-            foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
-            {
-                NormalGUI theGui = gui as NormalGUI;
-                if (theGui != null)
-                {
-                    theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
-                    theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
-                    theGui.Left = (theGui.Left * newWidth) / oldWidth;
-                    theGui.Top = (theGui.Top * newHeight) / oldHeight;
-
-                    foreach (GUIControl control in theGui.Controls)
-                    {
-                        control.Width = Math.Max((control.Width * newWidth) / oldWidth, 1);
-                        control.Height = Math.Max((control.Height * newHeight) / oldHeight, 1);
-                        control.Left = (control.Left * newWidth) / oldWidth;
-                        control.Top = (control.Top * newHeight) / oldHeight;
-                    }
-                }
-            }
-        }
-
         private void HandleGameResolutionChange(Size oldResolution, Size newResolution)
         {
             if (newResolution == oldResolution)
@@ -93,7 +65,7 @@ namespace AGS.Editor
             string newResolutionText = Types.Utilities.ResolutionToUserString(newResolution);
             if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from '{0}' to '{1}'.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
             {
-                ResizeAllGUIs(oldResolution, newResolution);
+                Factory.AGSEditor.Tasks.ResizeAllGUIs(oldResolution, newResolution);
             }
             Factory.Events.OnGameSettingsChanged();
         }

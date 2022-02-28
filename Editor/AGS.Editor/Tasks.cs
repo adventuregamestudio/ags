@@ -1,10 +1,10 @@
-using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types;
 using AGS.Editor.Preferences;
 
 namespace AGS.Editor
@@ -782,5 +782,35 @@ namespace AGS.Editor
             sb.AppendLine("};");
         }
 
+        /// <summary>
+        /// Resizes all GUI from one game resolution to another.
+        /// </summary>
+        public void ResizeAllGUIs(System.Drawing.Size oldResolution, System.Drawing.Size newResolution)
+        {
+            int oldWidth = oldResolution.Width;
+            int oldHeight = oldResolution.Height;
+            int newWidth = newResolution.Width;
+            int newHeight = newResolution.Height;
+
+            foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
+            {
+                NormalGUI theGui = gui as NormalGUI;
+                if (theGui != null)
+                {
+                    theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
+                    theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
+                    theGui.Left = (theGui.Left * newWidth) / oldWidth;
+                    theGui.Top = (theGui.Top * newHeight) / oldHeight;
+
+                    foreach (GUIControl control in theGui.Controls)
+                    {
+                        control.Width = Math.Max((control.Width * newWidth) / oldWidth, 1);
+                        control.Height = Math.Max((control.Height * newHeight) / oldHeight, 1);
+                        control.Left = (control.Left * newWidth) / oldWidth;
+                        control.Top = (control.Top * newHeight) / oldHeight;
+                    }
+                }
+            }
+        }
     }
 }

@@ -3514,7 +3514,14 @@ int GetCurrentlyLoadedRoomNumber()
 
 void convert_room_from_native(const RoomStruct &rs, Room ^room)
 {
+    // Use local converter to account for room encoding (could be imported from another game)
     TextConverter^ tcv = TextHelper::GetGameTextConverter();
+    try
+    {
+        auto enc_opt = rs.StrOptions.at("textencoding");
+        tcv = gcnew TextConverter(System::Text::Encoding::GetEncoding(enc_opt.ToInt()));
+    }
+    catch (...) {}
 
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
@@ -3824,6 +3831,9 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     convert_room_interactions_to_native(room, rs);
     if (room->Script->CompiledData)
 	    rs.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+
+    // Encoding hint
+    rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
 }
 
 void save_crm_file(Room ^room)

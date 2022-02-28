@@ -465,11 +465,13 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
             String::FromFormat("Type: %d, known range: %d - %d.", block, kRoomFblk_Main, kRoomFblk_ObjectScNames));
     }
 
-    // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
-    // if (ext_id.CompareNoCase("REGION_NEWPROPS") == 0)
-    // {
-    //     // read new region properties
-    // }
+    // Add extensions here checking ext_id, which is an up to 16-chars name
+    if (ext_id.CompareNoCase("ext_sopts") == 0)
+    {
+        StrUtil::ReadStringMap(room->StrOptions, in);
+        return HError::None();
+    }
+
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
         String::FromFormat("Type: %s", ext_id.GetCStr()));
 }
@@ -823,6 +825,11 @@ void WritePropertiesBlock(const RoomStruct *room, Stream *out)
         Properties::WriteValues(room->Objects[i].Properties, out);
 }
 
+void WriteStrOptions(const RoomStruct *room, Stream *out)
+{
+    StrUtil::WriteStringMap(room->StrOptions, out);
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
@@ -846,6 +853,9 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
         WriteRoomBlock(room, kRoomFblk_AnimBg, WriteAnimBgBlock, out);
     // Custom properties
     WriteRoomBlock(room, kRoomFblk_Properties, WritePropertiesBlock, out);
+
+    // String options
+    WriteRoomBlock(room, "ext_sopts", WriteStrOptions, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

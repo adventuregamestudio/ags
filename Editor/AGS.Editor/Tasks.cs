@@ -387,7 +387,15 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060020)
             {
-                game.Settings.GameTextEncoding = "ANSI";
+                if (game.SavedXmlEncodingCodePage.HasValue &&
+                    game.SavedXmlEncodingCodePage.Value == 65001)
+                {
+                    game.Settings.GameTextEncoding = "UTF-8";
+                }
+                else
+                { // NOTE: use Encoding.GetEncoding(game.SavedXmlEncodingCodePage) if actual codepage is needed
+                    game.Settings.GameTextEncoding = "ANSI";
+                }
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);

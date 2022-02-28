@@ -68,6 +68,7 @@ namespace AGS.Types
 		private string _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private string _savedXmlEditorVersion = null;
+        private int? _savedXmlEncodingCP = null;
 
         public Game()
         {
@@ -381,9 +382,16 @@ namespace AGS.Types
             set { _savedXmlVersionIndex = value; }
         }
 
-		/// <summary>
-		/// Full path to the directory where the game is located
-		/// </summary>
+        /// <summary>
+        /// The code page of the Game.agf file that was loaded from disk.
+        /// </summary>
+        public int? SavedXmlEncodingCodePage
+        {
+            get { return _savedXmlEncodingCP; }
+            set { _savedXmlEncodingCP = value; }
+        }
+
+		/// <summary>		/// Full path to the directory where the game is located		/// </summary>
 		public string DirectoryPath
 		{
 			get { return _directoryPath; }

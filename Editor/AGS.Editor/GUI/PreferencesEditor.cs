@@ -58,8 +58,9 @@ namespace AGS.Editor
             cmbIndentStyle.SelectedIndex = _settings.IndentUseTabs ? 1 : 0;
             chkAlwaysShowViewPreview.Checked = _settings.ShowViewPreviewByDefault;
             cmbSpriteImportTransparency.SelectedIndex = (int)_settings.SpriteImportMethod;
+            string selected_color_theme = _settings.ColorTheme;
             cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
-            cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == _settings.ColorTheme);
+            cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == selected_color_theme);
             chkUsageInfo.Checked = _settings.SendAnonymousStats;
             udBackupInterval.Value = (_settings.BackupWarningInterval > 0) ? _settings.BackupWarningInterval : 1;
             chkBackupReminders.Checked = (_settings.BackupWarningInterval != 0);

@@ -75,9 +75,9 @@ namespace AGS.Editor
             if (oldFormat == newFormat)
                 return;
             if (Factory.GUIController.ShowQuestion("Changing the game text format will make the editor and engine treat all the text in all the game files in accordance to the new setting.\n\n"
-                +"* If this is a completely new project - you won't have any trouble.\n\n* If this is a work in progress, and you were using only basic Latin characters in your game, then the text will remain the same.\n\n"
-                +"* If, on other hand, your game contains extended Latin characters or non-Latin languages, these texts may become wrong and require manual conversion.\n\n"
-                +"NOTE: the Translation files will remain unaffected by this setting.\n\nAre you sure you want to continue?",
+                + "IMPORTANT: the Editor will now convert the game files and scripts to a new format. This may take a while, depending on your game's size.\n\n"
+                + "IMPORTANT: the Translation files will remain unaffected by this setting, as they have their own individual encoding setting.\n\n"
+                + "Are you sure you want to continue?",
                 MessageBoxIcon.Warning) == DialogResult.No)
             {
                 Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding = oldFormat;
@@ -85,6 +85,13 @@ namespace AGS.Editor
             else
             {
                 Factory.Events.OnGameSettingsChanged();
+                BusyDialog.Show("Please wait while we convert game files to the new text format...",
+                    (o) => {
+                        Factory.AGSEditor.Tasks.ConvertAllGameTexts(
+                            Types.Utilities.EncodingFromName(oldFormat),
+                            Types.Utilities.EncodingFromName(newFormat));
+                        return null;
+                    }, null);
             }
         }
 

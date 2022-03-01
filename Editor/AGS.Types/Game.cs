@@ -114,14 +114,7 @@ namespace AGS.Types
 
         public Encoding TextEncoding
         {
-            get
-            {
-                if (string.Compare(_settings.GameTextEncoding, "ANSI", true) == 0)
-                    return Encoding.Default;
-                else if (string.Compare(_settings.GameTextEncoding, "UTF-8", true) == 0)
-                    return Utilities.UTF8; // UTF-8 w/o BOM
-                return Encoding.GetEncoding(_settings.GameTextEncoding);
-            }
+            get {  return Utilities.EncodingFromName(_settings.GameTextEncoding); }
         }
 
         public bool UnicodeMode

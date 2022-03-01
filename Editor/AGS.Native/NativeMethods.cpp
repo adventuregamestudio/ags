@@ -29,7 +29,7 @@ extern bool initialize_native();
 extern void shutdown_native();
 extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
-extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
+extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
 extern void save_crm_file(Room ^roomToSave);
 extern void save_default_crm_file(Room ^roomToSave);
 extern AGSString import_sci_font(const AGSString &filename, int fslot);
@@ -498,9 +498,9 @@ namespace AGS
 			return load_sprite_dimensions();
 		}
 
-		AGS::Types::Room^ NativeMethods::LoadRoomFile(UnloadedRoom^ roomToLoad)
+		AGS::Types::Room^ NativeMethods::LoadRoomFile(UnloadedRoom^ roomToLoad, System::Text::Encoding ^defEncoding)
 		{
-			return load_crm_file(roomToLoad);
+			return load_crm_file(roomToLoad, defEncoding);
 		}
 
 		void NativeMethods::SaveRoomFile(AGS::Types::Room ^roomToSave)

@@ -1424,8 +1424,8 @@ namespace AGS.Editor
                 // potential enum autocomplete
                 bool atLeastOneEquals = false;
                 checkAtPos--;
-                while ((this.scintillaControl1.GetCharAt(checkAtPos) == ' ') ||
-                       (this.scintillaControl1.GetCharAt(checkAtPos) == '='))
+                while (checkAtPos > 0 && ((this.scintillaControl1.GetCharAt(checkAtPos) == ' ') ||
+                       (this.scintillaControl1.GetCharAt(checkAtPos) == '=')))
                 {
                     if (this.scintillaControl1.GetCharAt(checkAtPos) == '=')
                     {

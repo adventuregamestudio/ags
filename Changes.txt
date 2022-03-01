@@ -1,5 +1,19 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 9, March 2022
+
+Editor:
+ - Removed restriction on max dialog topics in the project. The dialog limit in the engine was
+   removed in 3.4.1, but remained in the Editor by oversight.
+ - Fixed Audio Clip items in the project tree not displaying their IDs right after being renamed.
+
+Compiler:
+ - Fixed crash occuring when compiler tries to report "Already referenced name as import" error.
+
+Engine:
+ - Added "--translation" and "--no-translation" command-line arguments.
+
+
 VERSION 3.5.1 - Patch 8, Ferbuary 2022
 
 Engine:

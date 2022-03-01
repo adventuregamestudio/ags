@@ -344,9 +344,9 @@ namespace AGS.Editor
             reader.Close();
 
             List<Script> scriptsImported = new List<Script>();
-            Script header = new Script(null, enc.GetString(scriptBytes), enc.GetString(name),
+            Script header = new Script(null, enc.GetString(headerBytes), enc.GetString(name),
                 enc.GetString(description), enc.GetString(author), version, uniqueKey, true);
-            Script mainScript = new Script(null, enc.GetString(headerBytes), enc.GetString(name),
+            Script mainScript = new Script(null, enc.GetString(scriptBytes), enc.GetString(name),
                 enc.GetString(description), enc.GetString(author), version, uniqueKey, false);
             scriptsImported.Add(header);
             scriptsImported.Add(mainScript);

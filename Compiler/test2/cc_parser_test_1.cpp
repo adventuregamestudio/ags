@@ -2350,3 +2350,88 @@ TEST_F(Compile1, IfClauseFloat)
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'float'"));
 }
+
+TEST_F(Compile1, SideEffectExpression1)
+{
+    // If a bracketed subexpression has a side effect then
+    // the expression has a side effect.
+    // Compiler shouldn't warn about an expression without side effects
+
+    char *inpl = "\
+        builtin managed struct Character {              \n\
+            int Payload;                                \n\
+        };                                              \n\
+        import readonly Character character[];          \n\
+                                                        \n\
+        int game_start()                                \n\
+        {                                               \n\
+            int i = 0;                                  \n\
+            character[i++].Payload;                     \n\
+        }                                               \n\
+        ";
+    AGS::MessageHandler mh;
+    int const compile_result = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    ASSERT_EQ(0u, mh.GetMessages().size());
+}
+
+TEST_F(Compile1, SideEffectExpression2)
+{
+    // A function symbol isn't suitable for an expression
+    // that should have side effects.
+    // Compiler should complain about 'SaveTheWorld;'
+
+    char *inpl = "\
+        import int SaveTheWorld();      \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            SaveTheWorld;               \n\
+        }                               \n\
+        ";
+    AGS::MessageHandler mh;
+    int const compile_result = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    EXPECT_NE(std::string::npos, mh.GetError().Message.find("'('"));
+}
+
+TEST_F(Compile1, SideEffectExpression3)
+{
+    // A function symbol isn't suitable for an expression
+    // that should have side effects.
+    // Compiler should complain about 'Initialize;' in the 'for' loop
+
+    char *inpl = "\
+        import int Initialize();        \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            for (Initialize; true; )    \n\
+            { }                         \n\
+        }                               \n\
+        ";
+    AGS::MessageHandler mh;
+    int const compile_result = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    EXPECT_NE(std::string::npos, mh.GetError().Message.find("'('"));
+}
+
+TEST_F(Compile1, SideEffectExpression4)
+{
+    // A function symbol isn't suitable for an expression
+    // that should have side effects.
+    // Compiler should complain about 'Increment' in the 'for' loop
+
+    char *inpl = "\
+        import int Increment();         \n\
+                                        \n\
+        int game_start()                \n\
+        {                               \n\
+            for (; ; Increment)         \n\
+            { }                         \n\
+        }                               \n\
+        ";
+    AGS::MessageHandler mh;
+    int const compile_result = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
+}

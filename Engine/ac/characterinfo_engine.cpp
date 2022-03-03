@@ -59,7 +59,7 @@ int CharacterInfo::get_blocking_bottom() {
     return y + 3;
 }
 
-void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, int &numSheep, int *followingAsSheep)
+void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep)
 {
 	int res;
 
@@ -99,7 +99,7 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, in
 		return;				      //  must be careful not to screw things up
 	}
 
-	update_character_follower(char_index, numSheep, followingAsSheep, doing_nothing);
+	update_character_follower(char_index, followingAsSheep, doing_nothing);
 
 	update_character_idle(chex, doing_nothing);
 
@@ -387,14 +387,11 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 	return 0;
 }
 
-void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *followingAsSheep, int &doing_nothing)
+void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followingAsSheep, int &doing_nothing)
 {
 	if ((following >= 0) && (followinfo == FOLLOW_ALWAYSONTOP)) {
       // an always-on-top follow
-      if (numSheep >= MAX_SHEEP)
-        quit("too many sheep");
-      followingAsSheep[numSheep] = aa;
-      numSheep++;
+      followingAsSheep.push_back(aa);
     }
     // not moving, but should be following another character
     else if ((following >= 0) && (doing_nothing == 1)) {

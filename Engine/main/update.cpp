@@ -205,7 +205,7 @@ void update_shadow_areas()
   }
 }
 
-void update_character_move_and_anim(int &numSheep, int *followingAsSheep)
+void update_character_move_and_anim(std::vector<int> &followingAsSheep)
 {
 	// move & animate characters
   for (int aa=0;aa<game.numcharacters;aa++) {
@@ -214,15 +214,15 @@ void update_character_move_and_anim(int &numSheep, int *followingAsSheep)
     CharacterInfo*chi    = &game.chars[aa];
 	CharacterExtras*chex = &charextra[aa];
 
-	chi->UpdateMoveAndAnim(aa, chex, numSheep, followingAsSheep);
+	chi->UpdateMoveAndAnim(aa, chex, followingAsSheep);
   }
 }
 
-void update_following_exactly_characters(int &numSheep, int *followingAsSheep)
+void update_following_exactly_characters(const std::vector<int> &followingAsSheep)
 {
 	// update location of all following_exactly characters
-  for (int aa = 0; aa < numSheep; aa++) {
-    CharacterInfo *chi = &game.chars[followingAsSheep[aa]];
+  for (size_t i = 0; i < followingAsSheep.size(); ++i) {
+    CharacterInfo *chi = &game.chars[followingAsSheep[i]];
 
 	chi->UpdateFollowingExactlyCharacter();
   }
@@ -472,12 +472,11 @@ void update_stuff() {
   
   our_eip = 22;
 
-  int numSheep = 0;
-  int followingAsSheep[MAX_SHEEP];
+  std::vector<int> followingAsSheep;
 
-  update_character_move_and_anim(numSheep, followingAsSheep);
+  update_character_move_and_anim(followingAsSheep);
 
-  update_following_exactly_characters(numSheep, followingAsSheep);
+  update_following_exactly_characters(followingAsSheep);
 
   our_eip = 23;
 

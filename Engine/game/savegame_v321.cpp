@@ -19,6 +19,7 @@
 //
 //=============================================================================
 #include "core/types.h"
+#include "ac/button.h"
 #include "ac/characterextras.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
@@ -55,8 +56,7 @@ extern CharacterExtras *charextra;
 extern MoveList *mls;
 extern RGB palette[256];
 extern DialogTopic *dialog;
-extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
-extern int numAnimButs;
+extern std::vector<AnimatingGUIButton> animbuts;
 extern int ifacepopped;
 extern int mouse_on_iface;
 extern Bitmap *raw_saved_screen;
@@ -240,12 +240,14 @@ static void restore_game_more_dynamic_values(Stream *in)
     game_paused=in->ReadInt32();
 }
 
-static void ReadAnimatedButtons_Aligned(Stream *in)
+void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < numAnimButs; ++i)
+    for (int i = 0; i < num_abuts; ++i)
     {
-        animbuts[i].ReadFromFile(&align_s);
+        AnimatingGUIButton abtn;
+        abtn.ReadFromFile(&align_s);
+        AddButtonAnimation(abtn);
         align_s.Reset();
     }
 }
@@ -262,8 +264,9 @@ static HSaveError restore_game_gui(Stream *in, int numGuisWas)
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of GUI.");
     }
 
-    numAnimButs = in->ReadInt32();
-    ReadAnimatedButtons_Aligned(in);
+    RemoveAllButtonAnimations();
+    int anim_count = in->ReadInt32();
+    ReadAnimatedButtons_Aligned(in, anim_count);
     return HSaveError::None();
 }
 

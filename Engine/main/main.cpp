@@ -84,6 +84,7 @@ const char *loadSaveGameOnStartup = nullptr;
 int psp_video_framedrop = 1;
 int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0; // clear --sprite cache-- when room is unloaded
+int psp_rotation = 0;
 
 char psp_game_file_name[] = "";
 char psp_translation[] = "default";
@@ -155,6 +156,7 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
            "  --conf FILEPATH              Specify explicit config file to read on startup\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --console-attach             Write output to the parent process's console\n"
@@ -201,11 +203,14 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --no-message-box             Disable alerts as modal message boxes\n"
 #endif
+           "  --no-translation             Use default game language on start\n"
            "  --noiface                    Don't draw game GUI\n"
            "  --noscript                   Don't run room scripts; *WARNING:* unreliable\n"
            "  --nospr                      Don't draw room objects and characters\n"
            "  --noupdate                   Don't run game update\n"
            "  --novideo                    Don't play game videos\n"
+           "  --rotation <MODE>            Screen rotation preferences. MODEs are:\n"
+           "                                 unlocked (0), portrait (1), landscape (2)\n"
            "  --sdl-log=LEVEL              Setup SDL backend logging level\n"
            "                               LEVELs are:\n"
            "                                 verbose (1), debug (2), info (3), warn (4),\n"
@@ -226,6 +231,7 @@ void main_print_help() {
            "  --tell-graphicdriver         Print list of supported graphic drivers\n"
            "\n"
            "  --test                       Run game in the test mode\n"
+           "  --translation <name>         Select the given translation on start\n"
            "  --version                    Print engine's version and stop\n"
            "  --user-data-dir DIR          Set the save game directory\n"
            "  --windowed                   Force display mode to windowed\n"
@@ -314,6 +320,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             play.takeover_from[49] = 0;
             ee += 2;
         }
+        else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
+        {
+            INIwritestring(cfg, "misc", "clear_cache_on_room_change", "1");
+        }
         else if (ags_strnicmp(arg, "--tell", 6) == 0) {
             if (arg[6] == 0)
                 tellInfoKeys.insert(String("all"));
@@ -345,6 +355,14 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             else
                 INIwritestring(cfg, "graphics", "game_scale_win", "max_round");
         }
+        else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
+        {
+            INIwritestring(cfg, "language", "translation", argv[++ee]);
+        }
+        else if (ags_stricmp(arg, "--no-translation") == 0)
+        {
+            INIwritestring(cfg, "language", "translation", "");
+        }
         else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
         else if (ags_stricmp(arg, "--noiface") == 0) debug_flags |= DBG_NOIFACE;
@@ -355,6 +373,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--nomusic") == 0) debug_flags |= DBG_NOMUSIC;
         else if (ags_stricmp(arg, "--noscript") == 0) debug_flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "--novideo") == 0) debug_flags |= DBG_NOVIDEO;
+        else if (ags_stricmp(arg, "--rotation") == 0 && (argc > ee + 1))
+        {
+            INIwritestring(cfg, "graphics", "rotation", argv[++ee]);
+        }
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
         {
             String logarg = arg + 6;

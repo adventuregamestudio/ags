@@ -347,11 +347,13 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
 }
 
 // Variables used for mobile port configs
+extern int psp_rotation;
 extern int psp_gfx_renderer;
 extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
+extern int psp_clear_cache_on_room_change;
 extern char psp_translation[];
 #if AGS_PLATFORM_OS_ANDROID
 extern int config_mouse_control_mode;
@@ -406,6 +408,12 @@ void override_config_ext(ConfigTree &cfg)
     else
         INIwriteint(cfg, "graphics", "supersampling", 0);
 
+    // psp_gfx_rotation - scaling style:
+    //    * 0 - unlocked, let the user rotate as wished.
+    //    * 1 - portrait
+    //    * 2 - landscape
+    INIwriteint(cfg, "graphics", "rotation", psp_rotation);
+
 #if AGS_PLATFORM_OS_ANDROID
     // config_mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
@@ -415,6 +423,7 @@ void override_config_ext(ConfigTree &cfg)
 
     INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
     INIwritestring(cfg, "language", "translation", psp_translation);
+    INIwriteint(cfg, "misc", "clear_cache_on_room_change", psp_clear_cache_on_room_change != 0);
 }
 
 void apply_config(const ConfigTree &cfg)
@@ -450,11 +459,18 @@ void apply_config(const ConfigTree &cfg)
         usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
         usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
 
+        usetup.rotation = (ScreenRotation)INIreadint(cfg, "graphics", "rotation", usetup.rotation);
+        String rotation_str = INIreadstring(cfg, "graphics", "rotation", "unlocked");
+        usetup.rotation = StrUtil::ParseEnum<ScreenRotation>(
+                rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
+                usetup.rotation);
+
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
 
         // This option is backwards (usevox is 0 if no_speech_pack)
         usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;
 
+        usetup.clear_cache_on_room_change = INIreadint(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
         usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = INIreadstring(cfg, "misc", "shared_data_dir");
 

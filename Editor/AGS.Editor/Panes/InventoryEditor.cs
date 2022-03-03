@@ -56,7 +56,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Inventory";
+            return "Inventory Items Editor";
         }
 
         public InventoryItem ItemToEdit

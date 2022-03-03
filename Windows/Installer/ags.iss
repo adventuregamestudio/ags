@@ -52,6 +52,8 @@ ComponentMain=Main files
 ComponentEngines=Engines
 ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
+ComponentWebBuild=Web build component
+ComponentAndroidBuild=Android build component
 ; ComponentDemoGame=Demo Game
 InstallOptions=Install options
 InstallVCRedist=Install {#VcRedistName}
@@ -64,6 +66,8 @@ Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Fla
 Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
 Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
 Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
+Name: "web"; Description: "{cm:ComponentWebBuild}"; Types: full custom
+Name: "android"; Description: "{cm:ComponentAndroidBuild}"; Types: full custom
 ; Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
@@ -111,6 +115,14 @@ Source: "Source\Linux\ags64"; DestDir: "{app}\Linux"; Flags: ignoreversion; Comp
 Source: "Source\Linux\lib32\*"; DestDir: "{app}\Linux\lib32"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
 Source: "Source\Linux\lib64\*"; DestDir: "{app}\Linux\lib64"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
 Source: "Source\Linux\licenses\*"; DestDir: "{app}\Linux\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+; Web build components
+Source: "Source\Web\ags.wasm"; DestDir: "{app}\Web"; Flags: ignoreversion; Components: web
+Source: "Source\Web\ags.js"; DestDir: "{app}\Web"; Flags: ignoreversion; Components: web
+Source: "Source\Web\index.html"; DestDir: "{app}\Web"; Flags: ignoreversion; Components: web
+; Android build components
+Source: "Source\Android\mygame\*"; DestDir: "{app}\Android\mygame"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
+Source: "Source\Android\gradle\*"; DestDir: "{app}\Android\gradle"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
+Source: "Source\Android\library\*"; DestDir: "{app}\Android\library"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 ; Demo game
 ; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
 ; Visual C++ runtime

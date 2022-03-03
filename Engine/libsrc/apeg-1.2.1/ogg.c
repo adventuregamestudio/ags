@@ -473,7 +473,7 @@ unsigned char **altheora_get_frame(APEG_LAYER *layer)
 }
 
 /* Decodes Vorbis audio into the internal PCM sound buffer */
-static void alvorbis_get_data(APEG_LAYER *layer)
+void alvorbis_get_data(APEG_LAYER *layer)
 {
 	ALOGG_INFO *info = layer->ogg_info;
 

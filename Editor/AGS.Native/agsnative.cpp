@@ -2,8 +2,7 @@
 void ThrowManagedException(const char *message);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
-extern bool Scintilla_RegisterClasses(void *hInstance);
-extern int Scintilla_LinkLexers();
+extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 
 #define NOMINMAX
 #include "agsnative.h"
@@ -837,7 +836,9 @@ void new_font () {
 
 bool initialize_native()
 {
-    set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+    // Set text encoding and init allegro
+    set_uformat(U_UTF8);
+    set_filename_encoding(U_UNICODE);
     install_allegro(SYSTEM_NONE, &errno, atexit);
 
     AssetMgr.reset(new AssetManager());
@@ -1442,8 +1443,8 @@ void SaveTempSpritefile(int store_flags, AGS::Common::SpriteCompression compress
         throw gcnew AGSEditorException("Unable to create a temporary file to save sprites to.", e);
     }
 
-    AGSString n_temp_spritefile = ConvertPathToNativeString(temp_spritefile);
-    AGSString n_temp_indexfile = ConvertPathToNativeString(temp_indexfile);
+    AGSString n_temp_spritefile = TextHelper::ConvertUTF8(temp_spritefile);
+    AGSString n_temp_indexfile = TextHelper::ConvertUTF8(temp_indexfile);
     AGS::Common::SpriteFileIndex index;
     if (spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index) != 0)
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
@@ -1477,7 +1478,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     {
         if (IO::File::Exists(sprfilename))
             IO::File::Delete(sprfilename);
-        String^ path = ToStrUTF8(temp_spritefile);
+        String^ path = TextHelper::ConvertUTF8(temp_spritefile);
         IO::File::Move(path, sprfilename);
     }
     catch (Exception ^e)
@@ -1491,7 +1492,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
         if (IO::File::Exists(sprindexfilename))
             IO::File::Delete(sprindexfilename);
         if (!temp_indexfile.IsEmpty())
-            IO::File::Move(ToStrUTF8(temp_indexfile), sprindexfilename);
+            IO::File::Move(TextHelper::ConvertUTF8(temp_indexfile), sprindexfilename);
     }
     catch (Exception^)
     {// TODO: ignore for now, but proper warning output system in needed here
@@ -1538,7 +1539,7 @@ void SaveNativeSprites(Settings^ gameSettings)
         {
             throw gcnew AGSEditorException(
                 String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
-                    Environment::NewLine, ToStrUTF8(saved_spritefile)), main_exception);
+                    Environment::NewLine, TextHelper::ConvertUTF8(saved_spritefile)), main_exception);
         }
     }
     spritesModified = false;
@@ -1553,12 +1554,13 @@ void SetGameResolution(Game ^game)
 void GameDirChanged(String ^workingDir)
 {
     AssetMgr->RemoveAllLibraries();
-    AssetMgr->AddLibrary(ConvertPathToNativeString(workingDir));
+    AssetMgr->AddLibrary(TextHelper::ConvertUTF8(workingDir));
 }
 
 void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
 void GameUpdated(Game ^game, bool forceUpdate) {
+  set_uformat(game->UnicodeMode ? U_UTF8 : U_ASCII);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;
@@ -1567,6 +1569,7 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
+  thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
@@ -2124,10 +2127,12 @@ void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette)
 
 void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui) 
 {
+  TextConverter^ tcv = TextHelper::GetGameTextConverter();
+
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	gui->OnClickHandler = ConvertStringToNativeString(normalGui->OnClick);
+	gui->OnClickHandler = TextHelper::ConvertASCII(normalGui->OnClick);
 	gui->X = normalGui->Left;
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
@@ -2153,7 +2158,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->BgColor = guiObj->BackgroundColor;
   gui->BgImage = guiObj->BackgroundImage;
   
-  gui->Name = ConvertStringToNativeString(guiObj->Name);
+  gui->Name = TextHelper::ConvertASCII(guiObj->Name);
 
   gui->RemoveAllControls();
 
@@ -2179,8 +2184,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
           guibuts[numguibuts].SetClipImage(button->ClipImage);
-          guibuts[numguibuts].SetText(ConvertStringToNativeString(button->Text));
-          guibuts[numguibuts].EventHandlers[0] = ConvertStringToNativeString(button->OnClick);
+          guibuts[numguibuts].SetText(tcv->Convert(button->Text));
+          guibuts[numguibuts].EventHandlers[0] = TextHelper::ConvertASCII(button->OnClick);
 		  
           gui->AddControl(Common::kGUIButton, numguibuts, &guibuts[numguibuts]);
 		  numguibuts++;
@@ -2191,7 +2196,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilabels[numguilabels].TextColor = label->TextColor;
 		  guilabels[numguilabels].Font = label->Font;
 		  guilabels[numguilabels].TextAlignment = (::HorAlignment)label->TextAlignment;
-          Common::String text = ConvertStringToNativeString(label->Text);
+          Common::String text = tcv->Convert(label->Text);
 		  guilabels[numguilabels].SetText(text);
 
           gui->AddControl(Common::kGUILabel, numguilabels, &guilabels[numguilabels]);
@@ -2203,7 +2208,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].TextColor = textbox->TextColor;
 		  guitext[numguitext].Font = textbox->Font;
           guitext[numguitext].SetShowBorder(textbox->ShowBorder);
-          guitext[numguitext].EventHandlers[0] = ConvertStringToNativeString(textbox->OnActivate);
+          guitext[numguitext].EventHandlers[0] = TextHelper::ConvertASCII(textbox->OnActivate);
 
           gui->AddControl(Common::kGUITextBox, numguitext, &guitext[numguitext]);
 		  numguitext++;
@@ -2219,7 +2224,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist[numguilist].SetTranslated(listbox->Translated);
           guilist[numguilist].SetShowBorder(listbox->ShowBorder);
 		  guilist[numguilist].SetShowArrows(listbox->ShowScrollArrows);
-          guilist[numguilist].EventHandlers[0] = ConvertStringToNativeString(listbox->OnSelectionChanged);
+          guilist[numguilist].EventHandlers[0] = TextHelper::ConvertASCII(listbox->OnSelectionChanged);
 
           gui->AddControl(Common::kGUIListBox, numguilist, &guilist[numguilist]);
 		  numguilist++;
@@ -2233,7 +2238,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].HandleImage = slider->HandleImage;
 		  guislider[numguislider].HandleOffset = slider->HandleOffset;
 		  guislider[numguislider].BgImage = slider->BackgroundImage;
-          guislider[numguislider].EventHandlers[0] = ConvertStringToNativeString(slider->OnChange);
+          guislider[numguislider].EventHandlers[0] = TextHelper::ConvertASCII(slider->OnChange);
 
           gui->AddControl(Common::kGUISlider, numguislider, &guislider[numguislider]);
 		  numguislider++;
@@ -2265,7 +2270,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->Height = control->Height;
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
-      newObj->Name = ConvertStringToNativeString(control->Name);
+      newObj->Name = TextHelper::ConvertASCII(control->Name);
   }
 
   gui->RebuildArray();
@@ -2312,24 +2317,26 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 
 void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, const AGS::Common::StringIMap *propToConvert)
 {
+    TextConverter^ tcv = TextHelper::GetGameTextConverter();
     for (AGS::Common::StringIMap::const_iterator it = propToConvert->begin();
          it != propToConvert->end(); ++it)
 	{
 		CustomProperty ^newProp = gcnew CustomProperty();
-		newProp->Name = ToStr(it->first);
-		newProp->Value = ToStr(it->second);
+		newProp->Name = TextHelper::ConvertASCII(it->first); // property name is always ASCII
+		newProp->Value = tcv->Convert(it->second);
 		insertInto->PropertyValues->Add(newProp->Name, newProp);
 	}
 }
 
 void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Common::StringIMap *compileInto)
 {
+    TextConverter^ tcv = TextHelper::GetGameTextConverter();
 	compileInto->clear();
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
         AGS::Common::String name, value;
-		name = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name);
-		value = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value);
+		name = TextHelper::ConvertASCII(convertFrom->PropertyValues[key]->Name); // property name is ASCII
+		value = tcv->Convert(convertFrom->PropertyValues[key]->Value);
 		(*compileInto)[name] = value;
 	}
 }
@@ -2341,9 +2348,9 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
     (charid < game->Characters->Count) &&
 		(game->Characters[charid]->ScriptName->Length > 0))
 	{
-		ConvertStringToCharArray(game->Characters[charid]->ScriptName,  charScriptNameBuf, 100); 
+		TextHelper::ConvertASCIIToArray(game->Characters[charid]->ScriptName, charScriptNameBuf, 100); 
 	}
-	else 
+	else
 	{
 		sprintf(charScriptNameBuf, "character[%d]", charid);
 	}
@@ -2359,7 +2366,7 @@ void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::Intera
 
 	for (size_t i = 0; i < source->ScriptFuncNames.size(); i++) 
 	{
-		destination->ScriptFunctionNames[i] = ToStr(source->ScriptFuncNames[i]);
+		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->ScriptFuncNames[i]);
 	}
 }
 
@@ -2374,10 +2381,11 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     loaded_game_file_version = kGameVersion_Current;
 	if (!err)
 	{
-		throw gcnew AGS::Types::AGSEditorException(ToStrUTF8(err->FullMessage()));
+		throw gcnew AGS::Types::AGSEditorException(TextHelper::ConvertUTF8(err->FullMessage()));
 	}
 
 	Game^ game = gcnew Game();
+    game->Settings->GameTextEncoding = thisgame.options[OPT_GAMETEXTENCODING] == 65001 ? "UTF-8" : "ANSI";
     game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
 	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
 	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);
@@ -2418,6 +2426,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
 
+    TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
+
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;
 	game->Settings->InventoryHotspotMarker->Image = thisgame.invhotdotsprite;
@@ -2457,7 +2467,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			pluginData[j] = data_ptr[j];
 		}
 		
-		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(ToStr(thisgamePlugins[i].Name), pluginData);
+		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(TextHelper::ConvertASCII(thisgamePlugins[i].Name), pluginData);
 		game->Plugins->Add(plugin);
 	}
 
@@ -2465,7 +2475,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	for (i = 0; i < numGlobalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(ToStr(globalvars[i].Name), globalvars[i].Value);
+		intVar = gcnew OldInteractionVariable(TextHelper::ConvertASCII(globalvars[i].Name), globalvars[i].Value);
 		game->OldInteractionVariables->Add(intVar);
 	}
     */
@@ -2474,7 +2484,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	for (i = 0; i < thisgame.numviews; i++) 
 	{
 		AGS::Types::View ^view = gcnew AGS::Types::View();
-		view->Name = ToStr(thisgame.viewNames[i]);
+		view->Name = TextHelper::ConvertASCII(thisgame.viewNames[i]);
 		view->ID = i + 1;
 
 		for (int j = 0; j < newViews[i].numLoops; j++) 
@@ -2581,7 +2591,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			newDialog->Options->Add(newOption);
 		}
 
-		newDialog->Name = ToStr(thisgame.dialogScriptNames[i]);
+		newDialog->Name = TextHelper::ConvertASCII(thisgame.dialogScriptNames[i]);
 		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
 
 		game->Dialogs->Add(newDialog);
@@ -2637,7 +2647,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		invItem->HotspotX = thisgame.invinfo[i].hotx;
 		invItem->HotspotY = thisgame.invinfo[i].hoty;
 		invItem->ID = i;
-		invItem->Name = ToStr(thisgame.invScriptNames[i]);
+		invItem->Name = TextHelper::ConvertASCII(thisgame.invScriptNames[i]);
 		invItem->PlayerStartsWithItem = (thisgame.invinfo[i].flags & IFLG_STARTWITH);
 
 		ConvertCustomProperties(invItem->Properties, &thisgame.invProps[i]);
@@ -2649,9 +2659,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
          it != thisgame.propSchema.end(); ++it)
 	{
 		CustomPropertySchemaItem ^schemaItem = gcnew CustomPropertySchemaItem();
-		schemaItem->Name = ToStr(it->second.Name);
-		schemaItem->Description = ToStr(it->second.Description);
-		schemaItem->DefaultValue = ToStr(it->second.DefaultValue);
+		schemaItem->Name = TextHelper::ConvertASCII(it->second.Name); // property name is always ASCII
+		schemaItem->Description = tcv->Convert(it->second.Description);
+		schemaItem->DefaultValue = tcv->Convert(it->second.DefaultValue);
 		schemaItem->Type = (AGS::Types::CustomPropertyType)it->second.Type;
 
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
@@ -2681,13 +2691,13 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
 			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].PopupStyle;
 			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
-			((NormalGUI^)newGui)->OnClick = ToStr(guis[i].OnClickHandler);
+			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].OnClickHandler);
       ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;
 		}
 		newGui->BackgroundColor = guis[i].BgColor;
 		newGui->BackgroundImage = guis[i].BgImage;
 		newGui->ID = i;
-		newGui->Name = ToStr(guis[i].Name);
+		newGui->Name = TextHelper::ConvertASCII(guis[i].Name);
 
 		for (int j = 0; j < guis[i].GetControlCount(); j++)
 		{
@@ -2719,8 +2729,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
                     newButton->ClipImage = copyFrom->IsClippingImage();
-					newButton->Text = ToStr(copyFrom->GetText());
-					newButton->OnClick = ToStr(copyFrom->EventHandlers[0]);
+					newButton->Text = tcv->Convert(copyFrom->GetText());
+					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
 				}
 				break;
 				}
@@ -2732,7 +2742,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
 				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
-				newLabel->Text = ToStr(copyFrom->GetText());
+				newLabel->Text = tcv->Convert(copyFrom->GetText());
 				break;
 				}
 			case Common::kGUITextBox:
@@ -2743,8 +2753,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newTextbox->TextColor = copyFrom->TextColor;
 				  newTextbox->Font = copyFrom->Font;
                   newTextbox->ShowBorder = copyFrom->IsBorderShown();
-				  newTextbox->Text = ToStr(copyFrom->Text);
-				  newTextbox->OnActivate = ToStr(copyFrom->EventHandlers[0]);
+				  newTextbox->Text = tcv->Convert(copyFrom->Text);
+				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -2760,7 +2770,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newListbox->ShowBorder = copyFrom->IsBorderShown();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
-				  newListbox->OnSelectionChanged = ToStr(copyFrom->EventHandlers[0]);
+				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUISlider:
@@ -2774,7 +2784,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newSlider->HandleImage = copyFrom->HandleImage;
 			  	  newSlider->HandleOffset = copyFrom->HandleOffset;
 				  newSlider->BackgroundImage = copyFrom->BgImage;
-				  newSlider->OnChange = ToStr(copyFrom->EventHandlers[0]);
+				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -2799,7 +2809,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
             newControl->Enabled = curObj->IsEnabled();
             newControl->Visible = curObj->IsVisible();
 			newControl->ID = j;
-			newControl->Name = ToStr(curObj->Name);
+			newControl->Name = TextHelper::ConvertASCII(curObj->Name);
 			newGui->Controls->Add(newControl);
 		}
 		
@@ -2813,7 +2823,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 System::String ^load_room_script(System::String ^fileName)
 {
-    AGSString roomFileName = ConvertPathToNativeString(fileName);
+    AGSString roomFileName = TextHelper::ConvertUTF8(fileName);
 
     AGSString scriptText;
     AGS::Common::RoomDataSource src;
@@ -2835,8 +2845,17 @@ int GetCurrentlyLoadedRoomNumber()
   return RoomTools->loaded_room_number;
 }
 
-void convert_room_from_native(const RoomStruct &rs, Room ^room)
+void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::Encoding ^defEncoding)
 {
+    // Use local converter to account for room encoding (could be imported from another game)
+    TextConverter^ tcv = defEncoding ? gcnew TextConverter(defEncoding) : TextHelper::GetGameTextConverter();
+    try
+    {
+        auto enc_opt = rs.StrOptions.at("textencoding");
+        tcv = gcnew TextConverter(System::Text::Encoding::GetEncoding(enc_opt.ToInt()));
+    }
+    catch (...) {}
+
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;
@@ -2858,7 +2877,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room)
     for (size_t i = 0; i < rs.MessageCount; ++i)
 	{
 		RoomMessage ^newMessage = gcnew RoomMessage(i);
-		newMessage->Text = ToStr(rs.Messages[i]);
+		newMessage->Text = tcv->Convert(rs.Messages[i]);
 		newMessage->ShowAsSpeech = (rs.MessageInfos[i].DisplayAs > 0);
 		newMessage->CharacterID = (rs.MessageInfos[i].DisplayAs - 1);
 		newMessage->DisplayNextMessageAfter = ((rs.MessageInfos[i].Flags & MSG_DISPLAYNEXT) != 0);
@@ -2877,8 +2896,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room)
 		obj->Visible = (rs.Objects[i].IsOn != 0);
 		obj->Clickable = ((rs.Objects[i].Flags & OBJF_NOINTERACT) == 0);
 		obj->Baseline = rs.Objects[i].Baseline;
-		obj->Name = ToStr(rs.Objects[i].ScriptName);
-		obj->Description = ToStr(rs.Objects[i].Name);
+		obj->Name = TextHelper::ConvertASCII(rs.Objects[i].ScriptName);
+		obj->Description = tcv->Convert(rs.Objects[i].Name);
 		obj->UseRoomAreaScaling = ((rs.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
 		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
@@ -2892,8 +2911,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
 		hotspot->ID = i;
-		hotspot->Description = ToStr(rs.Hotspots[i].Name);
-		hotspot->Name = (ToStr(rs.Hotspots[i].ScriptName))->Trim();
+		hotspot->Description = tcv->Convert(rs.Hotspots[i].Name);
+		hotspot->Name = TextHelper::ConvertASCII(rs.Hotspots[i].ScriptName);
         hotspot->WalkToPoint = System::Drawing::Point(rs.Hotspots[i].WalkTo.X, rs.Hotspots[i].WalkTo.Y);
 		ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
 
@@ -2953,20 +2972,20 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room)
 	CopyInteractions(room->Interactions, rs.EventHandlers.get());
 }
 
-AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
+AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding)
 {
-    AGSString roomFileName = ConvertPathToNativeString(roomToLoad->FileName);
+    AGSString roomFileName = TextHelper::ConvertUTF8(roomToLoad->FileName);
 
     AGSString errorMsg = load_room_file(thisroom, roomFileName);
     if (!errorMsg.IsEmpty())
     {
-        throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
+        throw gcnew AGSEditorException(TextHelper::ConvertUTF8(errorMsg));
     }
 
     RoomTools->loaded_room_number = roomToLoad->Number;
 
     Room ^room = gcnew Room(roomToLoad->Number);
-    convert_room_from_native(thisroom, room);
+    convert_room_from_native(thisroom, room, defEncoding);
     room->_roomStructPtr = (IntPtr)&thisroom;
 
     room->Description = roomToLoad->Description;
@@ -2982,6 +3001,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     // Convert managed Room object into the native roomstruct that is going
     // to be saved using native procedure.
     //
+    TextConverter^ tcv = TextHelper::GetGameTextConverter();
     rs.MaskResolution = room->MaskResolution;
 
 	rs.GameID = room->GameID;
@@ -3006,7 +3026,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.MessageCount; ++i)
 	{
 		RoomMessage ^newMessage = room->Messages[i];
-		rs.Messages[i] = ConvertStringToNativeString(newMessage->Text);
+		rs.Messages[i] = tcv->Convert(newMessage->Text);
 		if (newMessage->ShowAsSpeech)
 		{
 			rs.MessageInfos[i].DisplayAs = newMessage->CharacterID + 1;
@@ -3024,7 +3044,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.ObjectCount; ++i)
 	{
 		RoomObject ^obj = room->Objects[i];
-		rs.Objects[i].ScriptName = ConvertStringToNativeString(obj->Name);
+		rs.Objects[i].ScriptName = TextHelper::ConvertASCII(obj->Name);
 
 		rs.Objects[i].Sprite = obj->Image;
         rs.Objects[i].BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
@@ -3032,7 +3052,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		rs.Objects[i].Y = obj->StartY;
 		rs.Objects[i].IsOn = obj->Visible;
 		rs.Objects[i].Baseline = obj->Baseline;
-		rs.Objects[i].Name = ConvertStringToNativeString(obj->Description);
+		rs.Objects[i].Name = tcv->Convert(obj->Description);
 		rs.Objects[i].Flags = 0;
 		if (obj->UseRoomAreaScaling) rs.Objects[i].Flags |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) rs.Objects[i].Flags |= OBJF_USEREGIONTINTS;
@@ -3044,8 +3064,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.HotspotCount; ++i)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-		rs.Hotspots[i].Name = ConvertStringToNativeString(hotspot->Description);
-		rs.Hotspots[i].ScriptName = ConvertStringToNativeString(hotspot->Name);
+		rs.Hotspots[i].Name = tcv->Convert(hotspot->Description);
+		rs.Hotspots[i].ScriptName = TextHelper::ConvertASCII(hotspot->Name);
 		rs.Hotspots[i].WalkTo.X = hotspot->WalkToPoint.X;
 		rs.Hotspots[i].WalkTo.Y = hotspot->WalkToPoint.Y;
 		CompileCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
@@ -3099,14 +3119,17 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
     // Prepare script links
     convert_room_interactions_to_native(room, rs);
-    if (room->Script->CompiledData)
+    if (room->Script && room->Script->CompiledData)
 	    rs.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+
+    // Encoding hint
+    rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
 }
 
 void save_crm_file(Room ^room)
 {
     convert_room_to_native(room, thisroom);
-    AGSString roomFileName = ConvertPathToNativeString(room->FileName);
+    AGSString roomFileName = TextHelper::ConvertUTF8(room->FileName);
     save_room_file(thisroom, roomFileName);
 }
 
@@ -3122,7 +3145,7 @@ void save_default_crm_file(Room ^room)
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 0, 8));
     rs.WalkBehindMask.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, 0, 8));
     // Now save the resulting CRM
-    AGSString roomFileName = ConvertPathToNativeString(room->FileName);
+    AGSString roomFileName = TextHelper::ConvertUTF8(room->FileName);
     save_room_file(rs, roomFileName);
 }
 
@@ -3131,7 +3154,7 @@ PInteractionScripts convert_interaction_scripts(Interactions ^interactions)
     AGS::Common::InteractionScripts *native_scripts = new AGS::Common::InteractionScripts();
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
-        native_scripts->ScriptFuncNames.push_back(ConvertStringToNativeString(funcName));
+        native_scripts->ScriptFuncNames.push_back(TextHelper::ConvertASCII(funcName));
 	}
     return PInteractionScripts(native_scripts);
 }

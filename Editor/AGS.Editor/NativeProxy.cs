@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace AGS.Editor
 {
@@ -255,9 +256,9 @@ namespace AGS.Editor
             }
         }
 
-        public Room LoadRoom(UnloadedRoom roomToLoad)
+        public Room LoadRoom(UnloadedRoom roomToLoad, Encoding defEncoding = null)
         {
-            return _native.LoadRoomFile(roomToLoad);
+            return _native.LoadRoomFile(roomToLoad, defEncoding);
         }
 
         public void SaveRoom(Room roomToSave)

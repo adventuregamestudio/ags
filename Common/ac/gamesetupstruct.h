@@ -51,7 +51,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     // TODO: split into installation params (used only when reading) and runtime params
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV];
-    MouseCursor       mcurs[MAX_CURSOR];
+    std::vector<MouseCursor> mcurs;
     // CLNUP old interactions
     //Interaction     **intrChar;
     //Interaction      *intrInv[MAX_INV];

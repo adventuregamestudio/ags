@@ -2,9 +2,9 @@ using AGS.Editor.Components;
 using AGS.Editor.TextProcessing;
 using AGS.Types;
 using AGS.Types.AutoComplete;
+using AGS.Controls;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
@@ -73,17 +73,17 @@ namespace AGS.Editor
             this.Controls.Clear();
             _toolbarIcons.Clear();
             _extraMenu.Commands.Clear();
-            this.Resize -= new EventHandler(ScriptEditor_Resize);
+            this.Resize -= ScriptEditor_Resize;
             DisconnectEventHandlers();
 
-            scintilla.IsModifiedChanged -= new EventHandler(scintilla_IsModifiedChanged);
-            scintilla.AttemptModify -= new ScintillaWrapper.AttemptModifyHandler(scintilla_AttemptModify);
-            scintilla.UpdateUI -= new EventHandler(scintilla_UpdateUI);
-            scintilla.OnBeforeShowingAutoComplete -= new EventHandler(scintilla_OnBeforeShowingAutoComplete);
-            scintilla.TextModified -= new ScintillaWrapper.TextModifiedHandler(scintilla_TextModified);
-            scintilla.ConstructContextMenu -= new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
-            scintilla.ActivateContextMenu -= new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
-            scintilla.ToggleBreakpoint -= new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
+            scintilla.IsModifiedChanged -= scintilla_IsModifiedChanged;
+            scintilla.AttemptModify -= scintilla_AttemptModify;
+            scintilla.UpdateUI -= scintilla_UpdateUI;
+            scintilla.OnBeforeShowingAutoComplete -= scintilla_OnBeforeShowingAutoComplete;
+            scintilla.TextModified -= scintilla_TextModified;
+            scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
+            scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
+            scintilla.ToggleBreakpoint -= scintilla_ToggleBreakpoint;
         }
 
         private void Init(Script scriptToEdit)
@@ -144,22 +144,16 @@ namespace AGS.Editor
 
         public void InitScintilla()
         {
-            scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            UpdateStructHighlighting();
-
-            // pressing ( [ or . will auto-complete
-            scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
-
             scintilla.EnableLineNumbers();
 
-            scintilla.IsModifiedChanged += new EventHandler(scintilla_IsModifiedChanged);
-            scintilla.AttemptModify += new ScintillaWrapper.AttemptModifyHandler(scintilla_AttemptModify);
-            scintilla.UpdateUI += new EventHandler(scintilla_UpdateUI);
-            scintilla.OnBeforeShowingAutoComplete += new EventHandler(scintilla_OnBeforeShowingAutoComplete);
-            scintilla.TextModified += new ScintillaWrapper.TextModifiedHandler(scintilla_TextModified);
-            scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
-            scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
-            scintilla.ToggleBreakpoint += new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
+            scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
+            scintilla.AttemptModify += scintilla_AttemptModify;
+            scintilla.UpdateUI += scintilla_UpdateUI;
+            scintilla.OnBeforeShowingAutoComplete += scintilla_OnBeforeShowingAutoComplete;
+            scintilla.TextModified += scintilla_TextModified;
+            scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
+            scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
+            scintilla.ToggleBreakpoint += scintilla_ToggleBreakpoint;
 
             if (!this.Script.IsHeader)
             {
@@ -168,6 +162,8 @@ namespace AGS.Editor
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             UpdateStructHighlighting();
+            // pressing ( [ or . will auto-complete
+            scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
         }
 
         public void ActivateWindow()
@@ -175,7 +171,7 @@ namespace AGS.Editor
             OnWindowActivated();
         }
 
-        void scintilla_ToggleBreakpoint(object sender, Scintilla.MarginClickEventArgs e)
+        void scintilla_ToggleBreakpoint(object sender, ScintillaHelper.MarginClickExEventArgs e)
         {
             ToggleBreakpoint(e.LineNumber);
         }
@@ -255,7 +251,7 @@ namespace AGS.Editor
                     sb.Append(thisEnum.Name + " ");
                 }
             }
-            this.scintilla.SetClassNamesList(sb.ToString());
+            this.scintilla.SetKeyWords(sb.ToString(), ScintillaWrapper.WordListType.GlobalClasses);
         }
 
         private void UpdateFunctionList()

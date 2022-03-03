@@ -220,6 +220,7 @@ namespace AGS.Editor.Components
         {
             using (System.Net.WebClient webClient = new System.Net.WebClient())
             {
+                // NOTE: the message encoding depends on the data exchange format
                 byte[] data = webClient.DownloadData(UPDATES_URL);
                 return Encoding.Default.GetString(data);
             }

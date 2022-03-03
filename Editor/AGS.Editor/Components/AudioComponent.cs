@@ -687,7 +687,7 @@ namespace AGS.Editor.Components
                 item.ID.ToString() + ": " + item.ScriptName, GetIconKeyForAudioClip(item));
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("ScriptName");
-            treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("ScriptName");
+            treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("NameAndID");
             treeItem.LabelTextDataSource = item;
             return treeItem;
         }

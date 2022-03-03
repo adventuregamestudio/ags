@@ -11,4 +11,7 @@
     // #include "alext.h"
 #endif
 
+// Prints any OpenAL errors to the log
+void dump_al_errors();
+
 #endif // __AGS_EE_MEDIA_OPENAL_H__

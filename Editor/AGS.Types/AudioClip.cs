@@ -80,6 +80,13 @@ namespace AGS.Types
             set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
+        [Browsable(false)]
+        [AGSNoSerialize()]
+        public string NameAndID
+        {
+            get { return _id.ToString() + ": " + _scriptName; }
+        }
+
         // This is a "Fixed Index" that is used as a stable reference the clip,
         // regardless of any clip list rearrangements.
         [Browsable(false)]

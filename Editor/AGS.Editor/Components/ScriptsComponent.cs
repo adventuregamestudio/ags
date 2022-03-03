@@ -215,7 +215,7 @@ namespace AGS.Editor.Components
                     ((ScriptEditor)document.Control).SaveChanges();
                 }
 
-                ImportExport.ExportScriptModule(header, script, fileName);
+                ImportExport.ExportScriptModule(header, script, fileName, _agsEditor.CurrentGame.TextEncoding);
             }
             catch (Exception ex)
             {
@@ -228,7 +228,7 @@ namespace AGS.Editor.Components
             try
             {
                 string destFileName = FindFirstAvailableFileName(Path.GetFileNameWithoutExtension(fileName));
-                List<Script> newScripts = ImportExport.ImportScriptModule(fileName);
+                List<Script> newScripts = ImportExport.ImportScriptModule(fileName, _agsEditor.CurrentGame.TextEncoding);
                 newScripts[0].FileName = destFileName + ".ash";
                 newScripts[1].FileName = destFileName + ".asc";
                 newScripts[0].Modified = true;
@@ -442,6 +442,8 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
+            Script.TextEncoding = _agsEditor.CurrentGame.TextEncoding;
+
             // The Script_PanelClosed event will get called as we remove each
             // one, so we need to be careful with the enumerator
             while (_editors.Values.Count > 0) 
@@ -453,6 +455,11 @@ namespace AGS.Editor.Components
             _editors.Clear();
 
             RePopulateTreeView(null);
+        }
+
+        public override void GameSettingsChanged()
+        {
+            Script.TextEncoding = _agsEditor.CurrentGame.TextEncoding;
         }
 
         private void Script_PanelClosed(object sender, EventArgs e)

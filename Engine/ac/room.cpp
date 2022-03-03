@@ -429,20 +429,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     update_polled_stuff_if_runtime();
     our_eip=201;
-    /*  // apparently, doing this stops volume spiking between tracks
-    if (thisroom.Options.StartupMusic>0) {
-    stopmusic();
-    delay(100);
-    }*/
 
     play.room_width = thisroom.Width;
     play.room_height = thisroom.Height;
     play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
-
-    // Fixup the frame index, in case the new room does not have enough background frames
-    if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
-        play.bg_frame = 0;
 
     // do the palette
     for (cc=0;cc<256;cc++) {
@@ -536,14 +527,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
-        for (cc=0;cc<MAX_FLAGS;cc++) croom->flagstates[cc]=0;
-
-        /*    // we copy these structs for the Score column to work
-        croom->misccond=thisroom.misccond;
-        for (cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
-        croom->hscond[cc]=thisroom.hscond[cc];
-        for (cc=0;cc<MAX_ROOM_OBJECTS;cc++)
-        croom->objcond[cc]=thisroom.objcond[cc];*/
 
         for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
             croom->hotspot[cc].Enabled = true;
@@ -552,6 +535,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
         }
+
+#if defined (OBSOLETE)
+        for (cc = 0; cc<MAX_LEGACY_ROOM_FLAGS; cc++) croom->flagstates[cc] = 0;
+        // we copy these structs for the Score column to work
+        croom->misccond = thisroom.misccond;
+        for (cc = 0; cc<MAX_ROOM_HOTSPOTS; cc++)
+            croom->hscond[cc] = thisroom.hscond[cc];
+        for (cc = 0; cc<MAX_ROOM_OBJECTS; cc++)
+            croom->objcond[cc] = thisroom.objcond[cc];
+#endif
 
         croom->beenhere=1;
         in_new_room=2;
@@ -562,8 +555,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     objs=&croom->obj[0];
 
     for (cc = 0; cc < MAX_ROOM_OBJECTS; cc++) {
-        // 64 bit: Using the id instead
-        // scrObj[cc].obj = &croom->obj[cc];
         objectScriptObjNames[cc].Free();
     }
 
@@ -583,17 +574,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     our_eip=206;
-    /*  THIS IS DONE IN THE EDITOR NOW
-    thisroom.BgFrames.IsPaletteShared[0] = 1;
-    for (dd = 1; dd < thisroom.BgFrameCount; dd++) {
-    if (memcmp (&thisroom.BgFrames.Palette[dd][0], &palette[0], sizeof(color) * 256) == 0)
-    thisroom.BgFrames.IsPaletteShared[dd] = 1;
-    else
-    thisroom.BgFrames.IsPaletteShared[dd] = 0;
-    }
-    // only make the first frame shared if the last is
-    if (thisroom.BgFrames.IsPaletteShared[thisroom.BgFrameCount - 1] == 0)
-    thisroom.BgFrames.IsPaletteShared[0] = 0;*/
 
     update_polled_stuff_if_runtime();
 
@@ -803,8 +783,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     new_room_flags=0;
     play.gscript_timer=-1;  // avoid screw-ups with changing screens
     play.player_on_region = 0;
-    play.bg_frame = 0;
-    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
+
     // trash any input which they might have done while it was loading
     ags_clear_input_buffer();
     // no fade in, so set the palette immediately in case of 256-col sprites
@@ -816,11 +795,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     debug_script_log("Now in room %d", displayed_room);
     GUI::MarkAllGUIForUpdate();
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
-    //  MoveToWalkableArea(game.playercharacter);
-    //  MSS_CHECK_ALL_BLOCKS;
 }
-
-extern int psp_clear_cache_on_room_change;
 
 // new_room: changes the current room number, and loads the new room from disk
 void new_room(int newnum,CharacterInfo*forchar) {
@@ -855,7 +830,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // change rooms
     unload_old_room();
 
-    if (psp_clear_cache_on_room_change)
+    if (usetup.clear_cache_on_room_change)
     {
         // Delete all cached sprites
         spriteset.DisposeAll();
@@ -865,6 +840,10 @@ void new_room(int newnum,CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     load_new_room(newnum,forchar);
+
+    // Reset background frame state (it's not a part of the RoomStatus currently)
+    play.bg_frame = 0;
+    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void set_room_placeholder()
@@ -887,15 +866,17 @@ int find_highest_room_entered() {
         if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
             fndas = qq;
     }
-    // This is actually legal - they might start in room 400 and save
-    //if (fndas<0) quit("find_highest_room: been in no rooms?");
     return fndas;
 }
 
 void first_room_initialization() {
     starting_room = displayed_room;
+    playerchar->prevroom = -1;
     set_loop_counter(0);
     mouse_z_was = sys_mouse_z;
+    // Reset background frame state
+    play.bg_frame = 0;
+    play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
 void check_new_room() {
@@ -914,7 +895,6 @@ void check_new_room() {
         process_event(&evh);
         play.disabled_user_interface --;
         in_new_room = newroom_was;
-        //    setevent(EV_RUNEVBLOCK,EVB_ROOM,0,5);
     }
 }
 

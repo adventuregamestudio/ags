@@ -29,7 +29,7 @@ extern bool initialize_native();
 extern void shutdown_native();
 extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
-extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
+extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
 extern void save_crm_file(Room ^roomToSave);
 extern void save_default_crm_file(Room ^roomToSave);
 extern AGSString import_sci_font(const AGSString &filename, int fslot);
@@ -83,71 +83,91 @@ extern bool spritesModified;
 
 AGSString editorVersionNumber;
 
-System::String^ ToStr(const AGS::Common::String &str)
+TextConverter::TextConverter(System::Text::Encoding^ enc)
+    : _encoding(enc) {}
+
+System::Text::Encoding^ TextConverter::GetEncoding() { return _encoding; }
+
+System::String^ TextConverter::Convert(const AGS::Common::String &str)
+{
+    return TextHelper::Convert(str, _encoding);
+}
+
+System::String^ TextHelper::ConvertASCII(const AGS::Common::String &str)
 {
     return gcnew String(str.GetCStr());
 }
 
-System::String^ ToStrUTF8(const AGS::Common::String &str)
+System::String^ TextHelper::ConvertUTF8(const AGS::Common::String &str)
+{
+    return Convert(str, System::Text::Encoding::UTF8);
+}
+
+System::String^ TextHelper::Convert(const AGS::Common::String &str, System::Text::Encoding^ enc)
 {
     size_t len = strlen(str.GetCStr()); // we need number of bytes, not chars
     array<Byte>^ buf = gcnew array<Byte>(len);
     Marshal::Copy((IntPtr)(void*)str.GetCStr(), buf, 0, (int)len);
-    return System::Text::Encoding::UTF8->GetString(buf);
+    return enc->GetString(buf);
 }
 
-// Converts C# string to the native ANSI string
-AGSString ConvertStringToNativeString(System::String^ clrString)
+AGSString TextConverter::Convert(System::String^ clr_str)
 {
-    if (clrString == nullptr)
+    if (clr_str == nullptr)
         return AGSString();
-    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+    return TextHelper::Convert(clr_str, _encoding);
+}
+
+AGSString TextHelper::ConvertASCII(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
+        return AGSString();
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
     AGSString str = stringPointer;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
     return str;
 }
 
-// Converts C# string to the native ANSI string
-AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
+void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len)
 {
-    if (clrString == nullptr)
-        return AGSString();
-    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-    AGSString str = stringPointer;
-    Marshal::FreeHGlobal(IntPtr(stringPointer));
-    return str.Left(buf_len - 1);
-}
-
-// Converts C# string containing path to the native UTF-8 string
-AGSString ConvertPathToNativeString(System::String^ clrString)
-{
-    if (clrString == nullptr)
-        return AGSString();
-    int len = System::Text::Encoding::UTF8->GetByteCount(clrString);
-    cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
-    System::Text::Encoding::UTF8->GetBytes(clrString, 0, clrString->Length, buf, 0);
-    IntPtr utf8ptr = Marshal::AllocHGlobal(buf->Length);
-    Marshal::Copy(buf, 0, utf8ptr, buf->Length);
-    AGSString str = (const char*)utf8ptr.ToPointer();
-    Marshal::FreeHGlobal(utf8ptr);
-    return str;
-}
-
-void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len)
-{
-    char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
     size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
     memcpy(buf, stringPointer, ansi_len);
     buf[ansi_len - 1] = 0;
-    System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
+    Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
-void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len)
+void TextHelper::ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len)
 {
-    ConvertStringToCharArray(clrString, buf, buf_len);
-    if (strchr(buf, '?') != NULL)
-        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
+    ConvertASCIIToArray(clr_str, buf, buf_len);
+    if (strchr(buf, '?') != nullptr)
+        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clr_str));
 }
+
+AGSString TextHelper::ConvertUTF8(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
+        return AGSString();
+    return Convert(clr_str, System::Text::Encoding::UTF8);
+}
+
+AGSString TextHelper::Convert(System::String^ clr_str, System::Text::Encoding^ enc)
+{
+    int len = enc->GetByteCount(clr_str);
+    cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
+    enc->GetBytes(clr_str, 0, clr_str->Length, buf, 0);
+    IntPtr dest_ptr = Marshal::AllocHGlobal(buf->Length);
+    Marshal::Copy(buf, 0, dest_ptr, buf->Length);
+    AGSString str = (const char*)dest_ptr.ToPointer();
+    Marshal::FreeHGlobal(dest_ptr);
+    return str;
+}
+
+TextConverter^ TextHelper::GetGameTextConverter()
+{
+    return AGS::Native::NativeMethods::GetGameTextConverter();
+}
+
 
 namespace AGS
 {
@@ -156,11 +176,17 @@ namespace AGS
 		NativeMethods::NativeMethods(String ^editorVersion)
 		{
 			lastPaletteSet = nullptr;
-			editorVersionNumber = ConvertStringToNativeString(editorVersion);
+			editorVersionNumber = TextHelper::ConvertASCII(editorVersion);
 		}
+
+        TextConverter^ NativeMethods::GetGameTextConverter()
+        {
+            return _gameTextConverter;
+        }
 
 		void NativeMethods::Initialize()
 		{
+            _gameTextConverter = gcnew TextConverter(System::Text::Encoding::UTF8);
 			if (!initialize_native())
 			{
 				throw gcnew AGS::Types::InvalidDataException("Native initialization failed.");
@@ -174,6 +200,7 @@ namespace AGS
 
 		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
 		{
+            _gameTextConverter = gcnew TextConverter(game->TextEncoding);
 			this->PaletteColoursUpdated(game);
 			GameUpdated(game, true);
 			UpdateNativeSpritesToGame(game, errors);
@@ -190,7 +217,7 @@ namespace AGS
 			HAGSError err = reset_sprite_file();
 			if (!err)
 			{
-				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + TextHelper::ConvertUTF8(err->FullMessage()));
 			}
 		}
 
@@ -201,6 +228,7 @@ namespace AGS
 
 		void NativeMethods::GameSettingsChanged(Game ^game)
 		{
+            _gameTextConverter = gcnew TextConverter(game->TextEncoding);
 			GameUpdated(game, false);
 		}
 
@@ -245,11 +273,11 @@ namespace AGS
 
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
 			AGSString errorMsg = import_sci_font(fileNameAnsi, fontSlot);
 			if (errorMsg != NULL) 
 			{
-				throw gcnew AGSEditorException(ToStrUTF8(errorMsg));
+				throw gcnew AGSEditorException(TextHelper::ConvertUTF8(errorMsg));
 			}
 		}
 
@@ -263,7 +291,7 @@ namespace AGS
 
     int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)
     {
-        AGSString filename = ConvertStringToNativeString(fileName);
+        AGSString filename = TextHelper::ConvertUTF8(fileName);
         FontMetrics metrics;
         if (!TTFFontRenderer::MeasureFontOfPixelHeight(filename, pixelHeight, &metrics))
         {
@@ -443,7 +471,7 @@ namespace AGS
 
 		AGS::Types::Game^ NativeMethods::ImportOldGameFile(String^ fileName)
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
 			Game ^game = import_compiled_game_dta(fileNameAnsi);
 			return game;
 		}
@@ -453,9 +481,9 @@ namespace AGS
 			return load_sprite_dimensions();
 		}
 
-		AGS::Types::Room^ NativeMethods::LoadRoomFile(UnloadedRoom^ roomToLoad)
+		AGS::Types::Room^ NativeMethods::LoadRoomFile(UnloadedRoom^ roomToLoad, System::Text::Encoding ^defEncoding)
 		{
-			return load_crm_file(roomToLoad);
+			return load_crm_file(roomToLoad, defEncoding);
 		}
 
 		void NativeMethods::SaveRoomFile(AGS::Types::Room ^roomToSave)
@@ -500,7 +528,7 @@ namespace AGS
 
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
-      AGSString fileNameAnsi = ConvertPathToNativeString(fileName);
+      AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
       char *iconDataBuffer = NULL;
       long iconDataSize = 0;
 
@@ -548,21 +576,21 @@ namespace AGS
 
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
+			AGSString fileNameAnsi = TextHelper::ConvertUTF8(templateFileName);
             HAGSError err = extract_template_files(fileNameAnsi);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + TextHelper::ConvertUTF8(err->FullMessage()));
 			}
 		}
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
-			AGSString fileNameAnsi = ConvertPathToNativeString(templateFileName);
+			AGSString fileNameAnsi = TextHelper::ConvertUTF8(templateFileName);
             HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
 			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to extract template files.\n" + ToStrUTF8(err->FullMessage()));
+				throw gcnew AGSEditorException("Unable to extract template files.\n" + TextHelper::ConvertUTF8(err->FullMessage()));
 			}
 		}
 
@@ -606,7 +634,6 @@ namespace AGS
             if (name->Equals("DTFLG_SHOWPARSER")) return DTFLG_SHOWPARSER;
             if (name->Equals("FONT_OUTLINE_AUTO")) return FONT_OUTLINE_AUTO;
             if (name->Equals("MAX_STATIC_SPRITES")) return MAX_STATIC_SPRITES;
-            if (name->Equals("MAX_CURSOR")) return MAX_CURSOR;
             if (name->Equals("MAX_PARSER_WORD_LENGTH")) return MAX_PARSER_WORD_LENGTH;
             if (name->Equals("MAX_INV")) return MAX_INV;
             if (name->Equals("MAXLIPSYNCFRAMES")) return MAXLIPSYNCFRAMES;
@@ -696,6 +723,7 @@ namespace AGS
             if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
             if (name->Equals("OPT_WALKSPEEDABSOLUTE")) return OPT_WALKSPEEDABSOLUTE;
             if (name->Equals("OPT_CLIPGUICONTROLS")) return OPT_CLIPGUICONTROLS;
+            if (name->Equals("OPT_GAMETEXTENCODING")) return OPT_GAMETEXTENCODING;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
     <Compile Include="BuildTargets\BuildTargetWeb.cs" />
+    <Compile Include="BuildTargets\BuildTargetAndroid.cs" />
     <Compile Include="ColorThemes\ColorTheme.cs" />
     <Compile Include="ColorThemes\ColorThemes.cs" />
     <Compile Include="ColorThemes\ColorThemeJson.cs" />
@@ -147,6 +148,12 @@
     </Compile>
     <Compile Include="GUI\CustomPropertySchemaItemEditor.Designer.cs">
       <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\GenerateAndroidKeystore.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\GenerateAndroidKeystore.Designer.cs">
+      <DependentUpon>GenerateAndroidKeystore.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\ImportTTFDialog.cs">
       <SubType>Form</SubType>
@@ -352,11 +359,16 @@
     <Compile Include="GUI\ProjectTree.cs" />
     <Compile Include="GUI\ProjectTreeItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\AndroidUtilities.cs" />
+    <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\GenerateAndroidKeystore.resx">
+      <DependentUpon>GenerateAndroidKeystore.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>

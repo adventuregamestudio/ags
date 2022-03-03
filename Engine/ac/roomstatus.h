@@ -39,7 +39,6 @@ struct RoomStatus {
     int   beenhere;
     int   numobj;
     RoomObject obj[MAX_ROOM_OBJECTS];
-    short flagstates[MAX_FLAGS];
     int   tsdatasize;
     char* tsdata;
 
@@ -49,6 +48,14 @@ struct RoomStatus {
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
+
+    // Likely pre-2.5 data
+#if defined (OBSOLETE)
+    short flagstates[MAX_LEGACY_ROOM_FLAGS]{};
+    EventBlock hscond[MAX_ROOM_HOTSPOTS];
+    EventBlock objcond[MAX_ROOM_OBJECTS];
+    EventBlock misccond;
+#endif
 
     RoomStatus();
     ~RoomStatus();

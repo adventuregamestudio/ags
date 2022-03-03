@@ -18,6 +18,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
+        public const string PROPERTY_TEXT_FORMAT = "Text format";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
@@ -26,6 +27,9 @@ namespace AGS.Types
         public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
         public const string PROPERTY_DIALOG_SCRIPT_NARRATEFN = "Custom Narrate function in dialog scripts";
         public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
+        public const string PROPERTY_ANDROID_APPLICATION_ID = "App ID";
+        public const string PROPERTY_ANDROID_APP_VERSION_CODE = "App Version Code";
+        public const string PROPERTY_ANDROID_APP_VERSION_NAME = "App Version Name";
 
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
@@ -39,6 +43,7 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
+        private string _gameTextEncoding = Encoding.UTF8.WebName;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -108,6 +113,10 @@ namespace AGS.Types
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
         private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
+        private string _androidApplicationId = "com.mystudio.mygame";
+        private int _androidAppVersionCode = 1;
+        private string _androidAppVersionName = DEFAULT_VERSION;
+        private AndroidBuildFormat _androidBuildFormat = AndroidBuildFormat.ApkEmbedded;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -264,10 +273,19 @@ namespace AGS.Types
             set { _resolution = value; }
         }
 
+        [DisplayName(PROPERTY_TEXT_FORMAT)]
+        [Category("(Basic properties)")]
+        [TypeConverter(typeof(TextEncodingTypeConverter))]
+        public string GameTextEncoding
+        {
+            get { return _gameTextEncoding; }
+            set { _gameTextEncoding = value; }
+        }
+
         [Obsolete]
         [Browsable(false)]
         public bool AllowRelativeAssetResolutions { get { return false; } }
-
+        
         /// <summary>
         /// Tells if the game should be considered high-resolution.
         /// For backwards-compatble logic only.
@@ -1123,6 +1141,59 @@ namespace AGS.Types
             get { return _renderAtScreenRes; }
             set { _renderAtScreenRes = value; }
         }
+
+        [DisplayName(PROPERTY_ANDROID_APPLICATION_ID)]
+        [Description("The application ID, used in app store. Also called package name, it's usually looks like com.mystudio.mygame, and it's used in store URLs. It must have at least two segments (one or more dots), and each segment must start with a letter.")]
+        [DefaultValue("com.mystudio.mygame")]
+        [Category("Android")]
+        public string AndroidApplicationId
+        {
+            get { return _androidApplicationId; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentException("Application ID cannot be empty");
+                }
+                if ((value.Length > 0) && (!Regex.IsMatch(value, @"^([a-zA-Z0-9\.\ ]+)$")))
+                {
+                    throw new ArgumentException("Application ID can only contain letters, number and dots.");
+                }
+                value = value.Replace(" ", "").ToLower().Trim();
+                _androidApplicationId = value; 
+            }
+        }
+
+        [DisplayName(PROPERTY_ANDROID_APP_VERSION_CODE)]
+        [Description("The version ID used by Google Play Store and others - positive integer, must be different from the last one uploaded.")]
+        [DefaultValue("1")]
+        [Category("Android")]
+        public int AndroidAppVersionCode
+        {
+            get { return _androidAppVersionCode; }
+            set { _androidAppVersionCode = value; }
+        }
+
+        [DisplayName(PROPERTY_ANDROID_APP_VERSION_NAME)]
+        [Description("The version name visible to users in the stores, this can be anything. Leave empty to use the same version you set in desktop platforms.")]
+        [DefaultValue("")]
+        [Category("Android")]
+        public string AndroidAppVersionName
+        {
+            get { return _androidAppVersionName; }
+            set { _androidAppVersionName = value; }
+        }
+
+        [DisplayName("Build Format")]
+        [Description("Use embedded formats when testing locally. Google Play only accepts AAB.")]
+        [DefaultValue("Aab")]
+        [Category("Android")]
+        public AndroidBuildFormat AndroidBuildFormat
+        {
+            get { return _androidBuildFormat; }
+            set { _androidBuildFormat = value; }
+        }        
+
 
         [Obsolete]
         [Browsable(false)]

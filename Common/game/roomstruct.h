@@ -355,6 +355,9 @@ public:
     PInteractionScripts     EventHandlers;
     // Compiled room script
     PScript                 CompiledScript;
+    // Various extended options with string values, meta-data etc
+    StringMap               StrOptions;
+
 };
 
 

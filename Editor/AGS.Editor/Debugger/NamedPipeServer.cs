@@ -209,7 +209,7 @@ namespace AGS.Editor
                             break;
 
                         //fire message received event
-                        client.server.OnMessageReceived(client, Encoding.Default.GetString(buffer, 0, bytesRead));
+                        client.server.OnMessageReceived(client, Encoding.UTF8.GetString(buffer, 0, bytesRead));
                     }
                 }
             }
@@ -232,7 +232,7 @@ namespace AGS.Editor
         /// <param name="message">the message to send</param>
         public void SendMessage(string message)
         {
-            byte[] messageBuffer = Encoding.Default.GetBytes(message);
+            byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
             lock (this._clients)
             {
                 foreach (Client client in this._clients)

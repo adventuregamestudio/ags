@@ -54,34 +54,6 @@ namespace AGS.Editor
             return Enum.GetName(typeof(T), enumValue);
         }
 
-        private void ResizeAllGUIs(Size oldResolution, Size newResolution)
-        {
-            int oldWidth = oldResolution.Width;
-            int oldHeight = oldResolution.Height;
-            int newWidth = newResolution.Width;
-            int newHeight = newResolution.Height;
-
-            foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
-            {
-                NormalGUI theGui = gui as NormalGUI;
-                if (theGui != null)
-                {
-                    theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
-                    theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
-                    theGui.Left = (theGui.Left * newWidth) / oldWidth;
-                    theGui.Top = (theGui.Top * newHeight) / oldHeight;
-
-                    foreach (GUIControl control in theGui.Controls)
-                    {
-                        control.Width = Math.Max((control.Width * newWidth) / oldWidth, 1);
-                        control.Height = Math.Max((control.Height * newHeight) / oldHeight, 1);
-                        control.Left = (control.Left * newWidth) / oldWidth;
-                        control.Top = (control.Top * newHeight) / oldHeight;
-                    }
-                }
-            }
-        }
-
         private void HandleGameResolutionChange(Size oldResolution, Size newResolution)
         {
             if (newResolution == oldResolution)
@@ -93,9 +65,34 @@ namespace AGS.Editor
             string newResolutionText = Types.Utilities.ResolutionToUserString(newResolution);
             if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from '{0}' to '{1}'.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
             {
-                ResizeAllGUIs(oldResolution, newResolution);
+                Factory.AGSEditor.Tasks.ResizeAllGUIs(oldResolution, newResolution);
             }
             Factory.Events.OnGameSettingsChanged();
+        }
+
+        private void HandleGameTextFormatChange(string oldFormat, string newFormat)
+        {
+            if (oldFormat == newFormat)
+                return;
+            if (Factory.GUIController.ShowQuestion("Changing the game text format will make the editor and engine treat all the text in all the game files in accordance to the new setting.\n\n"
+                + "IMPORTANT: the Editor will now convert the game files and scripts to a new format. This may take a while, depending on your game's size.\n\n"
+                + "IMPORTANT: the Translation files will remain unaffected by this setting, as they have their own individual encoding setting.\n\n"
+                + "Are you sure you want to continue?",
+                MessageBoxIcon.Warning) == DialogResult.No)
+            {
+                Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding = oldFormat;
+            }
+            else
+            {
+                Factory.Events.OnGameSettingsChanged();
+                BusyDialog.Show("Please wait while we convert game files to the new text format...",
+                    (o) => {
+                        Factory.AGSEditor.Tasks.ConvertAllGameTexts(
+                            Types.Utilities.EncodingFromName(oldFormat),
+                            Types.Utilities.EncodingFromName(newFormat));
+                        return null;
+                    }, null);
+            }
         }
 
         private void gameSettings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
@@ -125,6 +122,10 @@ namespace AGS.Editor
             else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RESOLUTION)
             {
                 HandleGameResolutionChange((Size)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.CustomResolution);
+            }
+            else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_TEXT_FORMAT))
+            {
+                HandleGameTextFormatChange((string)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.GameTextEncoding);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS) ||
                      (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_FONT_HEIGHT_IN_LOGIC) ||

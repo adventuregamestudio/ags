@@ -830,6 +830,14 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     WaitForNextFrame();
 }
 
+void UpdateGameAudioOnly()
+{
+    update_audio_system_on_game_loop();
+    game_loop_update_loop_counter();
+    game_loop_update_fps();
+    WaitForNextFrame();
+}
+
 static void UpdateMouseOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh

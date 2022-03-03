@@ -26,6 +26,11 @@ namespace AGS.Editor
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
+        protected override string OnGetHelpKeyword()
+        {
+            return "Music and sound";
+        }
+
         public object SelectedItem
         {
             get { return _selectedItem; }

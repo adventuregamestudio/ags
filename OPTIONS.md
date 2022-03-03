@@ -48,6 +48,10 @@ Locations of two latter files differ between running platforms:
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
   * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
   * vsync = \[0; 1\] - enable or disable vertical sync.
+  * rotation = \[string | integer\] - screen rotation. Possible values are:
+    * unlocked (0) - device can be freely rotated if possible.
+    * portrait (1) - locks the screen in portrait orientation.
+    * landscape (2) - locks the screen in landscape orientation.
 * **\[sound\]** - sound options
   * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
     * For Linux:
@@ -86,6 +90,7 @@ Locations of two latter files differ between running platforms:
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
+  * clear_cache_on_room_change = \[0; 1\] - whether to clear sprite cache on every room change.
 * **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
   * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
   * \[outputname\] = +GROUPLIST[:LEVEL];
@@ -127,6 +132,7 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
+* --clear-cache-on-room-change - clears sprite cache on every room change
 * --conf \<FILEPATH\> - specify explicit config file to read on startup.
 * --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.
@@ -142,11 +148,13 @@ Following OPTIONS are supported when running from command line:
     * --log-stdout=+mg:debug
 * --log-file-path=PATH - define custom path for the log file.
 * --no-message-box - disable alerts as modal message boxes (Windows only).
+* --no-translation - use default game language on start.
 * --noiface - don't draw game GUI (for test purposes).
 * --noscript - don't run room scripts (for test purposes); *WARNING:* unreliable.
 * --nospr - don't draw room objects and characters (for test purposes).
 * --noupdate - don't run game update (for test purposes).
 * --novideo - don't play game videos (for test purposes).
+* --rotation \<MODE\> - screen rotation preferences. MODEs are:  unlocked (0), portrait (1), landscape (2).
 * --sdl-log=LEVEL - setup SDL's own logging level (see explanation for the related config option).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
 * --shared-data-dir \<DIR\> - set the shared game data directory. Corresponds to "shared_data_dir" config option.
@@ -160,6 +168,7 @@ Following OPTIONS are supported when running from command line:
   * --tell-filepath - print all filepaths engine uses for the game.
   * --tell-graphicdriver - print list of supported graphic drivers.
 * --test - run game in the test mode, unlocking test key combinations and console.
+* --translation - select the given translation on start.
 * --user-data-dir \<DIR\> - set the save game directory. Corresponds to "user_data_dir" config option.
 * --windowed - run in windowed mode.
 

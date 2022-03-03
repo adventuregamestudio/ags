@@ -1,10 +1,10 @@
-using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types;
 using AGS.Editor.Preferences;
 
 namespace AGS.Editor
@@ -362,6 +362,19 @@ namespace AGS.Editor
                     font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 }
                 game.Settings.ClipGUIControls = false;
+            }
+
+            if (xmlVersionIndex < 3060020)
+            {
+                if (game.SavedXmlEncodingCodePage.HasValue &&
+                    game.SavedXmlEncodingCodePage.Value == 65001)
+                {
+                    game.Settings.GameTextEncoding = "UTF-8";
+                }
+                else
+                { // NOTE: use Encoding.GetEncoding(game.SavedXmlEncodingCodePage) if actual codepage is needed
+                    game.Settings.GameTextEncoding = "ANSI";
+                }
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
@@ -756,5 +769,78 @@ namespace AGS.Editor
             sb.AppendLine("};");
         }
 
+        /// <summary>
+        /// Converts all separate game files which may contain text from one encoding
+        /// to another. This is done by loading and resaving them, and may take time
+        /// depending on the size of the project.
+        /// </summary>
+        /// <param name="oldEnc"></param>
+        /// <param name="newEnc"></param>
+        public void ConvertAllGameTexts(Encoding oldEnc, Encoding newEnc)
+        {
+            // Convert all scripts
+            foreach (var script in Factory.AGSEditor.CurrentGame.ScriptsAndHeaders)
+            {
+                // TODO: this is ugly, make TextEncoding non-static per script property?
+                // or pass into Load/Save method (but some more changes are necessary)
+                Script.TextEncoding = oldEnc;
+                script.Header.LoadFromDisk();
+                script.Script.LoadFromDisk();
+                Script.TextEncoding = newEnc;
+                script.Header.Modified = true;
+                script.Header.SaveToDisk();
+                script.Script.Modified = true;
+                script.Script.SaveToDisk();
+            }
+            // Convert all room scripts
+            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
+            {
+                Script.TextEncoding = oldEnc;
+                room.LoadScript();
+                Script.TextEncoding = newEnc;
+                room.Script.Modified = true;
+                room.Script.SaveToDisk();
+                room.UnloadScript();
+            }
+            // Convert all rooms
+            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
+            {
+                var loadedRoom = Factory.NativeProxy.LoadRoom((UnloadedRoom)room, oldEnc);
+                Factory.NativeProxy.SaveRoom(loadedRoom);
+            }
+            // Save game with a new encoding
+            Factory.AGSEditor.SaveGameFiles();
+        }
+
+        /// <summary>
+        /// Resizes all GUI from one game resolution to another.
+        /// </summary>
+        public void ResizeAllGUIs(System.Drawing.Size oldResolution, System.Drawing.Size newResolution)
+        {
+            int oldWidth = oldResolution.Width;
+            int oldHeight = oldResolution.Height;
+            int newWidth = newResolution.Width;
+            int newHeight = newResolution.Height;
+
+            foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
+            {
+                NormalGUI theGui = gui as NormalGUI;
+                if (theGui != null)
+                {
+                    theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
+                    theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
+                    theGui.Left = (theGui.Left * newWidth) / oldWidth;
+                    theGui.Top = (theGui.Top * newHeight) / oldHeight;
+
+                    foreach (GUIControl control in theGui.Controls)
+                    {
+                        control.Width = Math.Max((control.Width * newWidth) / oldWidth, 1);
+                        control.Height = Math.Max((control.Height * newHeight) / oldHeight, 1);
+                        control.Left = (control.Left * newWidth) / oldWidth;
+                        control.Top = (control.Top * newHeight) / oldHeight;
+                    }
+                }
+            }
+        }
     }
 }

@@ -136,11 +136,10 @@ There are other important differences when writing your game:
 
 ## Single Game Launcher
 
-The `ags.wasm` and `ags.js` are the main parts of the AGS engine Web Ports. Currently, two UIs are available to interact with this port, the `launcher_index.html`, which is a generic AGS player with the idea that the player places games from their computer to run, and `my_game.html`, which is designed to be swapped after build and used to run a specific game you want to port for the web. Currently the way it works is this.
+The `ags.wasm` and `ags.js` are the main parts of the AGS engine Web Ports. If you add an additional `my_game_files.js` file, it will be detected by the `ags.html` file and it will behave as a single game launcher.
 
-- follow the above instructions to build the `ags.wasm` and `ags.js` files.
-- create an empty directory and place both of these files in it
-- copy the `my_game.html` directly from `ags/Emscripten` directory and place on the same directory
+- follow the above instructions to build the `ags.wasm`, `ags.js` and `ags.html` files.
+- create an empty directory and place these files in it
 - copy all files from the `Compiled/Data` directory from the game you are porting and place on the directory you copied `ags.wasm` and other files
 - copy `my_game_files.js` to the same directory, and edit it so it contains the name of all files from `Compiled/Data`. List only files directly, if your games uses subdata directory, adapt it to a flat directory.
 - rename the html file to `index.html`

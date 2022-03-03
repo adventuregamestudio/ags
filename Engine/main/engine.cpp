@@ -614,7 +614,10 @@ void engine_init_game_settings()
     Debug::Printf("Initialize game settings");
 
     // Setup a text encoding mode depending on the game data hint
-    set_uformat(U_ASCII);
+    if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
+        set_uformat(U_UTF8);
+    else
+        set_uformat(U_ASCII);
 
     int ee;
 
@@ -1288,6 +1291,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip = -179;
 
     engine_init_resolution_settings(game.GetGameRes());
+
+    engine_adjust_for_rotation_settings();
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))

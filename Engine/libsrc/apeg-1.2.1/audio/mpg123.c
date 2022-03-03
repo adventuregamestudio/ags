@@ -12,8 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "openal_support.h"
-
 #include "apeg.h"
 #include "mpg123.h"
 #include "mpeg1dec.h"
@@ -55,13 +53,13 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 
 	if(layer->stream.audio.freq <= 0)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Illegal audio frequency (%dhz)",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Illegal audio frequency (%dhz)",
 		         layer->stream.audio.freq);
 		return APEG_ERROR;
 	}
 	if(layer->stream.audio.channels <= 0)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Illegal channel count (%d)",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Illegal channel count (%d)",
 		         layer->stream.audio.channels);
 		return APEG_ERROR;
 	}
@@ -74,7 +72,7 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 	layer->audio.pcm.samples = malloc(layer->audio.bufsize+buffer_padding);
 	if(!layer->audio.pcm.samples)
 	{
-		snprintf(apeg_error, sizeof(apeg_error), "Error allocating %d bytes for audio buffer",
+		snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error), "Error allocating %d bytes for audio buffer",
 		         layer->audio.bufsize+buffer_padding);
 		return APEG_ERROR;
 	}
@@ -84,20 +82,6 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
 
 	layer->audio.samples_per_update = layer->audio.bufsize / 2 /
 	                                  layer->stream.audio.channels;
-
-	layer->audio.processedSamples = 0;
-
-	/* clear */ alGetError();
-
-	/* Start the audio stream */
-	alGenSources((ALuint)1, &layer->audio.alSource);
-	check_al_error("alGenSources")
-
-	alSourceRewind(layer->audio.alSource);
-	check_al_error("alSourceRewind")
-
-    alSourcei(layer->audio.alSource, AL_BUFFER, 0);
-	check_al_error("alSourcei AL_BUFFER")
 
 	layer->audio.last_pos = -1;
 	layer->audio.pos = -layer->audio.samples_per_update*2;
@@ -112,8 +96,6 @@ int _apeg_audio_reset_parameters(APEG_LAYER *layer)
  */
 int _apeg_audio_poll(APEG_LAYER *layer)
 {
-
-
 	if(layer->stream.flags & APEG_VORBIS_AUDIO)
 		return alvorbis_update(layer);
 
@@ -155,6 +137,3 @@ int _apeg_start_audio(APEG_LAYER *layer, int enable)
 		return APEG_OK;
 	return APEG_ERROR;
 }
-
-
-

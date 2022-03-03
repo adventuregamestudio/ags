@@ -30,6 +30,7 @@ namespace {
 const auto MAXIMUM_FALL_BEHIND = 3;
 
 auto tick_duration = std::chrono::microseconds(1000000LL/40);
+auto framerate = 0;
 auto framerate_maxed = false;
 
 auto last_tick_time = AGS_Clock::now();
@@ -45,13 +46,16 @@ std::chrono::microseconds GetFrameDuration()
     return tick_duration;
 }
 
-void setTimerFps(int new_fps)
+int setTimerFps(int new_fps)
 {
+    int old_fps = framerate;
     tick_duration = std::chrono::microseconds(1000000LL/new_fps);
+    framerate = new_fps;
     framerate_maxed = new_fps >= 1000;
 
     last_tick_time = AGS_Clock::now();
     next_frame_timestamp = AGS_Clock::now();
+    return old_fps;
 }
 
 bool isTimerFpsMaxed()

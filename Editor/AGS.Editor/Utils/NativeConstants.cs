@@ -32,7 +32,6 @@ namespace AGS.Editor
         public static readonly int DTFLG_SHOWPARSER = (int)Factory.NativeProxy.GetNativeConstant("DTFLG_SHOWPARSER");
         public static readonly sbyte FONT_OUTLINE_AUTO = (sbyte)(int)Factory.NativeProxy.GetNativeConstant("FONT_OUTLINE_AUTO");
         public static readonly int MAX_STATIC_SPRITES = (int)Factory.NativeProxy.GetNativeConstant("MAX_STATIC_SPRITES");
-        public static readonly int MAX_CURSOR = (int)Factory.NativeProxy.GetNativeConstant("MAX_CURSOR");
         public static readonly int MAX_PARSER_WORD_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_PARSER_WORD_LENGTH");
         public static readonly int MAX_INV = (int)Factory.NativeProxy.GetNativeConstant("MAX_INV");
         public static readonly int MAXLIPSYNCFRAMES = (int)Factory.NativeProxy.GetNativeConstant("MAXLIPSYNCFRAMES");
@@ -129,6 +128,7 @@ namespace AGS.Editor
             public static readonly int OPT_RELATIVEASSETRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RELATIVEASSETRES");
             public static readonly int OPT_WALKSPEEDABSOLUTE = (int)Factory.NativeProxy.GetNativeConstant("OPT_WALKSPEEDABSOLUTE");
             public static readonly int OPT_CLIPGUICONTROLS = (int)Factory.NativeProxy.GetNativeConstant("OPT_CLIPGUICONTROLS");
+            public static readonly int OPT_GAMETEXTENCODING = (int)Factory.NativeProxy.GetNativeConstant("OPT_GAMETEXTENCODING");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

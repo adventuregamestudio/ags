@@ -17,11 +17,6 @@
 #include "mpeg1dec.h"
 #include "mpg123.h"
 
-// Default stream
-APEG_STREAM *apeg_stream;
-
-// Error string
-char apeg_error[256];
 
 // Static variables for setting buffer sizes
 static int mem_buffer_size = -1;
@@ -34,14 +29,7 @@ static void (*_skip_func)(int bytes, void *ptr);
 // Quality setting (for frame reconstruction)
 static int quality = RECON_SUBPIXEL | RECON_AVG_SUBPIXEL;
 
-// Whether we should drop frames or try to let the CPU catch up
-static int framedrop = FALSE;
-
-// Jump point for if the decoder hits a fault
-static jmp_buf jmp_buffer;
-
 // private prototypes
-static int decode_stream(APEG_LAYER *layer, BITMAP *target);
 static void initialize_stream(APEG_LAYER *layer);
 static void check_stream_type(APEG_LAYER *layer);
 static void setup_stream(APEG_LAYER *layer);
@@ -189,15 +177,6 @@ static PACKFILE_VTABLE ext_vtable =
 };
 
 
-// The timer.. increments the int pointed to by 'param'
-static Uint32 timer_proc(Uint32 interval, void *param)
-{
-	++(*(volatile int*)param);
-    return interval;
-}
-END_OF_STATIC_FUNCTION(timer_proc);
-
-
 // Gets called at the beginning of every "open" function, to ensure
 // things are initialized
 static void Initialize_Decoder(void)
@@ -206,12 +185,8 @@ static void Initialize_Decoder(void)
 
 	if(!inited)
 	{
-		// Lock the timer function
-		LOCK_FUNCTION(timer_proc);
 		inited = TRUE;
 	}
-
-	memset(apeg_error, 0, sizeof(apeg_error));
 }
 
 // The default callback; requires Allegro's keyboard handler
@@ -246,12 +221,6 @@ void apeg_close_stream(APEG_STREAM *stream)
 	{
 		_apeg_start_audio(layer, FALSE);
 
-		if (layer->stream.sdl_timer_id > 0)
-		{
-			SDL_RemoveTimer(layer->stream.sdl_timer_id);
-			layer->stream.sdl_timer_id = 0;
-		}
-
 		destroy_bitmap(layer->stream.bitmap);
 
 		alogg_cleanup(layer);
@@ -278,7 +247,7 @@ APEG_STREAM *apeg_open_stream_ex(void *ptr)
 	if(!layer)
 		return NULL;
 
-	if(setjmp(jmp_buffer))
+	if(setjmp(layer->jmp_buffer))
 	{
 		apeg_close_stream((APEG_STREAM*)layer);
 		return NULL;
@@ -291,7 +260,7 @@ APEG_STREAM *apeg_open_stream_ex(void *ptr)
 
 	layer->pf = pack_fopen_vtable(&ext_vtable, layer);
 	if(!layer->pf)
-		apeg_error_jump("Could not open stream");
+		apeg_error_jump(layer, "Could not open stream");
 	layer->buffer_type = USER_BUFFER;
 
 	setup_stream(layer);
@@ -305,7 +274,7 @@ int apeg_reset_stream(APEG_STREAM *stream)
 	APEG_LAYER *layer = (APEG_LAYER*)stream;
 	int ret;
 
-	if((ret = setjmp(jmp_buffer)) != 0)
+	if((ret = setjmp(layer->jmp_buffer)) != 0)
 		return ret;
 
 	// Reset frame count
@@ -319,7 +288,7 @@ int apeg_reset_stream(APEG_STREAM *stream)
 	if(layer->system_stream_flag == OGG_SYSTEM)
 	{
 		if(alogg_reopen(layer) != APEG_OK)
-			apeg_error_jump("Could not reopen Ogg stream");
+			apeg_error_jump(layer, "Could not reopen Ogg stream");
 
 		return APEG_OK;
 	}
@@ -331,43 +300,12 @@ int apeg_reset_stream(APEG_STREAM *stream)
 		return APEG_OK;
 
 	if(apeg_get_header(layer) != 1)
-		apeg_error_jump("No video in sequence");
+		apeg_error_jump(layer, "No video in sequence");
 
 	apeg_get_frame(layer);
 
 	return APEG_OK;
 }
-
-int apeg_play_apeg_stream(APEG_STREAM *stream_to_play, BITMAP *bmp, int loop, int (*callback)(BITMAP*tempBuffer))
-{
-	int ret = APEG_OK;
-  apeg_stream = stream_to_play;
-
-	Initialize_Decoder();
-
-	if(bmp)
-		clear_to_color(bmp, makecol(0, 0, 0));
-
-	// Install the callback function
-	if(callback)
-		callback_proc = callback;
-	else
-		callback_proc = default_callback;
-
-restart_loop:
-	ret = decode_stream((APEG_LAYER*)apeg_stream, bmp);
-	if(loop && ret == APEG_OK)
-	{
-		apeg_reset_stream(apeg_stream);
-		goto restart_loop;
-	}
-
-	apeg_stream = NULL;
-
-	return ret;
-}
-
-
 
 
 void apeg_set_stream_reader(int (*init_func)(void *ptr), int (*request_func)(void *bfr, int bytes, void *ptr), void (*skip_func)(int bytes, void *ptr))
@@ -413,120 +351,11 @@ void apeg_get_video_size(APEG_STREAM *stream, int *w, int *h)
 }
 
 
-void apeg_enable_framedrop(int enable)
-{
-	framedrop = !!enable;
-}
-
 int _apeg_skip_length;
 void apeg_disable_length_detection(int disable)
 {
 	_apeg_skip_length = !!disable;
 }
-
-
-static int decode_stream(APEG_LAYER *layer, BITMAP *target)
-{
-	int ret;
-	int dw, dh;
-
-	if((ret = setjmp(jmp_buffer)) != 0)
-		return ret;
-
-	apeg_get_video_size(&layer->stream, &dw, &dh);
-
-	layer->stream.frame = 0;
-	if((layer->stream.flags & APEG_HAS_VIDEO))
-	{
-		layer->stream.timer = -1;
-		while(layer->stream.timer == -1)
-			;
-	}
-
-	// loop through the pictures in the sequence
-	do {
-		layer->stream.frame_updated = -1;
-		layer->stream.audio.flushed = FALSE;
-		ret = APEG_OK;
-
-		if((layer->stream.flags & APEG_HAS_AUDIO))
-		{
-			ret = _apeg_audio_poll(layer);
-			if((layer->stream.flags & APEG_HAS_VIDEO))
-			{
-				int t = _apeg_audio_get_position(layer);
-				if(t >= 0) {
-					double audio_pos_secs = (double)t / (double)layer->stream.audio.freq;
-					double audio_frames = audio_pos_secs * layer->stream.frame_rate;
-					layer->stream.timer = audio_frames - layer->stream.frame;
-					// could be negative.. so will wait until 0 ?
-				}
-			}
-		}
-
-		if((layer->stream.flags & APEG_HAS_VIDEO))
-		{
-			if(!layer->picture)
-			{
-				if((layer->stream.flags&APEG_MPG_VIDEO))
-				{
-					// Get the next MPEG header
-					if(apeg_get_header(layer) == 1)
-					{
-						// Decode the next picture
-						if(layer->picture_type != B_TYPE ||
-						   !framedrop || layer->stream.timer <= 1)
-							layer->picture = apeg_get_frame(layer);
-					}
-					// If end of stream, display the last frame
-					else if((!framedrop || layer->stream.timer <= 1) &&
-					        !layer->got_last)
-					{
-						layer->got_last = TRUE;
-						layer->picture = layer->backward_frame;
-					}
-				}
-				else
-					layer->picture = altheora_get_frame(layer);
-
-				if(pack_feof(layer->pf) &&
-				   (!(layer->stream.flags&APEG_HAS_AUDIO)||
-				     ret!=APEG_OK))
-					ret = APEG_EOF;
-			}
-
-			if(layer->stream.timer > 0)
-			{
-				// Update frame and timer count
-				++(layer->stream.frame);
-				--(layer->stream.timer);
-
-				// If we're not behind, update the display frame
-				layer->stream.frame_updated = 0;
-				if(layer->picture && (!framedrop || layer->stream.timer == 0))
-				{
-					apeg_display_frame(layer, layer->picture);
-				}
-				layer->picture = NULL;
-			}
-			if(layer->stream.frame_updated == 1 || layer->picture)
-				ret = APEG_OK;
-		}
-
-		if(ret == APEG_OK)
-		{
-			if((!(layer->stream.flags & APEG_HAS_VIDEO) ||
-			    layer->stream.frame_updated >= 0) && (ret = callback_proc(layer->stream.bitmap)))
-				break;
-
-			if(layer->stream.frame_updated < 0 && !layer->stream.audio.flushed)
-				SDL_Delay(1);
-		}
-	} while(ret == APEG_OK);
-
-	return ret;
-}
-
 
 static void setup_stream(APEG_LAYER *layer)
 {
@@ -549,7 +378,7 @@ static void setup_stream(APEG_LAYER *layer)
 		if(layer->system_stream_flag != OGG_SYSTEM)
 		{
 			if(apeg_get_header(layer) != 1)
-				apeg_error_jump("No video in stream");
+				apeg_error_jump(layer, "No video in stream");
 
 			// Initialize the stream
 			initialize_stream(layer);
@@ -560,14 +389,7 @@ static void setup_stream(APEG_LAYER *layer)
 
 		// Start the timer
 		if(layer->stream.frame_rate <= 0.0)
-			apeg_error_jump("Illegal frame rate in stream");
-
-		Uint32 interval_ms = FPS_TO_TIMER(layer->stream.frame_rate);
-		layer->stream.sdl_timer_id =
-			SDL_AddTimer(interval_ms, timer_proc, (void*)&(layer->stream.timer));
-
-		// Reset the timer and return the stream
-		layer->stream.timer = -1;
+			apeg_error_jump(layer, "Illegal frame rate in stream");
 	}
 }
 
@@ -577,7 +399,7 @@ static void initialize_stream(APEG_LAYER *layer)
 	int size;
 
 	if(layer->stream.w < 16 || layer->stream.h < 16)
-		apeg_error_jump("Illegal video size");
+		apeg_error_jump(layer, "Illegal video size");
 
 	// round to greatest multiple of coded macroblocks
 	layer->mb_cols = (layer->stream.w+15)/16;
@@ -596,7 +418,7 @@ static void initialize_stream(APEG_LAYER *layer)
 	free(layer->image_ptr);
 	layer->image_ptr = malloc(size*3);
 	if(!layer->image_ptr)
-		apeg_error_jump("Frame malloc failed");
+		apeg_error_jump(layer, "Frame malloc failed");
 	ptr = layer->image_ptr;
 
 	layer->forward_frame[0] = ptr;
@@ -624,12 +446,12 @@ static void initialize_stream(APEG_LAYER *layer)
 	apeg_initialize_display(layer, 1);
 }
 
-void apeg_error_jump(char *text)
+void apeg_error_jump(struct APEG_LAYER *layer, const char *text)
 {
 	if(text)
-		strncpy(apeg_error, text, sizeof(apeg_error));
+		strncpy(layer->stream.apeg_error, text, sizeof(layer->stream.apeg_error));
 
-	longjmp(jmp_buffer, APEG_ERROR);
+	longjmp(layer->jmp_buffer, APEG_ERROR);
 }
 
 
@@ -643,7 +465,7 @@ static void check_stream_type(APEG_LAYER *layer)
 
 	// Transport streams (what'r those?) aren't supported
 	if(show_bits(layer, 8) == 0x47)
-		apeg_error_jump("Transport streams not supported");
+		apeg_error_jump(layer, "Transport streams not supported");
 
 	/* Get the first start code */
 recheck:
@@ -673,7 +495,7 @@ recheck:
 					layer->system_stream_flag = OGG_SYSTEM;
 					_apeg_initialize_buffer(layer);
 					if(alogg_open(layer) != APEG_OK)
-						apeg_error_jump("Error opening Ogg stream");
+						apeg_error_jump(layer, "Error opening Ogg stream");
 					return;
 				}
 			}
@@ -703,17 +525,18 @@ void _apeg_initialize_buffer(APEG_LAYER *layer)
 		case USER_BUFFER:
 			if(!layer->ext_data.request || !layer->ext_data.skip ||
 			   !layer->ext_data.init)
-				apeg_error_jump("Unable to request data");
+				apeg_error_jump(layer, "Unable to request data");
 
 			layer->buffer_size = layer->ext_data.init(layer->ext_data.ptr);
 			if(layer->buffer_size <= 0)
-				apeg_error_jump("Data init failed");
+				apeg_error_jump(layer, "Data init failed");
 			layer->buffer_size = (layer->buffer_size+3) & (~3);
 			break;
 
 		default:
-			sprintf(apeg_error, "Unknown buffer type: %d", layer->buffer_type);
-			apeg_error_jump(NULL);
+			snprintf(layer->stream.apeg_error, sizeof(layer->stream.apeg_error),
+				"Unknown buffer type: %d", layer->buffer_type);
+			apeg_error_jump(layer, NULL);
 	}
 
 	layer->Bfr = 0;
@@ -723,4 +546,77 @@ void _apeg_initialize_buffer(APEG_LAYER *layer)
 		layer->Rdmax = ~0u;
 	if(layer->system_stream_flag != OGG_SYSTEM)
 		apeg_flush_bits(layer, 0); /* fills valid data into Bfr */
+}
+
+void apeg_set_error(APEG_STREAM *stream, const char *text)
+{
+	if (text)
+		strncpy(stream->apeg_error, text, sizeof(stream->apeg_error));
+	else
+		stream->apeg_error[0] = 0;
+}
+
+extern void alvorbis_get_data(APEG_LAYER *layer);
+int apeg_get_audio_frame(APEG_STREAM *stream, unsigned char **pbuf, int *count)
+{
+	int ret;
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if ((ret = setjmp(layer->jmp_buffer)) != 0)
+		return ret;
+	if (layer->audio.pcm.point < layer->audio.bufsize)
+		alvorbis_get_data(layer);
+	*pbuf = layer->audio.pcm.samples;
+	*count = layer->audio.pcm.point;
+	// flush
+	layer->audio.pos = -1;
+	layer->audio.pcm.point = 0;
+	layer->stream.audio.flushed = TRUE;
+	return (*count) > 0 ? APEG_OK : APEG_EOF;
+}
+
+int apeg_get_video_frame(APEG_STREAM *stream)
+{
+	int ret = APEG_OK;
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if ((ret = setjmp(layer->jmp_buffer)) != 0)
+		return ret;
+	if (!layer->picture)
+	{
+		if ((layer->stream.flags&APEG_MPG_VIDEO))
+		{
+			// Get the next MPEG header
+			if (apeg_get_header(layer) == 1)
+			{
+				// Decode the next picture
+				if (layer->picture_type != B_TYPE)
+					layer->picture = apeg_get_frame(layer);
+			}
+			// If end of stream, display the last frame
+			else if (!layer->got_last)
+			{
+				layer->got_last = TRUE;
+				layer->picture = layer->backward_frame;
+			}
+		}
+		else
+			layer->picture = altheora_get_frame(layer);
+
+		if (pack_feof(layer->pf))
+			ret = APEG_EOF;
+	}
+	return ret;
+}
+
+int apeg_display_video_frame(APEG_STREAM *stream)
+{
+	int ret;
+	APEG_LAYER *layer = (APEG_LAYER*)stream;
+	if ((ret = setjmp(layer->jmp_buffer)) != 0)
+		return ret;
+	if (layer->picture)
+	{
+		apeg_display_frame(layer, layer->picture);
+	}
+	layer->picture = NULL;
+	return APEG_OK;
 }

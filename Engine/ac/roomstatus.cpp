@@ -45,7 +45,6 @@ RoomStatus::RoomStatus()
 {
     beenhere = 0;
     numobj = 0;
-    memset(&flagstates, 0, sizeof(flagstates));
     tsdatasize = 0;
     tsdata = nullptr;
     

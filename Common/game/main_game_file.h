@@ -54,7 +54,6 @@ enum MainGameFileErrorType
     kMGFErr_CapsNotSupported,
     kMGFErr_InvalidNativeResolution,
     kMGFErr_TooManySprites,
-    kMGFErr_TooManyCursors,
     kMGFErr_InvalidPropertySchema,
     kMGFErr_InvalidPropertyValues,
     kMGFErr_CreateGlobalScriptFailed,

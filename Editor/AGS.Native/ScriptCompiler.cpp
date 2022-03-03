@@ -35,6 +35,8 @@ namespace AGS
 
     void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^messages)
     {
+			TextConverter^ tcv = NativeMethods::GetGameTextConverter();
+
         if (script->CompiledData != nullptr)
             script->CompiledData = nullptr;
 
@@ -87,9 +89,10 @@ namespace AGS
 
             CompileMessage ^compile_error = nullptr;
 
-            char **scriptHeaders = new char*[preProcessedScripts->Length - 1];
-            char *mainScript;
-            char *mainScriptName;
+            std::vector<AGSString> scriptHeaders;
+            scriptHeaders.resize(preProcessedScripts->Length - 1);
+            AGSString mainScript;
+            AGSString mainScriptName;
             ccScript *scrpt = NULL;
             int headerCount = 0;
 
@@ -97,9 +100,9 @@ namespace AGS
             {
                 if (headerCount < preProcessedScripts->Length - 1)
                 {
-                    scriptHeaders[headerCount] = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(header).ToPointer();
+                    scriptHeaders[headerCount] = tcv->Convert(header);
 
-                    if (ccAddDefaultHeader(scriptHeaders[headerCount], "Header"))
+                    if (ccAddDefaultHeader(scriptHeaders[headerCount].GetCStr(), "Header")) 
                     {
                         compile_error = gcnew CompileError("Too many scripts in game");
                         break;
@@ -107,31 +110,22 @@ namespace AGS
                     headerCount++;
                 }
             }
-            ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 
+            ccSetSoftwareVersion(editorVersionNumber.GetCStr());
             ccSetOption(SCOPT_EXPORTALL, 1);
             ccSetOption(SCOPT_LINENUMBERS, 1);
             ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
 
             if (compile_error == nullptr)
             {
-                mainScript = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(preProcessedScripts[preProcessedScripts->Length - 1]).ToPointer();
-                mainScriptName = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-                scrpt = ccCompileText(mainScript, mainScriptName);
-                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
+                mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
+                mainScriptName = tcv->Convert(script->FileName);
+                scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
                 if ((scrpt == NULL) || (ccError != 0))
                 {
-                    compile_error = gcnew CompileError(ToStr(ccErrorString), gcnew String(ccCurScriptName), ccErrorLine);
+                    compile_error = gcnew CompileError(tcv->Convert(ccErrorString), TextHelper::ConvertASCII(ccCurScriptName), ccErrorLine);
                 }
             }
-
-            
-            for (int i = 0; i < preProcessedScripts->Length - 1; i++)
-            {
-                System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(scriptHeaders[i]));
-            }
-            delete scriptHeaders;
 
             if (compile_error != nullptr)
             {
@@ -149,10 +143,10 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char iconNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(iconName, iconNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(iconName, iconNameChars, MAX_PATH);
 
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
 				ReplaceIconFromFile(iconNameChars, fileNameChars);
 			}
@@ -192,7 +186,7 @@ namespace AGS
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
 			char fileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+			TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
       HMODULE module = LoadLibrary(fileNameChars);
       if (module == NULL)
@@ -230,7 +224,7 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
+				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
         if (newData == nullptr) 
         {

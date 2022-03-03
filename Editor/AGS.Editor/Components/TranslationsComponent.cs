@@ -124,7 +124,7 @@ namespace AGS.Editor.Components
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
                 bw.Write(TRANSLATION_BLOCK_GAME_ID);
-                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, Encoding.Default);
+                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
                 bw.Write(gameName.Length + 4 + 4);
                 bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
                 bw.Write(gameName.Length);
@@ -153,11 +153,9 @@ namespace AGS.Editor.Components
                 DataFileWriter.WriteString(TRANSLATION_BLOCK_STROPTIONS, 16, bw);
                 var data_len_pos = bw.BaseStream.Position;
                 bw.Write((long)0); // data length placeholder
-                bw.Write((int)2); // size of key/value table
+                bw.Write((int)1); // size of key/value table
                 DataFileWriter.FilePutString("encoding", bw);
                 DataFileWriter.FilePutString(translation.EncodingHint, bw);
-                DataFileWriter.FilePutString("gameencoding", bw);
-                DataFileWriter.FilePutString(translation.GameEncodingHint, bw);
                 var end_pos = bw.BaseStream.Position;
                 var data_len = end_pos - data_len_pos - 8;
                 bw.Seek((int)data_len_pos, SeekOrigin.Begin);

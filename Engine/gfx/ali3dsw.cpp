@@ -295,10 +295,14 @@ int SDLRendererGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return color_depth;
 }
 
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
+{
+  return new ALSoftwareBitmap(width, height, color_depth, opaque);
+}
+
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
 {
-  ALSoftwareBitmap* newBitmap = new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
-  return newBitmap;
+  return new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
 }
 
 void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)

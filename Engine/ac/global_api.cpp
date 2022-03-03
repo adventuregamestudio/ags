@@ -1206,7 +1206,7 @@ RuntimeScriptValue Sc_PlayAmbientSound(const RuntimeScriptValue *params, int32_t
 // void (int numb,int playflags)
 RuntimeScriptValue Sc_play_flc_file(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(play_flc_file);
+    API_SCALL_VOID_PINT2(PlayFlic);
 }
 
 // void  (char *filename)
@@ -1248,7 +1248,7 @@ RuntimeScriptValue Sc_PlaySoundEx(const RuntimeScriptValue *params, int32_t para
 // void (const char* name, int skip, int flags)
 RuntimeScriptValue Sc_scrPlayVideo(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT2(scrPlayVideo, const char);
+    API_SCALL_VOID_POBJ_PINT2(PlayVideo, const char);
 }
 
 // void (int dialog)
@@ -2886,14 +2886,14 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("ParseText",                (void*)ParseText);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
     ccAddExternalFunctionForPlugin("PlayAmbientSound",         (void*)PlayAmbientSound);
-    ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)play_flc_file);
+    ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
     ccAddExternalFunctionForPlugin("PlayMP3File",              (void*)PlayMP3File);
     ccAddExternalFunctionForPlugin("PlayMusic",                (void*)PlayMusicResetQueue);
     ccAddExternalFunctionForPlugin("PlayMusicQueued",          (void*)PlayMusicQueued);
     ccAddExternalFunctionForPlugin("PlaySilentMIDI",           (void*)PlaySilentMIDI);
     ccAddExternalFunctionForPlugin("PlaySound",                (void*)play_sound);
     ccAddExternalFunctionForPlugin("PlaySoundEx",              (void*)PlaySoundEx);
-    ccAddExternalFunctionForPlugin("PlayVideo",                (void*)scrPlayVideo);
+    ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);
     ccAddExternalFunctionForPlugin("Random",                   (void*)__Rand);

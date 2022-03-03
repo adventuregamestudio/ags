@@ -3184,7 +3184,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   int need_fixup = 0;
   int array_size = 1;
   if (sym.get_type(cursym) != 0) {
-    cc_error ("Symbol '%s' already defined");
+    cc_error ("Symbol '%s' already defined", sym.get_friendly_name(cursym).c_str());
     return -1;
   }
 

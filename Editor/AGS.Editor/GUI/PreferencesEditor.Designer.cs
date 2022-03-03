@@ -89,6 +89,37 @@ namespace AGS.Editor
             this.label13 = new System.Windows.Forms.Label();
             this.radNewGameSpecificPath = new System.Windows.Forms.RadioButton();
             this.radNewGameMyDocs = new System.Windows.Forms.RadioButton();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
+            this.groupBoxAndroidJdkPath = new System.Windows.Forms.GroupBox();
+            this.btnAndChooseJavaHomePath = new System.Windows.Forms.Button();
+            this.txtAndJavaHomePath = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.radAndJavaHomePath = new System.Windows.Forms.RadioButton();
+            this.radAndJavaHomeEnv = new System.Windows.Forms.RadioButton();
+            this.groupBoxAndroidSdkPath = new System.Windows.Forms.GroupBox();
+            this.btnAndChooseAndroidHomePath = new System.Windows.Forms.Button();
+            this.txtAndAndroidHomePath = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.radAndAndroidHomePath = new System.Windows.Forms.RadioButton();
+            this.radAndAndroidHomeEnv = new System.Windows.Forms.RadioButton();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.labelAndKey_File = new System.Windows.Forms.Label();
+            this.textBoxAndKeystoreFile = new System.Windows.Forms.TextBox();
+            this.labelAndKey_Pass = new System.Windows.Forms.Label();
+            this.textBoxAndKeystorePassword = new System.Windows.Forms.TextBox();
+            this.labelAndKey_KeyAlias = new System.Windows.Forms.Label();
+            this.textBoxAndKeystoreKeyAlias = new System.Windows.Forms.TextBox();
+            this.labelAndKey_KeyPass = new System.Windows.Forms.Label();
+            this.textBoxAndKeystoreKeyPassword = new System.Windows.Forms.TextBox();
+            this.checkBoxAndroidShowPassword = new System.Windows.Forms.CheckBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.buttonAndroidGenerateKeystore = new System.Windows.Forms.Button();
+            this.buttonAndroidChooseKeystore = new System.Windows.Forms.Button();
+            this.groupBoxKeystore = new System.Windows.Forms.GroupBox();
+            this.labelJdkOk = new System.Windows.Forms.Label();
+            this.labelSdkOk = new System.Windows.Forms.Label();
             this.tabPageLast.SuspendLayout();
             this.tabPageFirst.SuspendLayout();
             this.groupBox9.SuspendLayout();
@@ -105,6 +136,15 @@ namespace AGS.Editor
             this.flowLayoutPanel1.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox6.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.flowLayoutPanel2.SuspendLayout();
+            this.groupBoxAndroidJdkPath.SuspendLayout();
+            this.groupBoxAndroidSdkPath.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
+            this.groupBoxKeystore.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOK
@@ -719,8 +759,10 @@ namespace AGS.Editor
             // 
             this.tabControl1.Controls.Add(this.tabPageFirst);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPageLast);
-            this.tabControl1.Location = new System.Drawing.Point(6, 0);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(928, 602);
@@ -896,6 +938,377 @@ namespace AGS.Editor
             this.radNewGameMyDocs.UseVisualStyleBackColor = true;
             this.radNewGameMyDocs.CheckedChanged += new System.EventHandler(this.radNewGameMyDocs_CheckedChanged);
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.flowLayoutPanel2);
+            this.tabPage3.Location = new System.Drawing.Point(4, 26);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(920, 572);
+            this.tabPage3.TabIndex = 4;
+            this.tabPage3.Text = "Android";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // flowLayoutPanel2
+            // 
+            this.flowLayoutPanel2.Controls.Add(this.groupBoxAndroidJdkPath);
+            this.flowLayoutPanel2.Controls.Add(this.groupBoxAndroidSdkPath);
+            this.flowLayoutPanel2.Controls.Add(this.splitContainer1);
+            this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel2.Name = "flowLayoutPanel2";
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(914, 566);
+            this.flowLayoutPanel2.TabIndex = 0;
+            // 
+            // groupBoxAndroidJdkPath
+            // 
+            this.groupBoxAndroidJdkPath.Controls.Add(this.labelJdkOk);
+            this.groupBoxAndroidJdkPath.Controls.Add(this.btnAndChooseJavaHomePath);
+            this.groupBoxAndroidJdkPath.Controls.Add(this.txtAndJavaHomePath);
+            this.groupBoxAndroidJdkPath.Controls.Add(this.label16);
+            this.groupBoxAndroidJdkPath.Controls.Add(this.radAndJavaHomePath);
+            this.groupBoxAndroidJdkPath.Controls.Add(this.radAndJavaHomeEnv);
+            this.groupBoxAndroidJdkPath.Location = new System.Drawing.Point(4, 4);
+            this.groupBoxAndroidJdkPath.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidJdkPath.Name = "groupBoxAndroidJdkPath";
+            this.groupBoxAndroidJdkPath.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidJdkPath.Size = new System.Drawing.Size(904, 115);
+            this.groupBoxAndroidJdkPath.TabIndex = 13;
+            this.groupBoxAndroidJdkPath.TabStop = false;
+            this.groupBoxAndroidJdkPath.Text = "JDK Path";
+            // 
+            // btnAndChooseJavaHomePath
+            // 
+            this.btnAndChooseJavaHomePath.Location = new System.Drawing.Point(401, 75);
+            this.btnAndChooseJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.btnAndChooseJavaHomePath.Name = "btnAndChooseJavaHomePath";
+            this.btnAndChooseJavaHomePath.Size = new System.Drawing.Size(34, 26);
+            this.btnAndChooseJavaHomePath.TabIndex = 4;
+            this.btnAndChooseJavaHomePath.Text = "...";
+            this.btnAndChooseJavaHomePath.UseVisualStyleBackColor = true;
+            this.btnAndChooseJavaHomePath.Click += new System.EventHandler(this.btnAndChooseJavaHomePath_Click);
+            // 
+            // txtAndJavaHomePath
+            // 
+            this.txtAndJavaHomePath.Location = new System.Drawing.Point(121, 75);
+            this.txtAndJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtAndJavaHomePath.MaxLength = 0;
+            this.txtAndJavaHomePath.Name = "txtAndJavaHomePath";
+            this.txtAndJavaHomePath.Size = new System.Drawing.Size(272, 24);
+            this.txtAndJavaHomePath.TabIndex = 3;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label16.Location = new System.Drawing.Point(4, 21);
+            this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label16.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(465, 17);
+            this.label16.TabIndex = 2;
+            this.label16.Text = "Where is the JDK installation that should be used by Android build process?";
+            // 
+            // radAndJavaHomePath
+            // 
+            this.radAndJavaHomePath.AutoSize = true;
+            this.radAndJavaHomePath.Location = new System.Drawing.Point(18, 78);
+            this.radAndJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndJavaHomePath.Name = "radAndJavaHomePath";
+            this.radAndJavaHomePath.Size = new System.Drawing.Size(94, 21);
+            this.radAndJavaHomePath.TabIndex = 1;
+            this.radAndJavaHomePath.Text = "Default to:";
+            this.radAndJavaHomePath.UseVisualStyleBackColor = true;
+            this.radAndJavaHomePath.CheckedChanged += new System.EventHandler(this.radAndJavaHomePath_CheckedChanged);
+            // 
+            // radAndJavaHomeEnv
+            // 
+            this.radAndJavaHomeEnv.AutoSize = true;
+            this.radAndJavaHomeEnv.Checked = true;
+            this.radAndJavaHomeEnv.Location = new System.Drawing.Point(18, 49);
+            this.radAndJavaHomeEnv.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndJavaHomeEnv.Name = "radAndJavaHomeEnv";
+            this.radAndJavaHomeEnv.Size = new System.Drawing.Size(300, 21);
+            this.radAndJavaHomeEnv.TabIndex = 0;
+            this.radAndJavaHomeEnv.TabStop = true;
+            this.radAndJavaHomeEnv.Text = "Default to JAVA_HOME environment variable";
+            this.radAndJavaHomeEnv.UseVisualStyleBackColor = true;
+            this.radAndJavaHomeEnv.CheckedChanged += new System.EventHandler(this.radAndJavaHomeEnv_CheckedChanged);
+            // 
+            // groupBoxAndroidSdkPath
+            // 
+            this.groupBoxAndroidSdkPath.Controls.Add(this.labelSdkOk);
+            this.groupBoxAndroidSdkPath.Controls.Add(this.btnAndChooseAndroidHomePath);
+            this.groupBoxAndroidSdkPath.Controls.Add(this.txtAndAndroidHomePath);
+            this.groupBoxAndroidSdkPath.Controls.Add(this.label15);
+            this.groupBoxAndroidSdkPath.Controls.Add(this.radAndAndroidHomePath);
+            this.groupBoxAndroidSdkPath.Controls.Add(this.radAndAndroidHomeEnv);
+            this.groupBoxAndroidSdkPath.Location = new System.Drawing.Point(4, 127);
+            this.groupBoxAndroidSdkPath.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidSdkPath.Name = "groupBoxAndroidSdkPath";
+            this.groupBoxAndroidSdkPath.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidSdkPath.Size = new System.Drawing.Size(904, 115);
+            this.groupBoxAndroidSdkPath.TabIndex = 12;
+            this.groupBoxAndroidSdkPath.TabStop = false;
+            this.groupBoxAndroidSdkPath.Text = "SDK Path";
+            // 
+            // btnAndChooseAndroidHomePath
+            // 
+            this.btnAndChooseAndroidHomePath.Location = new System.Drawing.Point(401, 75);
+            this.btnAndChooseAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.btnAndChooseAndroidHomePath.Name = "btnAndChooseAndroidHomePath";
+            this.btnAndChooseAndroidHomePath.Size = new System.Drawing.Size(34, 26);
+            this.btnAndChooseAndroidHomePath.TabIndex = 4;
+            this.btnAndChooseAndroidHomePath.Text = "...";
+            this.btnAndChooseAndroidHomePath.UseVisualStyleBackColor = true;
+            this.btnAndChooseAndroidHomePath.Click += new System.EventHandler(this.btnAndChooseAndroidHomePath_Click);
+            // 
+            // txtAndAndroidHomePath
+            // 
+            this.txtAndAndroidHomePath.Location = new System.Drawing.Point(121, 75);
+            this.txtAndAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtAndAndroidHomePath.MaxLength = 0;
+            this.txtAndAndroidHomePath.Name = "txtAndAndroidHomePath";
+            this.txtAndAndroidHomePath.Size = new System.Drawing.Size(272, 24);
+            this.txtAndAndroidHomePath.TabIndex = 3;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label15.Location = new System.Drawing.Point(4, 21);
+            this.label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label15.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(452, 17);
+            this.label15.TabIndex = 2;
+            this.label15.Text = "Where is the Android SDK that should be used by Android build process?";
+            // 
+            // radAndAndroidHomePath
+            // 
+            this.radAndAndroidHomePath.AutoSize = true;
+            this.radAndAndroidHomePath.Location = new System.Drawing.Point(18, 78);
+            this.radAndAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndAndroidHomePath.Name = "radAndAndroidHomePath";
+            this.radAndAndroidHomePath.Size = new System.Drawing.Size(94, 21);
+            this.radAndAndroidHomePath.TabIndex = 1;
+            this.radAndAndroidHomePath.Text = "Default to:";
+            this.radAndAndroidHomePath.UseVisualStyleBackColor = true;
+            this.radAndAndroidHomePath.CheckedChanged += new System.EventHandler(this.radAndAndroidHomePath_CheckedChanged);
+            // 
+            // radAndAndroidHomeEnv
+            // 
+            this.radAndAndroidHomeEnv.AutoSize = true;
+            this.radAndAndroidHomeEnv.Checked = true;
+            this.radAndAndroidHomeEnv.Location = new System.Drawing.Point(18, 49);
+            this.radAndAndroidHomeEnv.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndAndroidHomeEnv.Name = "radAndAndroidHomeEnv";
+            this.radAndAndroidHomeEnv.Size = new System.Drawing.Size(330, 21);
+            this.radAndAndroidHomeEnv.TabIndex = 0;
+            this.radAndAndroidHomeEnv.TabStop = true;
+            this.radAndAndroidHomeEnv.Text = "Default to ANDROID_HOME environment variable";
+            this.radAndAndroidHomeEnv.UseVisualStyleBackColor = true;
+            this.radAndAndroidHomeEnv.CheckedChanged += new System.EventHandler(this.radAndAndroidHomeEnv_CheckedChanged);
+            // 
+            // splitContainer1
+            // 
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitContainer1.IsSplitterFixed = true;
+            this.splitContainer1.Location = new System.Drawing.Point(3, 249);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.groupBoxKeystore);
+            this.splitContainer1.Size = new System.Drawing.Size(899, 291);
+            this.splitContainer1.SplitterDistance = 460;
+            this.splitContainer1.TabIndex = 0;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 128F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 270F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.Controls.Add(this.checkBoxAndroidShowPassword, 1, 4);
+            this.tableLayoutPanel1.Controls.Add(this.buttonAndroidGenerateKeystore, 1, 6);
+            this.tableLayoutPanel1.Controls.Add(this.label17, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.buttonAndroidChooseKeystore, 2, 0);
+            this.tableLayoutPanel1.Controls.Add(this.labelAndKey_File, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystoreFile, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.labelAndKey_Pass, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystorePassword, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.labelAndKey_KeyAlias, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystoreKeyAlias, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.labelAndKey_KeyPass, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystoreKeyPassword, 1, 3);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 20);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 7;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(454, 268);
+            this.tableLayoutPanel1.TabIndex = 1;
+            // 
+            // labelAndKey_File
+            // 
+            this.labelAndKey_File.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelAndKey_File.AutoSize = true;
+            this.labelAndKey_File.Location = new System.Drawing.Point(94, 0);
+            this.labelAndKey_File.Name = "labelAndKey_File";
+            this.labelAndKey_File.Size = new System.Drawing.Size(31, 17);
+            this.labelAndKey_File.TabIndex = 0;
+            this.labelAndKey_File.Text = "File:";
+            // 
+            // textBoxAndKeystoreFile
+            // 
+            this.textBoxAndKeystoreFile.Location = new System.Drawing.Point(131, 3);
+            this.textBoxAndKeystoreFile.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreFile.Name = "textBoxAndKeystoreFile";
+            this.textBoxAndKeystoreFile.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreFile.TabIndex = 1;
+            this.textBoxAndKeystoreFile.Validated += new System.EventHandler(this.textBoxAndKeystoreFile_Validated);
+            // 
+            // labelAndKey_Pass
+            // 
+            this.labelAndKey_Pass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelAndKey_Pass.AutoSize = true;
+            this.labelAndKey_Pass.Location = new System.Drawing.Point(54, 32);
+            this.labelAndKey_Pass.Name = "labelAndKey_Pass";
+            this.labelAndKey_Pass.Size = new System.Drawing.Size(71, 17);
+            this.labelAndKey_Pass.TabIndex = 2;
+            this.labelAndKey_Pass.Text = "Password:";
+            // 
+            // textBoxAndKeystorePassword
+            // 
+            this.textBoxAndKeystorePassword.Location = new System.Drawing.Point(131, 35);
+            this.textBoxAndKeystorePassword.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystorePassword.Name = "textBoxAndKeystorePassword";
+            this.textBoxAndKeystorePassword.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystorePassword.TabIndex = 3;
+            this.textBoxAndKeystorePassword.Validated += new System.EventHandler(this.textBoxAndKeystorePassword_Validated);
+            // 
+            // labelAndKey_KeyAlias
+            // 
+            this.labelAndKey_KeyAlias.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelAndKey_KeyAlias.AutoSize = true;
+            this.labelAndKey_KeyAlias.Location = new System.Drawing.Point(60, 62);
+            this.labelAndKey_KeyAlias.Name = "labelAndKey_KeyAlias";
+            this.labelAndKey_KeyAlias.Size = new System.Drawing.Size(65, 17);
+            this.labelAndKey_KeyAlias.TabIndex = 4;
+            this.labelAndKey_KeyAlias.Text = "Key Alias:";
+            // 
+            // textBoxAndKeystoreKeyAlias
+            // 
+            this.textBoxAndKeystoreKeyAlias.Location = new System.Drawing.Point(131, 65);
+            this.textBoxAndKeystoreKeyAlias.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyAlias.Name = "textBoxAndKeystoreKeyAlias";
+            this.textBoxAndKeystoreKeyAlias.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyAlias.TabIndex = 5;
+            this.textBoxAndKeystoreKeyAlias.Validated += new System.EventHandler(this.textBoxAndKeystoreKeyAlias_Validated);
+            // 
+            // labelAndKey_KeyPass
+            // 
+            this.labelAndKey_KeyPass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelAndKey_KeyPass.AutoSize = true;
+            this.labelAndKey_KeyPass.Location = new System.Drawing.Point(27, 92);
+            this.labelAndKey_KeyPass.Name = "labelAndKey_KeyPass";
+            this.labelAndKey_KeyPass.Size = new System.Drawing.Size(98, 17);
+            this.labelAndKey_KeyPass.TabIndex = 6;
+            this.labelAndKey_KeyPass.Text = "Key Password:";
+            // 
+            // textBoxAndKeystoreKeyPassword
+            // 
+            this.textBoxAndKeystoreKeyPassword.Location = new System.Drawing.Point(131, 95);
+            this.textBoxAndKeystoreKeyPassword.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyPassword.Name = "textBoxAndKeystoreKeyPassword";
+            this.textBoxAndKeystoreKeyPassword.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyPassword.TabIndex = 7;
+            this.textBoxAndKeystoreKeyPassword.Validated += new System.EventHandler(this.textBoxAndKeystoreKeyPassword_Validated);
+            // 
+            // checkBoxAndroidShowPassword
+            // 
+            this.checkBoxAndroidShowPassword.AutoSize = true;
+            this.checkBoxAndroidShowPassword.Location = new System.Drawing.Point(131, 125);
+            this.checkBoxAndroidShowPassword.Name = "checkBoxAndroidShowPassword";
+            this.checkBoxAndroidShowPassword.Size = new System.Drawing.Size(126, 21);
+            this.checkBoxAndroidShowPassword.TabIndex = 0;
+            this.checkBoxAndroidShowPassword.Text = "Show Password";
+            this.checkBoxAndroidShowPassword.UseVisualStyleBackColor = true;
+            this.checkBoxAndroidShowPassword.CheckStateChanged += new System.EventHandler(this.checkBoxAndroidShowPassword_CheckStateChanged);
+            // 
+            // label17
+            // 
+            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(131, 176);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(249, 34);
+            this.label17.TabIndex = 5;
+            this.label17.Text = "If you don\'t have a Keystore, generate one";
+            // 
+            // buttonAndroidGenerateKeystore
+            // 
+            this.buttonAndroidGenerateKeystore.Location = new System.Drawing.Point(131, 213);
+            this.buttonAndroidGenerateKeystore.MinimumSize = new System.Drawing.Size(180, 26);
+            this.buttonAndroidGenerateKeystore.Name = "buttonAndroidGenerateKeystore";
+            this.buttonAndroidGenerateKeystore.Size = new System.Drawing.Size(180, 26);
+            this.buttonAndroidGenerateKeystore.TabIndex = 4;
+            this.buttonAndroidGenerateKeystore.Text = "Generate Keystore";
+            this.buttonAndroidGenerateKeystore.UseVisualStyleBackColor = true;
+            this.buttonAndroidGenerateKeystore.Click += new System.EventHandler(this.buttonAndroidGenerateKeystore_Click);
+            // 
+            // buttonAndroidChooseKeystore
+            // 
+            this.buttonAndroidChooseKeystore.Location = new System.Drawing.Point(402, 4);
+            this.buttonAndroidChooseKeystore.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonAndroidChooseKeystore.Name = "buttonAndroidChooseKeystore";
+            this.buttonAndroidChooseKeystore.Size = new System.Drawing.Size(34, 24);
+            this.buttonAndroidChooseKeystore.TabIndex = 6;
+            this.buttonAndroidChooseKeystore.Text = "...";
+            this.buttonAndroidChooseKeystore.UseVisualStyleBackColor = true;
+            this.buttonAndroidChooseKeystore.Click += new System.EventHandler(this.buttonAndroidChooseKeystore_Click);
+            // 
+            // groupBoxKeystore
+            // 
+            this.groupBoxKeystore.AutoSize = true;
+            this.groupBoxKeystore.Controls.Add(this.tableLayoutPanel1);
+            this.groupBoxKeystore.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxKeystore.Location = new System.Drawing.Point(0, 0);
+            this.groupBoxKeystore.Name = "groupBoxKeystore";
+            this.groupBoxKeystore.Size = new System.Drawing.Size(460, 291);
+            this.groupBoxKeystore.TabIndex = 0;
+            this.groupBoxKeystore.TabStop = false;
+            this.groupBoxKeystore.Text = "Keystore";
+            // 
+            // labelJdkOk
+            // 
+            this.labelJdkOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelJdkOk.AutoSize = true;
+            this.labelJdkOk.Location = new System.Drawing.Point(476, 21);
+            this.labelJdkOk.Name = "labelJdkOk";
+            this.labelJdkOk.Size = new System.Drawing.Size(144, 17);
+            this.labelJdkOk.TabIndex = 5;
+            this.labelJdkOk.Text = "JDK Found On Config!";
+            this.labelJdkOk.Visible = false;
+            // 
+            // labelSdkOk
+            // 
+            this.labelSdkOk.AutoSize = true;
+            this.labelSdkOk.Location = new System.Drawing.Point(474, 21);
+            this.labelSdkOk.Name = "labelSdkOk";
+            this.labelSdkOk.Size = new System.Drawing.Size(146, 17);
+            this.labelSdkOk.TabIndex = 6;
+            this.labelSdkOk.Text = "SDK Found On Config!";
+            this.labelSdkOk.Visible = false;
+            // 
             // PreferencesEditor
             // 
             this.AcceptButton = this.btnOK;
@@ -938,6 +1351,19 @@ namespace AGS.Editor
             this.groupBox4.PerformLayout();
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
+            this.flowLayoutPanel2.ResumeLayout(false);
+            this.groupBoxAndroidJdkPath.ResumeLayout(false);
+            this.groupBoxAndroidJdkPath.PerformLayout();
+            this.groupBoxAndroidSdkPath.ResumeLayout(false);
+            this.groupBoxAndroidSdkPath.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            this.groupBoxKeystore.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1005,5 +1431,36 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.RadioButton radNewGameSpecificPath;
         private System.Windows.Forms.RadioButton radNewGameMyDocs;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
+        private System.Windows.Forms.GroupBox groupBoxAndroidJdkPath;
+        private System.Windows.Forms.Button btnAndChooseJavaHomePath;
+        private System.Windows.Forms.TextBox txtAndJavaHomePath;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.RadioButton radAndJavaHomePath;
+        private System.Windows.Forms.RadioButton radAndJavaHomeEnv;
+        private System.Windows.Forms.GroupBox groupBoxAndroidSdkPath;
+        private System.Windows.Forms.Button btnAndChooseAndroidHomePath;
+        private System.Windows.Forms.TextBox txtAndAndroidHomePath;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.RadioButton radAndAndroidHomePath;
+        private System.Windows.Forms.RadioButton radAndAndroidHomeEnv;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Label labelAndKey_File;
+        private System.Windows.Forms.TextBox textBoxAndKeystoreFile;
+        private System.Windows.Forms.Label labelAndKey_Pass;
+        private System.Windows.Forms.TextBox textBoxAndKeystorePassword;
+        private System.Windows.Forms.Label labelAndKey_KeyAlias;
+        private System.Windows.Forms.TextBox textBoxAndKeystoreKeyAlias;
+        private System.Windows.Forms.Label labelAndKey_KeyPass;
+        private System.Windows.Forms.TextBox textBoxAndKeystoreKeyPassword;
+        private System.Windows.Forms.CheckBox checkBoxAndroidShowPassword;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button buttonAndroidGenerateKeystore;
+        private System.Windows.Forms.Button buttonAndroidChooseKeystore;
+        private System.Windows.Forms.GroupBox groupBoxKeystore;
+        private System.Windows.Forms.Label labelJdkOk;
+        private System.Windows.Forms.Label labelSdkOk;
     }
 }

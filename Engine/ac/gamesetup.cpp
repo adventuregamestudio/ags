@@ -30,6 +30,8 @@ GameSetup::GameSetup()
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     RenderAtScreenRes = false;
     Supersampling = 1;
+    clear_cache_on_room_change = false;
+    rotation = kScreenRotation_Unlocked;
 
     Screen.Params.RefreshRate = 0;
     Screen.Params.VSync = false;

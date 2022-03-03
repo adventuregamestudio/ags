@@ -728,7 +728,7 @@ private:
     void AccessData_Dereference(EvaluationResult &eres);
 
     // Process one index in a sequence of array indexes
-    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression);
+    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, EvaluationResult &eres);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly

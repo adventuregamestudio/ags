@@ -3248,7 +3248,7 @@ void AGS::Parser::AccessData_Dereference(EvaluationResult &eres)
     }
 }
 
-void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t const dim, size_t const factor, bool const is_dynarray, SrcList &expression)
+void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t const dim, size_t const factor, bool const is_dynarray, SrcList &expression, EvaluationResult &eres)
 {
     // Get the index
     size_t const index_start = expression.GetCursor();
@@ -3258,7 +3258,6 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
     if (0 == current_index.Length())
         UserError("Array index #u is empty, this is not supported here", idx + 1u);
 
-    EvaluationResult eres;
     // If all ops are pending on the MAR register, it hasn't been set yet at all.
     // So then we don't need to protect MAR against being clobbered, 
     // but we do need to keep track of those pending ops in this case.
@@ -3354,8 +3353,10 @@ void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, Evalu
 
     for (size_t dim_idx = 0; dim_idx < num_of_dims; dim_idx++)
     {
-        AccessData_ProcessCurrentArrayIndex(dim_idx, dims[dim_idx], dim_sizes[dim_idx], is_dynarray, expression);
-        
+        EvaluationResult eres_index;
+        AccessData_ProcessCurrentArrayIndex(dim_idx, dims[dim_idx], dim_sizes[dim_idx], is_dynarray, expression, eres_index);
+        if (eres_index.SideEffects)
+            eres.SideEffects = true;
         Symbol divider = expression.PeekNext();
         Expect(SymbolList{ kKW_CloseBracket, kKW_Comma }, divider);
         
@@ -6030,9 +6031,14 @@ void AGS::Parser::ParseAssignmentOrExpression()
         EvaluationResult eres;
         size_t const expr_end = _src.GetCursor();
         ParseExpression_Term(expression, eres, false);
+        _src.SetCursor(expr_end);
+        if (eres.kTY_FunctionName == eres.Type)
+            Expect(kKW_OpenParenthesis, _src.GetNext());
+        if (eres.kTY_StructName == eres.Type)
+            Expect(kKW_Dot, _src.GetNext());
         if (!eres.SideEffects)
             Warning("This expression doesn't have any effect");
-        _src.SetCursor(expr_end);
+       
         return;
     }
 	

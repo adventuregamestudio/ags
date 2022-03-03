@@ -828,6 +828,13 @@ namespace AGS.Editor
             _game.SavedXmlVersionIndex = versionIndex;
 			_game.SavedXmlVersion = fileVersion;
             _game.SavedXmlEditorVersion = gameSavedWithEditorVersion;
+            try
+            { // Try to retrieve the xml encoding declaration, to be used as a fallback for older projects
+                XmlDeclaration dec = doc.FirstChild as XmlDeclaration;
+                _game.SavedXmlEncodingCodePage = Encoding.GetEncoding(dec.Encoding).CodePage;
+            }
+            catch (Exception) {}
+
 			_game.FromXml(doc.DocumentElement);
 
             Factory.Events.OnGameLoad(doc.DocumentElement);
@@ -1682,6 +1689,7 @@ namespace AGS.Editor
 
 			_game.SavedXmlVersion = LATEST_XML_VERSION;
             _game.SavedXmlVersionIndex = LATEST_XML_VERSION_INDEX;
+            _game.SavedXmlEncodingCodePage = _game.TextEncoding.CodePage;
             _game.ToXml(writer);
 
 			Factory.Events.OnSavingGame(writer);

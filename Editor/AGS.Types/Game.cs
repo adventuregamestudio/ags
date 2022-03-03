@@ -68,6 +68,7 @@ namespace AGS.Types
 		private string _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private string _savedXmlEditorVersion = null;
+        private int? _savedXmlEncodingCP = null;
 
         public Game()
         {
@@ -113,14 +114,7 @@ namespace AGS.Types
 
         public Encoding TextEncoding
         {
-            get
-            {
-                if (string.Compare(_settings.GameTextEncoding, "ANSI", true) == 0)
-                    return Encoding.Default;
-                else if (string.Compare(_settings.GameTextEncoding, "UTF-8", true) == 0)
-                    return Utilities.UTF8; // UTF-8 w/o BOM
-                return Encoding.GetEncoding(_settings.GameTextEncoding);
-            }
+            get {  return Utilities.EncodingFromName(_settings.GameTextEncoding); }
         }
 
         public bool UnicodeMode
@@ -381,9 +375,16 @@ namespace AGS.Types
             set { _savedXmlVersionIndex = value; }
         }
 
-		/// <summary>
-		/// Full path to the directory where the game is located
-		/// </summary>
+        /// <summary>
+        /// The code page of the Game.agf file that was loaded from disk.
+        /// </summary>
+        public int? SavedXmlEncodingCodePage
+        {
+            get { return _savedXmlEncodingCP; }
+            set { _savedXmlEncodingCP = value; }
+        }
+
+		/// <summary>		/// Full path to the directory where the game is located		/// </summary>
 		public string DirectoryPath
 		{
 			get { return _directoryPath; }

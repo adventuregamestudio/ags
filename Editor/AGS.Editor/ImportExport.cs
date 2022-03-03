@@ -14,6 +14,7 @@ namespace AGS.Editor
     {
         private const string MODULE_FILE_SIGNATURE = "AGSScriptModule\0";
 		private const uint MODULE_FILE_TRAILER = 0xb4f76a65;
+        private const uint MODULE_FILE_SECTION = 0xb4f76a66;
         private const string CHARACTER_FILE_SIGNATURE = "AGSCharacter";
 		private const string SINGLE_RUN_SCRIPT_TAG = "$$SINGLE_RUN_SCRIPT$$";
 
@@ -341,7 +342,24 @@ namespace AGS.Editor
             reader.ReadByte();  // discard null terminator
 
             int uniqueKey = reader.ReadInt32();
+            reader.ReadInt32(); // permissions (obselete)
+            reader.ReadInt32(); // owner (obsolete)
+
+            uint section = reader.ReadUInt32();
+            // extension 1
+            int encodingCP = 0;
+            if (section == MODULE_FILE_SECTION)
+            {
+                encodingCP = reader.ReadInt32(); // text encoding hint
+            }
             reader.Close();
+
+            try
+            {
+                if (encodingCP > 0)
+                    enc = Encoding.GetEncoding(encodingCP);
+            }
+            catch (ArgumentException) { }
 
             List<Script> scriptsImported = new List<Script>();
             Script header = new Script(null, enc.GetString(headerBytes), enc.GetString(name),
@@ -372,9 +390,15 @@ namespace AGS.Editor
             WriteStringLongTerminated(header.Text, enc, writer);
 
             writer.Write((int)script.UniqueKey);
-			writer.Write((int)0);  // Permissions
-			writer.Write((int)0);  // We are owner
-			writer.Write((uint)MODULE_FILE_TRAILER);
+            writer.Write((int)0);  // Permissions (obselete)
+            writer.Write((int)0);  // We are owner (obselete)
+
+            // format extension 1
+            writer.Write((uint)MODULE_FILE_SECTION);
+            writer.Write(defEncoding.CodePage);
+
+            // end of format
+            writer.Write((uint)MODULE_FILE_TRAILER);
             writer.Close();
         }
 

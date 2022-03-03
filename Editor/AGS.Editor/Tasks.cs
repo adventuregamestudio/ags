@@ -387,7 +387,15 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 3060020)
             {
-                game.Settings.GameTextEncoding = "ANSI";
+                if (game.SavedXmlEncodingCodePage.HasValue &&
+                    game.SavedXmlEncodingCodePage.Value == 65001)
+                {
+                    game.Settings.GameTextEncoding = "UTF-8";
+                }
+                else
+                { // NOTE: use Encoding.GetEncoding(game.SavedXmlEncodingCodePage) if actual codepage is needed
+                    game.Settings.GameTextEncoding = "ANSI";
+                }
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
@@ -780,6 +788,49 @@ namespace AGS.Editor
             }
             sb.AppendLine();
             sb.AppendLine("};");
+        }
+
+        /// <summary>
+        /// Converts all separate game files which may contain text from one encoding
+        /// to another. This is done by loading and resaving them, and may take time
+        /// depending on the size of the project.
+        /// </summary>
+        /// <param name="oldEnc"></param>
+        /// <param name="newEnc"></param>
+        public void ConvertAllGameTexts(Encoding oldEnc, Encoding newEnc)
+        {
+            // Convert all scripts
+            foreach (var script in Factory.AGSEditor.CurrentGame.ScriptsAndHeaders)
+            {
+                // TODO: this is ugly, make TextEncoding non-static per script property?
+                // or pass into Load/Save method (but some more changes are necessary)
+                Script.TextEncoding = oldEnc;
+                script.Header.LoadFromDisk();
+                script.Script.LoadFromDisk();
+                Script.TextEncoding = newEnc;
+                script.Header.Modified = true;
+                script.Header.SaveToDisk();
+                script.Script.Modified = true;
+                script.Script.SaveToDisk();
+            }
+            // Convert all room scripts
+            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
+            {
+                Script.TextEncoding = oldEnc;
+                room.LoadScript();
+                Script.TextEncoding = newEnc;
+                room.Script.Modified = true;
+                room.Script.SaveToDisk();
+                room.UnloadScript();
+            }
+            // Convert all rooms
+            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
+            {
+                var loadedRoom = Factory.NativeProxy.LoadRoom((UnloadedRoom)room, oldEnc);
+                Factory.NativeProxy.SaveRoom(loadedRoom);
+            }
+            // Save game with a new encoding
+            Factory.AGSEditor.SaveGameFiles();
         }
 
         /// <summary>

@@ -370,6 +370,9 @@ public:
     // Compiled room script
     PScript                 CompiledScript;
 
+    // Various extended options with string values, meta-data etc
+    StringMap               StrOptions;
+
 private:
     // Room's legacy resolution type, defines relation room and game's resolution
     RoomResolutionType      _resolution;

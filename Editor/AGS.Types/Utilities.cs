@@ -182,5 +182,14 @@ namespace AGS.Types
             catch (Exception){ /* just return null in case of any exception */ }
             return v;
         }
+
+        public static Encoding EncodingFromName(string name)
+        {
+            if (string.Compare(name, "ANSI", true) == 0)
+                return Encoding.Default;
+            else if (string.Compare(name, "UTF-8", true) == 0)
+                return Utilities.UTF8; // UTF-8 w/o BOM
+            return Encoding.GetEncoding(name);
+        }
     }
 }

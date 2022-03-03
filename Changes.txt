@@ -4,10 +4,14 @@ VERSION 3.6.0, ???
 
 Editor:
  - Editor requires .NET Framework 4.6 to run.
+ - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
+ - Full Unicode support for all game texts (game properties, scripts). When upgrading old
+   projects this is enabled by changing a "Text format" option in General Settings. New games
+   will be in Unicode mode by default.
+ - Added Android build target support (requires "Android component" installed).
  - Added Web/Emscripten build target support (requires "Web build component" installed).
- - Supports compiling UTF-8 translation sources. TRS file now has 2 more optional settings:
-   "Encoding" that tells how to interpret this TRS text, and "GameEncoding" that hints the
-   original game's codepage.
+ - Supports compiling UTF-8 translation sources. TRS file now has "Encoding" setting that tells
+   how to interpret this TRS text.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
@@ -35,6 +39,7 @@ Editor:
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
  - Rooms created from a Blank template will now have default background of a game's resolution.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
+ - Removed game Cursors hard limit (was 20).
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
@@ -44,6 +49,7 @@ Editor:
  - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
  - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
    and marking it for deletion.
+ - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
  - Removed 500-characters line limit.
@@ -127,6 +133,7 @@ Engine:
    "--localuserconf"; the new option directly tells the location of user config file.
  - Path related command-line and config options, - such as "shared_data_dir", "user_data_dir"
    and "user_conf_dir", now support $GAMENAME$ token in path which is resolved to the game's title.
+ - Added "--clear-cache-on-room-change" command-line arg (and similar config option).
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Fixed potential crash on room load if the walkable area mask contained color values
@@ -135,6 +142,7 @@ Engine:
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
+ - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
 
 Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former
@@ -162,9 +170,6 @@ Web / Emscripten:
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
-
-Tools:
-[TODO]
 
 
 VERSION 3.5.1 - Patch 9, March 2022

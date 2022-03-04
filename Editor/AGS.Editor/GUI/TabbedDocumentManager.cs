@@ -112,11 +112,6 @@ namespace AGS.Editor
             {
                 document.Control.DockingContainer.Text = document.Name;
             }
-            RefreshWindowsMenu();
-            if (ActiveDocument != null)
-            {
-                ActiveDocument.Control.DockingContainer.Refresh();                
-            }
         }
 
         private void RefreshWindowsMenu()

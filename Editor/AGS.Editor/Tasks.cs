@@ -809,7 +809,14 @@ namespace AGS.Editor
                 Factory.NativeProxy.SaveRoom(loadedRoom);
             }
             // Save game with a new encoding
-            Factory.AGSEditor.SaveGameFiles();
+            if (Factory.GUIController.InvokeRequired)
+            {
+                Factory.GUIController.Invoke(new EditorEvents.BooleanDelegate(Factory.AGSEditor.SaveGameFiles));
+            }
+            else
+            {
+                Factory.AGSEditor.SaveGameFiles();
+            }
         }
 
         /// <summary>

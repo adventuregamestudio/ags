@@ -9,6 +9,7 @@ namespace AGS.Editor
     internal class EditorEvents
     {
         public delegate void ParameterlessDelegate();
+        public delegate bool BooleanDelegate();
         public event ParameterlessDelegate GameSettingsChanged;
         public event ParameterlessDelegate ImportedOldGame;
         public event ParameterlessDelegate RefreshAllComponentsFromGame;

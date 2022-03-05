@@ -13,6 +13,7 @@
 //=============================================================================
 #include "media/audio/openalsource.h"
 #include <algorithm>
+#include <cmath>
 #include "debug/out.h"
 
 using namespace AGS::Common;

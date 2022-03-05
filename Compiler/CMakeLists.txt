@@ -73,6 +73,10 @@ set_target_properties(agscc PROPERTIES
 
 target_link_libraries(agscc PUBLIC AGS::Compiler)
 
+if (LINUX OR FREEBSD)
+    install(TARGETS agscc RUNTIME DESTINATION bin)
+endif ()
+
 if(AGS_TESTS)
     add_executable(
             compiler_test

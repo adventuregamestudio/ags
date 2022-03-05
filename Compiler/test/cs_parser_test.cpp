@@ -233,7 +233,6 @@ TEST(Compile, EnumNegative) {
     EXPECT_EQ((2147483647), sym.entries[sym.find("intmax")].soffs);
 }
 
-
 TEST(Compile, DefaultParametersLargeInts) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -284,6 +283,41 @@ TEST(Compile, DefaultParametersLargeInts) {
 
     EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[9]);
     EXPECT_EQ(-2, sym.entries[funcidx].funcParamDefaultValues[9]);
+}
+
+TEST(Compile, HexLiterals) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = ""
+        "enum TestHex {"
+        "a=0x12345,"
+        "b=0xFF,"
+        "c=0x7FFFFFFF,"
+        "d=0xFFFFFFFF,"
+        "};"
+        "";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    EXPECT_EQ((0x12345), sym.entries[sym.find("a")].soffs);
+    EXPECT_EQ((0xFF), sym.entries[sym.find("b")].soffs);
+    EXPECT_EQ((0x7FFFFFFF), sym.entries[sym.find("c")].soffs);
+    EXPECT_EQ((0xFFFFFFFF), sym.entries[sym.find("d")].soffs);
+}
+
+TEST(Compile, ParsingHexOverflow) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = ""
+        "int testfunc(int x ) { int y = 0x1FFFFFFFF; } "
+        "";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Could not parse integer symbol '0x1FFFFFFFF' because of overflow.", last_seen_cc_error());
 }
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {

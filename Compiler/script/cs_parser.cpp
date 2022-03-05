@@ -69,7 +69,7 @@ void clear_chunk_list(std::vector<ccChunk> *list) {
     list->clear();
 }
 
-int is_part_of_symbol(char thischar, char startchar) {
+static int is_part_of_symbol(char thischar, char startchar) {
     // workaround for strings
     static int sayno_next_char = 0;
     static int next_is_escaped = 0;
@@ -89,7 +89,12 @@ int is_part_of_symbol(char thischar, char startchar) {
         if (thischar == startchar) sayno_next_char = 1;
         return 1;
     }
-    // a decimal number
+    // hexadecimal number
+    if ((startchar == '0') && (isxdigit(thischar) ||
+            (thischar == 'x') || (thischar == 'X'))) {
+        return 1;
+    }
+    // a decimal or float
     if ((startchar >= '0') && (startchar <= '9')) {
         if ((thischar >= '0') && (thischar <= '9'))
             return 1;
@@ -577,18 +582,25 @@ std::string friendly_int_symbol(int symidx, bool isNegative) {
 
 int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-
-    // Prepend '-' so we can parse -2147483648
-    std::string literalStrValue = std::string(sym.get_name(fromSym));
-    if (isNegative) {
-        literalStrValue = '-' + literalStrValue;
-    }
-
     errno = 0;
     char *endptr = 0;
-    const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
+    int64_t val64 = 0;
+    std::string literalStrValue = std::string(sym.get_name(fromSym));
+    // Try parse hex, then decimal
+    if ((literalStrValue.size() > 2) && (literalStrValue[0] == '0') &&
+            (literalStrValue[1] == 'X' || literalStrValue[1] == 'x')) {
+        uint64_t uval64 = strtoul(literalStrValue.c_str(), &endptr, 16);
+        if (uval64 > UINT_MAX) { errno = ERANGE; }
+        val64 = static_cast<int32_t>(uval64);
+    } else {
+        // Prepend '-' so we can parse -2147483648
+        if (isNegative)
+            literalStrValue = '-' + literalStrValue;
+        val64 = strtol(literalStrValue.c_str(), &endptr, 10);
+    }
 
-    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+    // Check errors
+    if ((val64 > INT_MAX) || (val64 < INT_MIN) || (errno == ERANGE)) {
         cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
@@ -596,12 +608,7 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
         cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
-    if (longValue > INT_MAX || longValue < INT_MIN) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
-        return -1;
-    }
-
-    theValue = static_cast<int>(longValue);
+    theValue = static_cast<int>(val64);
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
     theValue = sym.entries[fromSym].soffs;

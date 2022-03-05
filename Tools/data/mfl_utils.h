@@ -28,7 +28,6 @@ namespace DataUtil
     using AGS::Common::HError;
     using AGS::Common::Stream;
     using AGS::Common::String;
-    namespace MFLUtil = AGS::Common::MFLUtil;
 
     // Unpacks the library by reading its parts and writing assets into files.
     // lib_dir - tells the directory where the library parts are located;
@@ -46,11 +45,11 @@ namespace DataUtil
     // Writes the library partition into the file lib_filename;
     // recalculates asset offsets and stores in lib as it goes.
     HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir,
-        const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index);
+        const String &lib_filename, AGS::Common::MFLUtil::MFLVersion lib_version, int lib_index);
     // Writes the potentially multi-file library into the dst_dir directory;
     // recalculates asset offsets and stores in lib as it goes.
     HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir,
-        const String &dst_dir, MFLUtil::MFLVersion lib_version);
+        const String &dst_dir, AGS::Common::MFLUtil::MFLVersion lib_version);
 
 } // namespace DataUtil
 } // namespace AGS

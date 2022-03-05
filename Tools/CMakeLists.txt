@@ -122,6 +122,12 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
+list(APPEND TOOLS_TARGETS agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2ash crmpak trac)
+
 # Bundle-like target to build all tools
 add_custom_target(Tools)
-add_dependencies(Tools agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2ash crmpak trac)
+add_dependencies(Tools ${TOOLS_TARGETS})
+
+if (LINUX OR FREEBSD)
+    install(TARGETS ${TOOLS_TARGETS} RUNTIME DESTINATION bin)
+endif ()

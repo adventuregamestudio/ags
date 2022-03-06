@@ -185,6 +185,7 @@ namespace AGS.Editor
             this.scintillaControl1.Styles[Style.CallTip].Font = USER_FRIENDLY_FONT;
             this.scintillaControl1.Styles[Style.CallTip].Size = USER_FRIENDLY_FONT_SIZE;
 
+            if(this.scintillaControl1.Margins[0].Width > 0) EnableLineNumbers();
             UpdateColors();
         }
 

@@ -167,17 +167,17 @@ build_android_task:
     greedy: true
   git_submodules_script: git submodule update --init --recursive
   build_prepare_script: |
-    pushd Android && ./and-build.sh prepare && popd
+    cd Android && ./and-build.sh prepare
   build_debug_library_and_runtime_script: |
-    pushd Android && ./and-build.sh build_debug && popd
+    cd Android && ./and-build.sh build_debug
   build_release_library_and_runtime_script: |
-    pushd Android && ./and-build.sh build_release && popd
+    cd Android && ./and-build.sh build_release
   rename_apks_script: |
-    pushd Android && ./and-build.sh archive_apks && popd
+    cd Android && ./and-build.sh archive_apks
   apks_artifacts:
     path: AGS-*.apk
   create_proj_archive_script: |
-    pushd Android && ./and-build.sh archive_project && popd
+    cd Android && ./and-build.sh archive_project
   proj_artifacts:
     path: AGS-*-android-proj-*.zip
 
@@ -186,7 +186,7 @@ build_emscripten_task:
   container:
     dockerfile: ci/emscripten/Dockerfile 
   build_emscripten_script: |
-    pushd Emscripten && ./build.sh && popd
+    cd Emscripten && ./build.sh
   package_emscripten_build_script: |
     tmp=/tmp/bundle$$
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)

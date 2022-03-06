@@ -52,6 +52,7 @@ Editor:
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
+ - Support hexadecimal number literals.
  - Removed 500-characters line limit.
 
 Script API:
@@ -110,6 +111,8 @@ Engine:
    to display as they were meant to be.
  - Supports scripts using functions and variables from any other scripts, regardless of the
    script module order in the project.
+ - Removed limit of Button simultaneous button animations.
+ - Removed limit of Character followers.
  - Removed Overlay limit.
  - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.
  - Process character's idle view based on real game speed, not hardcoded 40 fps.

@@ -128,6 +128,6 @@ list(APPEND TOOLS_TARGETS agf2autoash agf2dlgasc agf2glvar agspak agsunpak crm2a
 add_custom_target(Tools)
 add_dependencies(Tools ${TOOLS_TARGETS})
 
-if (LINUX OR FREEBSD)
+if (AGS_DESKTOP)
     install(TARGETS ${TOOLS_TARGETS} RUNTIME DESTINATION bin)
 endif ()

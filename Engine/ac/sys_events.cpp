@@ -23,6 +23,7 @@
 #include "device/mousew32.h"
 #include "platform/base/agsplatformdriver.h"
 #include "main/engine.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -43,7 +44,9 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event)
     // systems where single keypress can produce that symbol.
     if (event.type == SDL_TEXTINPUT)
     {
-        unsigned char textch = event.text.text[0];
+        char ascii[sizeof(SDL_TextInputEvent::text)];
+        StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
+        unsigned char textch = ascii[0];
         strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
         if (textch >= 32 && textch <= 255)
             ki.Key = static_cast<eAGSKeyCode>(textch);

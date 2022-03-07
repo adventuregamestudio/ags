@@ -32,6 +32,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "resource/resource.h"
+#include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
@@ -1012,29 +1013,17 @@ void WinSetupDialog::FillLanguageList()
     AddString(_hLanguageList, _winCfg.DefaultLanguageName.GetCStr());
     SetCurSel(_hLanguageList, 0);
 
-    String path_mask = String::FromFormat("%s\\*.tra", _winCfg.DataDirectory.GetCStr());
-    WIN32_FIND_DATAA file_data;
-    HANDLE find_handle = FindFirstFile(STR(path_mask), &file_data);
-    if (find_handle != INVALID_HANDLE_VALUE)
+    bool found_sel = false;
+    for (FindFile ff = FindFile::OpenFiles(_winCfg.DataDirectory, "*.tra"); !ff.AtEnd(); ff.Next())
     {
-        bool found_sel = false;
-        do
+        String filename = Path::GetFilename(ff.Current());
+        filename.SetAt(0, toupper(filename[0]));
+        int index = AddString(_hLanguageList, STR(filename));
+        if (!found_sel && _winCfg.Language.CompareNoCase(filename) == 0)
         {
-            LPTSTR ext = PathFindExtension(file_data.cFileName);
-            if (ext && StrCmpI(ext, ".tra") == 0)
-            {
-                file_data.cFileName[0] = toupper(file_data.cFileName[0]);
-                *ext = 0;
-                int index = AddString(_hLanguageList, file_data.cFileName);
-                if (!found_sel && _winCfg.Language.CompareNoCase(file_data.cFileName) == 0)
-                {
-                    SetCurSel(_hLanguageList, index);
-                    found_sel = true;
-                }
-            }
+            SetCurSel(_hLanguageList, index);
+            found_sel = true;
         }
-        while (FindNextFileA(find_handle, &file_data) != FALSE);
-        FindClose(find_handle);
     }
 }
 

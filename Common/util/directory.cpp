@@ -216,6 +216,7 @@ FindFile &FindFile::operator =(FindFile &&ff)
 {
     _i = std::move(ff._i);
     _current = std::move(ff._current);
+    _currentTime = ff._currentTime;
     return *this;
 }
 
@@ -266,6 +267,19 @@ void FindFile::Close()
     _i.reset();
 }
 
+#if AGS_PLATFORM_OS_WINDOWS
+static time_t FileTime2time_t(const FILETIME &ft)
+{
+    // A FILETIME is the number of 100-nanosecond intervals since January 1, 1601.
+    // A time_t is the number of 1 - second intervals since January 1, 1970.
+    // https://docs.microsoft.com/en-us/windows/win32/sysinfo/converting-a-time-t-value-to-a-file-time
+    ULARGE_INTEGER ull;
+    ull.LowPart = ft.dwLowDateTime;
+    ull.HighPart = ft.dwHighDateTime;
+    return ull.QuadPart / 10000000ULL - 11644473600ULL;
+}
+#endif
+
 bool FindFile::Next()
 {
     if (!_i)
@@ -287,6 +301,7 @@ bool FindFile::Next()
         if ((fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != attrDir)
             continue;
         _current = filename;
+        _currentTime = FileTime2time_t(fdata.ftLastWriteTime);
     }
 #else
     auto dir = _i->dir;
@@ -307,12 +322,16 @@ bool FindFile::Next()
         if (!std::regex_match(ent->d_name, mr, _i->regex))
             continue;
         _current = ent->d_name;
+        _currentTime = f_stat.st_mtime;
         break;
     }
 #endif
 #if AGS_PLATFORM_OS_ANDROID
     if (_i->aadir && _current.IsEmpty())
+    {
         _current = _i->aadir->Next(_i->regex);
+        _currentTime = 0; // TODO?
+    }
 #endif
     return !_current.IsEmpty();
 }

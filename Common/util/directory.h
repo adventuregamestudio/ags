@@ -62,6 +62,7 @@ public:
         { return Open(path, wildcard, false, true); }
     bool AtEnd() const { return _current.IsEmpty(); }
     String Current() const { return _current; }
+    time_t CurrentTime() const { return _currentTime; }
     void Close();
     bool Next();
 
@@ -78,6 +79,7 @@ private:
 
     std::unique_ptr<Internal> _i;
     String _current;
+    time_t _currentTime{};
 };
 
 

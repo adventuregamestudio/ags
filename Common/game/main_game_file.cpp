@@ -27,6 +27,7 @@
 #include "script/cc_error.h"
 #include "util/alignedstream.h"
 #include "util/data_ext.h"
+#include "util/directory.h"
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -127,17 +128,11 @@ bool IsMainGameLibrary(const String &filename)
 //   users often run AGS ports with Windows versions of games.
 String FindGameData(const String &path, std::function<bool(const String&)> fn_testfile)
 {
-    al_ffblk ff;
     String test_file;
-    String pattern = path;
-    pattern.Append("/*");
-
     Debug::Printf("Searching for game data in: %s", path.GetCStr());
-    if (al_findfirst(pattern.GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) != 0)
-        return "";
-    do
+    for (FindFile ff = FindFile::OpenFiles(path); !ff.AtEnd(); ff.Next())
     {
-        test_file = ff.name;
+        test_file = ff.Current();
         if (test_file.CompareRightNoCase(".ags") == 0 ||
             test_file.CompareNoCase("ac2game.dat") == 0 ||
             test_file.CompareRightNoCase(".exe") == 0)
@@ -146,12 +141,10 @@ String FindGameData(const String &path, std::function<bool(const String&)> fn_te
             if (IsMainGameLibrary(test_file) && fn_testfile(path))
             {
                 Debug::Printf("Found game data pak: %s", test_file.GetCStr());
-                al_findclose(&ff);
                 return test_file;
             }
         }
-    } while (al_findnext(&ff) == 0);
-    al_findclose(&ff);
+    }
     return "";
 }
 
@@ -610,16 +603,11 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
         if (!File::IsDirectory(game_lib->BasePath))
             continue; // might be a library
 
-        al_ffblk ff;
-        if (al_findfirst(Path::ConcatPaths(game_lib->BasePath, "*.*").GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) == 0)
+        for (FindFile ff = FindFile::OpenFiles(game_lib->BasePath, "*.*"); !ff.AtEnd(); ff.Next())
         {
-            do
-            {
-                if (ags_strnicmp(ff.name, "music", 5) == 0 || ags_strnicmp(ff.name, "sound", 5) == 0)
-                    assets.push_back(ff.name);
-            }
-            while (al_findnext(&ff) == 0);
-            al_findclose(&ff);
+            String filename = ff.Current();
+            if (ags_strnicmp(filename.GetCStr(), "music", 5) == 0 || ags_strnicmp(filename.GetCStr(), "sound", 5) == 0)
+                assets.push_back(filename);
         }
     }
     BuildAudioClipArray(assets, audioclips);

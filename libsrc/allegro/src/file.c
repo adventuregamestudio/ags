@@ -78,9 +78,6 @@ static PACKFILE_VTABLE normal_vtable;
 static int filename_encoding = U_ASCII;
 
 
-#define FA_DAT_FLAGS  (FA_RDONLY | FA_ARCH)
-
-
 
 
 
@@ -600,67 +597,6 @@ void set_filename_encoding(int encoding)
 int get_filename_encoding(void)
 {
     return filename_encoding ;
-}
-
-
-
-/* file_exists:
- *  Checks whether a file matching the given name and attributes exists,
- *  returning non zero if it does. The file attribute may contain any of
- *  the FA_* constants from dir.h. If aret is not null, it will be set 
- *  to the attributes of the matching file. If an error occurs the system 
- *  error code will be stored in errno.
- */
-int file_exists(AL_CONST char *filename, int attrib, int *aret)
-{
-   struct al_ffblk info;
-   ASSERT(filename);
-
-   if (!_al_file_isok(filename))
-      return FALSE;
-
-   if (al_findfirst(filename, &info, attrib) != 0) {
-      /* no entry is not an error for file_exists() */
-      if (*allegro_errno == ENOENT)
-         *allegro_errno = 0;
-
-      return FALSE;
-   }
-
-   al_findclose(&info);
-
-   if (aret)
-      *aret = info.attrib;
-
-   return TRUE;
-}
-
-
-
-/* exists:
- *  Shortcut version of file_exists().
- */
-int exists(AL_CONST char *filename)
-{
-   ASSERT(filename);
-   return file_exists(filename, FA_ARCH | FA_RDONLY, NULL);
-}
-
-
-
-/* file_size_ex:
- *  Returns the size of a file, in bytes.
- *  If the file does not exist or an error occurs, it will return zero
- *  and store the system error code in errno.
- */
-uint64_t file_size_ex(AL_CONST char *filename)
-{
-   ASSERT(filename);
-
-   if (!_al_file_isok(filename))
-      return 0;
-
-   return _al_file_size_ex(filename);
 }
 
 

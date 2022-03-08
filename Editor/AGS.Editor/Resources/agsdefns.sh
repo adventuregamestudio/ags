@@ -446,7 +446,7 @@ internalstring autoptr builtin managed struct String {
   /// Returns a new string with the specified string appended to this string.
   import String  Append(const string appendText);
   /// Returns a new string that has the extra character appended.
-  import String  AppendChar(char extraChar);
+  import String  AppendChar(int extraChar);
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
@@ -455,7 +455,7 @@ internalstring autoptr builtin managed struct String {
   /// Returns a lower-cased version of this string.
   import String  LowerCase();
   /// Returns a new string, with the specified character changed.
-  import String  ReplaceCharAt(int index, char newChar);
+  import String  ReplaceCharAt(int index, int newChar);
   /// Returns a portion of the string.
   import String  Substring(int index, int length);
   /// Truncates the string down to the specified length by removing characters from the end.
@@ -487,7 +487,7 @@ internalstring autoptr builtin managed struct String {
   /// Converts the string to an integer.
   readonly import attribute int AsInt;
   /// Accesses individual characters of the string.
-  readonly import attribute char Chars[];
+  readonly import attribute int Chars[];
   /// Returns the length of the string.
   readonly import attribute int Length;
 };

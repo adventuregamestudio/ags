@@ -1480,7 +1480,7 @@ namespace AGS.Editor
             {               
                 ActivePane.Owner.PropertyChanged(propertyName, oldValue);
                 ActivePane.Control.PropertyChanged(propertyName, oldValue);
-                DocumentTitlesChanged();
+                DocumentTitlesChanged(); // TODO: only update title when certain properties change?
             }
         }
 

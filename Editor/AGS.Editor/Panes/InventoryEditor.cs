@@ -54,6 +54,12 @@ namespace AGS.Editor
             ItemToEdit = itemToEdit;
         }
 
+        protected override void OnPropertyChanged(string propertyName, object oldValue)
+        {
+            pnlCursorImage.Invalidate(true);
+            pnlInvWindowImage.Invalidate(true);
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Inventory Items Editor";

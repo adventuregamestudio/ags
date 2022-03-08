@@ -203,6 +203,8 @@ namespace AGS.Editor
                         normalGui.Visible = false;
                 }
             }
+
+            bgPanel.Invalidate(true);
         }
 
         public GUI GuiToEdit

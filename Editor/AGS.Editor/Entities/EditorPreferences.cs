@@ -691,7 +691,7 @@ namespace AGS.Editor.Preferences
 
         [Browsable(true)]
         [DisplayName("Script Font")]
-        [Description("Font used in the script editor.")]
+        [Description("Font used in the script editor (default: Courier New).")]
         [Category("Script Editor")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("Courier New")]
@@ -708,10 +708,9 @@ namespace AGS.Editor.Preferences
             }
         }
 
-
         [Browsable(true)]
         [DisplayName("Script Font Size")]
-        [Description("Font used in the script editor.")]
+        [Description("Size of the font used in the script editor (default: 10).")]
         [Category("Script Editor")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("10")]
@@ -725,6 +724,44 @@ namespace AGS.Editor.Preferences
             {
                 if (value < 8) value = 8;
                 this["ScriptFontSize"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Script Tip Font")]
+        [Description("Font used in description tips in the script editor (default: Tahoma).")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("Tahoma")]
+        [TypeConverter(typeof(InstalledFontTypeConverter))]
+        public string ScriptTipFont
+        {
+            get
+            {
+                return (string)(this["ScriptTipFont"]);
+            }
+            set
+            {
+                this["ScriptTipFont"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Script Tip Font Size")]
+        [Description("Size of the font used in description tips in the script editor. Script editor line height uses biggest height accross fonts. (default: 8).")]
+        [Category("Script Editor")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("8")]
+        public int ScriptTipFontSize
+        {
+            get
+            {
+                return (int)(this["ScriptTipFontSize"]);
+            }
+            set
+            {
+                if (value < 6) value = 6;
+                this["ScriptTipFontSize"] = value;
             }
         }
 

@@ -45,6 +45,8 @@ namespace AGS.Editor
                     {
                         scintilla.ScriptFont = _settings.ScriptFont;
                         scintilla.ScriptFontSize = _settings.ScriptFontSize;
+                        scintilla.CallTipFont = _settings.ScriptTipFont;
+                        scintilla.CallTipFontSize = _settings.ScriptTipFontSize;
                         scintilla.UpdateAllStyles();
                     }
                 }

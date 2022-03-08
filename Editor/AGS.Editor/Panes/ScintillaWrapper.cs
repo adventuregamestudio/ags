@@ -38,8 +38,6 @@ namespace AGS.Editor
         private const int INVALID_POSITION = -1;
         private const int AUTOCOMPLETE_MINIMUM_WORD_LENGTH = 3;
         private const int SCAN_BACK_DISTANCE = 50;
-        private const string DEFAULT_FONT = "Courier New";
-        private const int DEFAULT_FONT_SIZE = 10;
         private const string USER_FRIENDLY_FONT = "Tahoma";
         private const int USER_FRIENDLY_FONT_SIZE = 8;
         private const string AUTO_COMPLETE_CANCEL_CHARS = ")}; ";
@@ -103,6 +101,94 @@ namespace AGS.Editor
         private string _fixedTypeForThisKeyword = null;
         private bool _activated = false;
 
+        private string _scriptFont = Factory.AGSEditor.Settings.ScriptFont;
+        private int _scriptFontSize = Factory.AGSEditor.Settings.ScriptFontSize;
+
+        private void UpdateColors()
+        {
+            this.scintillaControl1.Styles[Style.BraceBad].BackColor = Color.FromArgb(255, 0, 0);
+            this.scintillaControl1.Styles[Style.BraceLight].Bold = true;
+            this.scintillaControl1.Styles[Style.BraceLight].BackColor = Color.FromArgb(210, 210, 0);
+
+            this.scintillaControl1.Styles[Style.Cpp.Word].ForeColor = Color.FromArgb(0, 0, 244);
+            this.scintillaControl1.Styles[Style.Cpp.Word2].ForeColor = Color.FromArgb(43, 145, 175);
+            this.scintillaControl1.Styles[Style.Cpp.GlobalClass].ForeColor = Color.FromArgb(43, 145, 175);
+            this.scintillaControl1.Styles[Style.Cpp.Comment].ForeColor = Color.FromArgb(27, 127, 27);
+            this.scintillaControl1.Styles[Style.Cpp.CommentLine].ForeColor = Color.FromArgb(27, 127, 27);
+            this.scintillaControl1.Styles[Style.Cpp.CommentDoc].ForeColor = Color.FromArgb(27, 127, 27);
+            this.scintillaControl1.Styles[Style.Cpp.CommentLineDoc].ForeColor = Color.FromArgb(27, 127, 27);
+            this.scintillaControl1.Styles[Style.Cpp.Number].ForeColor = Color.FromArgb(150, 27, 27);
+            this.scintillaControl1.Styles[Style.Cpp.String].ForeColor = Color.FromArgb(70, 7, 7);
+            this.scintillaControl1.Styles[Style.Cpp.Operator].ForeColor = Color.FromArgb(0, 70, 0);
+            this.scintillaControl1.Styles[Style.Cpp.Preprocessor].BackColor = Color.FromArgb(210, 210, 210);
+
+            this.scintillaControl1.Styles[Style.CallTip].ForeColor = Color.Black;
+            this.scintillaControl1.Styles[Style.CallTip].BackColor = Color.LightGoldenrodYellow;
+
+            // override the selected text colour
+            this.scintillaControl1.SetSelectionForeColor(true, Color.FromArgb(255, 255, 255));
+            this.scintillaControl1.SetSelectionBackColor(true, Color.FromArgb(0, 34, 130));
+
+            this.scintillaControl1.CallTipSetForeHlt(Color.FromArgb(240, 0, 0));
+
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetBackColor(Color.FromArgb(255, 100, 100));
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetForeColor(Color.White);
+
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].SetBackColor(Color.Red);
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].SetForeColor(Color.Black);
+
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetBackColor(Color.Yellow);
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetForeColor(Color.White);
+
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetBackColor(Color.Yellow);
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetForeColor(Color.White);
+
+            Color FoldingForeColor = ColorTranslator.FromHtml("#F3F3F3");
+            Color FoldingBackColor = ColorTranslator.FromHtml("#808080");
+
+            this.scintillaControl1.Markers[Marker.Folder].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.Folder].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderEnd].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderEnd].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderOpen].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderOpen].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderOpenMid].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderOpenMid].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderMidTail].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderMidTail].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderEnd].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderEnd].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderSub].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderSub].SetBackColor(FoldingBackColor);
+            this.scintillaControl1.Markers[Marker.FolderTail].SetForeColor(FoldingForeColor);
+            this.scintillaControl1.Markers[Marker.FolderTail].SetBackColor(FoldingBackColor);
+
+            this.scintillaControl1.Styles[Style.IndentGuide].ForeColor = ColorTranslator.FromHtml("#DDDDDD");
+
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+        }
+
+        public void UpdateAllStyles()
+        {
+            scintillaControl1.StyleResetDefault();
+
+            this.scintillaControl1.Styles[Style.Default].Font = _scriptFont;
+            this.scintillaControl1.Styles[Style.Default].Size = _scriptFontSize;
+
+            scintillaControl1.StyleClearAll();
+
+            this.scintillaControl1.Styles[Style.BraceBad].Font = _scriptFont;
+            this.scintillaControl1.Styles[Style.BraceBad].Size = _scriptFontSize;
+            this.scintillaControl1.Styles[Style.BraceLight].Font = _scriptFont;
+            this.scintillaControl1.Styles[Style.BraceLight].Size = _scriptFontSize;
+
+            this.scintillaControl1.Styles[Style.CallTip].Font = USER_FRIENDLY_FONT;
+            this.scintillaControl1.Styles[Style.CallTip].Size = USER_FRIENDLY_FONT_SIZE;
+
+            if(this.scintillaControl1.Margins[0].Width > 0) EnableLineNumbers();
+            UpdateColors();
+        }
+
         public ScintillaWrapper()
         {
             // Scintilla is statically linked to our AGS.Native, therefore point to it
@@ -140,40 +226,15 @@ namespace AGS.Editor
             // otherwise lexer will not know about external defines.
             scintillaControl1.SetProperty("lexer.cpp.track.preprocessor", "0");
 
-            scintillaControl1.StyleResetDefault();
+            UpdateAllStyles();
 
-            this.scintillaControl1.Styles[Style.Default].Font = DEFAULT_FONT;
-            this.scintillaControl1.Styles[Style.Default].Size = DEFAULT_FONT_SIZE;
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].Symbol = MarkerSymbol.Background;
+            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].Symbol = MarkerSymbol.Circle;
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].Symbol = MarkerSymbol.Arrow;
+            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].Symbol = MarkerSymbol.Background;
 
-            scintillaControl1.StyleClearAll();
-
-            this.scintillaControl1.Styles[Style.BraceBad].Font = DEFAULT_FONT;
-            this.scintillaControl1.Styles[Style.BraceBad].Size = DEFAULT_FONT_SIZE;
-            this.scintillaControl1.Styles[Style.BraceBad].BackColor = Color.FromArgb(255, 0, 0);
-            this.scintillaControl1.Styles[Style.BraceLight].Font = DEFAULT_FONT;
-            this.scintillaControl1.Styles[Style.BraceLight].Size = DEFAULT_FONT_SIZE;
-            this.scintillaControl1.Styles[Style.BraceLight].Bold = true;
-            this.scintillaControl1.Styles[Style.BraceLight].BackColor = Color.FromArgb(210, 210, 0);
-
-            this.scintillaControl1.Styles[Style.Cpp.Word].ForeColor = Color.FromArgb(0, 0, 244);
-            this.scintillaControl1.Styles[Style.Cpp.Word2].ForeColor = Color.FromArgb(43, 145, 175);
-            this.scintillaControl1.Styles[Style.Cpp.GlobalClass].ForeColor = Color.FromArgb(43, 145, 175);
-            this.scintillaControl1.Styles[Style.Cpp.Comment].ForeColor = Color.FromArgb(27, 127, 27);
-            this.scintillaControl1.Styles[Style.Cpp.CommentLine].ForeColor = Color.FromArgb(27, 127, 27);
-            this.scintillaControl1.Styles[Style.Cpp.CommentDoc].ForeColor = Color.FromArgb(27, 127, 27);
-            this.scintillaControl1.Styles[Style.Cpp.CommentLineDoc].ForeColor = Color.FromArgb(27, 127, 27);
-            this.scintillaControl1.Styles[Style.Cpp.Number].ForeColor = Color.FromArgb(150, 27, 27);
-            this.scintillaControl1.Styles[Style.Cpp.String].ForeColor = Color.FromArgb(70, 7, 7);
-            this.scintillaControl1.Styles[Style.Cpp.Operator].ForeColor = Color.FromArgb(0, 70, 0);
-            this.scintillaControl1.Styles[Style.Cpp.Preprocessor].BackColor = Color.FromArgb(210, 210, 210);
-
-            this.scintillaControl1.Styles[Style.CallTip].Font = USER_FRIENDLY_FONT;
-            this.scintillaControl1.Styles[Style.CallTip].Size = USER_FRIENDLY_FONT_SIZE;
-            this.scintillaControl1.Styles[Style.CallTip].ForeColor = Color.Black;
-            this.scintillaControl1.Styles[Style.CallTip].BackColor = Color.LightGoldenrodYellow;
-
-            this.scintillaControl1.CallTipSetForeHlt(Color.FromArgb(240, 0, 0));
             this.scintillaControl1.CallTipTabSize(0);
+
             this.scintillaControl1.AutoCIgnoreCase = true;
             this.scintillaControl1.AutoCCancelAtStart = false;
             this.scintillaControl1.AutoCAutoHide = false;
@@ -189,31 +250,11 @@ namespace AGS.Editor
             this.scintillaControl1.UseTabs = Factory.AGSEditor.Settings.IndentUseTabs;
             this.scintillaControl1.UsePopup(false);
 
-            // override the selected text colour
-            this.scintillaControl1.SetSelectionForeColor(true, Color.FromArgb(255, 255, 255));
-            this.scintillaControl1.SetSelectionBackColor(true, Color.FromArgb(0, 34, 130));
-
             // remove the default margins
             this.scintillaControl1.Margins[0].Width = 0;
             this.scintillaControl1.Margins[1].Width = 16;
 
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].Symbol = MarkerSymbol.Background;
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetBackColor(Color.FromArgb(255, 100, 100));
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT].SetForeColor(Color.White);
-
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].Symbol = MarkerSymbol.Circle;
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].SetBackColor(Color.Red);
-            this.scintillaControl1.Markers[MARKER_TYPE_BREAKPOINT2].SetForeColor(Color.Black);
-
             this.scintillaControl1.Margins[1].Sensitive = true;
-
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].Symbol = MarkerSymbol.Arrow;
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetBackColor(Color.Yellow);
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT].SetForeColor(Color.White);
-
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].Symbol = MarkerSymbol.Background;
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetBackColor(Color.Yellow);
-            this.scintillaControl1.Markers[MARKER_TYPE_CURRENT_STATEMENT2].SetForeColor(Color.White);
 
             SetModEventMask();
 
@@ -240,33 +281,10 @@ namespace AGS.Editor
             this.scintillaControl1.Markers[Marker.FolderSub].Symbol = MarkerSymbol.VLine;
             this.scintillaControl1.Markers[Marker.FolderTail].Symbol = MarkerSymbol.LCorner;
 
-            Color FoldingForeColor = ColorTranslator.FromHtml("#F3F3F3");
-            Color FoldingBackColor = ColorTranslator.FromHtml("#808080");
-
-            this.scintillaControl1.Markers[Marker.Folder].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.Folder].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderEnd].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderEnd].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderOpen].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderOpen].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderOpenMid].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderOpenMid].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderMidTail].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderMidTail].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderEnd].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderEnd].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderSub].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderSub].SetBackColor(FoldingBackColor);
-            this.scintillaControl1.Markers[Marker.FolderTail].SetForeColor(FoldingForeColor);
-            this.scintillaControl1.Markers[Marker.FolderTail].SetBackColor(FoldingBackColor);
-
             // Indentation guides
             this.scintillaControl1.IndentationGuides = IndentView.LookBoth;
-            this.scintillaControl1.Styles[Style.IndentGuide].ForeColor = ColorTranslator.FromHtml("#DDDDDD");
 
             this.scintillaControl1.ReadOnly = true;
-
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         private void RegisterXPMImage(int type, string xpm)
@@ -1412,8 +1430,8 @@ namespace AGS.Editor
 
                 scintillaControl1.AutoCShow(charsTyped, autoCompleteList);
 
-                scintillaControl1.Styles[Style.Default].Font = DEFAULT_FONT;
-                scintillaControl1.Styles[Style.Default].Size = DEFAULT_FONT_SIZE;
+                scintillaControl1.Styles[Style.Default].Font = _scriptFont;
+                scintillaControl1.Styles[Style.Default].Size = _scriptFontSize;
         }
     }
 
@@ -2244,7 +2262,17 @@ namespace AGS.Editor
             get { return scintillaControl1.Lines.Count; }
         }
 
+        public string ScriptFont
+        {
+            set { _scriptFont = value; }
+            get { return _scriptFont; }
+        }
 
+        public int ScriptFontSize
+        {
+            set { _scriptFontSize = value; }
+            get { return _scriptFontSize; }
+        }
 
         void IScriptEditorControl.ShowLineNumbers()
         {

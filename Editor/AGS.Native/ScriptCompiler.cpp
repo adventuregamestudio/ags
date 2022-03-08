@@ -75,6 +75,7 @@ namespace AGS
 			  ccSetOption(SCOPT_LINENUMBERS, 1);
 			  ccSetOption(SCOPT_LEFTTORIGHT, game->Settings->LeftToRightPrecedence);
 			  ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
+			  ccSetOption(SCOPT_UTF8, game->UnicodeMode);
 
         if (exceptionToThrow == nullptr)
         {

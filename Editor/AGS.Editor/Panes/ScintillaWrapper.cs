@@ -1425,15 +1425,9 @@ namespace AGS.Editor
             }
             if (autoCompleteList.Length > 0)
             {
-                scintillaControl1.Styles[Style.Default].Font = USER_FRIENDLY_FONT;
-                scintillaControl1.Styles[Style.Default].Size = USER_FRIENDLY_FONT_SIZE;
-
                 scintillaControl1.AutoCShow(charsTyped, autoCompleteList);
-
-                scintillaControl1.Styles[Style.Default].Font = _scriptFont;
-                scintillaControl1.Styles[Style.Default].Size = _scriptFontSize;
+            }
         }
-    }
 
         private bool CheckForAndShowEnumAutocomplete(int checkAtPos)
         {

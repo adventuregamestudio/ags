@@ -13,6 +13,12 @@
     <ClCompile Include="..\..\Engine\script\script_api.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
@@ -23,6 +29,12 @@
     </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{9b2939ca-1439-4aa3-8a1b-e897e750739f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc">
+      <UniqueIdentifier>{eb289ce3-1947-47b4-9025-0a91f10e81bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc\allegro">
+      <UniqueIdentifier>{8fd77dd5-e05e-44c4-a6f6-f6bf78b72dcd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

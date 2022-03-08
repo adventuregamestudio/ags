@@ -829,5 +829,8 @@
     <ClInclude Include="..\..\Common\ac\spritefile.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\utf8.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -96,6 +96,10 @@ namespace StrUtil
                 return static_cast<T>(it - arr.begin());
         return def_val;
     }
+
+    // Convert utf-8 string to ascii/ansi representation;
+    // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.
+    size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz);
 }
 } // namespace Common
 } // namespace AGS

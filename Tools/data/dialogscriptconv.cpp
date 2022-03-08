@@ -401,7 +401,7 @@ String DialogScriptConverter::ProcessOptionOnOff(const String &line, const char 
     }
     else
     {
-        CompileError(String::FromFormat("Invalid option number: %s", option_str));
+        CompileError(String::FromFormat("Invalid option number: %s", option_str.GetCStr()));
         return "";
     }
     return String::FromFormat("dialog[%d].SetOptionState(%d,%s);", _dialog.ID, option_num, option_state);

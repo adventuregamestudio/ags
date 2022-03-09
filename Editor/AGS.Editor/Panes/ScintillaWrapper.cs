@@ -38,8 +38,6 @@ namespace AGS.Editor
         private const int INVALID_POSITION = -1;
         private const int AUTOCOMPLETE_MINIMUM_WORD_LENGTH = 3;
         private const int SCAN_BACK_DISTANCE = 50;
-        private const string USER_FRIENDLY_FONT = "Tahoma";
-        private const int USER_FRIENDLY_FONT_SIZE = 8;
         private const string AUTO_COMPLETE_CANCEL_CHARS = ")}; ";
         private const int IMAGE_INDEX_PROPERTY = 1;
         private const int IMAGE_INDEX_METHOD = 2;
@@ -103,6 +101,8 @@ namespace AGS.Editor
 
         private string _scriptFont = Factory.AGSEditor.Settings.ScriptFont;
         private int _scriptFontSize = Factory.AGSEditor.Settings.ScriptFontSize;
+        private string _calltipFont = Factory.AGSEditor.Settings.ScriptTipFont;
+        private int _calltipFontSize = Factory.AGSEditor.Settings.ScriptTipFontSize;
 
         private void UpdateColors()
         {
@@ -182,8 +182,8 @@ namespace AGS.Editor
             this.scintillaControl1.Styles[Style.BraceLight].Font = _scriptFont;
             this.scintillaControl1.Styles[Style.BraceLight].Size = _scriptFontSize;
 
-            this.scintillaControl1.Styles[Style.CallTip].Font = USER_FRIENDLY_FONT;
-            this.scintillaControl1.Styles[Style.CallTip].Size = USER_FRIENDLY_FONT_SIZE;
+            this.scintillaControl1.Styles[Style.CallTip].Font = _calltipFont;
+            this.scintillaControl1.Styles[Style.CallTip].Size = _calltipFontSize;
 
             if(this.scintillaControl1.Margins[0].Width > 0) EnableLineNumbers();
             UpdateColors();
@@ -1425,15 +1425,9 @@ namespace AGS.Editor
             }
             if (autoCompleteList.Length > 0)
             {
-                scintillaControl1.Styles[Style.Default].Font = USER_FRIENDLY_FONT;
-                scintillaControl1.Styles[Style.Default].Size = USER_FRIENDLY_FONT_SIZE;
-
                 scintillaControl1.AutoCShow(charsTyped, autoCompleteList);
-
-                scintillaControl1.Styles[Style.Default].Font = _scriptFont;
-                scintillaControl1.Styles[Style.Default].Size = _scriptFontSize;
+            }
         }
-    }
 
         private bool CheckForAndShowEnumAutocomplete(int checkAtPos)
         {
@@ -2272,6 +2266,18 @@ namespace AGS.Editor
         {
             set { _scriptFontSize = value; }
             get { return _scriptFontSize; }
+        }
+
+        public string CallTipFont
+        {
+            set { _calltipFont = value; }
+            get { return _calltipFont; }
+        }
+
+        public int CallTipFontSize
+        {
+            set { _calltipFontSize = value; }
+            get { return _calltipFontSize; }
         }
 
         void IScriptEditorControl.ShowLineNumbers()

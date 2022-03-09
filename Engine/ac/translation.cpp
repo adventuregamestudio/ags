@@ -44,7 +44,10 @@ void close_translation () {
     trans_filename = "";
 
     // Return back to default game's encoding
-    set_uformat(U_ASCII);
+    if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
+        set_uformat(U_UTF8);
+    else
+        set_uformat(U_ASCII);
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)

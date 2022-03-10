@@ -13,8 +13,8 @@
 #include "script/script_common.h"
 #include "script/cc_error.h"
 #include "cc_variablesymlist.h"
-
 #include "fmem.h"
+#include "util/utf8.h"
 
 extern int currentline;
 
@@ -218,9 +218,14 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             thissymbol.push_back(fmem_getc(iii));
             symlen++;
         }
-        if ((thissymbol[0] == '\'') && (thissymbol[2] == '\'')) {
-            // convert the character to its ASCII equivalent
-            thissymbol = std::to_string(thissymbol[1]);
+        if ((thissymbol[0] == '\'') && (thissymbol.back() == '\'')) {
+            int chr = 0;
+            if (ccGetOption(SCOPT_UTF8)) {
+                Utf8::GetChar(&thissymbol[1], thissymbol.size() - 2, &chr);
+            } else {
+                chr = thissymbol[1];
+            }
+            thissymbol = std::to_string(chr);
         }
         else if (thissymbol[0] == '\'') {
             cc_error("incorrectly terminated character constant");

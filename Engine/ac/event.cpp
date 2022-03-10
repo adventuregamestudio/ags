@@ -50,8 +50,7 @@ extern RGB old_palette[256];
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
 
-EventHappened event[MAXEVENTS+1];
-int numevents=0;
+std::vector<EventHappened> events;
 
 const char*evblockbasename;
 int evblocknum;
@@ -130,13 +129,13 @@ void run_event_block_inv(int invNum, int event) {
 
 // event list functions
 void setevent(int evtyp,int ev1,int ev2,int ev3) {
-    event[numevents].type=evtyp;
-    event[numevents].data1=ev1;
-    event[numevents].data2=ev2;
-    event[numevents].data3=ev3;
-    event[numevents].player=game.playercharacter;
-    numevents++;
-    if (numevents>=MAXEVENTS) quit("too many events posted");
+    EventHappened evt;
+    evt.type = evtyp;
+    evt.data1 = ev1;
+    evt.data2 = ev2;
+    evt.data3 = ev3;
+    evt.player = game.playercharacter;
+    events.push_back(evt);
 }
 
 // TODO: this is kind of a hack, which forces event to be processed even if
@@ -150,7 +149,7 @@ void force_event(int evtyp,int ev1,int ev2,int ev3)
         setevent(evtyp, ev1, ev2, ev3);
 }
 
-void process_event(EventHappened*evp) {
+void process_event(const EventHappened *evp) {
     RuntimeScriptValue rval_null;
     if (evp->type==EV_TEXTSCRIPT) {
         ccError=0;
@@ -381,25 +380,22 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
     process_event(&evh);
 }
 
-void processallevents(int numev,EventHappened*evlist) {
-    int dd;
-
+void processallevents() {
     if (inside_processevent)
         return;
 
     // make a copy of the events - if processing an event includes
     // a blocking function it will continue to the next game loop
     // and wipe out the event pointer we were passed
-    EventHappened copyOfList[MAXEVENTS];
-    memcpy(&copyOfList[0], &evlist[0], sizeof(EventHappened) * numev);
+    std::vector<EventHappened> evtcopy = std::move(events);
 
     int room_was = play.room_changes;
 
     inside_processevent++;
 
-    for (dd=0;dd<numev;dd++) {
+    for (size_t i = 0; i < evtcopy.size(); ++i) {
 
-        process_event(&copyOfList[dd]);
+        process_event(&evtcopy[i]);
 
         if (room_was != play.room_changes)
             break;  // changed room, so discard other events
@@ -408,10 +404,6 @@ void processallevents(int numev,EventHappened*evlist) {
     inside_processevent--;
 }
 
-void update_events() {
-    processallevents(numevents,&event[0]);
-    numevents=0;
-}
 // end event list functions
 
 

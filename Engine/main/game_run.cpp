@@ -90,7 +90,7 @@ extern char check_dynamic_sprites_at_exit;
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
 
-static int numEventsAtStartOfFunction;
+static size_t numEventsAtStartOfFunction;
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 #define UNTIL_ANIMEND   1
@@ -192,7 +192,7 @@ static int game_loop_check_ground_level_interactions()
         if ((restrict_until) && (!ShouldStayInWaitMode())) {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
-            numevents = numEventsAtStartOfFunction;
+            events.resize(numEventsAtStartOfFunction);
             return 0;
         }
     } // end if checking ground level interactions
@@ -565,7 +565,7 @@ static void check_controls() {
     check_keyboard_controls();
 }
 
-static void check_room_edges(int numevents_was)
+static void check_room_edges(size_t numevents_was)
 {
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
         (in_new_room == 0) && (new_room_was == 0)) {
@@ -573,7 +573,7 @@ static void check_room_edges(int numevents_was)
             // if not in Player Enters Screen (allow walking in from off-screen)
             int edgesActivated[4] = {0, 0, 0, 0};
             // Only do it if nothing else has happened (eg. mouseclick)
-            if ((numevents == numevents_was) &&
+            if ((events.size() == numevents_was) &&
                 ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
 
                     if (playerchar->x <= thisroom.Edges.Left)
@@ -609,7 +609,7 @@ static void game_loop_check_controls(bool checkControls)
     // don't let the player do anything before the screen fades in
     if ((in_new_room == 0) && (checkControls)) {
         int inRoom = displayed_room;
-        int numevents_was = numevents;
+        size_t numevents_was = events.size();
         check_controls();
         check_room_edges(numevents_was);
         // If an inventory interaction changed the room
@@ -684,7 +684,7 @@ static void game_loop_update_events()
     if (in_new_room>0)
         setevent(EV_FADEIN,0,0,0);
     in_new_room=0;
-    update_events();
+    processallevents();
     if ((new_room_was > 0) && (in_new_room == 0)) {
         // if in a new room, and the room wasn't just changed again in update_events,
         // then queue the Enters Screen scripts
@@ -755,7 +755,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     sys_evt_process_pending();
 
-    numEventsAtStartOfFunction = numevents;
+    numEventsAtStartOfFunction = events.size();
 
     if (want_exit) {
         ProperExit();

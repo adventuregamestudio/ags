@@ -82,7 +82,6 @@ extern int displayed_room;
 extern RoomObject*objs;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
-extern int numevents;
 extern CharacterCache *charcache;
 extern CharacterExtras *charextra;
 extern int done_es_error;
@@ -279,7 +278,7 @@ void unload_old_room() {
     }
 
     cancel_all_scripts();
-    numevents = 0;  // cancel any pending room events
+    events.clear();  // cancel any pending room events
 
     if (roomBackgroundBmp != nullptr)
     {

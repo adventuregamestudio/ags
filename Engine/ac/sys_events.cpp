@@ -24,6 +24,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "main/engine.h"
 #include "util/string_utils.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -47,9 +48,10 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event)
         char ascii[sizeof(SDL_TextInputEvent::text)];
         StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
         unsigned char textch = ascii[0];
-        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
         if (textch >= 32 && textch <= 255)
             ki.Key = static_cast<eAGSKeyCode>(textch);
+        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
     }
 

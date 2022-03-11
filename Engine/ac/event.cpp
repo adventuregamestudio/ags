@@ -154,13 +154,13 @@ void process_event(const EventHappened *evp) {
     RuntimeScriptValue rval_null;
     if (evp->type==EV_TEXTSCRIPT) {
         ccError=0;
-        if (evp->data2 > -1000) {
-            RuntimeScriptValue params[]{ evp->data2 };
+        RuntimeScriptValue params[2]{ evp->data2, evp->data3 };
+        if (evp->data3 > -1000)
+            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 2, params);
+        else if (evp->data2 > -1000)
             QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, params);
-        }
-        else {
+        else
             QueueScriptFunction(kScInstGame, tsnames[evp->data1]);
-        }
     }
     else if (evp->type==EV_NEWROOM) {
         NewRoom(evp->data1);

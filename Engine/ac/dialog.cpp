@@ -914,6 +914,7 @@ bool DialogOptions::Run()
         {
             runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
             runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
+            runDialogOptionKeyPressHandlerFunc.params[2].SetInt32(ki.Mod);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
             runDialogOptionTextInputHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
             runDialogOptionTextInputHandlerFunc.params[1].SetInt32(ki.UChar);

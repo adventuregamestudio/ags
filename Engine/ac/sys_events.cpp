@@ -31,7 +31,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt);
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod);
 
 // Converts SDL scan and key codes to the ags keycode
 KeyInput ags_keycode_from_sdl(const SDL_Event &event)
@@ -56,15 +56,27 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event)
     }
 
     if (event.type == SDL_KEYDOWN)
-        ki.Key = sdl_key_to_ags_key(event.key);
+    {
+        ki.Key = sdl_key_to_ags_key(event.key, ki.Mod);
+    }
     return ki;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt)
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod)
 {
     const SDL_Keysym key = kbevt.keysym;
     const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
+
+    // First handle the mods, - these are straightforward
+    ags_mod = 0;
+    if (mod & KMOD_LSHIFT) ags_mod |= eAGSModLShift;
+    if (mod & KMOD_RSHIFT) ags_mod |= eAGSModRShift;
+    if (mod & KMOD_LCTRL)  ags_mod |= eAGSModLCtrl;
+    if (mod & KMOD_RCTRL)  ags_mod |= eAGSModRCtrl;
+    if (mod & KMOD_LALT)   ags_mod |= eAGSModLAlt;
+    if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
+
     // Ctrl and Alt combinations realign the letter code to certain offset
     if (sym >= SDLK_a && sym <= SDLK_z)
     {

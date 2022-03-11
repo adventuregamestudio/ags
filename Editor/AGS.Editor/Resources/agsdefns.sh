@@ -362,6 +362,21 @@ enum eKeyCode
   eKeyF12 = 434
 };
 
+#ifdef SCRIPT_API_v360
+enum eKeyMod
+{
+  eKeyModShiftLeft  = 0x0001,
+  eKeyModShiftRight = 0x0002,
+  eKeyModShift      = 0x0003,
+  eKeyModCtrlLeft   = 0x0004,
+  eKeyModCtrlRight  = 0x0008,
+  eKeyModCtrl       = 0x000C,
+  eKeyModAltLeft    = 0x0010,
+  eKeyModAltRight   = 0x0020,
+  eKeyModAlt        = 0x0030
+};
+#endif
+
 #ifdef SCRIPT_API_v3507
 managed struct Point {
 	int x, y;

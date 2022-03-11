@@ -40,6 +40,7 @@
 #define TS_REPEAT   1
 #define TS_KEYPRESS 2
 #define TS_MCLICK   3
+#define TS_NUM      4
 #define EVB_HOTSPOT 1
 #define EVB_ROOM    2
 
@@ -73,7 +74,7 @@ extern int evblocknum;
 
 extern int eventClaimed;
 
-extern const char*tsnames[4];
+extern const char*tsnames[TS_NUM];
 
 #endif // __AGS_EE_AC__EVENT_H
 

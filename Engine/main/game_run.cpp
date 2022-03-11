@@ -269,7 +269,6 @@ static void check_mouse_controls()
             wasbutdown=mbut+1;
         }
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
-        //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
 
     if (mwheelz < 0)

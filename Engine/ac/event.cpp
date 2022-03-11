@@ -58,7 +58,7 @@ int evblocknum;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-const char*tsnames[4]={nullptr, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
+const char *tsnames[TS_NUM] = { nullptr, REP_EXEC_NAME, "on_key_press", "on_mouse_click" };
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
@@ -72,7 +72,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     int toret;
 
     if (includeRoom && roominst) {
-        toret = RunScriptFunctionIfExists(roominst, tsname, numParams, params);
+        toret = RunScriptFunction(roominst, tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -82,7 +82,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 
     // run script modules
     for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = RunScriptFunctionIfExists(moduleInst[kk], tsname, numParams, params);
+        toret = RunScriptFunction(moduleInst[kk], tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;

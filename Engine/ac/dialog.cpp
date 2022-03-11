@@ -195,7 +195,8 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   {
     char funcName[100];
     sprintf(funcName, "_run_dialog%d", dialogID);
-    RunTextScriptIParam(dialogScriptsInst, funcName, RuntimeScriptValue().SetInt32(optionIndex));
+    RuntimeScriptValue params[]{ optionIndex };
+    RunScriptFunction(dialogScriptsInst, funcName, 1, params);
     result = dialogScriptsInst->returnValue;
   }
   else

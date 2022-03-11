@@ -337,9 +337,9 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        QueueScriptFunction(kScInstGame, guis[ifce].OnClickHandler.GetCStr(), 2,
-            RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
-            RuntimeScriptValue().SetInt32(mbut));
+        RuntimeScriptValue params[]{ RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
+            RuntimeScriptValue().SetInt32(mbut) };
+        QueueScriptFunction(kScInstGame, guis[ifce].OnClickHandler.GetCStr(), 2, params);
         return;
     }
 
@@ -366,17 +366,22 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (!gameinst->GetSymbolAddress(theObj->EventHandlers[0].GetCStr()).IsNull())) {
                 // control-specific event handler
                 if (theObj->GetEventArgs(0).FindChar(',') != -1)
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 2,
-                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
-                        RuntimeScriptValue().SetInt32(mbut));
+                {
+                    RuntimeScriptValue params[]{ RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
+                        RuntimeScriptValue().SetInt32(mbut) };
+                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 2, params);
+                }
                 else
-                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 1,
-                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
+                {
+                    RuntimeScriptValue params[]{ RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject) };
+                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0].GetCStr(), 1, params);
+                }
         }
         else
-            QueueScriptFunction(kScInstGame, "interface_click", 2,
-                RuntimeScriptValue().SetInt32(ifce),
-                RuntimeScriptValue().SetInt32(btn));
+        {
+            RuntimeScriptValue params[]{ ifce , btn };
+            QueueScriptFunction(kScInstGame, "interface_click", 2, params);
+        }
     }
 }
 

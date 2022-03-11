@@ -98,7 +98,8 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 // runs the global script on_event function
 void run_on_event (int evtype, RuntimeScriptValue &wparam)
 {
-    QueueScriptFunction(kScInstGame, "on_event", 2, RuntimeScriptValue().SetInt32(evtype), wparam);
+    RuntimeScriptValue params[]{ evtype , wparam };
+    QueueScriptFunction(kScInstGame, "on_event", 2, params);
 }
 
 void run_room_event(int id) {
@@ -154,7 +155,8 @@ void process_event(const EventHappened *evp) {
     if (evp->type==EV_TEXTSCRIPT) {
         ccError=0;
         if (evp->data2 > -1000) {
-            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, RuntimeScriptValue().SetInt32(evp->data2));
+            RuntimeScriptValue params[]{ evp->data2 };
+            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, params);
         }
         else {
             QueueScriptFunction(kScInstGame, tsnames[evp->data1]);

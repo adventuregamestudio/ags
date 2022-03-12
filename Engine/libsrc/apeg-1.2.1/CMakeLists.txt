@@ -38,6 +38,6 @@ target_sources(apeg
 
 target_compile_definitions(apeg PRIVATE DISABLE_MPEG_AUDIO)
 
-target_link_libraries(apeg PUBLIC ${SDL2_LIBRARY} Allegro::Allegro ${OGG_LIBRARIES}  ${VORBIS_LIBRARIES} Theora::TheoraDecoder External::OpenAL)
+target_link_libraries(apeg PUBLIC ${SDL2_LIBRARY} Allegro::Allegro ${OGG_LIBRARIES}  ${VORBIS_LIBRARIES} ${THEORA_LIBRARIES} External::OpenAL)
 
 add_library(Apeg::Apeg ALIAS apeg)

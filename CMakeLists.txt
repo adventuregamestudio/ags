@@ -256,16 +256,14 @@ else()
 endif()
 include(FetchSDL_Sound)
 
-include(FindLocalOpenAL)
-include(FindLocalAllegro)
-
 if(NOT EMSCRIPTEN)
     include(FetchOgg)
     include(FetchVorbis)
-    list(APPEND VORBIS_LIBRARIES Vorbis::VorbisFile)
-    list(APPEND VORBIS_LIBRARIES Vorbis::Vorbis)
 endif()
 include(FetchTheora)
+
+include(FindLocalOpenAL)
+include(FindLocalAllegro)
 
 add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
 add_subdirectory(libsrc/tinyxml2                EXCLUDE_FROM_ALL)

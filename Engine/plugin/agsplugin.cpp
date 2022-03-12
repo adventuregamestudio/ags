@@ -664,7 +664,6 @@ int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
 // disable AGS's sound engine
 void IAGSEngine::DisableSound() {
     shutdown_sound();
-    usetup.audio_backend = 0;
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)

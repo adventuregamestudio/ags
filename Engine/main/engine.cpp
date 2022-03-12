@@ -380,23 +380,29 @@ void engine_init_timer()
 
 void engine_init_audio()
 {
-    if (usetup.audio_backend != 0)
+    if (usetup.audio_enabled)
     {
         Debug::Printf("Initializing audio");
-        try {
-            audio_core_init(); // audio core system
-        } catch(std::runtime_error ex) {
-            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio: %s", ex.what());
-            usetup.audio_backend = 0;
+        bool res = sys_audio_init(usetup.audio_driver);
+        if (res)
+        {
+            try {
+                audio_core_init(); // audio core system
+            }
+            catch (std::runtime_error ex) {
+                Debug::Printf(kDbgMsg_Error, "Failed to initialize audio system: %s", ex.what());
+                res = false;
+            }
         }
+        usetup.audio_enabled = res;
     }
-    our_eip = -181;
-
-    if (usetup.audio_backend == 0)
+    
+    if (!usetup.audio_enabled)
     {
         // all audio is disabled
         play.voice_avail = false;
         play.separate_music_lib = false;
+        Debug::Printf(kDbgMsg_Info, "Audio is disabled");
     }
 }
 

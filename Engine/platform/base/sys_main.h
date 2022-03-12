@@ -20,6 +20,7 @@
 #include "core/platform.h"
 #include <vector>
 #include "gfx/gfxdefines.h"
+#include "util/string.h"
 
 // Initializes main backend system;
 // should be called before anything else backend related.
@@ -38,6 +39,13 @@ void sys_set_background_mode(bool on);
 int sys_get_desktop_resolution(int &width, int &height);
 // Queries supported desktop modes.
 void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms);
+
+// Audio utilities.
+//
+// Tries to init the audio backend; optionally requests particular driver
+bool sys_audio_init(const AGS::Common::String &driver_name = "");
+// Shutdown audio backend
+void sys_audio_shutdown();
 
 // Window utilities.
 //

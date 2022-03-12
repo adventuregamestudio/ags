@@ -15,7 +15,7 @@
 
 GameSetup::GameSetup()
 {
-    audio_backend = 1;
+    audio_enabled = true;
     no_speech_pack = false;
     textheight = 0;
     enable_antialiasing = false;

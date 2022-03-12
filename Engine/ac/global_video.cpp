@@ -91,7 +91,7 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
         flags |= kVideo_EnableAudio;
 
     // if game audio is disabled, then don't play any sound on the video either
-    if (usetup.audio_backend == 0)
+    if (!usetup.audio_enabled)
         flags &= ~kVideo_EnableAudio;
 
     if (loaded_game_file_version < kGameVersion_360_16)

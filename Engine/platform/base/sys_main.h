@@ -22,6 +22,8 @@
 #include "gfx/gfxdefines.h"
 #include "util/string.h"
 
+using AGS::Common::String;
+
 // Initializes main backend system;
 // should be called before anything else backend related.
 // Returns 0 on success, non-0 on failure.
@@ -43,7 +45,7 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms);
 // Audio utilities.
 //
 // Tries to init the audio backend; optionally requests particular driver
-bool sys_audio_init(const AGS::Common::String &driver_name = "");
+bool sys_audio_init(const String &driver_name = "");
 // Shutdown audio backend
 void sys_audio_shutdown();
 

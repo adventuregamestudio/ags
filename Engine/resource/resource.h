@@ -6,7 +6,6 @@
 #define IDI_ICON                        101
 #define IDD_SETUP                       102
 #define IDC_DIGISOUND                   1003
-#define IDC_MIDIMUSIC                   1006
 #define IDC_WINDOWED                    1007
 #define IDC_VERSION                     1008
 #define IDC_LANGUAGE                    1009
@@ -16,9 +15,7 @@
 #define IDC_FULLSCREENDESKTOP           1013
 #define IDC_VOICEPACK                   1016
 #define IDC_REFRESH_85HZ                1017
-#define IDC_THREADEDAUDIO               1018
 #define IDC_ANTIALIAS                   1021
-#define IDC_REDUCE32TO16                1022
 #define IDC_GFXFILTER                   1023
 #define IDC_GFXDRIVER                   1024
 #define IDC_RESOLUTION                  1025

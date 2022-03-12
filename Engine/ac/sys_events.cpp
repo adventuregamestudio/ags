@@ -31,13 +31,13 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod);
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle);
 
 // Converts SDL scan and key codes to the ags keycode
-KeyInput ags_keycode_from_sdl(const SDL_Event &event)
+KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
 {
     KeyInput ki;
-    // Printable ASCII characters are returned only from SDL_TEXTINPUT event,
+    // Printable characters are received only from SDL_TEXTINPUT event,
     // as it has key presses + mods correctly converted using current system locale already,
     // so no need to do that manually.
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
@@ -57,12 +57,12 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event)
 
     if (event.type == SDL_KEYDOWN)
     {
-        ki.Key = sdl_key_to_ags_key(event.key, ki.Mod);
+        ki.Key = sdl_key_to_ags_key(event.key, ki.Mod, old_keyhandle);
     }
     return ki;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod)
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle)
 {
     const SDL_Keysym key = kbevt.keysym;
     const SDL_Keycode sym = key.sym;
@@ -77,13 +77,18 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod)
     if (mod & KMOD_LALT)   ags_mod |= eAGSModLAlt;
     if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
 
-    // Ctrl and Alt combinations realign the letter code to certain offset
-    if (sym >= SDLK_a && sym <= SDLK_z)
+    // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
+    if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))
     {
         if ((mod & KMOD_CTRL) != 0) // align letters to code 1
             return static_cast<eAGSKeyCode>( 0 + (sym - SDLK_a) + 1 );
         else if ((mod & KMOD_ALT) != 0) // align letters to code 301
             return static_cast<eAGSKeyCode>( AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1 );
+    }
+    // New mode: also handle common key range
+    else if (!old_keyhandle && (sym >= SDLK_SPACE && sym <= SDLK_z))
+    {
+        return static_cast<eAGSKeyCode>(sym);
     }
 
     // Remaining codes may match or not, but we use a big table anyway.
@@ -133,6 +138,13 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod)
     case SDL_SCANCODE_INSERT: return eAGSKeyCodeInsert;
     case SDL_SCANCODE_KP_PERIOD:
     case SDL_SCANCODE_DELETE: return eAGSKeyCodeDelete;
+
+    case SDL_SCANCODE_LSHIFT: return eAGSKeyCodeLShift;
+    case SDL_SCANCODE_RSHIFT: return eAGSKeyCodeRShift;
+    case SDL_SCANCODE_LCTRL: return eAGSKeyCodeLCtrl;
+    case SDL_SCANCODE_RCTRL: return eAGSKeyCodeRCtrl;
+    case SDL_SCANCODE_LALT: return eAGSKeyCodeLAlt;
+    case SDL_SCANCODE_RALT: return eAGSKeyCodeRAlt;
 
     default: return eAGSKeyCodeNone;
     }

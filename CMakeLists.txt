@@ -10,6 +10,13 @@ project(AGS
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+option(AGS_USE_LOCAL_ALL_LIBRARIES "Use a locally installed libraries" OFF)
+option(AGS_USE_LOCAL_SDL2 "Use a locally installed SDL2" ${AGS_USE_LOCAL_ALL_LIBRARIES})
+option(AGS_USE_LOCAL_SDL2_SOUND "Use a locally installed SDL2 Sound" ${AGS_USE_LOCAL_ALL_LIBRARIES})
+option(AGS_USE_LOCAL_OGG "Use a locally installed OGG" ${AGS_USE_LOCAL_ALL_LIBRARIES})
+option(AGS_USE_LOCAL_THEORA "Use a locally installed Theora" ${AGS_USE_LOCAL_ALL_LIBRARIES})
+option(AGS_USE_LOCAL_VORBIS "Use a locally installed Vorbis" ${AGS_USE_LOCAL_ALL_LIBRARIES})
+
 option(AGS_TESTS "Build tests" OFF)
 option(AGS_BUILD_ENGINE "Build Engine" ON)
 option(AGS_BUILD_TOOLS "Build Tools" OFF)
@@ -21,6 +28,13 @@ option(AGS_DEBUG_MANAGED_OBJECTS "Managed Objects Log" OFF)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
 
+message("------- AGS dependencies options -------")
+message(" AGS_USE_LOCAL_ALL_LIBRARIES: ${AGS_USE_LOCAL_ALL_LIBRARIES}")
+message(" AGS_USE_LOCAL_SDL2: ${AGS_USE_LOCAL_SDL2}")
+message(" AGS_USE_LOCAL_SDL2_SOUND: ${AGS_USE_LOCAL_SDL2_SOUND}")
+message(" AGS_USE_LOCAL_OGG: ${AGS_USE_LOCAL_OGG}")
+message(" AGS_USE_LOCAL_THEORA: ${AGS_USE_LOCAL_THEORA}")
+message(" AGS_USE_LOCAL_VORBIS: ${AGS_USE_LOCAL_VORBIS}")
 message("------ AGS selected CMake options ------")
 message(" AGS_TESTS: ${AGS_TESTS}")
 message(" AGS_BUILD_ENGINE: ${AGS_BUILD_ENGINE}")
@@ -31,6 +45,10 @@ message(" AGS_NO_VIDEO_PLAYER: ${AGS_NO_VIDEO_PLAYER}")
 message(" AGS_BUILTIN_PLUGINS: ${AGS_BUILTIN_PLUGINS}")
 message(" AGS_DEBUG_MANAGED_OBJECTS: ${AGS_DEBUG_MANAGED_OBJECTS}")
 message("----------------------------------------")
+
+if(AGS_USE_LOCAL_SDL2)
+    message(WARNING "Your local SDL2 may require SDL2.dll or other dynamic library to be installed.")
+endif()
 
 # Tools like ninja don't have a pseudo-terminal so compilers assume no coloured output
 option (AGS_FORCE_COLOURED_OUTPUT "Always produce ANSI-coloured output (GNU/Clang only)." OFF)
@@ -249,18 +267,49 @@ if(AGS_TESTS)
     enable_testing()
 endif()
 
-if(NOT EMSCRIPTEN)
+###############################################################################
+# dependencies we download the source or not depending on settings
+
+if(EMSCRIPTEN)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
+elseif(NOT AGS_USE_LOCAL_SDL2)
     include(FetchSDL2)
 else()
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
+    find_package(SDL2 REQUIRED)
+    include_directories("${SDL2_INCLUDE_DIRS}")
 endif()
-include(FetchSDL_Sound)
 
-if(NOT EMSCRIPTEN)
-    include(FetchOgg)
-    include(FetchVorbis)
+if(NOT AGS_USE_LOCAL_SDL2_SOUND)
+    include(FetchSDL_Sound)
+else()
+    find_package(SDL_sound REQUIRED)
+    include_directories("${SDL_sound_INCLUDE_DIRS}")
 endif()
-include(FetchTheora)
+
+if(EMSCRIPTEN)
+    # do nothing
+elseif(NOT AGS_USE_LOCAL_OGG)
+    include(FetchOgg)
+else()
+    find_package(Ogg REQUIRED)
+endif()
+
+if(EMSCRIPTEN)
+    # do nothing
+elseif (NOT AGS_USE_LOCAL_VORBIS)
+    include(FetchVorbis)
+else()
+    find_package(Vorbis REQUIRED)
+endif()
+
+if (NOT AGS_USE_LOCAL_THEORA)
+    include(FetchTheora)
+else()
+    find_package(Theora REQUIRED)
+endif()
+
+###############################################################################
+# subdirectories of this project
 
 include(FindLocalOpenAL)
 include(FindLocalAllegro)

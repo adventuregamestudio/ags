@@ -79,6 +79,7 @@ namespace AGS.Types
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
         private bool _oldCustomDlgOptsAPI = false;
+        private bool _oldKeyHandling = false;
         private int _playSoundOnScore = -1;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
@@ -757,6 +758,16 @@ namespace AGS.Types
         {
             get { return _oldCustomDlgOptsAPI; }
             set { _oldCustomDlgOptsAPI = value; }
+        }
+
+        [DisplayName("Use old-style keyboard handling")]
+        [Description("Use pre-unicode mode key codes in 'on_key_press' function, where regular keys were merged with Ctrl and Alt modifiers.")]
+        [DefaultValue(false)]
+        [Category("Backwards Compatibility")]
+        public bool UseOldKeyboardHandling
+        {
+            get { return _oldKeyHandling; }
+            set { _oldKeyHandling = value; }
         }
 
         [DisplayName("Left-to-right operator precedence")]

@@ -1861,6 +1861,14 @@ namespace AGS.Editor
             {
                 return false;
             }
+            if ((token.IfNDefOnly == "NEW_KEYINPUT_API") && (!gameSettings.UseOldKeyboardHandling))
+            {
+                return false;
+            }
+            if ((token.IfDefOnly == "NEW_KEYINPUT_API") && (gameSettings.UseOldKeyboardHandling))
+            {
+                return false;
+            }
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_API_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("SCRIPT_API_".Length));

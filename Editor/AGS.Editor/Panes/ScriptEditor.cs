@@ -23,6 +23,7 @@ namespace AGS.Editor
         private const string PASTE_COMMAND = "ScriptPaste";
         private const string UNDO_COMMAND = "ScriptUndo";
         private const string REDO_COMMAND = "ScriptRedo";
+        private const string TOGGLE_LINE_COMMENT_COMMAND = "ToggleCommentCommand";
         private const string SHOW_AUTOCOMPLETE_COMMAND = "ScriptShowAutoComplete";
         private const string MATCH_BRACE_COMMAND = "MatchBrace";
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
@@ -108,6 +109,8 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon"));
+            _extraMenu.Commands.Add(MenuCommand.Separator);
+            _extraMenu.Commands.Add(new MenuCommand(TOGGLE_LINE_COMMENT_COMMAND, "Toggle Line Comment", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Q));
             _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
@@ -645,6 +648,10 @@ namespace AGS.Editor
                 {
                     scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
                 }
+            }
+            else if (command == TOGGLE_LINE_COMMENT_COMMAND)
+            {
+                scintilla.ToggleLineComment();
             }
             UpdateToolbarButtonsIfNecessary();
         }

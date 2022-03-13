@@ -424,6 +424,86 @@ namespace AGS.Editor
             }
         }
 
+        public void ToggleLineComment()
+        {
+            string commentLineSymbol = "//";
+            string aSpace = " ";
+            string comment = commentLineSymbol + aSpace;            
+            bool isUncomment = false;
+            bool setSelectionAtEnd = false;
+            int selStart, selEnd;
+            
+            if (string.IsNullOrEmpty(scintillaControl1.SelectedText))
+            {
+                int tmpline = scintillaControl1.LineFromPosition(scintillaControl1.CurrentPosition);
+                selStart = scintillaControl1.Lines[tmpline].Position;
+                selEnd = scintillaControl1.Lines[tmpline].EndPosition;
+            }
+            else
+            {
+                int tmplineStart = scintillaControl1.LineFromPosition(scintillaControl1.SelectionStart);
+                int tmplineEnd = scintillaControl1.LineFromPosition(scintillaControl1.SelectionEnd);
+
+                selStart = scintillaControl1.Lines[tmplineStart].Position;
+                selEnd = scintillaControl1.Lines[tmplineEnd].EndPosition;
+                setSelectionAtEnd = true;
+            }
+
+            int lineSelStart = scintillaControl1.LineFromPosition(selStart);
+            int lineSelEnd = scintillaControl1.LineFromPosition(selEnd);
+            int indentPos = scintillaControl1.GetLineIndentationPosition(lineSelStart);
+
+            string firstLine = scintillaControl1.Lines[lineSelStart].Text;
+            isUncomment = firstLine.Trim().StartsWith(commentLineSymbol);
+
+            scintillaControl1.BeginUndoAction();
+
+            for(int i = lineSelStart; i < lineSelEnd; i++)
+            {
+                Line line = scintillaControl1.Lines[i];
+                int lineStartPos = line.Position;
+                int lineEndPos = line.EndPosition;
+                int lineIndentPos = scintillaControl1.GetLineIndentationPosition(i);
+
+                string lineText = line.Text;
+
+                if (isUncomment)
+                {
+                    bool canUncommentLine = lineText.Trim().StartsWith(commentLineSymbol);
+                    if (!canUncommentLine) continue;
+
+                    lineText = scintillaControl1.GetTextRange(lineIndentPos, lineEndPos - lineIndentPos);
+                    if (lineText.Length <= (commentLineSymbol.Length + 1)) continue;
+
+                    int len = lineText[comment.Length - 1] == aSpace[0] ? comment.Length : comment.Length - 1;
+
+                    scintillaControl1.SetSel(lineIndentPos, lineIndentPos + len);
+                    scintillaControl1.ReplaceSelection("");
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(lineText.Trim())) continue; // skip empty lines
+
+                    this.scintillaControl1.InsertText(lineIndentPos, comment);
+                }
+            }
+
+            if (setSelectionAtEnd)
+            {
+                selStart = scintillaControl1.Lines[lineSelStart].Position;
+                selEnd = scintillaControl1.Lines[lineSelEnd-1].EndPosition;
+                scintillaControl1.SetSel(selStart, selEnd - 1);
+            }
+            else
+            {
+                scintillaControl1.GotoPosition(selEnd);
+                scintillaControl1.CurrentPosition = selStart;
+                scintillaControl1.SetEmptySelection(scintillaControl1.CurrentPosition);
+            }
+
+            scintillaControl1.EndUndoAction();
+        }
+
         public void GoToPosition(int newPos)
         {
             int lineNum = scintillaControl1.LineFromPosition(newPos);

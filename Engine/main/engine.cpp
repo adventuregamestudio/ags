@@ -1334,6 +1334,8 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
     engine_shutdown_gfxmode();
 
+    sys_renderer_set_output(usetup.software_render_driver);
+
     const Size init_desktop = get_desktop_size();
     bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8),
         setup, ColorDepthOption(game.GetColorDepth()));

@@ -80,6 +80,11 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
     }
 }
 
+void sys_renderer_set_output(const String &name)
+{
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, name.GetCStr());
+}
+
 
 // ----------------------------------------------------------------------------
 // AUDIO UTILS

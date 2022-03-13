@@ -37,7 +37,7 @@ namespace AGS.Editor
         public override void DeleteMainGameData(string name)
         {
             string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, DEBUG_DIRECTORY), name + ".exe");
-            Utilities.DeleteFileIfExists(filename);
+            Utilities.TryDeleteFile(filename);
         }
 
         private object CreateDebugFiles(object parameter)
@@ -50,7 +50,7 @@ namespace AGS.Editor
             }
             Factory.NativeProxy.CreateDebugMiniEXE(new string[] { AGSEditor.COMPILED_DTA_FILE_NAME },
                 Factory.AGSEditor.BaseGameFileName + ".exe");
-            File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
+            Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME);
             return null;
         }
 
@@ -70,15 +70,15 @@ namespace AGS.Editor
                 string compiledEXE = targetWin.GetCompiledPath(exeFileName);
                 string compiledDat = targetWin.GetCompiledPath(baseGameFileName + ".ags");
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-                Utilities.DeleteFileIfExists(compiledEXE);
-                Utilities.DeleteFileIfExists(compiledDat);
+                Utilities.TryDeleteFile(compiledEXE);
+                Utilities.TryDeleteFile(compiledDat);
                 File.Copy(sourceEXE, exeFileName, true);
                 BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), errors);
                 if (errors.HasErrors)
                 {
                     return false;
                 }
-                Utilities.DeleteFileIfExists(GetDebugPath(exeFileName));
+                Utilities.TryDeleteFile(GetDebugPath(exeFileName));
                 File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging
                 string cfgFilePath = targetWin.GetCompiledPath(AGSEditor.CONFIG_FILE_NAME);

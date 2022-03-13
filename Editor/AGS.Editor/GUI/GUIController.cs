@@ -1105,7 +1105,7 @@ namespace AGS.Editor
                     writer.Close();
 
                     Factory.NativeProxy.CreateTemplateFile(filename, ConstructRoomTemplateFileList(room));
-                    File.Delete(ROOM_TEMPLATE_ID_FILE);
+                    Utilities.TryDeleteFile(ROOM_TEMPLATE_ID_FILE);
                 }
                 catch (AGSEditorException ex)
                 {

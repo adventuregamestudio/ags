@@ -27,7 +27,7 @@ namespace AGS.Editor
         public override void DeleteMainGameData(string name)
         {
             string filename = Path.Combine(OutputDirectoryFullPath, name + ".exe");
-            Utilities.DeleteFileIfExists(filename);
+            Utilities.TryDeleteFile(filename);
         }
 
         public void CopyPlugins(CompileMessages errors)
@@ -213,7 +213,7 @@ namespace AGS.Editor
                 if (Factory.AGSEditor.CurrentGame.Settings.AttachDataToExe)
                 {
                     AttachDataToEXE(mainGameDataSrc, newExeName);
-                    File.Delete(mainGameDataDst);
+                    Utilities.TryDeleteFile(mainGameDataDst);
                 }
                 else
                 {

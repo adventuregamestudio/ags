@@ -474,7 +474,7 @@ namespace AGS.Editor
                                 {
                                     try
                                     {
-                                        File.Delete(outputFileName);
+                                        Utilities.TryDeleteFile(outputFileName);
                                     }
                                     catch
                                     {

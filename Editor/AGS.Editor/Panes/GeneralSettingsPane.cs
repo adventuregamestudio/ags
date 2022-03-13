@@ -30,10 +30,7 @@ namespace AGS.Editor
             {
                 string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                     Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
-                if (File.Exists(compiledPath))
-                {
-                    File.Delete(compiledPath);
-                }
+                Utilities.TryDeleteFile(compiledPath);
             }
         }
 

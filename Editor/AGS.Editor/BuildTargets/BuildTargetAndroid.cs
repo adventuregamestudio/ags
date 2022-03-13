@@ -131,7 +131,7 @@ namespace AGS.Editor
                     {
                         string toRemoveRoundPath = Path.Combine(destIconDir, icondir, ICON_ROUND_FILENAME);
                         string icPathPartial = Path.Combine(icondir, ICON_FILENAME);
-                        if (File.Exists(toRemoveRoundPath)) File.Delete(toRemoveRoundPath);
+                        Utilities.TryDeleteFile(toRemoveRoundPath);
                         File.Copy(Path.Combine(projIconDir, icPathPartial), Path.Combine(destIconDir, icPathPartial), overwrite: true);
                     }
                     break;
@@ -165,10 +165,7 @@ namespace AGS.Editor
 
         private void WriteStringToFile(string fileName, string fileText)
         {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
+            Utilities.TryDeleteFile(fileName);
 
             FileStream stream = File.Create(fileName);
             byte[] bytes = Encoding.UTF8.GetBytes(fileText);
@@ -298,16 +295,13 @@ namespace AGS.Editor
         {
             string fileName = Path.Combine(dest_dir, "project.properties");
 
-            if(File.Exists(fileName))
+            try
             {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch
-                {
-                    StopGradle();
-                }
+                Utilities.TryDeleteFile(fileName);
+            }
+            catch
+            {
+                StopGradle();
             }
 
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
@@ -329,16 +323,13 @@ namespace AGS.Editor
         {
             string fileName = Path.Combine(dest_dir, "local.static.properties");
 
-            if (File.Exists(fileName))
+            try
             {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch
-                {
-                    StopGradle();
-                }
+                Utilities.TryDeleteFile(fileName);
+            }
+            catch
+            {
+                StopGradle();
             }
 
             // this should NOT GET KEYS FROM SETTINGS
@@ -498,7 +489,7 @@ namespace AGS.Editor
         {
             string assetsDir = GetAssetsDir();
             string filename = Path.Combine(assetsDir, name + ".ags");
-            Utilities.DeleteFileIfExists(filename);
+            Utilities.TryDeleteFile(filename);
         }
 
         public override bool Build(CompileMessages errors, bool forceRebuild)

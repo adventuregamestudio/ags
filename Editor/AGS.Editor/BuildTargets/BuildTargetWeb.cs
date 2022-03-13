@@ -32,7 +32,7 @@ namespace AGS.Editor
         public override void DeleteMainGameData(string name)
         {
             string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, WEB_DIR), name + ".ags");
-            Utilities.DeleteFileIfExists(filename);
+            Utilities.TryDeleteFile(filename);
         }
 
         public override bool Build(CompileMessages errors, bool forceRebuild)

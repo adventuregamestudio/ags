@@ -239,11 +239,32 @@ namespace AGS.Editor
             return (File.GetLastWriteTime(sourceFile) >= File.GetLastWriteTime(destinationFile));
         }
 
-        public static void DeleteFileIfExists(string fileName)
+        /// <summary>
+        /// Attempts to delete file, handling few common exception cases.
+        /// 
+        /// Exceptions:
+        ///  - CannotDeleteFileException
+        /// </summary>
+        public static void TryDeleteFile(string fileName)
         {
-            if (File.Exists(fileName))
+            if (!File.Exists(fileName))
+                return;
+
+            try
             {
-                File.Delete(fileName);
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    File.SetAttributes(fileName, FileAttributes.Normal);
+                    File.Delete(fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new CannotDeleteFileException("Unable to delete the file '" + fileName + "'." + Environment.NewLine + ex.Message, ex);
             }
         }
 
@@ -519,7 +540,7 @@ namespace AGS.Editor
                     return false;
                 }
 
-                File.Delete(destFileName);
+                TryDeleteFile(destFileName);
             }
 
             if (IsMonoRunning() || !CreateHardLink(destFileName, sourceFileName, IntPtr.Zero))

@@ -346,7 +346,7 @@ namespace AGS.Editor
                         "The configuration file will be deleted and user preferences reset to allow Editor start." +
                         "\n\n\nConfiguration file's location: " + filename,
                         MessageBoxIcon.Error);
-                File.Delete(filename);
+                Utilities.TryDeleteFile(filename);
             }
 
             _applicationSettings = new AppSettings();
@@ -571,33 +571,9 @@ namespace AGS.Editor
 
 			foreach (string fileName in fullPathNames)
 			{
-                AttemptToDeleteFileFromDisk(fileName);
+                Utilities.TryDeleteFile(fileName);
 			}
 		}
-
-        public void AttemptToDeleteFileFromDisk(string fileName)
-        {
-            try
-            {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    File.SetAttributes(fileName, FileAttributes.Normal);
-                    File.Delete(fileName);
-                }
-            }
-            catch (IOException ex)
-            {
-                throw new CannotDeleteFileException("Unable to delete the file '" + fileName + "'." + Environment.NewLine + ex.Message, ex);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                throw new CannotDeleteFileException("Unable to delete the file '" + fileName + "'." + Environment.NewLine + ex.Message, ex);
-            }
-        }
 
         /// <summary>
         /// Attempt to get write access to the specified file. If this fails,
@@ -668,7 +644,7 @@ namespace AGS.Editor
                 {
                     StreamWriter sw = new StreamWriter(fileName);
                     sw.Close();
-					Utilities.DeleteFileIfExists(fileName);
+					Utilities.TryDeleteFile(fileName);
                 }
                 catch (Exception ex)
                 {
@@ -1053,7 +1029,7 @@ namespace AGS.Editor
             string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
             foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
             {
-                File.Delete(fileName);
+                Utilities.TryDeleteFile(fileName);
             }
         }
 
@@ -1077,10 +1053,9 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(audioVox) && 
-                (fileListForVox.Count == 0) || (rebuildVox))
+            if ((fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(audioVox);
+                Utilities.TryDeleteFile(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
@@ -1738,11 +1713,8 @@ namespace AGS.Editor
 
             try
             {
-                if (File.Exists(gameFile))
-                {
-                    File.Delete(backupFile);
-                    File.Move(gameFile, backupFile);
-                }
+                Utilities.TryDeleteFile(backupFile);
+                File.Move(gameFile, backupFile);
             }
             catch (Exception ex)
             {
@@ -1771,17 +1743,7 @@ namespace AGS.Editor
 
             foreach (string fileName in filesToDelete)
             {
-                if (File.Exists(fileName))
-                {
-                    try
-                    {
-                        File.Delete(fileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Factory.GUIController.ShowMessage("Unable to remove file '" + fileName + "' because of an error: " + ex.Message, MessageBoxIcon.Warning);
-                    }
-                }
+                Utilities.TryDeleteFile(fileName);
             }
         }
 

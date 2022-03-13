@@ -85,16 +85,13 @@ namespace AGS.Editor
 
             ConstructBasicFileListForTemplate(files, filesToDeleteAfterwards);
 
-            if (File.Exists(templateFileName))
-            {
-                File.Delete(templateFileName);
-            }
+            Utilities.TryDeleteFile(templateFileName);
 
             Factory.NativeProxy.CreateTemplateFile(templateFileName, files.ToArray());
 
             foreach (string fileName in filesToDeleteAfterwards)
             {
-                File.Delete(fileName);
+                Utilities.TryDeleteFile(fileName);
             }
         }
 

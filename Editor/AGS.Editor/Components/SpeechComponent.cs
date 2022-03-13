@@ -268,10 +268,7 @@ namespace AGS.Editor.Components
                 lipSyncDataLines.Add(CompilePapagayoFile(fileName, errors));
             }
 
-            if (File.Exists(outputName))
-            {
-                File.Delete(outputName);
-            }
+            Utilities.TryDeleteFile(outputName);
 
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
@@ -372,10 +369,7 @@ namespace AGS.Editor.Components
 
 		private void RebuildVOXFile(string voxFileName, string[] filesOnDisk)
 		{
-            if (File.Exists(voxFileName))
-            {
-                File.Delete(voxFileName);
-            }
+            Utilities.TryDeleteFile(voxFileName);
             if (filesOnDisk.Length > 0)
             {
                 // Register speech assets under names = relative paths inside a Speech folder;

@@ -1551,9 +1551,11 @@ namespace AGS.Editor
         /// This updates only values that strongly depend on game properties,
         /// and does not affect user settings.
         /// </summary>
-		public void WriteConfigFile(string outputDir)
+		public void WriteConfigFile(string outputDir, bool resetFile = true)
 		{
             string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
+            if (resetFile)
+                Utilities.TryDeleteFile(configFilePath);
 
             if (_game.Settings.LetterboxMode)
             {

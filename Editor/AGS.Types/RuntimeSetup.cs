@@ -216,8 +216,8 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("Digital sound")]
-        [Description("The suggested digital sound option. Normally you keep this at Default, but if your game does not use digital audio you may disable it to tell the engine to not initialize audio system at the runtime.")]
+        [DisplayName("Audio driver")]
+        [Description("The suggested audio driver option. Normally you keep this at Default, but if your game does not use audio at all you may disable it to tell the engine to not initialize audio system at the runtime.")]
         [DefaultValue(RuntimeAudioDriver.Default)]
         [Category("Audio")]
         public RuntimeAudioDriver DigitalSound
@@ -226,10 +226,8 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("MIDI sound")]
-        [Description("The suggested MIDI sound option. Normally you keep this at Default, but if your game does not use MIDI clips you may disable it to tell the engine to not initialize audio system at the runtime.")]
-        [DefaultValue(RuntimeAudioDriver.Default)]
-        [Category("Audio")]
+        [Obsolete]
+        [Browsable(false)]
         public RuntimeAudioDriver MidiSound
         {
             get;
@@ -246,10 +244,8 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("Enable threaded audio")]
-        [Description("Plays audio on a separate thread. This results in a much smoother playback, but makes it harder to synchronize game events with music.")]
-        [DefaultValue(false)]
-        [Category("Audio")]
+        [Obsolete]
+        [Browsable(false)]
         public bool ThreadedAudio
         {
             get;

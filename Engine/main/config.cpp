@@ -261,8 +261,6 @@ void config_defaults()
     // Defaults for the window style are max resizing window and "fullscreen desktop"
     usetup.Screen.FsSetup = WindowSetup(kWnd_FullDesktop);
     usetup.Screen.WinSetup = WindowSetup(kWnd_Windowed);
-    usetup.audio_backend = 1;
-    usetup.translation = "";
 }
 
 static void read_legacy_graphics_config(const ConfigTree &cfg)
@@ -429,7 +427,8 @@ void override_config_ext(ConfigTree &cfg)
 void apply_config(const ConfigTree &cfg)
 {
     {
-        usetup.audio_backend = INIreadint(cfg, "sound", "enabled", usetup.audio_backend);
+        usetup.audio_enabled = INIreadint(cfg, "sound", "enabled", usetup.audio_enabled);
+        usetup.audio_driver = INIreadstring(cfg, "sound", "driver");
 
         // Legacy graphics settings has to be translated into new options;
         // they must be read first, to let newer options override them, if ones are present

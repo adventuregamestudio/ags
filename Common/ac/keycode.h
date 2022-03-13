@@ -254,7 +254,9 @@ enum eAGSKeyMod
     eAGSModLCtrl  = 0x0004,
     eAGSModRCtrl  = 0x0008,
     eAGSModLAlt   = 0x0010,
-    eAGSModRAlt   = 0x0020
+    eAGSModRAlt   = 0x0020,
+    eAGSModNum    = 0x0040,
+    eAGSModCaps   = 0x0080,
 };
 
 

@@ -76,6 +76,8 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, boo
     if (mod & KMOD_RCTRL)  ags_mod |= eAGSModRCtrl;
     if (mod & KMOD_LALT)   ags_mod |= eAGSModLAlt;
     if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
+    if (mod & KMOD_NUM)    ags_mod |= eAGSModNum;
+    if (mod & KMOD_CAPS)   ags_mod |= eAGSModCaps;
 
     // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
     if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))

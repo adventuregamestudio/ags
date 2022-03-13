@@ -373,7 +373,9 @@ enum eKeyMod
   eKeyModCtrl       = 0x000C,
   eKeyModAltLeft    = 0x0010,
   eKeyModAltRight   = 0x0020,
-  eKeyModAlt        = 0x0030
+  eKeyModAlt        = 0x0030,
+  eKeyModNum        = 0x0040,
+  eKeyModCaps       = 0x0080,
 };
 #endif
 

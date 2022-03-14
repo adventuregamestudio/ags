@@ -98,6 +98,7 @@ namespace AGS.Editor
          *                - Cursor.AnimationDelay
          *                - Room.BackgroundAnimationEnabled
          *                - RuntimeSetup.FullscreenDesktop
+         * 3.6.0.20       - Settings.GameTextEncoding, Settings.UseOldKeyboardHandling;
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060020;
         /*
@@ -901,6 +902,10 @@ namespace AGS.Editor
             if (!_game.Settings.UseOldCustomDialogOptionsAPI)
             {
                 preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
+            }
+            if (!_game.Settings.UseOldKeyboardHandling)
+            {
+                preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");
             }
             // Define Script API level macros
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))

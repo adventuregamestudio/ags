@@ -308,18 +308,20 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     int32_t startat = -1;
     int k;
     char mangledName[200];
-    sprintf(mangledName, "%s$", funcname);
+    size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname);
+    int export_args = 0;
 
     for (k = 0; k < instanceof->numexports; k++) {
         char *thisExportName = instanceof->exports[k];
         int match = 0;
 
         // check for a mangled name match
-        if (strncmp(thisExportName, mangledName, strlen(mangledName)) == 0) {
+        if (strncmp(thisExportName, mangledName, mangled_len) == 0) {
             // found, compare the number of parameters
-            char *numParams = thisExportName + strlen(mangledName);
-            if (atoi(numParams) != numargs) {
-                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)", funcname, atoi(numParams), numargs);
+            export_args = atoi(thisExportName + mangled_len);
+            if (export_args > numargs) {
+                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)",
+                    funcname, export_args, numargs);
                 return -1;
             }
             match = 1;
@@ -341,6 +343,9 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
         cc_error("function '%s' not found", funcname);
         return -2;
     }
+
+    // Allow to pass less parameters if script callback has less declared args
+    numargs = std::min(numargs, export_args);
 
     //numargs++;                    // account for return address
     flags &= ~INSTF_ABORTED;

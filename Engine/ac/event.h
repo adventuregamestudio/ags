@@ -37,12 +37,13 @@
 #define EV_FADEIN     3
 #define EV_IFACECLICK 4
 #define EV_NEWROOM    5
-#define TS_REPEAT   1
-#define TS_KEYPRESS 2
-#define TS_MCLICK   3
-#define TS_NUM      4
-#define EVB_HOTSPOT 1
-#define EVB_ROOM    2
+#define TS_REPEAT     1
+#define TS_KEYPRESS   2
+#define TS_MCLICK     3
+#define TS_TEXTINPUT  4
+#define TS_NUM        5
+#define EVB_HOTSPOT   1
+#define EVB_ROOM      2
 
 struct EventHappened {
     int type = 0;
@@ -56,8 +57,8 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);
 void run_event_block_inv(int invNum, int event);
 // event list functions
-void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
-void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
+void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
+void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
 void process_event(const EventHappened *evp);
 void runevent_now (int evtyp, int ev1, int ev2, int ev3);
 void processallevents();

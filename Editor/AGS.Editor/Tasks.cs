@@ -393,6 +393,8 @@ namespace AGS.Editor
                 { // NOTE: use Encoding.GetEncoding(game.SavedXmlEncodingCodePage) if actual codepage is needed
                     game.Settings.GameTextEncoding = "ANSI";
                 }
+
+                game.Settings.UseOldKeyboardHandling = true;
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);

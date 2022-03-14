@@ -579,6 +579,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_WALKSPEEDABSOLUTE] = (game.Settings.ScaleMovementSpeedWithMaskResolution ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_CLIPGUICONTROLS] = (game.Settings.ClipGUIControls ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_GAMETEXTENCODING] = game.TextEncoding.CodePage;
+            options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = (game.Settings.UseOldKeyboardHandling ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {

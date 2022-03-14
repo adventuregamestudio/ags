@@ -88,7 +88,7 @@ extern int cur_mode,cur_cursor;
 extern char check_dynamic_sprites_at_exit;
 
 // Checks if user interface should remain disabled for now
-static int ShouldStayInWaitMode();
+static bool ShouldStayInWaitMode();
 
 static size_t numEventsAtStartOfFunction;
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
@@ -102,11 +102,15 @@ static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very app
 #define UNTIL_SHORTIS0  7
 #define UNTIL_INTISNEG  8
 
-// Following 3 parameters instruct the engine to run game loops until
+// Following struct instructs the engine to run game loops until
 // certain condition is not fullfilled.
-static int restrict_until=0;
-static int user_disabled_for = 0;
-static const void *user_disabled_data = nullptr;
+struct RestrictUntil
+{
+    int type = 0; // type of condition, UNTIL_* constant
+    int disabled_for = 0; // FOR_* constant
+    // pointer to the test variable
+    const void *data_ptr = nullptr;
+} restrict_until;
 
 unsigned int loopcounter=0;
 static unsigned int lastcounter=0;
@@ -189,7 +193,7 @@ static int game_loop_check_ground_level_interactions()
         // if in a Wait loop which is no longer valid (probably
         // because the Region interaction did a NewRoom), abort
         // the rest of the loop
-        if ((restrict_until) && (!ShouldStayInWaitMode())) {
+        if ((restrict_until.type > 0) && (!ShouldStayInWaitMode())) {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
             events.resize(numEventsAtStartOfFunction);
@@ -436,7 +440,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     if (((agskey == eAGSKeyCodeCtrlV) && (cur_key_mods & KMOD_ALT) != 0)
-        && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until == 0)) {
+        && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until.type == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -876,53 +880,64 @@ static void UpdateMouseOverLocation()
 }
 
 // Checks if user interface should remain disabled for now
-static int ShouldStayInWaitMode() {
-    if (restrict_until == 0)
+static bool ShouldStayInWaitMode() {
+    if (restrict_until.type == 0)
         quit("end_wait_loop called but game not in loop_until state");
-    int retval = restrict_until;
 
-    if (restrict_until==UNTIL_MOVEEND) {
-        short*wkptr=(short*)user_disabled_data;
-        if (wkptr[0]<1) retval=0;
+    switch (restrict_until.type)
+    {
+    case UNTIL_MOVEEND:
+    {
+        short*wkptr = (short*)restrict_until.data_ptr;
+        return !(wkptr[0] < 1);
     }
-    else if (restrict_until==UNTIL_CHARIS0) {
-        char*chptr=(char*)user_disabled_data;
-        if (chptr[0]==0) retval=0;
+    case UNTIL_CHARIS0:
+    {
+        char*chptr = (char*)restrict_until.data_ptr;
+        return !(chptr[0] == 0);
     }
-    else if (restrict_until==UNTIL_NEGATIVE) {
-        short*wkptr=(short*)user_disabled_data;
-        if (wkptr[0]<0) retval=0;
+    case UNTIL_NEGATIVE:
+    {
+        short*wkptr = (short*)restrict_until.data_ptr;
+        return !(wkptr[0] < 0);
     }
-    else if (restrict_until==UNTIL_INTISNEG) {
-        int*wkptr=(int*)user_disabled_data;
-        if (wkptr[0]<0) retval=0;
+    case UNTIL_INTISNEG:
+    {
+        int*wkptr = (int*)restrict_until.data_ptr;
+        return !(wkptr[0] < 0);
     }
-    else if (restrict_until==UNTIL_NOOVERLAY) {
-        if (play.text_overlay_on == 0) retval=0;
+    case UNTIL_NOOVERLAY:
+    {
+        return !(play.text_overlay_on == 0);
     }
-    else if (restrict_until==UNTIL_INTIS0) {
-        int*wkptr=(int*)user_disabled_data;
-        if (wkptr[0]==0) retval=0;
+    case UNTIL_INTIS0:
+    {
+        int*wkptr = (int*)restrict_until.data_ptr;
+        return !(wkptr[0] == 0);
     }
-    else if (restrict_until==UNTIL_SHORTIS0) {
-        short*wkptr=(short*)user_disabled_data;
-        if (wkptr[0]==0) retval=0;
+    case UNTIL_SHORTIS0:
+    {
+        short*wkptr = (short*)restrict_until.data_ptr;
+        return !(wkptr[0] == 0);
     }
-    else quit("loop_until: unknown until event");
+    default:
+        quit("loop_until: unknown until event");
+    }
 
-    return retval;
+    return true; // should stay in wait
 }
 
 static int UpdateWaitMode()
 {
-    if (restrict_until==0) { return RETURN_CONTINUE; }
+    if (restrict_until.type == 0) { return RETURN_CONTINUE; }
 
-    restrict_until = ShouldStayInWaitMode();
+    if (!ShouldStayInWaitMode())
+        restrict_until.type = 0;
     our_eip = 77;
 
-    if (restrict_until!=0) { return RETURN_CONTINUE; }
+    if (restrict_until.type > 0) { return RETURN_CONTINUE; }
 
-    auto was_disabled_for = user_disabled_for;
+    auto was_disabled_for = restrict_until.disabled_for;
 
     set_default_cursor();
     if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
@@ -930,7 +945,7 @@ static int UpdateWaitMode()
         GUI::MarkAllGUIForUpdate();
     }
     play.disabled_user_interface--;
-    user_disabled_for = 0; 
+    restrict_until.disabled_for = 0;
 
     switch (was_disabled_for) {
         // case FOR_ANIMATION:
@@ -977,9 +992,9 @@ static void SetupLoopParameters(int untilwhat,const void* udata) {
         (cur_mode != CURS_WAIT))
         set_mouse_cursor(CURS_WAIT);
 
-    restrict_until=untilwhat;
-    user_disabled_data=udata;
-    user_disabled_for=FOR_EXITLOOP;
+    restrict_until.type = untilwhat;
+    restrict_until.data_ptr = udata;
+    restrict_until.disabled_for = FOR_EXITLOOP;
 }
 
 // This function is called from lot of various functions
@@ -992,8 +1007,6 @@ static void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   // remember the state of these vars in case a higher level
   // call needs them
   auto cached_restrict_until = restrict_until;
-  auto cached_user_disabled_data = user_disabled_data;
-  auto cached_user_disabled_for = user_disabled_for;
 
   SetupLoopParameters(untilwhat,daaa);
   while (GameTick()==0);
@@ -1001,8 +1014,6 @@ static void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   our_eip = 78;
 
   restrict_until = cached_restrict_until;
-  user_disabled_data = cached_user_disabled_data;
-  user_disabled_for = cached_user_disabled_for;
 }
 
 void GameLoopUntilValueIsZero(const char *value) 

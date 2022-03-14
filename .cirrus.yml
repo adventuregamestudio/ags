@@ -44,12 +44,18 @@ build_linux_cmake_task:
   setup_destdir_script: |
     mkdir destdir
     arch=$(dpkg --print-architecture)
-    ln -s destdir/usr/local/bin bin_${BUILD_TYPE}_$arch
+    ln -s destdir/bin bin_${BUILD_TYPE}_$arch
   build_script: |
     arch=$(dpkg --print-architecture)
     mkdir build_${BUILD_TYPE}_$arch && cd build_${BUILD_TYPE}_$arch
-    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 ..
-    make DESTDIR="$(cd ../destdir && pwd)" install
+    cmake .. \
+      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
+      -DAGS_USE_LOCAL_SDL2_SOUND=0 \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DAGS_BUILD_TOOLS=1 \
+      -DAGS_TESTS=1 \
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
+    make install
   test_linux_script: |
     arch=$(dpkg --print-architecture)
     cd build_${BUILD_TYPE}_$arch

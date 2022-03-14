@@ -457,6 +457,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.Params.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
         usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
         usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
+        usetup.software_render_driver = INIreadstring(cfg, "graphics", "software_driver");
 
         usetup.rotation = (ScreenRotation)INIreadint(cfg, "graphics", "rotation", usetup.rotation);
         String rotation_str = INIreadstring(cfg, "graphics", "rotation", "unlocked");

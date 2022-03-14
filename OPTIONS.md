@@ -25,6 +25,8 @@ Locations of two latter files differ between running platforms:
     * D3D9 - Direct3D9 (MS Windows version only);
     * OGL - OpenGL;
     * Software - software renderer.
+  * software_driver = \[string\] - *optional* id of the SDL2 driver to use for the final output in software mode, leave empty for default. IDs are provided by SDL2, not all of these will work on any system:
+    * direct3d, opengl, opengles, opengles2, metal, software.
   * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
   * screen_def = \[string\] - determines how display mode is deduced:
     * explicit - use screen_width and screen_height parameters;

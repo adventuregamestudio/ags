@@ -29,7 +29,7 @@ struct AnimatingGUIButton {
     short buttonid, ongui, onguibut;
     // current animation status
     short view, loop, frame;
-    short speed, repeat, wait;
+    short speed, repeat, blocking, direction, wait;
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

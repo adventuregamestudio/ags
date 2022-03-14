@@ -55,6 +55,7 @@ Editor:
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
+ - Support unicode character literals.
  - Support hexadecimal number literals.
  - Removed 500-characters line limit.
 
@@ -70,6 +71,9 @@ Script API:
    options state.
  - Added eKey constants for Shift, Control and Alt keys.
  - Added eKeyMod enum for key modifiers constants.
+ - String.AppendChar(), ReplaceChar() functions and String.Chars[] property are now working with
+   the unicode characters.
+ - String.Format("%c") specifier will now be able to print unicode characters.
  - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
  - Hotspot.Name and Object.Name may now be set in script.
  - Added Object.ManualScaling and Object.Scaling.

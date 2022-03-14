@@ -63,7 +63,7 @@ Script API:
  - Expanded `on_key_press` callback, now supports two parameters: key code and key modifier flags.
  - In the new key handling mode `on_key_press` is called for each actual key press;
    e.g. combinations like Ctrl+Z will result in two `on_key_press` calls, one with eKeyCtrlLeft and
-   second with eKeyZ.
+   second with eKeyZ; added support for "NEW_KEYINPUT_API" macro in scripts.
  - Implemented new `on_text_input(int ch)` callback which is called when the engine receives
    a printable character. This callback is essential for handling unicode chars in script.
  - Similarily, expanded `dialog_options_key_press` with the third `mod` argument, and implemented

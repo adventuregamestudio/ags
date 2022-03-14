@@ -2101,7 +2101,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private void ConvertAllRoomsFromCrmToOpenFormat()
+        private async void ConvertAllRoomsFromCrmToOpenFormat()
         {
             if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX)
                 return; // Upgrade already completed
@@ -2136,11 +2136,11 @@ namespace AGS.Editor.Components
                     progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms converted.");
                 };
 
-                Task.WaitAll(
-                    rooms
+                var roomsConvertingTasks = rooms
                     .Cast<UnloadedRoom>()
                     .SelectMany(r => ConvertRoomFromCrmToOpenFormat(r, progressReporter))
-                    .ToArray());
+                    .ToArray();
+                await Task.WhenAll(roomsConvertingTasks);
             }
         }
 

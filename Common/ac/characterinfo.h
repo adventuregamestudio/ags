@@ -11,11 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_CHARACTERINFO_H
 #define __AC_CHARACTERINFO_H
 
 #include <vector>
+#include "core/types.h"
 #include "ac/common_defines.h" // constants
 
 namespace AGS { namespace Common { class Stream; } }
@@ -79,7 +79,7 @@ struct CharacterInfo {
     int   index_id;  // used for object functions to know the id
     short pic_xoffs; // this is fixed in screen coordinates
     short walkwaitcounter;
-    short loop, frame;
+    uint16_t loop, frame;
     short walking, animating;
     short walkspeed, animspeed;
     short inv[MAX_INV];

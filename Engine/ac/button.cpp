@@ -17,6 +17,7 @@
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
+#include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -32,6 +33,16 @@ extern std::vector<ViewStruct> views;
 // *** BUTTON FUNCTIONS
 
 std::vector<AnimatingGUIButton> animbuts;
+
+// Update the actual button's image from the current animation frame
+void UpdateButtonState(const AnimatingGUIButton &abtn)
+{
+    guibuts[abtn.buttonid].Image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
+    guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
+    guibuts[abtn.buttonid].PushedImage = 0;
+    guibuts[abtn.buttonid].MouseOverImage = 0;
+    guibuts[abtn.buttonid].NotifyParentChanged();
+}
 
 void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe) {
     int guin = butt->ParentId;
@@ -63,27 +74,18 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);
 
-    // Prepare button
-    int buttonId = guis[guin].GetControlID(objn);
-    guibuts[buttonId].PushedImage = 0;
-    guibuts[buttonId].MouseOverImage = 0;
-
     // reverse animation starts at the *previous frame*
     if (direction)
     {
         if (--sframe < 0)
             sframe = views[view].loops[loop].numFrames - (-sframe);
-        sframe++; // set on next frame, first call to Update will decrement
-    }
-    else
-    {
-        sframe--; // set on prev frame, first call to Update will increment
     }
 
+    int but_id = guis[guin].GetControlID(objn);
     AnimatingGUIButton abtn;
     abtn.ongui = guin;
     abtn.onguibut = objn;
-    abtn.buttonid = buttonId;
+    abtn.buttonid = but_id;
     abtn.view = view;
     abtn.loop = loop;
     abtn.speed = speed;
@@ -91,15 +93,11 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     abtn.blocking = blocking;
     abtn.direction = direction;
     abtn.frame = sframe;
-    abtn.wait = 0;
+    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     animbuts.push_back(abtn);
-    // launch into the first frame
-    if (UpdateAnimatingButton(animbuts.size() - 1))
-    {
-        debug_script_warn("AnimateButton: no frames to animate (button: %s, view: %d, loop: %d)",
-            butt->GetScriptName().GetCStr(), view, loop);
-        StopButtonAnimation(animbuts.size() - 1);
-    }
+    // launch into the first frame, and play the first frame's sound
+    UpdateButtonState(abtn);
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
 
     // Blocking animate
     if (blocking)
@@ -244,68 +242,20 @@ void AddButtonAnimation(const AnimatingGUIButton &abtn)
 }
 
 // returns 1 if animation finished
-int UpdateAnimatingButton(int bu) {
+bool UpdateAnimatingButton(int bu)
+{
     AnimatingGUIButton &abtn = animbuts[bu];
-
     if (abtn.wait > 0) {
         abtn.wait--;
-        return 0;
+        return true;
     }
-    ViewStruct *tview = &views[abtn.view];
-
-    if (abtn.direction)
-    { // backwards
-        abtn.frame--;
-        if (abtn.frame < 0)
-        {
-            if ((abtn.loop > 0) && tview->loops[abtn.loop - 1].RunNextLoop()) {
-                // go to next loop
-                abtn.loop--;
-                abtn.frame = tview->loops[abtn.loop].numFrames - 1;
-            }
-            else if (abtn.repeat) {
-                // multi-loop anim, go back
-                while (tview->loops[abtn.loop].RunNextLoop())
-                    abtn.loop++;
-                abtn.frame = tview->loops[abtn.loop].numFrames - 1;
-            }
-            else
-                return 1;
-        }
-    }
-    else
-    { // forwards
-        abtn.frame++;
-        if (abtn.frame >= tview->loops[abtn.loop].numFrames)
-        {
-            if (tview->loops[abtn.loop].RunNextLoop()) {
-                // go to next loop
-                abtn.loop++;
-                abtn.frame = 0;
-            }
-            else if (abtn.repeat) {
-                abtn.frame = 0;
-                // multi-loop anim, go back
-                while ((abtn.loop > 0) &&
-                    (tview->loops[abtn.loop - 1].RunNextLoop()))
-                    abtn.loop--;
-            }
-            else
-                return 1;
-        }
-    }
-
+    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction,
+            abtn.repeat != 0 ? ANIM_REPEAT : ANIM_ONCE))
+        return false;
     CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
-
-    // update the button's image
-    guibuts[abtn.buttonid].Image = tview->loops[abtn.loop].frames[abtn.frame].pic;
-    guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
-    guibuts[abtn.buttonid].PushedImage = 0;
-    guibuts[abtn.buttonid].MouseOverImage = 0;
-    guibuts[abtn.buttonid].NotifyParentChanged();
-
-    abtn.wait = abtn.speed + tview->loops[abtn.loop].frames[abtn.frame].speed;
-    return 0;
+    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    UpdateButtonState(abtn);
+    return true;
 }
 
 void StopButtonAnimation(int idxn) {

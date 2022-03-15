@@ -58,8 +58,6 @@ struct RoomObject {
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
 	void UpdateCyclingView(int ref_id);
-	void update_cycle_view_forwards();
-	void update_cycle_view_backwards();
 
     void ReadFromSavegame(Common::Stream *in, int save_ver);
     void WriteToSavegame(Common::Stream *out) const;

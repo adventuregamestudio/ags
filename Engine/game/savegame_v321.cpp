@@ -246,7 +246,7 @@ void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
     for (int i = 0; i < num_abuts; ++i)
     {
         AnimatingGUIButton abtn;
-        abtn.ReadFromFile(&align_s);
+        abtn.ReadFromFile(&align_s, 0);
         AddButtonAnimation(abtn);
         align_s.Reset();
     }

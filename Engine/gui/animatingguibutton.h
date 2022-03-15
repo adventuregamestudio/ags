@@ -31,7 +31,7 @@ struct AnimatingGUIButton {
     short view, loop, frame;
     short speed, repeat, blocking, direction, wait;
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 

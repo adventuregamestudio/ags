@@ -296,6 +296,8 @@ void unload_old_room() {
     }
     else croom->tsdatasize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
+    play.bg_frame = 0;
+    play.bg_frame_locked = 0;
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
@@ -515,6 +517,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.room_height = thisroom.Height;
     play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
+
+    // Fixup the frame index, in case the new room does not have enough background frames
+    if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+        play.bg_frame = 0;
 
     // do the palette
     for (cc=0;cc<256;cc++) {
@@ -962,7 +968,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
 
     load_new_room(newnum,forchar);
 
-    // Reset background frame state (it's not a part of the RoomStatus currently)
+    // Update background frame state (it's not a part of the RoomStatus currently)
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }

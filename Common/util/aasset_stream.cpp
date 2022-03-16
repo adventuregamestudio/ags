@@ -20,6 +20,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include "util/android_file.h"
+#include "util/path.h"
 #include "util/string.h"
 
 namespace AGS
@@ -176,15 +177,9 @@ namespace AGS
                 throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
             _ownHandle = true;
 
-            if(!asset_name.IsNullOrSpace() && asset_name[0] == '/') {
-                String aname = asset_name;
-                aname.ClipLeft(1);
-                _aAsset = AAssetManager_open(aAssetManager, aname.GetCStr(), asset_mode);
-            }
-            else
-            {
-                _aAsset = AAssetManager_open(aAssetManager, asset_name.GetCStr(), asset_mode);
-            }
+            String a_asset_name = Path::GetPathInForeignAsset(asset_name);
+
+            _aAsset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
 
             if (_aAsset == nullptr)
                 throw std::runtime_error("Error opening file.");

@@ -804,6 +804,10 @@ void SetGraphicalVariable (const char *varName, int p_value) {
 
 int WaitImpl(int skip_type, int nloops)
 {
+    // if skipping cutscene and expecting user input: don't wait at all
+    if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
+        return 0;
+
     play.wait_counter = nloops;
     play.wait_skipped_by = SKIP_NONE;
     play.wait_skipped_by_data = 0;

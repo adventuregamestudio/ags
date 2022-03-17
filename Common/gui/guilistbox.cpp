@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "font/fonts.h"
 #include "gui/guilistbox.h"
+#include "ac/game_version.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -294,7 +294,9 @@ void GUIListBox::OnResized()
 
 void GUIListBox::UpdateMetrics()
 {
-    RowHeight = get_font_height(Font) + get_fixed_pixel_size(2);
+    int font_height = (loaded_game_file_version < kGameVersion_360) ?
+        get_font_height(Font) : get_font_height_outlined(Font);
+    RowHeight = font_height + get_fixed_pixel_size(2); // +1 top/bottom margin
     VisibleItemCount = Height / RowHeight;
     if (ItemCount <= VisibleItemCount)
         TopItem = 0; // reset scroll if all items are visible

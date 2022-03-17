@@ -568,11 +568,6 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
 }
 
-int get_text_width_outlined(const char *tex, int font)
-{
-    return get_text_width(tex, font) + 2 * get_font_outline_thickness(font);
-}
-
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     if (sprn<0) return;
     if (spriteset[sprn] == nullptr)

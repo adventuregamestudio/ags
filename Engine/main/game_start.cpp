@@ -45,7 +45,6 @@ extern int our_eip, displayed_room;
 extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 extern GameState play;
-extern const char *loadSaveGameOnStartup;
 extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
 extern CharacterInfo*playerchar;
@@ -69,18 +68,18 @@ void start_game_init_editor_debugging()
     }
 }
 
-void start_game_load_savegame_on_startup()
+void start_game_load_savegame_on_startup(const char *load_save)
 {
-    if (loadSaveGameOnStartup != nullptr)
+    if (load_save != nullptr)
     {
         int saveGameNumber = 1000;
-        const char *sgName = strstr(loadSaveGameOnStartup, "agssave.");
+        const char *sgName = strstr(load_save, "agssave.");
         if (sgName != nullptr)
         {
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }
         current_fade_out_effect();
-        try_restore_save(loadSaveGameOnStartup, saveGameNumber);
+        try_restore_save(load_save, saveGameNumber);
     }
 }
 
@@ -111,7 +110,7 @@ void start_game() {
     first_room_initialization();
 }
 
-void initialize_start_and_play_game(int override_start_room, const char *loadSaveGameOnStartup)
+void initialize_start_and_play_game(int override_start_room, const char *load_save)
 {
     try { // BEGIN try for ALI3DEXception
 
@@ -126,7 +125,7 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
 
         start_game_init_editor_debugging();
 
-        start_game_load_savegame_on_startup();
+        start_game_load_savegame_on_startup(load_save);
 
         // only start if not restored a save
         if (displayed_room < 0)

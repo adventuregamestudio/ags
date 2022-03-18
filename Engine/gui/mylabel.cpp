@@ -51,12 +51,12 @@ void MyLabel::draw(Bitmap *ds)
     }
 }
 
-int MyLabel::pressedon(int mousex, int mousey)
+int MyLabel::pressedon(int /*mx*/, int /*my*/)
 {
     return 0;
 }
 
-int MyLabel::processmessage(int mcode, int wParam, long lParam)
+int MyLabel::processmessage(int /*mcode*/, int /*wParam*/, long /*lParam*/)
 {
     return -1;                  // doesn't support messages
 }

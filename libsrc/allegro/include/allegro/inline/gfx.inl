@@ -125,7 +125,7 @@ AL_INLINE(int, is_same_bitmap, (BITMAP *bmp1, BITMAP *bmp2),
 
 AL_INLINE(int, is_linear_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return TRUE; // only support linear memory bitmaps
 })
@@ -133,7 +133,7 @@ AL_INLINE(int, is_linear_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_planar_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -141,7 +141,7 @@ AL_INLINE(int, is_planar_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_memory_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return TRUE; // only support linear memory bitmaps
 })
@@ -149,7 +149,7 @@ AL_INLINE(int, is_memory_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_screen_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -157,7 +157,7 @@ AL_INLINE(int, is_screen_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_video_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -165,7 +165,7 @@ AL_INLINE(int, is_video_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_system_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })

@@ -2496,7 +2496,7 @@ void construct_game_screen_overlay(bool draw_mouse)
     // to the update loop instead of doing it in the drawing routine
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view >= 0) {
-        ags_domouse(DOMOUSE_NOCURSOR);
+        ags_domouse();
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
             (mousex == lastmx) && (mousey == lastmy));
@@ -2523,7 +2523,7 @@ void construct_game_screen_overlay(bool draw_mouse)
         lastmx = mousex; lastmy = mousey;
     }
 
-    ags_domouse(DOMOUSE_NOCURSOR);
+    ags_domouse();
 
     // Stage: mouse cursor
     if (draw_mouse && !play.mouse_cursor_hidden && play.screen_is_faded_out == 0)

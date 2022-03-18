@@ -46,8 +46,6 @@ extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
-extern void ags_domouse(int str);
-
 ScriptMouse scmouse;
 int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
@@ -281,7 +279,7 @@ void disable_cursor_mode(int modd) {
 }
 
 void RefreshMouse() {
-    ags_domouse(DOMOUSE_NOCURSOR);
+    ags_domouse();
     scmouse.x = game_to_data_coord(mousex);
     scmouse.y = game_to_data_coord(mousey);
 }

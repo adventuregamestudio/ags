@@ -90,7 +90,7 @@ int  ags_mgetbutton();
 // Returns recent relative mouse movement
 void ags_mouse_get_relxy(int &x, int &y);
 // Updates mouse cursor position in game
-void ags_domouse(int what);
+void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up
 // TODO: introduce constants for this
 int  ags_check_mouse_wheel();

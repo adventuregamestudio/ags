@@ -42,22 +42,19 @@ void ScriptViewport::Serialize(const char *address, Stream *out)
     out->WriteInt32(_id);
 }
 
-void ScriptViewport::Unserialize(int index, const char *serializedData, int dataSize)
+void ScriptViewport::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    StartUnserialize(serializedData, dataSize);
-    _id = UnserializeInt();
+    _id = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-#include "util/bbop.h"
-
-ScriptViewport *Viewport_Unserialize(int handle, const char *serializedData, int dataSize)
+ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t data_sz)
 {
     // The way it works now, we must not create a new script object,
     // but acquire one from the GameState, which keeps the first reference.
     // This is essential because GameState should be able to invalidate any
     // script references when Viewport gets removed.
-    const int id = BBOp::Int32FromLE(*((int*)serializedData));
+    const int id = in->ReadInt32();
     if (id >= 0)
     {
         auto scview = play.RegisterRoomViewport(id, handle);

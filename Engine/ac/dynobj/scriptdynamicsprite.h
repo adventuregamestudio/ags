@@ -22,7 +22,7 @@ struct ScriptDynamicSprite final  : AGSCCDynamicObject {
 
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
     ScriptDynamicSprite(int slot);
     ScriptDynamicSprite();

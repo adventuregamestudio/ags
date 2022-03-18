@@ -36,8 +36,7 @@ void CCGUI::Serialize(const char *address, Stream *out) {
     out->WriteInt32(shh->id);
 }
 
-void CCGUI::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int num = UnserializeInt();
+void CCGUI::Unserialize(int index, Stream *in, size_t data_sz) {
+    int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrGui[num], this);
 }

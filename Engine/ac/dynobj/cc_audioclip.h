@@ -18,7 +18,7 @@
 
 struct CCAudioClip final : AGSCCDynamicObject {
     const char *GetType() override;
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize() override;

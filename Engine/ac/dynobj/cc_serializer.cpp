@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
@@ -25,6 +24,9 @@
 #include "debug/debug_log.h"
 #include "plugin/agsplugin.h"
 #include "plugin/pluginobjectreader.h"
+#include "util/memorystream.h"
+
+using namespace AGS::Common;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -41,36 +43,46 @@ extern int numPluginReaders;
 
 // *** De-serialization of script objects
 
-
-
 void AGSDeSerializer::Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) {
+
+    if (dataSize < 0)
+    {
+        quitprintf("Unserialise: invalid data size (%d) for object type '%s'", dataSize, objectType);
+        return; // TODO: don't quit, return error
+    }
+    // Note that while our builtin classes may accept Stream object,
+    // classes registered by plugin cannot, because streams are not (yet)
+    // part of the plugin API.
+    size_t data_sz = static_cast<size_t>(dataSize);
+    MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
+
     if (strcmp(objectType, "GUIObject") == 0) {
-        ccDynamicGUIObject.Unserialize(index, serializedData, dataSize);
+        ccDynamicGUIObject.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Character") == 0) {
-        ccDynamicCharacter.Unserialize(index, serializedData, dataSize);
+        ccDynamicCharacter.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Hotspot") == 0) {
-        ccDynamicHotspot.Unserialize(index, serializedData, dataSize);
+        ccDynamicHotspot.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Region") == 0) {
-        ccDynamicRegion.Unserialize(index, serializedData, dataSize);
+        ccDynamicRegion.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Inventory") == 0) {
-        ccDynamicInv.Unserialize(index, serializedData, dataSize);
+        ccDynamicInv.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Dialog") == 0) {
-        ccDynamicDialog.Unserialize(index, serializedData, dataSize);
+        ccDynamicDialog.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "GUI") == 0) {
-        ccDynamicGUI.Unserialize(index, serializedData, dataSize);
+        ccDynamicGUI.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Object") == 0) {
-        ccDynamicObject.Unserialize(index, serializedData, dataSize);
+        ccDynamicObject.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "String") == 0) {
         ScriptString *scf = new ScriptString();
-        scf->Unserialize(index, serializedData, dataSize);
+        scf->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "File") == 0) {
         // files cannot be restored properly -- so just recreate
@@ -80,23 +92,23 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "Overlay") == 0) {
         ScriptOverlay *scf = new ScriptOverlay();
-        scf->Unserialize(index, serializedData, dataSize);
+        scf->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "DateTime") == 0) {
         ScriptDateTime *scf = new ScriptDateTime();
-        scf->Unserialize(index, serializedData, dataSize);
+        scf->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "ViewFrame") == 0) {
         ScriptViewFrame *scf = new ScriptViewFrame();
-        scf->Unserialize(index, serializedData, dataSize);
+        scf->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "DynamicSprite") == 0) {
         ScriptDynamicSprite *scf = new ScriptDynamicSprite();
-        scf->Unserialize(index, serializedData, dataSize);
+        scf->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "DrawingSurface") == 0) {
         ScriptDrawingSurface *sds = new ScriptDrawingSurface();
-        sds->Unserialize(index, serializedData, dataSize);
+        sds->Unserialize(index, &mems, data_sz);
 
         if (sds->isLinkedBitmapOnly)
         {
@@ -105,29 +117,29 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "DialogOptionsRendering") == 0)
     {
-        ccDialogOptionsRendering.Unserialize(index, serializedData, dataSize);
+        ccDialogOptionsRendering.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "StringDictionary") == 0)
     {
-        Dict_Unserialize(index, serializedData, dataSize);
+        Dict_Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "StringSet") == 0)
     {
-        Set_Unserialize(index, serializedData, dataSize);
+        Set_Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Viewport2") == 0)
     {
-        Viewport_Unserialize(index, serializedData, dataSize);
+        Viewport_Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Camera2") == 0)
     {
-        Camera_Unserialize(index, serializedData, dataSize);
+        Camera_Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "UserObject") == 0) {
         ScriptUserObject *suo = new ScriptUserObject();
-        suo->Unserialize(index, serializedData, dataSize);
+        suo->Unserialize(index, &mems, data_sz);
     }
-    else if (!unserialize_audio_script_object(index, objectType, serializedData, dataSize)) 
+    else if (!unserialize_audio_script_object(index, objectType, &mems, data_sz))
     {
         // check if the type is read by a plugin
         for (int ii = 0; ii < numPluginReaders; ii++) {

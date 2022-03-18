@@ -31,7 +31,7 @@ public:
 
     const char *GetType() override;
     int Dispose(const char *address, bool force) override;
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
 protected:
     // Calculate and return required space for serialization, in bytes
@@ -44,6 +44,6 @@ private:
 };
 
 // Unserialize camera from the memory stream
-ScriptCamera *Camera_Unserialize(int handle, const char *serializedData, int dataSize);
+ScriptCamera *Camera_Unserialize(int handle, AGS::Common::Stream *in, size_t data_sz);
 
 #endif // __AC_SCRIPTCAMERA_H

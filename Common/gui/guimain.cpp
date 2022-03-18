@@ -720,7 +720,7 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 
 void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
 {
-    int text_height = (loaded_game_file_version < kGameVersion_360) ?
+    int text_height = (loaded_game_file_version < kGameVersion_360_21) ?
         get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0):
         get_font_height_outlined(font);
     Rect item = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text, font), text_height), align);

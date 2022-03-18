@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <string.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "util/stream.h"
 #include "util/string.h"
 #include "util/string_types.h"
 
@@ -39,7 +40,6 @@ class ScriptDictBase : public AGSCCDynamicObject
 public:
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
-    int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, const char *serializedData, int dataSize) override;
 
     virtual bool IsCaseSensitive() const = 0;
@@ -54,9 +54,14 @@ public:
     virtual void GetKeys(std::vector<const char*> &buf) const = 0;
     virtual void GetValues(std::vector<const char*> &buf) const = 0;
 
-private:
+protected:
+    // Calculate and return required space for serialization, in bytes
     virtual size_t CalcSerializeSize() = 0;
-    virtual void SerializeContainer() = 0;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
+
+private:
+    virtual void SerializeContainer(AGS::Common::Stream *out) = 0;
     virtual void UnserializeContainer(const char *serializedData) = 0;
 };
 
@@ -129,7 +134,9 @@ private:
 
     size_t CalcSerializeSize() override
     {
-        size_t total_sz = sizeof(int32_t);
+        // 2 class properties + item count
+        size_t total_sz = sizeof(int32_t) * 3;
+        // (int32 + string buffer) per item
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
         {
             total_sz += sizeof(int32_t) + it->first.GetLength();
@@ -138,17 +145,15 @@ private:
         return total_sz;
     }
 
-    void SerializeContainer() override
+    void SerializeContainer(AGS::Common::Stream *out) override
     {
-        SerializeInt((int)_dic.size());
+        out->WriteInt32((int)_dic.size());
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
         {
-            SerializeInt((int)it->first.GetLength());
-            memcpy(&serbuffer[bytesSoFar], it->first.GetCStr(), it->first.GetLength());
-            bytesSoFar += it->first.GetLength();
-            SerializeInt((int)it->second.GetLength());
-            memcpy(&serbuffer[bytesSoFar], it->second.GetCStr(), it->second.GetLength());
-            bytesSoFar += it->second.GetLength();
+            out->WriteInt32((int)it->first.GetLength());
+            out->Write(it->first.GetCStr(), it->first.GetLength());
+            out->WriteInt32((int)it->second.GetLength());
+            out->Write(it->second.GetCStr(), it->second.GetLength());
         }
     }
 

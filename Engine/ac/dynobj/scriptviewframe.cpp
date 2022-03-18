@@ -11,8 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptviewframe.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 int ScriptViewFrame::Dispose(const char *address, bool force) {
     // always dispose a ViewFrame
@@ -24,12 +26,15 @@ const char *ScriptViewFrame::GetType() {
     return "ViewFrame";
 }
 
-int ScriptViewFrame::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    SerializeInt(view);
-    SerializeInt(loop);
-    SerializeInt(frame);
-    return EndSerialize();
+size_t ScriptViewFrame::CalcSerializeSize()
+{
+    return sizeof(int32_t) * 3;
+}
+
+void ScriptViewFrame::Serialize(const char *address, Stream *out) {
+    out->WriteInt32(view);
+    out->WriteInt32(loop);
+    out->WriteInt32(frame);
 }
 
 void ScriptViewFrame::Unserialize(int index, const char *serializedData, int dataSize) {

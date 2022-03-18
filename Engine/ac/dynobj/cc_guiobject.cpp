@@ -11,27 +11,30 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "gui/guimain.h"
 #include "gui/guiobject.h"
+#include "util/stream.h"
 
-using AGS::Common::GUIObject;
+using namespace AGS::Common;
 
 // return the type name of the object
 const char *CCGUIObject::GetType() {
     return "GUIObject";
 }
 
+size_t CCGUIObject::CalcSerializeSize()
+{
+    return sizeof(int32_t) * 2;
+}
+
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
-int CCGUIObject::Serialize(const char *address, char *buffer, int bufsize) {
+void CCGUIObject::Serialize(const char *address, Stream *out) {
     GUIObject *guio = (GUIObject*)address;
-    StartSerialize(buffer);
-    SerializeInt(guio->ParentId);
-    SerializeInt(guio->Id);
-    return EndSerialize();
+    out->WriteInt32(guio->ParentId);
+    out->WriteInt32(guio->Id);
 }
 
 void CCGUIObject::Unserialize(int index, const char *serializedData, int dataSize) {

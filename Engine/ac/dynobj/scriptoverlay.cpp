@@ -17,6 +17,9 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "debug/debug_log.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 int ScriptOverlay::Dispose(const char *address, bool force) 
 {
@@ -45,13 +48,16 @@ const char *ScriptOverlay::GetType() {
     return "Overlay";
 }
 
-int ScriptOverlay::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    SerializeInt(overlayId);
-    SerializeInt(borderWidth);
-    SerializeInt(borderHeight);
-    SerializeInt(isBackgroundSpeech);
-    return EndSerialize();
+size_t ScriptOverlay::CalcSerializeSize()
+{
+    return sizeof(int32_t) * 4;
+}
+
+void ScriptOverlay::Serialize(const char *address, Stream *out) {
+    out->WriteInt32(overlayId);
+    out->WriteInt32(borderWidth);
+    out->WriteInt32(borderHeight);
+    out->WriteInt32(isBackgroundSpeech);
 }
 
 void ScriptOverlay::Unserialize(int index, const char *serializedData, int dataSize) {

@@ -11,9 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynamicsprite.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 int ScriptDynamicSprite::Dispose(const char *address, bool force) {
     // always dispose
@@ -28,10 +30,13 @@ const char *ScriptDynamicSprite::GetType() {
     return "DynamicSprite";
 }
 
-int ScriptDynamicSprite::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    SerializeInt(slot);
-    return EndSerialize();
+size_t ScriptDynamicSprite::CalcSerializeSize()
+{
+    return sizeof(int32_t);
+}
+
+void ScriptDynamicSprite::Serialize(const char *address, Stream *out) {
+    out->WriteInt32(slot);
 }
 
 void ScriptDynamicSprite::Unserialize(int index, const char *serializedData, int dataSize) {

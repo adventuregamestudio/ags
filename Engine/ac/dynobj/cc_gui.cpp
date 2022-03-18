@@ -11,9 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/scriptgui.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptGUI *scrGui;
 
@@ -22,13 +24,16 @@ const char *CCGUI::GetType() {
     return "GUI";
 }
 
+size_t CCGUI::CalcSerializeSize()
+{
+    return sizeof(int32_t);
+}
+
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
-int CCGUI::Serialize(const char *address, char *buffer, int bufsize) {
+void CCGUI::Serialize(const char *address, Stream *out) {
     ScriptGUI *shh = (ScriptGUI*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+    out->WriteInt32(shh->id);
 }
 
 void CCGUI::Unserialize(int index, const char *serializedData, int dataSize) {

@@ -11,12 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
-#include "core/types.h"
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "ac/common.h"               // quit()
-#include "util/bbop.h"
+#include "util/memorystream.h"
 
 using namespace AGS::Common;
 
@@ -27,27 +25,16 @@ int AGSCCDynamicObject::Dispose(const char *address, bool force) {
     return 0;
 }
 
-void AGSCCDynamicObject::StartSerialize(char *sbuffer) {
-    bytesSoFar = 0;
-    serbuffer = sbuffer;
-}
+int AGSCCDynamicObject::Serialize(const char *address, char *buffer, int bufsize) {
+    // If the required space is larger than the provided buffer,
+    // then return negated required space, notifying the caller that a larger buffer is necessary
+    size_t req_size = CalcSerializeSize();
+    if (bufsize < 0 || req_size > static_cast<size_t>(bufsize))
+        return -(static_cast<int32_t>(req_size));
 
-void AGSCCDynamicObject::SerializeInt(int val) {
-    char *chptr = &serbuffer[bytesSoFar];
-    int *iptr = (int*)chptr;
-    *iptr = BBOp::Int32FromLE(val);
-    bytesSoFar += 4;
-}
-
-void AGSCCDynamicObject::SerializeFloat(float val) {
-    char *chptr = &serbuffer[bytesSoFar];
-    float *fptr = (float*)chptr;
-    *fptr = BBOp::FloatFromLE(val);
-    bytesSoFar += 4;
-}
-
-int AGSCCDynamicObject::EndSerialize() {
-    return bytesSoFar;
+    MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
+    Serialize(address, &mems);
+    return static_cast<int32_t>(mems.GetPosition());
 }
 
 void AGSCCDynamicObject::StartUnserialize(const char *sbuffer, int pTotalBytes) {
@@ -57,7 +44,7 @@ void AGSCCDynamicObject::StartUnserialize(const char *sbuffer, int pTotalBytes) 
 }
 
 int AGSCCDynamicObject::UnserializeInt() {
-    if (bytesSoFar >= totalBytes)
+    if (bytesSoFar >= totalBytes) // FIXME: don't use quit! return error instead
         quit("Unserialise: internal error: read past EOF");
 
     char *chptr = &serbuffer[bytesSoFar];
@@ -66,7 +53,7 @@ int AGSCCDynamicObject::UnserializeInt() {
 }
 
 float AGSCCDynamicObject::UnserializeFloat() {
-    if (bytesSoFar >= totalBytes)
+    if (bytesSoFar >= totalBytes) // FIXME: don't use quit! return error instead
         quit("Unserialise: internal error: read past EOF");
 
     char *chptr = &serbuffer[bytesSoFar];

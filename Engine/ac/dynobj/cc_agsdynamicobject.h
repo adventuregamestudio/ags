@@ -11,11 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_CCDYNAMICOBJECT_H
 #define __AC_CCDYNAMICOBJECT_H
 
 #include "ac/dynobj/cc_dynamicobject.h"
+
+namespace AGS { namespace Common { class Stream; } }
+
 
 struct AGSCCDynamicObject : ICCDynamicObject {
 protected:
@@ -25,6 +27,7 @@ public:
     int Dispose(const char *address, bool force) override;
 
     // TODO: pass savegame format version
+    int Serialize(const char *address, char *buffer, int bufsize) override;
     virtual void Unserialize(int index, const char *serializedData, int dataSize) = 0;
 
     // Legacy support for reading and writing object values by their relative offset
@@ -47,14 +50,14 @@ protected:
     int totalBytes;
     char *serbuffer;
 
-    void StartSerialize(char *sbuffer);
-    void SerializeInt(int val);
-    void SerializeFloat(float val);
-    int  EndSerialize();
+    // Calculate and return required space for serialization, in bytes
+    virtual size_t CalcSerializeSize() = 0;
+    // Write object data into the provided stream
+    virtual void Serialize(const char *address, AGS::Common::Stream *out) = 0;
+
     void StartUnserialize(const char *sbuffer, int pTotalBytes);
     int  UnserializeInt();
     float UnserializeFloat();
-
 };
 
 #endif // __AC_CCDYNAMICOBJECT_H

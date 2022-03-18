@@ -11,12 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_character.h"
 #include "ac/characterinfo.h"
 #include "ac/global_character.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/game_version.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 
@@ -25,13 +27,16 @@ const char *CCCharacter::GetType() {
     return "Character";
 }
 
+size_t CCCharacter::CalcSerializeSize()
+{
+    return sizeof(int32_t);
+}
+
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
-int CCCharacter::Serialize(const char *address, char *buffer, int bufsize) {
+void CCCharacter::Serialize(const char *address, Stream *out) {
     CharacterInfo *chaa = (CharacterInfo*)address;
-    StartSerialize(buffer);
-    SerializeInt(chaa->index_id);
-    return EndSerialize();
+    out->WriteInt32(chaa->index_id);
 }
 
 void CCCharacter::Unserialize(int index, const char *serializedData, int dataSize) {

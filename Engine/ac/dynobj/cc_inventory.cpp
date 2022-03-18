@@ -11,10 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/scriptinvitem.h"
 #include "ac/characterinfo.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptInvItem scrInv[MAX_INV];
 
@@ -23,13 +25,16 @@ const char *CCInventory::GetType() {
     return "Inventory";
 }
 
+size_t CCInventory::CalcSerializeSize()
+{
+    return sizeof(int32_t);
+}
+
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
-int CCInventory::Serialize(const char *address, char *buffer, int bufsize) {
+void CCInventory::Serialize(const char *address, Stream *out) {
     ScriptInvItem *shh = (ScriptInvItem*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+    out->WriteInt32(shh->id);
 }
 
 void CCInventory::Unserialize(int index, const char *serializedData, int dataSize) {

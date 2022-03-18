@@ -11,11 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptregion.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 
@@ -24,13 +26,16 @@ const char *CCRegion::GetType() {
     return "Region";
 }
 
+size_t CCRegion::CalcSerializeSize()
+{
+    return sizeof(int32_t);
+}
+
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
-int CCRegion::Serialize(const char *address, char *buffer, int bufsize) {
+void CCRegion::Serialize(const char *address, Stream *out) {
     ScriptRegion *shh = (ScriptRegion*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+    out->WriteInt32(shh->id);
 }
 
 void CCRegion::Unserialize(int index, const char *serializedData, int dataSize) {

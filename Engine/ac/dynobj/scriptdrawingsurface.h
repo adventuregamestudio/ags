@@ -38,7 +38,6 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
 
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
-    int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, const char *serializedData, int dataSize) override;
     Common::Bitmap* GetBitmapSurface();
     Common::Bitmap *StartDrawing();
@@ -50,6 +49,12 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     void FinishedDrawingReadOnly();
 
     ScriptDrawingSurface();
+
+protected:
+    // Calculate and return required space for serialization, in bytes
+    size_t CalcSerializeSize() override;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AC_SCRIPTDRAWINGSURFACE_H

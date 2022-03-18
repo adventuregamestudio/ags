@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/gamestate.h"
-#include "util/bbop.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 
@@ -33,11 +32,14 @@ int ScriptCamera::Dispose(const char *address, bool force)
     return 1;
 }
 
-int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
+size_t ScriptCamera::CalcSerializeSize()
 {
-    StartSerialize(buffer);
-    SerializeInt(_id);
-    return EndSerialize();
+    return sizeof(int32_t);
+}
+
+void ScriptCamera::Serialize(const char *address, Stream *out)
+{
+    out->WriteInt32(_id);
 }
 
 void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSize)
@@ -46,6 +48,8 @@ void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSi
     _id = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
 }
+
+#include "util/bbop.h"
 
 ScriptCamera *Camera_Unserialize(int handle, const char *serializedData, int dataSize)
 {

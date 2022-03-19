@@ -401,9 +401,13 @@ Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align);
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h);
 Size ProportionalStretch(const Size &dest, const Size &item);
 
+// Offset (move) the given rect by the x,y coordinates
 Rect OffsetRect(const Rect &r, const Point off);
+// Center "item" rectangle relative to "place"; "item" may be smaller or larger
 Rect CenterInRect(const Rect &place, const Rect &item);
+// Restrict "item" rectangle to the "place" borders, shrink if necessary
 Rect ClampToRect(const Rect &place, const Rect &item);
+// Position "item" rectangle in "place" following placement style
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS

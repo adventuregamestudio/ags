@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "gui/guislider.h"
+#include "ac/game_version.h"
 #include "ac/spritecache.h"
 #include "gui/guimain.h"
-#include "gui/guislider.h"
 #include "util/stream.h"
 
 std::vector<AGS::Common::GUISlider> guislider;
@@ -64,8 +64,8 @@ void GUISlider::Draw(Common::Bitmap *ds)
         MaxValue = MinValue + 1;
     Value = Math::Clamp(Value, MinValue, MaxValue);
   
-    // it's a horizontal slider
-    if (IsHorizontal())
+    // First, calculate bar and handle positions
+    if (IsHorizontal()) // horizontal slider
     {
         thickness = Height / 3;
         bar.Left = X + 1;
@@ -85,8 +85,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
         handle.Top += data_to_game_coord(HandleOffset);
         handle.Bottom += data_to_game_coord(HandleOffset);
     }
-    // vertical slider
-    else
+    else // vertical slider
     {
         thickness = Width / 3;
         bar.Left = X + Width / 2 - thickness;
@@ -107,7 +106,14 @@ void GUISlider::Draw(Common::Bitmap *ds)
         handle.Right += data_to_game_coord(HandleOffset);
     }
 
-    color_t draw_color;
+    if (loaded_game_file_version >= kGameVersion_360_21)
+    {
+        Rect control = RectWH(X, Y, Width, Height);
+        bar = ClampToRect(control, bar);
+        handle = ClampToRect(control, handle);
+    }
+
+    // Draw the slider's body
     if (BgImage > 0)
     {
         // tiled image as slider background
@@ -140,7 +146,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     else
     {
         // normal grey background
-        draw_color = ds->GetCompatibleColor(16);
+        color_t draw_color = ds->GetCompatibleColor(16);
         ds->FillRect(Rect(bar.Left + 1, bar.Top + 1, bar.Right - 1, bar.Bottom - 1), draw_color);
         draw_color = ds->GetCompatibleColor(8);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
@@ -150,6 +156,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
         ds->DrawLine(Line(bar.Left, bar.Bottom, bar.Right, bar.Bottom), draw_color);
     }
 
+    // Draw the slider's handle
     if (HandleImage > 0)
     {
         // an image for the slider handle
@@ -166,7 +173,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     else
     {
         // normal grey tracker handle
-        draw_color = ds->GetCompatibleColor(7);
+        color_t draw_color = ds->GetCompatibleColor(7);
         ds->FillRect(Rect(handle.Left, handle.Top, handle.Right, handle.Bottom), draw_color);
         draw_color = ds->GetCompatibleColor(15);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);

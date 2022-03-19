@@ -60,6 +60,7 @@ private:
     // The following variables are not persisted on disk
     // Cached coordinates of slider handle
     Rect    _cachedHandle;
+    int     _valueField;
 };
 
 } // namespace Common

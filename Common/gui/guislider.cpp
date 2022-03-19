@@ -38,6 +38,7 @@ GUISlider::GUISlider()
     _scEventCount = 1;
     _scEventNames[0] = "Change";
     _scEventArgs[0] = "GUIControl *control";
+    _valueField = 0;
 }
 
 bool GUISlider::IsHorizontal() const
@@ -66,6 +67,9 @@ void GUISlider::Draw(Common::Bitmap *ds)
     if (spriteset[HandleImage] == nullptr)
         HandleImage = 0;
 
+    // New (3.6.0+) drawing calculation method
+    const bool new_draw = loaded_game_file_version >= kGameVersion_360_21;
+
     // Depending on slider's orientation, thickness is either Height or Width
     const int thickness = IsHorizontal() ? Height : Width;
     // "thick_f" is the factor for calculating relative element positions
@@ -91,27 +95,49 @@ void GUISlider::Draw(Common::Bitmap *ds)
     // Calculate bar and handle positions
     Rect bar;
     Rect handle;
+    int value_field = 0; // the length of the value distribution (in pixels)
     if (IsHorizontal()) // horizontal slider
     {
-        // Value pos is a coordinate corresponding to current slider's value
-        bar = RectWH(X + 1, Y + Height / 2 - thick_f, Width - 1, bar_thick);
-        int value_pos = (int)(((float)(Value - MinValue) * (float)(Width - 4)) / (float)(MaxValue - MinValue)) - 2;
-        handle = RectWH((bar.Left + get_fixed_pixel_size(2)) - (handle_sz.Width / 2) + 1 + value_pos,
+        int handle_xoff = 0;
+        if (new_draw)
+        { // make slider's bar fill control's width but have half-handle margins
+            bar = RectWH(X + handle_sz.Width / 2, Y + Height / 2 - thick_f, Width - handle_sz.Width, bar_thick);
+            value_field = bar.GetWidth();
+        }
+        else
+        {
+            bar = RectWH(X + 1, Y + Height / 2 - thick_f, Width - 1, bar_thick);
+            value_field = Width - 4;
+            handle_xoff = get_fixed_pixel_size(2) + 1 - 2; // this weird math is a result of refactoring a very old code
+        }
+        int value_pos = (int)(((float)(Value - MinValue) * (float)value_field) / (float)(MaxValue - MinValue));
+        handle = RectWH(bar.Left + handle_xoff - (handle_sz.Width / 2) + value_pos,
             bar.Top + (bar.GetHeight() - handle_sz.Height) / 2,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToY(handle.Top + data_to_game_coord(HandleOffset));
     }
     else // vertical slider
     {
-        bar = RectWH(X + Width / 2 - thick_f, Y + 1, bar_thick, Height - 1);
-        int value_pos = (int)(((float)(MaxValue - Value) * (float)(Height - 4)) / (float)(MaxValue - MinValue)) - 2;
+        int handle_yoff = 0;
+        if (new_draw)
+        { // make slider's bar fill control's height but have half-handle margins
+            bar = RectWH(X + Width / 2 - thick_f, Y + handle_sz.Height / 2, bar_thick, Height - handle_sz.Height);
+            value_field = bar.GetHeight();
+        }
+        else
+        {
+            bar = RectWH(X + Width / 2 - thick_f, Y + 1, bar_thick, Height - 1);
+            value_field = Height - 4;
+            handle_yoff = get_fixed_pixel_size(2) + 1 - 2; // this weird math is a result of refactoring a very old code
+        }
+        int value_pos = (int)(((float)(MaxValue - Value) * (float)value_field) / (float)(MaxValue - MinValue));
         handle = RectWH(bar.Left + (bar.GetWidth() - handle_sz.Width) / 2,
-            (bar.Top + get_fixed_pixel_size(2)) - (handle_sz.Height / 2) + 1 + value_pos,
+            bar.Top + handle_yoff - (handle_sz.Height / 2) + value_pos,
             handle_sz.Width, handle_sz.Height);
         handle.MoveToX(handle.Left + data_to_game_coord(HandleOffset));
     }
 
-    if (loaded_game_file_version >= kGameVersion_360_21)
+    if (new_draw)
     {
         Rect control = RectWH(X, Y, Width, Height);
         bar = ClampToRect(control, bar);
@@ -152,7 +178,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     {
         // normal grey background
         color_t draw_color = ds->GetCompatibleColor(16);
-        ds->FillRect(Rect(bar.Left + 1, bar.Top + 1, bar.Right - 1, bar.Bottom - 1), draw_color);
+        ds->FillRect(bar, draw_color);
         draw_color = ds->GetCompatibleColor(8);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
@@ -170,7 +196,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     {
         // normal grey tracker handle
         color_t draw_color = ds->GetCompatibleColor(7);
-        ds->FillRect(Rect(handle.Left, handle.Top, handle.Right, handle.Bottom), draw_color);
+        ds->FillRect(handle, draw_color);
         draw_color = ds->GetCompatibleColor(15);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
@@ -180,6 +206,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     }
 
     _cachedHandle = handle;
+    _valueField = value_field;
 }
 
 bool GUISlider::OnMouseDown()
@@ -195,9 +222,9 @@ void GUISlider::OnMouseMove(int x, int y)
         return;
 
     if (IsHorizontal())
-        Value = (int)(((float)((x - X) - 2) / (float)(Width - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+        Value = (int)(((float)((x - X) - 2) / (float)_valueField) * (float)(MaxValue - MinValue)) + MinValue;
     else
-        Value = (int)(((float)(((Y + Height) - y) - 2) / (float)(Height - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+        Value = (int)(((float)(((Y + Height) - y) - 2) / (float)_valueField) * (float)(MaxValue - MinValue)) + MinValue;
 
     Value = Math::Clamp(Value, MinValue, MaxValue);
     NotifyParentChanged();

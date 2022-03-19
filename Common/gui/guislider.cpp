@@ -56,54 +56,59 @@ bool GUISlider::IsOverControl(int x, int y, int leeway) const
 
 void GUISlider::Draw(Common::Bitmap *ds)
 {
-    Rect bar;
-    Rect handle;
-    int  thickness;
-
+    // Clamp Value
+    // TODO: this is necessary here because some Slider fields are still public
     if (MinValue >= MaxValue)
         MaxValue = MinValue + 1;
     Value = Math::Clamp(Value, MinValue, MaxValue);
+    // Test if sprite is available
+    // TODO: react to sprites initialization/deletion instead!
+    if (spriteset[HandleImage] == nullptr)
+        HandleImage = 0;
+
+    // Depending on slider's orientation, thickness is either Height or Width
+    const int thickness = IsHorizontal() ? Height : Width;
+    // "thick_f" is the factor for calculating relative element positions
+    const int thick_f = thickness / 3; // one third of the control's thickness
+    // Bar thickness
+    const int bar_thick = thick_f * 2 + 2;
+
+    // Calculate handle size
+    Size handle_sz;
+    if (HandleImage > 0) // handle is a sprite
+    {
+        handle_sz = Size(get_adjusted_spritewidth(HandleImage),
+            get_adjusted_spriteheight(HandleImage));
+    }
+    else // handle is a drawn rectangle
+    {
+        if (IsHorizontal())
+            handle_sz = Size(get_fixed_pixel_size(4) + 1, bar_thick + (thick_f - 1) * 2);
+        else
+            handle_sz = Size(bar_thick + (thick_f - 1) * 2, get_fixed_pixel_size(4) + 1);
+    }
   
-    // First, calculate bar and handle positions
+    // Calculate bar and handle positions
+    Rect bar;
+    Rect handle;
     if (IsHorizontal()) // horizontal slider
     {
-        thickness = Height / 3;
-        bar.Left = X + 1;
-        bar.Top = Y + Height / 2 - thickness;
-        bar.Right = X + Width - 1;
-        bar.Bottom = Y + Height / 2 + thickness + 1;
-        handle.Left = (int)(((float)(Value - MinValue) / (float)(MaxValue - MinValue)) * (float)(Width - 4) - 2) + bar.Left + 1;
-        handle.Top = bar.Top - (thickness - 1);
-        handle.Right = handle.Left + get_fixed_pixel_size(4);
-        handle.Bottom = bar.Bottom + (thickness - 1);
-        if (HandleImage > 0)
-        {
-            // store the centre of the pic rather than the top
-            handle.Top = bar.Top + (bar.Bottom - bar.Top) / 2 + get_fixed_pixel_size(1);
-            handle.Left += get_fixed_pixel_size(2);
-        }
-        handle.Top += data_to_game_coord(HandleOffset);
-        handle.Bottom += data_to_game_coord(HandleOffset);
+        // Value pos is a coordinate corresponding to current slider's value
+        bar = RectWH(X + 1, Y + Height / 2 - thick_f, Width - 1, bar_thick);
+        int value_pos = (int)(((float)(Value - MinValue) * (float)(Width - 4)) / (float)(MaxValue - MinValue)) - 2;
+        handle = RectWH((bar.Left + get_fixed_pixel_size(2)) - (handle_sz.Width / 2) + 1 + value_pos,
+            bar.Top + (bar.GetHeight() - handle_sz.Height) / 2,
+            handle_sz.Width, handle_sz.Height);
+        handle.MoveToY(handle.Top + data_to_game_coord(HandleOffset));
     }
     else // vertical slider
     {
-        thickness = Width / 3;
-        bar.Left = X + Width / 2 - thickness;
-        bar.Top = Y + 1;
-        bar.Right = X + Width / 2 + thickness + 1;
-        bar.Bottom = Y + Height - 1;
-        handle.Top = (int)(((float)(MaxValue - Value) / (float)(MaxValue - MinValue)) * (float)(Height - 4) - 2) + bar.Top + 1;
-        handle.Left = bar.Left - (thickness - 1);
-        handle.Bottom = handle.Top + get_fixed_pixel_size(4);
-        handle.Right = bar.Right + (thickness - 1);
-        if (HandleImage > 0)
-        {
-            // store the centre of the pic rather than the left
-            handle.Left = bar.Left + (bar.Right - bar.Left) / 2 + get_fixed_pixel_size(1);
-            handle.Top += get_fixed_pixel_size(2);
-        }
-        handle.Left += data_to_game_coord(HandleOffset);
-        handle.Right += data_to_game_coord(HandleOffset);
+        bar = RectWH(X + Width / 2 - thick_f, Y + 1, bar_thick, Height - 1);
+        int value_pos = (int)(((float)(MaxValue - Value) * (float)(Height - 4)) / (float)(MaxValue - MinValue)) - 2;
+        handle = RectWH(bar.Left + (bar.GetWidth() - handle_sz.Width) / 2,
+            (bar.Top + get_fixed_pixel_size(2)) - (handle_sz.Height / 2) + 1 + value_pos,
+            handle_sz.Width, handle_sz.Height);
+        handle.MoveToX(handle.Left + data_to_game_coord(HandleOffset));
     }
 
     if (loaded_game_file_version >= kGameVersion_360_21)
@@ -157,20 +162,11 @@ void GUISlider::Draw(Common::Bitmap *ds)
     }
 
     // Draw the slider's handle
-    if (HandleImage > 0)
+    if (HandleImage > 0) // handle is a sprite
     {
-        // an image for the slider handle
-        // TODO: react to sprites initialization/deletion instead!
-        if (spriteset[HandleImage] == nullptr)
-            HandleImage = 0;
-
-        handle.Left -= get_adjusted_spritewidth(HandleImage) / 2;
-        handle.Top -= get_adjusted_spriteheight(HandleImage) / 2;
         draw_gui_sprite(ds, HandleImage, handle.Left, handle.Top, true);
-        handle.Right = handle.Left + get_adjusted_spritewidth(HandleImage);
-        handle.Bottom = handle.Top + get_adjusted_spriteheight(HandleImage);
     }
-    else
+    else // handle is a drawn rectangle
     {
         // normal grey tracker handle
         color_t draw_color = ds->GetCompatibleColor(7);

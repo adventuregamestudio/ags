@@ -209,8 +209,8 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
     {
         const char *numberExtension = strstr(ffb.name, ".") + 1;
         int saveGameSlot = atoi(numberExtension);
-        // only list games .000 to .099 (to allow higher slots for other perposes)
-        if (saveGameSlot > 99)
+        // only list games .000 to .XXX (to allow higher slots for other perposes)
+        if (saveGameSlot < 0 || saveGameSlot > TOP_LISTEDSAVESLOT)
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);

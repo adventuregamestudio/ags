@@ -161,8 +161,12 @@ Engine:
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
+ - Fixed crash when visible viewport does not have any linked camera.
+ - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
+ - Fixed ListBox.FillSaveGameList() may include save slots with negative slot number (e.g. when
+   the save file has "*.-01" extension).
 
 Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former

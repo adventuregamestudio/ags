@@ -28,6 +28,9 @@ class GUISlider : public GUIObject
 public:
     GUISlider();
 
+    // Compatibility: sliders are not clipped as of 3.6.0
+    bool IsContentClipped() const override { return false; }
+
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
     bool IsOverControl(int x, int y, int leeway) const override;
@@ -60,6 +63,8 @@ private:
     // The following variables are not persisted on disk
     // Cached coordinates of slider handle
     Rect    _cachedHandle;
+    // The length of the handle movement range, in pixels
+    int     _handleRange;
 };
 
 } // namespace Common

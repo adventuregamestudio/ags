@@ -2,16 +2,28 @@ REVISION HISTORY
 ================
 VERSION 3.6.0, ???
 
+Common features:
+ - Full Unicode support for all game texts: game properties, scripts, translations, input.
+   ASCII/ANSI mode is still working, for backwards compatibility. This may be configured
+   in the game project.
+ - Extended sprite compression options: lossless storage optimization for 16- and 32-bit
+   sprites; LZW compression option for sprites in addition to existing RLE compression.
+ - The historical TTF fonts' "fixup" that altered their height and vertical offset is now
+   optional and works only if backwards compatible option is set.
+ - Max number of AudioChannels is now 16 (was 8).
+ - Removed game Cursors hard limit (was 20).
+
 Editor:
  - Editor requires .NET Framework 4.6 to run.
- - Full Unicode support for all game texts (game properties, scripts). When upgrading old
-   projects this is enabled by changing a "Text format" option in General Settings. New games
-   will be in Unicode mode by default.
  - Added Android build target support (requires "Android component" installed).
  - Added Web/Emscripten build target support (requires "Web build component" installed).
- - Added "UseOldKeyboardHandling" option to the General Settings, which lets select between
-   classic key press handling and new one meant for easier unicode chars support in scripts.
- - Supports compiling UTF-8 translation sources. TRS file now has "Encoding" setting that tells
+ - Script editor works in unicode mode.
+ - Added "Text format" option in General Settings which lets switching between ASCII/ANSI and
+   Unicode (UTF-8) modes. This defines which format the game texts will be written in, when
+   saving the game project and compiling the game.
+ - Added "Use old-style keyboard handling" option to the General Settings, which lets select
+   between classic key press handling and new one meant for unicode chars support in scripts.
+ - Supports compiling UTF-8 translations. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
@@ -40,13 +52,12 @@ Editor:
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
  - Rooms created from a Blank template will now have default background of a game's resolution.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
- - Removed game Cursors hard limit (was 20).
  - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
  - Select script editor's font in the editor's Preferences.
+ - Cursor's position in script is now displayed on the status bar.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
- - Cursor's position in script is now displayed on the status bar.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
  - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
@@ -56,7 +67,7 @@ Editor:
 
 Compiler:
  - Support unicode character literals.
- - Support hexadecimal number literals.
+ - Support hexadecimal number literals (e.g. "0xABCDEF").
  - Removed 500-characters line limit.
 
 Script API:
@@ -118,9 +129,11 @@ Engine:
    Only OGG/OGV videos are kept supported at this point.
  - Support resizing game window on desktop systems.
  - Support "borderless full-screen window" mode in addition to the real (exclusive) fullscreen.
- - UTF-8 texts support: engine can now switch between ASCII and UTF-8 text mode. This is currently
-   controlled by the new translation settings: "Encoding" tells whether to interpret game texts
-   as UTF-8, and "GameEncoding" hints the original game's codepage to help with their conversion.
+ - Unicode (UTF-8) text support: engine can now switch between ASCII and UTF-8 text mode.
+   This is controlled by both game's OPT_GAMETEXTENCODING setting and translation's "Encoding"
+   setting: they tells whether to interpret game texts as UTF-8 or ASCII/ANSI.
+ - Support optional translation's "GameEncoding" setting: it hints the original game's codepage
+   to help with their conversion. This is mostly meant for translating existing older (ANSI) games.
  - Engine now supports using real pixel height of the TTF fonts when arranging text and UI elements
    on screen; using nominal import size of the font is used as a compatible mode for the old games.
  - Also supports separate "normal" and backward compatible "fixup" modes when initializing TTF
@@ -133,7 +146,6 @@ Engine:
  - Removed Overlay limit.
  - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.
  - Process character's idle view based on real game speed, not hardcoded 40 fps.
- - Max number of AudioChannels is now 16 (was 8).
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's
@@ -168,6 +180,16 @@ Engine:
  - Fixed ListBox.FillSaveGameList() may include save slots with negative slot number (e.g. when
    the save file has "*.-01" extension).
 
+Compatibility:
+ - Fallback to loop 0 if the speech view does not have frames in the current directional loop.
+ - Set the first loop with frames if current character's loop does not have any for some reason.
+ - Ignore character having view/loop with no frames while it's not in the current room.
+ - Legacy behavior of MoveCharacterBlocking's return value.
+ - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.
+ - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
+   unintentional effect created by the old engines.
+ - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
+
 Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former
    "launcher" is now called "AGS Player".
@@ -179,21 +201,12 @@ Android:
 OSX:
  - OpenGL renderer is now supported on MacOS.
 
-Compatibility:
- - Fallback to loop 0 if the speech view does not have frames in the current directional loop.
- - Set the first loop with frames if current character's loop does not have any for some reason.
- - Ignore character having view/loop with no frames while it's not in the current room.
- - Legacy behavior of MoveCharacterBlocking's return value.
- - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.
- - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
-   unintentional effect created by the old engines.
- - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
-
 Web / Emscripten:
  - Initial port release.
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
+ - Remade sound options to reflect the move to the new audio system in the engine.
 
 
 VERSION 3.5.1 - Patch 9, March 2022

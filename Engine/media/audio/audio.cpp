@@ -39,6 +39,7 @@
 #include "ac/timer.h"
 #include "main/game_run.h"
 #include "media/audio/audio_core.h"
+#include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -216,7 +217,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
 
 bool is_audiotype_allowed_to_play(AudioFileType type)
 {
-    return usetup.audio_backend != 0;
+    return usetup.audio_enabled;
 }
 
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
@@ -662,6 +663,8 @@ void shutdown_sound()
 {
     stop_all_sound_and_music(); // game logic
     audio_core_shutdown(); // audio core system
+    sys_audio_shutdown(); // backend
+    usetup.audio_enabled = false;
 }
 
 // the sound will only be played if there is a free channel or

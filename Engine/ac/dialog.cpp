@@ -191,7 +191,8 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   {
     char funcName[100];
     sprintf(funcName, "_run_dialog%d", dialogID);
-    RunTextScriptIParam(dialogScriptsInst, funcName, RuntimeScriptValue().SetInt32(optionIndex));
+    RuntimeScriptValue params[]{ optionIndex };
+    RunScriptFunction(dialogScriptsInst, funcName, 1, params);
     result = dialogScriptsInst->returnValue;
   }
 
@@ -737,6 +738,7 @@ bool DialogOptions::Run()
     sys_evt_process_pending();
 
     const bool new_custom_render = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
+    const bool old_keyhandle = game.options[OPT_KEYHANDLEAPI] == 0;
 
       if (runGameLoopsInBackground)
       {
@@ -791,9 +793,19 @@ bool DialogOptions::Run()
         }
         else if (new_custom_render)
         {
-            runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
-            run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
+            if (old_keyhandle || (ki.UChar == 0))
+            { // "dialog_options_key_press"
+                runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+                runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
+                runDialogOptionKeyPressHandlerFunc.params[2].SetInt32(ki.Mod);
+                run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
+            }
+            if (!old_keyhandle && (ki.UChar > 0))
+            { // "dialog_options_text_input"
+                runDialogOptionTextInputHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+                runDialogOptionTextInputHandlerFunc.params[1].SetInt32(ki.UChar);
+                run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
+            }
         }
         // Allow selection of options by keyboard shortcuts
         else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&

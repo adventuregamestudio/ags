@@ -180,17 +180,6 @@ void quit_release_data()
     AssetMgr.reset();
 }
 
-void quit_delete_temp_files()
-{
-    al_ffblk dfb;
-    int	dun = al_findfirst("~ac*.tmp", &dfb, FA_SEARCH);
-    while (!dun) {
-        File::DeleteFile(dfb.name);
-        dun = al_findnext(&dfb);
-    }
-    al_findclose (&dfb);
-}
-
 // TODO: move to test unit
 extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
@@ -280,8 +269,6 @@ void quit(const char *quitmsg)
     platform->PostBackendExit();
 
     our_eip = 9903;
-
-    quit_delete_temp_files();
 
     proper_exit=1;
 

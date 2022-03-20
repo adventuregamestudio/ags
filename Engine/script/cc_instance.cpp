@@ -308,18 +308,20 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     int32_t startat = -1;
     int k;
     char mangledName[200];
-    sprintf(mangledName, "%s$", funcname);
+    size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname);
+    int export_args = 0;
 
     for (k = 0; k < instanceof->numexports; k++) {
         char *thisExportName = instanceof->exports[k];
         int match = 0;
 
         // check for a mangled name match
-        if (strncmp(thisExportName, mangledName, strlen(mangledName)) == 0) {
+        if (strncmp(thisExportName, mangledName, mangled_len) == 0) {
             // found, compare the number of parameters
-            char *numParams = thisExportName + strlen(mangledName);
-            if (atoi(numParams) != numargs) {
-                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)", funcname, atoi(numParams), numargs);
+            export_args = atoi(thisExportName + mangled_len);
+            if (export_args > numargs) {
+                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)",
+                    funcname, export_args, numargs);
                 return -1;
             }
             match = 1;
@@ -341,6 +343,9 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
         cc_error("function '%s' not found", funcname);
         return -2;
     }
+
+    // Allow to pass less parameters if script callback has less declared args
+    numargs = std::min(numargs, export_args);
 
     //numargs++;                    // account for return address
     flags &= ~INSTF_ABORTED;
@@ -740,7 +745,7 @@ int ccInstance::Run(int32_t curpc)
           reg1 = !(reg1);
           break;
       case SCMD_CALL:
-          // CallScriptFunction another function within same script, just save PC
+          // Call another function within same script, just save PC
           // and continue from there
           if (curnest >= MAXNEST - 1) {
               cc_error("!call stack overflow, recursive call problem?");
@@ -985,7 +990,7 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_CALLAS:{
           PUSH_CALL_STACK;
 
-          // CallScriptFunction to a function in another script
+          // Call to a function in another script
 
           // If there are nested CALLAS calls, the stack might
           // contain 2 calls worth of parameters, so only
@@ -1045,7 +1050,7 @@ int ccInstance::Run(int32_t curpc)
           break;
                        }
       case SCMD_CALLEXT: {
-          // CallScriptFunction to a real 'C' code function
+          // Call to a real 'C' code function
           was_just_callas = -1;
           if (num_args_to_func < 0)
           {

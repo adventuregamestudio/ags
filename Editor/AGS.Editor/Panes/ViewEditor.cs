@@ -34,6 +34,11 @@ namespace AGS.Editor
 			UpdateWhetherPreviewIsShown();
         }
 
+        protected override void OnPropertyChanged(string propertyName, object oldValue)
+        {
+            viewPreview.Invalidate(true);
+            editorPanel.Invalidate(true);
+        }
 
         protected override string OnGetHelpKeyword()
         {

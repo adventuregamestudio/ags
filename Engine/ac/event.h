@@ -32,23 +32,23 @@
 #define GE_LOSE_INV      8
 #define GE_RESTORE_GAME  9
 
-#define MAXEVENTS 15
-
 #define EV_TEXTSCRIPT 1
 #define EV_RUNEVBLOCK 2
 #define EV_FADEIN     3
 #define EV_IFACECLICK 4
 #define EV_NEWROOM    5
-#define TS_REPEAT   1
-#define TS_KEYPRESS 2
-#define TS_MCLICK   3
-#define EVB_HOTSPOT 1
-#define EVB_ROOM    2
+#define TS_REPEAT     1
+#define TS_KEYPRESS   2
+#define TS_MCLICK     3
+#define TS_TEXTINPUT  4
+#define TS_NUM        5
+#define EVB_HOTSPOT   1
+#define EVB_ROOM      2
 
 struct EventHappened {
-    int type;
-    int data1,data2,data3;
-    int player;
+    int type = 0;
+    int data1 = 0, data2 = 0, data3 = 0;
+    int player = -1;
 };
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
@@ -57,27 +57,25 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);
 void run_event_block_inv(int invNum, int event);
 // event list functions
-void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
-void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
-void process_event(EventHappened*evp);
+void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
+void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
+void process_event(const EventHappened *evp);
 void runevent_now (int evtyp, int ev1, int ev2, int ev3);
-void processallevents(int numev,EventHappened*evlist);
-void update_events();
+void processallevents();
 // end event list functions
 void ClaimEvent();
 
 extern int in_enters_screen,done_es_error;
 extern int in_leaves_screen;
 
-extern EventHappened event[MAXEVENTS+1];
-extern int numevents;
+extern std::vector<EventHappened> events;
 
 extern const char*evblockbasename;
 extern int evblocknum;
 
 extern int eventClaimed;
 
-extern const char*tsnames[4];
+extern const char*tsnames[TS_NUM];
 
 #endif // __AGS_EE_AC__EVENT_H
 

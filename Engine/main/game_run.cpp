@@ -90,7 +90,7 @@ extern char check_dynamic_sprites_at_exit;
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
 
-static int numEventsAtStartOfFunction;
+static size_t numEventsAtStartOfFunction;
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 #define UNTIL_ANIMEND   1
@@ -192,7 +192,7 @@ static int game_loop_check_ground_level_interactions()
         if ((restrict_until) && (!ShouldStayInWaitMode())) {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
-            numevents = numEventsAtStartOfFunction;
+            events.resize(numEventsAtStartOfFunction);
             return 0;
         }
     } // end if checking ground level interactions
@@ -269,7 +269,6 @@ static void check_mouse_controls()
             wasbutdown=mbut+1;
         }
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
-        //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
 
     if (mwheelz < 0)
@@ -289,8 +288,14 @@ int old_key_mod = 0; // for saving previous key mods
 
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.
+//
+// * old_keyhandle mode is a backward compatible input handling mode, where
+//   - lone mod keys are not passed further into the engine;
+//   - key + mod combos are merged into one key code for the script callback.
 bool run_service_key_controls(KeyInput &out_key)
 {
+    const bool old_keyhandle = (game.options[OPT_KEYHANDLEAPI] == 0);
+
     bool handled = false;
     const bool key_valid = ags_keyevent_ready();
     const SDL_Event key_evt = key_valid ? ags_get_next_keyevent() : SDL_Event();
@@ -352,11 +357,10 @@ bool run_service_key_controls(KeyInput &out_key)
 
     if (!key_valid)
         return false; // if there was no key press, finish after handling current mod state
-    if (is_only_mod_key || handled)
-        return false; // rest of engine currently does not use pressed mod keys
-                      // change this when it's no longer true (but be mindful about key-skipping!)
+    if (handled || (old_keyhandle && is_only_mod_key))
+        return false; // in backward mode the engine does not react to single mod keys
 
-    KeyInput ki = ags_keycode_from_sdl(key_evt);
+    KeyInput ki = ags_keycode_from_sdl(key_evt, old_keyhandle);
     eAGSKeyCode agskey = ki.Key;
     if (agskey == eAGSKeyCodeNone)
         return false; // should skip this key event
@@ -461,6 +465,7 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
+    const bool old_keyhandle = game.options[OPT_KEYHANDLEAPI] == 0;
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
     KeyInput ki;
     if (!run_service_key_controls(ki)) {
@@ -548,11 +553,18 @@ static void check_keyboard_controls()
 
     if (!keywasprocessed) {
         int sckey = AGSKeyToScriptKey(kgn);
-        debug_script_log("Running on_key_press keycode %d", sckey);
-        setevent(EV_TEXTSCRIPT,TS_KEYPRESS, sckey);
+        int sckeymod = ki.Mod;
+        if (old_keyhandle || (ki.UChar == 0))
+        {
+            debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
+            setevent(EV_TEXTSCRIPT, TS_KEYPRESS, sckey, sckeymod);
+        }
+        if (!old_keyhandle && (ki.UChar > 0))
+        {
+            debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
+            setevent(EV_TEXTSCRIPT, TS_TEXTINPUT, ki.UChar);
+        }
     }
-
-    // RunTextScriptIParam(gameinst,"on_key_press",kgn);
 }
 
 // check_controls: checks mouse & keyboard interface
@@ -562,10 +574,12 @@ static void check_controls() {
     sys_evt_process_pending();
 
     check_mouse_controls();
-    check_keyboard_controls();
+    // Handle all the buffered key events
+    while (ags_keyevent_ready())
+        check_keyboard_controls();
 }
 
-static void check_room_edges(int numevents_was)
+static void check_room_edges(size_t numevents_was)
 {
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
         (in_new_room == 0) && (new_room_was == 0)) {
@@ -573,7 +587,7 @@ static void check_room_edges(int numevents_was)
             // if not in Player Enters Screen (allow walking in from off-screen)
             int edgesActivated[4] = {0, 0, 0, 0};
             // Only do it if nothing else has happened (eg. mouseclick)
-            if ((numevents == numevents_was) &&
+            if ((events.size() == numevents_was) &&
                 ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
 
                     if (playerchar->x <= thisroom.Edges.Left)
@@ -609,7 +623,7 @@ static void game_loop_check_controls(bool checkControls)
     // don't let the player do anything before the screen fades in
     if ((in_new_room == 0) && (checkControls)) {
         int inRoom = displayed_room;
-        int numevents_was = numevents;
+        size_t numevents_was = events.size();
         check_controls();
         check_room_edges(numevents_was);
         // If an inventory interaction changed the room
@@ -684,7 +698,7 @@ static void game_loop_update_events()
     if (in_new_room>0)
         setevent(EV_FADEIN,0,0,0);
     in_new_room=0;
-    update_events();
+    processallevents();
     if ((new_room_was > 0) && (in_new_room == 0)) {
         // if in a new room, and the room wasn't just changed again in update_events,
         // then queue the Enters Screen scripts
@@ -755,7 +769,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     sys_evt_process_pending();
 
-    numEventsAtStartOfFunction = numevents;
+    numEventsAtStartOfFunction = events.size();
 
     if (want_exit) {
         ProperExit();

@@ -661,7 +661,6 @@ int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
 // disable AGS's sound engine
 void IAGSEngine::DisableSound() {
     shutdown_sound();
-    usetup.audio_backend = 0;
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)
@@ -674,11 +673,12 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
 
     ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScInstGame : kScInstRoom);
 
-    RuntimeScriptValue params[3];
-    params[0].SetPluginArgument(arg1);
-    params[1].SetPluginArgument(arg2);
-    params[2].SetPluginArgument(arg3);
-    int toret = RunScriptFunctionIfExists(toRun, (char*)name, numArgs, params);
+    RuntimeScriptValue params[]{
+        RuntimeScriptValue().SetPluginArgument(arg1),
+        RuntimeScriptValue().SetPluginArgument(arg2),
+        RuntimeScriptValue().SetPluginArgument(arg3),
+    };
+    int toret = RunScriptFunction(toRun, (char*)name, numArgs, params);
     return toret;
 }
 
@@ -702,9 +702,9 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 
     if (numArgs < 0 || numArgs > 2)
         quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-
-    curscript->run_another(name, globalScript ? kScInstGame : kScInstRoom, numArgs,
-        RuntimeScriptValue().SetPluginArgument(arg1), RuntimeScriptValue().SetPluginArgument(arg2));
+    RuntimeScriptValue params[] { RuntimeScriptValue().SetPluginArgument(arg1),
+        RuntimeScriptValue().SetPluginArgument(arg2) };
+    curscript->run_another(name, globalScript ? kScInstGame : kScInstRoom, numArgs, params);
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {

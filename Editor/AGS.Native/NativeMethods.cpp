@@ -724,6 +724,7 @@ namespace AGS
             if (name->Equals("OPT_WALKSPEEDABSOLUTE")) return OPT_WALKSPEEDABSOLUTE;
             if (name->Equals("OPT_CLIPGUICONTROLS")) return OPT_CLIPGUICONTROLS;
             if (name->Equals("OPT_GAMETEXTENCODING")) return OPT_GAMETEXTENCODING;
+            if (name->Equals("OPT_KEYHANDLEAPI")) return OPT_KEYHANDLEAPI;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

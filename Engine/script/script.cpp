@@ -74,7 +74,8 @@ NonBlockingScriptFunction getDialogOptionsDimensionsFunc("dialog_options_get_dim
 NonBlockingScriptFunction renderDialogOptionsFunc("dialog_options_render", 1);
 NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_active", 1);
 NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 2);
-NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 2);
+NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 3);
+NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc("dialog_options_text_input", 2);
 NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1);
 
 ScriptSystem scsystem;
@@ -90,9 +91,13 @@ String              objectScriptObjNames[MAX_ROOM_OBJECTS];
 std::vector<String> guiScriptObjNames;
 
 
+static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
+
+
 int run_dialog_request (int parmtr) {
     play.stop_dialog_at_end = DIALOG_RUNNING;
-    RunTextScriptIParam(gameinst, "dialog_request", RuntimeScriptValue().SetInt32(parmtr));
+    RuntimeScriptValue params[]{ parmtr };
+    RunScriptFunction(gameinst, "dialog_request", 1, params);
 
     if (play.stop_dialog_at_end == DIALOG_STOP) {
         play.stop_dialog_at_end = DIALOG_NONE;
@@ -263,31 +268,17 @@ ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
     return nullptr;
 }
 
-void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
+void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue *params)
 {
     if (inside_script)
         // queue the script for the run after current script is finished
-        curscript->run_another (fn_name, sc_inst, param_count, p1, p2);
+        curscript->run_another(fn_name, sc_inst, param_count, params);
     else
         // if no script is currently running, run the requested script right away
-        RunScriptFunction(sc_inst, fn_name, param_count, p1, p2);
+        RunScriptFunctionAuto(sc_inst, fn_name, param_count, params);
 }
 
-void RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
-{
-    ccInstance *sci = GetScriptInstanceByType(sc_inst);
-    if (sci)
-    {
-        if (param_count == 2)
-            RunTextScript2IParam(sci, fn_name, p1, p2);
-        else if (param_count == 1)
-            RunTextScriptIParam(sci, fn_name, p1);
-        else if (param_count == 0)
-            RunTextScript(sci, fn_name);
-    }
-}
-
-bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
+static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
 {
     if (!hasTheFunc)
         return(false);
@@ -321,7 +312,7 @@ bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcTo
 }
 
 char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
-int PrepareTextScript(ccInstance *sci, const char**tsname)
+static int PrepareTextScript(ccInstance *sci, const char**tsname)
 {
     ccError = 0;
     // FIXME: try to make it so this function is not called with NULL sci
@@ -358,7 +349,7 @@ int PrepareTextScript(ccInstance *sci, const char**tsname)
     return 0;
 }
 
-int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, const RuntimeScriptValue *params)
+int RunScriptFunction(ccInstance *sci, const char *tsname, size_t numParam, const RuntimeScriptValue *params)
 {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
@@ -379,12 +370,7 @@ int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, 
     // Clear the error message
     ccErrorString = "";
 
-    if (numParam < 3)
-    {
-        toret = curscript->inst->CallScriptFunction(tsname, numParam, params);
-    }
-    else
-        quit("Too many parameters to RunScriptFunctionIfExists");
+    toret = curscript->inst->CallScriptFunction(tsname, numParam, params);
 
     // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
     if ((toret != 0) && (toret != -2) && (toret != 100)) {
@@ -410,61 +396,78 @@ int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, 
     return toret;
 }
 
-int RunTextScript(ccInstance *sci, const char *tsname)
+void RunScriptFunctionInModules(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
 {
-    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
-        // run module rep_execs
-        // FIXME: in theory the function may be already called for moduleInst[i],
-        // in which case this should not be executed; need to rearrange the code somehow
-        int room_changes_was = play.room_changes;
-        int restore_game_count_was = gameHasBeenRestored;
+    for (int i = 0; i < numScriptModules; ++i)
+        RunScriptFunction(moduleInst[i], tsname, param_count, params);
+    RunScriptFunction(gameinst, tsname, param_count, params);
+}
 
-        for (int kk = 0; kk < numScriptModules; kk++) {
-            if (!moduleRepExecAddr[kk].IsNull())
-                RunScriptFunctionIfExists(moduleInst[kk], tsname, 0, nullptr);
-
-            if ((room_changes_was != play.room_changes) ||
-                (restore_game_count_was != gameHasBeenRestored))
-                return 0;
-        }
-    }
-
-    int toret = RunScriptFunctionIfExists(sci, tsname, 0, nullptr);
-    if ((toret == -18) && (sci == roominst)) {
-        // functions in room script must exist
-        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)", toret, ccErrorString.GetCStr(), tsname, displayed_room);
-    }
+int RunScriptFunctionInRoom(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
+{
+    // Some room callbacks are considered to be obligatory; for historical reasons these are
+    // identified by having no parameters;
+    // TODO: this is a hack, this should be defined either by function type, or as an arg
+    const bool strict_room_event = (param_count == 0);
+    int toret = RunScriptFunction(roominst, tsname, param_count, params);
+    // If it's a obligatory room event, and return code means missing function - error
+    if (strict_room_event && (toret == -18))
+        quitprintf("RunScriptFunction: error %d (%s) trying to run '%s'   (Room %d)",
+            toret, ccErrorString.GetCStr(), tsname, displayed_room);
     return toret;
 }
 
-int RunTextScriptIParam(ccInstance *sci, const char *tsname, const RuntimeScriptValue &iparam)
+// Run non-claimable event in all script modules, except room, break if certain events occured
+static int RunUnclaimableEvent(const char *tsname)
 {
-    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
+    const int room_changes_was = play.room_changes;
+    const int restore_game_count_was = gameHasBeenRestored;
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        if (!moduleRepExecAddr[i].IsNull())
+            RunScriptFunction(moduleInst[i], tsname);
+        // Break on room change or save restoration
+        if ((room_changes_was != play.room_changes) ||
+            (restore_game_count_was != gameHasBeenRestored))
+            return 0;
     }
-
-    return RunScriptFunctionIfExists(sci, tsname, 1, &iparam);
+    return RunScriptFunction(gameinst, tsname);
 }
 
-int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2)
+static int RunClaimableEvent(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
 {
-    RuntimeScriptValue params[2];
-    params[0] = iparam;
-    params[1] = param2;
+    // Run claimable event chain in script modules and room script
+    bool eventWasClaimed;
+    int toret = run_claimable_event(tsname, true, param_count, params, &eventWasClaimed);
+    // Break on event claim
+    if (eventWasClaimed)
+        return toret;
+    return RunScriptFunction(gameinst, tsname, param_count, params);
+}
 
-    if (strcmp(tsname, "on_event") == 0) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 2, params, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
+int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t param_count, const RuntimeScriptValue *params)
+{
+    // If told to use a room instance, then run only there
+    if (sc_inst == kScInstRoom)
+        return RunScriptFunctionInRoom(tsname, param_count, params);
+    // Rep-exec is only run in script modules, but not room script
+    // (because room script has its own callback, attached to event slot)
+    if (strcmp(tsname, REP_EXEC_NAME) == 0)
+    {
+        return RunUnclaimableEvent(REP_EXEC_NAME);
     }
-
-    return RunScriptFunctionIfExists(sci, tsname, 2, params);
+    // Claimable event is run in all the script modules and room script,
+    // before running in the globalscript instance
+    if ((strcmp(tsname, tsnames[TS_KEYPRESS]) == 0) || (strcmp(tsname, tsnames[TS_MCLICK]) == 0) ||
+        (strcmp(tsname, tsnames[TS_TEXTINPUT]) == 0) || (strcmp(tsname, "on_event") == 0))
+    {
+        return RunClaimableEvent(tsname, param_count, params);
+    }
+    // Else run on the single chosen script instance
+    ccInstance *sci = GetScriptInstanceByType(sc_inst);
+    if (!sci)
+        return 0;
+    return RunScriptFunction(sci, tsname, param_count, params);
 }
 
 String GetScriptName(ccInstance *sci)
@@ -569,7 +572,7 @@ void post_script_cleanup() {
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
         QueuedScript &script = copyof.ScFnQueue[jj];
-        RunScriptFunction(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Param1, script.Param2);
+        RunScriptFunctionAuto(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Params);
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {
             // some bogus hack for "on_call" event handler
@@ -634,7 +637,7 @@ void run_unhandled_event (int evnt) {
     else if ((evtype==3) & (evnt==4)) ;  // any click on character
     else if (evtype > 0) {
         can_run_delayed_command();
-
-        QueueScriptFunction(kScInstGame, "unhandled_event", 2, RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
+        RuntimeScriptValue params[] = { evtype, evnt };
+        QueueScriptFunction(kScInstGame, "unhandled_event", 2, params);
     }
 }

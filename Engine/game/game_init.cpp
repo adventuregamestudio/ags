@@ -423,6 +423,7 @@ void AllocScriptModules()
     getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
     for (int i = 0; i < numScriptModules; ++i)
     {

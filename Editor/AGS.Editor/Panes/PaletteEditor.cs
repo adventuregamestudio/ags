@@ -32,6 +32,11 @@ namespace AGS.Editor
             GameChanged();
         }
 
+        protected override void OnPropertyChanged(string propertyName, object oldValue)
+        {
+            palettePage.Invalidate(true);
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Palette setup";

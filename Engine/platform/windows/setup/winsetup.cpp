@@ -21,6 +21,7 @@
 #include <shlwapi.h>
 #include <memory>
 #include <algorithm>
+#include <array>
 #include <set>
 #include <vector>
 #include "ac/gamestructdefines.h"
@@ -32,6 +33,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "resource/resource.h"
+#include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
@@ -88,6 +90,8 @@ struct WinConfig
     bool   RenderAtScreenRes;
     bool   AntialiasSprites;
 
+    bool   AudioEnabled;
+    String AudioDriverId;
     bool   UseVoicePack;
 
     bool   MouseAutoLock;
@@ -130,6 +134,7 @@ void WinConfig::SetDefaults()
     MouseAutoLock = false;
     MouseSpeed = 1.f;
 
+    AudioEnabled = true;
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
@@ -171,6 +176,8 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
+    AudioEnabled = INIreadint(cfg, "sound", "enabled", AudioEnabled ? 1 : 0) != 0;
+    AudioDriverId = INIreadstring(cfg, "sound", "driver", AudioDriverId);
     UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
     MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
@@ -203,6 +210,8 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
 
     INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
+    INIwriteint(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
+    INIwritestring(cfg, "sound", "driver", AudioDriverId);
     INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
     INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
@@ -481,6 +490,7 @@ private:
 
     // Operations
     void AddScalingString(HWND hlist, int scaling_factor);
+    void FillAudioDriverList();
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
@@ -500,12 +510,14 @@ private:
     // Window size
     Size _winSize;
     Size _baseSize;
-    // Driver descriptions
+    // Graphics driver descriptions
     typedef std::shared_ptr<DriverDesc> PDriverDesc;
     typedef std::map<String, PDriverDesc> DriverDescMap;
     DriverDescMap _drvDescMap;
     PDriverDesc _drvDesc;
     GfxFilterInfo _gfxFilterInfo;
+    // Audio driver descriptions
+    std::vector<std::pair<String, String>> _drvAudioList;
     // Resolution limits
     Size _desktopSize;
     Size _maxWindowSize;
@@ -524,8 +536,7 @@ private:
     HWND _hFsScalingList = NULL;
     HWND _hWinScalingList = NULL;
     HWND _hGfxFilterList = NULL;
-    HWND _hDigiDriverList = NULL;
-    HWND _hMidiDriverList = NULL;
+    HWND _hAudioDriverList = NULL;
     HWND _hLanguageList = NULL;
     HWND _hSpriteCacheList = NULL;
     HWND _hWindowed = NULL;
@@ -533,7 +544,6 @@ private:
     HWND _hRenderAtScreenRes = NULL;
     HWND _hRefresh85Hz = NULL;
     HWND _hAntialiasSprites = NULL;
-    HWND _hThreadedAudio = NULL;
     HWND _hUseVoicePack = NULL;
     HWND _hAdvanced = NULL;
     HWND _hGameResolutionText = NULL;
@@ -605,8 +615,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hFsScalingList         = GetDlgItem(_hwnd, IDC_FSSCALING);
     _hWinScalingList        = GetDlgItem(_hwnd, IDC_WINDOWSCALING);
     _hGfxFilterList         = GetDlgItem(_hwnd, IDC_GFXFILTER);
-    _hDigiDriverList        = GetDlgItem(_hwnd, IDC_DIGISOUND);
-    _hMidiDriverList        = GetDlgItem(_hwnd, IDC_MIDIMUSIC);
+    _hAudioDriverList       = GetDlgItem(_hwnd, IDC_DIGISOUND);
     _hLanguageList          = GetDlgItem(_hwnd, IDC_LANGUAGE);
     _hSpriteCacheList       = GetDlgItem(_hwnd, IDC_SPRITECACHE);
     _hWindowed              = GetDlgItem(_hwnd, IDC_WINDOWED);
@@ -614,7 +623,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
     _hRefresh85Hz           = GetDlgItem(_hwnd, IDC_REFRESH_85HZ);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
-    _hThreadedAudio         = GetDlgItem(_hwnd, IDC_THREADEDAUDIO);
     _hUseVoicePack          = GetDlgItem(_hwnd, IDC_VOICEPACK);
     _hAdvanced              = GetDlgItem(_hwnd, IDC_ADVANCED);
     _hGameResolutionText    = GetDlgItem(_hwnd, IDC_RESOLUTION);
@@ -689,12 +697,23 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
+
+    FillAudioDriverList();
+    if (_winCfg.AudioEnabled)
+    {
+        if (_winCfg.AudioDriverId.IsEmpty())
+            SetCurSelToItemDataStr(_hAudioDriverList, "default");
+        else
+            SetCurSelToItemDataStr(_hAudioDriverList, _winCfg.AudioDriverId.GetCStr());
+    }
+    else
+    {
+        SetCurSelToItemDataStr(_hAudioDriverList, "none");
+    }
     SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
-    if (INIreadint(_cfgIn, "disabled", "threaded_audio", 0) != 0)
-        EnableWindow(_hThreadedAudio, FALSE);
     if (INIreadint(_cfgIn, "disabled", "speechvox", 0) != 0)
         EnableWindow(_hUseVoicePack, FALSE);
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
@@ -950,6 +969,28 @@ void WinSetupDialog::AddScalingString(HWND hlist, int scaling_factor)
     AddString(hlist, STR(s), (DWORD_PTR)(scaling_factor >= 0 ? scaling_factor + kNumFrameScaleDef : scaling_factor));
 }
 
+void WinSetupDialog::FillAudioDriverList()
+{
+    _drvAudioList.clear();
+    _drvAudioList.push_back(std::make_pair("none", "None"));
+    _drvAudioList.push_back(std::make_pair("default", "Default"));
+    // TODO: unfortunately, SDL atm does not expose user-friendly device names;
+    // so we have to hardcode this for the time being
+    const std::array<std::pair<const char*, const char*>, 5> drv_names =
+    { {
+        { "wasapi", "WASAPI" },
+        { "directsound", "DirectSound" },
+        { "winmm", "Windows Waveform Audio" },
+        { "disk", "Direct-to-disk Audio" },
+        { "dummy", "Dummy audio driver" },
+    } };
+    for (const auto &names : drv_names)
+        _drvAudioList.push_back(std::make_pair(names.first, names.second));
+    // Fill driver data into UI list
+    for (const auto &desc : _drvAudioList)
+        AddString(_hAudioDriverList, STR(desc.second), (DWORD_PTR)desc.first.GetCStr());
+}
+
 void WinSetupDialog::FillGfxFilterList()
 {
     ResetContent(_hGfxFilterList);
@@ -1012,29 +1053,17 @@ void WinSetupDialog::FillLanguageList()
     AddString(_hLanguageList, _winCfg.DefaultLanguageName.GetCStr());
     SetCurSel(_hLanguageList, 0);
 
-    String path_mask = String::FromFormat("%s\\*.tra", _winCfg.DataDirectory.GetCStr());
-    WIN32_FIND_DATAA file_data;
-    HANDLE find_handle = FindFirstFile(STR(path_mask), &file_data);
-    if (find_handle != INVALID_HANDLE_VALUE)
+    bool found_sel = false;
+    for (FindFile ff = FindFile::OpenFiles(_winCfg.DataDirectory, "*.tra"); !ff.AtEnd(); ff.Next())
     {
-        bool found_sel = false;
-        do
+        String filename = Path::GetFilename(ff.Current());
+        filename.SetAt(0, toupper(filename[0]));
+        int index = AddString(_hLanguageList, STR(filename));
+        if (!found_sel && _winCfg.Language.CompareNoCase(filename) == 0)
         {
-            LPTSTR ext = PathFindExtension(file_data.cFileName);
-            if (ext && StrCmpI(ext, ".tra") == 0)
-            {
-                file_data.cFileName[0] = toupper(file_data.cFileName[0]);
-                *ext = 0;
-                int index = AddString(_hLanguageList, file_data.cFileName);
-                if (!found_sel && _winCfg.Language.CompareNoCase(file_data.cFileName) == 0)
-                {
-                    SetCurSel(_hLanguageList, index);
-                    found_sel = true;
-                }
-            }
+            SetCurSel(_hLanguageList, index);
+            found_sel = true;
         }
-        while (FindNextFileA(find_handle, &file_data) != FALSE);
-        FindClose(find_handle);
     }
 }
 
@@ -1171,6 +1200,19 @@ void WinSetupDialog::SaveSetup()
     else
         _winCfg.Language = GetText(_hLanguageList);
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
+    if (GetCurSel(_hAudioDriverList) == 0)
+    {
+        _winCfg.AudioEnabled = false;
+        _winCfg.AudioDriverId = "";
+    }
+    else
+    {
+        _winCfg.AudioEnabled = true;
+        if (GetCurSel(_hAudioDriverList) == 1)
+            _winCfg.AudioDriverId = ""; // use default
+        else
+            _winCfg.AudioDriverId = (LPCSTR)GetCurItemData(_hAudioDriverList);
+    }
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
     _winCfg.VSync = GetCheck(_hVSync);
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);

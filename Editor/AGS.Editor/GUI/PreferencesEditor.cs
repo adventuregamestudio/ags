@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
+using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -28,6 +29,27 @@ namespace AGS.Editor
                 // Hides password using dot list character
                 textBoxAndKeystorePassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.Yes.Password;
                 textBoxAndKeystoreKeyPassword.UseSystemPasswordChar = PasswordPropertyTextAttribute.Yes.Password;
+            }
+        }
+
+        // Make sure panels can have font and styles updated after settings is applied without restarting ags editor
+        private void UpdateFontSettings()
+        {
+            foreach (ContentDocument pane in Factory.GUIController.Panes)
+            {
+                ScriptEditor scriptEditor = pane.Control as ScriptEditor;
+                if (scriptEditor != null)
+                {
+                    ScintillaWrapper scintilla = scriptEditor.ScriptEditorControl as ScintillaWrapper;
+                    if (scintilla != null)
+                    {
+                        scintilla.ScriptFont = _settings.ScriptFont;
+                        scintilla.ScriptFontSize = _settings.ScriptFontSize;
+                        scintilla.CallTipFont = _settings.ScriptTipFont;
+                        scintilla.CallTipFontSize = _settings.ScriptTipFontSize;
+                        scintilla.UpdateAllStyles();
+                    }
+                }
             }
         }
 
@@ -120,6 +142,7 @@ namespace AGS.Editor
             }
 
             Factory.AGSEditor.Settings.Apply(_settings);
+            UpdateFontSettings();
         }
 
 		private void radFolderPath_CheckedChanged(object sender, EventArgs e)

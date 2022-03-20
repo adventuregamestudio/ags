@@ -23,6 +23,8 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
     <ClCompile Include="..\..\Engine\test\scsprintf_test.cpp" />
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5EBFBA9-1617-412B-843E-682609C65100}</ProjectGuid>

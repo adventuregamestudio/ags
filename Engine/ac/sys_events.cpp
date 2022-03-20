@@ -23,19 +23,21 @@
 #include "device/mousew32.h"
 #include "platform/base/agsplatformdriver.h"
 #include "main/engine.h"
+#include "util/string_utils.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt);
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle);
 
 // Converts SDL scan and key codes to the ags keycode
-KeyInput ags_keycode_from_sdl(const SDL_Event &event)
+KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
 {
     KeyInput ki;
-    // Printable ASCII characters are returned only from SDL_TEXTINPUT event,
+    // Printable characters are received only from SDL_TEXTINPUT event,
     // as it has key presses + mods correctly converted using current system locale already,
     // so no need to do that manually.
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
@@ -43,30 +45,52 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event)
     // systems where single keypress can produce that symbol.
     if (event.type == SDL_TEXTINPUT)
     {
-        unsigned char textch = event.text.text[0];
-        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        char ascii[sizeof(SDL_TextInputEvent::text)];
+        StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
+        unsigned char textch = ascii[0];
         if (textch >= 32 && textch <= 255)
             ki.Key = static_cast<eAGSKeyCode>(textch);
+        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
     }
 
     if (event.type == SDL_KEYDOWN)
-        ki.Key = sdl_key_to_ags_key(event.key);
+    {
+        ki.Key = sdl_key_to_ags_key(event.key, ki.Mod, old_keyhandle);
+    }
     return ki;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt)
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle)
 {
     const SDL_Keysym key = kbevt.keysym;
     const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
-    // Ctrl and Alt combinations realign the letter code to certain offset
-    if (sym >= SDLK_a && sym <= SDLK_z)
+
+    // First handle the mods, - these are straightforward
+    ags_mod = 0;
+    if (mod & KMOD_LSHIFT) ags_mod |= eAGSModLShift;
+    if (mod & KMOD_RSHIFT) ags_mod |= eAGSModRShift;
+    if (mod & KMOD_LCTRL)  ags_mod |= eAGSModLCtrl;
+    if (mod & KMOD_RCTRL)  ags_mod |= eAGSModRCtrl;
+    if (mod & KMOD_LALT)   ags_mod |= eAGSModLAlt;
+    if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
+    if (mod & KMOD_NUM)    ags_mod |= eAGSModNum;
+    if (mod & KMOD_CAPS)   ags_mod |= eAGSModCaps;
+
+    // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
+    if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))
     {
         if ((mod & KMOD_CTRL) != 0) // align letters to code 1
             return static_cast<eAGSKeyCode>( 0 + (sym - SDLK_a) + 1 );
         else if ((mod & KMOD_ALT) != 0) // align letters to code 301
             return static_cast<eAGSKeyCode>( AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1 );
+    }
+    // New mode: also handle common key range
+    else if (!old_keyhandle && (sym >= SDLK_SPACE && sym <= SDLK_z))
+    {
+        return static_cast<eAGSKeyCode>(sym);
     }
 
     // Remaining codes may match or not, but we use a big table anyway.
@@ -116,6 +140,13 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt)
     case SDL_SCANCODE_INSERT: return eAGSKeyCodeInsert;
     case SDL_SCANCODE_KP_PERIOD:
     case SDL_SCANCODE_DELETE: return eAGSKeyCodeDelete;
+
+    case SDL_SCANCODE_LSHIFT: return eAGSKeyCodeLShift;
+    case SDL_SCANCODE_RSHIFT: return eAGSKeyCodeRShift;
+    case SDL_SCANCODE_LCTRL: return eAGSKeyCodeLCtrl;
+    case SDL_SCANCODE_RCTRL: return eAGSKeyCodeRCtrl;
+    case SDL_SCANCODE_LALT: return eAGSKeyCodeLAlt;
+    case SDL_SCANCODE_RALT: return eAGSKeyCodeRAlt;
 
     default: return eAGSKeyCodeNone;
     }

@@ -21,14 +21,14 @@ namespace AGS.Editor
         public override void DeleteMainGameData(string name)
         {
             string filename = Path.Combine(OutputDirectoryFullPath, name + ".ags");
-            Utilities.DeleteFileIfExists(filename);
+            Utilities.TryDeleteFile(filename);
         }
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
             foreach (string fileName in Utilities.GetDirectoryFileList(GetCompiledPath(), Factory.AGSEditor.BaseGameFileName + ".0*"))
             {
-                File.Delete(fileName);
+                Utilities.TryDeleteFile(fileName);
             }
         }
 
@@ -152,10 +152,9 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(audioVox) &&
-                (fileListForVox.Count == 0) || (rebuildVox))
+            if ((fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(audioVox);
+                Utilities.TryDeleteFile(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
@@ -180,7 +179,7 @@ namespace AGS.Editor
             {
                 errors.Add(new CompileError(errorMsg));
             }
-            File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
+            Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(GetCompiledPath());

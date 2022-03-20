@@ -95,7 +95,7 @@ namespace AGS.Editor
             catch (AGSEditorException ex)
             {
                 Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
-                File.Delete(newTTFName);
+                Utilities.TryDeleteFile(newTTFName);
             }
 
             _item.PointSize = sizeValue;

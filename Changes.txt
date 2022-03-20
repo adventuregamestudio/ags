@@ -4,12 +4,13 @@ VERSION 3.6.0, ???
 
 Editor:
  - Editor requires .NET Framework 4.6 to run.
- - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
  - Full Unicode support for all game texts (game properties, scripts). When upgrading old
    projects this is enabled by changing a "Text format" option in General Settings. New games
    will be in Unicode mode by default.
  - Added Android build target support (requires "Android component" installed).
  - Added Web/Emscripten build target support (requires "Web build component" installed).
+ - Added "UseOldKeyboardHandling" option to the General Settings, which lets select between
+   classic key press handling and new one meant for easier unicode chars support in scripts.
  - Supports compiling UTF-8 translation sources. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
@@ -40,6 +41,8 @@ Editor:
  - Rooms created from a Blank template will now have default background of a game's resolution.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
  - Removed game Cursors hard limit (was 20).
+ - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
+ - Select script editor's font in the editor's Preferences.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
@@ -56,6 +59,17 @@ Compiler:
  - Removed 500-characters line limit.
 
 Script API:
+ - Expanded `on_key_press` callback, now supports two parameters: key code and key modifier flags.
+ - In the new key handling mode `on_key_press` is called for each actual key press;
+   e.g. combinations like Ctrl+Z will result in two `on_key_press` calls, one with eKeyCtrlLeft and
+   second with eKeyZ.
+ - Implemented new `on_text_input(int ch)` callback which is called when the engine receives
+   a printable character. This callback is essential for handling unicode chars in script.
+ - Similarily, expanded `dialog_options_key_press` with the third `mod` argument, and implemented
+   `dialog_options_text_input` callback for receiving unicode chars during the custom dialog
+   options state.
+ - Added eKey constants for Shift, Control and Alt keys.
+ - Added eKeyMod enum for key modifiers constants.
  - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
  - Hotspot.Name and Object.Name may now be set in script.
  - Added Object.ManualScaling and Object.Scaling.
@@ -92,7 +106,6 @@ Script API:
    a mask type: 0 - none, 1 - hotspots, 2 - walkbehinds, 3 - walkable areas, 4 - regions. This
    command also works as a toggle switch, calling it with the same mask index will turn it off.
  - Debug(5, n) command that displayed character's walk paths now also works as a toggle switch.
- - Added eKey constants for Alt keys.
 
 Engine:
  - New SDL2-based backend for graphics, audio and input.
@@ -111,7 +124,7 @@ Engine:
    to display as they were meant to be.
  - Supports scripts using functions and variables from any other scripts, regardless of the
    script module order in the project.
- - Removed limit of Button simultaneous button animations.
+ - Removed limit of simultaneous Button animations.
  - Removed limit of Character followers.
  - Removed Overlay limit.
  - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.

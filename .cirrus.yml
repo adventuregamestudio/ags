@@ -17,8 +17,12 @@ build_windows_task:
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
     msbuild Engine.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+  build_tools_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Tools.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=x86 /maxcpucount /nologo
   engine_pdb_artifacts:
-    path: Solutions/.build/*/*.pdb
+    path: Solutions/.build/*/acwin.pdb
   delete_engine_pdb_script: >
     cd Solutions/.build &&
     del /s *.pdb *.map *.ilk *.iobj *.ipdb
@@ -37,18 +41,27 @@ build_linux_cmake_task:
     matrix:
       - BUILD_TYPE: release
       - BUILD_TYPE: debug
+  setup_destdir_script: |
+    mkdir destdir
+    arch=$(dpkg --print-architecture)
+    ln -s destdir/bin bin_${BUILD_TYPE}_$arch
   build_script: |
     arch=$(dpkg --print-architecture)
-    filename=${BUILD_TYPE}_$arch
-    mkdir build_$filename && cd build_$filename
-    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DAGS_BUILD_COMPILER=1 -DAGS_TESTS=1  .. && make
+    mkdir build_${BUILD_TYPE}_$arch && cd build_${BUILD_TYPE}_$arch
+    cmake .. \
+      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
+      -DAGS_USE_LOCAL_SDL2_SOUND=0 \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DAGS_BUILD_TOOLS=1 \
+      -DAGS_TESTS=1 \
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
+    make install
   test_linux_script: |
     arch=$(dpkg --print-architecture)
-    filename=${BUILD_TYPE}_$arch
-    cd build_$filename
+    cd build_${BUILD_TYPE}_$arch
     ctest --output-on-failure
   binaries_artifacts:
-    path: build_*/ags
+    path: bin_*/*
 
 build_linux_debian_task:
   container:
@@ -108,12 +121,18 @@ build_linux_make_task:
       matrix:
         - FROM_DEBIAN: debian:jessie
         - FROM_DEBIAN: i386/debian:jessie
-  build_script: |
+  setup_destdir_script: |
+    mkdir destdir
     arch=$(dpkg --print-architecture)
-    make --directory=Engine
-    mkdir build_$arch && mv Engine/ags build_$arch/
+    ln -s destdir/usr/local/bin bin_$arch
+  build_script: |
+    make PREFIX="$(cd destdir && pwd)/usr/local" --directory=Engine install
+  build_compiler_script: |
+    make PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
+  build_tools_script: |
+    find Tools -name Makefile -execdir make PREFIX="$(cd destdir && pwd)/usr/local" install \;
   binaries_artifacts:
-    path: build_*/ags
+    path: bin_*/*
 
 build_macos_task:
   only_if: $CIRRUS_RELEASE == ''
@@ -125,21 +144,42 @@ build_macos_task:
     matrix:
       - BUILD_TYPE: debug
       - BUILD_TYPE: release
-    CMAKE_VERSION: 3.20.5
-  install_cmake_script: |
-    url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-macos-universal.tar.gz"
-    echo "Downloading CMake from $url"
-    curl -fLSs "$url" | bsdtar -f - -xvzC /Applications --strip-components 1
+    CMAKE_VERSION: 3.22.3
+    NINJA_VERSION: 1.10.2
+  macos_dependencies_cache:
+    folder: dep_cache
+    fingerprint_script: echo "$CMAKE_VERSION $NINJA_VERSION"
+    populate_script: |
+      mkdir dep_cache && cd dep_cache && mkdir bin && mkdir app      
+      url="https://github.com/ninja-build/ninja/releases/download/v$NINJA_VERSION/ninja-mac.zip"
+      echo "Downloading Ninja from $url"
+      curl -fLSs "$url" --output "ninja-mac.zip" && unzip -d bin ninja-mac.zip && rm ninja-mac.zip
+      url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-macos-universal.tar.gz"
+      echo "Downloading CMake from $url"
+      curl -fLSs "$url" | bsdtar -f - -xvzC app --strip-components 1
+  install_dependencies_script: |
+    cd dep_cache
+    pushd app && cp -R CMake.app /Applications/CMake.app && popd
+    cd bin && cp ninja /usr/local/bin/ninja
+  setup_destdir_script: |
+    mkdir destdir
+    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
+    ln -s destdir/bin bin_${xcode}_$BUILD_TYPE
   build_script: |
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
     mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
-    /Applications/CMake.app/Contents/bin/cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DAGS_TESTS=1 -DAGS_BUILD_COMPILER=1 .. && make
+    /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DAGS_BUILD_TOOLS=1 \
+      -DAGS_TESTS=1 \
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
+    ninja install
   test_macos_script: |
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
     cd build_${xcode}_$BUILD_TYPE
     ctest --output-on-failure
   binaries_artifacts:
-    path: build_*/ags
+    path: bin_*/*
 
 build_android_task:
   container:
@@ -149,17 +189,17 @@ build_android_task:
     greedy: true
   git_submodules_script: git submodule update --init --recursive
   build_prepare_script: |
-    pushd Android && ./and-build.sh prepare && popd
+    cd Android && ./and-build.sh prepare
   build_debug_library_and_runtime_script: |
-    pushd Android && ./and-build.sh build_debug && popd
+    cd Android && ./and-build.sh build_debug
   build_release_library_and_runtime_script: |
-    pushd Android && ./and-build.sh build_release && popd
+    cd Android && ./and-build.sh build_release
   rename_apks_script: |
-    pushd Android && ./and-build.sh archive_apks && popd
+    cd Android && ./and-build.sh archive_apks
   apks_artifacts:
     path: AGS-*.apk
   create_proj_archive_script: |
-    pushd Android && ./and-build.sh archive_project && popd
+    cd Android && ./and-build.sh archive_project
   proj_artifacts:
     path: AGS-*-android-proj-*.zip
 
@@ -168,7 +208,7 @@ build_emscripten_task:
   container:
     dockerfile: ci/emscripten/Dockerfile 
   build_emscripten_script: |
-    pushd Emscripten && ./build.sh && popd
+    cd Emscripten && ./build.sh
   package_emscripten_build_script: |
     tmp=/tmp/bundle$$
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)

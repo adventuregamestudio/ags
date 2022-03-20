@@ -55,8 +55,9 @@ using AGS::Common::String;
 // that engine may use a "config" object or combo of objects to store
 // current user config, which may also be changed from script, and saved.
 struct GameSetup {
-    int    audio_backend; // abstract option, currently only works as on/off
-    int textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
+    bool  audio_enabled;
+    String audio_driver;
+    int   textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;
@@ -89,6 +90,7 @@ struct GameSetup {
     ScreenRotation rotation;
 
     DisplayModeSetup Screen;
+    String software_render_driver;
 
     GameSetup();
 };

@@ -941,9 +941,9 @@ namespace AGS.Editor
             bmp.Dispose();
             try
             {
-                File.Delete(fileName);
+                Utilities.TryDeleteFile(fileName);
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 Factory.GUIController.ShowMessage("AGS was not able to delete the temporary sprite file. It could be that the image editor is still running and that AGS has not been able to properly detect when it shuts down. Please report this problem on the AGS Forums." + Environment.NewLine + Environment.NewLine + "Error: " + ex.Message, MessageBoxIcon.Warning);
             }

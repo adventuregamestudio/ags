@@ -31,6 +31,11 @@ namespace AGS.Editor
             set { _item = value; }
         }
 
+        protected override void OnPropertyChanged(string propertyName, object oldValue)
+        {
+            imagePanel.Invalidate(true);
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Cursors";

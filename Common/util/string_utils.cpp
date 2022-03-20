@@ -19,6 +19,7 @@
 #include "core/platform.h"
 #include "util/math.h"
 #include "util/stream.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 
@@ -239,6 +240,53 @@ void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
         StrUtil::WriteString(kv.first, out);
         StrUtil::WriteString(kv.second, out);
     }
+}
+
+size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz)
+{
+    // TODO: later consider using C++11 conversion methods
+    // First convert utf-8 string into widestring;
+    std::vector<wchar_t> wcsbuf; // widechar buffer
+    wcsbuf.resize(Utf8::GetLength(mbstr) + 1);
+    // NOTE: we don't use mbstowcs, because unfortunately ".utf-8" locale
+    // is not normally supported on all systems (e.g. Windows 7 and earlier)
+    for (size_t at = 0, chr_sz = 0; *mbstr; mbstr += chr_sz, ++at)
+    {
+        Utf8::Rune r;
+        chr_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
+        wcsbuf[at] = static_cast<wchar_t>(r);
+    }
+    // Then convert widestring to single-byte string using specified locale
+    setlocale(LC_CTYPE, loc_name);
+    size_t res_sz = wcstombs(out_cstr, &wcsbuf[0], out_sz);
+    setlocale(LC_CTYPE, "");
+    return res_sz;
+}
+
+size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t out_sz)
+{
+    size_t len = 0;
+    for (size_t mb_sz = 1; *mbstr && (mb_sz > 0) && (len < out_sz);
+        mbstr += mb_sz, ++out_wcstr, ++len)
+    {
+        Utf8::Rune r;
+        mb_sz = Utf8::GetChar(mbstr, Utf8::UtfSz, &r);
+        *out_wcstr = static_cast<wchar_t>(r);
+    }
+    *out_wcstr = 0;
+    return len;
+}
+
+size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz)
+{
+    size_t len = 0;
+    for (size_t mb_sz = 1; *wcstr && (mb_sz > 0) && (len + mb_sz < out_sz);
+        ++wcstr, out_mbstr += mb_sz, len += mb_sz)
+    {
+        mb_sz = Utf8::SetChar(*wcstr, out_mbstr, out_sz - len);
+    }
+    *out_mbstr = 0;
+    return len;
 }
 
 } // namespace Common

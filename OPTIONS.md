@@ -25,6 +25,8 @@ Locations of two latter files differ between running platforms:
     * D3D9 - Direct3D9 (MS Windows version only);
     * OGL - OpenGL;
     * Software - software renderer.
+  * software_driver = \[string\] - *optional* id of the SDL2 driver to use for the final output in software mode, leave empty for default. IDs are provided by SDL2, not all of these will work on any system:
+    * direct3d, opengl, opengles, opengles2, metal, software.
   * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
   * screen_def = \[string\] - determines how display mode is deduced:
     * explicit - use screen_width and screen_height parameters;
@@ -53,22 +55,13 @@ Locations of two latter files differ between running platforms:
     * portrait (1) - locks the screen in portrait orientation.
     * landscape (2) - locks the screen in landscape orientation.
 * **\[sound\]** - sound options
-  * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
+  * enabled = \[0; 1\] - enable or disable game audio.
+  * driver = \[string\] - audio driver id, leave empty for default. Driver IDs are provided by SDL2 and are platform-dependent.
     * For Linux:
-      * ALSA, ARTS, ESSD, JACK, OSSD (OSS digital), SGIA;
-      * SDL2 - if alleg-sdl2digi.so is present.
+      * pulseaudio, alsa, arts, esd, jack, pipewire, disk, dsp, dummy
     * For Windows:
-      * DXA - pure DirectSound driver;
-      * AXA - Allegro mixer to DirectSound;
-      * WOA - Allegro mixer to WaveOut;
-  * midiid = \[string; 0; -1\] - MIDI driver id, '0' or 'none', '-1' or 'auto'. Driver IDs are platform-dependent.
-    * For Linux:
-      * AMID (Alsa MIDI), OSSM (OSS MIDI).
-    * For Windows:
-      * W32M - MIDI mapper;
-      * W32A - MIDI driver.
+      * wasapi, directsound, winmm, disk, dummy
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
-  * threaded = \[0; 1\] - when enabled, engine runs audio on a separate thread.
 * **\[mouse\]** - mouse options
   * auto_lock = \[0; 1\] - enables mouse autolock in window: mouse cursor locks inside the window whenever it receives input focus.
   * control_when = \[string\] - determines when the mouse cursor speed control is allowed, acceptable values are:

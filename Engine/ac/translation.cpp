@@ -12,8 +12,6 @@
 //
 //=============================================================================
 #include <cstdio>
-#include <locale.h>
-#include <wchar.h>
 #include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -23,10 +21,11 @@
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/wordsdictionary.h"
+#include "core/assetmanager.h"
 #include "debug/out.h"
 #include "game/tra_file.h"
 #include "util/stream.h"
-#include "core/assetmanager.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -38,25 +37,6 @@ String trans_name;
 String trans_filename;
 Translation trans;
 
-// TODO: this is a test, later consider using C++ conversion methods
-// that do not change global locale state (but they are more confusing)
-std::vector<wchar_t> wcsbuf; // widechar buffer
-std::vector<char> mbbuf;  // utf8 buffer
-const char *convert_utf8_to_ascii(const char *mbstr, const char *loc_name)
-{
-    // First convert utf-8 string into widestring;
-    size_t len = strlen(mbstr);
-    wcsbuf.resize(len + 1); // the actual length in glyths will be <= len
-    // use uconvert, because libc funcs are locale dependent and complicate things
-    uconvert(mbstr, U_UTF8, (char*)&wcsbuf[0], U_UNICODE, wcsbuf.size() * sizeof(wchar_t));
-    // Then convert widestring to single-byte string using specified locale
-    mbbuf.resize(wcsbuf.size() * 4);
-    setlocale(LC_CTYPE, loc_name);
-    wcstombs(&mbbuf[0], &wcsbuf[0], mbbuf.size());
-    setlocale(LC_CTYPE, "");
-    return &mbbuf[0];
-}
-
 
 void close_translation () {
     trans = Translation();
@@ -64,7 +44,10 @@ void close_translation () {
     trans_filename = "";
 
     // Return back to default game's encoding
-    set_uformat(U_ASCII);
+    if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
+        set_uformat(U_UTF8);
+    else
+        set_uformat(U_ASCII);
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)
@@ -144,10 +127,12 @@ bool init_translation(const String &lang, const String &fallback_lang)
         if (!key_enc.IsEmpty())
         {
             StringMap conv_map;
+            std::vector<char> ascii; // ascii buffer
             for (const auto &item : trans.Dict)
             {
-                String key = convert_utf8_to_ascii(item.first.GetCStr(), key_enc.GetCStr());
-                conv_map.insert(std::make_pair(key, item.second));
+                ascii.resize(item.first.GetLength()); // ascii len will be <= utf-8 len
+                StrUtil::ConvertUtf8ToAscii(item.first.GetCStr(), key_enc.GetCStr(), &ascii[0], ascii.size());
+                conv_map.insert(std::make_pair(&ascii[0], item.second));
             }
             trans.Dict = conv_map;
         }

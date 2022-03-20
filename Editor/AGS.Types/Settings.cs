@@ -70,6 +70,7 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private bool _enforceNewAudio = true;
+        private bool _oldKeyHandling = false;
         private int _playSoundOnScore = -1;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
@@ -652,6 +653,16 @@ namespace AGS.Types
         [Obsolete]
         [Browsable(false)]
         public bool UseOldCustomDialogOptionsAPI { get { return false; } }
+
+        [DisplayName("Use old-style keyboard handling")]
+        [Description("Use pre-unicode mode key codes in 'on_key_press' function, where regular keys were merged with Ctrl and Alt modifiers.")]
+        [DefaultValue(false)]
+        [Category("Backwards Compatibility")]
+        public bool UseOldKeyboardHandling
+        {
+            get { return _oldKeyHandling; }
+            set { _oldKeyHandling = value; }
+        }
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]

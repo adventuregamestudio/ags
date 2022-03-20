@@ -58,6 +58,7 @@
 #include "core/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
+#include "util/directory.h"
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
@@ -197,23 +198,20 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
 
     String svg_dir = get_save_game_directory();
     String svg_suff = get_save_game_suffix();
-    String searchPath = Path::ConcatPaths(svg_dir, String::FromFormat("agssave.???%s", svg_suff.GetCStr()));
+    String pattern = String::FromFormat("agssave.???%s", svg_suff.GetCStr());
 
-    al_ffblk ffb;
-    for (int don = al_findfirst(searchPath.GetCStr(), &ffb, FA_SEARCH); !don; don = al_findnext(&ffb))
+    for (FindFile ff = FindFile::OpenFiles(svg_dir, pattern); !ff.AtEnd(); ff.Next())
     {
-        const char *numberExtension = strstr(ffb.name, ".") + 1;
-        int saveGameSlot = atoi(numberExtension);
+        int saveGameSlot = Path::GetFileExtension(ff.Current()).ToInt();
         // only list games .000 to .099 (to allow higher slots for other perposes)
         if (saveGameSlot > 99)
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
-        saves.push_back(SaveListItem(saveGameSlot, description, ffb.time));
+        saves.push_back(SaveListItem(saveGameSlot, description, ff.CurrentTime()));
         if (saves.size() >= max_count)
             break;
     }
-    al_findclose(&ffb);
 }
 
 void SetGlobalInt(int index,int valu) {

@@ -50,8 +50,7 @@ extern RGB old_palette[256];
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
 
-EventHappened event[MAXEVENTS+1];
-int numevents=0;
+std::vector<EventHappened> events;
 
 const char*evblockbasename;
 int evblocknum;
@@ -59,7 +58,7 @@ int evblocknum;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-const char*tsnames[4]={nullptr, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
+const char *tsnames[TS_NUM] = { nullptr, REP_EXEC_NAME, "on_key_press", "on_mouse_click", "on_text_input" };
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
@@ -73,7 +72,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     int toret;
 
     if (includeRoom && roominst) {
-        toret = RunScriptFunctionIfExists(roominst, tsname, numParams, params);
+        toret = RunScriptFunction(roominst, tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -83,7 +82,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 
     // run script modules
     for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = RunScriptFunctionIfExists(moduleInst[kk], tsname, numParams, params);
+        toret = RunScriptFunction(moduleInst[kk], tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -99,7 +98,8 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 // runs the global script on_event function
 void run_on_event (int evtype, RuntimeScriptValue &wparam)
 {
-    QueueScriptFunction(kScInstGame, "on_event", 2, RuntimeScriptValue().SetInt32(evtype), wparam);
+    RuntimeScriptValue params[]{ evtype , wparam };
+    QueueScriptFunction(kScInstGame, "on_event", 2, params);
 }
 
 void run_room_event(int id) {
@@ -121,13 +121,13 @@ void run_event_block_inv(int invNum, int event) {
 
 // event list functions
 void setevent(int evtyp,int ev1,int ev2,int ev3) {
-    event[numevents].type=evtyp;
-    event[numevents].data1=ev1;
-    event[numevents].data2=ev2;
-    event[numevents].data3=ev3;
-    event[numevents].player=game.playercharacter;
-    numevents++;
-    if (numevents>=MAXEVENTS) quit("too many events posted");
+    EventHappened evt;
+    evt.type = evtyp;
+    evt.data1 = ev1;
+    evt.data2 = ev2;
+    evt.data3 = ev3;
+    evt.player = game.playercharacter;
+    events.push_back(evt);
 }
 
 // TODO: this is kind of a hack, which forces event to be processed even if
@@ -141,16 +141,17 @@ void force_event(int evtyp,int ev1,int ev2,int ev3)
         setevent(evtyp, ev1, ev2, ev3);
 }
 
-void process_event(EventHappened*evp) {
+void process_event(const EventHappened *evp) {
     RuntimeScriptValue rval_null;
     if (evp->type==EV_TEXTSCRIPT) {
         ccError=0;
-        if (evp->data2 > -1000) {
-            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, RuntimeScriptValue().SetInt32(evp->data2));
-        }
-        else {
+        RuntimeScriptValue params[2]{ evp->data2, evp->data3 };
+        if (evp->data3 > -1000)
+            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 2, params);
+        else if (evp->data2 > -1000)
+            QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, params);
+        else
             QueueScriptFunction(kScInstGame, tsnames[evp->data1]);
-        }
     }
     else if (evp->type==EV_NEWROOM) {
         NewRoom(evp->data1);
@@ -364,25 +365,22 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
     process_event(&evh);
 }
 
-void processallevents(int numev,EventHappened*evlist) {
-    int dd;
-
+void processallevents() {
     if (inside_processevent)
         return;
 
     // make a copy of the events - if processing an event includes
     // a blocking function it will continue to the next game loop
     // and wipe out the event pointer we were passed
-    EventHappened copyOfList[MAXEVENTS];
-    memcpy(&copyOfList[0], &evlist[0], sizeof(EventHappened) * numev);
+    std::vector<EventHappened> evtcopy = std::move(events);
 
     int room_was = play.room_changes;
 
     inside_processevent++;
 
-    for (dd=0;dd<numev;dd++) {
+    for (size_t i = 0; i < evtcopy.size(); ++i) {
 
-        process_event(&copyOfList[dd]);
+        process_event(&evtcopy[i]);
 
         if (room_was != play.room_changes)
             break;  // changed room, so discard other events
@@ -391,10 +389,6 @@ void processallevents(int numev,EventHappened*evlist) {
     inside_processevent--;
 }
 
-void update_events() {
-    processallevents(numevents,&event[0]);
-    numevents=0;
-}
 // end event list functions
 
 

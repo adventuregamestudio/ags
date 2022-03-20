@@ -100,6 +100,7 @@ namespace AGS.Editor
          *                - Cursor.AnimationDelay
          *                - Room.BackgroundAnimationEnabled
          *                - RuntimeSetup.FullscreenDesktop
+         * 3.6.0.20       - Settings.GameTextEncoding, Settings.UseOldKeyboardHandling;
          * 3.99.99        - BlendMode for various objects, Character.Transparency.
          *
         */
@@ -350,7 +351,7 @@ namespace AGS.Editor
                         "The configuration file will be deleted and user preferences reset to allow Editor start." +
                         "\n\n\nConfiguration file's location: " + filename,
                         MessageBoxIcon.Error);
-                File.Delete(filename);
+                Utilities.TryDeleteFile(filename);
             }
 
             _applicationSettings = new AppSettings();
@@ -575,33 +576,9 @@ namespace AGS.Editor
 
 			foreach (string fileName in fullPathNames)
 			{
-                AttemptToDeleteFileFromDisk(fileName);
+                Utilities.TryDeleteFile(fileName);
 			}
 		}
-
-        public void AttemptToDeleteFileFromDisk(string fileName)
-        {
-            try
-            {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    File.SetAttributes(fileName, FileAttributes.Normal);
-                    File.Delete(fileName);
-                }
-            }
-            catch (IOException ex)
-            {
-                throw new CannotDeleteFileException("Unable to delete the file '" + fileName + "'." + Environment.NewLine + ex.Message, ex);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                throw new CannotDeleteFileException("Unable to delete the file '" + fileName + "'." + Environment.NewLine + ex.Message, ex);
-            }
-        }
 
         /// <summary>
         /// Attempt to get write access to the specified file. If this fails,
@@ -672,7 +649,7 @@ namespace AGS.Editor
                 {
                     StreamWriter sw = new StreamWriter(fileName);
                     sw.Close();
-					Utilities.DeleteFileIfExists(fileName);
+					Utilities.TryDeleteFile(fileName);
                 }
                 catch (Exception ex)
                 {
@@ -926,6 +903,10 @@ namespace AGS.Editor
             {
                 preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
             }
+            if (!_game.Settings.UseOldKeyboardHandling)
+            {
+                preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");
+            }
             // Define Script API level macros
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
@@ -1090,7 +1071,7 @@ namespace AGS.Editor
             string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
             foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
             {
-                File.Delete(fileName);
+                Utilities.TryDeleteFile(fileName);
             }
         }
 
@@ -1114,10 +1095,9 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(audioVox) && 
-                (fileListForVox.Count == 0) || (rebuildVox))
+            if ((fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(audioVox);
+                Utilities.TryDeleteFile(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
@@ -1611,9 +1591,11 @@ namespace AGS.Editor
         /// This updates only values that strongly depend on game properties,
         /// and does not affect user settings.
         /// </summary>
-		public void WriteConfigFile(string outputDir)
+		public void WriteConfigFile(string outputDir, bool resetFile = true)
 		{
             string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
+            if (resetFile)
+                Utilities.TryDeleteFile(configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "game_height", _game.Settings.CustomResolution.Height.ToString(), configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
@@ -1640,11 +1622,9 @@ namespace AGS.Editor
             int rotation = (int)_game.DefaultSetup.Rotation;
             NativeProxy.WritePrivateProfileString("graphics", "rotation", rotation.ToString(), configFilePath);
 
-            bool use_default_digi = _game.DefaultSetup.DigitalSound == RuntimeAudioDriver.Default;
-            bool use_default_midi = _game.DefaultSetup.MidiSound == RuntimeAudioDriver.Default;
-            NativeProxy.WritePrivateProfileString("sound", "digiid", use_default_digi ? "-1" : "0", configFilePath);
-            NativeProxy.WritePrivateProfileString("sound", "midiid", use_default_midi ? "-1" : "0", configFilePath);
-            NativeProxy.WritePrivateProfileString("sound", "threaded", _game.DefaultSetup.ThreadedAudio ? "1" : "0", configFilePath);
+            bool audio_enabled = _game.DefaultSetup.DigitalSound != RuntimeAudioDriver.Disabled;
+            NativeProxy.WritePrivateProfileString("sound", "enabled", audio_enabled ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "driver", "", configFilePath); // always default
             NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
 
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
@@ -1760,11 +1740,8 @@ namespace AGS.Editor
 
             try
             {
-                if (File.Exists(gameFile))
-                {
-                    File.Delete(backupFile);
-                    File.Move(gameFile, backupFile);
-                }
+                Utilities.TryDeleteFile(backupFile);
+                File.Move(gameFile, backupFile);
             }
             catch (Exception ex)
             {
@@ -1793,17 +1770,7 @@ namespace AGS.Editor
 
             foreach (string fileName in filesToDelete)
             {
-                if (File.Exists(fileName))
-                {
-                    try
-                    {
-                        File.Delete(fileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Factory.GUIController.ShowMessage("Unable to remove file '" + fileName + "' because of an error: " + ex.Message, MessageBoxIcon.Warning);
-                    }
-                }
+                Utilities.TryDeleteFile(fileName);
             }
         }
 

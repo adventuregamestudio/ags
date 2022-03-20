@@ -438,9 +438,9 @@ namespace AGS.Editor.Components
                 }
                 try
                 {
-                    _agsEditor.AttemptToDeleteFileFromDisk(fileName);
+                    Utilities.TryDeleteFile(fileName);
                 }
-                catch (CannotDeleteFileException ex)
+                catch (Exception ex)
                 {
                     _guiController.ShowMessage("The existing file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
                     return false;

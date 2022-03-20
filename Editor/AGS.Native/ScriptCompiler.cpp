@@ -115,6 +115,7 @@ namespace AGS
             ccSetOption(SCOPT_EXPORTALL, 1);
             ccSetOption(SCOPT_LINENUMBERS, 1);
             ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
+			  ccSetOption(SCOPT_UTF8, game->UnicodeMode);
 
             if (compile_error == nullptr)
             {

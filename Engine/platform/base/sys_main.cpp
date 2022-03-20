@@ -28,7 +28,7 @@ using namespace AGS::Engine;
 
 int sys_main_init(/*config*/) {
     // TODO: setup these subsystems in config rather than keep hardcoded?
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
@@ -78,6 +78,42 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
         dm.RefreshRate = mode.refresh_rate;
         dms.push_back(dm);
     }
+}
+
+void sys_renderer_set_output(const String &name)
+{
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, name.GetCStr());
+}
+
+
+// ----------------------------------------------------------------------------
+// AUDIO UTILS
+// ----------------------------------------------------------------------------
+
+bool sys_audio_init(const String &driver_name)
+{
+    bool res = false;
+    if (!driver_name.IsEmpty())
+    {
+        res = SDL_AudioInit(driver_name.GetCStr()) == 0;
+        if (!res)
+            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio driver %s; error: %s",
+                driver_name.GetCStr(), SDL_GetError());
+    }
+    if (!res)
+    {
+        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+        if (!res)
+            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio backend: %s", SDL_GetError());
+    }
+    if (res)
+        Debug::Printf(kDbgMsg_Info, "Audio driver: %s", SDL_GetCurrentAudioDriver());
+    return res;
+}
+
+void sys_audio_shutdown()
+{
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 

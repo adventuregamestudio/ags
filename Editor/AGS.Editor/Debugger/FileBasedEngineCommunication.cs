@@ -46,14 +46,8 @@ namespace AGS.Editor
                 _watcher.Dispose();
             }
 
-            if (File.Exists(SEND_MESSAGE_FILE))
-            {
-                File.Delete(SEND_MESSAGE_FILE);
-            }
-            if (File.Exists(Path.Combine(DIRECTORY_FOR_FILES, RECIEVE_MESSAGE_FILE)))
-            {
-                File.Delete(Path.Combine(DIRECTORY_FOR_FILES, RECIEVE_MESSAGE_FILE));
-            }
+            Utilities.TryDeleteFile(SEND_MESSAGE_FILE);
+            Utilities.TryDeleteFile(Path.Combine(DIRECTORY_FOR_FILES, RECIEVE_MESSAGE_FILE));
 
             string path = Path.Combine(Directory.GetCurrentDirectory(), DIRECTORY_FOR_FILES);
             _watcher = new FileSystemWatcher(path, RECIEVE_MESSAGE_FILE);

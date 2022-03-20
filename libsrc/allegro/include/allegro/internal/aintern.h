@@ -124,16 +124,13 @@ AL_FUNC(PACKFILE *, _pack_fdopen, (int fd, AL_CONST char *mode));
 #if (defined ALLEGRO_WINDOWS)
 
    AL_FUNC(int, _al_win_open, (const char *filename, int mode, int perm));
-   AL_FUNC(int, _al_win_unlink, (const char *filename));
 
 
    #define _al_open(filename, mode, perm)   _al_win_open(filename, mode, perm)
-   #define _al_unlink(filename)             _al_win_unlink(filename)
 
 #else
 
    #define _al_open(filename, mode, perm)   open(filename, mode, perm)
-   #define _al_unlink(filename)             unlink(filename)
 
 #endif
 

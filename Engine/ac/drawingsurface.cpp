@@ -308,18 +308,8 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        int drawAtX = xx;
-
-        if (alignment & kMAlignHCenter)
-        {
-            drawAtX = xx + ((wid / 2) - get_text_width(Lines[i].GetCStr(), font) / 2);
-        }
-        else if (alignment & kMAlignRight)
-        {
-            drawAtX = (xx + wid) - get_text_width(Lines[i].GetCStr(), font);
-        }
-
-        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, Lines[i].GetCStr());
+        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), font, text_color,
+            xx, xx + wid - 1, yy + linespacing*i, (FrameAlignment)alignment);
     }
 
     sds->FinishedDrawing();

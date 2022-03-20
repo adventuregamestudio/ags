@@ -88,6 +88,11 @@ namespace Path
     // could be copied across systems without problems.
     String  FixupSharedFilename(const String &filename);
 
+#if AGS_PLATFORM_OS_ANDROID
+    // gets a path stripped of directory roots
+    String GetPathInForeignAsset(const String &filename);
+#endif
+
     // NOTE: these are only required for internal util implementations
 #if AGS_PLATFORM_OS_WINDOWS
     // Converts system wide-char path into a UTF-8 string

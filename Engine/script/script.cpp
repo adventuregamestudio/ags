@@ -284,14 +284,7 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
         return(false);
 
     no_blocking_functions++;
-    int result = 0;
-
-    if (funcToRun->numParameters < 3)
-    {
-        result = sci->CallScriptFunction((char*)funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
-    }
-    else
-        quit("DoRunScriptFuncCantBlock called with too many parameters");
+    int result = sci->CallScriptFunction(funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
 
     if (result == -2) {
         // the function doens't exist, so don't try and run it again

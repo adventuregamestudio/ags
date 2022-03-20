@@ -1056,7 +1056,7 @@ void WinSetupDialog::FillLanguageList()
     bool found_sel = false;
     for (FindFile ff = FindFile::OpenFiles(_winCfg.DataDirectory, "*.tra"); !ff.AtEnd(); ff.Next())
     {
-        String filename = Path::GetFilename(ff.Current());
+        String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
         filename.SetAt(0, toupper(filename[0]));
         int index = AddString(_hLanguageList, STR(filename));
         if (!found_sel && _winCfg.Language.CompareNoCase(filename) == 0)

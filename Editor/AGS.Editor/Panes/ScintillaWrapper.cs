@@ -263,6 +263,7 @@ namespace AGS.Editor
             this.scintillaControl1.CharAdded += OnCharAdded;
             this.scintillaControl1.UpdateUI += OnUpdateUI;
             this.scintillaControl1.ModifyAttempt += OnModifyAttemptOnReadOnly;
+            this.scintillaControl1.KeyPress += ScintillaControl1_KeyPress;
             this.scintillaControl1.Insert += ScintillaControl1_Insert;
             this.scintillaControl1.Delete += ScintillaControl1_Delete;
             this.scintillaControl1.MouseUp += ScintillaWrapper_MouseUp;
@@ -1037,6 +1038,17 @@ namespace AGS.Editor
             if (TextModified != null)
             {
                 TextModified(e.Position, e.Text.Length, true);
+            }
+        }
+
+        // prevents keyboard sending non-printable characters to scintilla text buffer
+        private void ScintillaControl1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar < 32)
+            {
+                // Prevent control characters from getting inserted
+                e.Handled = true;
+                return;
             }
         }
 

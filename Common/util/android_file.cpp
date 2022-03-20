@@ -17,6 +17,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <SDL.h>
+#include "util/path.h"
 
 namespace AGS
 {
@@ -74,9 +75,10 @@ bool GetAAssetExists(const String &filename)
 {
     AAssetManager* mgr = GetAAssetManager();
     if(mgr == nullptr) return false;
+    String a_filename = Path::GetPathInForeignAsset(filename);
     // TODO: find out if it's acceptable to open/close asset to only test its existance;
     // the alternative is to use AAssetManager_openDir and read asset list using AAssetDir_getNextFileName
-    AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
+    AAsset *asset = AAssetManager_open(mgr, a_filename.GetCStr(), AASSET_MODE_UNKNOWN);
     if (!asset) return false;
     AAsset_close(asset);
     return true;
@@ -86,7 +88,8 @@ soff_t GetAAssetSize(const String &filename)
 {
     AAssetManager* mgr = GetAAssetManager();
     if(mgr == nullptr) return -1;
-    AAsset *asset = AAssetManager_open(mgr, filename.GetCStr(), AASSET_MODE_UNKNOWN);
+    String a_filename = Path::GetPathInForeignAsset(filename);
+    AAsset *asset = AAssetManager_open(mgr, a_filename.GetCStr(), AASSET_MODE_UNKNOWN);
     if (!asset) return -1;
     soff_t len = AAsset_getLength64(asset);
     AAsset_close(asset);

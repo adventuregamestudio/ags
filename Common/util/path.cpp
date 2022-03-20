@@ -173,6 +173,24 @@ String FixupSharedFilename(const String &filename)
     return fixed_name;
 }
 
+#if AGS_PLATFORM_OS_ANDROID
+    String GetPathInForeignAsset(const String &filename)
+    {
+        if(filename.IsEmpty()) return filename;
+
+        if(filename[0] == '/')
+        {
+            return filename.Mid(1);
+        }
+        else if(filename[0] == '.' && filename[1] == '/')
+        {
+            return filename.Mid(2);
+        }
+
+        return filename;
+    }
+#endif
+
 #if AGS_PLATFORM_OS_WINDOWS
 String WidePathToUTF8(const wchar_t *ws)
 {

@@ -601,7 +601,7 @@ else ()
     add_library(ags SHARED)
 endif (NOT ANDROID)
 
-if (LINUX OR FREEBSD)
+if (AGS_DESKTOP)
     install(TARGETS ags RUNTIME DESTINATION bin)
 endif ()
 

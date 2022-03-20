@@ -15,6 +15,7 @@
 #include <map>
 
 #include "ac/audiocliptype.h"
+#include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
@@ -57,8 +58,6 @@ using namespace Common;
 extern GameSetupStruct game;
 extern RGB palette[256];
 extern DialogTopic *dialog;
-extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
-extern int numAnimButs;
 extern std::vector<ViewStruct> views;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
@@ -550,9 +549,10 @@ HSaveError WriteGUI(Stream *out)
 
     // Animated buttons
     WriteFormatTag(out, "AnimatedButtons");
-    out->WriteInt32(numAnimButs);
-    for (int i = 0; i < numAnimButs; ++i)
-        animbuts[i].WriteToFile(out);
+    size_t num_abuts = GetAnimatingButtonCount();
+    out->WriteInt32(num_abuts);
+    for (size_t i = 0; i < num_abuts; ++i)
+        GetAnimatingButtonByIndex(i)->WriteToFile(out);
     return HSaveError::None();
 }
 
@@ -613,12 +613,14 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Resto
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))
         return err;
+    RemoveAllButtonAnimations();
     int anim_count = in->ReadInt32();
-    if (!AssertCompatLimit(err, anim_count, MAX_ANIMATING_BUTTONS, "animated buttons"))
-        return err;
-    numAnimButs = anim_count;
-    for (int i = 0; i < numAnimButs; ++i)
-        animbuts[i].ReadFromFile(in);
+    for (int i = 0; i < anim_count; ++i)
+    {
+        AnimatingGUIButton abut;
+        abut.ReadFromFile(in);
+        AddButtonAnimation(abut);
+    }
     return err;
 }
 

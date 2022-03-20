@@ -69,7 +69,7 @@ void clear_chunk_list(std::vector<ccChunk> *list) {
     list->clear();
 }
 
-int is_part_of_symbol(char thischar, char startchar) {
+static int is_part_of_symbol(char thischar, char startchar) {
     // workaround for strings
     static int sayno_next_char = 0;
     static int next_is_escaped = 0;
@@ -89,7 +89,12 @@ int is_part_of_symbol(char thischar, char startchar) {
         if (thischar == startchar) sayno_next_char = 1;
         return 1;
     }
-    // a decimal number
+    // hexadecimal number
+    if ((startchar == '0') && (isxdigit(thischar) ||
+            (thischar == 'x') || (thischar == 'X'))) {
+        return 1;
+    }
+    // a decimal or float
     if ((startchar >= '0') && (startchar <= '9')) {
         if ((thischar >= '0') && (thischar <= '9'))
             return 1;
@@ -577,18 +582,25 @@ std::string friendly_int_symbol(int symidx, bool isNegative) {
 
 int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-
-    // Prepend '-' so we can parse -2147483648
-    std::string literalStrValue = std::string(sym.get_name(fromSym));
-    if (isNegative) {
-        literalStrValue = '-' + literalStrValue;
-    }
-
     errno = 0;
     char *endptr = 0;
-    const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
+    int64_t val64 = 0;
+    std::string literalStrValue = std::string(sym.get_name(fromSym));
+    // Try parse hex, then decimal
+    if ((literalStrValue.size() > 2) && (literalStrValue[0] == '0') &&
+            (literalStrValue[1] == 'X' || literalStrValue[1] == 'x')) {
+        uint64_t uval64 = strtoul(literalStrValue.c_str(), &endptr, 16);
+        if (uval64 > UINT_MAX) { errno = ERANGE; }
+        val64 = static_cast<int32_t>(uval64);
+    } else {
+        // Prepend '-' so we can parse -2147483648
+        if (isNegative)
+            literalStrValue = '-' + literalStrValue;
+        val64 = strtol(literalStrValue.c_str(), &endptr, 10);
+    }
 
-    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+    // Check errors
+    if ((val64 > INT_MAX) || (val64 < INT_MIN) || (errno == ERANGE)) {
         cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
@@ -596,12 +608,7 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
         cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
-    if (longValue > INT_MAX || longValue < INT_MIN) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
-        return -1;
-    }
-
-    theValue = static_cast<int>(longValue);
+    theValue = static_cast<int>(val64);
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
     theValue = sym.entries[fromSym].soffs;
@@ -999,8 +1006,6 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[cursym].soffs = scrip->cur_sp - (numparams+1)*4;
         createdLocalVar = true;
         numparams++;
-/*              scrip->cur_sp += oldsize;
-        scrip->write_cmd2(SCMD_ADD,SREG_SP,oldsize);*/
       }
 
       int dynArrayStatus = check_for_dynamic_array_declaration(targ, cursym, !!isPointerParam);
@@ -1754,99 +1759,6 @@ int parseArrayIndexOffsets(ccCompiledScript *scrip, VariableSymlist *thisClause,
 
   return 0;
 }
-/*
-int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
-    int *readcmd, ccCompiledScript *scrip, int iswrite, int *addressOf,
-    int *memberWasAccessed, int *isProperty, int mustBeWritable,
-    int *symlOfVariable) {
-  int onoffs = 1;
-  // we have extra stuff, like a structure member or array index, so
-  // work out the offset
-  while (onoffs < slilen) {
-    if (sym.get_type(syml[onoffs]) == SYM_OPENBRACKET) {
-      // an array index
-      int endof = findClosingBracketOffs(onoffs, syml, slilen);
-
-      // save the current offset in CX if there is one,
-      // because parse_sub_expr might destroy it
-      if (extraoffset[0] != 0)
-        scrip->push_reg(SREG_CX);
-
-      if (get_array_index_into_ax(scrip, syml, onoffs, endof, true))
-        return -1;
-
-      // if there is a current offset saved in CX, restore it
-      // otherwise, reset with no offset
-      if (extraoffset[0] != 0)
-        scrip->pop_reg(SREG_CX);
-      else
-        scrip->write_cmd2(SCMD_LITTOREG,SREG_CX,0);
-
-      // add the result to CX (which is counting the overall offset)
-      scrip->write_cmd2(SCMD_ADDREG,SREG_CX,SREG_AX);
-      onoffs = endof+1;
-      extraoffset[0]=1;
-    }
-    else if (sym.get_type(syml[onoffs]) == SYM_DOT) {
-      *memberWasAccessed = 1;
-
-      if (sym.get_type(syml[onoffs + 1]) == SYM_FUNCTION) {
-        // a member function call. don't process the bit after
-        // the dot, and instead tell it to load the address of
-        // the object
-        *addressOf = 1;
-      }
-      else if (sym.entries[syml[onoffs + 1]].flags & SFLG_PROPERTY) {
-        // property pesudo-function
-        // treat like a function for now
-        *addressOf = 1;
-        *isProperty = syml[onoffs + 1];
-        sym.entries[*isProperty].flags |= SFLG_ACCESSED;
-        *symlOfVariable = onoffs + 1;
-
-        if (mustBeWritable) {
-          // cannot use ++ or -- with property, because the memory
-          // access shortcut won't work
-          // Therefore, tell the caller to do it properly
-          // and call us again to write the value
-          readonly_cannot_cause_error = 1;
-        }
-        else if (iswrite) {
-          if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
-            cc_error("property '%s' is read-only", sym.get_friendly_name(syml[onoffs + 1]).c_str());
-            return -1;
-          }
-        }
-
-        if (slilen > onoffs + 2) {
-          // they did  lstList.OwningGUI.ID  for instance
-          cc_error("nested property access not currently supported");
-          return -1;
-        }
-
-      }
-      else {
-        *symlOfVariable = onoffs + 1;
-        // since the member has a fixed offset into the structure, don't
-        // write out any code to calculate the offset - instead, modify
-        // the hard offset value which will be written to MAR
-        soffset[0] += sym.entries[syml[onoffs+1]].soffs;
-        readcmd[0] = get_readcmd_for_size(sym.entries[syml[onoffs+1]].ssize,iswrite);
-
-        // if one of the struct members in the path is read-only, don't allow it
-        if ((iswrite) || (mustBeWritable)) {
-          if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
-            cc_error("variable '%s' is read-only", sym.get_friendly_name(syml[onoffs + 1]).c_str());
-            return -1;
-          }
-        }
-      }
-      onoffs+=2;
-    }
-  }
-  return 0;
-}
-*/
 
 int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   // a Property Get
@@ -2474,12 +2386,6 @@ int write_ax_to_variable(int slilen,long*syml,ccCompiledScript*scrip) {
 
 
 int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
-/*  printf("Parse expression: '");
-  int j;
-  for (j=0;j<listlen;j++)
-    printf("%s ",sym.get_friendly_name(symlist[j]).c_str());
-  printf("'\n");*/
-
   if (listlen == 0) {
     cc_error("Empty sub-expression?");
     return -1;
@@ -2680,9 +2586,6 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
   tlist.length=0;
   if (lilen < 0)
     return -1;
-/*  printf("lilen: %d, list is ");
-  for (j=0;j<lilen;j++) printf("%s ",sym.get_friendly_name(vnlist[j]).c_str());
-  printf("\n");*/
 
   if (sym.get_type(symlist[0]) == SYM_OPENPARENTHESIS) {
     int aa,fnd=-1,level=0;
@@ -2713,19 +2616,6 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // something like "if ((x) 1234)" ie. with an operator missing
       cc_error("Parse error: operator expected");
       return -1;
-/*
-      scrip->push_reg(SREG_AX);
-      int op = symlist[0];
-      if (sym.get_type(op) != SYM_OPERATOR) {
-        cc_error("expected operator, not '%s'",sym.get_friendly_name(op).c_str());
-        return -1;
-        }
-      if (parse_sub_expr(&symlist[1],listlen-1,scrip) < 0) return -1;
-      scrip->pop_reg(SREG_BX);
-      // now LHS is in BX, RHS is in AX - so do the maths
-      scrip->write_cmd2(sym.entries[op].operatorToVCPUCmd(),SREG_BX,SREG_AX);
-      // copy the result into AX for return
-      scrip->write_cmd2(SCMD_REGTOREG,SREG_BX,SREG_AX);*/
       }
     return 0;
     }
@@ -3088,12 +2978,6 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         cc_error ("cannot assign to string; use Str* functions instead");
         return -1;
     }
-    /*
-    if (sym.entries[cursym].flags & SFLG_READONLY) {
-    cc_error("variable '%s' is read-only", sym.get_name(cursym));
-    return -1;
-    }
-    */
     int MARIntactAssumption = 0;
     int asstype = targ->getnext();
     if (sym.get_type(asstype) == SYM_SASSIGN) {
@@ -3785,25 +3669,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     (sym.get_type(cursym) != SYM_UNDEFINEDSTRUCT)) {
 
                         const char *symName = sym.get_name(cursym);
-                        bool error = true;
-                        /*if (strstr(symName, "::") != NULL)
-                        {
-                        // Check if there is a non-struct-member version of this
-                        // type (sometimes types are mangled when used in a struct
-                        // when they shouldn't be)
-                        int unmangledSym = sym.find(&strstr(symName, "::")[2]);
-                        if ((unmangledSym > 0) && (sym.get_type(unmangledSym) == SYM_VARTYPE))
-                        {
-                        error = false;
-                        cursym = unmangledSym;
-                        }
-                        }*/
-
-                        if (error)
-                        {
-                            cc_error("Syntax error at '%s'; expected variable type", symName);
-                            return -1;
-                        }
+                        cc_error("Syntax error at '%s'; expected variable type", symName);
+                        return -1;
                 }
                 if (cursym == sym.normalStringSym) {
                     cc_error("'string' not allowed inside struct");
@@ -4929,17 +4796,6 @@ startvarbit:
 // compile the specified code into the specified struct
 int cc_compile(const char*inpl, ccCompiledScript*scrip) {
     int toret = 0;
-    /* this malloc might not alloc enough memory
-    char*mainbuf=(char*)malloc(strlen(inpl)+5000);
-    ccError = 0;
-    // run the preprocessor on the code
-    cc_preprocess(inpl, mainbuf);
-    if (ccError) return -1;
-    // now, compile the preprocessed code
-    if (__cc_compile_file(mainbuf,scrip))
-    toret=-1;
-    free(mainbuf);*/
-
     if (__cc_compile_file(inpl,scrip))
         toret=-1;
     return toret;

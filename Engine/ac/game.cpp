@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
+#include "ac/button.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"

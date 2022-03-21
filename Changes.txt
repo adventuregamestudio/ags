@@ -8,6 +8,9 @@ Common features:
    in the game project.
  - Extended sprite compression options: lossless storage optimization for 16- and 32-bit
    sprites; LZW compression option for sprites in addition to existing RLE compression.
+ - GUI controls may now be told to clip their contents, which means that nothing gets drawn outside
+   of their borders (as defined by X, Y, Width, Height properties). The only exception is Sliders,
+   which are more complicated.
  - The historical TTF fonts' "fixup" that altered their height and vertical offset is now
    optional and works only if backwards compatible option is set.
  - Max number of AudioChannels is now 16 (was 8).

@@ -37,11 +37,13 @@ void		Button_SetPushedGraphic(GUIButton *guil, int slotn);
 int			Button_GetTextColor(GUIButton *butt);
 void		Button_SetTextColor(GUIButton *butt, int newcol);
 
-int			UpdateAnimatingButton(int bu);
+// Update button's animation, returns whether the animation continues
+bool        UpdateAnimatingButton(int bu);
 size_t      GetAnimatingButtonCount();
 AnimatingGUIButton *GetAnimatingButtonByIndex(int idxn);
 void        AddButtonAnimation(const AnimatingGUIButton &abtn);
 void		StopButtonAnimation(int idxn);
+int         FindButtonAnimation(int guin, int objn);
 void		FindAndRemoveButtonAnimation(int guin, int objn);
 void        RemoveAllButtonAnimations();
 

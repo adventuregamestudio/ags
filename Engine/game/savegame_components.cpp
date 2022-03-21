@@ -703,7 +703,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, const PreservedParams &pp, Resto
     for (int i = 0; i < anim_count; ++i)
     {
         AnimatingGUIButton abut;
-        abut.ReadFromFile(in);
+        abut.ReadFromFile(in, cmp_ver);
         AddButtonAnimation(abut);
     }
     return err;
@@ -1178,7 +1178,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_350,
+        kGuiSvgVersion_36020,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI

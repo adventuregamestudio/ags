@@ -82,7 +82,7 @@ String get_caps_list(const std::set<String> &caps)
 // it logs information on data version and reports first found errors, if any.
 HGameFileError game_file_first_open(MainGameSource &src)
 {
-    HGameFileError err = OpenMainGameFileFromDefaultAsset(src);
+    HGameFileError err = OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (err ||
         err->Code() == kMGFErr_SignatureFailed ||
         err->Code() == kMGFErr_FormatVersionTooOld ||
@@ -129,7 +129,7 @@ HError load_game_file()
 {
     MainGameSource src;
     LoadedGameEntities ents(game, dialog, views);
-    HGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
+    HGameFileError load_err = OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (load_err)
     {
         load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);

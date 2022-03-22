@@ -116,7 +116,7 @@ private:
     // Loads library and registers its contents into the cache
     AssetError  RegisterAssetLib(const String &path, AssetLibEx *&lib);
 
-    // Tries to find asset in known locations, tests if it's possible to open, and fills in AssetLocation
+    // Tries to find asset in the given location, and then opens a stream for reading
     bool        GetAsset(const String &asset_name, const String &filter, bool dir_only, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetFromLib(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;
     bool        GetAssetFromDir(const AssetLibInfo *lib, const String &asset_name, AssetLocation *loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) const;

@@ -14,6 +14,18 @@ namespace AGS.Editor
     /// </summary>
     public class FileWatcherCollection : KeyedCollection<string, FileWatcher>, IDisposable
     {
+        /// <summary>
+        /// Sets all <see cref="FileWatcher.Enabled"/> for this collection.
+        /// </summary>
+        public bool Enabled
+        {
+            set
+            {
+                foreach (FileWatcher item in Items)
+                    item.Enabled = value;
+            }
+        }
+
         public void Dispose()
         {
             foreach (FileWatcher item in Items)

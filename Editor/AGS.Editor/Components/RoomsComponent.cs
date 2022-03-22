@@ -819,6 +819,8 @@ namespace AGS.Editor.Components
 
 		private void UnloadCurrentRoom()
 		{
+            _fileWatchers.Enabled = false;
+
 			if (_roomSettings != null)
 			{
 				((RoomSettingsEditor)_roomSettings.Control).SaveRoom -= new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);

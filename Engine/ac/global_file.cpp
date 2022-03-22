@@ -189,9 +189,9 @@ int FileReadInt(int32_t handle) {
   }
 char FileReadRawChar(int32_t handle) {
   Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
-  if (in->EOS())
-    return -1;
-  return in->ReadInt8();
+  return static_cast<uint8_t>(in->ReadByte());
+  // NOTE: this function has incorrect return value for historical reasons;
+  // we keep this strictly for backwards compatibility with old scripts
   }
 int FileReadRawInt(int32_t handle) {
   Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
@@ -204,5 +204,5 @@ void FileWriteRawChar(int32_t handle, int chartoWrite) {
   if ((chartoWrite < 0) || (chartoWrite > 255))
     debug_script_warn("FileWriteRawChar: can only write values 0-255");
 
-  out->WriteInt8(chartoWrite);
+  out->WriteByte(static_cast<uint8_t>(chartoWrite));
 }

@@ -32,14 +32,12 @@ size_t CCCharacter::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 void CCCharacter::Serialize(const char *address, Stream *out) {
     CharacterInfo *chaa = (CharacterInfo*)address;
     out->WriteInt32(chaa->index_id);
 }
 
-void CCCharacter::Unserialize(int index, Stream *in, size_t data_sz) {
+void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &game.chars[num], this);
 }

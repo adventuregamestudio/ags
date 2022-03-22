@@ -21,7 +21,7 @@
 
 using namespace AGS::Common;
 
-int ScriptOverlay::Dispose(const char *address, bool force) 
+int ScriptOverlay::Dispose(const char* /*address*/, bool force) 
 {
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
@@ -53,14 +53,14 @@ size_t ScriptOverlay::CalcSerializeSize()
     return sizeof(int32_t) * 4;
 }
 
-void ScriptOverlay::Serialize(const char *address, Stream *out) {
+void ScriptOverlay::Serialize(const char* /*address*/, Stream *out) {
     out->WriteInt32(overlayId);
     out->WriteInt32(borderWidth);
     out->WriteInt32(borderHeight);
     out->WriteInt32(isBackgroundSpeech);
 }
 
-void ScriptOverlay::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     overlayId = in->ReadInt32();
     borderWidth = in->ReadInt32();
     borderHeight = in->ReadInt32();

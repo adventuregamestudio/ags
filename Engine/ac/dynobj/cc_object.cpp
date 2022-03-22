@@ -31,14 +31,12 @@ size_t CCObject::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 void CCObject::Serialize(const char *address, Stream *out) {
     ScriptObject *shh = (ScriptObject*)address;
     out->WriteInt32(shh->id);
 }
 
-void CCObject::Unserialize(int index, Stream *in, size_t data_sz) {
+void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrObj[num], this);
 }

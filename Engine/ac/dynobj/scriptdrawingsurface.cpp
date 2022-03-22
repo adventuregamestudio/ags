@@ -61,7 +61,7 @@ void ScriptDrawingSurface::FinishedDrawing()
     modified = 1;
 }
 
-int ScriptDrawingSurface::Dispose(const char *address, bool force) {
+int ScriptDrawingSurface::Dispose(const char* /*address*/, bool /*force*/) {
 
     // dispose the drawing surface
     DrawingSurface_Release(this);
@@ -78,7 +78,7 @@ size_t ScriptDrawingSurface::CalcSerializeSize()
     return sizeof(int32_t) * 9;
 }
 
-void ScriptDrawingSurface::Serialize(const char *address, Stream *out) {
+void ScriptDrawingSurface::Serialize(const char* /*address*/, Stream *out) {
     // pack mask type in the last byte of a negative integer
     // note: (-1) is reserved for "unused", for backward compatibility
     if (roomMaskType > 0)
@@ -95,7 +95,7 @@ void ScriptDrawingSurface::Serialize(const char *address, Stream *out) {
     out->WriteInt32(isLinkedBitmapOnly ? 1 : 0);
 }
 
-void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int room_ds = in->ReadInt32();
     if (room_ds >= 0)
         roomBackgroundNumber = room_ds;

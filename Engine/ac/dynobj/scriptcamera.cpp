@@ -24,7 +24,7 @@ const char *ScriptCamera::GetType()
     return "Camera2";
 }
 
-int ScriptCamera::Dispose(const char *address, bool force)
+int ScriptCamera::Dispose(const char* /*address*/, bool /*force*/)
 {
     // Note that ScriptCamera is a reference to actual Camera object,
     // and this deletes the reference, while camera may remain in GameState.
@@ -37,18 +37,18 @@ size_t ScriptCamera::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-void ScriptCamera::Serialize(const char *address, Stream *out)
+void ScriptCamera::Serialize(const char* /*address*/, Stream *out)
 {
     out->WriteInt32(_id);
 }
 
-void ScriptCamera::Unserialize(int index, Stream *in, size_t data_sz)
+void ScriptCamera::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     _id = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t data_sz)
+ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,
     // but acquire one from the GameState, which keeps the first reference.

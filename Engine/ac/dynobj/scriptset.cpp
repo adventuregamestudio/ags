@@ -14,7 +14,7 @@
 #include "ac/dynobj/scriptset.h"
 #include "util/stream.h"
 
-int ScriptSetBase::Dispose(const char *address, bool force)
+int ScriptSetBase::Dispose(const char* /*address*/, bool /*force*/)
 {
     Clear();
     delete this;
@@ -26,14 +26,14 @@ const char *ScriptSetBase::GetType()
     return "StringSet";
 }
 
-void ScriptSetBase::Serialize(const char *address, Stream *out)
+void ScriptSetBase::Serialize(const char* /*address*/, Stream *out)
 {
     out->WriteInt32(IsSorted());
     out->WriteInt32(IsCaseSensitive());
     SerializeContainer(out);
 }
 
-void ScriptSetBase::Unserialize(int index, Stream *in, size_t data_sz)
+void ScriptSetBase::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     // NOTE: we expect sorted/case flags are read by external reader;
     // this is awkward, but I did not find better design solution atm

@@ -16,7 +16,7 @@
 
 using namespace AGS::Common;
 
-int ScriptViewFrame::Dispose(const char *address, bool force) {
+int ScriptViewFrame::Dispose(const char* /*address*/, bool /*force*/) {
     // always dispose a ViewFrame
     delete this;
     return 1;
@@ -31,13 +31,13 @@ size_t ScriptViewFrame::CalcSerializeSize()
     return sizeof(int32_t) * 3;
 }
 
-void ScriptViewFrame::Serialize(const char *address, Stream *out) {
+void ScriptViewFrame::Serialize(const char* /*address*/, Stream *out) {
     out->WriteInt32(view);
     out->WriteInt32(loop);
     out->WriteInt32(frame);
 }
 
-void ScriptViewFrame::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptViewFrame::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     view = in->ReadInt32();
     loop = in->ReadInt32();
     frame = in->ReadInt32();

@@ -26,12 +26,10 @@ size_t ScriptDialogOptionsRendering::CalcSerializeSize()
     return 0;
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
-void ScriptDialogOptionsRendering::Serialize(const char *address, Stream *out) {
+void ScriptDialogOptionsRendering::Serialize(const char* /*address*/, Stream* /*out*/) {
 }
 
-void ScriptDialogOptionsRendering::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptDialogOptionsRendering::Unserialize(int index, Stream* /*in*/, size_t /*data_sz*/) {
     ccRegisterUnserializedObject(index, this, this);
 }
 

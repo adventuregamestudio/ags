@@ -60,13 +60,13 @@ void ScriptUserObject::Create(const char *data, Stream *in, size_t size)
     }
 }
 
-int ScriptUserObject::Dispose(const char *address, bool force)
+int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
 {
     delete this;
     return 1;
 }
 
-int ScriptUserObject::Serialize(const char *address, char *buffer, int bufsize)
+int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsize)
 {
     if (_size > bufsize)
         // buffer not big enough, ask for a bigger one
@@ -82,57 +82,57 @@ void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, this, this);
 }
 
-const char* ScriptUserObject::GetFieldPtr(const char *address, intptr_t offset)
+const char* ScriptUserObject::GetFieldPtr(const char* /*address*/, intptr_t offset)
 {
     return _data + offset;
 }
 
-void ScriptUserObject::Read(const char *address, intptr_t offset, void *dest, int size)
+void ScriptUserObject::Read(const char* /*address*/, intptr_t offset, void *dest, int size)
 {
     memcpy(dest, _data + offset, size);
 }
 
-uint8_t ScriptUserObject::ReadInt8(const char *address, intptr_t offset)
+uint8_t ScriptUserObject::ReadInt8(const char* /*address*/, intptr_t offset)
 {
     return *(uint8_t*)(_data + offset);
 }
 
-int16_t ScriptUserObject::ReadInt16(const char *address, intptr_t offset)
+int16_t ScriptUserObject::ReadInt16(const char* /*address*/, intptr_t offset)
 {
     return *(int16_t*)(_data + offset);
 }
 
-int32_t ScriptUserObject::ReadInt32(const char *address, intptr_t offset)
+int32_t ScriptUserObject::ReadInt32(const char* /*address*/, intptr_t offset)
 {
     return *(int32_t*)(_data + offset);
 }
 
-float ScriptUserObject::ReadFloat(const char *address, intptr_t offset)
+float ScriptUserObject::ReadFloat(const char* /*address*/, intptr_t offset)
 {
     return *(float*)(_data + offset);
 }
 
-void ScriptUserObject::Write(const char *address, intptr_t offset, void *src, int size)
+void ScriptUserObject::Write(const char* /*address*/, intptr_t offset, void *src, int size)
 {
     memcpy((void*)(_data + offset), src, size);
 }
 
-void ScriptUserObject::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+void ScriptUserObject::WriteInt8(const char* /*address*/, intptr_t offset, uint8_t val)
 {
     *(uint8_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteInt16(const char *address, intptr_t offset, int16_t val)
+void ScriptUserObject::WriteInt16(const char* /*address*/, intptr_t offset, int16_t val)
 {
     *(int16_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteInt32(const char *address, intptr_t offset, int32_t val)
+void ScriptUserObject::WriteInt32(const char* /*address*/, intptr_t offset, int32_t val)
 {
     *(int32_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteFloat(const char *address, intptr_t offset, float val)
+void ScriptUserObject::WriteFloat(const char* /*address*/, intptr_t offset, float val)
 {
     *(float*)(_data + offset) = val;
 }

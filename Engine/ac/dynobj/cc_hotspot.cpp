@@ -31,14 +31,12 @@ size_t CCHotspot::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 void CCHotspot::Serialize(const char *address, Stream *out) {
     ScriptHotspot *shh = (ScriptHotspot*)address;
     out->WriteInt32(shh->id);
 }
 
-void CCHotspot::Unserialize(int index, Stream *in, size_t data_sz) {
+void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrHotspot[num], this);
 }

@@ -24,7 +24,7 @@ DynObjectRef ScriptString::CreateString(const char *fromText) {
     return CreateNewScriptStringObj(fromText);
 }
 
-int ScriptString::Dispose(const char *address, bool force) {
+int ScriptString::Dispose(const char* /*address*/, bool /*force*/) {
     // always dispose
     if (text) {
         free(text);
@@ -43,13 +43,13 @@ size_t ScriptString::CalcSerializeSize()
     return _len + 1 + sizeof(int32_t);
 }
 
-void ScriptString::Serialize(const char *address, Stream *out) {
+void ScriptString::Serialize(const char* /*address*/, Stream *out) {
     const auto *cstr = text ? text : "";
     out->WriteInt32(_len);
     out->Write(cstr, _len + 1);
 }
 
-void ScriptString::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     _len = in->ReadInt32();
     text = (char*)malloc(_len + 1);
     in->Read(text, _len + 1);

@@ -2465,7 +2465,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     Bitmap *closeupface=nullptr;
     // TODO: we always call _display_at later which may also start voice-over;
     // find out if this may be refactored and voice started only in one place.
-    try_auto_play_speech(texx, texx, aschar, true);
+    try_auto_play_speech(texx, texx, aschar);
 
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);

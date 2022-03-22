@@ -103,4 +103,6 @@ int WaitMouse(int nloops);
 int WaitMouseKey(int nloops);
 void SkipWait();
 
+void scStartRecording(int keyToStop);
+
 #endif // __AGS_EE_AC__GLOBALGAME_H

@@ -47,7 +47,6 @@
 #include "ac/global_overlay.h"
 #include "ac/global_palette.h"
 #include "ac/global_parser.h"
-#include "ac/global_record.h"
 #include "ac/global_region.h"
 #include "ac/global_room.h"
 #include "ac/global_slider.h"

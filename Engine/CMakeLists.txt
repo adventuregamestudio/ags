@@ -175,8 +175,6 @@ target_sources(engine
     ac/global_parser.cpp
     ac/global_parser.h
     ac/global_plugin.h
-    ac/global_record.cpp
-    ac/global_record.h
     ac/global_region.cpp
     ac/global_region.h
     ac/global_room.cpp

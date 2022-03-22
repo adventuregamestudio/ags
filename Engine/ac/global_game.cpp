@@ -843,3 +843,7 @@ int WaitMouseKey(int nloops) {
 void SkipWait() {
     play.wait_counter = 0;
 }
+
+void scStartRecording(int /*keyToStop*/) {
+    debug_script_warn("StartRecording: not supported");
+}

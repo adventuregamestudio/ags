@@ -77,8 +77,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
     char              saveGameFolderName[MAX_SG_FOLDER_LEN];
     int               roomCount;
-    int              *roomNumbers;
-    char            **roomNames;
+    std::vector<int>  roomNumbers;
+    std::vector<Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // A clip to play when player gains score in game

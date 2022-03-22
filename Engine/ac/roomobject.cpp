@@ -74,7 +74,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
       do_movelist_move(&moving,&x,&y);
       }
     if (cycling==0) return;
-    if (view == (uint16_t)-1) return;
+    if (view == RoomObject::NO_VIEW) return;
     if (wait>0) { wait--; return; }
 
     cycling = CycleViewAnim(view, loop, frame, cycling < ANIM_BACKWARDS, cycling % ANIM_BACKWARDS);

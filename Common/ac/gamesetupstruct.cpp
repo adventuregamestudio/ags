@@ -60,6 +60,8 @@ void GameSetupStruct::Free()
         delete roomNames[i];
     delete[] roomNames;
     delete[] roomNumbers;
+    roomNames = nullptr;
+    roomNumbers = nullptr;
     roomCount = 0;
 
     audioClips.clear();

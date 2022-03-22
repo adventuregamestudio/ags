@@ -1644,7 +1644,7 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            Bitmap newBmp = (Bitmap)bmp.Clone();
+            Bitmap newBmp = new Bitmap(bmp);
             _loadedRoom.Width = newBmp.Width;
             _loadedRoom.Height = newBmp.Height;
             _loadedRoom.ColorDepth = newBmp.GetColorDepth();

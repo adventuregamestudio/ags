@@ -609,7 +609,7 @@ void ScPl_DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, i
     DrawingSurface_DrawString(sds, xx, yy, font, scsf_buffer);
 }
 
-void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
+void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ccAddExternalObjectFunction("DrawingSurface::Clear^1",              Sc_DrawingSurface_Clear);
     ccAddExternalObjectFunction("DrawingSurface::CreateCopy^0",         Sc_DrawingSurface_CreateCopy);

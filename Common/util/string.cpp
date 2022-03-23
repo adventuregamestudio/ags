@@ -181,33 +181,33 @@ int String::CompareNoCase(const char *cstr) const
 int String::CompareLeft(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    return strncmp(_cstr, cstr, count != -1 ? count : strlen(cstr));
+    return strncmp(_cstr, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
 int String::CompareLeftNoCase(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    return ags_strnicmp(_cstr, cstr, count != -1 ? count : strlen(cstr));
+    return ags_strnicmp(_cstr, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
 int String::CompareMid(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
     from = Math::Min(from, _len);
-    return strncmp(_cstr + from, cstr, count != -1 ? count : strlen(cstr));
+    return strncmp(_cstr + from, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
 int String::CompareMidNoCase(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
     from = Math::Min(from, _len);
-    return ags_strnicmp(_cstr + from, cstr, count != -1 ? count : strlen(cstr));
+    return ags_strnicmp(_cstr + from, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
 int String::CompareRight(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    count = count != -1 ? count : strlen(cstr);
+    count = count != NoIndex ? count : strlen(cstr);
     size_t off = Math::Min(_len, count);
     return strncmp(_cstr + _len - off, cstr, count);
 }
@@ -215,7 +215,7 @@ int String::CompareRight(const char *cstr, size_t count) const
 int String::CompareRightNoCase(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    count = count != -1 ? count : strlen(cstr);
+    count = count != NoIndex ? count : strlen(cstr);
     size_t off = Math::Min(_len, count);
     return ags_strnicmp(_cstr + _len - off, cstr, count);
 }
@@ -225,16 +225,16 @@ size_t String::FindChar(char c, size_t from) const
     if (c && from < _len)
     {
         const char * found_cstr = strchr(_cstr + from, c);
-        return found_cstr ? found_cstr - _cstr : -1;
+        return found_cstr ? found_cstr - _cstr : NoIndex;
     }
-    return -1;
+    return NoIndex;
 }
 
 size_t String::FindCharReverse(char c, size_t from) const
 {
     if ((_len == 0) || !c)
     {
-        return -1;
+        return NoIndex;
     }
 
     from = Math::Min(from, _len - 1);
@@ -247,7 +247,7 @@ size_t String::FindCharReverse(char c, size_t from) const
         }
         seek_ptr--;
     }
-    return -1;
+    return NoIndex;
 }
 
 size_t String::FindString(const char *cstr, size_t from) const
@@ -255,9 +255,9 @@ size_t String::FindString(const char *cstr, size_t from) const
     if (cstr && from < _len)
     {
         const char * found_cstr = strstr(_cstr + from, cstr);
-        return found_cstr ? found_cstr - _cstr : -1;
+        return found_cstr ? found_cstr - _cstr : NoIndex;
     }
-    return -1;
+    return NoIndex;
 }
 
 bool String::FindSection(char separator, size_t first, size_t last, bool exclude_first_sep, bool exclude_last_sep,
@@ -275,11 +275,11 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
     size_t this_field = 0;
     size_t slice_from = 0;
     size_t slice_to = _len;
-    size_t slice_at = -1;
+    size_t slice_at = NoIndex;
     do
     {
         slice_at = FindChar(separator, slice_at + 1);
-        if (slice_at == -1)
+        if (slice_at == NoIndex)
             slice_at = _len;
         // found where previous field ends
         if (this_field == last)
@@ -397,7 +397,7 @@ String String::LeftSection(char separator, bool exclude_separator) const
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindChar(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             slice_at = exclude_separator ? slice_at : slice_at + 1;
             return Left(slice_at);
@@ -411,7 +411,7 @@ String String::RightSection(char separator, bool exclude_separator) const
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindCharReverse(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             size_t count = exclude_separator ? _len - slice_at - 1 : _len - slice_at;
             return Right(count);
@@ -598,7 +598,7 @@ void String::ClipLeftSection(char separator, bool include_separator)
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindChar(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             ClipLeft(include_separator ? slice_at + 1 : slice_at);
         }
@@ -612,7 +612,7 @@ void String::ClipRightSection(char separator, bool include_separator)
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindCharReverse(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             ClipRight(include_separator ? _len - slice_at : _len - slice_at - 1);
         }
@@ -1008,7 +1008,7 @@ void String::TruncateToLeftSection(char separator, bool exclude_separator)
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindChar(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             TruncateToLeft(exclude_separator ? slice_at : slice_at + 1);
         }
@@ -1020,7 +1020,7 @@ void String::TruncateToRightSection(char separator, bool exclude_separator)
     if ((_len != 0) && separator)
     {
         size_t slice_at = FindCharReverse(separator);
-        if (slice_at != -1)
+        if (slice_at != NoIndex)
         {
             TruncateToRight(exclude_separator ? _len - slice_at - 1 : _len - slice_at);
         }

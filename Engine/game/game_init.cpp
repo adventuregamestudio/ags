@@ -51,7 +51,6 @@
 using namespace Common;
 using namespace Engine;
 
-extern GameSetupStruct game;
 extern CharacterCache *charcache;
 extern std::vector<ViewStruct> views;
 
@@ -137,7 +136,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 }
 
 // Initializes audio channels and clips and registers them in the script system
-void InitAndRegisterAudioObjects()
+void InitAndRegisterAudioObjects(GameSetupStruct &game)
 {
     for (int i = 0; i < game.numGameChannels; ++i)
     {
@@ -157,7 +156,7 @@ void InitAndRegisterAudioObjects()
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters()
+void InitAndRegisterCharacters(GameSetupStruct &game)
 {
     characterScriptObjNames.resize(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
@@ -184,7 +183,7 @@ void InitAndRegisterCharacters()
 }
 
 // Initializes dialog and registers them in the script system
-void InitAndRegisterDialogs()
+void InitAndRegisterDialogs(GameSetupStruct &game)
 {
     scrDialog = new ScriptDialog[game.numdialog];
     for (int i = 0; i < game.numdialog; ++i)
@@ -210,7 +209,7 @@ void InitAndRegisterDialogOptions()
 }
 
 // Initializes gui and registers them in the script system
-HError InitAndRegisterGUI()
+HError InitAndRegisterGUI(GameSetupStruct &game)
 {
     scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (int i = 0; i < game.numgui; ++i)
@@ -238,7 +237,7 @@ HError InitAndRegisterGUI()
 }
 
 // Initializes inventory items and registers them in the script system
-void InitAndRegisterInvItems()
+void InitAndRegisterInvItems(GameSetupStruct &game)
 {
     for (int i = 0; i < MAX_INV; ++i)
     {
@@ -283,7 +282,7 @@ void InitAndRegisterRegions()
 }
 
 // Registers static entity arrays in the script system
-void RegisterStaticArrays()
+void RegisterStaticArrays(GameSetupStruct &game)
 {
     StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
     StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
@@ -303,23 +302,23 @@ void RegisterStaticArrays()
 }
 
 // Initializes various game entities and registers them in the script system
-HError InitAndRegisterGameEntities()
+HError InitAndRegisterGameEntities(GameSetupStruct &game)
 {
-    InitAndRegisterAudioObjects();
-    InitAndRegisterCharacters();
-    InitAndRegisterDialogs();
+    InitAndRegisterAudioObjects(game);
+    InitAndRegisterCharacters(game);
+    InitAndRegisterDialogs(game);
     InitAndRegisterDialogOptions();
-    HError err = InitAndRegisterGUI();
+    HError err = InitAndRegisterGUI(game);
     if (!err)
         return err;
-    InitAndRegisterInvItems();
+    InitAndRegisterInvItems(game);
 
     InitAndRegisterHotspots();
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
     play.CreatePrimaryViewportAndCamera();
 
-    RegisterStaticArrays();
+    RegisterStaticArrays(game);
 
     setup_player_character(game.playercharacter);
     if (loaded_game_file_version >= kGameVersion_270)
@@ -456,7 +455,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         game.numGameChannels = MAX_GAME_CHANNELS_v320;
     else
         game.numGameChannels = MAX_GAME_CHANNELS;
-    HError err = InitAndRegisterGameEntities();
+    HError err = InitAndRegisterGameEntities(game);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(game, data_ver);

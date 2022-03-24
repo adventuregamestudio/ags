@@ -620,7 +620,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].y=thisroom.Objects[cc].Y;
             croom->obj[cc].num = Math::InRangeOrDef<uint16_t>(thisroom.Objects[cc].Sprite, 0);
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
-            croom->obj[cc].view=RoomObject::NO_VIEW;
+            croom->obj[cc].view=RoomObject::NoView;
             croom->obj[cc].loop=0;
             croom->obj[cc].frame=0;
             croom->obj[cc].wait=0;

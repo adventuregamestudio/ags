@@ -76,7 +76,7 @@ int GetObjectIDAtRoom(int roomx, int roomy)
         int isflipped = 0;
         int spWidth = game_to_data_coord(objs[aa].get_width());
         int spHeight = game_to_data_coord(objs[aa].get_height());
-        if (objs[aa].view != RoomObject::NO_VIEW)
+        if (objs[aa].view != RoomObject::NoView)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
@@ -229,7 +229,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     }
     if (!is_valid_object(obn))
         quit("!AnimateObject: invalid object number specified");
-    if (objs[obn].view == RoomObject::NO_VIEW)
+    if (objs[obn].view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
     if (loopn < 0 || loopn >= views[objs[obn].view].numLoops)
         quit("!AnimateObject: invalid loop number specified");
@@ -353,7 +353,7 @@ void SetObjectGraphic(int obn,int slott) {
     objs[obn].cycling=0;
     objs[obn].frame = 0;
     objs[obn].loop = 0;
-    objs[obn].view = RoomObject::NO_VIEW;
+    objs[obn].view = RoomObject::NoView;
 }
 
 int GetObjectGraphic(int obn) {

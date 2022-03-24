@@ -122,7 +122,7 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetu
         int scale = StrUtil::StringToInt(option.Mid(1));
         if (scale > 0) return WindowSetup(scale, exp_wmode);
     }
-    else if (at != -1)
+    else if (at != String::NoIndex)
     { // else try parse as a "width x height"
         Size sz = Size(StrUtil::StringToInt(option.Mid(0, at)),
             StrUtil::StringToInt(option.Mid(at + 1)));

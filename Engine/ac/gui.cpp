@@ -359,7 +359,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (!theObj->EventHandlers[0].IsEmpty()) &&
             (!gameinst->GetSymbolAddress(theObj->EventHandlers[0].GetCStr()).IsNull())) {
                 // control-specific event handler
-                if (theObj->GetEventArgs(0).FindChar(',') != -1)
+                if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
                 {
                     RuntimeScriptValue params[]{ RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut) };

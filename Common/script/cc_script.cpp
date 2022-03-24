@@ -315,7 +315,7 @@ bool ccScript::Read(Stream *in)
     sectionOffsets = nullptr;
   }
 
-  if (in->ReadInt32() != ENDFILESIG) {
+  if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG) {
     cc_error("internal error rebuilding script");
     return false;
   }

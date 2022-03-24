@@ -82,7 +82,7 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src)
 
 void WriteRoomHeader(Stream *out, RoomFileVersion data_ver)
 {
-    out->WriteInt16(data_ver);
+    out->WriteInt16(static_cast<uint16_t>(data_ver));
 }
 
 void WriteRoomEnding(Stream *out, RoomFileVersion data_ver)

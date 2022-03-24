@@ -52,7 +52,7 @@ namespace AGS
 namespace Common
 {
 
-enum InterValType
+enum InterValType : int8_t
 {
     kInterValLiteralInt = 1,
     kInterValVariable   = 2,

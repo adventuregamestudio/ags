@@ -48,12 +48,12 @@ typedef ImBufferPtrT<uint8_t*> ImBufferPtr;
 typedef ImBufferPtrT<const uint8_t*> ImBufferCPtr;
 
 
-// Finds the given color's index in the palette, or returns -1 if such color is not there
+// Finds the given color's index in the palette, or returns SIZE_MAX if such color is not there
 static size_t lookup_palette(uint32_t col, uint32_t palette[256], uint32_t ncols)
 {
     for (size_t i = 0; i < ncols; ++i)
         if (palette[i] == col) return i;
-    return -1;
+    return SIZE_MAX;
 }
 
 // Converts a 16/32-bit image into the indexed 8-bit pixel data with palette;
@@ -88,7 +88,7 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
         default: assert(0); return false;
         }
         
-        if (pal_n == -1)
+        if (pal_n == SIZE_MAX)
         {
             if (pal_count == 256) return false;
             pal_n = pal_count;

@@ -74,7 +74,7 @@ static int line_failed = 0;
 static int lastcx, lastcy;
 
 // TODO: find a way to reimpl this with Bitmap
-static void line_callback(BITMAP *bmpp, int x, int y, int d)
+static void line_callback(BITMAP *bmpp, int x, int y, int /*d*/)
 {
 /*  if ((x>=320) | (y>=200) | (x<0) | (y<0)) line_failed=1;
   else */ if (getpixel(bmpp, x, y) < 1)
@@ -813,8 +813,6 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
     numstages++;
     nearestindx = -1;
 
-    int lastpbs = pathbackstage;
-
 stage_again:
     nearestpos = 0;
     aaa = 1;
@@ -847,7 +845,6 @@ stage_again:
 #ifdef DEBUG_PATHFINDER
      AGS::Common::Debug::Printf("Added: %d, %d pbs:%d",srcx,srcy,pathbackstage);
 #endif
-      lastpbs = pathbackstage;
       pathbackstage = nearestindx;
       goto stage_again;
     }

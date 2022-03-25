@@ -43,7 +43,6 @@ void _sc_strcat(char*s1, const char*s2) {
     VALIDATE_STRING (s2);
     check_strlen(s1);
     int mosttocopy=(MAXSTRLEN-strlen(s1))-1;
-    //  int numbf=game.iface[4].numbuttons;
     my_strncpy(&s1[strlen(s1)], s2, mosttocopy);
 }
 
@@ -58,14 +57,6 @@ void _sc_strupper (char *desbuf) {
     check_strlen (desbuf);
     ags_strupr (desbuf);
 }
-
-/*int _sc_strcmp (char *s1, char *s2) {
-return strcmp (get_translation (s1), get_translation(s2));
-}
-
-int _sc_stricmp (char *s1, char *s2) {
-return ags_stricmp (get_translation (s1), get_translation(s2));
-}*/
 
 void _sc_strcpy(char*destt, const char *text) {
     VALIDATE_STRING(destt);

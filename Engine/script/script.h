@@ -40,7 +40,7 @@ using AGS::Common::InteractionVariable;
 int     run_dialog_request (int parmtr);
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
 int     run_interaction_event (Interaction *nint, int evnt, int chkAny = -1, int isInv = 0);
-int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1, int isInv = 0);
+int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1);
 int     create_global_script();
 void    cancel_all_scripts();
 

@@ -215,8 +215,8 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
     return channelToUse;
 }
 
-bool is_audiotype_allowed_to_play(AudioFileType type)
-{
+bool is_audiotype_allowed_to_play(AudioFileType /*type*/)
+{ // TODO: this is a remnant of an old audio logic, think this function over
     return usetup.audio_enabled;
 }
 
@@ -995,9 +995,9 @@ void update_music_volume()
     }
 }
 
-// Ensures crossfader is stable after loading (or failing to load)
-// new music
-void post_new_music_check (int newchannel)
+// Ensures crossfader is stable after loading (or failing to load) new music
+// NOTE: part of the legacy audio logic
+void post_new_music_check()
 {
     if ((crossFading > 0) && (AudioChans::GetChannel(crossFading) == nullptr)) {
         crossFading = 0;
@@ -1127,7 +1127,7 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
         AudioChans::DeleteClipOnChannel(useChannel);
     }
 
-    post_new_music_check(useChannel);
+    post_new_music_check();
     update_music_volume();
 }
 

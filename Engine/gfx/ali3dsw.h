@@ -49,13 +49,13 @@ public:
     int  GetTransparency() const override { return _transparency; }
     void SetTransparency(int transparency) override { _transparency = transparency; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
-    void SetStretch(int width, int height, bool useResampler = true) override 
+    void SetStretch(int width, int height, bool /*useResampler*/) override 
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
     }
-    void SetLightLevel(int lightLevel) override  { }
-    void SetTint(int red, int green, int blue, int tintSaturation) override { }
+    void SetLightLevel(int /*lightLevel*/) override  { }
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
 
     Bitmap *_bmp = nullptr;
     bool _flipped = false;
@@ -179,17 +179,17 @@ public:
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool enabled) override { }
-    void EnableVsyncBeforeRender(bool enabled) override { }
+    void UseSmoothScaling(bool /*enabled*/) override { }
+    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
     void Vsync() override;
-    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override { }
+    void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
     bool UsesMemoryBackBuffer() override { return true; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;
-    bool GetStageMatrixes(RenderMatrixes &rm) override { return false; /* not supported */ }
+    bool GetStageMatrixes(RenderMatrixes &/*rm*/) override { return false; /* not supported */ }
     ~SDLRendererGraphicsDriver() override;
 
     typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;

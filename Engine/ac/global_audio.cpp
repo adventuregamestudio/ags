@@ -410,7 +410,7 @@ void PlayMP3File (const char *filename) {
         debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
     }
 
-    post_new_music_check(useChan);
+    post_new_music_check();
 
     update_music_volume();
 }

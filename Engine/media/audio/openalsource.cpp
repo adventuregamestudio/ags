@@ -24,7 +24,7 @@ namespace Engine
 {
 
 // Finds an acceptable OpenAl format representation for the given SDL audio format
-static ALenum OpenAlFormatFromSDLFormat(SDL_AudioFormat fmt, int chans, int freq)
+static ALenum OpenAlFormatFromSDLFormat(SDL_AudioFormat fmt, int chans)
 {
     if (chans == 1) {
         switch (fmt) {
@@ -94,7 +94,7 @@ OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq)
     alGenSources(1, &_source);
     dump_al_errors();
     _inputFormat = format;
-    _alFormat = OpenAlFormatFromSDLFormat(format, channels, freq);
+    _alFormat = OpenAlFormatFromSDLFormat(format, channels);
     // FIXME: if failed to find matching format, plan resampler!
     _channels = channels;
     _freq = freq;

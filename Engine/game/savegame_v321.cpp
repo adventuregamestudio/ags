@@ -452,7 +452,7 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
     return HSaveError::None();
 }
 
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     int vv;
 

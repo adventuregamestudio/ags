@@ -444,7 +444,7 @@ void RunObjectInteraction (int aa, int mood) {
     {
         if (passon>=0) 
         {
-            if (run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), passon, 4, (passon == 3)))
+            if (run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), passon, 4))
                 return;
         }
         run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), 4);  // any click on obj

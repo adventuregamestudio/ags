@@ -105,7 +105,7 @@ struct AGSWin32 : AGSPlatformDriver {
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
-  void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
+  void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid);
   void add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers);
   void get_tasks_directory(char *directoryNameBuffer, const char *guidAsText, bool allUsers);
   void update_game_explorer(bool add);
@@ -305,7 +305,7 @@ void AGSWin32::add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *g
   SysFreeString(bstrGameDirectory);
 }
 
-void AGSWin32::remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers)
+void AGSWin32::remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid)
 {
   HRESULT hr = pFwGameExplorer->RemoveGame(*guid);
   if (FAILED(hr))
@@ -341,7 +341,7 @@ void AGSWin32::update_game_explorer(bool add)
     }
     else
     {
-      remove_game_from_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+      remove_game_from_game_explorer(pFwGameExplorer, &guid);
     }
   }
 
@@ -773,9 +773,7 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     // This is the maximal size that OS can reliably resize the window to (including any frame)
     const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
     // This is the size of window's non-client area (frame, caption, etc)
-    HWND allegro_wnd = (HWND)sys_win_get_window();
     LONG winstyle = borderless ? WS_POPUP : WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
-    LONG winstyle_al = GetWindowLong(allegro_wnd, GWL_STYLE);
     SetRectEmpty(&nc_rc);
     AdjustWindowRect(&nc_rc, winstyle, FALSE);
     // Limit the window's full size to the system's window size limit,
@@ -824,7 +822,7 @@ LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
   quit("!IAGSEngine::GetDirectDraw2() is deprecated and not supported anymore.");
   return nullptr;
 }
-LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp) 
+LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP* /*bmp*/) 
 {
   quit("!IAGSEngine::GetBitmapSurface() is deprecated and not supported anymore.");
   return nullptr;

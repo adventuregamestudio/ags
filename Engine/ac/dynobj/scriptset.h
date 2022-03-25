@@ -105,7 +105,7 @@ private:
     {
         return _set.insert(s).second;
     }
-    void DeleteItem(ConstIterator it) { /* do nothing */ }
+    void DeleteItem(ConstIterator /*it*/) { /* do nothing */ }
 
     size_t CalcSerializeSize() override
     {

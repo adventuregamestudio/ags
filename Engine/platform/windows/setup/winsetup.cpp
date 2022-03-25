@@ -385,7 +385,7 @@ void MakeFullLongPath(const char *path, WCHAR *out_buf, int buf_len)
 //
 //=============================================================================
 
-int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lParam*/, LPARAM lpData)
 {
     if (uMsg == BFFM_INITIALIZED)
     {
@@ -923,7 +923,7 @@ void WinSetupDialog::ShowAdvancedOptions()
     }
 }
 
-INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
 {
     switch (uMsg)
     {

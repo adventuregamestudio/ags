@@ -60,7 +60,7 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in savegame_v321.cpp
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data);
 
 extern GameSetupStruct game;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
@@ -694,7 +694,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
     if (svg_version >= kSvgVersion_Components)
         err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     else
-        err = restore_game_data(in, svg_version, pp, r_data);
+        err = restore_save_data_v321(in, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);

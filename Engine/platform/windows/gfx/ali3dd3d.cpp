@@ -303,7 +303,6 @@ int D3DGraphicsDriver::FirstTimeInit()
     HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
     if (hGlobal)
     {
-      DWORD resourceSize = SizeofResource(exeHandle, hRes);
       DWORD *dataPtr = (DWORD*)LockResource(hGlobal);
       hr = direct3ddevice->CreatePixelShader(dataPtr, &pixelShader);
       if (hr != D3D_OK)
@@ -890,7 +889,7 @@ bool D3DGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();
 }
 
-int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/) const
 {
     // TODO: check for device caps to know which depth is supported?
     return 32;
@@ -1796,7 +1795,7 @@ void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColour
   do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
-void D3DGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void D3DGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
   do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }

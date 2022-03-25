@@ -326,7 +326,7 @@ std::unique_ptr<Bitmap> load_rle_bitmap8(Stream *in, RGB (*pal)[256])
     return bmp;
 }
 
-void skip_rle_bitmap8(Common::Stream *in)
+void skip_rle_bitmap8(Stream *in)
 {
     int w = in->ReadInt16();
     int h = in->ReadInt16();
@@ -339,7 +339,7 @@ void skip_rle_bitmap8(Common::Stream *in)
 // LZW
 //-----------------------------------------------------------------------------
 
-void lzw_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *out)
+void lzw_compress(const uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *out)
 {
     // LZW algorithm that we use fails on sequence less than 16 bytes.
     if (data_sz < 16)
@@ -351,7 +351,7 @@ void lzw_compress(const uint8_t *data, size_t data_sz, int image_bpp, Common::St
     lzwcompress(&mem_in, out);
 }
 
-void lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Common::Stream *in)
+void lzw_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *in)
 {
     // LZW algorithm that we use fails on sequence less than 16 bytes.
     if (data_sz < 16)

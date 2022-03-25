@@ -29,7 +29,7 @@ static unsigned char GetCharCode(unsigned char wanted_code, const WFNFont* font)
 
 static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const int scale, const color_t text_color);
 
-void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
+void WFNFontRenderer::AdjustYCoordinateForFont(int * /*ycoord*/, int /*fontNumber*/)
 {
   // Do nothing
 }
@@ -134,8 +134,8 @@ bool WFNFontRenderer::IsBitmapFont()
     return true;
 }
 
-bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
-    const FontRenderParams *params, FontMetrics *metrics)
+bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
+    const FontRenderParams *params, FontMetrics * /*metrics*/)
 {
   String file_name;
   Stream *ffi = nullptr;

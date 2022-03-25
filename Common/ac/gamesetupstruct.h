@@ -126,7 +126,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     // Part 1
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
     void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_cursors(Common::Stream *in);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);
 
@@ -136,7 +136,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     void WriteMouseCursors_Aligned(Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in, GameDataVersion data_ver);
+    void read_characters(Common::Stream *in);
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     void read_messages(Common::Stream *in, GameDataVersion data_ver);
 

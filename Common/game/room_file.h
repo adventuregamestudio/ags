@@ -121,7 +121,7 @@ HRoomFileError ReadRoomHeader(RoomDataSource &src);
 // Writes room data header
 void WriteRoomHeader(Stream *out, RoomFileVersion data_ver);
 // Writes a room data ending
-void WriteRoomEnding(Stream *out, RoomFileVersion data_ver);
+void WriteRoomEnding(Stream *out);
 
 // Type of function that writes single room block.
 typedef std::function<void(const RoomStruct *room, Stream *out)> PfnWriteRoomBlock;

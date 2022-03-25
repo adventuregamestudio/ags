@@ -37,14 +37,14 @@ namespace MFLUtil
     static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
     MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
-    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in);
     MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
     MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
     MFLError ReadV20(AssetLibInfo &lib, Stream *in);
     MFLError ReadV21(AssetLibInfo &lib, Stream *in);
     MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
 
-    void     WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out);
+    void     WriteV30(const AssetLibInfo &lib, Stream *out);
 
     // Encryption / decryption 
     int      GetNextPseudoRand(int &rand_val);
@@ -104,7 +104,7 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     else
     {
         // read older clib versions (versions 1 to 9)
-        err = ReadSingleFileLib(lib, in, lib_version);
+        err = ReadSingleFileLib(lib, in);
     }
 
     // apply absolute offset for the assets contained in base data file
@@ -185,7 +185,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
+MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in)
 {
     char passwmodifier = in->ReadInt8();
     in->ReadInt8(); // unused byte
@@ -382,11 +382,11 @@ void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int l
     // First datafile in chain: write the table of contents
     if (lib_index == 0)
     {
-        WriteV30(lib, lib_version, out);
+        WriteV30(lib, out);
     }
 }
 
-void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out)
+void MFLUtil::WriteV30(const AssetLibInfo &lib, Stream *out)
 {
     out->WriteInt32(0); // reserved options
     // filenames for all library parts

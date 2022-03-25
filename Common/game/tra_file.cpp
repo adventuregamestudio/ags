@@ -70,7 +70,7 @@ HError OpenTraFile(Stream *in)
     return HError::None();
 }
 
-HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t block_len)
+HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t /*block_len*/)
 {
     switch (block)
     {
@@ -150,6 +150,7 @@ private:
     HError ReadBlock(int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
+        read_next = true;
         return ReadTraBlock(_tra, _in, (TraFileBlock)block_id, ext_id, block_len);
     }
 

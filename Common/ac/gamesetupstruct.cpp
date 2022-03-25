@@ -162,7 +162,7 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 {
     ReadMouseCursors_Aligned(in);
     return HGameFileError::None();
@@ -228,9 +228,9 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
+void GameSetupStruct::read_characters(Common::Stream *in)
 {
-    chars = new CharacterInfo[numcharacters + 5]; // TODO: why +5, is this really needed?
+    chars = new CharacterInfo[numcharacters];
 
     ReadCharacters_Aligned(in);
 }

@@ -59,7 +59,7 @@ static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hin
     if (!s)
         return nullptr;
 
-    const size_t asset_size = s->GetLength();
+    const size_t asset_size = static_cast<size_t>(s->GetLength());
     std::vector<char> data(asset_size);
     s->Read(data.data(), asset_size);
     delete s;

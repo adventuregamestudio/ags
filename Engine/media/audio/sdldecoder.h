@@ -76,8 +76,8 @@ struct SDLResampler
 {
 public:
     SDLResampler() = default;
-    SDLResampler(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+    SDLResampler(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate)
     {
         Setup(src_fmt, src_chans, src_rate, dst_fmt, dst_chans, dst_rate);
     }
@@ -85,8 +85,8 @@ public:
     bool HasConversion() const { return _cvt.needed > 0; }
     // Setup a new conversion; returns whether setup has succeeded;
     // note that if no conversion necessary it still considered a success.
-    bool Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate);
+    bool Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate);
     // Converts given sound data, on success returns a read-only pointer to the
     // memory containing resulting data, and fills out_sz with output length value;
     // note that if no conversion is required it does not perform any operation

@@ -475,7 +475,8 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
       return false;
     }
 
-    if ((d3d_mode.Width == mode.Width) && (d3d_mode.Height == mode.Height))
+    if ((d3d_mode.Width == static_cast<uint32_t>(mode.Width)) &&
+        (d3d_mode.Height == static_cast<uint32_t>(mode.Height)))
     {
       return true;
     }

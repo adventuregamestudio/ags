@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
     }
 
     // Finalize the output room
-    WriteRoomEnding(room_out.get(), dataver);
+    WriteRoomEnding(room_out.get());
     room_out.reset();
 
     // If we saved the new room into the memory, now it's the time to overwrite

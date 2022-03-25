@@ -212,8 +212,8 @@ Size get_game_frame_from_screen_size(const Size &game_size, const Size screen_si
                 frame_size = ProportionalStretch(screen_size, game_size);
             return frame_size;
         }
+    default: return Size();
     }
-    return Size();
 }
 
 static Size precalc_screen_size(const Size &game_size, const WindowSetup &ws, const FrameScaleDef frame)

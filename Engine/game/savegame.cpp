@@ -162,8 +162,9 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)

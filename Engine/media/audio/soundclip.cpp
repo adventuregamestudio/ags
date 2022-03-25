@@ -115,6 +115,8 @@ bool SOUNDCLIP::update()
     case PlaybackState::PlayStatePlaying:
         state = audio_core_slot_play(slot_);
         break;
+    default: /* do nothing */
+        break;
     }
     return is_ready();
 }

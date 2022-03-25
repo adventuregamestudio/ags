@@ -30,8 +30,9 @@ String GetDataExtErrorText(DataExtErrorType err)
         return "Unexpected end of file.";
     case kDataExtErr_BlockDataOverlapping:
         return "Block data overlapping.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 HError DataExtParser::OpenBlock()

@@ -45,8 +45,8 @@ String GetTraFileErrorText(TraFileErrorType err)
         return "Unknown block type.";
     case kTraFileErr_BlockDataOverlapping:
         return "Block data overlapping.";
+    default: return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 String GetTraBlockName(TraFileBlock id)
@@ -56,8 +56,8 @@ String GetTraBlockName(TraFileBlock id)
     case kTraFblk_Dict: return "Dictionary";
     case kTraFblk_GameID: return "GameID";
     case kTraFblk_TextOpts: return "TextOpts";
+    default: return "unknown";
     }
-    return "unknown";
 }
 
 HError OpenTraFile(Stream *in)

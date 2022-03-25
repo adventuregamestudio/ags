@@ -68,8 +68,9 @@ String MFLUtil::GetMFLErrorText(MFLError err)
         return "Format version not supported.";
     case kMFLErrNoLibBase:
         return "Not the base asset library file.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)

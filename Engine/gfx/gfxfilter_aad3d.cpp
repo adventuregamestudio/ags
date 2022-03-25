@@ -13,12 +13,12 @@
 //=============================================================================
 
 #include "core/platform.h"
-#include "stdio.h"
-#include "gfx/gfxfilter_aad3d.h"
 
 #if AGS_HAS_DIRECT3D
+
+#include "stdio.h"
+#include "gfx/gfxfilter_aad3d.h"
 #include <d3d9.h>
-#endif
 
 namespace AGS
 {
@@ -36,11 +36,9 @@ const GfxFilterInfo &AAD3DGfxFilter::GetInfo() const
 
 void AAD3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
-#if AGS_PLATFORM_OS_WINDOWS
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);
     d3d9->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
     d3d9->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-#endif
 }
 
 bool AAD3DGfxFilter::NeedToColourEdgeLines()
@@ -51,3 +49,5 @@ bool AAD3DGfxFilter::NeedToColourEdgeLines()
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
+
+#endif // AGS_HAS_DIRECT3D

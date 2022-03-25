@@ -2002,4 +2002,4 @@ bool D3DGraphicsFactory::Init()
 } // namespace Engine
 } // namespace AGS
 
-#endif // AGS_PLATFORM_OS_WINDOWS
+#endif // AGS_HAS_DIRECT3D

@@ -48,4 +48,4 @@ const GfxFilterInfo &AAOGLGfxFilter::GetInfo() const
 } // namespace Engine
 } // namespace AGS
 
-#endif // only on Windows, Android and iOS
+#endif // AGS_HAS_OPENGL

@@ -370,6 +370,7 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     return result;
 }
 
+#ifdef USE_SIMPLE_GFX_INIT
 static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
                                             const GraphicResolution &game_res,
                                             const DisplayModeSetup &setup,
@@ -391,6 +392,7 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
 
     return true;
 }
+#endif // USE_SIMPLE_GFX_INIT
 
 
 void display_gfx_mode_error(const Size &game_size, const WindowSetup &ws, const int color_depth,

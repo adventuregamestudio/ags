@@ -66,6 +66,9 @@ public:
     // Resumes the playback from the current position
     void Resume();
 
+    // Sets the reference position in ms; this may be necessary because player
+    // receives position hint only with the data timestamps
+    void SetPlaybackPosMs(float pos_ms);
     // Sets the sound panning (-1.0f to 1.0)
     void SetPanning(float panning);
     // Sets the playback speed (fraction of normal); NOTE: the speed is implemented through resampling

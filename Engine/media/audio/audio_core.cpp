@@ -166,6 +166,7 @@ void AudioCoreSlot::Stop()
     case PlayStatePaused:
         _playState = PlayStateStopped;
         _source->Stop();
+        _bufferPending = SoundBuffer(); // clear
         break;
     default:
         break;
@@ -182,8 +183,13 @@ void AudioCoreSlot::Seek(float pos_ms)
     case PlayStatePlaying:
     case PlayStatePaused:
     case PlayStateStopped:
-        _source->Stop();
-        _decoder->Seek(pos_ms);
+        {
+            _source->Stop();
+            _bufferPending = SoundBuffer(); // clear
+            float new_pos = _decoder->Seek(pos_ms);
+            _source->SetPlaybackPosMs(new_pos);
+        }
+        break;
     default:
         break;
     }

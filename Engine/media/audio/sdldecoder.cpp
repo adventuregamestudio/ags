@@ -96,15 +96,15 @@ void SDLDecoder::Close()
     _sample.reset();
 }
 
-void SDLDecoder::Seek(float pos_ms)
+float SDLDecoder::Seek(float pos_ms)
 {
-    if (!_sample || pos_ms < 0.f) return;
-    if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) != 0)
-    {
-        _posMs = pos_ms;
-        _posBytes = SoundHelper::BytesPerMs(pos_ms,
-            _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
-    }
+    if (!_sample || pos_ms < 0.f) return _posMs;
+    if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) == 0)
+        return _posMs; // old pos on failure (CHECKME?)
+    _posMs = pos_ms;
+    _posBytes = SoundHelper::BytesPerMs(pos_ms,
+        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+    return pos_ms; // new pos on success
 }
 
 SoundBuffer SDLDecoder::GetData()

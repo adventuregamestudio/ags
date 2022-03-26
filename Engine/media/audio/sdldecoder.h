@@ -127,8 +127,8 @@ public:
     bool Open(float pos_ms = 0.f);
     // Closes decoder, releases any owned resources
     void Close();
-    // Seeks to the given read position
-    void Seek(float pos_ms);
+    // Seeks to the given read position; returns the new position
+    float Seek(float pos_ms);
     // Returns the next chunk of data; may return empty buffer in EOS or error
     SoundBuffer GetData();
 

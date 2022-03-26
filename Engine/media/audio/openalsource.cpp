@@ -177,7 +177,7 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     alSourceQueueBuffers(_source, 1, &buf_id);
     dump_al_errors();
     _queued++;
-    _predictTs += dur_ms;
+    _predictTs = data.Ts >= 0.f ? (data.Ts + dur_ms) : (_predictTs + dur_ms);
     // Push buffer record
     _bufferRecords.push_back(BufferRecord(use_ts, dur_ms, _speed));
     return data.Size;
@@ -258,12 +258,12 @@ void OpenAlSource::Stop()
         break;
     case PlayStatePlaying:
     case PlayStatePaused:
-        _playState = PlayStateStopped;
-        _positionMs = 0.f;
-        _predictTs = 0.f;
         alSourceStop(_source);
         dump_al_errors();
         Unqueue();
+        _playState = PlayStateStopped;
+        _positionMs = 0.f;
+        _predictTs = 0.f;
         break;
     default:
         break;
@@ -290,6 +290,12 @@ void OpenAlSource::Pause()
 void OpenAlSource::Resume()
 { // function is reserved, simply call Play() for now
     Play();
+}
+
+void OpenAlSource::SetPlaybackPosMs(float pos_ms)
+{
+    _positionMs = pos_ms;
+    _predictTs = pos_ms;
 }
 
 void OpenAlSource::SetPanning(float panning)

@@ -136,7 +136,6 @@ private:
     std::vector<char> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
-    uint32_t _bytesPerMs = 0u;
     float _durationMs = 0.f;
     bool _repeat = false;
     bool _EOS = false;
@@ -150,14 +149,16 @@ namespace SoundHelper
     // Tells bytes per sample from SDL_Audio format
     inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
     // Calculate number of bytes of sound data per millisecond
-    inline size_t BytesPerMs(SDL_AudioFormat format, int chans, int freq)
+    inline size_t BytesPerMs(uint32_t ms, SDL_AudioFormat format, int chans, int freq)
     {
-        return (SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000);
+        return static_cast<size_t>(
+            (static_cast<uint64_t>(ms) * SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000));
     }
     // Calculate number of milliseconds from given number of bytes of sound data
-    inline uint32_t DurationMsFromBytes(size_t count, SDL_AudioFormat format, int chans, int freq)
+    inline uint32_t MillisecondsFromBytes(size_t bytes, SDL_AudioFormat format, int chans, int freq)
     {
-        return (count * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq);
+        return static_cast<uint32_t>(
+            (static_cast<uint64_t>(bytes) * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq));
     }
 } // namespace SoundHelper
 

@@ -161,7 +161,7 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     // use provided timestamp, or calc our own
     const float use_ts = data.Ts >= 0.f ? data.Ts : _predictTs;
     const float dur_ms = static_cast<float>(
-        SoundHelper::DurationMsFromBytes(data.Size, _inputFormat, _channels, _freq));
+        SoundHelper::MillisecondsFromBytes(data.Size, _inputFormat, _channels, _freq));
     if (_resampler.HasConversion())
     {
         size_t conv_sz;

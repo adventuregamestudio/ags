@@ -82,8 +82,8 @@ bool SDLDecoder::Open(float pos_ms)
     }
 
     _sample = std::move(sample);
-    _bytesPerMs = SoundHelper::BytesPerMs(_sample->desired.format, _sample->desired.channels, _sample->desired.rate);
     _durationMs = static_cast<float>(Sound_GetDuration(_sample.get()));
+    _posBytes = 0u;
     _posMs = 0u;
     if (pos_ms >= 0u) {
         Seek(pos_ms);
@@ -100,7 +100,11 @@ void SDLDecoder::Seek(float pos_ms)
 {
     if (!_sample || pos_ms < 0.f) return;
     if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) != 0)
+    {
         _posMs = pos_ms;
+        _posBytes = SoundHelper::BytesPerMs(pos_ms,
+            _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+    }
 }
 
 SoundBuffer SDLDecoder::GetData()
@@ -109,7 +113,8 @@ SoundBuffer SDLDecoder::GetData()
     float old_pos = _posMs;
     auto sz = Sound_Decode(_sample.get());
     _posBytes += sz;
-    _posMs = static_cast<float>(_posBytes) / _bytesPerMs;
+    _posMs = SoundHelper::MillisecondsFromBytes(_posBytes,
+        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
     // If read less than the buffer size - that means
     // either we reached end of sound stream OR decoding error occured
     if (sz < _sample->buffer_size) {
@@ -125,7 +130,7 @@ SoundBuffer SDLDecoder::GetData()
         }
     }
     return SoundBuffer(_sample->buffer, sz, old_pos, static_cast<float>(
-        SoundHelper::DurationMsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
+        SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
 }
 
 } // namespace Engine

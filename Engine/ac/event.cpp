@@ -384,7 +384,10 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
 
 void processallevents() {
     if (inside_processevent)
+    {
+        events.clear(); // flush queued events
         return;
+    }
 
     // make a copy of the events - if processing an event includes
     // a blocking function it will continue to the next game loop

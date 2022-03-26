@@ -1,7 +1,7 @@
 FetchContent_Declare(
     sdlsound_content
-    URL https://github.com/icculus/SDL_sound/archive/ebcf0fe725448f9dbaa7884114e0b96b9c041570.tar.gz
-    URL_HASH MD5=2b8120331f16a5e2ff52fc4d52d70276
+    URL https://github.com/icculus/SDL_sound/archive/12983b8acc8f89a4f0b4c320bdcc601a78824822.tar.gz
+    URL_HASH MD5=f33248b8d63d5e2e79af59ad02cfb248
 )
 
 FetchContent_GetProperties(sdlsound_content)
@@ -10,6 +10,10 @@ if(NOT sdlsound_content)
   set(SDLSOUND_BUILD_SHARED off CACHE BOOL "no shared")
   set(SDLSOUND_BUILD_TEST off CACHE BOOL "no tests")
   set(SDLSOUND_BUILD_STATIC on CACHE BOOL "static")
+
+  # see why we need to manually enable here: https://github.com/icculus/SDL_sound/issues/19#issuecomment-1079263491
+  set(SDLSOUND_DECODER_MIDI on CACHE BOOL "")
+
   message("Including SDL2_sound ...")
   message("SDL2_DIR: ${SDL2_DIR}")
   message("sdl2_content_SOURCE_DIR: ${sdl2_content_SOURCE_DIR}")

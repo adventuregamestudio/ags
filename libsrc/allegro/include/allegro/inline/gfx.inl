@@ -51,28 +51,22 @@ AL_FUNC(void, bmp_unwrite_line, (BITMAP *bmp));
 
 #else
 
-typedef AL_METHOD(uintptr_t, _BMP_BANK_SWITCHER, (BITMAP *bmp, int lyne));
-typedef AL_METHOD(void, _BMP_UNBANK_SWITCHER, (BITMAP *bmp));
-
 
 AL_INLINE(uintptr_t, bmp_write_line, (BITMAP *bmp, int lyne),
 {
-   _BMP_BANK_SWITCHER switcher = (_BMP_BANK_SWITCHER)bmp->write_bank;
-   return switcher(bmp, lyne);
+   return bmp->write_bank(bmp, lyne);
 })
 
 
 AL_INLINE(uintptr_t, bmp_read_line, (BITMAP *bmp, int lyne),
 {
-   _BMP_BANK_SWITCHER switcher = (_BMP_BANK_SWITCHER)bmp->read_bank;
-   return switcher(bmp, lyne);
+   return bmp->read_bank(bmp, lyne);
 })
 
 
 AL_INLINE(void, bmp_unwrite_line, (BITMAP *bmp),
 {
-   _BMP_UNBANK_SWITCHER switcher = (_BMP_UNBANK_SWITCHER)bmp->vtable->unwrite_bank;
-   switcher(bmp);
+   bmp->vtable->unwrite_bank(bmp);
 })
 
 #endif      /* defined ALLEGRO_BCC32 */
@@ -125,7 +119,7 @@ AL_INLINE(int, is_same_bitmap, (BITMAP *bmp1, BITMAP *bmp2),
 
 AL_INLINE(int, is_linear_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return TRUE; // only support linear memory bitmaps
 })
@@ -133,7 +127,7 @@ AL_INLINE(int, is_linear_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_planar_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -141,7 +135,7 @@ AL_INLINE(int, is_planar_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_memory_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return TRUE; // only support linear memory bitmaps
 })
@@ -149,7 +143,7 @@ AL_INLINE(int, is_memory_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_screen_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -157,7 +151,7 @@ AL_INLINE(int, is_screen_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_video_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })
@@ -165,7 +159,7 @@ AL_INLINE(int, is_video_bitmap, (BITMAP *bmp),
 
 AL_INLINE(int, is_system_bitmap, (BITMAP *bmp),
 {
-   ASSERT(bmp);
+   (void)bmp; // unused
 
    return FALSE; // only support linear memory bitmaps
 })

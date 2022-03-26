@@ -25,7 +25,7 @@ using namespace AGS::Common;
 extern bool ShouldAntiAliasText();
 
 // ***** TTF RENDERER *****
-void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
+void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
   // TTF fonts already have space at the top, so try to remove the gap
   // TODO: adding -1 was here before (check the comment above),
@@ -35,7 +35,7 @@ void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
   ycoord[0]--;
 }
 
-void TTFFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
+void TTFFontRenderer::EnsureTextValidForFont(char * /*text*/, int /*fontNumber*/)
 {
   // do nothing, TTF can handle all characters
 }
@@ -45,7 +45,7 @@ int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
   return alfont_text_length(_fontData[fontNumber].AlFont, text);
 }
 
-int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
+int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 {
   return alfont_get_font_real_height(_fontData[fontNumber].AlFont);
 }
@@ -133,7 +133,7 @@ const char *TTFFontRenderer::GetName(int fontNumber)
   return alfont_get_name(_fontData[fontNumber].AlFont);
 }
 
-void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool aa_mode)
+void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool /*aa_mode*/)
 {
   if (loaded_game_file_version < kGameVersion_341)
   {

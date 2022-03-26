@@ -28,7 +28,7 @@ uint8_t RuntimeScriptValue::ReadByte() const
         }
         else
         {
-            return RValue->IValue; // get RValue as int
+            return static_cast<uint8_t>(RValue->IValue);
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
@@ -52,7 +52,7 @@ int16_t RuntimeScriptValue::ReadInt16() const
         }
         else
         {
-            return RValue->IValue; // get RValue as int
+            return static_cast<uint16_t>(RValue->IValue);
         }
     }
     else if (this->Type == kScValGlobalVar)
@@ -63,7 +63,7 @@ int16_t RuntimeScriptValue::ReadInt16() const
         }
         else
         {
-            return RValue->IValue; // get RValue as int
+            return static_cast<uint16_t>(RValue->IValue);
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)

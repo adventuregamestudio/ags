@@ -139,7 +139,7 @@ void GameState::UpdateViewports()
         }
         _roomViewportZOrderChanged = false;
     }
-    size_t vp_changed = -1;
+    size_t vp_changed = SIZE_MAX;
     for (size_t i = _roomViewportsSorted.size(); i-- > 0;)
     {
         auto vp = _roomViewportsSorted[i];
@@ -150,7 +150,7 @@ void GameState::UpdateViewports()
             vp->ClearChangedFlags();
         }
     }
-    if (vp_changed != -1)
+    if (vp_changed != SIZE_MAX)
         detect_roomviewport_overlaps(vp_changed);
     for (auto cam : _roomCameras)
     {

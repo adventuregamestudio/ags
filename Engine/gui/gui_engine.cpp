@@ -15,9 +15,6 @@
 // Implementation from acgui.h and acgui.cpp specific to Engine runtime
 //
 //=============================================================================
-
-// Headers, as they are in acgui.cpp
-#pragma unmanaged
 #include "ac/game_version.h"
 #include "ac/system.h"
 #include "font/fonts.h"
@@ -40,10 +37,6 @@ using namespace AGS::Common;
 extern int eip_guiobj;
 extern void replace_macro_tokens(const char*, String&);
 
-// For engine these are defined in acfonts.cpp
-extern void ensure_text_valid_for_font(char *, int);
-//
-
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
 
@@ -65,15 +58,6 @@ bool GUIMain::HasAlphaChannel() const
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)
         loaded_game_file_version >= kGameVersion_320 && game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Legacy;
-}
-
-//=============================================================================
-// Engine-specific implementation split out of acgui.h
-//=============================================================================
-
-void check_font(int *fontnum)
-{
-    // do nothing
 }
 
 //=============================================================================

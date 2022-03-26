@@ -21,12 +21,12 @@ namespace Engine
 //-----------------------------------------------------------------------------
 // SDLResampler
 //-----------------------------------------------------------------------------
-bool SDLResampler::Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-    SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+bool SDLResampler::Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+    SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate)
 {
     SDL_zero(_cvt);
-    return SDL_BuildAudioCVT(&_cvt, src_fmt, src_chans, src_rate,
-        dst_fmt, dst_chans, dst_rate) >= 0;
+    return SDL_BuildAudioCVT(&_cvt, src_fmt, static_cast<uint8_t>(src_chans), src_rate,
+        dst_fmt, static_cast<uint8_t>(dst_chans), dst_rate) >= 0;
 }
 
 const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)

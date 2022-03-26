@@ -84,6 +84,7 @@ namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
 //  =========  STRUCTS  ========
+#ifdef OBSOLETE
 struct DisplayProperties
 {
     int width;
@@ -91,6 +92,7 @@ struct DisplayProperties
     int colors;
     int textheight;
 };
+#endif // OBSOLETE
 
 struct CSCIMessage
 {

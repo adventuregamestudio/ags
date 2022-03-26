@@ -207,6 +207,8 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             String args = String::FromFormat("\"%s\"", appPath.GetCStr());
             _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
     }
+#else
+    (void)cfg;
 #endif
     return true;
 }

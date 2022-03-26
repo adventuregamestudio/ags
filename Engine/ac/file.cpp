@@ -465,7 +465,7 @@ static int ags_pf_getc(void *userdata)
     return -1;
 }
 
-static int ags_pf_ungetc(int c, void *userdata)
+static int ags_pf_ungetc(int /*c*/, void* /*userdata*/)
 {
     return -1; // we do not want to support this
 }
@@ -482,12 +482,12 @@ static long ags_pf_fread(void *p, long n, void *userdata)
     return -1;
 }
 
-static int ags_pf_putc(int c, void *userdata)
+static int ags_pf_putc(int /*c*/, void* /*userdata*/)
 {
     return -1;  // don't support write
 }
 
-static long ags_pf_fwrite(AL_CONST void *p, long n, void *userdata)
+static long ags_pf_fwrite(AL_CONST void* /*p*/, long /*n*/, void* /*userdata*/)
 {
     return -1; // don't support write
 }

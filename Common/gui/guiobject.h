@@ -59,7 +59,7 @@ public:
     virtual bool    IsContentClipped() const { return true; }
     
     // Operations
-    virtual void    Draw(Bitmap *ds) { }
+    virtual void    Draw(Bitmap*) { }
     void            SetClickable(bool on);
     void            SetEnabled(bool on);
     void            SetTranslated(bool on);
@@ -67,7 +67,7 @@ public:
 
     // Events
     // Key pressed for control
-    virtual void    OnKeyPress(const KeyInput &ki) { }
+    virtual void    OnKeyPress(const KeyInput&) { }
     // Mouse button down - return 'True' to lock focus
     virtual bool    OnMouseDown() { return false; }
     // Mouse moves onto control
@@ -75,7 +75,7 @@ public:
     // Mouse moves off control
     virtual void    OnMouseLeave() { }
     // Mouse moves over control - x,y relative to gui
-    virtual void    OnMouseMove(int x, int y) { }
+    virtual void    OnMouseMove(int /*x*/, int /*y*/) { }
     // Mouse button up
     virtual void    OnMouseUp() { }
     // Control was resized

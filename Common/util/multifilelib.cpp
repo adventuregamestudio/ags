@@ -37,14 +37,14 @@ namespace MFLUtil
     static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
     MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
-    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in);
     MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
     MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
     MFLError ReadV20(AssetLibInfo &lib, Stream *in);
     MFLError ReadV21(AssetLibInfo &lib, Stream *in);
     MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
 
-    void     WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out);
+    void     WriteV30(const AssetLibInfo &lib, Stream *out);
 
     // Encryption / decryption 
     int      GetNextPseudoRand(int &rand_val);
@@ -68,8 +68,9 @@ String MFLUtil::GetMFLErrorText(MFLError err)
         return "Format version not supported.";
     case kMFLErrNoLibBase:
         return "Not the base asset library file.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
@@ -104,7 +105,7 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     else
     {
         // read older clib versions (versions 1 to 9)
-        err = ReadSingleFileLib(lib, in, lib_version);
+        err = ReadSingleFileLib(lib, in);
     }
 
     // apply absolute offset for the assets contained in base data file
@@ -171,7 +172,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     // if we've reached this point we must be right behind the header signature
 
     // read library header
-    MFLVersion lib_version = (MFLVersion)in->ReadByte();
+    MFLVersion lib_version = static_cast<MFLVersion>(in->ReadInt8());
     if ((lib_version != kMFLVersion_SingleLib) && (lib_version != kMFLVersion_MultiV10) &&
         (lib_version != kMFLVersion_MultiV11) && (lib_version != kMFLVersion_MultiV15) &&
         (lib_version != kMFLVersion_MultiV20) && (lib_version != kMFLVersion_MultiV21) &&
@@ -185,9 +186,9 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
+MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in)
 {
-    int passwmodifier = in->ReadByte();
+    char passwmodifier = in->ReadInt8();
     in->ReadInt8(); // unused byte
     lib.LibFileNames.resize(1); // only one library part
     size_t asset_count = (uint16_t)in->ReadInt16();
@@ -376,17 +377,17 @@ MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* 
 void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out)
 {
     out->Write(MFLUtil::HeadSig.GetCStr(), MFLUtil::HeadSig.GetLength());
-    out->WriteByte(lib_version);
-    out->WriteByte(lib_index);   // file number
+    out->WriteInt8(static_cast<uint8_t>(lib_version));
+    out->WriteInt8(static_cast<uint8_t>(lib_index));   // file number
 
     // First datafile in chain: write the table of contents
     if (lib_index == 0)
     {
-        WriteV30(lib, lib_version, out);
+        WriteV30(lib, out);
     }
 }
 
-void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out)
+void MFLUtil::WriteV30(const AssetLibInfo &lib, Stream *out)
 {
     out->WriteInt32(0); // reserved options
     // filenames for all library parts
@@ -401,7 +402,7 @@ void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *
     for (const auto &asset : lib.AssetInfos)
     {
         StrUtil::WriteCStr(asset.FileName, out);
-        out->WriteInt8(asset.LibUid);
+        out->WriteInt8(static_cast<uint8_t>(asset.LibUid));
         out->WriteInt64(asset.Offset);
         out->WriteInt64(asset.Size);
     }
@@ -446,13 +447,13 @@ void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, Stream *in, in
     const size_t len = size * count;
     for (size_t i = 0; i < len; ++i)
     {
-        ch[i] -= GetNextPseudoRand(rand_val);
+        ch[i] = static_cast<uint8_t>(ch[i] - GetNextPseudoRand(rand_val));
     }
 }
 
 int8_t MFLUtil::ReadEncInt8(Stream *in, int &rand_val)
 {
-    return in->ReadByte() - GetNextPseudoRand(rand_val);
+    return static_cast<int8_t>(in->ReadInt8() - GetNextPseudoRand(rand_val));
 }
 
 int32_t MFLUtil::ReadEncInt32(Stream *in, int &rand_val)
@@ -470,7 +471,7 @@ void MFLUtil::ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_
     size_t i = 0;
     while ((i == 0) || (buffer[i - 1] != 0))
     {
-        buffer[i] = in->ReadByte() - GetNextPseudoRand(rand_val);
+        buffer[i] = static_cast<int8_t>(in->ReadInt8() - GetNextPseudoRand(rand_val));
         if (i < max_len - 1)
             i++;
         else

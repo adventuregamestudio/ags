@@ -125,7 +125,7 @@ private:
         _dic[key] = value;
         return true;
     }
-    void DeleteItem(ConstIterator it) { /* do nothing */ }
+    void DeleteItem(ConstIterator /*it*/) { /* do nothing */ }
 
     size_t CalcSerializeSize() override
     {

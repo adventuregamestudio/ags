@@ -379,8 +379,8 @@ void ReadDialogs(DialogTopic *&dialog,
         // Encrypted text on > 2.60
         while (1)
         {
-            size_t newlen = in->ReadInt32();
-            if (static_cast<int32_t>(newlen) == 0xCAFEBEEF)  // GUI magic
+            size_t newlen = static_cast<uint32_t>(in->ReadInt32());
+            if (newlen == 0xCAFEBEEF)  // GUI magic
             {
                 in->Seek(-4);
                 break;
@@ -786,9 +786,10 @@ protected:
     GameDataVersion _dataVer {};
 };
 
-HError GameDataExtReader::ReadBlock(int block_id, const String &ext_id,
-    soff_t block_len, bool &read_next)
+HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
+    soff_t /*block_len*/, bool &read_next)
 {
+    read_next = true;
     // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
     // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
     // {
@@ -849,7 +850,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     if (!err)
         return err;
     game.ReadInvInfo_Aligned(in);
-    err = game.read_cursors(in, data_ver);
+    err = game.read_cursors(in);
     if (!err)
         return err;
     game.read_interaction_scripts(in, data_ver);
@@ -877,7 +878,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         in->Seek(count * 0x204);
     }
 
-    game.read_characters(in, data_ver);
+    game.read_characters(in);
     game.read_lipsync(in, data_ver);
     game.read_messages(in, data_ver);
 

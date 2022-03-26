@@ -1637,7 +1637,7 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
     }
 
     resolved_imports = new uint32_t[numimports];
-    int errors = 0, last_err_idx;
+    size_t errors = 0, last_err_idx = 0;
     for (int import_idx = 0; import_idx < scri->numimports; ++import_idx)
     {
         if (scri->imports[import_idx] == nullptr)
@@ -1779,7 +1779,7 @@ static void cc_error_fixups(const ccScript *scri, size_t pc, const char *fmt, ..
     String displbuf = String::FromFormatV(fmt, ap);
     va_end(ap);
     const char *scname = scri->numSections > 0 ? scri->sectionNames[0] : "?";
-    if (pc == -1)
+    if (pc == SIZE_MAX)
     {
         cc_error("in script %s: %s", scname, displbuf.GetCStr());
     }

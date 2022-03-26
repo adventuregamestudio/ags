@@ -17,7 +17,7 @@
 
 using namespace AGS::Common;
 
-int ScriptDynamicSprite::Dispose(const char *address, bool force) {
+int ScriptDynamicSprite::Dispose(const char* /*address*/, bool force) {
     // always dispose
     if ((slot) && (!force))
         free_dynamic_sprite(slot);
@@ -35,11 +35,11 @@ size_t ScriptDynamicSprite::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-void ScriptDynamicSprite::Serialize(const char *address, Stream *out) {
+void ScriptDynamicSprite::Serialize(const char* /*address*/, Stream *out) {
     out->WriteInt32(slot);
 }
 
-void ScriptDynamicSprite::Unserialize(int index, Stream *in, size_t data_sz) {
+void ScriptDynamicSprite::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     slot = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }

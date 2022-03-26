@@ -385,7 +385,7 @@ void MakeFullLongPath(const char *path, WCHAR *out_buf, int buf_len)
 //
 //=============================================================================
 
-int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lParam*/, LPARAM lpData)
 {
     if (uMsg == BFFM_INITIALIZED)
     {
@@ -923,7 +923,7 @@ void WinSetupDialog::ShowAdvancedOptions()
     }
 }
 
-INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
 {
     switch (uMsg)
     {
@@ -1238,11 +1238,11 @@ void WinSetupDialog::SelectNearestGfxMode(const WindowSetup &ws)
     // First check two special modes
     if (ws.IsDefaultSize())
     {
-        SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
+        SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
     }
     else if (ws.Size == _winCfg.GameResolution || ws.Scale == 1)
     {
-        SetCurSelToItemData(_hGfxModeList, kGfxMode_GameRes);
+        SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_GameRes));
     }
     else
     {
@@ -1256,7 +1256,7 @@ void WinSetupDialog::SelectNearestGfxMode(const WindowSetup &ws)
             SetCurSelToItemData(_hGfxModeList, index, NULL, kGfxMode_Desktop);
         }
         else
-            SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
+            SetCurSelToItemData(_hGfxModeList, static_cast<DWORD_PTR>(kGfxMode_Desktop));
     }
     OnGfxModeUpdate();
 }

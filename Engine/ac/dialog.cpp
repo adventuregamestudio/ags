@@ -335,7 +335,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
 }
 
 int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
-    int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
+    int bullet_wid, int usingfont, DialogTopic*dtop, int*disporder, short*dispyp,
     int linespacing, int utextcol, int padding) {
   int ww;
 
@@ -443,10 +443,13 @@ struct DialogOptions
     GUITextBox *parserInput;
     DialogTopic*dtop;
 
-    char disporder[MAXTOPICOPTIONS];
+    // display order of options
+    int disporder[MAXTOPICOPTIONS];
+    // display Y coordinate of options
     short dispyp[MAXTOPICOPTIONS];
-
+    // number of displayed options
     int numdisp;
+    // currently chosen option
     int chose;
 
     Bitmap *tempScrn;

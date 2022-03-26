@@ -74,7 +74,7 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 
 #else   // AGS_PLATFORM_OS_WINDOWS
 
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
+IAGSEditorDebugger *GetEditorDebugger(const char* /*instanceToken*/)
 {
     return nullptr;
 }
@@ -116,7 +116,7 @@ static MessageType SDL_to_MT[SDL_NUM_LOG_PRIORITIES] = {
     kDbgMsg_None, kDbgMsg_All, kDbgMsg_Debug, kDbgMsg_Info, kDbgMsg_Warn, kDbgMsg_Error, kDbgMsg_Alert
 };
 // Print SDL message through our own log
-void SDL_Log_Output(void *userdata, int category, SDL_LogPriority priority, const char *message) {
+void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, const char *message) {
     char buf[SDL_MAX_LOG_MESSAGE];
     snprintf(buf, SDL_MAX_LOG_MESSAGE, "%s: %s: %s",
         SDL_category[category], SDL_priority[priority], message);
@@ -593,6 +593,8 @@ bool send_exception_to_editor(const char *qmsg)
     {
         platform->Delay(10);
     }
+#else
+    (void)qmsg;
 #endif
     return true;
 }

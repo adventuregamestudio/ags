@@ -24,7 +24,7 @@ const char *ScriptViewport::GetType()
     return "Viewport2";
 }
 
-int ScriptViewport::Dispose(const char *address, bool force)
+int ScriptViewport::Dispose(const char* /*address*/, bool /*force*/)
 {
     // Note that ScriptViewport is a reference to actual Viewport object,
     // and this deletes the reference, while viewport may remain in GameState.
@@ -37,18 +37,18 @@ size_t ScriptViewport::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-void ScriptViewport::Serialize(const char *address, Stream *out)
+void ScriptViewport::Serialize(const char* /*address*/, Stream *out)
 {
     out->WriteInt32(_id);
 }
 
-void ScriptViewport::Unserialize(int index, Stream *in, size_t data_sz)
+void ScriptViewport::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     _id = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t data_sz)
+ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,
     // but acquire one from the GameState, which keeps the first reference.

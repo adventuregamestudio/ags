@@ -31,14 +31,12 @@ size_t CCRegion::CalcSerializeSize()
     return sizeof(int32_t);
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 void CCRegion::Serialize(const char *address, Stream *out) {
     ScriptRegion *shh = (ScriptRegion*)address;
     out->WriteInt32(shh->id);
 }
 
-void CCRegion::Unserialize(int index, Stream *in, size_t data_sz) {
+void CCRegion::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrRegion[num], this);
 }

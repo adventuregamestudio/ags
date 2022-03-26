@@ -46,8 +46,6 @@ int CCDynamicArray::Dispose(const char *address, bool force) {
     return 1;
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 int CCDynamicArray::Serialize(const char *address, char *buffer, int bufsize) {
     int *sizeInBytes = &((int*)address)[-1];
     int sizeToWrite = *sizeInBytes + 8;

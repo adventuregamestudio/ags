@@ -48,12 +48,12 @@ typedef ImBufferPtrT<uint8_t*> ImBufferPtr;
 typedef ImBufferPtrT<const uint8_t*> ImBufferCPtr;
 
 
-// Finds the given color's index in the palette, or returns -1 if such color is not there
+// Finds the given color's index in the palette, or returns SIZE_MAX if such color is not there
 static size_t lookup_palette(uint32_t col, uint32_t palette[256], uint32_t ncols)
 {
     for (size_t i = 0; i < ncols; ++i)
         if (palette[i] == col) return i;
-    return -1;
+    return SIZE_MAX;
 }
 
 // Converts a 16/32-bit image into the indexed 8-bit pixel data with palette;
@@ -88,7 +88,7 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
         default: assert(0); return false;
         }
         
-        if (pal_n == -1)
+        if (pal_n == SIZE_MAX)
         {
             if (pal_count == 256) return false;
             pal_n = pal_count;
@@ -131,8 +131,8 @@ static inline SpriteFormat PaletteFormatForBPP(int bpp)
     case 1: return kSprFmt_PaletteRgb888;
     case 2: return kSprFmt_PaletteRgb565;
     case 4: return kSprFmt_PaletteArgb8888;
+    default: return kSprFmt_Undefined;
     }
-    return kSprFmt_Undefined;
 }
 
 static inline uint8_t GetPaletteBPP(SpriteFormat fmt)
@@ -142,8 +142,8 @@ static inline uint8_t GetPaletteBPP(SpriteFormat fmt)
     case kSprFmt_PaletteRgb888: return 3;
     case kSprFmt_PaletteArgb8888: return 4;
     case kSprFmt_PaletteRgb565: return 2;
+    default: return 0; // means no palette
     }
-    return 0; // means no palette
 }
 
 
@@ -232,7 +232,7 @@ HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filen
     }
 
     // Failed, index file is invalid; index sprites manually
-    return RebuildSpriteIndex(_stream.get(), topmost, _version, metrics);
+    return RebuildSpriteIndex(_stream.get(), topmost, metrics);
 }
 
 void SpriteFile::Close()
@@ -357,8 +357,7 @@ static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
     hdr = SpriteDatHeader(bpp, sformat, pal_count, compress, w, h);
 }
 
-HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
-    SpriteFileVersion vers, std::vector<Size> &metrics)
+HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics)
 {
     topmost = std::min(topmost, (sprkey_t)_spriteData.size() - 1);
     for (sprkey_t i = 0; !in->EOS() && (i <= topmost); ++i)

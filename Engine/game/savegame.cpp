@@ -60,7 +60,7 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in savegame_v321.cpp
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data);
 
 extern GameSetupStruct game;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
@@ -162,8 +162,9 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)
@@ -553,7 +554,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     if (displayed_room >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
-        if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+        if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
             play.bg_frame = 0;
 
         for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
@@ -645,7 +646,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
     update_directional_sound_vol();
 
-    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS]);
+    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
     recreate_overlay_ddbs();
 
@@ -694,7 +695,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
     if (svg_version >= kSvgVersion_Components)
         err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     else
-        err = restore_game_data(in, svg_version, pp, r_data);
+        err = restore_save_data_v321(in, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);

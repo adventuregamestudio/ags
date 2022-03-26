@@ -63,7 +63,7 @@ extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 
 
-static const int32_t MAGICNUMBER = 0xbeefcafe;
+static const uint32_t MAGICNUMBER = 0xbeefcafe;
 
 
 static HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
@@ -94,7 +94,7 @@ static void restore_game_spriteset(Stream *in)
 static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     // read the global script data segment
-    int gdatasize = in->ReadInt32();
+    size_t gdatasize = (uint32_t)in->ReadInt32();
     if (pp.GlScDataSize != gdatasize)
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching size of global script data.");
@@ -103,7 +103,7 @@ static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, Re
     r_data.GlobalScript.Data.reset(new char[gdatasize]);
     in->Read(r_data.GlobalScript.Data.get(), gdatasize);
 
-    if (in->ReadInt32() != numScriptModules)
+    if ((uint32_t)in->ReadInt32() != numScriptModules)
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of script modules.");
     }
@@ -272,7 +272,7 @@ static HSaveError restore_game_gui(Stream *in, int numGuisWas)
 
 static HSaveError restore_game_audiocliptypes(Stream *in)
 {
-    if (in->ReadInt32() != game.audioClipTypes.size())
+    if ((uint32_t)in->ReadInt32() != game.audioClipTypes.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types.");
     }
@@ -414,7 +414,7 @@ static HSaveError restore_game_views(Stream *in)
 
 static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
-    if (in->ReadInt32() != game.audioClips.size())
+    if ((uint32_t)in->ReadInt32() != game.audioClips.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
@@ -452,7 +452,7 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
     return HSaveError::None();
 }
 
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     int vv;
 
@@ -540,7 +540,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
 
-    if (in->ReadInt32() != MAGICNUMBER+1)
+    if (static_cast<uint32_t>(in->ReadInt32()) != (MAGICNUMBER + 1))
     {
         return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips.");
     }
@@ -553,7 +553,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     pl_set_file_handle(pluginFileHandle, in);
     pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
     pl_clear_file_handle();
-    if (in->ReadInt32() != (unsigned)MAGICNUMBER)
+    if (static_cast<uint32_t>(in->ReadInt32()) != MAGICNUMBER)
         return new SavegameError(kSvgErr_InconsistentPlugin);
 
     // save the new room music vol for later use

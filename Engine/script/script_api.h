@@ -48,12 +48,16 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
 }
 
-// Helper macros for script functions
+// Helper macros for script functions;
+// asserting for internal mistakes; supressing "unused param" warnings
 #define ASSERT_SELF(METHOD) \
+    (void)params; (void)param_count; \
     assert((self != NULL) && "Object pointer is null in call to API function")
 #define ASSERT_PARAM_COUNT(FUNCTION, X) \
+    (void)params; (void)param_count; \
     assert((params != NULL && param_count >= X) && "Not enough parameters in call to API function")
 #define ASSERT_VARIABLE_VALUE(VARIABLE) \
+    (void)params; (void)param_count; \
     assert((params != NULL && param_count >= 1) && "Not enough parameters to set API property")
 #define ASSERT_OBJ_PARAM_COUNT(METHOD, X) \
     ASSERT_SELF(METHOD); \
@@ -63,6 +67,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 // Get/set variables
 
 #define API_VARGET_INT(VARIABLE) \
+    (void)params; (void)param_count; \
     return RuntimeScriptValue().SetInt32(VARIABLE)
 
 #define API_VARSET_PINT(VARIABLE) \
@@ -112,6 +117,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 //
 
 #define API_SCALL_VOID(FUNCTION) \
+    (void)params; (void)param_count; \
     FUNCTION(); \
     return RuntimeScriptValue((int32_t)0)
 
@@ -201,6 +207,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_INT(FUNCTION) \
+    (void)params; (void)param_count; \
     return RuntimeScriptValue().SetInt32(FUNCTION())
 
 #define API_SCALL_INT_PINT(FUNCTION) \
@@ -252,6 +259,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr))
 
 #define API_SCALL_FLOAT(FUNCTION) \
+    (void)params; (void)param_count; \
     return RuntimeScriptValue().SetFloat(FUNCTION())
 
 #define API_SCALL_FLOAT_PINT(FUNCTION) \
@@ -267,6 +275,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue, params[1].FValue))
 
 #define API_SCALL_BOOL(FUNCTION) \
+    (void)params; (void)param_count; \
     return RuntimeScriptValue().SetInt32AsBool(FUNCTION())
 
 #define API_SCALL_BOOL_POBJ(FUNCTION, P1CLASS) \
@@ -286,6 +295,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return RuntimeScriptValue().SetInt32AsBool(FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr))
 
 #define API_SCALL_OBJ(RET_CLASS, RET_MGR, FUNCTION) \
+    (void)params; (void)param_count; \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(), &RET_MGR)
 
 #define API_SCALL_OBJ_PINT(RET_CLASS, RET_MGR, FUNCTION) \
@@ -309,6 +319,7 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr), &RET_MGR)
 
 #define API_SCALL_OBJAUTO(RET_CLASS, FUNCTION) \
+    (void)params; (void)param_count; \
     RET_CLASS* ret_obj = FUNCTION(); \
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
 

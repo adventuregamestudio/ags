@@ -144,8 +144,7 @@ public:
     bool        LoadSpriteIndexFile(const String &filename, int expectedFileID,
         soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics);
     // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, SpriteFileVersion vers,
-        std::vector<Size> &metrics);
+    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics);
 
     // Loads an image data and creates a ready bitmap
     HError      LoadSprite(sprkey_t index, Bitmap *&sprite);

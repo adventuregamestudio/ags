@@ -13,7 +13,7 @@
 //=============================================================================
 #include "ac/dynobj/scriptdict.h"
 
-int ScriptDictBase::Dispose(const char *address, bool force)
+int ScriptDictBase::Dispose(const char* /*address*/, bool /*force*/)
 {
     Clear();
     delete this;
@@ -25,14 +25,14 @@ const char *ScriptDictBase::GetType()
     return "StringDictionary";
 }
 
-void ScriptDictBase::Serialize(const char *address, Stream *out)
+void ScriptDictBase::Serialize(const char* /*address*/, Stream *out)
 {
     out->WriteInt32(IsSorted());
     out->WriteInt32(IsCaseSensitive());
     SerializeContainer(out);
 }
 
-void ScriptDictBase::Unserialize(int index, Stream *in, size_t data_sz)
+void ScriptDictBase::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     // NOTE: we expect sorted/case flags are read by external reader;
     // this is awkward, but I did not find better design solution atm

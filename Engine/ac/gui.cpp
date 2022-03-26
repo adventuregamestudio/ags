@@ -338,7 +338,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 
     int btype = guis[ifce].GetControlType(btn);
-    int rtype=kGUIAction_None,rdata;
+    int rtype=kGUIAction_None,rdata=0;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
         rtype=gbuto->ClickAction[kMouseLeft];

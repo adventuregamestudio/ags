@@ -80,7 +80,8 @@ namespace Math
     template <typename T, typename TBig>
     inline T InRangeOrDef(const TBig &val, const T &def)
     {
-        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ? val : def;
+        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ?
+            static_cast<T>(val) : def;
     }
 
     inline float RadiansToDegrees(float rads)

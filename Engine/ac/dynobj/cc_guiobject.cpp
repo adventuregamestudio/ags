@@ -29,15 +29,13 @@ size_t CCGUIObject::CalcSerializeSize()
     return sizeof(int32_t) * 2;
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
 void CCGUIObject::Serialize(const char *address, Stream *out) {
     GUIObject *guio = (GUIObject*)address;
     out->WriteInt32(guio->ParentId);
     out->WriteInt32(guio->Id);
 }
 
-void CCGUIObject::Unserialize(int index, Stream *in, size_t data_sz) {
+void CCGUIObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
     ccRegisterUnserializedObject(index, guis[guinum].GetControl(objnum), this);

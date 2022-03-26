@@ -420,8 +420,8 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     sds->PointToGameResolution(&x, &y);
     Bitmap *ds = sds->StartDrawing();
-    unsigned int rawPixel = ds->GetPixel(x, y);
-    unsigned int maskColor = ds->GetMaskColor();
+    int rawPixel = ds->GetPixel(x, y);
+    int maskColor = ds->GetMaskColor();
     int colDepth = ds->GetColorDepth();
 
     if (rawPixel == maskColor)
@@ -431,14 +431,12 @@ int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     else if (colDepth > 8)
     {
         int r = getr_depth(colDepth, rawPixel);
-        int ds = getg_depth(colDepth, rawPixel);
+        int g = getg_depth(colDepth, rawPixel);
         int b = getb_depth(colDepth, rawPixel);
-
-        rawPixel = Game_GetColorFromRGB(r, ds, b);
+        rawPixel = Game_GetColorFromRGB(r, g, b);
     }
 
     sds->FinishedDrawingReadOnly();
-
     return rawPixel;
 }
 
@@ -609,7 +607,7 @@ void ScPl_DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, i
     DrawingSurface_DrawString(sds, xx, yy, font, scsf_buffer);
 }
 
-void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
+void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ccAddExternalObjectFunction("DrawingSurface::Clear^1",              Sc_DrawingSurface_Clear);
     ccAddExternalObjectFunction("DrawingSurface::CreateCopy^0",         Sc_DrawingSurface_CreateCopy);

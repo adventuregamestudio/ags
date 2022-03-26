@@ -20,7 +20,7 @@ using namespace AGS::Common;
 
 // *** The script serialization routines for built-in types
 
-int AGSCCDynamicObject::Dispose(const char *address, bool force) {
+int AGSCCDynamicObject::Dispose(const char* /*address*/, bool /*force*/) {
     // cannot be removed from memory
     return 0;
 }

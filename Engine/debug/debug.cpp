@@ -168,6 +168,7 @@ std::vector<String> parse_log_multigroup(const String &group_str)
         {
         case 'm': grplist.push_back("main"); break;
         case 'g': grplist.push_back("game"); break;
+        case 's': grplist.push_back("script"); break;
         case 'c': grplist.push_back("sprcache"); break;
         case 'o': grplist.push_back("manobj"); break;
         case 'l': grplist.push_back("sdl"); break;

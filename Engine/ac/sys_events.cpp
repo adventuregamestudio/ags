@@ -257,7 +257,8 @@ SDL_Event ags_get_next_keyevent()
 
 int ags_iskeydown(eAGSKeyCode ags_key)
 {
-    SDL_PumpEvents();
+    if (game.options[OPT_KEYHANDLEAPI] == 0)
+        SDL_PumpEvents(); // old key input: update key state in realtime
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))

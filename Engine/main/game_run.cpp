@@ -1092,8 +1092,6 @@ void RunGameUntilAborted()
 
 void update_polled_stuff_if_runtime()
 {
-    SDL_PumpEvents();
-
     if (want_exit) {
         want_exit = 0;
         quit("||exit!");

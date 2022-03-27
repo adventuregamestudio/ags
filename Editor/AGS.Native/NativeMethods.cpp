@@ -18,6 +18,7 @@ see the license.txt for details.
 #include "ac/game_version.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
+#include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
@@ -706,7 +707,7 @@ namespace AGS
         Object^ NativeMethods::GetNativeConstant(String ^name)
         {
             if (name == nullptr) return nullptr;
-            if (name->Equals("GAME_FILE_SIG")) return gcnew String(game_file_sig);
+            if (name->Equals("GAME_FILE_SIG")) return gcnew String(AGS::Common::MainGameSource::Signature.GetCStr());
             if (name->Equals("GAME_DATA_VERSION_CURRENT")) return (int)kGameVersion_Current;
             if (name->Equals("MAX_GUID_LENGTH")) return MAX_GUID_LENGTH;
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;

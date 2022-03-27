@@ -24,9 +24,4 @@ void update_polled_stuff_if_runtime();
 void set_our_eip(int eip);
 int  get_our_eip();
 
-extern const char *game_file_sig;
-
-// archive attributes to search for - al_findfirst breaks with 0
-#define FA_SEARCH -1
-
 #endif // __AC_COMMON_H

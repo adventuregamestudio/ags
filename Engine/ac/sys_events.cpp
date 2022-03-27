@@ -257,8 +257,13 @@ SDL_Event ags_get_next_keyevent()
 
 int ags_iskeydown(eAGSKeyCode ags_key)
 {
+    // old input handling: update key state in realtime
+    // left only in case if necessary for some ancient game, but
+    // this really may only be required if there's a key waiting loop in
+    // script without Wait(1) to let engine poll events in a natural way.
     if (game.options[OPT_KEYHANDLEAPI] == 0)
-        SDL_PumpEvents(); // old key input: update key state in realtime
+        SDL_PumpEvents();
+
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))

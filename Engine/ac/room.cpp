@@ -1013,7 +1013,7 @@ void check_new_room() {
         evh.type = EV_RUNEVBLOCK;
         evh.data1 = EVB_ROOM;
         evh.data2 = 0;
-        evh.data3 = 5;
+        evh.data3 = EVROM_BEFOREFADEIN;
         evh.player=game.playercharacter;
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;

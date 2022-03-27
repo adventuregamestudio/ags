@@ -190,10 +190,9 @@ void process_event(const EventHappened *evp) {
                 evpt=&croom->intrRoom;
 
             evblockbasename="room";
-            if (evp->data3 == 5) {
+            if (evp->data3 == EVROM_BEFOREFADEIN) {
                 in_enters_screen ++;
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
-
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
@@ -212,7 +211,7 @@ void process_event(const EventHappened *evp) {
         evblockbasename = oldbasename;
         evblocknum = oldblocknum;
 
-        if ((evp->data3 == 5) && (evp->data1 == EVB_ROOM))
+        if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
             in_enters_screen --;
     }
     else if (evp->type==EV_FADEIN) {

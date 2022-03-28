@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTOVERLAY_H
 #define __AC_SCRIPTOVERLAY_H
 
@@ -21,7 +20,7 @@ struct ScriptOverlay final : AGSCCDynamicObject {
     int overlayId = -1;
     // TODO: this flag is needed to mark an overlay which lifetime is managed
     // by the engine; this may be solved with engine owning an object ref instead
-    bool isBackgroundSpeech = false;
+    bool hasInternalRef = false;
 
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;

@@ -345,7 +345,7 @@ namespace AGS.Types
                 toXml.ToXml(xmlWriter);
                 res.LoadXml(rawXml.ToString());
             }
-            res.InsertBefore(res.CreateXmlDeclaration("1.0", Encoding.Default.WebName, standalone: null), res.DocumentElement);
+            res.InsertBefore(res.CreateXmlDeclaration("1.0", Encoding.UTF8.WebName, standalone: null), res.DocumentElement);
             return res;
         }
     }

@@ -27,8 +27,6 @@ namespace AGS.Editor
         public event GetAboutDialogTextHandler GetAboutDialogText;
         public delegate void ShowSpriteManagerHandler(int spriteNumber, ref bool successful);
         public event ShowSpriteManagerHandler ShowSpriteManager;
-        public delegate void FileChangedInGameFolderHandler(string fileName);
-        public event FileChangedInGameFolderHandler FileChangedInGameFolder;
 
         public void OnGameSettingsChanged()
         {
@@ -110,14 +108,6 @@ namespace AGS.Editor
                 ShowSpriteManager(spriteNumber, ref successful);
             }
             return successful;
-        }
-
-        public void OnFileChangedInGameFolder(string fileName)
-        {
-            if (FileChangedInGameFolder != null)
-            {
-                FileChangedInGameFolder(fileName);
-            }
         }
 
         private static EditorEvents _instance;

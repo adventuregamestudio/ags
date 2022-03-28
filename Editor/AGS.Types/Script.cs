@@ -10,7 +10,7 @@ using AGS.Types.Interfaces;
 namespace AGS.Types
 {
     [DefaultProperty("Name")]
-    public class Script : IScript, IToXml
+    public class Script : IScript, ISaveable, IToXml
     {
         public const string GLOBAL_SCRIPT_FILE_NAME = "GlobalScript.asc";
         public const string GLOBAL_HEADER_FILE_NAME = "GlobalScript.ash";
@@ -78,6 +78,9 @@ namespace AGS.Types
             get { return _fileName; }
             set { _fileName = value; }
         }
+
+        [Browsable(false)]
+        public string FileNameWithoutPath => Path.GetFileName(FileName);
 
         [Category("Module information")]
         [Description("Friendly name of this script")]

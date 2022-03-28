@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -24,6 +25,7 @@ namespace AGS.Types
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
         public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
+        public const string LATEST_XML_VERSION = "1";
 
         private static InteractionSchema _interactionSchema;
 
@@ -111,6 +113,7 @@ namespace AGS.Types
 
         public Room(XmlNode node) : base(node)
         {
+            _interactions.FromXml(node);
             _messages.AddRange(GetXmlChildren(node, "/Room/Messages", int.MaxValue).Select((xml, i) => new RoomMessage(i, xml)));
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
             _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
@@ -119,6 +122,7 @@ namespace AGS.Types
             _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(xml) { ID = i }));
         }
 
+        [AGSNoSerialize]
         [Browsable(false)]
         public bool Modified
         {
@@ -399,6 +403,19 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
+        public static int GetMaskMaxColor(RoomAreaMaskType mask)
+        {
+            switch (mask)
+            {
+                case RoomAreaMaskType.WalkBehinds: return MAX_WALK_BEHINDS;
+                case RoomAreaMaskType.Hotspots: return MAX_HOTSPOTS;
+                case RoomAreaMaskType.WalkableAreas: return MAX_WALKABLE_AREAS;
+                case RoomAreaMaskType.Regions: return MAX_REGIONS;
+                default:
+                    throw new ArgumentException($"Illegal mask type, mask {mask} doesn't have colors");
+            }
+        }
+
         public double GetMaskScale(RoomAreaMaskType mask)
         {
             switch (mask)
@@ -421,9 +438,11 @@ namespace AGS.Types
 
         public override void ToXml(XmlTextWriter writer)
         {
-            SerializeUtils.SerializeToXML(this, writer, false);
+            writer.WriteStartElement(GetType().Name);
+            writer.WriteAttributeString("Version", LATEST_XML_VERSION);
+            SerializeUtils.SerializePropertiesToXML(this, writer);
             Interactions.ToXml(writer);
-            SerializeUtils.SerializeToXML(writer, "RoomMessages", Messages);
+            SerializeUtils.SerializeToXML(writer, "Messages", Messages);
             SerializeUtils.SerializeToXML(writer, "Objects", Objects);
             SerializeUtils.SerializeToXML(writer, "Hotspots", Hotspots);
             SerializeUtils.SerializeToXML(writer, "WalkableAreas", WalkableAreas);

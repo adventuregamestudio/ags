@@ -339,11 +339,13 @@ namespace AGS.Types
         public static XmlDocument ToXmlDocument(this IToXml toXml)
         {
             XmlDocument res = new XmlDocument();
-            StringWriter rawXml = new StringWriter();
-            XmlTextWriter xmlWriter = new XmlTextWriter(rawXml);
-            toXml.ToXml(xmlWriter);
-            res.LoadXml(rawXml.ToString());
-            xmlWriter.Close();
+            using (StringWriter rawXml = new StringWriter())
+            using (XmlTextWriter xmlWriter = new XmlTextWriter(rawXml))
+            {
+                toXml.ToXml(xmlWriter);
+                res.LoadXml(rawXml.ToString());
+            }
+            res.InsertBefore(res.CreateXmlDeclaration("1.0", Encoding.Default.WebName, standalone: null), res.DocumentElement);
             return res;
         }
     }

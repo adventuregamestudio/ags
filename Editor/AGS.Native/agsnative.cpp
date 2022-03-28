@@ -1803,23 +1803,6 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	return tempsprite;
 }
 
-void DeleteBackground(Room ^room, int backgroundNumber) 
-{
-	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-
- if (theRoom->BgFrames[backgroundNumber].Graphic)
- {
-     theRoom->BgFrames[backgroundNumber].Graphic.reset();
-     theRoom->BgFrameCount--;
-
-     for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++)
-     {
-         theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
-         theRoom->BgFrames[i].IsPaletteShared = theRoom->BgFrames[i + 1].IsPaletteShared;
-     }
- }
-}
-
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
     RGB oldpale[256];
@@ -1878,6 +1861,16 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 
 void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
 {
+    // Palette entry 0 alpha value is hardcoded to 0 originally, probably because it's
+    // convenient for rendering area 0 as invisible? This was taken out when converting
+    // the room to open format because it created issues with saving/loading to disk
+    // in certain image formats (.png). Just in case we set the alpha back to 0 when
+    // setting the mask back into crm on the off chance it might be used for something
+    // internally somewhere
+    ColorPalette^ palette = bmp->Palette;
+    palette->Entries[0] = Color::FromArgb(255, palette->Entries[0]);
+    bmp->Palette = palette;
+
     RGB oldpale[256];
     RoomStruct* room = (RoomStruct*)roomptr;
     AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
@@ -1907,7 +1900,17 @@ void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
 SysBitmap ^export_area_mask(void *roomptr, int maskType)
 {
     AGSBitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    return ConvertBlockToBitmap(mask, false);
+    SysBitmap^ managedMask = ConvertBlockToBitmap(mask, false);
+
+    // Palette entry 0 alpha value is hardcoded to 0, probably because it's convenient
+    // for rendering area 0 as invisible? However it creates issues when exporting 8-bit
+    // image with transparency to different image formats (tested with .png). To make things
+    // easier we take the alpha value out.
+    ColorPalette^ palette = managedMask->Palette;
+    palette->Entries[0] = Color::FromArgb(255, palette->Entries[0]);
+    managedMask->Palette = palette;
+
+    return managedMask;
 }
 
 void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)

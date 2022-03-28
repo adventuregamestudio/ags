@@ -105,6 +105,11 @@ namespace AGS.Editor
          *
         */
         public const int    LATEST_XML_VERSION_INDEX = 3999900;
+        /// <summary>
+        /// XML version index on the release of AGS 4.0.0, this constant be used to determine
+        /// if upgrade of Rooms/Sprites/etc. to new format have been performed.
+        /// </summary>
+        public const int    AGS_4_0_0_XML_VERSION_INDEX = 3999900;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.
@@ -153,7 +158,6 @@ namespace AGS.Editor
         private IEngineCommunication _engineComms = new NamedPipesEngineCommunication();
         private DebugController _debugger;
 		private bool _applicationStarted = false;
-        private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
 
         private static readonly IDictionary<ScriptAPIVersion, string> _scriptAPIVersionMacros =
@@ -738,13 +742,6 @@ namespace AGS.Editor
 
         public void LoadGameFile(string fileName)
         {
-            if (_fileWatcher != null)
-            {
-                _fileWatcher.EnableRaisingEvents = false;
-                _fileWatcher.Dispose();
-                _fileWatcher = null;
-            }
-
             if (File.Exists(LOCK_FILE_NAME))
             {
                 VerifyGameNotAlreadyOpenInAnotherEditor();
@@ -842,15 +839,6 @@ namespace AGS.Editor
 			{
 				_engineComms.ResetWithCurrentPath();
 			}
-            
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                // file system watcher only works on NT
-                _fileWatcher = new FileSystemWatcher(newGame.DirectoryPath);
-                _fileWatcher.Changed += new FileSystemEventHandler(_fileWatcher_Changed);
-                _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                _fileWatcher.EnableRaisingEvents = true;
-            }
 
             CloseLockFile();
 
@@ -872,11 +860,6 @@ namespace AGS.Editor
                 _lockFile.Close();
                 _lockFile = null;
             }
-        }
-
-        private void _fileWatcher_Changed(object sender, FileSystemEventArgs e)
-        {
-            Factory.Events.OnFileChangedInGameFolder(e.Name);
         }
 
 		private void DefineMacrosAccordingToGameSettings(IPreprocessor preprocessor)

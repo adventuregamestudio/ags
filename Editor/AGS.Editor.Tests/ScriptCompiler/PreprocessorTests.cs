@@ -345,5 +345,15 @@ Display(""test"");
             Assert.That(preprocessor.Results.Count, Is.EqualTo(1));
             Assert.That(preprocessor.Results[0].Code, Is.EqualTo(ErrorCode.EndIfWithoutIf));
         }
+
+        [TestCase("room2.asc", "room2.asc")]
+        [TestCase(@"Rooms\2\room2.asc", @"Rooms\\2\\room2.asc")]
+        public void FormatsScriptName(string scriptName, string expected)
+        {
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string res = preprocessor.Preprocess(string.Empty, scriptName);
+            AssertStringEqual(res, $@"""__NEWSCRIPTSTART_{expected}""
+");
+        }
     }
 }

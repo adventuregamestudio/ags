@@ -12,20 +12,30 @@ namespace AGS.Types
         private const string ROOM_FILE_NAME_FORMAT = "room{0}.crm";
         private const string ROOM_SCRIPT_FILE_NAME_FORMAT = "room{0}.asc";
         private const string ROOM_USER_FILE_NAME_FORMAT = "room{0}.crm.user";
+        private const string ROOM_DATA_FILE_NAME_FORMAT = "data.xml";
 
 		public const int NON_STATE_SAVING_INDEX = 300;
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
 		public const string PROPERTY_NAME_DESCRIPTION = "Description";
 		public const string PROPERTY_NAME_NUMBER = "Number";
+        public const string ROOM_DIRECTORY = "Rooms";
 
         protected int _number;
         protected string _description;
         protected Script _script = null;
 
+        public static bool DoRoomDirectoryExist(int roomNumber)
+        {
+            string roomDirectory = Path.Combine(ROOM_DIRECTORY, $"{roomNumber}");
+            return System.IO.Directory.Exists(roomDirectory);
+        }
+
 		public static bool DoRoomFilesExist(int roomNumber)
 		{
-			if (File.Exists(string.Format(ROOM_FILE_NAME_FORMAT, roomNumber)) ||
-				File.Exists(string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, roomNumber)))
+            string roomDirectory = Path.Combine(ROOM_DIRECTORY, $"{roomNumber}");
+
+			if (File.Exists(Path.Combine(ROOM_DIRECTORY, ROOM_DATA_FILE_NAME_FORMAT)) ||
+                File.Exists(Path.Combine(roomDirectory, string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, roomNumber))))
 			{
 				return true;
 			}
@@ -35,6 +45,7 @@ namespace AGS.Types
         public UnloadedRoom(int roomNumber)
         {
             _number = roomNumber;
+            System.IO.Directory.CreateDirectory(Directory);
         }
 
 		[DisplayName(PROPERTY_NAME_NUMBER)]
@@ -70,10 +81,16 @@ namespace AGS.Types
         }
 
         [AGSNoSerialize]
+        [Description("The filename containing this room data")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public string DataFileName => Path.Combine(Directory, ROOM_DATA_FILE_NAME_FORMAT);
+
+        [AGSNoSerialize]
         [Browsable(false)]
         public string UserFileName
         {
-            get { return string.Format(ROOM_USER_FILE_NAME_FORMAT, _number); }
+            get { return Path.Combine(Directory, string.Format(ROOM_USER_FILE_NAME_FORMAT, _number)); }
         }
 
 		[Description("Whether the state of the room is saved when the player leaves the room and comes back")]
@@ -87,8 +104,15 @@ namespace AGS.Types
 		[Browsable(false)]
         public string ScriptFileName
         {
-            get { return string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number); }
+            get { return Path.Combine(Directory, string.Format(ROOM_SCRIPT_FILE_NAME_FORMAT, _number)); }
         }
+
+        [AGSNoSerialize]
+        [Description("The directory of the room files")]
+        [Category("Design")]
+        [Browsable(true)]
+        [ReadOnly(true)]
+        public string Directory => Path.Combine(ROOM_DIRECTORY, $"{Number}");
 
         [AGSNoSerialize]
         [Browsable(false)]
@@ -96,6 +120,22 @@ namespace AGS.Types
         {
             get { return _script; }
             set { _script = value; }
+        }
+
+        public string GetBackgroundFileName(int background)
+        {
+            if (background < 0 && background >= Room.MAX_BACKGROUNDS)
+                throw new ArgumentException($"Must be positive number, but less than {Room.MAX_BACKGROUNDS}", nameof(background));
+
+            return Path.Combine(Directory, $"background{background}.png");
+        }
+
+        public string GetMaskFileName(RoomAreaMaskType mask)
+        {
+            if (mask == RoomAreaMaskType.None)
+                throw new ArgumentException($"Argument cannot be {RoomAreaMaskType.None}, it does not have a file.", nameof(mask));
+
+            return Path.Combine(Directory, $"{mask.ToString().ToLower()}.png");
         }
 
         public void LoadScript()

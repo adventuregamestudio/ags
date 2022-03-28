@@ -1645,6 +1645,7 @@ namespace AGS.Editor.Components
             }
 
             Bitmap newBmp = new Bitmap(bmp);
+            bool hasResolutionChanged = _loadedRoom.Width != newBmp.Width || _loadedRoom.Height != newBmp.Height;
             _loadedRoom.Width = newBmp.Width;
             _loadedRoom.Height = newBmp.Height;
             _loadedRoom.ColorDepth = newBmp.GetColorDepth();
@@ -1674,9 +1675,9 @@ namespace AGS.Editor.Components
             }
 
             // If size or resolution has changed, reset masks
-            if (newBmp.Width != _loadedRoom.Width || newBmp.Height != _loadedRoom.Height)
+            if (hasResolutionChanged)
             {
-                ClearMaskCache();
+                ResetMaskCache();
             }
 
             _loadedRoom.Modified = true;
@@ -2043,6 +2044,21 @@ namespace AGS.Editor.Components
                 {
                     _maskCache[mask]?.Dispose();
                     _maskCache[mask] = null;
+                }
+            }
+        }
+
+        private void ResetMaskCache()
+        {
+            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
+            {
+                if (mask == RoomAreaMaskType.None)
+                    continue;
+
+                if (_maskCache.ContainsKey(mask))
+                {
+                    _maskCache[mask]?.Dispose();
+                    _maskCache[mask] = new Bitmap(_loadedRoom.Width / _loadedRoom.MaskResolution, _loadedRoom.Height / _loadedRoom.MaskResolution, PixelFormat.Format8bppIndexed);
                 }
             }
         }

@@ -568,6 +568,7 @@ namespace AGS.Editor
                             {
                                 _roomController.DeleteBackground(1);
                             }
+                            RepopulateBackgroundList(0);
                         }
 
                         // TODO: choose default zoom based on the room size vs window size?

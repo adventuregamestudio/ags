@@ -1183,7 +1183,10 @@ namespace AGS.Editor.Components
 				oldRoom.Number = numberRequested;
                 XDocument newRoomXml = XDocument.Load(tempNewRoom.DataFileName);
                 newRoomXml.Element("Room").SetElementValue("Number", numberRequested);
-                newRoomXml.Save(tempNewRoom.DataFileName);
+                using (var writer = new XmlTextWriter(tempNewRoom.DataFileName, Types.Utilities.UTF8))
+                {
+                    newRoomXml.Save(writer);
+                }
 
 				LoadDifferentRoom(oldRoom);
                 _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;
@@ -1614,7 +1617,10 @@ namespace AGS.Editor.Components
             {
                 IsBeingSaved = true;
                 SaveImages();
-                _loadedRoom.ToXmlDocument().Save(_loadedRoom.DataFileName);
+                using (var writer = new XmlTextWriter(_loadedRoom.DataFileName, Types.Utilities.UTF8))
+                {
+                    _loadedRoom.ToXmlDocument().Save(writer);
+                }
                 IsBeingSaved = false;
                 LastSavedAt = DateTime.Now;
                 _loadedRoom.Modified = false;
@@ -2192,7 +2198,10 @@ namespace AGS.Editor.Components
 
         private Task SaveXmlAsync(XmlDocument document, string filename) => Task.Run(() =>
         {
-            document.Save(filename);
+            using (var writer = new XmlTextWriter(filename, Types.Utilities.UTF8))
+            {
+                document.Save(writer);
+            }
         });
 
         private Task SaveAndDisposeBitmapAsync(Bitmap bmp, string filename) => Task.Run(() =>

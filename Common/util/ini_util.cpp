@@ -84,6 +84,13 @@ String CfgReadString(const ConfigTree &cfg, const String &sectn, const String &i
     return str;
 }
 
+void CfgReadString(char *cbuf, size_t buf_sz,
+    const ConfigTree &cfg, const String &sectn, const String &item, const String &def)
+{
+    String str = CfgReadString(cfg, sectn, item, def);
+    snprintf(cbuf, buf_sz, "%s", str.GetCStr());
+}
+
 //-----------------------------------------------------------------------------
 // ConfigWriter
 //-----------------------------------------------------------------------------

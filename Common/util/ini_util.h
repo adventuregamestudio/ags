@@ -40,6 +40,9 @@ inline bool CfgReadBoolInt(const ConfigTree &cfg, const String &sectn, const Str
 float   CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float def = 0.f);
 float   CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float min, float max, float def = 0.f);
 String  CfgReadString(const ConfigTree &cfg, const String &sectn, const String &item, const String &def = "");
+// Specialized variant for reading into char buffer, for code compatibility
+void    CfgReadString(char *cbuf, size_t buf_sz,
+    const ConfigTree &cfg, const String &sectn, const String &item, const String &def = "");
 //
 // Helper functions for writing values into a ConfigTree
 void    CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int value);

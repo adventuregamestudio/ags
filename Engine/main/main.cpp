@@ -78,7 +78,7 @@ bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
-const char *loadSaveGameOnStartup = nullptr;
+String loadSaveGameOnStartup;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;

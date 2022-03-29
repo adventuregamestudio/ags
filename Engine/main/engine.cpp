@@ -99,10 +99,6 @@ extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 
-#if AGS_PLATFORM_OS_ANDROID
-extern "C" void selectLatestSavegame();
-#endif
-
 ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
@@ -897,9 +893,13 @@ void engine_prepare_to_start_game()
 
     engine_setup_scsystem_auxiliary();
 
-#if AGS_PLATFORM_OS_ANDROID
+#if (AGS_PLATFORM_OS_ANDROID) || (AGS_PLATFORM_OS_IOS)
     if (psp_load_latest_savegame)
-        selectLatestSavegame();
+    {
+        int slot = GetLastSaveSlot();
+        if (slot >= 0)
+            loadSaveGameOnStartup = get_save_game_path(slot);
+    }
 #endif
 }
 
@@ -1327,7 +1327,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
 	allegro_bitmap_test_init();
 
-    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
+    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup.GetCStr());
 
     return EXIT_NORMAL;
 }

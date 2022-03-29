@@ -58,4 +58,6 @@ extern int config_mouse_longclick;
 
 extern int display_fps;
 
+extern bool psp_load_latest_savegame;
+
 #endif

@@ -39,11 +39,6 @@ extern int main(int argc,char*argv[]);
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
-bool psp_load_latest_savegame = false;
-extern char saveGameDirectory[260];
-extern const char *loadSaveGameOnStartup;
-char lastSaveGameName[200];
-
 const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;
 const int CONFIG_AUDIO_RATE = 2;
@@ -297,44 +292,6 @@ int getAvailableTranslations(char* translations)
   return i;
 }
 */
-
-
-
-
-void selectLatestSavegame()
-{
-  DIR* dir;
-  struct dirent* entry;
-  struct stat statBuffer;
-  char buffer[200];
-  time_t lastTime = 0;
-
-  dir = opendir(saveGameDirectory);
-
-  if (dir)
-  {
-    while ((entry = readdir(dir)) != 0)
-    {
-      if (ags_strnicmp(entry->d_name, "agssave", 7) == 0)
-      {
-        if (ags_stricmp(entry->d_name, "agssave.999") != 0)
-        {
-          strcpy(buffer, saveGameDirectory);
-          strcat(buffer, entry->d_name);
-          stat(buffer, &statBuffer);
-          if (statBuffer.st_mtime > lastTime)
-          {
-            strcpy(lastSaveGameName, buffer);
-            loadSaveGameOnStartup = lastSaveGameName;
-            lastTime = statBuffer.st_mtime;
-          }
-        }
-      }
-    }
-    closedir(dir);
-  }
-}
-
 
 extern void ios_show_message_box(char* buffer);
 volatile int ios_wait_for_ui = 0;

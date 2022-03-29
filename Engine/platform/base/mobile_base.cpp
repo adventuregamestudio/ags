@@ -55,6 +55,8 @@ int config_mouse_longclick = 0;
 // defined in the engine
 extern int display_fps;
 
+bool psp_load_latest_savegame = false;
+
 
 bool WriteConfiguration(const char *filename)
 {

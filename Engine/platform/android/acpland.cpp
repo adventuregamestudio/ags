@@ -66,11 +66,6 @@ String android_save_directory = "";
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
-bool psp_load_latest_savegame = false;
-extern char saveGameDirectory[260];
-extern const char *loadSaveGameOnStartup;
-char lastSaveGameName[200];
-
 // NOTE: the JVM can't use JNI outside here due to C++ name mangling
 extern "C" 
 {
@@ -324,40 +319,6 @@ JNIEXPORT jint JNICALL
   }
 
   return i;
-}
-
-void selectLatestSavegame()
-{
-  DIR* dir;
-  struct dirent* entry;
-  struct stat statBuffer;
-  char buffer[200];
-  time_t lastTime = 0;
-
-  dir = opendir(saveGameDirectory);
-
-  if (dir)
-  {
-    while ((entry = readdir(dir)) != 0)
-    {
-      if (ags_strnicmp(entry->d_name, "agssave", 7) == 0)
-      {
-        if (ags_stricmp(entry->d_name, "agssave.999") != 0)
-        {
-          strcpy(buffer, saveGameDirectory);
-          strcat(buffer, entry->d_name);
-          stat(buffer, &statBuffer);
-          if (statBuffer.st_mtime > lastTime)
-          {
-            strcpy(lastSaveGameName, buffer);
-            loadSaveGameOnStartup = lastSaveGameName;
-            lastTime = statBuffer.st_mtime;
-          }
-        }
-      }
-    }
-    closedir(dir);
-  }
 }
 
 JNIEXPORT void JNICALL

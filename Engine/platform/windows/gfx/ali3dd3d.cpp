@@ -1666,7 +1666,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
      {
         free(tiles);
         char errorMessage[200];
-        sprintf(errorMessage, "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
+        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
         throw Ali3DException(errorMessage);
      }
 
@@ -1727,7 +1727,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
       if (hr != D3D_OK)
       {
         char errorMessage[200];
-        sprintf(errorMessage, "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code %08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr);
+        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code %08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr);
         throw Ali3DException(errorMessage);
       }
 

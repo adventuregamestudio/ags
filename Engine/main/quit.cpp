@@ -170,7 +170,7 @@ void quit_message_on_exit(const String &qmsg, String &alertis, QuitReason qreaso
     if ((qreason & kQuitKind_NormalExit) == 0 && !handledErrorInEditor)
     {
         // Display the message (at this point the window still exists)
-        sprintf(pexbuf,"%s\n", qmsg.GetCStr());
+        snprintf(pexbuf, sizeof(pexbuf), "%s\n", qmsg.GetCStr());
         alertis.Append(pexbuf);
         platform->DisplayAlert("%s", alertis.GetCStr());
     }

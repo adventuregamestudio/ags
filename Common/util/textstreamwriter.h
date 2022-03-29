@@ -53,6 +53,7 @@ public:
 
 private:
     Stream *_stream;
+    String  _buf; // formatting string buffer
 };
 
 } // namespace Common

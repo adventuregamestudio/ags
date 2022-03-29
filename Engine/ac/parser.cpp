@@ -103,7 +103,7 @@ int FindMatchingMultiWordWord(char *thisword, const char **text) {
         while (tempptr[0] == ' ') tempptr++;
         char chbuffer[2];
         while (is_valid_word_char(tempptr[0])) {
-            sprintf(chbuffer, "%c", tempptr[0]);
+            snprintf(chbuffer, sizeof(chbuffer), "%c", tempptr[0]);
             strcat(tempword, chbuffer);
             tempptr++;
         }

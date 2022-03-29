@@ -230,7 +230,7 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
 
   // Remove any existing "Play.lnk" from a previous version
   char shortcutLocation[MAX_PATH];
-  sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
+  snprintf(shortcutLocation, MAX_PATH, "%s\\Play.lnk", pathBuffer);
   File::DeleteFile(shortcutLocation);
 
   // Generate the shortcut file name (because it can appear on
@@ -239,14 +239,14 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
   CopyStringAndRemoveInvalidFilenameChars(game.gamename, sanitisedGameName);
   if (sanitisedGameName[0] == 0)
     strcpy(sanitisedGameName, "Play");
-  sprintf(shortcutLocation, "%s\\%s.lnk", pathBuffer, sanitisedGameName);
+  snprintf(shortcutLocation, MAX_PATH, "%s\\%s.lnk", pathBuffer, sanitisedGameName);
 
   create_shortcut(gameEXE, workingFolder, NULL, shortcutLocation);
 
   pathBuffer[strlen(pathBuffer) - 1] = '1';
   mkdir(pathBuffer);
 
-  sprintf(shortcutLocation, "%s\\Setup game.lnk", pathBuffer);
+  snprintf(shortcutLocation, MAX_PATH, "%s\\Setup game.lnk", pathBuffer);
   create_shortcut(gameEXE, workingFolder, "--setup", shortcutLocation);
 }
 
@@ -352,17 +352,17 @@ void AGSWin32::update_game_explorer(bool add)
 void AGSWin32::unregister_file_extension()
 {
   char keyname[MAX_PATH];
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, ".%s", game.saveGameFileExtension);
   if (SHDeleteKey(HKEY_CLASSES_ROOT, keyname) != ERROR_SUCCESS)
   {
     this->DisplayAlert("Unable to un-register the file extension. Make sure you are running this with admin rights.");
     return;
   }
 
-  sprintf(keyname, "AGS.SaveGames.%s", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, "AGS.SaveGames.%s", game.saveGameFileExtension);
   SHDeleteKey(HKEY_CLASSES_ROOT, keyname);
 
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
   SHDeleteKey(HKEY_LOCAL_MACHINE, keyname);
 
   // Tell Explorer to refresh its file association data
@@ -375,11 +375,11 @@ void AGSWin32::register_file_extension(const char *exePath)
   valType = REG_SZ;
   char valBuf[MAX_PATH], keyname[MAX_PATH];
   char saveGameRegistryType[MAX_PATH];
-  sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.saveGameFileExtension);
+  snprintf(saveGameRegistryType, MAX_PATH, "AGS.SaveGames.%s", game.saveGameFileExtension);
 
   // write HKEY_CLASSES_ROOT\.Extension = AGS.SaveGames.Extension
   strcpy(valBuf, saveGameRegistryType);
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, ".%s", game.saveGameFileExtension);
   if (RegSetValue(HKEY_CLASSES_ROOT, keyname, valType, valBuf, valBufLen))
   {
     this->DisplayAlert("Unable to register file type. Make sure you are running this with Administrator rights.");
@@ -388,17 +388,17 @@ void AGSWin32::register_file_extension(const char *exePath)
 
   // create HKEY_CLASSES_ROOT\AGS.SaveGames.Extension
   strcpy(keyname, saveGameRegistryType);
-  sprintf(valBuf, "%s Saved Game", game.gamename);
+  snprintf(valBuf, MAX_PATH, "%s Saved Game", game.gamename);
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\DefaultIcon
-  sprintf(keyname, "%s\\DefaultIcon", saveGameRegistryType);
-  sprintf(valBuf, "\"%s\", 0", exePath);
+  snprintf(keyname, MAX_PATH, "%s\\DefaultIcon", saveGameRegistryType);
+  snprintf(valBuf, MAX_PATH, "\"%s\", 0", exePath);
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\Shell\Open\Command
-  sprintf(keyname, "%s\\Shell\\Open\\Command", saveGameRegistryType);
-  sprintf(valBuf, "\"%s\" -loadSavedGame \"%%1\"", exePath);
+  snprintf(keyname, MAX_PATH, "%s\\Shell\\Open\\Command", saveGameRegistryType);
+  snprintf(valBuf, MAX_PATH, "\"%s\" -loadSavedGame \"%%1\"", exePath);
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // ** BELOW IS VISTA-ONLY
@@ -414,12 +414,12 @@ void AGSWin32::register_file_extension(const char *exePath)
   SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewDetails", REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\.Extension\ShellEx\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}
-  sprintf(keyname, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.saveGameFileExtension);
   strcpy(valBuf, "{4E5BFBF8-F59A-4E87-9805-1F9B42CC254A}");
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\PropertySystem\PropertyHandlers\.Extension
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+  snprintf(keyname, MAX_PATH, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
   strcpy(valBuf, "{ECDD6472-2B9B-4B4B-AE36-F316DF3C8D60}");
   RegSetValue (HKEY_LOCAL_MACHINE, keyname, REG_SZ, valBuf, strlen(valBuf));
 
@@ -651,7 +651,7 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   char displbuf[2500];
   va_list ap;
   va_start(ap, text);
-  vsprintf(displbuf, text, ap);
+  vsnprintf(displbuf, sizeof(displbuf), text, ap);
   va_end(ap);
   if (_guiMode)
     MessageBox((HWND)sys_win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);

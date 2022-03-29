@@ -77,7 +77,8 @@ namespace AGS.Editor
             this.scintillaControl1.Margins.Right = 0;
             this.scintillaControl1.MouseDwellTime = 10000000;
             this.scintillaControl1.Name = "scintillaControl1";
-            this.scintillaControl1.ScrollWidth = 800;
+            this.scintillaControl1.ScrollWidth = 1;
+            this.scintillaControl1.ScrollWidthTracking = true;
             this.scintillaControl1.SearchFlags = 0;
             this.scintillaControl1.AdditionalSelAlpha = 256;
             this.scintillaControl1.SelectionEnd = 0;

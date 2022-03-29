@@ -223,7 +223,7 @@ static String find_game_data_in_config(const String &path)
     String def_cfg_file = Path::ConcatPaths(path, DefaultConfigFileName);
     if (IniUtil::Read(def_cfg_file, cfg))
     {
-        String data_file = INIreadstring(cfg, "misc", "datafile");
+        String data_file = CfgReadString(cfg, "misc", "datafile");
         Debug::Printf("Found game config: %s", def_cfg_file.GetCStr());
         Debug::Printf(" Cfg: data file: %s", data_file.GetCStr());
         // Only accept if it's a relative path
@@ -1049,9 +1049,9 @@ void engine_read_config(ConfigTree &cfg)
     // Handle directive to search for the user config inside the custom directory;
     // this option may come either from command line or default/global config.
     if (usetup.user_conf_dir.IsEmpty())
-        usetup.user_conf_dir = INIreadstring(cfg, "misc", "user_conf_dir");
+        usetup.user_conf_dir = CfgReadString(cfg, "misc", "user_conf_dir");
     if (usetup.user_conf_dir.IsEmpty()) // also try deprecated option
-        usetup.user_conf_dir = INIreadint(cfg, "misc", "localuserconf") != 0 ? "." : "";
+        usetup.user_conf_dir = CfgReadInt(cfg, "misc", "localuserconf") != 0 ? "." : "";
     // Test if the file is writeable, if it is then both engine and setup
     // applications may actually use it fully as a user config, otherwise
     // fallback to default behavior.

@@ -12,8 +12,8 @@
 //
 //=============================================================================
 //
-// Functions for exchanging configuration data between key-value tree and
-// INI file.
+// Functions for working with the config key-value tree and exchanging data
+// between key-value tree and INI file.
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__INIUTIL_H
@@ -27,14 +27,26 @@ namespace AGS
 namespace Common
 {
 
+typedef std::map<String, String>         StringOrderMap;
+typedef std::map<String, StringOrderMap> ConfigTree;
+
+//
+// Helper functions for parsing values in a ConfigTree
+bool    CfgReadItem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);
+int     CfgReadInt(const ConfigTree &cfg, const String &sectn, const String &item, int def_value = 0);
+float   CfgReadFloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value = 0.f);
+String  CfgReadString(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value = "");
+//
+// Helper functions for writing values into a ConfigTree
+void    CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int value);
+void    CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value);
+void    CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value, unsigned precision);
+void    CfgWriteString(ConfigTree &cfg, const String &sectn, const String &item, const String &value);
+
+
 class IniFile;
 
-typedef std::map<String, String>         StringOrderMap;
-typedef StringOrderMap::const_iterator   StrStrOIter;
-
-typedef std::map<String, StringOrderMap> ConfigTree;
-typedef ConfigTree::const_iterator       ConfigNode;
-
+// Utility functions that exchange data between ConfigTree and INI file.
 namespace IniUtil
 {
     // Copies the contents of an IniFile object to a key-value tree.

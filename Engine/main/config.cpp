@@ -222,7 +222,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         usetup.override_upscale = true; // run low-res game in high-res mode
     }
 
-    usetup.Screen.Windowed = CfgReadInt(cfg, "misc", "windowed") > 0;
+    usetup.Screen.Windowed = CfgReadBoolInt(cfg, "misc", "windowed");
     usetup.Screen.DriverID = CfgReadString(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
 
     // Window setup: style and size definition, game frame style
@@ -241,8 +241,8 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
             if (!usetup.Screen.Windowed)
             {
                 bool allow_borders = 
-                    (CfgReadInt(cfg, "misc", "sideborders") > 0 || CfgReadInt(cfg, "misc", "forceletterbox") > 0 ||
-                     CfgReadInt(cfg, "misc", "prefer_sideborders") > 0 || CfgReadInt(cfg, "misc", "prefer_letterbox") > 0);
+                    (CfgReadBoolInt(cfg, "misc", "sideborders") || CfgReadBoolInt(cfg, "misc", "forceletterbox") ||
+                     CfgReadBoolInt(cfg, "misc", "prefer_sideborders") || CfgReadBoolInt(cfg, "misc", "prefer_letterbox"));
                 usetup.Screen.FsGameFrame = allow_borders ? kFrame_Proportional : kFrame_Stretch;
             }
         }
@@ -258,7 +258,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         }
 
         // AGS 3.5.* gfx mode with screen definition
-        const bool is_windowed = CfgReadInt(cfg, "graphics", "windowed") != 0;
+        const bool is_windowed = CfgReadBoolInt(cfg, "graphics", "windowed");
         WindowSetup &ws = is_windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
         const WindowMode wm = is_windowed ? kWnd_Windowed : kWnd_Fullscreen;
         ScreenSizeDefinition scr_def = parse_legacy_screendef(CfgReadString(cfg, "graphics", "screen_def"));
@@ -375,7 +375,7 @@ void override_config_ext(ConfigTree &cfg)
 void apply_config(const ConfigTree &cfg)
 {
     {
-        usetup.audio_enabled = CfgReadInt(cfg, "sound", "enabled", usetup.audio_enabled) != 0;
+        usetup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", usetup.audio_enabled);
         usetup.audio_driver = CfgReadString(cfg, "sound", "driver");
 
         // Legacy graphics settings has to be translated into new options;
@@ -384,7 +384,7 @@ void apply_config(const ConfigTree &cfg)
 
         // Graphics mode
         usetup.Screen.DriverID = CfgReadString(cfg, "graphics", "driver", usetup.Screen.DriverID);
-        usetup.Screen.Windowed = CfgReadInt(cfg, "graphics", "windowed", usetup.Screen.Windowed ? 1 : 0) > 0;
+        usetup.Screen.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", usetup.Screen.Windowed);
         usetup.Screen.FsSetup =
             parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false, usetup.Screen.FsSetup);
         usetup.Screen.WinSetup =
@@ -402,8 +402,8 @@ void apply_config(const ConfigTree &cfg)
 #endif
 
         usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
-        usetup.Screen.Params.VSync = CfgReadInt(cfg, "graphics", "vsync") > 0;
-        usetup.RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres") > 0;
+        usetup.Screen.Params.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
+        usetup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
         usetup.Supersampling = CfgReadInt(cfg, "graphics", "supersampling", 1);
         usetup.software_render_driver = CfgReadString(cfg, "graphics", "software_driver");
 
@@ -413,12 +413,12 @@ void apply_config(const ConfigTree &cfg)
                 rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
                 usetup.rotation);
 
-        usetup.enable_antialiasing = CfgReadInt(cfg, "misc", "antialias") > 0;
+        usetup.enable_antialiasing = CfgReadBoolInt(cfg, "misc", "antialias");
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = CfgReadInt(cfg, "sound", "usespeech", 1) == 0;
+        usetup.no_speech_pack = !CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
-        usetup.clear_cache_on_room_change = CfgReadInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change) != 0;
+        usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
         usetup.user_data_dir = CfgReadString(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = CfgReadString(cfg, "misc", "shared_data_dir");
 
@@ -428,7 +428,7 @@ void apply_config(const ConfigTree &cfg)
         if (cache_size_kb > 0)
             spriteset.SetMaxCacheSize((size_t)cache_size_kb * 1024);
 
-        usetup.mouse_auto_lock = CfgReadInt(cfg, "mouse", "auto_lock") > 0;
+        usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
 
         usetup.mouse_speed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
@@ -437,7 +437,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.mouse_ctrl_when = StrUtil::ParseEnum<MouseControlWhen>(
             mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
                 usetup.mouse_ctrl_when);
-        usetup.mouse_ctrl_enabled = CfgReadInt(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled) > 0;
+        usetup.mouse_ctrl_enabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled);
         mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
@@ -446,7 +446,7 @@ void apply_config(const ConfigTree &cfg)
         String override_os = CfgReadString(cfg, "override", "os");
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
-        usetup.override_upscale = CfgReadInt(cfg, "override", "upscale", usetup.override_upscale) > 0;
+        usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
     }
 
     // Apply logging configuration

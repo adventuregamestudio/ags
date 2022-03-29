@@ -155,7 +155,7 @@ void WinConfig::Load(const ConfigTree &cfg)
     GameResolution.Width = CfgReadInt(cfg, "gameproperties", "resolution_width", GameResolution.Width);
     GameResolution.Height = CfgReadInt(cfg, "gameproperties", "resolution_height", GameResolution.Height);
     GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
-    LetterboxByDesign = CfgReadInt(cfg, "gameproperties", "legacy_letterbox", 0) != 0;
+    LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
     GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
@@ -166,8 +166,8 @@ void WinConfig::Load(const ConfigTree &cfg)
     WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), WinGameFrame);
 
     RefreshRate = CfgReadInt(cfg, "graphics", "refresh", RefreshRate);
-    Windowed = CfgReadInt(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
-    VSync = CfgReadInt(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
+    Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", Windowed);
+    VSync = CfgReadBoolInt(cfg, "graphics", "vsync", VSync);
     int locked_render_at_screenres = CfgReadInt(cfg, "gameproperties", "render_at_screenres", -1);
     if (locked_render_at_screenres < 0)
         RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
@@ -176,11 +176,11 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     AntialiasSprites = CfgReadInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
-    AudioEnabled = CfgReadInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0) != 0;
+    AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
     AudioDriverId = CfgReadString(cfg, "sound", "driver", AudioDriverId);
-    UseVoicePack = CfgReadInt(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
+    UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", UseVoicePack);
 
-    MouseAutoLock = CfgReadInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
+    MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", MouseAutoLock);
     MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
     if (MouseSpeed <= 0.f)
         MouseSpeed = 1.f;
@@ -714,11 +714,11 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
-    if (CfgReadInt(_cfgIn, "disabled", "speechvox", 0) != 0)
+    if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
         EnableWindow(_hUseVoicePack, FALSE);
-    if (CfgReadInt(_cfgIn, "disabled", "filters", 0) != 0)
+    if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
         EnableWindow(_hGfxFilterList, FALSE);
-    if (CfgReadInt(_cfgIn, "disabled", "render_at_screenres", 0) != 0 ||
+    if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
 
@@ -1004,7 +1004,7 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (CfgReadInt(_cfgIn, "disabled", info.Id, 0) == 0)
+        if (CfgReadBoolInt(_cfgIn, "disabled", info.Id))
             AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 

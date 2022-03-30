@@ -191,7 +191,7 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
                       bool def_enabled,
                       std::initializer_list<DbgGroupOption> def_opts)
 {
-    String value = INIreadstring(cfg, "log", log_id);
+    String value = CfgReadString(cfg, "log", log_id);
     if (value.IsEmpty() && !def_enabled)
         return;
 
@@ -200,7 +200,7 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
     const bool was_created_earlier = dbgout != nullptr;
     if (!dbgout)
     {
-        String path = INIreadstring(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
+        String path = CfgReadString(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
         dbgout = create_log_output(log_id, path);
         if (!dbgout)
             return; // unknown output type
@@ -253,7 +253,7 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 {
     // Setup SDL output
     SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
-    String sdl_log = INIreadstring(cfg, "log", "sdl");
+    String sdl_log = CfgReadString(cfg, "log", "sdl");
     SDL_LogPriority priority = StrUtil::ParseEnumAllowNum<SDL_LogPriority>(sdl_log,
         CstrArr<SDL_NUM_LOG_PRIORITIES>{"", "verbose", "debug", "info", "warn", "error", "critical"}, SDL_LOG_PRIORITY_INFO);
     SDL_LogSetAllPriority(priority);
@@ -276,7 +276,7 @@ void apply_debug_config(const ConfigTree &cfg)
         { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
         });
-    bool legacy_log_enabled = INIreadint(cfg, "misc", "log", 0) != 0;
+    bool legacy_log_enabled = CfgReadBoolInt(cfg, "misc", "log", false);
     apply_log_config(cfg, OutputFileID,
         /* defaults */
         legacy_log_enabled,

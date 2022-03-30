@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_IOS
@@ -23,6 +22,7 @@
 
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/mobile_base.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
@@ -34,59 +34,10 @@ using namespace AGS::Common;
 
 extern char* ios_document_directory;
 
-bool ReadConfiguration(char* filename, bool read_everything);
-void ResetConfiguration();
-
-//int psp_return_to_menu = 1;
-int psp_ignore_acsetup_cfg_file = 1;
-int psp_clear_cache_on_room_change = 0;
-int psp_rotation = 0;
-int psp_config_enabled = 0;
-char psp_translation[100];
-char* psp_translations[100];
-
-// Mouse option from Allegro.
-extern int config_mouse_control_mode;
-
-
-// Graphic options from the Allegro library.
-extern int psp_gfx_scaling;
-extern int psp_gfx_smoothing;
-
-
-// Audio options from the Allegro library.
-unsigned int psp_audio_samplerate = 44100;
-int psp_audio_enabled = 1;
-volatile int psp_audio_multithreaded = 1;
-int psp_audio_cachesize = 10;
-int psp_midi_enabled = 1;
-int psp_midi_preload_patches = 0;
-
-int psp_video_framedrop = 0;
-
-int psp_gfx_renderer = 0;
-int psp_gfx_super_sampling = 0;
-int psp_gfx_smooth_sprites = 0;
-
-int psp_debug_write_to_logcat = 0;
-
-int config_mouse_longclick = 0;
-
-extern int display_fps;
-extern int want_exit;
-extern void PauseGame();
-extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
-
-bool psp_load_latest_savegame = false;
-extern char saveGameDirectory[260];
-extern const char *loadSaveGameOnStartup;
-char lastSaveGameName[200];
-
-bool reset_configuration = false;
 
 const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;
@@ -127,7 +78,7 @@ struct AGSIOS : AGSPlatformDriver {
 
 
 
-bool readConfigFile(char* directory)
+bool readConfigFile(const char* directory)
 {
   chdir(directory);
 
@@ -139,51 +90,7 @@ bool readConfigFile(char* directory)
 
 bool writeConfigFile()
 {
-  FILE* config = fopen(IOS_CONFIG_FILENAME, "wb");
-  if (config)
-  {
-    fprintf(config, "[misc]\n");
-    fprintf(config, "config_enabled = %d\n", psp_config_enabled);
-    fprintf(config, "rotation = %d\n", psp_rotation);
-    fprintf(config, "translation = %s\n", psp_translation);
-
-    fprintf(config, "[controls]\n");
-    fprintf(config, "mouse_method = %d\n", config_mouse_control_mode);
-    fprintf(config, "mouse_longclick = %d\n", config_mouse_longclick);
-	
-    fprintf(config, "[compatibility]\n");
-    fprintf(config, "clear_cache_on_room_change = %d\n", psp_clear_cache_on_room_change);
-
-    fprintf(config, "[sound]\n");
-    fprintf(config, "samplerate = %d\n", psp_audio_samplerate );
-    fprintf(config, "enabled = %d\n", psp_audio_enabled);
-    fprintf(config, "threaded = %d\n", psp_audio_multithreaded);
-    fprintf(config, "cache_size = %d\n", psp_audio_cachesize);
-    
-    fprintf(config, "[midi]\n");
-    fprintf(config, "enabled = %d\n", psp_midi_enabled);
-    fprintf(config, "preload_patches = %d\n", psp_midi_preload_patches);
-
-    fprintf(config, "[video]\n");
-    fprintf(config, "framedrop = %d\n", psp_video_framedrop);
-
-    fprintf(config, "[graphics]\n");
-    fprintf(config, "renderer = %d\n", psp_gfx_renderer);
-    fprintf(config, "smoothing = %d\n", psp_gfx_smoothing);
-    fprintf(config, "scaling = %d\n", psp_gfx_scaling);
-    fprintf(config, "super_sampling = %d\n", psp_gfx_super_sampling);
-    fprintf(config, "smooth_sprites = %d\n", psp_gfx_smooth_sprites);
-
-    fprintf(config, "[debug]\n");
-    fprintf(config, "show_fps = %d\n", (display_fps == 2) ? 1 : 0);
-    fprintf(config, "logging = %d\n", psp_debug_write_to_logcat);
-
-    fclose(config);
-
-    return true;
-  }
-
-  return false;
+  return WriteConfiguration(IOS_CONFIG_FILENAME);
 }
 
 
@@ -339,7 +246,7 @@ void setIntConfigValue(int id, int value)
 }
 
 
-void setStringConfigValue(int id, char* value)
+void setStringConfigValue(int id, const char* value)
 {
   switch (id)
   {
@@ -385,148 +292,6 @@ int getAvailableTranslations(char* translations)
   return i;
 }
 */
-
-
-
-
-void selectLatestSavegame()
-{
-  DIR* dir;
-  struct dirent* entry;
-  struct stat statBuffer;
-  char buffer[200];
-  time_t lastTime = 0;
-
-  dir = opendir(saveGameDirectory);
-
-  if (dir)
-  {
-    while ((entry = readdir(dir)) != 0)
-    {
-      if (ags_strnicmp(entry->d_name, "agssave", 7) == 0)
-      {
-        if (ags_stricmp(entry->d_name, "agssave.999") != 0)
-        {
-          strcpy(buffer, saveGameDirectory);
-          strcat(buffer, entry->d_name);
-          stat(buffer, &statBuffer);
-          if (statBuffer.st_mtime > lastTime)
-          {
-            strcpy(lastSaveGameName, buffer);
-            loadSaveGameOnStartup = lastSaveGameName;
-            lastTime = statBuffer.st_mtime;
-          }
-        }
-      }
-    }
-    closedir(dir);
-  }
-}
-
-
-int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name, int minimum, int maximum, int default_value)
-{
-  if (reset_configuration)
-  {
-    *variable = default_value;
-    return 0;
-  }
-
-  int temp = INIreadint(cfg, section, name);
-
-  if (temp == -1)
-    return 0;
-
-  if ((temp < minimum) || (temp > maximum))
-    temp = default_value;
-
-  *variable = temp;
-
-  return 1;
-}
-
-
-
-int ReadString(char* variable, const ConfigTree &cfg, char* section, char* name, char* default_value)
-{
-  if (reset_configuration)
-  {
-    strcpy(variable, default_value);
-    return 0;
-  }
-
-  String temp;
-  if (!INIreaditem(cfg, section, name, temp))
-    temp = default_value;
-
-  strcpy(variable, temp);
-
-  return 1;
-}
-
-
-
-void ResetConfiguration()
-{
-  reset_configuration = true;
-
-  ReadConfiguration(IOS_CONFIG_FILENAME, true);
-
-  reset_configuration = false;
-}
-
-
-bool ReadConfiguration(char* filename, bool read_everything)
-{
-  ConfigTree cfg;
-  if (IniUtil::Read(filename, cfg) || reset_configuration)
-  {
-//    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
-
-//    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
-
-    ReadString(&psp_translation[0], cfg, "misc", "translation", "default");
-
-    ReadInteger((int*)&psp_config_enabled, cfg, "misc", "config_enabled", 0, 1, 0);
-    if (!psp_config_enabled && !read_everything)
-      return true;
-
-    ReadInteger(&psp_debug_write_to_logcat, cfg, "debug", "logging", 0, 1, 0);
-    ReadInteger(&display_fps, cfg, "debug", "show_fps", 0, 1, 0);
-    if (display_fps == 1)
-      display_fps = 2;
-
-    ReadInteger((int*)&psp_rotation, cfg, "misc", "rotation", 0, 2, 0);
-
-//    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
-    ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
-
-    ReadInteger((int*)&psp_audio_samplerate, cfg, "sound", "samplerate", 0, 44100, 44100);
-    ReadInteger((int*)&psp_audio_enabled, cfg, "sound", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_multithreaded, cfg, "sound", "threaded", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_cachesize, cfg, "sound", "cache_size", 1, 50, 10);
-
-    ReadInteger((int*)&psp_midi_enabled, cfg, "midi", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_midi_preload_patches, cfg, "midi", "preload_patches", 0, 1, 0);
-
-    ReadInteger((int*)&psp_video_framedrop, cfg, "video", "framedrop", 0, 1, 0);
-
-    ReadInteger((int*)&psp_gfx_renderer, cfg, "graphics", "renderer", 0, 2, 0);
-    ReadInteger((int*)&psp_gfx_smoothing, cfg, "graphics", "smoothing", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_scaling, cfg, "graphics", "scaling", 0, 2, 1);
-    ReadInteger((int*)&psp_gfx_super_sampling, cfg, "graphics", "super_sampling", 0, 1, 0);
-    ReadInteger((int*)&psp_gfx_smooth_sprites, cfg, "graphics", "smooth_sprites", 0, 1, 0);
-
-    ReadInteger((int*)&config_mouse_control_mode, cfg, "controls", "mouse_method", 0, 1, 0);
-    ReadInteger((int*)&config_mouse_longclick, cfg, "controls", "mouse_longclick", 0, 1, 1);
-
-    return true;
-  }
-
-  return false;
-}
-
-
 
 extern void ios_show_message_box(char* buffer);
 volatile int ios_wait_for_ui = 0;

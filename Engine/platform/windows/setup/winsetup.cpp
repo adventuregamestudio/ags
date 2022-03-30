@@ -145,80 +145,80 @@ void WinConfig::SetDefaults()
 
 void WinConfig::Load(const ConfigTree &cfg)
 {
-    DataDirectory = INIreadstring(cfg, "misc", "datadir", DataDirectory);
-    UserSaveDir = INIreadstring(cfg, "misc", "user_data_dir");
-    AppDataDir = INIreadstring(cfg, "misc", "shared_data_dir");
+    DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
+    UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
+    AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
     // Backward-compatible resolution type
-    GameResType = (GameResolutionType)INIreadint(cfg, "gameproperties", "legacy_resolution", GameResType);
+    GameResType = (GameResolutionType)CfgReadInt(cfg, "gameproperties", "legacy_resolution", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
         GameResType = kGameResolution_Undefined;
-    GameResolution.Width = INIreadint(cfg, "gameproperties", "resolution_width", GameResolution.Width);
-    GameResolution.Height = INIreadint(cfg, "gameproperties", "resolution_height", GameResolution.Height);
-    GameColourDepth = INIreadint(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
-    LetterboxByDesign = INIreadint(cfg, "gameproperties", "legacy_letterbox", 0) != 0;
+    GameResolution.Width = CfgReadInt(cfg, "gameproperties", "resolution_width", GameResolution.Width);
+    GameResolution.Height = CfgReadInt(cfg, "gameproperties", "resolution_height", GameResolution.Height);
+    GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
+    LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
-    GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
-    GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
-    FsSetup = parse_window_mode(INIreadstring(cfg, "graphics", "fullscreen", "default"), false);
-    WinSetup = parse_window_mode(INIreadstring(cfg, "graphics", "window", "default"), true);
+    GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
+    GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
+    FsSetup = parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false);
+    WinSetup = parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true);
 
-    FsGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs"), FsGameFrame);
-    WinGameFrame = parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win"), WinGameFrame);
+    FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), FsGameFrame);
+    WinGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), WinGameFrame);
 
-    RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
-    Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
-    VSync = INIreadint(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
-    int locked_render_at_screenres = INIreadint(cfg, "gameproperties", "render_at_screenres", -1);
+    RefreshRate = CfgReadInt(cfg, "graphics", "refresh", RefreshRate);
+    Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", Windowed);
+    VSync = CfgReadBoolInt(cfg, "graphics", "vsync", VSync);
+    int locked_render_at_screenres = CfgReadInt(cfg, "gameproperties", "render_at_screenres", -1);
     if (locked_render_at_screenres < 0)
-        RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
+        RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
     else
         RenderAtScreenRes = locked_render_at_screenres != 0;
 
-    AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
+    AntialiasSprites = CfgReadInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
-    AudioEnabled = INIreadint(cfg, "sound", "enabled", AudioEnabled ? 1 : 0) != 0;
-    AudioDriverId = INIreadstring(cfg, "sound", "driver", AudioDriverId);
-    UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
+    AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
+    AudioDriverId = CfgReadString(cfg, "sound", "driver", AudioDriverId);
+    UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", UseVoicePack);
 
-    MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
-    MouseSpeed = INIreadfloat(cfg, "mouse", "speed", 1.f);
+    MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", MouseAutoLock);
+    MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
     if (MouseSpeed <= 0.f)
         MouseSpeed = 1.f;
 
-    SpriteCacheSize = INIreadint(cfg, "misc", "cachemax", SpriteCacheSize);
-    Language = INIreadstring(cfg, "language", "translation", Language);
-    DefaultLanguageName = INIreadstring(cfg, "language", "default_translation_name", DefaultLanguageName);
+    SpriteCacheSize = CfgReadInt(cfg, "misc", "cachemax", SpriteCacheSize);
+    Language = CfgReadString(cfg, "language", "translation", Language);
+    DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 
-    Title = INIreadstring(cfg, "misc", "titletext", Title);
+    Title = CfgReadString(cfg, "misc", "titletext", Title);
 }
 
 void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
 {
-    INIwritestring(cfg, "misc", "user_data_dir", UserSaveDir);
-    INIwritestring(cfg, "misc", "shared_data_dir", AppDataDir);
+    CfgWriteString(cfg, "misc", "user_data_dir", UserSaveDir);
+    CfgWriteString(cfg, "misc", "shared_data_dir", AppDataDir);
 
-    INIwritestring(cfg, "graphics", "driver", GfxDriverId);
-    INIwritestring(cfg, "graphics", "filter", GfxFilterId);
-    INIwritestring(cfg, "graphics", "fullscreen", make_window_mode_option(FsSetup, GameResolution, desktop_res));
-    INIwritestring(cfg, "graphics", "window", make_window_mode_option(WinSetup, GameResolution, desktop_res));
-    INIwritestring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame));
-    INIwritestring(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame));
-    INIwriteint(cfg, "graphics", "refresh", RefreshRate);
-    INIwriteint(cfg, "graphics", "windowed", Windowed ? 1 : 0);
-    INIwriteint(cfg, "graphics", "vsync", VSync ? 1 : 0);
-    INIwriteint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
+    CfgWriteString(cfg, "graphics", "driver", GfxDriverId);
+    CfgWriteString(cfg, "graphics", "filter", GfxFilterId);
+    CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(FsSetup, GameResolution, desktop_res));
+    CfgWriteString(cfg, "graphics", "window", make_window_mode_option(WinSetup, GameResolution, desktop_res));
+    CfgWriteString(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame));
+    CfgWriteString(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame));
+    CfgWriteInt(cfg, "graphics", "refresh", RefreshRate);
+    CfgWriteInt(cfg, "graphics", "windowed", Windowed ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "vsync", VSync ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
 
-    INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
+    CfgWriteInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
-    INIwriteint(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
-    INIwritestring(cfg, "sound", "driver", AudioDriverId);
-    INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
+    CfgWriteInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
+    CfgWriteString(cfg, "sound", "driver", AudioDriverId);
+    CfgWriteInt(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
-    INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
-    INIwritestring(cfg, "mouse", "speed", String::FromFormat("%0.1f", MouseSpeed));
+    CfgWriteInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
+    CfgWriteFloat(cfg, "mouse", "speed", MouseSpeed, 1);
 
-    INIwriteint(cfg, "misc", "cachemax", SpriteCacheSize);
-    INIwritestring(cfg, "language", "translation", Language);
+    CfgWriteInt(cfg, "misc", "cachemax", SpriteCacheSize);
+    CfgWriteString(cfg, "language", "translation", Language);
 }
 
 
@@ -714,12 +714,12 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
-    if (INIreadint(_cfgIn, "disabled", "speechvox", 0) != 0)
+    if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
         EnableWindow(_hUseVoicePack, FALSE);
-    if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
+    if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
         EnableWindow(_hGfxFilterList, FALSE);
-    if (INIreadint(_cfgIn, "disabled", "render_at_screenres", 0) != 0 ||
-        INIreadint(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
+    if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
+        CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect, border;
@@ -1004,7 +1004,7 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (INIreadint(_cfgIn, "disabled", info.Id, 0) == 0)
+        if (CfgReadBoolInt(_cfgIn, "disabled", info.Id))
             AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 

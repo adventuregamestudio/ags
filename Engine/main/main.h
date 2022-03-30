@@ -42,7 +42,7 @@ extern int override_start_room;
 extern bool justRegisterGame;
 extern bool justUnRegisterGame;
 extern bool justTellInfo;
-extern const char *loadSaveGameOnStartup;
+extern AGS::Common::String loadSaveGameOnStartup;
 
 extern int psp_video_framedrop;
 extern int psp_ignore_acsetup_cfg_file;

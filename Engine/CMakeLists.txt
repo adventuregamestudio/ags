@@ -479,6 +479,9 @@ target_sources(engine
     platform/windows/win_ex_handling.h
     platform/windows/minidump.cpp
     platform/windows/winapi_exclusive.h
+
+    platform/base/mobile_base.cpp
+    platform/base/mobile_base.h
 )
 
 if(ANDROID)

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 //
 // Game configuration
 //
@@ -47,57 +46,6 @@ extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
 const String DefaultConfigFileName = "acsetup.cfg";
-
-bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value)
-{
-    ConfigNode sec_it = cfg.find(sectn);
-    if (sec_it != cfg.end())
-    {
-        StrStrOIter item_it = sec_it->second.find(item);
-        if (item_it != sec_it->second.end())
-        {
-            value = item_it->second;
-            return true;
-        }
-    }
-    return false;
-}
-
-int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item, int def_value)
-{
-    String str;
-    if (!INIreaditem(cfg, sectn, item, str))
-        return def_value;
-
-    return atoi(str.GetCStr());
-}
-
-float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value)
-{
-    String str;
-    if (!INIreaditem(cfg, sectn, item, str))
-        return def_value;
-
-    return atof(str.GetCStr());
-}
-
-String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value)
-{
-    String str;
-    if (!INIreaditem(cfg, sectn, item, str))
-        return def_value;
-    return str;
-}
-
-void INIwriteint(ConfigTree &cfg, const String &sectn, const String &item, int value)
-{
-    cfg[sectn][item] = StrUtil::IntToString(value);
-}
-
-void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, const String &value)
-{
-    cfg[sectn][item] = value;
-}
 
 
 WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetup def_value)
@@ -266,20 +214,20 @@ void config_defaults()
 static void read_legacy_graphics_config(const ConfigTree &cfg)
 {
     // Pre-3.* game resolution setup
-    int default_res = INIreadint(cfg, "misc", "defaultres", 0);
-    int screen_res = INIreadint(cfg, "misc", "screenres", 0);
+    int default_res = CfgReadInt(cfg, "misc", "defaultres", 0);
+    int screen_res = CfgReadInt(cfg, "misc", "screenres", 0);
     if ((default_res == kGameResolution_320x200 ||
         default_res == kGameResolution_320x240) && screen_res > 0)
     {
         usetup.override_upscale = true; // run low-res game in high-res mode
     }
 
-    usetup.Screen.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
-    usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
+    usetup.Screen.Windowed = CfgReadBoolInt(cfg, "misc", "windowed");
+    usetup.Screen.DriverID = CfgReadString(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
 
     // Window setup: style and size definition, game frame style
     {
-        String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
+        String legacy_filter = CfgReadString(cfg, "misc", "gfxfilter");
         if (!legacy_filter.IsEmpty())
         {
             // Legacy scaling config is applied only to windowed setting
@@ -293,14 +241,14 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
             if (!usetup.Screen.Windowed)
             {
                 bool allow_borders = 
-                    (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
-                     INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
+                    (CfgReadBoolInt(cfg, "misc", "sideborders") || CfgReadBoolInt(cfg, "misc", "forceletterbox") ||
+                     CfgReadBoolInt(cfg, "misc", "prefer_sideborders") || CfgReadBoolInt(cfg, "misc", "prefer_letterbox"));
                 usetup.Screen.FsGameFrame = allow_borders ? kFrame_Proportional : kFrame_Stretch;
             }
         }
 
         // AGS 3.4.0 - 3.4.1-rc uniform scaling option
-        String uniform_frame_scale = INIreadstring(cfg, "graphics", "game_scale");
+        String uniform_frame_scale = CfgReadString(cfg, "graphics", "game_scale");
         if (!uniform_frame_scale.IsEmpty())
         {
             int src_scale = 1;
@@ -310,17 +258,17 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         }
 
         // AGS 3.5.* gfx mode with screen definition
-        const bool is_windowed = INIreadint(cfg, "graphics", "windowed") != 0;
+        const bool is_windowed = CfgReadBoolInt(cfg, "graphics", "windowed");
         WindowSetup &ws = is_windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
         const WindowMode wm = is_windowed ? kWnd_Windowed : kWnd_Fullscreen;
-        ScreenSizeDefinition scr_def = parse_legacy_screendef(INIreadstring(cfg, "graphics", "screen_def"));
+        ScreenSizeDefinition scr_def = parse_legacy_screendef(CfgReadString(cfg, "graphics", "screen_def"));
         switch (scr_def)
         {
         case kScreenDef_Explicit:
             {
                 Size sz(
-                    INIreadint(cfg, "graphics", "screen_width"),
-                    INIreadint(cfg, "graphics", "screen_height"));
+                    CfgReadInt(cfg, "graphics", "screen_width"),
+                    CfgReadInt(cfg, "graphics", "screen_height"));
                 ws = WindowSetup(sz, wm);
             }
             break;
@@ -328,8 +276,8 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
             {
                 int src_scale;
                 is_windowed ?
-                    parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win"), src_scale) :
-                    parse_legacy_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs"), src_scale);
+                    parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), src_scale) :
+                    parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), src_scale);
                 ws = WindowSetup(src_scale, wm);
             }
             break;
@@ -341,7 +289,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
         }
     }
 
-    usetup.Screen.Params.RefreshRate = INIreadint(cfg, "misc", "refresh");
+    usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
 }
 
 // Variables used for mobile port configs
@@ -361,7 +309,7 @@ void override_config_ext(ConfigTree &cfg)
 {
     // Mobile ports always run in fullscreen mode
 #if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-    INIwriteint(cfg, "graphics", "windowed", 0);
+    CfgWriteInt(cfg, "graphics", "windowed", 0);
 #endif
 
     // psp_gfx_renderer - rendering mode
@@ -370,13 +318,13 @@ void override_config_ext(ConfigTree &cfg)
     //    * 2 - hardware, render to texture
     if (psp_gfx_renderer == 0)
     {
-        INIwritestring(cfg, "graphics", "driver", "Software");
-        INIwriteint(cfg, "graphics", "render_at_screenres", 1);
+        CfgWriteString(cfg, "graphics", "driver", "Software");
+        CfgWriteInt(cfg, "graphics", "render_at_screenres", 1);
     }
     else
     {
-        INIwritestring(cfg, "graphics", "driver", "OGL");
-        INIwriteint(cfg, "graphics", "render_at_screenres", psp_gfx_renderer == 1);
+        CfgWriteString(cfg, "graphics", "driver", "OGL");
+        CfgWriteInt(cfg, "graphics", "render_at_screenres", psp_gfx_renderer == 1);
     }
 
     // psp_gfx_scaling - scaling style:
@@ -384,121 +332,121 @@ void override_config_ext(ConfigTree &cfg)
     //    * 1 - stretch and preserve aspect ratio
     //    * 2 - stretch to whole screen
     if (psp_gfx_scaling == 0)
-        INIwritestring(cfg, "graphics", "game_scale_fs", "1");
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "1");
     else if (psp_gfx_scaling == 1)
-        INIwritestring(cfg, "graphics", "game_scale_fs", "proportional");
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "proportional");
     else
-        INIwritestring(cfg, "graphics", "game_scale_fs", "stretch");
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "stretch");
 
     // psp_gfx_smoothing - scaling filter:
     //    * 0 - nearest-neighbour
     //    * 1 - linear
     if (psp_gfx_smoothing == 0)
-        INIwritestring(cfg, "graphics", "filter", "StdScale");
+        CfgWriteString(cfg, "graphics", "filter", "StdScale");
     else
-        INIwritestring(cfg, "graphics", "filter", "Linear");
+        CfgWriteString(cfg, "graphics", "filter", "Linear");
 
     // psp_gfx_super_sampling - enable super sampling
     //    * 0 - x1
     //    * 1 - x2
     if (psp_gfx_renderer == 2)
-        INIwriteint(cfg, "graphics", "supersampling", psp_gfx_super_sampling + 1);
+        CfgWriteInt(cfg, "graphics", "supersampling", psp_gfx_super_sampling + 1);
     else
-        INIwriteint(cfg, "graphics", "supersampling", 0);
+        CfgWriteInt(cfg, "graphics", "supersampling", 0);
 
     // psp_gfx_rotation - scaling style:
     //    * 0 - unlocked, let the user rotate as wished.
     //    * 1 - portrait
     //    * 2 - landscape
-    INIwriteint(cfg, "graphics", "rotation", psp_rotation);
+    CfgWriteInt(cfg, "graphics", "rotation", psp_rotation);
 
 #if AGS_PLATFORM_OS_ANDROID
     // config_mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control
-    INIwriteint(cfg, "mouse", "control_enabled", config_mouse_control_mode);
+    CfgWriteInt(cfg, "mouse", "control_enabled", config_mouse_control_mode);
 #endif
 
-    INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
-    INIwritestring(cfg, "language", "translation", psp_translation);
-    INIwriteint(cfg, "misc", "clear_cache_on_room_change", psp_clear_cache_on_room_change != 0);
+    CfgWriteInt(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
+    CfgWriteString(cfg, "language", "translation", psp_translation);
+    CfgWriteInt(cfg, "misc", "clear_cache_on_room_change", psp_clear_cache_on_room_change != 0);
 }
 
 void apply_config(const ConfigTree &cfg)
 {
     {
-        usetup.audio_enabled = INIreadint(cfg, "sound", "enabled", usetup.audio_enabled) != 0;
-        usetup.audio_driver = INIreadstring(cfg, "sound", "driver");
+        usetup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", usetup.audio_enabled);
+        usetup.audio_driver = CfgReadString(cfg, "sound", "driver");
 
         // Legacy graphics settings has to be translated into new options;
         // they must be read first, to let newer options override them, if ones are present
         read_legacy_graphics_config(cfg);
 
         // Graphics mode
-        usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
-        usetup.Screen.Windowed = INIreadint(cfg, "graphics", "windowed", usetup.Screen.Windowed ? 1 : 0) > 0;
+        usetup.Screen.DriverID = CfgReadString(cfg, "graphics", "driver", usetup.Screen.DriverID);
+        usetup.Screen.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", usetup.Screen.Windowed);
         usetup.Screen.FsSetup =
-            parse_window_mode(INIreadstring(cfg, "graphics", "fullscreen", "default"), false, usetup.Screen.FsSetup);
+            parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false, usetup.Screen.FsSetup);
         usetup.Screen.WinSetup =
-            parse_window_mode(INIreadstring(cfg, "graphics", "window", "default"), true, usetup.Screen.WinSetup);
+            parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true, usetup.Screen.WinSetup);
 
         // TODO: move to config overrides (replace values during config load)
 #if AGS_PLATFORM_OS_MACOS
         usetup.Screen.Filter.ID = "none";
 #else
-        usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
+        usetup.Screen.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
         usetup.Screen.FsGameFrame =
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
+            parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
         usetup.Screen.WinGameFrame =
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "round"), usetup.Screen.WinGameFrame);
+            parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win", "round"), usetup.Screen.WinGameFrame);
 #endif
 
-        usetup.Screen.Params.RefreshRate = INIreadint(cfg, "graphics", "refresh");
-        usetup.Screen.Params.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
-        usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
-        usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
-        usetup.software_render_driver = INIreadstring(cfg, "graphics", "software_driver");
+        usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
+        usetup.Screen.Params.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
+        usetup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
+        usetup.Supersampling = CfgReadInt(cfg, "graphics", "supersampling", 1);
+        usetup.software_render_driver = CfgReadString(cfg, "graphics", "software_driver");
 
-        usetup.rotation = (ScreenRotation)INIreadint(cfg, "graphics", "rotation", usetup.rotation);
-        String rotation_str = INIreadstring(cfg, "graphics", "rotation", "unlocked");
+        usetup.rotation = (ScreenRotation)CfgReadInt(cfg, "graphics", "rotation", usetup.rotation);
+        String rotation_str = CfgReadString(cfg, "graphics", "rotation", "unlocked");
         usetup.rotation = StrUtil::ParseEnum<ScreenRotation>(
                 rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
                 usetup.rotation);
 
-        usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
+        usetup.enable_antialiasing = CfgReadBoolInt(cfg, "misc", "antialias");
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;
+        usetup.no_speech_pack = !CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
-        usetup.clear_cache_on_room_change = INIreadint(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change) != 0;
-        usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
-        usetup.shared_data_dir = INIreadstring(cfg, "misc", "shared_data_dir");
+        usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
+        usetup.user_data_dir = CfgReadString(cfg, "misc", "user_data_dir");
+        usetup.shared_data_dir = CfgReadString(cfg, "misc", "shared_data_dir");
 
-        usetup.translation = INIreadstring(cfg, "language", "translation");
+        usetup.translation = CfgReadString(cfg, "language", "translation");
 
-        int cache_size_kb = INIreadint(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
+        int cache_size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
         if (cache_size_kb > 0)
             spriteset.SetMaxCacheSize((size_t)cache_size_kb * 1024);
 
-        usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
+        usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
 
-        usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
+        usetup.mouse_speed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;
-        String mouse_str = INIreadstring(cfg, "mouse", "control_when", "fullscreen");
+        String mouse_str = CfgReadString(cfg, "mouse", "control_when", "fullscreen");
         usetup.mouse_ctrl_when = StrUtil::ParseEnum<MouseControlWhen>(
             mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
                 usetup.mouse_ctrl_when);
-        usetup.mouse_ctrl_enabled = INIreadint(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled) > 0;
-        mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
+        usetup.mouse_ctrl_enabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", usetup.mouse_ctrl_enabled);
+        mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
-        usetup.override_multitasking = INIreadint(cfg, "override", "multitasking", -1);
-        String override_os = INIreadstring(cfg, "override", "os");
+        usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
+        String override_os = CfgReadString(cfg, "override", "os");
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
-        usetup.override_upscale = INIreadint(cfg, "override", "upscale", usetup.override_upscale) > 0;
+        usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
     }
 
     // Apply logging configuration

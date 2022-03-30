@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,15 @@ namespace AGS.Editor
 {
     public static class BitmapExtensions
     {
+        /// <summary>
+        /// Loads a <see cref="Bitmap"/> from file that doesn't lock the original file.
+        /// </summary>
+        public static Bitmap LoadNonLockedBitmap(string path)
+        {
+            using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(path)))
+                return new Bitmap(ms);
+        }
+
         /// <summary>
         /// Gets an integer with the color depth of the image.
         /// </summary>

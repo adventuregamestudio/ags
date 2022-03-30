@@ -567,6 +567,24 @@ namespace AGS.Editor.Utils
         }
 
         /// <summary>
+        /// Writes a dummy sprite file with one 1x1 clear sprite at index 0.
+        /// </summary>
+        public static void WriteDummySpriteFile(string filename)
+        {
+            int storeFlags = 0;
+            if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
+                storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
+            var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
+
+            var writer = new Native.SpriteFileWriter(filename);
+            writer.Begin(storeFlags, compressSprites);
+            var bmp = new Bitmap(1, 1);
+            writer.WriteBitmap(bmp);
+            bmp.Dispose();
+            writer.End();
+        }
+
+        /// <summary>
         /// Writes the sprite file, importing all the existing sprites either from the
         /// their sources, or sprite cache, - whatever is present (in that order).
         /// </summary>

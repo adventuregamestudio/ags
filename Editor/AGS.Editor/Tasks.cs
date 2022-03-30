@@ -122,7 +122,15 @@ namespace AGS.Editor
             else
             {
                 Factory.AGSEditor.LoadGameFile(gameToLoad);
-                Factory.NativeProxy.LoadNewSpriteFile();
+                try
+                {
+                    Factory.NativeProxy.LoadNewSpriteFile();
+                }
+                catch (Exception e)
+                {
+                    errors.Add(e.Message);
+                    CreateNewSpriteFile();
+                }
                 game = Factory.AGSEditor.CurrentGame;
             }
 
@@ -153,6 +161,14 @@ namespace AGS.Editor
             }
 
             return false;
+        }
+
+        private void CreateNewSpriteFile()
+        {
+            string tempFilename = Path.GetTempFileName();
+            Utils.SpriteTools.WriteDummySpriteFile(tempFilename);
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            File.Delete(tempFilename);
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)

@@ -106,7 +106,7 @@ RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSI
   rm -r /tmp/cmake-$CMAKE_VERSION
 
 # Build and install SDL_sound
-ARG SDL2_SOUND_VERSION=ebcf0fe725448f9dbaa7884114e0b96b9c041570
+ARG SDL2_SOUND_VERSION=12983b8acc8f89a4f0b4c320bdcc601a78824822
 RUN cd /tmp && \
   curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz && \
   tar -xvzf SDL_sound.tar.gz && \
@@ -114,6 +114,6 @@ RUN cd /tmp && \
   cd /tmp/SDL_sound  && \
   mkdir /tmp/SDL_sound/build && \
   cd /tmp/SDL_sound/build && \
-  cmake -DSDL2_DIR=/usr/local/lib/cmake/SDL2 ..  && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
+  cmake -DSDL2_DIR=/usr/local/lib/cmake/SDL2  -DSDLSOUND_DECODER_MIDI=1 ..  && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   rm /usr/local/lib/libSDL2_sound.*so* && \
   rm -r /tmp/SDL_sound

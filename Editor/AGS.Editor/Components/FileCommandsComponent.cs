@@ -19,6 +19,7 @@ namespace AGS.Editor.Components
         private const string AUTO_NUMBER_SPEECH_COMMAND = "AutoNumberSpeech";
 		private const string CREATE_VOICE_ACTING_SCRIPT_COMMAND = "CreateVoiceActingScript";
         private const string REMOVE_GLOBAL_MESSAGES_COMMAND = "RemoveGlobalMessages";
+        private const string RECREATE_SPRITEFILE_COMMAND = "RecreateSpriteFile";
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
         private const string EXIT_COMMAND = "Exit";
         private const string DEFAULT_FONT_RESOURCE_PATH = "AGS.Editor.Resources.";
@@ -56,6 +57,7 @@ namespace AGS.Editor.Components
             commands.Commands.Add(new MenuCommand(AUTO_NUMBER_SPEECH_COMMAND, "&Auto-number speech lines...", "MenuIconAutoNumber"));
 			commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
             commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "&Remove Global Messages"));
+            commands.Commands.Add(new MenuCommand(RECREATE_SPRITEFILE_COMMAND, "Restore all sprites from sources"));
             _guiController.AddMenuItems(this, commands);
 
 			commands = new MenuCommands(GUIController.FILE_MENU_ID, 400);
@@ -146,6 +148,13 @@ namespace AGS.Editor.Components
                     RemoveGlobalMessagesFromGame();
                 }
             }
+            else if (controlID == RECREATE_SPRITEFILE_COMMAND)
+            {
+                if (_guiController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?") == DialogResult.Yes)
+                {
+                    RecreateSpriteFileFromSources();
+                }
+            }
             else if (controlID == SHOW_PREFERENCES_COMMAND)
             {
                 _guiController.ShowPreferencesEditor();
@@ -185,6 +194,30 @@ namespace AGS.Editor.Components
 
             _guiController.ShowMessage(messagesRemoved.ToString() + " Global Messages were removed.", MessageBoxIcon.Information);
             _guiController.SetMenuItemEnabled(this, REMOVE_GLOBAL_MESSAGES_COMMAND, false);
+        }
+
+        private object RecreateSpriteFileProcess(object parameter)
+        {
+            Utils.SpriteTools.WriteSpriteFileFromSources((string)parameter);
+            return null;
+        }
+
+        private void RecreateSpriteFileFromSources()
+        {
+            string tempFilename;
+            try
+            {
+                tempFilename = Path.GetTempFileName();
+                BusyDialog.Show("Please wait while the sprite file is recreated...", new BusyDialog.ProcessingHandler(RecreateSpriteFileProcess), tempFilename);
+            }
+            catch(Exception e)
+            {
+                _guiController.ShowMessage("The recreation of a sprite file was interrupted by error. NO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
+                return;
+            }
+
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            File.Delete(tempFilename);
         }
 
         private int CountSprites(SpriteFolder folder)

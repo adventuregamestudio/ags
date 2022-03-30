@@ -85,6 +85,14 @@ namespace AGS.Editor
 			}
         }
 
+        public void ReplaceSpriteFile(string srcFilename)
+        {
+            lock (_spriteSetLock)
+            {
+                _native.ReplaceSpriteFile(srcFilename);
+            }
+        }
+
         public void DrawGUI(IntPtr hdc, int x, int y, GUI gui, int resolutionFactor, float scale, int selectedControl)
         {
             _native.DrawGUI((int)hdc, x, y, gui, resolutionFactor, scale, selectedControl);

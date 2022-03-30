@@ -199,6 +199,48 @@ namespace AGS.Editor.Utils
             }
         }
 
+        /// <summary>
+        /// Tries to create bitmap from file, following Sprite's import settings.
+        /// Returns null on failure.
+        /// </summary>
+        public static Bitmap LoadBitmapForSprite(Sprite spr, string filename, int frame)
+        {
+            Bitmap bmp;
+            try
+            {
+                bmp = LoadFrameImageFromFile(filename, frame);
+                if (bmp == null)
+                    return null;
+            }
+            catch(Exception)
+            {
+                return null;
+            }
+
+            if (spr.ImportAsTile)
+            {
+                SpriteSheet spritesheet;
+                spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.ImportWidth, spr.ImportHeight));
+                Rectangle selection = spritesheet.GetFirstSpriteSelection(new Size(bmp.Width, bmp.Height));
+                if (selection.IsEmpty)
+                    return null;
+                return bmp.Clone(selection, bmp.PixelFormat);
+            }
+            return bmp;
+        }
+
+        /// <summary>
+        /// Tries to create bitmap from the Sprite's source reference,
+        /// following Sprite's import settings.
+        /// Returns null on failure.
+        /// </summary>
+        public static Bitmap LoadBitmapFromSource(Sprite spr)
+        {
+            if (string.IsNullOrEmpty(spr.SourceFile))
+                return null;
+            return LoadBitmapForSprite(spr, spr.SourceFile, spr.Frame);
+        }
+
         public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
             SpriteImportTransparency transparency, string filename, int frame, Rectangle selection, bool tile)
         {
@@ -522,6 +564,55 @@ namespace AGS.Editor.Utils
             bitmap.Palette = palette;
 
             return bitmap;
+        }
+
+        /// <summary>
+        /// Writes the sprite file, importing all the existing sprites either from the
+        /// their sources, or sprite cache, - whatever is present (in that order).
+        /// </summary>
+        public static void WriteSpriteFileFromSources(string filename)
+        {
+            int storeFlags = 0;
+            if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
+                storeFlags |= (int)Native.SpriteFileWriter.StorageFlags.OptimizeForSize;
+            var compressSprites = Factory.AGSEditor.CurrentGame.Settings.CompressSpritesType;
+
+            SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
+            var sprites = folder.GetAllSpritesFromAllSubFolders();
+            var orderedSprites = sprites.OrderBy(sprite => sprite.Number);
+
+            var writer = new Native.SpriteFileWriter(filename);
+            writer.Begin(storeFlags, compressSprites);
+            int spriteIndex = 0;
+            foreach (Sprite sprite in orderedSprites)
+            {
+                // NOTE: we must add empty slots to fill all the gaps in sprite IDs!
+                for (; spriteIndex < sprite.Number; ++spriteIndex)
+                {
+                    writer.WriteEmptySlot();
+                }
+
+                // Try get the image, first from source, then from editor's cache
+                var bmp = LoadBitmapFromSource(sprite);
+                // TODO: this is quite suboptimal, find a way to retrieve a native handle instead?
+                if (bmp == null)
+                    bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
+
+                if (bmp != null)
+                {
+                    writer.WriteBitmap(bmp, sprite.TransparentColour, sprite.RemapToGamePalette,
+                        sprite.RemapToRoomPalette, sprite.AlphaChannel);
+                    bmp.Dispose();
+                }
+                else
+                {
+                    bmp = new Bitmap(sprite.Width, sprite.Height);
+                    writer.WriteBitmap(bmp);
+                    bmp.Dispose();
+                }
+                spriteIndex++;
+            }
+            writer.End();
         }
     }
 }

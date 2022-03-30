@@ -204,7 +204,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
     {
         int saveGameSlot = Path::GetFileExtension(ff.Current()).ToInt();
         // only list games .000 to .XXX (to allow higher slots for other perposes)
-        if (saveGameSlot < 0 || saveGameSlot > top_index)
+        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) > top_index)
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);

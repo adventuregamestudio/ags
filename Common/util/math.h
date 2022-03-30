@@ -18,6 +18,10 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
+// safeguards against min/max macros
+#undef min
+#undef max
+
 #include <limits>
 
 #ifndef M_PI

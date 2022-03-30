@@ -119,9 +119,9 @@ public:
     // Tells if the data reading has reached EOS
     bool EOS() const { return _EOS; }
     // Gets current reading position, in ms
-    float GetPositionMs() const { return _posMs; }
+    float GetPositionMs() const { return static_cast<float>(_posMs); }
     // Gets total duration, in ms
-    float GetDurationMs() const { return _durationMs; }
+    float GetDurationMs() const { return static_cast<float>(_durationMs); }
 
     // Try initializing the sound sample, returns the result
     bool Open(float pos_ms = 0.f);
@@ -136,11 +136,11 @@ private:
     std::vector<char> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
-    float _durationMs = 0.f;
+    uint32_t _durationMs = 0u;
     bool _repeat = false;
     bool _EOS = false;
-    uint32_t _posBytes = 0u;
-    float _posMs = 0.f;
+    size_t _posBytes = 0u;
+    uint32_t _posMs = 0u;
 };
 
 

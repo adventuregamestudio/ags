@@ -2330,16 +2330,17 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 	}
 }
 
-AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
+    bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     RGB imgPalBuf[256];
-  int importedColourDepth;
-	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+    int importedColourDepth;
+    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if (thisgame.color_depth > 1) 
-	{
-		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
-	}
+    if (thisgame.color_depth > 1)
+    {
+        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
+    }
     else
     {
         int transcol;
@@ -2349,18 +2350,30 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
     }
 
     int flags = 0;
-	if (alphaChannel)
-	{
+    if (alphaChannel)
+    {
         flags |= SPF_ALPHACHANNEL;
-		if (tempsprite->GetColorDepth() == 32)
-		{
-			set_rgb_mask_from_alpha_channel(tempsprite);
-		}
-	}
-	else if (tempsprite->GetColorDepth() == 32)
-	{
-		set_opaque_alpha_channel(tempsprite);
-	}
+        if (tempsprite->GetColorDepth() == 32)
+        {
+            set_rgb_mask_from_alpha_channel(tempsprite);
+        }
+    }
+    else if (tempsprite->GetColorDepth() == 32)
+    {
+        set_opaque_alpha_channel(tempsprite);
+    }
+
+    if (out_flags)
+        *out_flags = flags;
+    return tempsprite;
+}
+
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+{
+    int flags;
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
+        useRoomBackgroundColours, alphaChannel, &flags);
     thisgame.SpriteInfos[slot].Flags = flags;
 
 	SetNewSprite(slot, tempsprite);

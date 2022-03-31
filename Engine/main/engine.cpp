@@ -1327,7 +1327,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
 	allegro_bitmap_test_init();
 
-    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup.GetCStr());
+    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
     return EXIT_NORMAL;
 }

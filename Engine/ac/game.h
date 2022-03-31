@@ -136,6 +136,8 @@ Common::String get_save_game_suffix();
 void set_save_game_suffix(const Common::String &suffix);
 // Returns full path to the save for the given slot number
 Common::String get_save_game_path(int slotNum);
+// Parses filename and retrieves save slot number, if present
+bool get_save_slotnum(const Common::String &filename, int &slot);
 void restore_game_dialog();
 void save_game_dialog();
 void free_do_once_tokens();

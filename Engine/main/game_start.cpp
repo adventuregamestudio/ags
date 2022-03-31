@@ -67,18 +67,14 @@ void start_game_init_editor_debugging()
     }
 }
 
-void start_game_load_savegame_on_startup(const char *load_save)
+void start_game_load_savegame_on_startup(const String &load_save)
 {
-    if (load_save != nullptr)
+    if (!load_save.IsEmpty())
     {
-        int saveGameNumber = 1000;
-        const char *sgName = strstr(load_save, "agssave.");
-        if (sgName != nullptr)
-        {
-            sscanf(sgName, "agssave.%03d", &saveGameNumber);
-        }
+        int slot = 1000;
+        get_save_slotnum(load_save, slot);
         current_fade_out_effect();
-        try_restore_save(load_save, saveGameNumber);
+        try_restore_save(load_save, slot);
     }
 }
 
@@ -109,7 +105,7 @@ void start_game() {
     first_room_initialization();
 }
 
-void initialize_start_and_play_game(int override_start_room, const char *load_save)
+void initialize_start_and_play_game(int override_start_room, const String &load_save)
 {
     try { // BEGIN try for ALI3DEXception
 

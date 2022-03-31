@@ -321,6 +321,13 @@ String get_save_game_path(int slotNum)
     return Path::ConcatPaths(saveGameDirectory, get_save_game_filename(slotNum));
 }
 
+bool get_save_slotnum(const String &filename, int &slot)
+{
+    if (filename.CompareLeftNoCase("agssave.") == 0)
+        return sscanf(filename.GetCStr(), "agssave.%03d", &slot) == 1;
+    return false;
+}
+
 // Convert a path possibly containing path tags into acceptable save path
 // NOTE that the game script may issue an order to change the save directory to
 // a dir of a new name. While we let this work, we also try to keep these

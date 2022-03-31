@@ -88,6 +88,7 @@ Script API:
  - String.AppendChar(), ReplaceChar() functions and String.Chars[] property are now working with
    the unicode characters.
  - String.Format("%c") specifier will now be able to print unicode characters.
+ - Extended Button.Animate() to have blocking style, direction and starting frame parameters.
  - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
  - Hotspot.Name and Object.Name may now be set in script.
  - Added Object.ManualScaling and Object.Scaling.
@@ -153,6 +154,7 @@ Engine:
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's
    properties' values (such as Position) could change while running a game script.
+ - 24-bit wav PCM support, comes with the new sound library.
  - File.ReadRawLineBack() now always reads full line, and not limited to 200 characters anymore.
  - Debug displays, such as showing room mask and character walk paths, are now implemented as
    non-blocking translucent overlays, allowing you to keep playing the game while they are on.

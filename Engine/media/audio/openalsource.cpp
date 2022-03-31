@@ -23,39 +23,45 @@ namespace AGS
 namespace Engine
 {
 
-// Finds an acceptable OpenAl format representation for the given SDL audio format
-static ALenum OpenAlFormatFromSDLFormat(SDL_AudioFormat fmt, int chans)
+// Finds an acceptable OpenAl format representation for the given SDL audio format;
+// if no direct match exists, configures a closest replacement
+static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_AudioInfo &conv)
 {
-    if (chans == 1) {
-        switch (fmt) {
-        case AUDIO_U8:
-            return AL_FORMAT_MONO8;
-        case AUDIO_S16SYS:
-            return AL_FORMAT_MONO16;
-        case AUDIO_F32SYS:
-            if (alIsExtensionPresent("AL_EXT_float32")) {
-                return alGetEnumValue("AL_FORMAT_MONO_FLOAT32");
-            }
-        }
-    }
-    else if (chans == 2) {
-        switch (fmt) {
-        case AUDIO_U8:
-            return AL_FORMAT_STEREO8;
-        case AUDIO_S16SYS:
-            return AL_FORMAT_STEREO16;
-        case AUDIO_F32SYS:
-            if (alIsExtensionPresent("AL_EXT_float32")) {
-                return alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
-            }
-        }
-    }
+    conv.rate = input.rate;
+    conv.channels = std::max<uint8_t>(2, input.channels);
+    conv.format = input.format;
 
-#ifdef AUDIO_CORE_DEBUG
-    Debug::Printf("OpenAlFormatFromSDLFormat: bad format - format: %d, chans: %d, freq: %d", fmt, chans, freq);
-#endif
-
-    return 0;
+    switch (input.format)
+    {
+    /* 8-bit integer samples */
+    case AUDIO_U8:
+    case AUDIO_S8:
+        conv.format = AUDIO_U8;
+        return conv.channels == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8;
+    /* 16-bit integer samples */
+    case AUDIO_U16LSB:
+    case AUDIO_S16LSB:
+    case AUDIO_U16MSB:
+    case AUDIO_S16MSB:
+        conv.format = AUDIO_S16SYS;
+        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+    /* 32-bit integer and float samples */
+    case AUDIO_S32LSB:
+    case AUDIO_S32MSB:
+    case AUDIO_F32LSB:
+    case AUDIO_F32MSB:
+        if (alIsExtensionPresent("AL_EXT_float32"))
+        {
+            conv.format = AUDIO_F32SYS;
+            return conv.channels == 1 ?
+                alGetEnumValue("AL_FORMAT_MONO_FLOAT32") :
+                alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
+        }
+        /* fall-through */
+    default:
+        conv.format = AUDIO_S16SYS;
+        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+    }
 }
 
 // Returns buffer duration in milliseconds
@@ -91,22 +97,21 @@ static struct
 
 OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq)
 {
+    _inputFmt.format = format;
+    _inputFmt.channels = channels;
+    _inputFmt.rate = freq;
+    _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);;
     alGenSources(1, &_source);
     dump_al_errors();
-    _inputFormat = format;
-    _alFormat = OpenAlFormatFromSDLFormat(format, channels);
-    // FIXME: if failed to find matching format, plan resampler!
-    _channels = channels;
-    _freq = freq;
+    _resampler.Setup(_inputFmt, _recvFmt);
 }
 
 OpenAlSource::OpenAlSource(OpenAlSource&& src)
 {
-    _source = src._source;
-    _inputFormat = src._inputFormat;
+    _inputFmt = src._inputFmt;
+    _recvFmt = src._recvFmt;
     _alFormat = src._alFormat;
-    _channels = src._channels;
-    _freq = src._freq;
+    _source = src._source;
     src._source = 0;
 }
 
@@ -161,7 +166,7 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     // use provided timestamp, or calc our own
     const float use_ts = data.Ts >= 0.f ? data.Ts : _predictTs;
     const float dur_ms = static_cast<float>(
-        SoundHelper::MillisecondsFromBytes(data.Size, _inputFormat, _channels, _freq));
+        SoundHelper::MillisecondsFromBytes(data.Size, _inputFmt.format, _inputFmt.channels, _inputFmt.rate));
     if (_resampler.HasConversion())
     {
         size_t conv_sz;
@@ -172,7 +177,7 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
         }
     }
     // Fill the buffer and queue into AL; note that the al's buffer is auto-resizing
-    alBufferData(buf_id, _alFormat, input_buf.Data, input_buf.Size, _freq);
+    alBufferData(buf_id, _alFormat, input_buf.Data, input_buf.Size, _recvFmt.rate);
     dump_al_errors();
     alSourceQueueBuffers(_source, 1, &buf_id);
     dump_al_errors();
@@ -320,8 +325,9 @@ void OpenAlSource::SetSpeed(float speed)
     _speed = speed;
 
     // Configure resample
-    int new_freq = static_cast<int>(_freq / _speed);
-    if (!_resampler.Setup(_inputFormat, _channels, _freq, _inputFormat, _channels, new_freq))
+    int new_freq = static_cast<int>(_recvFmt.rate / _speed);
+    if (!_resampler.Setup(_inputFmt.format, _inputFmt.channels, _inputFmt.rate,
+        _recvFmt.format, _recvFmt.channels, new_freq))
     { // error, reset
         _speed = 1.0;
     }

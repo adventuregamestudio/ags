@@ -81,10 +81,9 @@ private:
     void Unqueue();
 
     ALuint _source = 0u;
-    SDL_AudioFormat _inputFormat = 0u;
-    ALenum _alFormat = 0u;
-    int _freq = 0;
-    int _channels = 0;
+    Sound_AudioInfo _inputFmt; // actual input format
+    Sound_AudioInfo _recvFmt; // corrected format (if necessary)
+    ALenum _alFormat = 0u; // matching OpenAl format
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
     float _positionMs = 0.f;

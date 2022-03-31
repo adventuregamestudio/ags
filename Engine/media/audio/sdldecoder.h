@@ -87,6 +87,8 @@ public:
     // note that if no conversion necessary it still considered a success.
     bool Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
         SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate);
+    bool Setup(const Sound_AudioInfo &src, const Sound_AudioInfo &dst)
+        { return Setup(src.format, src.channels, src.rate, dst.format, dst.channels, dst.rate); }
     // Converts given sound data, on success returns a read-only pointer to the
     // memory containing resulting data, and fills out_sz with output length value;
     // note that if no conversion is required it does not perform any operation

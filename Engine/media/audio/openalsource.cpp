@@ -28,7 +28,7 @@ namespace Engine
 static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_AudioInfo &conv)
 {
     conv.rate = input.rate;
-    conv.channels = std::max<uint8_t>(2, input.channels);
+    conv.channels = std::min<uint8_t>(2, input.channels);
     conv.format = input.format;
 
     switch (input.format)

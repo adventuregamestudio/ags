@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 10, April 2022
+
+Engine:
+ - Fixed crash when visible viewport does not have any linked camera.
+ - Fixed ListBox.FillSaveGameList() may include save slots with negative slot number (e.g. when
+   the save file has "*.-01" extension).
+ - Fixed potential crash after failed RunAGSGame() call.
+ - Fixed search for the game data by GUID when restoring a save belonging to another game;
+   this was implemented in 3.5.1, but appeared to not work correctly.
+
+
 VERSION 3.5.1 - Patch 9, March 2022
 
 Editor:

@@ -178,12 +178,9 @@ Engine:
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
- - Fixed crash when visible viewport does not have any linked camera.
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
- - Fixed ListBox.FillSaveGameList() may include save slots with negative slot number (e.g. when
-   the save file has "*.-01" extension).
 
 Compatibility:
  - Fallback to loop 0 if the speech view does not have frames in the current directional loop.
@@ -212,6 +209,17 @@ Web / Emscripten:
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
  - Remade sound options to reflect the move to the new audio system in the engine.
+
+
+VERSION 3.5.1 - Patch 10, April 2022
+
+Engine:
+ - Fixed crash when visible viewport does not have any linked camera.
+ - Fixed ListBox.FillSaveGameList() may include save slots with negative slot number (e.g. when
+   the save file has "*.-01" extension).
+ - Fixed potential crash after failed RunAGSGame() call.
+ - Fixed search for the game data by GUID when restoring a save belonging to another game;
+   this was implemented in 3.5.1, but appeared to not work correctly.
 
 
 VERSION 3.5.1 - Patch 9, March 2022

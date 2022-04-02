@@ -451,13 +451,6 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    // Note that as of 3.5.0 data format the clip IDs are still restricted
-    // to actual item index in array, so we don't make any difference
-    // between game versions, for now.
-    for (size_t i = 0; i < game.audioClips.size(); ++i)
-    {
-        game.audioClips[i].id = i;
-    }
 }
 
 // Convert character data to the current version

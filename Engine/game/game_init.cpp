@@ -132,7 +132,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 }
 
 // Initializes audio channels and clips and registers them in the script system
-void InitAndRegisterAudioObjects(const GameSetupStruct &game)
+void InitAndRegisterAudioObjects(GameSetupStruct &game)
 {
     for (int i = 0; i < game.numGameChannels; ++i)
     {
@@ -142,8 +142,12 @@ void InitAndRegisterAudioObjects(const GameSetupStruct &game)
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
+        // Note that as of 3.5.0 data format the clip IDs are still restricted
+        // to actual item index in array, so we don't make any difference
+        // between game versions, for now.
+        game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[i].scriptName, (void*)&game.audioClips[i], &ccDynamicAudioClip);
+        ccAddExternalDynamicObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
     }
 }
 
@@ -320,7 +324,7 @@ void RegisterStaticArrays(const GameSetupStruct &game)
 // Initializes various game entities and registers them in the script system
 HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 {
-    const GameSetupStruct &game = ents.Game;
+    GameSetupStruct &game = ents.Game;
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(ents);
     InitAndRegisterDialogs(game);

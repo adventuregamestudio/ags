@@ -127,6 +127,7 @@ std::vector<IDriverDependantBitmap*> guibgbmp;
 // GUI control surfaces
 std::vector<Bitmap*> guiobjbg;
 std::vector<IDriverDependantBitmap*> guiobjbmp;
+std::vector<Point> guiobjoff; // because surface may be larger than logical position
 std::vector<int> guiobjbmpref; // first control texture index of each GUI
 // For debugging room masks
 RoomAreaMask debugRoomMask = kRoomAreaNone;
@@ -528,6 +529,7 @@ void init_game_drawdata()
     }
     guiobjbg.resize(guio_num);
     guiobjbmp.resize(guio_num);
+    guiobjoff.resize(guio_num);
 }
 
 void dispose_game_drawdata()
@@ -545,6 +547,7 @@ void dispose_game_drawdata()
     guiobjbg.clear();
     guiobjbmp.clear();
     guiobjbmpref.clear();
+    guiobjoff.clear();
 }
 
 static void dispose_debug_room_drawdata()
@@ -2266,20 +2269,22 @@ void draw_gui_controls(GUIMain &gui)
             continue;
         obj->ClearChanged();
 
+        Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
         if (guiobjbg[draw_index] == nullptr ||
-            guiobjbg[draw_index]->GetSize() != Size(obj->Width, obj->Height))
+            guiobjbg[draw_index]->GetSize() != obj_surf.GetSize())
         {
             recreate_drawobj_bitmap(guiobjbg[draw_index], guiobjbmp[draw_index],
-                obj->Width, obj->Height);
+                obj_surf.GetWidth(), obj_surf.GetHeight());
         }
         
         guiobjbg[draw_index]->ClearTransparent();
-        obj->Draw(guiobjbg[draw_index]);
+        obj->Draw(guiobjbg[draw_index], obj->X - obj_surf.Left, obj->Y - obj_surf.Top);
 
         if (guiobjbmp[draw_index] != nullptr)
             gfxDriver->UpdateDDBFromBitmap(guiobjbmp[draw_index], guiobjbg[draw_index], obj->HasAlphaChannel());
         else
             guiobjbmp[draw_index] = gfxDriver->CreateDDBFromBitmap(guiobjbg[draw_index], obj->HasAlphaChannel());
+        guiobjoff[draw_index] = Point(obj_surf.GetLT());
     }
 }
 
@@ -2289,11 +2294,9 @@ void draw_gui_and_overlays()
     // Draw gui controls on separate textures if:
     // - it is a 3D renderer (software one may require adjustments -- needs testing)
     // - not legacy alpha blending (may we implement specific texture blend?)
-    // - gui controls clipping is on (need to implement content size calc for all controls)
     const bool draw_controls_as_textures =
            gfxDriver->HasAcceleratedTransform()
-        && (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
-        && (game.options[OPT_CLIPGUICONTROLS] != 0);
+        && (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper);
 
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
         add_render_stage(AGSE_PREGUIDRAW);
@@ -2400,7 +2403,9 @@ void draw_gui_and_overlays()
                         continue;
                     guiobjbmp[draw_index + obj_id]->SetTransparency(guis[aa].Transparency);
                     add_to_sprite_list(guiobjbmp[draw_index + obj_id],
-                        guis[aa].X + obj->X, guis[aa].Y + obj->Y, guis[aa].ZOrder, false);
+                        guis[aa].X + guiobjoff[draw_index + obj_id].X,
+                        guis[aa].Y + guiobjoff[draw_index + obj_id].Y,
+                        guis[aa].ZOrder, false);
                 }
             }
         }

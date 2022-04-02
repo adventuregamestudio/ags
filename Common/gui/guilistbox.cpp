@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include "gui/guilistbox.h"
 #include "ac/game_version.h"
 #include "font/fonts.h"
@@ -76,6 +77,36 @@ bool GUIListBox::IsInRightMargin(int x) const
     if (x >= (Width - get_fixed_pixel_size(6)) && IsBorderShown() && AreArrowsShown())
         return 1;
     return 0;
+}
+
+Rect GUIListBox::CalcGraphicRect(bool clipped)
+{
+    if (clipped)
+        return RectWH(X, Y, Width, Height);
+    // TODO: need to find a way to text position, or there'll be some repetition
+    // have to precache text and size on some events:
+    // - translation change
+    // - macro value change (score, overhotspot etc)
+    Rect rc = RectWH(X, Y, Width, Height);
+    UpdateMetrics();
+    const int width = Width - 1;
+    const int height = Height - 1;
+    const int pixel_size = get_fixed_pixel_size(1);
+    int right_hand_edge = width - pixel_size - 1;
+    // calculate the scroll bar's width if necessary
+    if (ItemCount > VisibleItemCount && IsBorderShown() && AreArrowsShown())
+        right_hand_edge -= get_fixed_pixel_size(7);
+    Line max_line;
+    for (int item = 0; (item < VisibleItemCount) && (item + TopItem < ItemCount); ++item)
+    {
+        int at_y = pixel_size + item * RowHeight;
+        int item_index = item + TopItem;
+        PrepareTextToDraw(Items[item_index]);
+        Line lpos = GUI::CalcTextPositionHor(_textToDraw.GetCStr(), Font, 1 + pixel_size, right_hand_edge, at_y + 1,
+            (FrameAlignment)TextAlignment);
+        max_line.X2 = std::max(max_line.X2, lpos.X2);
+    }
+    return SumRects(rc, RectWH(X, Y, max_line.X2 - max_line.X1 + 1, Height));
 }
 
 int GUIListBox::AddItem(const String &text)
@@ -146,11 +177,8 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
     Rect old_clip = ds->GetClip();
     if (scrollbar && GUI::Options.ClipControls)
         ds->SetClip(Rect(x, y, right_hand_edge + 1, y + Height - 1));
-    for (int item = 0; item < VisibleItemCount; ++item)
+    for (int item = 0; (item < VisibleItemCount) && (item + TopItem < ItemCount); ++item)
     {
-        if (item + TopItem >= ItemCount)
-            break;
-
         int at_y = y + pixel_size + item * RowHeight;
         if (item + TopItem == SelectedItem)
         {

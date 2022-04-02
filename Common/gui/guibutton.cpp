@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "ac/spritecache.h"
 #include "gui/guibutton.h"
+#include "ac/gamestructdefines.h"
+#include "ac/spritecache.h"
 #include "gui/guimain.h" // TODO: extract helper functions
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -70,7 +70,7 @@ GUIButton::GUIButton()
     IsPushed = false;
     IsMouseOver = false;
     _placeholder = kButtonPlace_None;
-    _unnamed = false;
+    _unnamed = true;
 
     _scEventCount = 1;
     _scEventNames[0] = "Click";
@@ -92,6 +92,53 @@ bool GUIButton::IsClippingImage() const
     return (Flags & kGUICtrl_Clip) != 0;
 }
 
+Rect GUIButton::CalcGraphicRect(bool clipped)
+{
+    if (clipped)
+        return RectWH(X, Y, Width, Height);
+    // TODO: need to find a way to cache image and text position, or there'll be some repetition
+    Rect rc = RectWH(X, Y, Width, Height);
+    if (IsImageButton())
+    {
+        if (IsClippingImage())
+            return rc;
+        // Main button graphic
+        if (spriteset[CurrentImage] != nullptr)
+            rc = SumRects(rc, RectWH(X, Y, get_adjusted_spritewidth(CurrentImage), get_adjusted_spriteheight(CurrentImage)));
+        // Optionally merge with the inventory pic
+        if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
+        {
+            Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));
+            GUIButtonPlaceholder place = _placeholder;
+            if (place == kButtonPlace_InvItemAuto)
+            {
+                place = ((inv_sz.Width > Width - 6) || (inv_sz.Height > Height - 6)) ?
+                    kButtonPlace_InvItemStretch : kButtonPlace_InvItemCenter;
+            }
+
+            Rect inv_rc = (place == kButtonPlace_InvItemStretch) ?
+                RectWH(X + 3, Y + 3, Width - 6, Height - 6) :
+                RectWH(X + Width / 2 - inv_sz.Width / 2,
+                       Y + Height / 2 - inv_sz.Height / 2,
+                       inv_sz.Width, inv_sz.Height);
+            rc = SumRects(rc, inv_rc);
+        }
+    }
+    // Optionally merge with the button text
+    if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
+    {
+        PrepareTextToDraw();
+        Rect frame = RectWH(X + 2, Y + 2, Width - 4, Height - 4);
+        if (IsPushed && IsMouseOver)
+        {
+            frame.Left++;
+            frame.Top++;
+        }
+        rc = SumRects(rc, GUI::CalcTextPosition(_textToDraw.GetCStr(), Font, frame, TextAlignment));
+    }
+    return rc;
+}
+
 void GUIButton::Draw(Bitmap *ds, int x, int y)
 {
     bool draw_disabled = !IsGUIEnabled(this);
@@ -110,8 +157,7 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
         // buttons off when disabled - no point carrying on
         return;
 
-    // CHECKME: why testing both CurrentImage and Image?
-    if (CurrentImage > 0 && IsImageButton())
+    if (IsImageButton())
         DrawImageButton(ds, x, y, draw_disabled);
     // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
     else if (!_text.IsEmpty())
@@ -144,7 +190,7 @@ void GUIButton::SetText(const String &text)
         _placeholder = kButtonPlace_None;
 
     // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
-    _unnamed = _text.Compare("New Button") == 0;
+    _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
     MarkChanged();
 }
 
@@ -182,16 +228,13 @@ void GUIButton::OnMouseLeave()
 
 void GUIButton::OnMouseUp()
 {
-    int new_image;
+    int new_image = Image;
     if (IsMouseOver)
     {
-        new_image = MouseOverImage;
+        if (MouseOverImage > 0)
+            new_image = MouseOverImage;
         if (IsGUIEnabled(this) && IsClickable())
             IsActivated = true;
-    }
-    else
-    {
-        new_image = Image;
     }
 
     if ((CurrentImage != new_image) || (IsPushed && !IsImageButton()))
@@ -316,18 +359,12 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
     {
+        Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));
         GUIButtonPlaceholder place = _placeholder;
         if (place == kButtonPlace_InvItemAuto)
         {
-            if ((get_adjusted_spritewidth(gui_inv_pic) > Width - 6) ||
-                (get_adjusted_spriteheight(gui_inv_pic) > Height - 6))
-            {
-                place = kButtonPlace_InvItemStretch;
-            }
-            else
-            {
-                place = kButtonPlace_InvItemCenter;
-            }
+            place = ((inv_sz.Width > Width - 6) || (inv_sz.Height > Height - 6)) ?
+                kButtonPlace_InvItemStretch : kButtonPlace_InvItemCenter;
         }
 
         if (place == kButtonPlace_InvItemStretch)
@@ -335,11 +372,11 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
             ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, Width - 6, Height - 6),
                 kBitmap_Transparency);
         }
-        else if (place == kButtonPlace_InvItemCenter)
+        else
         {
             draw_gui_sprite(ds, gui_inv_pic,
-                x + Width / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
-                y + Height / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2,
+                x + Width / 2 - inv_sz.Width / 2,
+                y + Height / 2 - inv_sz.Height / 2,
                 true);
         }
     }
@@ -353,7 +390,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
     }
 
     // Don't print Text of (INV) (INVSHR) (INVNS)
-    if (_placeholder == kButtonPlace_None && !_unnamed)
+    if ((_placeholder == kButtonPlace_None) && !_unnamed)
         DrawText(ds, x, y, draw_disabled);
 
     if (IsClippingImage() && !GUI::Options.ClipControls)
@@ -362,8 +399,6 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
 
 void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
 {
-    if (_text.IsEmpty())
-        return;
     // TODO: need to find a way to cache Text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
